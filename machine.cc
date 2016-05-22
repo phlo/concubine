@@ -2,11 +2,10 @@
 
 #include <iostream>
 
-#include "thread.hh"
 #include "program.hh"
 
 /* constructor ****************************************************************/
-Machine::Machine (unsigned int s, unsigned long b = 0) :
+Machine::Machine (unsigned long s, unsigned long b = 0) :
   memory({}), // initialize with zeros ffs ..
   threads(),
   active(),
@@ -27,12 +26,8 @@ unsigned int Machine::createThread (Program & program)
   threads.push_back(ThreadPtr(new Thread(*this, id, program)));
 
   /* add to sync id list */
-  for (short i : program.getSyncIDs())
-    {
-      threadsPerSyncID[i].push_back(threads[id]);
-
-      ThreadPtr t = threadsPerSyncID[i].back();
-    }
+  for (auto i : program.getSyncIDs())
+    threadsPerSyncID[i].push_back(threads[id]);
 
   return id;
 }
@@ -52,11 +47,12 @@ int Machine::run ()
 {
   unsigned int numThreads = threads.size();
 
-  uniform_int_distribution<int> scheduler(0, numThreads - 1);
+  uniform_int_distribution<unsigned long> scheduler(0, numThreads - 1);
 
   for (auto t : threads)
     cout << "# T" << t->id << " = " << t->program.getPath() << endl;
   cout << "# STARTED [seed = " << seed << "]" << endl;
+  cout << "# tid\tpc\tcmd\targ" << endl;
 
   activateThreads(threads);
 
@@ -85,7 +81,7 @@ int Machine::run ()
               active.erase(active.begin() + id);
 
               /* current sync barrier id */
-              short s = thread->sync;
+              word s = thread->sync;
 
               /* add to waiting map */
               waitingPerSyncID[s].push_back(thread);
@@ -122,7 +118,7 @@ int Machine::run ()
         case Thread::State::EXITING:
             {
               cout << "# EXIT " << thread->accu << endl;
-              return thread->accu;
+              return static_cast<int>(thread->accu);
             }
 
         default:

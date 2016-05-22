@@ -16,6 +16,7 @@ Program * Parser::parse ()
           string token;
           if (file >> token)
             parse(token);
+          // TODO: throw something if parse fails
         }
       file.close();
     }
@@ -30,38 +31,42 @@ Program * Parser::parse ()
 /* Parser::parse (string) *****************************************************/
 bool Parser::parse (string & cmd)
 {
-  /* valid token found */
-  if (InstructionSet::factory.find(cmd) != InstructionSet::factory.end())
-    {
-      Instruction * i = InstructionSet::factory[cmd]();
+  InstructionPtr i;
 
-      if (UnaryInstruction * u = dynamic_cast<UnaryInstruction *>(i))
+  switch (Instruction::Set::contains(cmd))
+    {
+    case Instruction::Type::NULLARY:
         {
-          short arg;
+          i = Instruction::Set::create(cmd);
+          break;
+        }
+    case Instruction::Type::UNARY:
+        {
+          word arg;
           if (file >> arg)
             {
-              u->setArg(arg);
-              program->add(shared_ptr<UnaryInstruction>(u));
+              i = Instruction::Set::create(cmd, arg);
+              break;
             }
           else
-            return false;
+            goto UNKNOWN;
         }
+    default:
+      /* comment block started? */
+      if (skip || cmd[0] == '#')
+        {
+          return skip = true;
+        }
+      /* unrecognized token */
       else
-        program->add(shared_ptr<Instruction>(i));
+        {
+UNKNOWN:
+          cout << "error: " << cmd << " unknown token" << endl;
+          return false;
+        }
+    }
 
-      skip = false;
-    }
-  /* comment block started */
-  else if (skip || cmd[0] == '#')
-    {
-      skip = true;
-    }
-  /* unrecognized token */
-  else
-    {
-      cout << "error: " << cmd << " unknown token" << endl;
-      return false;
-    }
+  program->add(i);
 
   return true;
 }

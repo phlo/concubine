@@ -11,17 +11,18 @@
  ******************************************************************************/
 class Program : public deque<shared_ptr<Instruction>>
 {
-  string                  path;
+  string                path;
 
-  unordered_set<short>    syncIDs;
+  unordered_set<word>   syncIDs;
 
 public:
   Program (string &);
 
-  void                    add (shared_ptr<Instruction>);
+  void                  add (InstructionPtr);
 
-  string &                getPath (void);
-  unordered_set<short> &  getSyncIDs (void);
+  string &              getPath (void);
+
+  unordered_set<word> & getSyncIDs (void);
 };
 
 /*******************************************************************************

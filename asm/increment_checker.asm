@@ -9,6 +9,6 @@ JZ 5
 # set specific exit code?
 #MOVI 1
 # exit
-EXIT
+EXIT 1
 # continue execution
 SYNC 2

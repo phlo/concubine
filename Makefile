@@ -1,9 +1,9 @@
-CXX=g++
+CXX=clang++
 #WFLAGS=-pedantic -Wall -Wextra
-WFLAGS=-pedantic -Wall -Wno-unused -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-declarations -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-promo -Wstrict-overflow=5 -Wswitch-default -Wundef #-Werror -Wsign-conversion
-CXXFLAGS=-std=c++11 -g $(WFLAGS)
+WFLAGS=-pedantic -Wall -Wno-unused -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-declarations -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-promo -Wstrict-overflow=5 -Wswitch-default -Wundef -Werror -Wsign-conversion
+CXXFLAGS=-std=c++11 -g $(WFLAGS) -O3
 LDFLAGS=$(CXXFLAGS)
-LDLIBS=-pthread
+LDLIBS=
 RM=rm -f
 
 SRCS=main.cc instructionset.cc program.cc parser.cc machine.cc thread.cc

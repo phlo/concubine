@@ -7,26 +7,18 @@ using namespace std;
 /* constructor ****************************************************************/
 Program::Program(string & p) : path(p), syncIDs() {}
 
-/* Program::add (shared_ptr<Instruction>) *************************************/
-void Program::add (shared_ptr<Instruction> i)
+/* Program::add (InstructionPtr) **********************************************/
+void Program::add (InstructionPtr i)
 {
   push_back(i);
 
   /* collect sync barrier ids */
   if (shared_ptr<Sync> s = dynamic_pointer_cast<Sync>(i))
-    {
-      syncIDs.insert(s->getArg());
-    }
+    syncIDs.insert(s->arg);
 }
 
 /* Program::getPath (void) ****************************************************/
-string & Program::getPath ()
-{
-  return path;
-}
+string & Program::getPath () { return path; }
 
 /* Program::getSyncIDs (void) *************************************************/
-unordered_set<short> & Program::getSyncIDs ()
-{
-  return syncIDs;
-}
+unordered_set<word> & Program::getSyncIDs () { return syncIDs; }

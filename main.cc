@@ -17,12 +17,6 @@ void printUsage (char * name)
   "  source_file   one ore more source files, each being executed as a separate thread\n";
 }
 
-void printInstructionSet ()
-{
-  for (auto s : InstructionSet::factory)
-    cout << s.first << endl;
-}
-
 /*******************************************************************************
  * main
  * TODO: error handling!!!

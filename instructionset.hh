@@ -4,107 +4,144 @@
 #include <string>
 #include <unordered_map>
 
+#include "common.hh"
+
 using namespace std;
 
 /* forward declerations */
 struct Thread;
 
 /*******************************************************************************
- * OPCodes
- * NOTE: really neccessary?
+ * Common Instruction Base Class (Nullary)
  ******************************************************************************/
-enum class OPCode
+struct Instruction
 {
-  Exit,
-  Halt,
-  Sync,
-  Load,
-  Store,
-  Add,
-  Addi,
-  Sub,
-  Subi,
-  Cmp,
-  Jz,
-  Jnz,
-  Jl,
-  Jle,
-  Jg,
-  Jge,
-  Mem,
-  Cas
+  /* Instruction Types (Arities) */
+  enum Type
+    {
+      UNKNOWN = 0,
+      NULLARY,
+      UNARY
+    };
+
+   /* OP Codes */
+   // NOTE: really neccessary?
+  enum OPCode
+    {
+      Exit,
+      Halt,
+      Sync,
+      Load,
+      Store,
+      Add,
+      Addi,
+      Sub,
+      Subi,
+      Cmp,
+      Jz,
+      Jnz,
+      Jl,
+      Jle,
+      Jg,
+      Jge,
+      Mem,
+      Cas
+    };
+
+/* Instruction Set - containing object factories to simplify parsing **********/
+  struct Set
+    {
+      /* map containing pointers to instruction object factories */
+      static  unordered_map<string, Instruction * (*)()>
+              nullaryFactory;
+
+      /* map containing pointers to unary instruction object factories */
+      static  unordered_map<string, Instruction * (*)(const word)>
+              unaryFactory;
+
+      virtual ~Set (void) = 0; // for a purely static class
+
+      static Instruction::Type        contains (string &);
+      static shared_ptr<Instruction>  create (string &);
+      static shared_ptr<Instruction>  create (string &, const word);
+    };
+
+  /* Instruction Members */
+  virtual Type            getType   (void);
+  virtual OPCode          getOPCode (void) = 0;
+  virtual const string &  getSymbol (void) = 0;
+
+  virtual void            execute (Thread &) = 0;
+
+  virtual void            print (Thread &);
 };
+
+typedef shared_ptr<Instruction> InstructionPtr;
+
 
 /*******************************************************************************
- * Instruction Base Classes
+ * Unary Instruction Base Class
  ******************************************************************************/
-class Instruction
+struct UnaryInstruction : public Instruction
 {
-public:
-  virtual const string& getSymbol () = 0;
-  virtual       OPCode  getOPCode () = 0;
-  virtual       void    execute (Thread &) = 0;
+  const word      arg;
 
-  virtual void  printDebug (Thread &);
+  UnaryInstruction (const word);
+
+  virtual Type    getType (void);
+
+  virtual void    execute (Thread &) = 0;
+
+  virtual void    print (Thread &);
 };
 
-class UnaryInstruction : public Instruction
-{
-protected:
-  int           arg;
-
-public:
-  virtual void  setArg (int);
-  virtual int   getArg (void);
-
-  virtual void  printDebug (Thread &);
-};
-
-
-/*******************************************************************************
- * InstructionSet
- ******************************************************************************/
-struct InstructionSet
-{
-  /* map containing pointers to instruction object factories */
-  static unordered_map<string, Instruction * (*)()> factory;
-};
+typedef shared_ptr<UnaryInstruction> UnaryInstructionPtr;
 
 
 /*******************************************************************************
  * Instructions
  ******************************************************************************/
-#define DECLARE_INSTRUCTION(classname, baseclass) \
-  class classname : public baseclass              \
-  {                                               \
+#define DECLARE_COMMON_INSTRUCTION_MEMBERS()      \
     static  const string      symbol;             \
                                                   \
-    virtual const string&     getSymbol ();       \
     virtual       OPCode      getOPCode ();       \
+    virtual const string&     getSymbol ();       \
                                                   \
-    virtual       void        execute (Thread &); \
+    virtual       void        execute (Thread &);
+
+#define DECLARE_INSTRUCTION_NULLARY(classname)  \
+  class classname : public Instruction          \
+  {                                             \
+    DECLARE_COMMON_INSTRUCTION_MEMBERS ()       \
   };
 
-DECLARE_INSTRUCTION(Exit,   Instruction)
-DECLARE_INSTRUCTION(Halt,   Instruction)
-DECLARE_INSTRUCTION(Sync,   UnaryInstruction)
+#define DECLARE_INSTRUCTION_UNARY(classname)  \
+  class classname : public UnaryInstruction   \
+  {                                           \
+    DECLARE_COMMON_INSTRUCTION_MEMBERS ()     \
+    classname (const word);                   \
+  };
 
-DECLARE_INSTRUCTION(Load,   UnaryInstruction)
-DECLARE_INSTRUCTION(Store,  UnaryInstruction)
+DECLARE_INSTRUCTION_UNARY   (Sync)
+DECLARE_INSTRUCTION_NULLARY (Halt)
+DECLARE_INSTRUCTION_UNARY   (Exit)
 
-DECLARE_INSTRUCTION(Add,    Load)
-DECLARE_INSTRUCTION(Addi,   UnaryInstruction)
-DECLARE_INSTRUCTION(Sub,    Load)
-DECLARE_INSTRUCTION(Subi,   UnaryInstruction)
+DECLARE_INSTRUCTION_UNARY   (Load)
+DECLARE_INSTRUCTION_UNARY   (Store)
 
-DECLARE_INSTRUCTION(Cmp,    Load)
-DECLARE_INSTRUCTION(Jz,     UnaryInstruction)
-DECLARE_INSTRUCTION(Jnz,    UnaryInstruction)
-DECLARE_INSTRUCTION(Jl,     UnaryInstruction)
-DECLARE_INSTRUCTION(Jle,    UnaryInstruction)
-DECLARE_INSTRUCTION(Jg,     UnaryInstruction)
-DECLARE_INSTRUCTION(Jge,    UnaryInstruction)
+DECLARE_INSTRUCTION_UNARY   (Add)
+DECLARE_INSTRUCTION_UNARY   (Addi)
+DECLARE_INSTRUCTION_UNARY   (Sub)
+DECLARE_INSTRUCTION_UNARY   (Subi)
 
-DECLARE_INSTRUCTION(Mem,    UnaryInstruction)
-DECLARE_INSTRUCTION(Cas,    UnaryInstruction)
+DECLARE_INSTRUCTION_UNARY   (Cmp)
+DECLARE_INSTRUCTION_UNARY   (Jz)
+DECLARE_INSTRUCTION_UNARY   (Jnz)
+DECLARE_INSTRUCTION_UNARY   (Jl)
+DECLARE_INSTRUCTION_UNARY   (Jle)
+DECLARE_INSTRUCTION_UNARY   (Jg)
+DECLARE_INSTRUCTION_UNARY   (Jge)
+
+DECLARE_INSTRUCTION_NULLARY (Mem)
+DECLARE_INSTRUCTION_UNARY   (Cas)
 #endif

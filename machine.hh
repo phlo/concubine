@@ -5,16 +5,14 @@
 #include <deque>
 #include <vector>
 #include <random>
+#include <unordered_map>
 
 #include <cassert>
 
+#include "common.hh"
 #include "thread.hh"
 
 using namespace std;
-
-/* static member won't compile - not a constant expression */
-#define REGISTER_SIZE 16
-#define MEMORY_SIZE 1 << REGISTER_SIZE
 
 /*******************************************************************************
  * Machine
@@ -24,34 +22,32 @@ class Machine
   friend struct Thread;
 
   // machine memory
-  array<short, MEMORY_SIZE>   memory;
+  array<word, numeric_limits<word>::max() + 1>  memory;
 
   // threads
-  deque<ThreadPtr>            threads;
+  deque<ThreadPtr>                              threads;
 
   // active threads
-  deque<ThreadPtr>            active;
+  deque<ThreadPtr>                              active;
 
-  // maps sync barrier IDs to the lists of threads containing them
-  // ... or
-  // lists of threads containing a specific sync barrier (id)
-  unordered_map<short, deque<ThreadPtr>>  threadsPerSyncID;
+  // lists of threads containing calls to a specific sync barrier (id)
+  unordered_map<word, deque<ThreadPtr>>         threadsPerSyncID;
 
-  // lists of threads waiting for a specific sync barrier (id)
-  unordered_map<short, deque<ThreadPtr>>  waitingPerSyncID;
+  // lists of threads currently waiting for a specific sync barrier (id)
+  unordered_map<word, deque<ThreadPtr>>         waitingPerSyncID;
 
   // bounded execution
-  unsigned long               bound;
+  unsigned long                                 bound;
 
   // thread scheduling
-  unsigned int                seed;
-  mt19937                     randomGenerator;
+  unsigned long                                 seed;
+  mt19937                                       randomGenerator;
 
   // adds all threads to the active queue and sets them running
-  void activateThreads (deque<ThreadPtr> &);
+  void  activateThreads (deque<ThreadPtr> &);
 
 public:
-  Machine (unsigned int seed, unsigned long bound);
+  Machine (unsigned long seed, unsigned long bound);
 
   unsigned int createThread (Program &);
 
