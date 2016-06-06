@@ -11,8 +11,12 @@
 
 #include "common.hh"
 #include "thread.hh"
+#include "schedule.hh"
 
 using namespace std;
+
+/* forward declarations */
+struct Scheduler;
 
 /*******************************************************************************
  * Machine
@@ -20,37 +24,46 @@ using namespace std;
 class Machine
 {
   friend struct Thread;
+  friend class  RandomScheduler;
+  friend class  PredefinedScheduler;
 
-  // machine memory
-  array<word, numeric_limits<word>::max() + 1>  memory;
+  /* thread scheduling */
+  unsigned long                                 seed;
 
-  // threads
-  deque<ThreadPtr>                              threads;
-
-  // active threads
-  deque<ThreadPtr>                              active;
-
-  // lists of threads containing calls to a specific sync barrier (id)
-  unordered_map<word, deque<ThreadPtr>>         threadsPerSyncID;
-
-  // lists of threads currently waiting for a specific sync barrier (id)
-  unordered_map<word, deque<ThreadPtr>>         waitingPerSyncID;
-
-  // bounded execution
+  /* bounded execution */
   unsigned long                                 bound;
 
-  // thread scheduling
-  unsigned long                                 seed;
-  mt19937                                       randomGenerator;
+  /* list of active threads */
+  deque<ThreadPtr>                              active;
 
-  // adds all threads to the active queue and sets them running
+  /* list of all threads */
+  deque<ThreadPtr>                              threads;
+
+  /* machine memory */
+  array<word, numeric_limits<word>::max() + 1>  memory;
+
+  /* lists of threads containing calls to a specific sync barrier (id) */
+  unordered_map<word, deque<ThreadPtr>>         threadsPerSyncID;
+
+  /* lists of threads currently waiting for a specific sync barrier (id) */
+  unordered_map<word, deque<ThreadPtr>>         waitingPerSyncID;
+
+  /* add all threads to the active queue and sets them running */
   void  activateThreads (deque<ThreadPtr> &);
+
+  /* run the machine, using the specified scheduler */
+  int   run (Scheduler *);
 
 public:
   Machine (unsigned long seed, unsigned long bound);
 
-  unsigned int createThread (Program &);
+  /* creates a thread using the given program, thread id == number of threads*/
+  ThreadID  createThread (Program &);
 
-  int run (void);
+  /* runs the machine using a random schedule */
+  int       simulate (void);
+
+  /* replay the given schedule (schedule must match machine configuration) */
+  int       replay (Schedule &);
 };
 #endif

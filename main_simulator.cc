@@ -8,10 +8,16 @@
 
 using namespace std;
 
+/* global flags ***************************************************************/
+bool verbose = false;
+
+/* helper *********************************************************************/
+void printUsage (char *); // shutup warnings
 void printUsage (char * name)
 {
   cout <<
-  "usage: " << name << " [-s seed] [-k steps] source_file ...\n" <<
+  "usage: " << name << " [-v] [-s seed] [-k steps] source_file ...\n" <<
+  "  -v            verbose schedule output\n" <<
   "  -s seed       random number generator's seed\n" <<
   "  -k steps      sets bound for machine to execute a maximum of k steps\n" <<
   "  source_file   one ore more source files, each being executed as a separate thread\n";
@@ -23,7 +29,7 @@ void printUsage (char * name)
  ******************************************************************************/
 int main (int argc, char **argv)
 {
-  /* parse command line *******************************************************/
+  /* parse command line */
   if (argc < 2)
     {
       cout << "invalid number of arguments" << endl << endl;
@@ -44,7 +50,11 @@ int main (int argc, char **argv)
           printUsage(argv[0]);
           return 0;
         }
-      if (arg == "-s")
+      if (arg == "-v")
+        {
+          verbose = true;
+        }
+      else if (arg == "-s")
         {
           seed = stoul((arg = argv[++i]), nullptr, 0); // throws std::invalid_argument
         }
@@ -54,21 +64,20 @@ int main (int argc, char **argv)
         }
       else
         {
-          Parser tp(arg);
-          Program * p = tp.parse();
-          threads.push_back(p);
+          threads.push_back(new Program(arg));
         }
     }
   if (threads.empty())
     {
       cout << "got nothing to run" << endl;
+      printUsage(argv[0]);
       return -1;
     }
 
-  /* run schedule with given seed *********************************************/
+  /* run schedule with given seed */
   Machine machine(seed, steps);
   for (auto p : threads)
     machine.createThread(*p);
 
-  return machine.run();
+  return machine.simulate();
 }

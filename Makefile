@@ -1,40 +1,74 @@
-CXX=clang++
-#WFLAGS=-pedantic -Wall -Wextra
-WFLAGS=-pedantic -Wall -Wno-unused -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-declarations -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-promo -Wstrict-overflow=5 -Wswitch-default -Wundef -Werror -Wsign-conversion
-CXXFLAGS=-std=c++11 -g $(WFLAGS) -O3
+#CXX=clang++
+CXX=g++
+WFLAGS=-pedantic -Wall -Wextra -Wundef -Wdouble-promotion -Wformat=2 -Wmissing-include-dirs -Wswitch-default -Wunused -Wuninitialized -Wshadow -Wcast-qual -Wcast-align -Wold-style-cast -Wmissing-declarations -Wdisabled-optimization -Wredundant-decls -Wstrict-overflow=5 -Wsign-conversion -Werror
+CXXFLAGS=-std=c++11 -g $(WFLAGS) -O2
 LDFLAGS=$(CXXFLAGS)
 LDLIBS=
-RM=rm -f
+RM=rm -rf
 
-SRCS=main.cc instructionset.cc program.cc parser.cc machine.cc thread.cc
+SRCS=instructionset.cc program.cc schedule.cc parser.cc machine.cc thread.cc
 OBJS=$(subst .cc,.o,$(SRCS))
 
-EXECUTABLE=simulator
+SIMULATOR=simulator
+SIMULATOR_OBJS=$(OBJS) main_simulator.cc
 
-CT=asm/increment_checker.asm
-T1=asm/increment.asm
-T2=$(T1)
+REPLAY=replay
+REPLAY_OBJS=$(OBJS) main_replay.cc
+
+CT=data/increment_checker.asm
+T1=data/increment.asm
+T2=data/increment.cas.asm
 
 SEED_ERROR=15
 SEED_VALID=86
 
+SCHEDULE=data/increment.valid.schedule
+
 build: clean all
 
-run: run_valid
+run: run_forever
 
-run_forever: all
-	./$(EXECUTABLE) -c $(CT) -t $(T1) -t $(T2)
+run_replay: $(REPLAY)
+	./replay -v $(SCHEDULE)
 
-run_valid: all
-	./$(EXECUTABLE) -s $(SEED_VALID) $(CT) $(T1) $(T2)
+run_forever: $(SIMULATOR)
+	{ \
+  while true; do \
+    ./run_no_cas; \
+    ret=$$?; \
+    if [ "$$ret" != "0" ]; then \
+      exit $$ret; \
+    fi; \
+  done \
+}
 
-run_error: all
-	./$(EXECUTABLE) -s $(SEED_ERROR) $(CT) $(T1) $(T2)
+run_cas_forever: $(SIMULATOR)
+	{ \
+  while true; do \
+    ./run_cas; \
+    ret=$$?; \
+    if [ "$$ret" != "0" ]; then \
+      exit $$ret; \
+    fi; \
+  done \
+}
 
-all: $(EXECUTABLE)
+run_cas: $(SIMULATOR)
+	./run_cas
 
-$(EXECUTABLE): $(OBJS)
-	$(CXX) $(LDFLAGS) -o $(EXECUTABLE) $(OBJS) $(LDLIBS)
+run_valid: $(SIMULATOR)
+	./run_no_cas
+
+run_schedule: $(REPLAY)
+	./$(REPLAY) $(SCHEDULE)
+
+$(SIMULATOR): $(SIMULATOR_OBJS)
+	$(CXX) $(LDFLAGS) -o $(SIMULATOR) $(SIMULATOR_OBJS) $(LDLIBS)
+
+$(REPLAY): $(REPLAY_OBJS)
+	$(CXX) $(LDFLAGS) -o $(REPLAY) $(REPLAY_OBJS) $(LDLIBS)
+
+all: $(SIMULATOR) $(REPLAY)
 
 clean:
-	$(RM) $(OBJS)
+	$(RM) *.o *.dSYM $(SIMULATOR) $(REPLAY)

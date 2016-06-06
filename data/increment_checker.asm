@@ -5,10 +5,8 @@ LOAD 1
 # compare to expected value
 SUBI 2
 # jump past error handling
-JZ 5
-# set specific exit code?
-#MOVI 1
-# exit
+JZ OK
+# exit error
 EXIT 1
-# continue execution
-SYNC 2
+# exit success
+OK: EXIT 0

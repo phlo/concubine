@@ -1,10 +1,12 @@
 #ifndef COMMON_HH_
 #define COMMON_HH_
 
+#include <memory>
+
 /* Machine Type ***************************************************************/
+#define MACHINE_TYPE_UNSIGNED
 typedef unsigned short word;
 
-// remove unused variable warnings
-#define UNUSED(var) do { (void)(var); } while (0)
-
+/* Global Flags ***************************************************************/
+extern bool verbose;
 #endif

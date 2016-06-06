@@ -34,19 +34,14 @@ InstructionPtr Instruction::Set::create (string & name, const word arg)
   return InstructionPtr(unaryFactory[name](arg));
 }
 
+
 /*******************************************************************************
  * Instruction
  ******************************************************************************/
+
 Instruction::Type Instruction::getType ()
 {
   return Instruction::Type::NULLARY;
-}
-
-void Instruction::print (Thread & t)
-{
-  cout << t.id << "\t" << t.pc << "\t" <<
-    getSymbol() <<
-    endl;
 }
 
 /*******************************************************************************
@@ -57,13 +52,6 @@ UnaryInstruction::UnaryInstruction (const word a) : arg(a) {}
 Instruction::Type UnaryInstruction::getType ()
 {
   return Instruction::Type::UNARY;
-}
-
-void UnaryInstruction::print (Thread & t)
-{
-  cout << t.id << "\t" << t.pc << "\t" <<
-    getSymbol() << "\t" << arg <<
-    endl;
 }
 
 /*******************************************************************************
@@ -89,13 +77,12 @@ void UnaryInstruction::print (Thread & t)
   DEFINE_COMMON_INSTRUCTION_MEMBERS(classname)                              \
   const string  classname::symbol = [](string sym)->const string            \
   {                                                                         \
-    Instruction::Set::unaryFactory[sym] = [](const word arg)->Instruction * \
+    Instruction::Set::unaryFactory[sym] = [](const word a)->Instruction *   \
       {                                                                     \
-        return new classname(arg);                                          \
+        return new classname(a);                                            \
       };                                                                    \
     return sym;                                                             \
   }(identifier);                                                            \
-classname::classname (const word a) : UnaryInstruction(a) {}
 
 /*******************************************************************************
  * Machine Instructions
@@ -107,13 +94,6 @@ void Exit::execute (Thread & thread)
 {
   thread.accu = arg;
   thread.state = Thread::State::EXITING;
-}
-
-/* HALT ***********************************************************************/
-DEFINE_INSTRUCTION_NULLARY(Halt, "HALT")
-void Halt::execute (Thread & thread)
-{
-  thread.state = Thread::State::STOPPED;
 }
 
 /* SYNC ***********************************************************************/
@@ -181,6 +161,13 @@ void Cmp::execute (Thread & thread)
   thread.accu -= thread.load(arg);
 }
 
+/* JMP ************************************************************************/
+DEFINE_INSTRUCTION_UNARY(Jmp, "JMP")
+void Jmp::execute (Thread & thread)
+{
+  thread.pc = arg;
+}
+
 /* i'm just too lazy ... ******************************************************/
 #define DEFINE_JUMP_EXECUTION(classname, predicate) \
   void classname::execute (Thread & t)              \
@@ -199,6 +186,7 @@ DEFINE_JUMP_EXECUTION(Jz, ==)
 DEFINE_INSTRUCTION_UNARY(Jnz, "JNZ")
 DEFINE_JUMP_EXECUTION(Jnz, !=)
 
+#ifdef MACHINE_TYPE_SIGNED
 /* JL *************************************************************************/
 DEFINE_INSTRUCTION_UNARY(Jl, "JL")
 DEFINE_JUMP_EXECUTION(Jl, <)
@@ -214,12 +202,13 @@ DEFINE_JUMP_EXECUTION(Jg, >)
 /* JGE ************************************************************************/
 DEFINE_INSTRUCTION_UNARY(Jge, "JGE")
 DEFINE_JUMP_EXECUTION(Jge, >=)
+#endif
 
 /* MEM ************************************************************************/
-DEFINE_INSTRUCTION_NULLARY(Mem, "MEM")
+DEFINE_INSTRUCTION_UNARY(Mem, "MEM")
 void Mem::execute (Thread & thread)
 {
-  thread.pc++;
+  Load::execute(thread);
   thread.mem = thread.accu;
 }
 

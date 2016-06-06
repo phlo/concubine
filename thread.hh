@@ -4,12 +4,14 @@
 #include "common.hh"
 #include "program.hh"
 
-/* forward declerations */
+/* forward declarations */
 class Machine;
 
 /*******************************************************************************
  * Thread
  ******************************************************************************/
+typedef unsigned long ThreadID;
+
 struct Thread
 {
   enum State
@@ -21,12 +23,12 @@ struct Thread
     EXITING   // exit called
   };
 
-  unsigned int  id;       // thread id
+  ThreadID      id;       // thread id
   word          pc;       // program counter
   word          mem;      // special CAS register
   word          accu;     // accumulator register
   word          sync;     // current (or previous) barrier's id
-  word          exitCode; // TODO: really neccessary?
+  word          exitCode; // TODO: really necessary?
   State         state;    // thread state
   Machine &     machine;  // reference to the machine owning the thread
   Program &     program;  // reference to the program being executed
@@ -37,6 +39,8 @@ struct Thread
   void          store (word, word);
 
   virtual void  execute (void);
+
+  void          printInstruction (void);
 };
 
 /*******************************************************************************

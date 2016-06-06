@@ -3,26 +3,35 @@
 
 #include <deque>
 #include <unordered_set>
+#include <unordered_map>
 
+#include "parser.hh"
 #include "instructionset.hh"
 
 /*******************************************************************************
  * Program
  ******************************************************************************/
-class Program : public deque<shared_ptr<Instruction>>
+class Program : public deque<InstructionPtr>
 {
-  string                path;
+  /* be friends with the Parser - for a minimal public interface */
+  friend class Parser<Program>;
 
-  unordered_set<word>   syncIDs;
+  string                        path;
+
+  unordered_set<word>           syncIDs;
+
+  unordered_map<word, string>   labels;
 
 public:
   Program (string &);
 
-  void                  add (InstructionPtr);
+  void                          add (InstructionPtr);
 
-  string &              getPath (void);
+  string &                      getPath (void);
 
-  unordered_set<word> & getSyncIDs (void);
+  unordered_set<word> &         getSyncIDs (void);
+
+  unordered_map<word, string> & getLabels(void);
 };
 
 /*******************************************************************************

@@ -1,26 +1,74 @@
 #include "machine.hh"
 
 #include <iostream>
+#include <algorithm>
 
-#include "program.hh"
+/*******************************************************************************
+ * Schedulers
+ ******************************************************************************/
+struct Scheduler
+{
+  Machine & machine;
+
+  virtual ThreadPtr next (void) = 0;
+
+  Scheduler (Machine & m) : machine(m) {};
+};
+
+class RandomScheduler : public Scheduler
+{
+  mt19937_64                          random;
+  uniform_int_distribution<ThreadID>  distribution;
+
+public:
+  RandomScheduler (Machine & m) :
+    Scheduler(m),
+    random(m.seed),
+    distribution(0, machine.threads.size() - 1)
+  {};
+
+  ThreadPtr next (void)
+    {
+      return machine.active[distribution(random) % machine.active.size()];
+    };
+};
+
+class PredefinedScheduler : public Scheduler
+{
+  Schedule &    schedule;
+  unsigned long step;
+
+public:
+  PredefinedScheduler (Machine & m, Schedule & s) :
+    Scheduler(m),
+    schedule(s),
+    step(0)
+  {};
+
+  ThreadPtr next (void) { return machine.threads[schedule[step++]]; };
+};
+
+
+/*******************************************************************************
+ * Machine
+ ******************************************************************************/
 
 /* constructor ****************************************************************/
-Machine::Machine (unsigned long s, unsigned long b = 0) :
-  memory({}), // initialize with zeros ffs ..
-  threads(),
-  active(),
-  threadsPerSyncID(),
-  waitingPerSyncID(),
-  bound(b),
+Machine::Machine (unsigned long s, unsigned long b) :
   seed(s),
-  randomGenerator(s)
+  bound(b),
+  active(),
+  threads(),
+  memory({{0}}), // initialize with zeros ffs ..
+  threadsPerSyncID(),
+  waitingPerSyncID()
 {}
 
 /* Machine::createThread (Program &) ******************************************/
-unsigned int Machine::createThread (Program & program)
+ThreadID Machine::createThread (Program & program)
 {
   /* determine thread id */
-  unsigned int id = threads.size();
+  ThreadID id = threads.size();
 
   /* add thread to queue */
   threads.push_back(ThreadPtr(new Thread(*this, id, program)));
@@ -35,34 +83,33 @@ unsigned int Machine::createThread (Program & program)
 /* Machine::activateThreads (deque<ThreadPtr> &) ******************************/
 void Machine::activateThreads (deque<ThreadPtr> & queue)
 {
-  for (auto i : queue)
+  for (ThreadPtr i : queue)
     {
       i->state = Thread::State::RUNNING;
       active.push_back(i);
     }
 }
 
-/* Machine::run (void) ********************************************************/
-int Machine::run ()
+/* Machine::run (Scheduler *) *************************************************/
+int Machine::run (Scheduler * scheduler)
 {
-  unsigned int numThreads = threads.size();
-
-  uniform_int_distribution<unsigned long> scheduler(0, numThreads - 1);
-
+  /* print schedule header */
   for (auto t : threads)
-    cout << "# T" << t->id << " = " << t->program.getPath() << endl;
-  cout << "# STARTED [seed = " << seed << "]" << endl;
-  cout << "# tid\tpc\tcmd\targ" << endl;
+    cout << t->id << " = " << t->program.getPath() << endl;
+  cout << "seed = " << seed << endl;
+  cout << "# tid";
+  if (verbose)
+    cout << "\tpc\tcmd\targ";
+  cout << endl;
 
+  assert(active.empty());
   activateThreads(threads);
 
   bool done = active.empty();
   unsigned long steps = 0;
   while (!done && (!bound || steps++ < bound))
     {
-      unsigned int id = scheduler(randomGenerator) % active.size();
-
-      ThreadPtr thread = active[id];
+      ThreadPtr thread = scheduler->next();
 
       assert(thread->state == Thread::State::RUNNING);
 
@@ -78,7 +125,7 @@ int Machine::run ()
         case Thread::State::WAITING:
             {
               /* remove from active threads */
-              active.erase(active.begin() + id);
+              active.erase(find(active.begin(), active.end(), thread));
 
               /* current sync barrier id */
               word s = thread->sync;
@@ -99,11 +146,11 @@ int Machine::run ()
         case Thread::State::STOPPED:
             {
               /* remove from active threads */
-              active.erase(active.begin() + id);
+              active.erase(find(active.begin(), active.end(), thread));
 
               /* check if we were the last thread standing */
               done = true;
-              for (unsigned int i = 0; i < numThreads; i++)
+              for (ThreadID i = 0; i < threads.size(); i++)
                 {
                   if (threads[i]->state != Thread::State::STOPPED)
                     {
@@ -117,18 +164,35 @@ int Machine::run ()
         /* exiting - return exit code */
         case Thread::State::EXITING:
             {
-              cout << "# EXIT " << thread->accu << endl;
               return static_cast<int>(thread->accu);
             }
 
         default:
           cout << "warning: illegal thread state transition " <<
-            Thread::State::RUNNING << " -> " << active[id]->state << endl;
+            static_cast<int>(Thread::State::RUNNING) << " -> " <<
+            static_cast<int>(thread->state) << endl;
           assert(0);
         }
     }
 
-  cout << "# HALT" << endl;
-
   return 0;
+}
+
+/* Machine::simulate (void) ***************************************************/
+int Machine::simulate ()
+{
+  RandomScheduler scheduler(*this);
+
+  return run(&scheduler);
+}
+
+/* Machine::replay (Schedule &) ***********************************************/
+int Machine::replay (Schedule & schedule)
+{
+  for (ProgramPtr p : schedule.getPrograms())
+    createThread(*p);
+
+  PredefinedScheduler scheduler(*this, schedule);
+
+  return run(&scheduler);
 }

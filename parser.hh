@@ -6,25 +6,26 @@
 #include <fstream>
 #include <iostream>
 
-#include "program.hh"
-
 using namespace std;
 
 /*******************************************************************************
  * Parser
  ******************************************************************************/
+template <typename Result>
 class Parser
 {
   bool      skip;
   string    path;
   ifstream  file;
-  Program * program;
+  Result *  result;
 
-  bool      parse (string &);
+  void      skipLine (void);
+
+  bool      parse (void);
 
 public:
-  Parser (string);
+  Parser (string &);
 
-  Program * parse (void);
+  void parse (Result *);
 };
 #endif

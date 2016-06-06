@@ -7,4 +7,4 @@ STORE 1
 # start checker
 SYNC 1
 # wait for checker to finish
-SYNC 2
+SYNC 1

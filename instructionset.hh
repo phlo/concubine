@@ -8,7 +8,7 @@
 
 using namespace std;
 
-/* forward declerations */
+/* forward declarations */
 struct Thread;
 
 /*******************************************************************************
@@ -25,7 +25,7 @@ struct Instruction
     };
 
    /* OP Codes */
-   // NOTE: really neccessary?
+   // NOTE: really necessary?
   enum OPCode
     {
       Exit,
@@ -38,6 +38,7 @@ struct Instruction
       Sub,
       Subi,
       Cmp,
+      Jmp,
       Jz,
       Jnz,
       Jl,
@@ -72,8 +73,6 @@ struct Instruction
   virtual const string &  getSymbol (void) = 0;
 
   virtual void            execute (Thread &) = 0;
-
-  virtual void            print (Thread &);
 };
 
 typedef shared_ptr<Instruction> InstructionPtr;
@@ -91,8 +90,6 @@ struct UnaryInstruction : public Instruction
   virtual Type    getType (void);
 
   virtual void    execute (Thread &) = 0;
-
-  virtual void    print (Thread &);
 };
 
 typedef shared_ptr<UnaryInstruction> UnaryInstructionPtr;
@@ -109,39 +106,41 @@ typedef shared_ptr<UnaryInstruction> UnaryInstructionPtr;
                                                   \
     virtual       void        execute (Thread &);
 
-#define DECLARE_INSTRUCTION_NULLARY(classname)  \
-  class classname : public Instruction          \
-  {                                             \
-    DECLARE_COMMON_INSTRUCTION_MEMBERS ()       \
+#define DECLARE_INSTRUCTION_NULLARY(classname, baseclass) \
+  struct classname : public baseclass                     \
+  {                                                       \
+    DECLARE_COMMON_INSTRUCTION_MEMBERS ()                 \
   };
 
-#define DECLARE_INSTRUCTION_UNARY(classname)  \
-  class classname : public UnaryInstruction   \
-  {                                           \
-    DECLARE_COMMON_INSTRUCTION_MEMBERS ()     \
-    classname (const word);                   \
+#define DECLARE_INSTRUCTION_UNARY(classname, baseclass) \
+  struct classname : public baseclass                   \
+  {                                                     \
+    DECLARE_COMMON_INSTRUCTION_MEMBERS ()               \
+    classname (const word a) : baseclass(a) {};         \
   };
 
-DECLARE_INSTRUCTION_UNARY   (Sync)
-DECLARE_INSTRUCTION_NULLARY (Halt)
-DECLARE_INSTRUCTION_UNARY   (Exit)
+DECLARE_INSTRUCTION_UNARY   (Sync,  UnaryInstruction)
+DECLARE_INSTRUCTION_UNARY   (Exit,  UnaryInstruction)
 
-DECLARE_INSTRUCTION_UNARY   (Load)
-DECLARE_INSTRUCTION_UNARY   (Store)
+DECLARE_INSTRUCTION_UNARY   (Load,  UnaryInstruction)
+DECLARE_INSTRUCTION_UNARY   (Store, UnaryInstruction)
 
-DECLARE_INSTRUCTION_UNARY   (Add)
-DECLARE_INSTRUCTION_UNARY   (Addi)
-DECLARE_INSTRUCTION_UNARY   (Sub)
-DECLARE_INSTRUCTION_UNARY   (Subi)
+DECLARE_INSTRUCTION_UNARY   (Add,   Load)
+DECLARE_INSTRUCTION_UNARY   (Addi,  UnaryInstruction)
+DECLARE_INSTRUCTION_UNARY   (Sub,   Load)
+DECLARE_INSTRUCTION_UNARY   (Subi,  UnaryInstruction)
 
-DECLARE_INSTRUCTION_UNARY   (Cmp)
-DECLARE_INSTRUCTION_UNARY   (Jz)
-DECLARE_INSTRUCTION_UNARY   (Jnz)
-DECLARE_INSTRUCTION_UNARY   (Jl)
-DECLARE_INSTRUCTION_UNARY   (Jle)
-DECLARE_INSTRUCTION_UNARY   (Jg)
-DECLARE_INSTRUCTION_UNARY   (Jge)
+DECLARE_INSTRUCTION_UNARY   (Cmp,   Load)
+DECLARE_INSTRUCTION_UNARY   (Jmp,   UnaryInstruction)
+DECLARE_INSTRUCTION_UNARY   (Jz,    Jmp)
+DECLARE_INSTRUCTION_UNARY   (Jnz,   Jmp)
+#ifdef MACHINE_TYPE_SIGNED
+DECLARE_INSTRUCTION_UNARY   (Jl,    Jmp)
+DECLARE_INSTRUCTION_UNARY   (Jle,   Jmp)
+DECLARE_INSTRUCTION_UNARY   (Jg,    Jmp)
+DECLARE_INSTRUCTION_UNARY   (Jge,   Jmp)
+#endif
 
-DECLARE_INSTRUCTION_NULLARY (Mem)
-DECLARE_INSTRUCTION_UNARY   (Cas)
+DECLARE_INSTRUCTION_UNARY   (Mem,   Load)
+DECLARE_INSTRUCTION_UNARY   (Cas,   Load)
 #endif

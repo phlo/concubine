@@ -5,7 +5,11 @@
 using namespace std;
 
 /* constructor ****************************************************************/
-Program::Program(string & p) : path(p), syncIDs() {}
+Program::Program(string & p) : path(p), syncIDs(), labels()
+{
+  Parser<Program> parser(p);
+  parser.parse(this);
+}
 
 /* Program::add (InstructionPtr) **********************************************/
 void Program::add (InstructionPtr i)
@@ -22,3 +26,6 @@ string & Program::getPath () { return path; }
 
 /* Program::getSyncIDs (void) *************************************************/
 unordered_set<word> & Program::getSyncIDs () { return syncIDs; }
+
+/* Program::getLabels (void) **************************************************/
+unordered_map<word, string> & Program::getLabels () { return labels; }
