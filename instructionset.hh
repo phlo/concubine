@@ -41,10 +41,9 @@ struct Instruction
       Jmp,
       Jz,
       Jnz,
-      Jl,
-      Jle,
-      Jg,
-      Jge,
+      Js,
+      Jns,
+      Jnzns,
       Mem,
       Cas
     };
@@ -134,12 +133,9 @@ DECLARE_INSTRUCTION_UNARY   (Cmp,   Load)
 DECLARE_INSTRUCTION_UNARY   (Jmp,   UnaryInstruction)
 DECLARE_INSTRUCTION_UNARY   (Jz,    Jmp)
 DECLARE_INSTRUCTION_UNARY   (Jnz,   Jmp)
-#ifdef MACHINE_TYPE_SIGNED
-DECLARE_INSTRUCTION_UNARY   (Jl,    Jmp)
-DECLARE_INSTRUCTION_UNARY   (Jle,   Jmp)
-DECLARE_INSTRUCTION_UNARY   (Jg,    Jmp)
-DECLARE_INSTRUCTION_UNARY   (Jge,   Jmp)
-#endif
+DECLARE_INSTRUCTION_UNARY   (Js,    Jmp)
+DECLARE_INSTRUCTION_UNARY   (Jns,   Jmp)
+DECLARE_INSTRUCTION_UNARY   (Jnzns, Jmp)
 
 DECLARE_INSTRUCTION_UNARY   (Mem,   Load)
 DECLARE_INSTRUCTION_UNARY   (Cas,   Load)

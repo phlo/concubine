@@ -158,7 +158,10 @@ DEFINE_INSTRUCTION_UNARY(Cmp, "CMP")
 void Cmp::execute (Thread & thread)
 {
   thread.pc++;
-  thread.accu -= thread.load(arg);
+  thread.accu = static_cast<word>(
+    static_cast<signed_word>(thread.accu) -
+    static_cast<signed_word>(thread.load(arg))
+  );
 }
 
 /* JMP ************************************************************************/
@@ -168,41 +171,55 @@ void Jmp::execute (Thread & thread)
   thread.pc = arg;
 }
 
-/* i'm just too lazy ... ******************************************************/
-#define DEFINE_JUMP_EXECUTION(classname, predicate) \
-  void classname::execute (Thread & t)              \
-  {                                                 \
-    if (t.accu predicate 0)                         \
-      t.pc = arg;                                   \
-    else                                            \
-      t.pc++;                                       \
-  }
-
 /* JZ *************************************************************************/
 DEFINE_INSTRUCTION_UNARY(Jz, "JZ")
-DEFINE_JUMP_EXECUTION(Jz, ==)
+void Jz::execute (Thread & thread)
+{
+  if (thread.accu == 0)
+    thread.pc = arg;
+  else
+    thread.pc++;
+}
 
 /* JNZ ************************************************************************/
 DEFINE_INSTRUCTION_UNARY(Jnz, "JNZ")
-DEFINE_JUMP_EXECUTION(Jnz, !=)
+void Jnz::execute (Thread & thread)
+{
+  if (thread.accu != 0)
+    thread.pc = arg;
+  else
+    thread.pc++;
+}
 
-#ifdef MACHINE_TYPE_SIGNED
-/* JL *************************************************************************/
-DEFINE_INSTRUCTION_UNARY(Jl, "JL")
-DEFINE_JUMP_EXECUTION(Jl, <)
+/* JS *************************************************************************/
+DEFINE_INSTRUCTION_UNARY(Js, "JS")
+void Js::execute (Thread & thread)
+{
+  if (static_cast<signed_word>(thread.accu) < 0)
+    thread.pc = arg;
+  else
+    thread.pc++;
+}
 
-/* JLE ************************************************************************/
-DEFINE_INSTRUCTION_UNARY(Jle, "JLE")
-DEFINE_JUMP_EXECUTION(Jle, <=)
+/* JNS ************************************************************************/
+DEFINE_INSTRUCTION_UNARY(Jns, "JNS")
+void Jns::execute (Thread & thread)
+{
+  if (static_cast<signed_word>(thread.accu) >= 0)
+    thread.pc = arg;
+  else
+    thread.pc++;
+}
 
-/* JG *************************************************************************/
-DEFINE_INSTRUCTION_UNARY(Jg, "JG")
-DEFINE_JUMP_EXECUTION(Jg, >)
-
-/* JGE ************************************************************************/
-DEFINE_INSTRUCTION_UNARY(Jge, "JGE")
-DEFINE_JUMP_EXECUTION(Jge, >=)
-#endif
+/* JNZNS **********************************************************************/
+DEFINE_INSTRUCTION_UNARY(Jnzns, "JNZNS")
+void Jnzns::execute (Thread & thread)
+{
+  if (static_cast<signed_word>(thread.accu) > 0)
+    thread.pc = arg;
+  else
+    thread.pc++;
+}
 
 /* MEM ************************************************************************/
 DEFINE_INSTRUCTION_UNARY(Mem, "MEM")

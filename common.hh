@@ -4,8 +4,8 @@
 #include <memory>
 
 /* Machine Type ***************************************************************/
-#define MACHINE_TYPE_UNSIGNED
-typedef unsigned short word;
+typedef unsigned short  word;
+typedef short           signed_word;
 
 /* Global Flags ***************************************************************/
 extern bool verbose;
