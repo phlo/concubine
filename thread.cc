@@ -32,51 +32,25 @@ void Thread::execute ()
 {
   if (pc < program.size())
     {
-      printInstruction();
+      /* print thread id */
+      cout << id;
+
+      /* verbose enabled */
+      if (verbose)
+        {
+          cout << "\t";
+
+          /* print instruction details */
+          program.print(true, pc);
+        }
+
+      cout << endl;
+
+      /* execute instruction */
       program[pc]->execute(*this);
     }
   else
     {
       state = Thread::State::STOPPED;
     }
-}
-
-/* Thread::printInstruction (void) ********************************************/
-void Thread::printInstruction (void)
-{
-  unordered_map<word, string> & labels = program.getLabels();
-
-  /* print thread id */
-  cout << id;
-
-  /* verbose enabled */
-  if (verbose)
-    {
-      cout << "\t";
-
-      /* current pc has label */
-      if (labels.find(pc) != labels.end())
-        cout << labels[pc];
-      else
-        cout << pc;
-
-      /* instruction symbol */
-      cout << "\t" << program[pc]->getSymbol() << "\t";
-
-      /* print unary instruction's argument */
-      if (UnaryInstructionPtr u =
-          dynamic_pointer_cast<UnaryInstruction>(program[pc]))
-        {
-          if (labels.find(u->arg) != labels.end())
-            {
-              cout << labels[u->arg];
-            }
-          else
-            {
-              cout << u->arg;
-            }
-        }
-    }
-
-  cout << endl;
 }

@@ -32,6 +32,12 @@ public:
   unordered_set<word> &         getSyncIDs (void);
 
   unordered_map<word, string> & getLabels(void);
+
+  /* print whole program */
+  void                          print (bool);
+
+  /* print instruction at pc */
+  void                          print (bool, word);
 };
 
 /*******************************************************************************

@@ -28,7 +28,7 @@ void printUsage (char * name)
 int main (int argc, char **argv)
 {
   /* parse command line */
-  if (argc < 2 || argc > 3)
+  if (argc < 2 || argc > 5)
     {
       cout << "invalid number of arguments" << endl << endl;
       printUsage(argv[0]);

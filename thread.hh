@@ -39,8 +39,6 @@ struct Thread
   void          store (word, word);
 
   virtual void  execute (void);
-
-  void          printInstruction (void);
 };
 
 /*******************************************************************************
