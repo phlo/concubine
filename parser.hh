@@ -2,7 +2,6 @@
 #define PARSER_HH_
 
 #include <string>
-#include <vector>
 #include <fstream>
 #include <iostream>
 
