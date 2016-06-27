@@ -9,6 +9,3 @@ STORE 1
 
 # start checker
 SYNC 1
-
-# wait for checker
-SYNC 1

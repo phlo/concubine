@@ -54,8 +54,11 @@ void printUsageReplay (char * name)
 void printUsageUnroll (char * name)
 {
   cout << "usage: " << name <<
-  " unroll [-v] [[-l <label>:<iterations>] ...] <program>" <<
-  endl;
+  " unroll [-v] [-a <val>] <program>" <<
+  endl << endl <<
+  "  -v           verbose output" << endl <<
+  "  -a <val>     unroll all loops to <val> iterations" << endl <<
+  "  program      the program to unroll" << endl;
 }
 
 /*******************************************************************************
@@ -189,10 +192,41 @@ int replay (char * name, int argc, char ** argv)
 /* unroll *********************************************************************/
 int unroll (char * name, int argc, char ** argv)
 {
-  argc = argc + static_cast<int>(argv[0][0]);
-  cout << "not implemented" << endl << endl;
-  printUsageUnroll(name);
-  return -1;
+  if (argc < 3)
+    {
+      printUsageUnroll(name);
+      return -1;
+    }
+
+  string path2Program;
+  unsigned int iterations;
+
+  for (int i = 0; i < argc; i++)
+    {
+      string arg(argv[i]);
+
+      if (arg == "-v")
+        {
+          verbose = true;
+        }
+      else if (arg == "-a")
+        {
+          // throws std::invalid_argument
+          iterations = stoul(argv[++i], nullptr, 0);
+        }
+      else
+        {
+          path2Program = arg;
+        }
+    }
+
+  Program program(path2Program);
+
+  ProgramPtr unrolled = program.unroll(iterations);
+
+  unrolled->print(verbose ? true : false);
+
+  return 0;
 }
 
 /* main ***********************************************************************/

@@ -36,6 +36,9 @@ run_cas_forever: $(MAIN)
 run_replay: $(MAIN)
 	./$(MAIN) replay -v $(SCHEDULE)
 
+run_unroll: $(MAIN)
+	./$(MAIN) unroll -v -a 10 $(T2)
+
 $(MAIN): $(OBJS) main.cc
 	$(CXX) $(LDFLAGS) -o $(MAIN) $(OBJS) main.cc $(LDLIBS)
 

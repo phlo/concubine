@@ -101,7 +101,7 @@ typedef shared_ptr<UnaryInstruction> UnaryInstructionPtr;
     static  const string      symbol;             \
                                                   \
     virtual       OPCode      getOPCode ();       \
-    virtual const string&     getSymbol ();       \
+    virtual const string &    getSymbol ();       \
                                                   \
     virtual       void        execute (Thread &);
 
@@ -109,14 +109,16 @@ typedef shared_ptr<UnaryInstruction> UnaryInstructionPtr;
   struct classname : public baseclass                     \
   {                                                       \
     DECLARE_COMMON_INSTRUCTION_MEMBERS ()                 \
-  };
+  };                                                      \
+  typedef shared_ptr<classname> classname##Ptr;
 
 #define DECLARE_INSTRUCTION_UNARY(classname, baseclass) \
   struct classname : public baseclass                   \
   {                                                     \
     DECLARE_COMMON_INSTRUCTION_MEMBERS ()               \
     classname (const word a) : baseclass(a) {};         \
-  };
+  };                                                    \
+  typedef shared_ptr<classname> classname##Ptr;
 
 DECLARE_INSTRUCTION_UNARY   (Sync,  UnaryInstruction)
 DECLARE_INSTRUCTION_UNARY   (Exit,  UnaryInstruction)
