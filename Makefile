@@ -11,7 +11,7 @@ OBJS=$(subst .cc,.o,$(SRCS))
 
 MAIN=psimsmt
 
-CT=data/increment_checker.asm
+CT=data/increment.checker.asm
 T1=data/increment.asm
 T2=data/increment.cas.asm
 
@@ -25,13 +25,13 @@ build: clean all
 run: run_forever
 
 run_forever: $(MAIN)
-	./run_forever
+	./run_forever ./simulate_with_random_seed $(CT) $(T1) $(T1)
 
 run_cas: $(MAIN)
-	./run_cas
+	./simulate_with_random_seed $(CT) $(T2) $(T2)
 
 run_cas_forever: $(MAIN)
-	./run_cas_forever
+	./run_forever ./simulate_with_random_seed $(CT) $(T2) $(T2)
 
 run_replay: $(MAIN)
 	./$(MAIN) replay -v $(SCHEDULE)

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+./psimsmt simulate -v -s $RANDOM $*
