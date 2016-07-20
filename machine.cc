@@ -99,7 +99,7 @@ int Machine::run (Scheduler * scheduler)
   cout << "seed = " << seed << endl;
   cout << "# tid";
   if (verbose)
-    cout << "\tpc\tcmd\targ";
+    cout << "\tpc\tcmd\targ\taccu";
   cout << endl;
 
   assert(active.empty());

@@ -42,6 +42,9 @@ void Thread::execute ()
 
           /* print instruction details */
           program.print(true, pc);
+
+          /* print accu */
+          cout << "\t" << accu;
         }
 
       cout << endl;
