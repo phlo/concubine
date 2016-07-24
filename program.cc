@@ -66,7 +66,7 @@ void Program::print (bool includePC, word pc)
   /* print unary instruction's argument */
   if (UnaryInstructionPtr u = dynamic_pointer_cast<UnaryInstruction>(cmd))
     {
-      if (labels.find(u->arg) != labels.end())
+      if (dynamic_pointer_cast<Jmp>(cmd) && labels.find(u->arg) != labels.end())
         cout << labels[u->arg];
       else
         cout << u->arg;

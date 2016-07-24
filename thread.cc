@@ -42,15 +42,16 @@ void Thread::execute ()
 
           /* print instruction details */
           program.print(true, pc);
-
-          /* print accu */
-          cout << "\t" << accu;
         }
-
-      cout << endl;
 
       /* execute instruction */
       program[pc]->execute(*this);
+
+      /* print accu */
+      if (verbose)
+        cout << "\t" << accu;
+
+      cout << endl;
     }
   else
     {
