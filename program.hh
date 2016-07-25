@@ -66,8 +66,5 @@ public:
 
   /* print instruction at pc */
   void                          print (bool, word);
-
-  /* unrolls all loops to a given number of iterations */
-  ProgramPtr                    unroll (word);
 };
 #endif

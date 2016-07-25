@@ -21,8 +21,7 @@ void printUsageMain (char * name)
   "available commands:" << endl <<
   "  help       print help for a specific <command>" << endl <<
   "  simulate   simulate concurrent programs" << endl <<
-  "  replay     reevaluates a given schedule" << endl <<
-  "  unroll     unrolls a program" << endl;
+  "  replay     reevaluates a given schedule" << endl;
 }
 
 void printUsageHelp (char * name)
@@ -51,16 +50,6 @@ void printUsageReplay (char * name)
   "  schedule   the schedule to replay" << endl;
 }
 
-void printUsageUnroll (char * name)
-{
-  cout << "usage: " << name <<
-  " unroll [-v] [-a <val>] <program>" <<
-  endl << endl <<
-  "  -v           verbose output" << endl <<
-  "  -a <val>     unroll all loops to <val> iterations" << endl <<
-  "  program      the program to unroll" << endl;
-}
-
 /*******************************************************************************
  * main functions
  * TODO: error handling!!!
@@ -87,10 +76,6 @@ int help (char * name, int argc, char **argv)
   else if (!strcmp(argv[0], "replay"))
     {
       printUsageReplay(name);
-    }
-  else if (!strcmp(argv[0], "unroll"))
-    {
-      printUsageUnroll(name);
     }
   else
     {
@@ -189,46 +174,6 @@ int replay (char * name, int argc, char ** argv)
   return machine.replay(schedule);
 }
 
-/* unroll *********************************************************************/
-int unroll (char * name, int argc, char ** argv)
-{
-  if (argc < 3)
-    {
-      printUsageUnroll(name);
-      return -1;
-    }
-
-  string path2Program;
-  unsigned int iterations;
-
-  for (int i = 0; i < argc; i++)
-    {
-      string arg(argv[i]);
-
-      if (arg == "-v")
-        {
-          verbose = true;
-        }
-      else if (arg == "-a")
-        {
-          // throws std::invalid_argument
-          iterations = stoul(argv[++i], nullptr, 0);
-        }
-      else
-        {
-          path2Program = arg;
-        }
-    }
-
-  Program program(path2Program);
-
-  ProgramPtr unrolled = program.unroll(iterations);
-
-  unrolled->print(verbose ? true : false);
-
-  return 0;
-}
-
 /* main ***********************************************************************/
 int main (int argc, char ** argv)
 {
@@ -246,10 +191,6 @@ int main (int argc, char ** argv)
       else if (!strcmp(argv[1], "replay"))
         {
           return replay(argv[0], argc - 2, argv + 2);
-        }
-      else if (!strcmp(argv[1], "unroll"))
-        {
-          return unroll(argv[0], argc - 2, argv + 2);
         }
     }
 
