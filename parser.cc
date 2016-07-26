@@ -2,6 +2,7 @@
 
 #include <tuple>
 #include <limits>
+#include <sstream>
 
 #include "program.hh"
 #include "schedule.hh"
@@ -77,6 +78,7 @@ bool Parser<Program>::parse ()
           /* read labelled command */
           file >> token;
         }
+
       /* parse instruction */
       switch (Instruction::Set::contains(token))
         {
@@ -87,46 +89,77 @@ bool Parser<Program>::parse ()
             }
         case Instruction::Type::UNARY:
             {
-              /* try to parse the argument - could be a label */
               word arg;
+
+              /* try to parse the argument */
               if (file >> arg)
                 {
                   i = Instruction::Set::create(token, arg);
-                  break;
                 }
-              /* check if command supports labels */
+              /* label or indirect addressing */
               else
                 {
-                  /* create dummy Instruction (arg == max(word)) which will be
-                     replaced by the actual one when all labels are known */
-                  i = Instruction::Set::create(token, wordMax);
+                  /* clear failbit - recover ifstream */
+                  file.clear();
 
-                  /* check if the instruction supports labels (is a jmp) */
-                  if (dynamic_pointer_cast<Jmp>(i))
+                  /* discard leading whitespaces for later use of peek */
+                  file >> ws;
+
+                  /* arg is an indirect memory address */
+                  if (file.peek() == '[')
                     {
-                      /* clear failbit - recover ifstream */
-                      file.clear();
+                      /* parse enclosed address */
+                      string tmp;
+                      file >> tmp;
 
-                      /* get the label */
-                      string label;
-                      file >> label;
+                      istringstream addr(tmp.substr(1, tmp.size() - 2));
+                      addr >> arg;
 
-                      /* get the program counter */
-                      word pc = static_cast<word>(result->size());
+                      i = Instruction::Set::create(token, arg);
 
-                      /* add tuple to the list of labelled jumps */
-                      labelRef.push_back(make_tuple(token, pc, label));
-
-                      break;
+                      /* check if the instruction supports indirect addresses
+                         (is a load) */
+                      if (LoadPtr l = dynamic_pointer_cast<Load>(i))
+                        l->indirect = true;
+                      else
+                        {
+                          cout << "error: " <<
+                            token << " does not supports indirect addressing" <<
+                            endl;
+                          return false;
+                        }
                     }
-                  /* error: not a jump instruction */
+                  /* arg is a label */
                   else
                     {
-                      cout << "error: " <<
-                        token << " does not support labels" << endl;
-                      return false;
+                      /* create dummy Instruction which will be replaced by the
+                         actual one when all labels are known */
+                      i = Instruction::Set::create(token, wordMax);
+
+                      /* check if the instruction supports labels (is a jmp) */
+                      if (dynamic_pointer_cast<Jmp>(i))
+                        {
+                          /* get the label */
+                          string label;
+                          file >> label;
+
+                          /* get the program counter */
+                          word pc = static_cast<word>(result->size());
+
+                          /* add tuple to the list of labelled jumps */
+                          labelRef.push_back(make_tuple(token, pc, label));
+                        }
+                      /* error: not a jump instruction */
+                      else
+                        {
+                          cout << "error: " <<
+                            token << " does not support labels" << endl;
+                          return false;
+                        }
                     }
                 }
+
+              break;
             }
         default:
           /* unrecognized token */

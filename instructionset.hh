@@ -105,40 +105,42 @@ typedef shared_ptr<UnaryInstruction> UnaryInstructionPtr;
                                                   \
     virtual       void        execute (Thread &);
 
-#define DECLARE_INSTRUCTION_NULLARY(classname, baseclass) \
-  struct classname : public baseclass                     \
-  {                                                       \
-    DECLARE_COMMON_INSTRUCTION_MEMBERS ()                 \
-  };                                                      \
+#define DECLARE_INSTRUCTION_NULLARY(classname, baseclass, ...)  \
+  struct classname : public baseclass                           \
+  {                                                             \
+    DECLARE_COMMON_INSTRUCTION_MEMBERS ()                       \
+    __VA_ARGS__                                                 \
+  };                                                            \
   typedef shared_ptr<classname> classname##Ptr;
 
-#define DECLARE_INSTRUCTION_UNARY(classname, baseclass) \
-  struct classname : public baseclass                   \
-  {                                                     \
-    DECLARE_COMMON_INSTRUCTION_MEMBERS ()               \
-    classname (const word a) : baseclass(a) {};         \
-  };                                                    \
+#define DECLARE_INSTRUCTION_UNARY(classname, baseclass, ...)  \
+  struct classname : public baseclass                         \
+  {                                                           \
+    DECLARE_COMMON_INSTRUCTION_MEMBERS ()                     \
+    __VA_ARGS__                                               \
+    classname (const word a) : baseclass(a) {};               \
+  };                                                          \
   typedef shared_ptr<classname> classname##Ptr;
 
-DECLARE_INSTRUCTION_UNARY   (Sync,  UnaryInstruction)
-DECLARE_INSTRUCTION_UNARY   (Exit,  UnaryInstruction)
+DECLARE_INSTRUCTION_UNARY   (Load, UnaryInstruction, bool indirect = false;)
+DECLARE_INSTRUCTION_UNARY   (Store, UnaryInstruction, )
 
-DECLARE_INSTRUCTION_UNARY   (Load,  UnaryInstruction)
-DECLARE_INSTRUCTION_UNARY   (Store, UnaryInstruction)
+DECLARE_INSTRUCTION_UNARY   (Add,   Load, )
+DECLARE_INSTRUCTION_UNARY   (Addi,  UnaryInstruction, )
+DECLARE_INSTRUCTION_UNARY   (Sub,   Load, )
+DECLARE_INSTRUCTION_UNARY   (Subi,  UnaryInstruction, )
 
-DECLARE_INSTRUCTION_UNARY   (Add,   Load)
-DECLARE_INSTRUCTION_UNARY   (Addi,  UnaryInstruction)
-DECLARE_INSTRUCTION_UNARY   (Sub,   Load)
-DECLARE_INSTRUCTION_UNARY   (Subi,  UnaryInstruction)
+DECLARE_INSTRUCTION_UNARY   (Cmp,   Load, )
+DECLARE_INSTRUCTION_UNARY   (Jmp,   UnaryInstruction, )
+DECLARE_INSTRUCTION_UNARY   (Jz,    Jmp, )
+DECLARE_INSTRUCTION_UNARY   (Jnz,   Jmp, )
+DECLARE_INSTRUCTION_UNARY   (Js,    Jmp, )
+DECLARE_INSTRUCTION_UNARY   (Jns,   Jmp, )
+DECLARE_INSTRUCTION_UNARY   (Jnzns, Jmp, )
 
-DECLARE_INSTRUCTION_UNARY   (Cmp,   Load)
-DECLARE_INSTRUCTION_UNARY   (Jmp,   UnaryInstruction)
-DECLARE_INSTRUCTION_UNARY   (Jz,    Jmp)
-DECLARE_INSTRUCTION_UNARY   (Jnz,   Jmp)
-DECLARE_INSTRUCTION_UNARY   (Js,    Jmp)
-DECLARE_INSTRUCTION_UNARY   (Jns,   Jmp)
-DECLARE_INSTRUCTION_UNARY   (Jnzns, Jmp)
+DECLARE_INSTRUCTION_UNARY   (Mem,   Load, )
+DECLARE_INSTRUCTION_UNARY   (Cas,   Load, )
 
-DECLARE_INSTRUCTION_UNARY   (Mem,   Load)
-DECLARE_INSTRUCTION_UNARY   (Cas,   Load)
+DECLARE_INSTRUCTION_UNARY   (Sync,  UnaryInstruction, )
+DECLARE_INSTRUCTION_UNARY   (Exit,  UnaryInstruction, )
 #endif

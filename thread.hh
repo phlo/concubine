@@ -35,7 +35,7 @@ struct Thread
 
   Thread (Machine &, unsigned int, Program &);
 
-  word          load (word);
+  word          load (word, bool);
   void          store (word, word);
 
   virtual void  execute (void);

@@ -16,9 +16,9 @@ Thread::Thread (Machine & m, unsigned int i, Program & p) :
 {}
 
 /* Thread::load (word) ********************************************************/
-word Thread::load (word addr)
+word Thread::load (word addr, bool indirect)
 {
-  return machine.memory[addr];
+  return indirect ? machine.memory[machine.memory[addr]] : machine.memory[addr];
 }
 
 /* Thread::store (word, word) *************************************************/

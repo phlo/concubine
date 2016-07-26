@@ -88,29 +88,12 @@ Instruction::Type UnaryInstruction::getType ()
  * Machine Instructions
  ******************************************************************************/
 
-/* EXIT ***********************************************************************/
-DEFINE_INSTRUCTION_UNARY(Exit, "EXIT")
-void Exit::execute (Thread & thread)
-{
-  thread.accu = arg;
-  thread.state = Thread::State::EXITING;
-}
-
-/* SYNC ***********************************************************************/
-DEFINE_INSTRUCTION_UNARY(Sync, "SYNC")
-void Sync::execute (Thread & thread)
-{
-  thread.pc++;
-  thread.sync = arg;
-  thread.state = Thread::State::WAITING;
-}
-
 /* LOAD ***********************************************************************/
 DEFINE_INSTRUCTION_UNARY(Load, "LOAD")
 void Load::execute (Thread & thread)
 {
   thread.pc++;
-  thread.accu = thread.load(arg);
+  thread.accu = thread.load(arg, indirect);
 }
 
 /* STORE **********************************************************************/
@@ -126,7 +109,7 @@ DEFINE_INSTRUCTION_UNARY(Add, "ADD")
 void Add::execute (Thread & thread)
 {
   thread.pc++;
-  thread.accu += thread.load(arg);
+  thread.accu += thread.load(arg, indirect);
 }
 
 /* ADDI ***********************************************************************/
@@ -142,7 +125,7 @@ DEFINE_INSTRUCTION_UNARY(Sub, "SUB")
 void Sub::execute (Thread & thread)
 {
   thread.pc++;
-  thread.accu -= thread.load(arg);
+  thread.accu -= thread.load(arg, indirect);
 }
 
 /* SUBI ***********************************************************************/
@@ -160,7 +143,7 @@ void Cmp::execute (Thread & thread)
   thread.pc++;
   thread.accu = static_cast<word>(
     static_cast<signed_word>(thread.accu) -
-    static_cast<signed_word>(thread.load(arg))
+    static_cast<signed_word>(thread.load(arg, indirect))
   );
 }
 
@@ -235,7 +218,7 @@ void Cas::execute (Thread & thread)
 {
   thread.pc++;
 
-  word acutal = thread.load(arg);
+  word acutal = thread.load(arg, indirect);
   word expected = thread.mem;
 
   if (acutal == expected)
@@ -247,4 +230,21 @@ void Cas::execute (Thread & thread)
     {
       thread.accu = 0;
     }
+}
+
+/* SYNC ***********************************************************************/
+DEFINE_INSTRUCTION_UNARY(Sync, "SYNC")
+void Sync::execute (Thread & thread)
+{
+  thread.pc++;
+  thread.sync = arg;
+  thread.state = Thread::State::WAITING;
+}
+
+/* EXIT ***********************************************************************/
+DEFINE_INSTRUCTION_UNARY(Exit, "EXIT")
+void Exit::execute (Thread & thread)
+{
+  thread.accu = arg;
+  thread.state = Thread::State::EXITING;
 }
