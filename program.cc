@@ -70,6 +70,8 @@ void Program::print (bool includePC, word pc)
         cout << labels[u->arg];
       else if (LoadPtr l = dynamic_pointer_cast<Load>(u))
         cout << (l->indirect ? "[" : "") << l->arg << (l->indirect ? "]" : "");
+      else if (StorePtr s = dynamic_pointer_cast<Store>(u))
+        cout << (s->indirect ? "[" : "") << s->arg << (s->indirect ? "]" : "");
       else
         cout << u->arg;
     }

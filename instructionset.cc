@@ -101,7 +101,7 @@ DEFINE_INSTRUCTION_UNARY(Store, "STORE")
 void Store::execute (Thread & thread)
 {
   thread.pc++;
-  thread.store(arg, thread.accu);
+  thread.store(arg, thread.accu, indirect);
 }
 
 /* ADD ************************************************************************/
@@ -223,7 +223,7 @@ void Cas::execute (Thread & thread)
 
   if (acutal == expected)
     {
-      thread.store(arg, thread.accu);
+      thread.store(arg, thread.accu, indirect);
       thread.accu = 1;
     }
   else

@@ -22,9 +22,12 @@ word Thread::load (word addr, bool indirect)
 }
 
 /* Thread::store (word, word) *************************************************/
-void Thread::store (word addr, word val)
+void Thread::store (word addr, word val, bool indirect)
 {
-  machine.memory[addr] = val;
+  if (indirect)
+    machine.memory[machine.memory[addr]] = val;
+  else
+    machine.memory[addr] = val;
 }
 
 /* Thread::execute (void) *****************************************************/

@@ -122,8 +122,8 @@ typedef shared_ptr<UnaryInstruction> UnaryInstructionPtr;
   };                                                          \
   typedef shared_ptr<classname> classname##Ptr;
 
-DECLARE_INSTRUCTION_UNARY   (Load, UnaryInstruction, bool indirect = false;)
-DECLARE_INSTRUCTION_UNARY   (Store, UnaryInstruction, )
+DECLARE_INSTRUCTION_UNARY   (Load,  UnaryInstruction, bool indirect = false;)
+DECLARE_INSTRUCTION_UNARY   (Store, UnaryInstruction, bool indirect = false;)
 
 DECLARE_INSTRUCTION_UNARY   (Add,   Load, )
 DECLARE_INSTRUCTION_UNARY   (Addi,  UnaryInstruction, )
@@ -139,7 +139,7 @@ DECLARE_INSTRUCTION_UNARY   (Jns,   Jmp, )
 DECLARE_INSTRUCTION_UNARY   (Jnzns, Jmp, )
 
 DECLARE_INSTRUCTION_UNARY   (Mem,   Load, )
-DECLARE_INSTRUCTION_UNARY   (Cas,   Load, )
+DECLARE_INSTRUCTION_UNARY   (Cas,   Store, )
 
 DECLARE_INSTRUCTION_UNARY   (Sync,  UnaryInstruction, )
 DECLARE_INSTRUCTION_UNARY   (Exit,  UnaryInstruction, )
