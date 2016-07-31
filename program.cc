@@ -68,10 +68,8 @@ void Program::print (bool includePC, word pc)
     {
       if (dynamic_pointer_cast<Jmp>(cmd) && labels.find(u->arg) != labels.end())
         cout << labels[u->arg];
-      else if (LoadPtr l = dynamic_pointer_cast<Load>(u))
-        cout << (l->indirect ? "[" : "") << l->arg << (l->indirect ? "]" : "");
-      else if (StorePtr s = dynamic_pointer_cast<Store>(u))
-        cout << (s->indirect ? "[" : "") << s->arg << (s->indirect ? "]" : "");
+      else if (auto m = dynamic_pointer_cast<MemoryInstruction>(u))
+        cout << (m->indirect ? "[" : "") << m->arg << (m->indirect ? "]" : "");
       else
         cout << u->arg;
     }

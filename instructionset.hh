@@ -95,6 +95,21 @@ typedef shared_ptr<UnaryInstruction> UnaryInstructionPtr;
 
 
 /*******************************************************************************
+ * Memory Access Instruction Base Class (for indirect addressing)
+ ******************************************************************************/
+struct MemoryInstruction : public UnaryInstruction
+{
+  bool indirect;
+
+  MemoryInstruction (const word);
+
+  virtual void    execute (Thread &) = 0;
+};
+
+typedef shared_ptr<MemoryInstruction> MemoryInstructionPtr;
+
+
+/*******************************************************************************
  * Instructions
  ******************************************************************************/
 #define DECLARE_COMMON_INSTRUCTION_MEMBERS()      \
@@ -122,8 +137,8 @@ typedef shared_ptr<UnaryInstruction> UnaryInstructionPtr;
   };                                                          \
   typedef shared_ptr<classname> classname##Ptr;
 
-DECLARE_INSTRUCTION_UNARY   (Load,  UnaryInstruction, bool indirect = false;)
-DECLARE_INSTRUCTION_UNARY   (Store, UnaryInstruction, bool indirect = false;)
+DECLARE_INSTRUCTION_UNARY   (Load,  MemoryInstruction, )
+DECLARE_INSTRUCTION_UNARY   (Store, MemoryInstruction, )
 
 DECLARE_INSTRUCTION_UNARY   (Add,   Load, )
 DECLARE_INSTRUCTION_UNARY   (Addi,  UnaryInstruction, )

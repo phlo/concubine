@@ -44,6 +44,7 @@ Instruction::Type Instruction::getType ()
   return Instruction::Type::NULLARY;
 }
 
+
 /*******************************************************************************
  * UnaryInstruction
  ******************************************************************************/
@@ -54,8 +55,20 @@ Instruction::Type UnaryInstruction::getType ()
   return Instruction::Type::UNARY;
 }
 
+
 /*******************************************************************************
- * used to simplify definition of instructions
+ * MemoryInstruction
+ ******************************************************************************/
+MemoryInstruction::MemoryInstruction (const word a) :
+  UnaryInstruction(a),
+  indirect(false)
+{}
+
+
+/*******************************************************************************
+ * Machine Instructions
+ *
+ * use preprocessor to simplify definition of instructions
  * NOTE: 'execute' defined outside!
  ******************************************************************************/
 #define DEFINE_COMMON_INSTRUCTION_MEMBERS(classname)                        \
@@ -83,10 +96,6 @@ Instruction::Type UnaryInstruction::getType ()
       };                                                                    \
     return sym;                                                             \
   }(identifier);                                                            \
-
-/*******************************************************************************
- * Machine Instructions
- ******************************************************************************/
 
 /* LOAD ***********************************************************************/
 DEFINE_INSTRUCTION_UNARY(Load, "LOAD")

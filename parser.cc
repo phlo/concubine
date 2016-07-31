@@ -117,12 +117,9 @@ bool Parser<Program>::parse ()
 
                       i = Instruction::Set::create(token, arg);
 
-                      /* check if the instruction supports indirect addresses
-                         (is a load or store) */
-                      if (LoadPtr l = dynamic_pointer_cast<Load>(i))
-                        l->indirect = true;
-                      else if (StorePtr s = dynamic_pointer_cast<Store>(i))
-                        s->indirect = true;
+                      /* check if the instruction supports indirect addresses */
+                      if (auto m = dynamic_pointer_cast<MemoryInstruction>(i))
+                        m->indirect = true;
                       else
                         {
                           cout << "error: " <<
