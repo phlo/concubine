@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "machine.hh"
+#include "smtlib2.hh"
 
 /*******************************************************************************
  * Instruction::Set
@@ -73,7 +74,8 @@ MemoryInstruction::MemoryInstruction (const word a) :
  ******************************************************************************/
 #define DEFINE_COMMON_INSTRUCTION_MEMBERS(classname)                        \
   Instruction::OPCode classname::getOPCode () { return OPCode::classname; } \
-  const string& classname::getSymbol () { return classname::symbol; }
+  const string& classname::getSymbol () { return classname::symbol; }       \
+  void classname::encode (SMTLib2 & formula) { formula.encode(*this); }
 
 #define DEFINE_INSTRUCTION_NULLARY(classname, identifier)           \
   DEFINE_COMMON_INSTRUCTION_MEMBERS (classname)                     \

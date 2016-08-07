@@ -6,7 +6,14 @@ LDFLAGS=$(CXXFLAGS)
 LDLIBS=
 RM=rm -rf
 
-SRCS=instructionset.cc program.cc schedule.cc parser.cc machine.cc thread.cc
+SRCS=instructionset.cc \
+		 schedule.cc \
+		 program.cc \
+		 machine.cc \
+		 parser.cc \
+		 thread.cc \
+		 smtlib2.cc
+
 OBJS=$(subst .cc,.o,$(SRCS))
 
 MAIN=psimsmt
@@ -22,7 +29,7 @@ SCHEDULE=data/increment.valid.schedule
 
 build: clean all
 
-run: run_forever
+run: run_verify
 
 run_forever: $(MAIN)
 	./run_forever ./simulate_with_random_seed $(CT) $(T1) $(T1)
@@ -35,6 +42,9 @@ run_cas_forever: $(MAIN)
 
 run_replay: $(MAIN)
 	./$(MAIN) replay -v $(SCHEDULE)
+
+run_verify: $(MAIN)
+	./$(MAIN) verify 3 $(T1)
 
 $(MAIN): $(OBJS) main.cc
 	$(CXX) $(LDFLAGS) -o $(MAIN) $(OBJS) main.cc $(LDLIBS)

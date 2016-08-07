@@ -6,6 +6,7 @@
 
 #include "parser.hh"
 #include "machine.hh"
+#include "smtlib2.hh"
 
 using namespace std;
 
@@ -50,6 +51,15 @@ void printUsageReplay (char * name)
   "  schedule   the schedule to replay" << endl;
 }
 
+void printUsageVerify (char * name)
+{
+  cout << "usage: " << name <<
+  " replay <bound> <program>" <<
+  endl << endl <<
+  "  bound      execute a maximum of <bound> steps" << endl <<
+  "  program    the program to encode" << endl;
+}
+
 /*******************************************************************************
  * main functions
  * TODO: error handling!!!
@@ -76,6 +86,10 @@ int help (char * name, int argc, char **argv)
   else if (!strcmp(argv[0], "replay"))
     {
       printUsageReplay(name);
+    }
+  else if (!strcmp(argv[0], "verify"))
+    {
+      printUsageVerify(name);
     }
   else
     {
@@ -144,7 +158,7 @@ int replay (char * name, int argc, char ** argv)
     }
 
   unsigned int      bound = 0;
-  string            path2Schedule;
+  string            path2schedule;
 
   for (int i = 0; i < argc; i++)
     {
@@ -161,17 +175,41 @@ int replay (char * name, int argc, char ** argv)
         }
       else
         {
-          path2Schedule = arg;
+          path2schedule = arg;
         }
     }
 
   /* create and parse schedule */
-  Schedule schedule(path2Schedule);
+  Schedule schedule(path2schedule);
 
   /* run given schedule */
   Machine machine(schedule.getSeed(), bound);
 
   return machine.replay(schedule);
+}
+
+/* verify *********************************************************************/
+int verify (char * name, int argc, char ** argv)
+{
+  if (argc < 1)
+    {
+      cout << "too few arguments" << endl << endl;
+      printUsageVerify(name);
+      return -1;
+    }
+
+  // throws std::invalid_argument
+  unsigned long bound = stoul(argv[0], nullptr, 0);
+
+  string path2program = argv[1];
+
+  Program program(path2program);
+
+  SMTLib2 formula(program, bound);
+
+  formula.print();
+
+  return 0;
 }
 
 /* main ***********************************************************************/
@@ -191,6 +229,10 @@ int main (int argc, char ** argv)
       else if (!strcmp(argv[1], "replay"))
         {
           return replay(argv[0], argc - 2, argv + 2);
+        }
+      else if (!strcmp(argv[1], "verify"))
+        {
+          return verify(argv[0], argc - 2, argv + 2);
         }
     }
 

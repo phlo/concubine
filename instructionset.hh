@@ -10,6 +10,7 @@ using namespace std;
 
 /* forward declarations */
 struct Thread;
+class SMTLib2;
 
 /*******************************************************************************
  * Common Instruction Base Class (Nullary)
@@ -48,7 +49,7 @@ struct Instruction
       Cas
     };
 
-/* Instruction Set - containing object factories to simplify parsing **********/
+  /* Instruction Set - containing object factories to simplify parsing ********/
   struct Set
     {
       /* map containing pointers to instruction object factories */
@@ -66,12 +67,14 @@ struct Instruction
       static shared_ptr<Instruction>  create (string &, const word);
     };
 
-  /* Instruction Members */
+  /* Instruction Members ******************************************************/
   virtual Type            getType   (void);
   virtual OPCode          getOPCode (void) = 0;
   virtual const string &  getSymbol (void) = 0;
 
   virtual void            execute (Thread &) = 0;
+
+  virtual void            encode (SMTLib2 &) = 0;
 };
 
 typedef shared_ptr<Instruction> InstructionPtr;
@@ -89,6 +92,8 @@ struct UnaryInstruction : public Instruction
   virtual Type    getType (void);
 
   virtual void    execute (Thread &) = 0;
+
+  virtual void    encode (SMTLib2 &) = 0;
 };
 
 typedef shared_ptr<UnaryInstruction> UnaryInstructionPtr;
@@ -104,6 +109,8 @@ struct MemoryInstruction : public UnaryInstruction
   MemoryInstruction (const word);
 
   virtual void    execute (Thread &) = 0;
+
+  virtual void    encode (SMTLib2 &) = 0;
 };
 
 typedef shared_ptr<MemoryInstruction> MemoryInstructionPtr;
@@ -118,7 +125,9 @@ typedef shared_ptr<MemoryInstruction> MemoryInstructionPtr;
     virtual       OPCode      getOPCode ();       \
     virtual const string &    getSymbol ();       \
                                                   \
-    virtual       void        execute (Thread &);
+    virtual       void        execute (Thread &); \
+                                                  \
+    virtual       void        encode (SMTLib2 &); \
 
 #define DECLARE_INSTRUCTION_NULLARY(classname, baseclass, ...)  \
   struct classname : public baseclass                           \
