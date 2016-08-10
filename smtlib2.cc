@@ -1,5 +1,6 @@
 #include "smtlib2.hh"
 
+#include <limits>
 #include <iomanip>
 
 /*******************************************************************************
@@ -231,7 +232,6 @@ SMTLib2::SMTLib2 (Program & p, unsigned long b) : program(p), bound(b)
               << ("; step " + to_string(step) + " ")
               << endl;
 
-      word          prevPc    = pc - 1;
       unsigned long prevStep  = step - 1;
       const bool    isFinal   =
                       step == bound ||
@@ -261,6 +261,8 @@ SMTLib2::SMTLib2 (Program & p, unsigned long b) : program(p), bound(b)
           /* statement is no target of a jump */
           else if (predecessors[pc].size() == 1)
             {
+              word prevPc = *(predecessors[pc].begin());
+
               old.mem   = memVar(prevStep, prevPc);
               old.accu  = accuVar(prevStep, prevPc);
               old.heap  = heapVar(prevStep, prevPc);
@@ -274,12 +276,12 @@ SMTLib2::SMTLib2 (Program & p, unsigned long b) : program(p), bound(b)
 
               string curStmt = cur.activator;
 
-              for (word oldPc : predecessors[pc])
+              for (word prevPc : predecessors[pc])
                 {
-                  old.activator = stmtVar(prevStep, oldPc);
-                  old.mem       = memVar(prevStep, oldPc);
-                  old.accu      = accuVar(prevStep, oldPc);
-                  old.heap      = heapVar(prevStep, oldPc);
+                  old.activator = stmtVar(prevStep, prevPc);
+                  old.mem       = memVar(prevStep, prevPc);
+                  old.accu      = accuVar(prevStep, prevPc);
+                  old.heap      = heapVar(prevStep, prevPc);
 
                   cur.activator = smt::land(curStmt, old.activator);
 
@@ -299,10 +301,7 @@ SMTLib2::SMTLib2 (Program & p, unsigned long b) : program(p), bound(b)
           formula << endl;
         }
     }
-
-  /* add file footer */
-  addFooter();
-};
+}
 
 /* SMTLib2::collectPredecessors (void) ****************************************/
 void SMTLib2::collectPredecessors ()
@@ -438,6 +437,12 @@ void SMTLib2::addExitDeclarations ()
 void SMTLib2::print ()
 {
   cout << formula.str();
+}
+
+/* SMTLib2::toString (void) ***************************************************/
+string SMTLib2::toString ()
+{
+  return formula.str();
 }
 
 /*******************************************************************************

@@ -116,6 +116,9 @@ public:
   /* print the SMT-Lib v2 file to stdout */
   void                print (void);
 
+  /* returns the SMT-Lib v2 file as string */
+  string              toString (void);
+
   /* double-dispatched instruction encoding functions */
   void                encode (Load &);
   void                encode (Store &);
@@ -139,4 +142,10 @@ public:
   void                encode (Sync &);
   void                encode (Exit &);
 };
+
+/*******************************************************************************
+ * SMTLib2Ptr
+ ******************************************************************************/
+typedef shared_ptr<SMTLib2> SMTLib2Ptr;
+
 #endif
