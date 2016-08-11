@@ -10,7 +10,7 @@ using namespace std;
 
 /* forward declarations */
 struct Thread;
-class SMTLib2;
+namespace smtlib { class Encoder; }
 
 /*******************************************************************************
  * Common Instruction Base Class (Nullary)
@@ -74,7 +74,7 @@ struct Instruction
 
   virtual void            execute (Thread &) = 0;
 
-  virtual void            encode (SMTLib2 &) = 0;
+  virtual void            encode (smtlib::Encoder &) = 0;
 };
 
 typedef shared_ptr<Instruction> InstructionPtr;
@@ -93,7 +93,7 @@ struct UnaryInstruction : public Instruction
 
   virtual void    execute (Thread &) = 0;
 
-  virtual void    encode (SMTLib2 &) = 0;
+  virtual void    encode (smtlib::Encoder &) = 0;
 };
 
 typedef shared_ptr<UnaryInstruction> UnaryInstructionPtr;
@@ -110,7 +110,7 @@ struct MemoryInstruction : public UnaryInstruction
 
   virtual void    execute (Thread &) = 0;
 
-  virtual void    encode (SMTLib2 &) = 0;
+  virtual void    encode (smtlib::Encoder &) = 0;
 };
 
 typedef shared_ptr<MemoryInstruction> MemoryInstructionPtr;
@@ -119,15 +119,15 @@ typedef shared_ptr<MemoryInstruction> MemoryInstructionPtr;
 /*******************************************************************************
  * Instructions
  ******************************************************************************/
-#define DECLARE_COMMON_INSTRUCTION_MEMBERS()      \
-    static  const string      symbol;             \
-                                                  \
-    virtual       OPCode      getOPCode ();       \
-    virtual const string &    getSymbol ();       \
-                                                  \
-    virtual       void        execute (Thread &); \
-                                                  \
-    virtual       void        encode (SMTLib2 &); \
+#define DECLARE_COMMON_INSTRUCTION_MEMBERS()              \
+    static  const string      symbol;                     \
+                                                          \
+    virtual       OPCode      getOPCode ();               \
+    virtual const string &    getSymbol ();               \
+                                                          \
+    virtual       void        execute (Thread &);         \
+                                                          \
+    virtual       void        encode (smtlib::Encoder &); \
 
 #define DECLARE_INSTRUCTION_NULLARY(classname, baseclass, ...)  \
   struct classname : public baseclass                           \

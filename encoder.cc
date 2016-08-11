@@ -1,139 +1,12 @@
-#include "smtlib2.hh"
+#include "encoder.hh"
 
 #include <limits>
 #include <iomanip>
 
-/*******************************************************************************
- * SMT-Lib v2 string generators for commonly used expressions
- *
- * Note: namespace to avoid hiding problems due to frequently occurring names
- ******************************************************************************/
-namespace smt
-{
-  inline string unaryExpr (string op, string arg)
-    {
-      return "(" + op + " " + arg + ")";
-    }
+#include "smtlib.hh"
+#include "program.hh"
 
-  inline string binaryExpr (string op, string arg1, string arg2)
-    {
-      return "(" + op + " " + arg1 + " " + arg2 + ")";
-    }
-
-  inline string ternaryExpr (string op, string arg1, string arg2, string arg3)
-    {
-      return "(" + op + " " + arg1 + " " + arg2 + " " + arg3 + ")";
-    }
-
-  /* assertion ****************************************************************/
-  inline string assert (string arg)
-    {
-      return unaryExpr("assert", arg);
-    }
-
-  /* logical not **************************************************************/
-  inline string lnot (string arg)
-    {
-      return unaryExpr("not", arg);
-    }
-
-  /* logical or ***************************************************************/
-  inline string lor (string arg1, string arg2)
-    {
-      return binaryExpr("or", arg1, arg2);
-    }
-
-  /* logical and **************************************************************/
-  inline string land (string arg1, string arg2)
-    {
-      return binaryExpr("and", arg1, arg2);
-    }
-
-  /* equality *****************************************************************/
-  inline string equality (string arg1, string arg2)
-    {
-      return binaryExpr("=", arg1, arg2);
-    }
-
-  /* implication **************************************************************/
-  inline string implication (string arg1, string arg2)
-    {
-      return binaryExpr("=>", arg1, arg2);
-    }
-
-  /* bit-vector add ***********************************************************/
-  inline string bvadd (string arg1, string arg2)
-    {
-      return binaryExpr("bvadd", arg1, arg2);
-    }
-
-  /* bit-vector sub ***********************************************************/
-  inline string bvsub (string arg1, string arg2)
-    {
-      return binaryExpr("bvsub", arg1, arg2);
-    }
-
-  /* array select *************************************************************/
-  inline string select (string array, string index)
-    {
-      return binaryExpr("select", array, index);
-    }
-
-  /* array store **************************************************************/
-  inline string store (string arg1, string arg2, string arg3)
-    {
-      return ternaryExpr("store", arg1, arg2, arg3);
-    }
-
-  /* bit-vector extract *******************************************************/
-  inline string extract (string start, string end, string bitvec)
-    {
-      return unaryExpr(binaryExpr("_ extract", start, end), bitvec);
-    }
-
-  /* variable declaration *****************************************************/
-  inline string declareVar (string name, string type)
-    {
-      return ternaryExpr("declare-fun", name, "()", type);
-    }
-
-  /* bit-vector declaration ***************************************************/
-  inline string bitVector (string size)
-    {
-      return unaryExpr("_ BitVec", size);
-    }
-
-  /* array declaration ********************************************************/
-  inline string array (string arg1, string arg2)
-    {
-      return binaryExpr("Array", arg1, arg2);
-    }
-
-  /* set logic to QF_AUFBV ****************************************************/
-  inline string setLogic ()
-    {
-      return "(set-logic QF_AUFBV)";
-    }
-
-  /* check satisfiability *****************************************************/
-  inline string checkSat ()
-    {
-      return "(check-sat)";
-    }
-
-  /* get model ****************************************************************/
-  inline string getModel ()
-    {
-      return "(get-model)";
-    }
-
-  /* exit solver **************************************************************/
-  inline string exit ()
-    {
-      return "(exit)";
-    }
-}
-
+using namespace smtlib;
 
 /*******************************************************************************
  * global naming definitions
@@ -143,7 +16,7 @@ namespace smt
 int wordSize = numeric_limits<word>::digits;
 
 /* bitvector definition for the given word size - used frequently */
-string bitvecWord = smt::bitVector(to_string(wordSize));
+string bitvecWord = smtlib::bitVector(to_string(wordSize));
 
 /* state variable prefixes (to simplify changes) */
 string stmtPrefix = "STMT_";
@@ -202,9 +75,9 @@ string word2Hex (word val)
 
 
 /*******************************************************************************
- * SMTLib2 Program Encoder Class
+ * SMT-Lib v2.5 Program Encoder Class
  ******************************************************************************/
-SMTLib2::SMTLib2 (Program & p, unsigned long b) : program(p), bound(b)
+Encoder::Encoder (Program & p, unsigned long b) : program(p), bound(b)
 {
   /* find jump targets */
   collectPredecessors();
@@ -221,7 +94,7 @@ SMTLib2::SMTLib2 (Program & p, unsigned long b) : program(p), bound(b)
 
   /* add initial activation */
   formula << "; initial activation" << endl;
-  formula << smt::assert(stmtVar(1, 0)) << endl;
+  formula << smtlib::assert(stmtVar(1, 0)) << endl;
 
   /* encode the program */
   for (step = 1; step <= bound; step++)
@@ -283,7 +156,7 @@ SMTLib2::SMTLib2 (Program & p, unsigned long b) : program(p), bound(b)
                   old.accu      = accuVar(prevStep, prevPc);
                   old.heap      = heapVar(prevStep, prevPc);
 
-                  cur.activator = smt::land(curStmt, old.activator);
+                  cur.activator = smtlib::land(curStmt, old.activator);
 
                   if (addNewLine)
                     formula << endl;
@@ -303,8 +176,8 @@ SMTLib2::SMTLib2 (Program & p, unsigned long b) : program(p), bound(b)
     }
 }
 
-/* SMTLib2::collectPredecessors (void) ****************************************/
-void SMTLib2::collectPredecessors ()
+/* Encoder::collectPredecessors (void) ****************************************/
+void Encoder::collectPredecessors ()
 {
   word length = program.size();
 
@@ -322,25 +195,25 @@ void SMTLib2::collectPredecessors ()
     }
 }
 
-/* SMTLib2::addHeader (void) **************************************************/
-void SMTLib2::addHeader ()
+/* Encoder::addHeader (void) **************************************************/
+void Encoder::addHeader ()
 {
   formula << "; program: " << program.getPath() << endl;
   formula << "; bound: " << bound << endl << endl;
 
   /* add used logic */
-  formula << smt::setLogic() << endl;
+  formula << smtlib::setLogic() << endl;
 }
 
-/* SMTLib2::addFooter (void) **************************************************/
-void SMTLib2::addFooter ()
+/* Encoder::addFooter (void) **************************************************/
+void Encoder::addFooter ()
 {
-  formula << smt::checkSat() << endl;
-  formula << smt::exit() << endl;
+  formula << smtlib::checkSat() << endl;
+  formula << smtlib::exit() << endl;
 }
 
-/* SMTLib2::addStmtDeclarations (void) ****************************************/
-void SMTLib2::addStmtDeclarations ()
+/* Encoder::addStmtDeclarations (void) ****************************************/
+void Encoder::addStmtDeclarations ()
 {
   word length = program.size();
 
@@ -348,99 +221,101 @@ void SMTLib2::addStmtDeclarations ()
 
   for (step = 1; step <= bound; step++)
     for (pc = 0; pc < length; pc++)
-      formula << smt::declareVar(stmtVar(step, pc), "Bool") << endl;
+      formula << smtlib::declareVar(stmtVar(step, pc), "Bool") << endl;
 
   /* final statement variable */
-  formula << smt::declareVar(stmtFinal, "Bool") << endl;
+  formula << smtlib::declareVar(stmtFinal, "Bool") << endl;
 
   formula << endl;
 }
 
-/* SMTLib2::addMemDeclerations (void) *****************************************/
-void SMTLib2::addMemDeclarations ()
+/* Encoder::addMemDeclerations (void) *****************************************/
+void Encoder::addMemDeclarations ()
 {
   word length = program.size();
 
   formula << "; mem - MEM_<bound>_<pc>" << endl;
 
   /* initial accu variable */
-  formula << smt::declareVar(memInitial, bitvecWord) << endl;
+  formula << smtlib::declareVar(memInitial, bitvecWord) << endl;
 
   for (step = 1; step <= bound; step++)
     for (pc = 0; pc < length; pc++)
-      formula << smt::declareVar(memVar(step, pc), bitvecWord) << endl;
+      formula << smtlib::declareVar(memVar(step, pc), bitvecWord) << endl;
 
   /* final mem variable */
-  formula << smt::declareVar(memFinal, bitvecWord) << endl;
+  formula << smtlib::declareVar(memFinal, bitvecWord) << endl;
 
   formula << endl;
 }
 
-/* SMTLib2::addAccuDeclarations (void) ****************************************/
-void SMTLib2::addAccuDeclarations ()
+/* Encoder::addAccuDeclarations (void) ****************************************/
+void Encoder::addAccuDeclarations ()
 {
   word length = program.size();
 
   formula << "; accumulator - ACCU_<bound>_<pc>" << endl;
 
   /* initial accu variable */
-  formula << smt::declareVar(accuInitial, bitvecWord) << endl;
-  formula << smt::assert(smt::equality(accuInitial, word2Hex(0))) << endl;
+  formula << smtlib::declareVar(accuInitial, bitvecWord) << endl;
+  formula << smtlib::assert(smtlib::equality(accuInitial, word2Hex(0))) << endl;
 
   for (step = 1; step <= bound; step++)
     for (pc = 0; pc < length; pc++)
-      formula << smt::declareVar(accuVar(step, pc), bitvecWord) << endl;
+      formula << smtlib::declareVar(accuVar(step, pc), bitvecWord) << endl;
 
   /* final accu variable */
-  formula << smt::declareVar(accuFinal, bitvecWord) << endl;
+  formula << smtlib::declareVar(accuFinal, bitvecWord) << endl;
 
   formula << endl;
 }
 
-/* SMTLib2::addHeapDeclarations (void) ****************************************/
-void SMTLib2::addHeapDeclarations ()
+/* Encoder::addHeapDeclarations (void) ****************************************/
+void Encoder::addHeapDeclarations ()
 {
   word length = program.size();
 
   formula << "; machine memory - HEAP_<bound>_<pc>" << endl;
 
   /* initial heap variable */
-  formula <<  smt::declareVar(heapInitial, smt::array(bitvecWord, bitvecWord))
+  formula <<  smtlib::declareVar(
+                heapInitial,
+                smtlib::array(bitvecWord, bitvecWord))
           <<  endl;
 
   for (step = 1; step <= bound; step++)
     for (pc = 0; pc < length; pc++)
-      formula <<  smt::declareVar(
+      formula <<  smtlib::declareVar(
                     heapVar(step, pc),
-                    smt::array(bitvecWord, bitvecWord))
+                    smtlib::array(bitvecWord, bitvecWord))
               <<  endl;
 
   /* final heap variable */
-  formula <<  smt::declareVar(
+  formula <<  smtlib::declareVar(
                 heapFinal,
-                smt::array(bitvecWord, bitvecWord))
+                smtlib::array(bitvecWord, bitvecWord))
           <<  endl;
 
   formula << endl;
 }
 
-/* SMTLib2::addExitDeclarations (void) ****************************************/
-void SMTLib2::addExitDeclarations ()
+/* Encoder::addExitDeclarations (void) ****************************************/
+void Encoder::addExitDeclarations ()
 {
   formula << "; exit status" << endl;
-  formula << smt::declareVar(exitVar, "Bool") << endl;
-  formula << smt::declareVar(exitCodeVar, bitvecWord) << endl;
+  formula << smtlib::declareVar(exitVar, "Bool") << endl;
+  formula << smtlib::declareVar(exitCodeVar, bitvecWord) << endl;
   formula << endl;
 }
 
-/* SMTLib2::print (void) ******************************************************/
-void SMTLib2::print ()
+/* Encoder::print (void) ******************************************************/
+void Encoder::print ()
 {
   cout << formula.str();
 }
 
-/* SMTLib2::toString (void) ***************************************************/
-string SMTLib2::toString ()
+/* Encoder::toString (void) ***************************************************/
+string Encoder::toString ()
 {
   return formula.str();
 }
@@ -449,105 +324,105 @@ string SMTLib2::toString ()
  * encoding functions
  ******************************************************************************/
 
-/* SMTLib2::imply (string, string) ********************************************/
-inline string SMTLib2::imply (string condition, string expr)
+/* Encoder::imply (string, string) ********************************************/
+inline string Encoder::imply (string condition, string expr)
 {
-  return smt::assert(smt::implication(condition, expr));
+  return smtlib::assert(smtlib::implication(condition, expr));
 }
 
-/* SMTLib2::load (void) *******************************************************/
-inline string SMTLib2::load (Load & l)
+/* Encoder::load (void) *******************************************************/
+inline string Encoder::load (Load & l)
 {
   if (l.indirect)
-    return smt::select(cur.heap, smt::select(cur.heap, word2Hex(l.arg)));
+    return smtlib::select(cur.heap, smtlib::select(cur.heap, word2Hex(l.arg)));
   else
-    return smt::select(cur.heap, word2Hex(l.arg));
+    return smtlib::select(cur.heap, word2Hex(l.arg));
 }
 
-/* SMTLib2::assignVariable (string, string) ***********************************/
-inline string SMTLib2::assignVariable (string dest, string src)
+/* Encoder::assignVariable (string, string) ***********************************/
+inline string Encoder::assignVariable (string dest, string src)
 {
-  return imply(cur.activator, smt::equality(dest, src));
+  return imply(cur.activator, smtlib::equality(dest, src));
 }
 
-/* SMTLib2::restoreMem (void) *************************************************/
-inline void SMTLib2::restoreMem ()
+/* Encoder::restoreMem (void) *************************************************/
+inline void Encoder::restoreMem ()
 {
   formula << assignVariable(cur.mem, old.mem) << endl;
 }
 
-/* SMTLib2::restoreAccu (void) ************************************************/
-inline void SMTLib2::restoreAccu ()
+/* Encoder::restoreAccu (void) ************************************************/
+inline void Encoder::restoreAccu ()
 {
   formula << assignVariable(cur.accu, old.accu) << endl;
 }
 
-/* SMTLib2::restoreHeap (void) ************************************************/
-inline void SMTLib2::restoreHeap ()
+/* Encoder::restoreHeap (void) ************************************************/
+inline void Encoder::restoreHeap ()
 {
   formula << assignVariable(cur.heap, old.heap) << endl;
 }
 
-/* SMTLib2::assignAccu (string) ***********************************************/
-inline void SMTLib2::assignAccu (string val)
+/* Encoder::assignAccu (string) ***********************************************/
+inline void Encoder::assignAccu (string val)
 {
-  formula << imply(cur.activator, smt::equality(cur.accu, val)) << endl;
+  formula << imply(cur.activator, smtlib::equality(cur.accu, val)) << endl;
 }
 
-/* SMTLib2::assignHeap (string, string) ***************************************/
-inline void SMTLib2::assignHeap (string idx, string val)
+/* Encoder::assignHeap (string, string) ***************************************/
+inline void Encoder::assignHeap (string idx, string val)
 {
   formula <<  imply(
                 cur.activator,
-                smt::equality(cur.heap, smt::store(old.heap, idx, val)))
+                smtlib::equality(cur.heap, smtlib::store(old.heap, idx, val)))
           <<  endl;
 }
 
-/* SMTLib2::assignFinal (void) ************************************************/
-inline void SMTLib2::assignFinal ()
+/* Encoder::assignFinal (void) ************************************************/
+inline void Encoder::assignFinal ()
 {
   string stmt = stmtVar(step, pc);
 
   formula <<  endl
           <<  imply(stmt, stmtFinal) << endl
-          <<  imply(stmt, smt::equality(memFinal, cur.mem)) << endl
-          <<  imply(stmt, smt::equality(accuFinal, cur.accu)) << endl
-          <<  imply(stmt, smt::equality(heapFinal, cur.heap)) << endl;
+          <<  imply(stmt, smtlib::equality(memFinal, cur.mem)) << endl
+          <<  imply(stmt, smtlib::equality(accuFinal, cur.accu)) << endl
+          <<  imply(stmt, smtlib::equality(heapFinal, cur.heap)) << endl;
 }
 
-/* SMTLib2::activate (string, string) *****************************************/
-inline void SMTLib2::activate (string condition, string target)
+/* Encoder::activate (string, string) *****************************************/
+inline void Encoder::activate (string condition, string target)
 {
   if (step < bound)
-    formula <<  smt::assert(
-                  smt::implication(
+    formula <<  smtlib::assert(
+                  smtlib::implication(
                     condition,
                     target))
             <<  endl;
 }
 
-/* SMTLib2::activateNext (void) ***********************************************/
-inline void SMTLib2::activateNext ()
+/* Encoder::activateNext (void) ***********************************************/
+inline void Encoder::activateNext ()
 {
   if (pc < program.size() - 1)
     activate(cur.activator, stmtVar(step + 1, pc + 1));
 }
 
-/* SMTLib2::activateJump (string, string) *************************************/
-inline void SMTLib2::activateJump (string condition, word target)
+/* Encoder::activateJump (string, string) *************************************/
+inline void Encoder::activateJump (string condition, word target)
 {
-  activate(smt::land(cur.activator, condition), stmtVar(step + 1, target));
+  activate(smtlib::land(cur.activator, condition), stmtVar(step + 1, target));
 
   if (pc < program.size() - 1)
     activate(
-      smt::land(
+      smtlib::land(
         cur.activator,
-        smt::lnot(condition)),
+        smtlib::lnot(condition)),
       stmtVar(step + 1, pc + 1));
 }
 
 /* LOAD ***********************************************************************/
-void SMTLib2::encode (Load & l)
+void Encoder::encode (Load & l)
 {
   /* restore mem */
   restoreMem();
@@ -563,7 +438,7 @@ void SMTLib2::encode (Load & l)
 }
 
 /* STORE **********************************************************************/
-void SMTLib2::encode (Store & s)
+void Encoder::encode (Store & s)
 {
   /* restore mem */
   restoreMem();
@@ -573,7 +448,7 @@ void SMTLib2::encode (Store & s)
 
   /* assign heap */
   if (s.indirect)
-    assignHeap(smt::select(old.heap, word2Hex(s.arg)), cur.accu);
+    assignHeap(smtlib::select(old.heap, word2Hex(s.arg)), cur.accu);
   else
     assignHeap(word2Hex(s.arg), cur.accu);
 
@@ -582,13 +457,13 @@ void SMTLib2::encode (Store & s)
 }
 
 /* ADD ************************************************************************/
-void SMTLib2::encode (Add & a)
+void Encoder::encode (Add & a)
 {
   /* restore mem */
   restoreMem();
 
   /* assign accu */
-  assignAccu(smt::bvadd(old.accu, load(a)));
+  assignAccu(smtlib::bvadd(old.accu, load(a)));
 
   /* restore heap */
   restoreHeap();
@@ -598,13 +473,13 @@ void SMTLib2::encode (Add & a)
 }
 
 /* ADDI ***********************************************************************/
-void SMTLib2::encode (Addi & a)
+void Encoder::encode (Addi & a)
 {
   /* restore mem */
   restoreMem();
 
   /* assign accu */
-  assignAccu(smt::bvadd(old.accu, word2Hex(a.arg)));
+  assignAccu(smtlib::bvadd(old.accu, word2Hex(a.arg)));
 
   /* restore heap */
   restoreHeap();
@@ -614,13 +489,13 @@ void SMTLib2::encode (Addi & a)
 }
 
 /* SUB ************************************************************************/
-void SMTLib2::encode (Sub & s)
+void Encoder::encode (Sub & s)
 {
   /* restore mem */
   restoreMem();
 
   /* assign accu */
-  assignAccu(smt::bvsub(old.accu, load(s)));
+  assignAccu(smtlib::bvsub(old.accu, load(s)));
 
   /* restore heap */
   restoreHeap();
@@ -630,13 +505,13 @@ void SMTLib2::encode (Sub & s)
 }
 
 /* SUBI ***********************************************************************/
-void SMTLib2::encode (Subi & s)
+void Encoder::encode (Subi & s)
 {
   /* restore mem */
   restoreMem();
 
   /* assign accu */
-  assignAccu(smt::bvsub(old.accu, word2Hex(s.arg)));
+  assignAccu(smtlib::bvsub(old.accu, word2Hex(s.arg)));
 
   /* restore heap */
   restoreHeap();
@@ -646,13 +521,13 @@ void SMTLib2::encode (Subi & s)
 }
 
 /* CMP ************************************************************************/
-void SMTLib2::encode (Cmp & c)
+void Encoder::encode (Cmp & c)
 {
   /* restore mem */
   restoreMem();
 
   /* assign accu */
-  assignAccu(smt::bvsub(old.accu, load(c)));
+  assignAccu(smtlib::bvsub(old.accu, load(c)));
 
   /* restore heap */
   restoreHeap();
@@ -662,7 +537,7 @@ void SMTLib2::encode (Cmp & c)
 }
 
 /* JMP ************************************************************************/
-void SMTLib2::encode (Jmp & j)
+void Encoder::encode (Jmp & j)
 {
   /* restore mem */
   restoreMem();
@@ -678,7 +553,7 @@ void SMTLib2::encode (Jmp & j)
 }
 
 /* JZ *************************************************************************/
-void SMTLib2::encode (Jz & j)
+void Encoder::encode (Jz & j)
 {
   /* restore mem */
   restoreMem();
@@ -690,11 +565,11 @@ void SMTLib2::encode (Jz & j)
   restoreHeap();
 
   /* activate next statement depending on accu */
-  activateJump(smt::equality(cur.accu, word2Hex(0)), j.arg);
+  activateJump(smtlib::equality(cur.accu, word2Hex(0)), j.arg);
 }
 
 /* JNZ ************************************************************************/
-void SMTLib2::encode (Jnz & j)
+void Encoder::encode (Jnz & j)
 {
   /* restore mem */
   restoreMem();
@@ -706,11 +581,11 @@ void SMTLib2::encode (Jnz & j)
   restoreHeap();
 
   /* activate next statement depending on accu */
-  activateJump(smt::lnot(smt::equality(cur.accu, word2Hex(0))), j.arg);
+  activateJump(smtlib::lnot(smtlib::equality(cur.accu, word2Hex(0))), j.arg);
 }
 
 /* JS *************************************************************************/
-void SMTLib2::encode (Js & j)
+void Encoder::encode (Js & j)
 {
   /* restore mem */
   restoreMem();
@@ -723,9 +598,9 @@ void SMTLib2::encode (Js & j)
 
   /* activate next statement depending on accu */
   activateJump(
-      smt::equality(
+      smtlib::equality(
         "#b1",
-        smt::extract(
+        smtlib::extract(
           to_string(wordSize - 1),
           to_string(wordSize - 1),
           cur.accu)),
@@ -733,7 +608,7 @@ void SMTLib2::encode (Js & j)
 }
 
 /* JNS ************************************************************************/
-void SMTLib2::encode (Jns & j)
+void Encoder::encode (Jns & j)
 {
   /* restore mem */
   restoreMem();
@@ -746,9 +621,9 @@ void SMTLib2::encode (Jns & j)
 
   /* activate next statement depending on accu */
   activateJump(
-      smt::equality(
+      smtlib::equality(
         "#b0",
-        smt::extract(
+        smtlib::extract(
           to_string(wordSize - 1),
           to_string(wordSize - 1),
           cur.accu)),
@@ -756,7 +631,7 @@ void SMTLib2::encode (Jns & j)
 }
 
 /* JNZNS **********************************************************************/
-void SMTLib2::encode (Jnzns & j)
+void Encoder::encode (Jnzns & j)
 {
   /* restore mem */
   restoreMem();
@@ -769,14 +644,14 @@ void SMTLib2::encode (Jnzns & j)
 
   /* activate next statement depending on accu */
   activateJump(
-      smt::land(
-        smt::lnot(
-          smt::equality(
+      smtlib::land(
+        smtlib::lnot(
+          smtlib::equality(
             cur.accu,
             word2Hex(0))),
-        smt::equality(
+        smtlib::equality(
           "#b0",
-          smt::extract(
+          smtlib::extract(
             to_string(wordSize - 1),
             to_string(wordSize - 1),
             cur.accu))),
@@ -784,7 +659,7 @@ void SMTLib2::encode (Jnzns & j)
 }
 
 /* MEM ************************************************************************/
-void SMTLib2::encode (Mem & m)
+void Encoder::encode (Mem & m)
 {
   /* assign mem */
   formula << assignVariable(cur.mem, load(m)) << endl;
@@ -800,7 +675,7 @@ void SMTLib2::encode (Mem & m)
 }
 
 /* CAS ************************************************************************/
-void SMTLib2::encode (Cas & c)
+void Encoder::encode (Cas & c)
 {
   formula <<  "; " << c.getSymbol()
           <<  " not implemented in sequential version!"
@@ -814,7 +689,7 @@ void SMTLib2::encode (Cas & c)
 }
 
 /* SYNC ***********************************************************************/
-void SMTLib2::encode (Sync & s)
+void Encoder::encode (Sync & s)
 {
   formula <<  "; " << s.getSymbol()
           <<  " not implemented in sequential version!"
@@ -828,7 +703,7 @@ void SMTLib2::encode (Sync & s)
 }
 
 /* EXIT ***********************************************************************/
-void SMTLib2::encode (Exit & e)
+void Encoder::encode (Exit & e)
 {
   /* restore mem */
   restoreMem();

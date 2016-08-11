@@ -6,7 +6,7 @@
 
 #include "parser.hh"
 #include "machine.hh"
-#include "smtlib2.hh"
+#include "encoder.hh"
 
 using namespace std;
 
@@ -205,7 +205,7 @@ int verify (char * name, int argc, char ** argv)
 
   Program program(path2program);
 
-  SMTLib2 formula(program, bound);
+  smtlib::Encoder formula(program, bound);
 
   formula.print();
 

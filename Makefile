@@ -12,7 +12,7 @@ SRCS=instructionset.cc \
 		 machine.cc \
 		 parser.cc \
 		 thread.cc \
-		 smtlib2.cc
+		 encoder.cc
 
 OBJS=$(subst .cc,.o,$(SRCS))
 
