@@ -6,7 +6,8 @@
 
 #include "parser.hh"
 #include "machine.hh"
-#include "encoder.hh"
+#include "verifier.hh"
+#include "boolector.hh"
 
 using namespace std;
 
@@ -22,7 +23,8 @@ void printUsageMain (char * name)
   "available commands:" << endl <<
   "  help       print help for a specific <command>" << endl <<
   "  simulate   simulate concurrent programs" << endl <<
-  "  replay     reevaluates a given schedule" << endl;
+  "  replay     reevaluates a given schedule" << endl <<
+  "  verify     verifies a given (single-threaded) program" << endl;
 }
 
 void printUsageHelp (char * name)
@@ -54,8 +56,9 @@ void printUsageReplay (char * name)
 void printUsageVerify (char * name)
 {
   cout << "usage: " << name <<
-  " replay <bound> <program>" <<
+  " verify [-p] <bound> <program> <specification>" <<
   endl << endl <<
+  "  -p         prints the generated SMT-Lib v2 file and exits" << endl <<
   "  bound      execute a maximum of <bound> steps" << endl <<
   "  program    the program to encode" << endl;
 }
@@ -191,23 +194,57 @@ int replay (char * name, int argc, char ** argv)
 /* verify *********************************************************************/
 int verify (char * name, int argc, char ** argv)
 {
-  if (argc < 1)
+  if (argc < 3)
     {
       cout << "too few arguments" << endl << endl;
       printUsageVerify(name);
       return -1;
     }
 
+  int i = 0;
+
+  /* only print smt file if true */
+  bool pretend = false;
+
+  /* check pretend flag */
+  if (!strcmp(argv[i], "-p"))
+    {
+      pretend = true;
+      i++;
+    }
+
+  /* parse bound */
   // throws std::invalid_argument
-  unsigned long bound = stoul(argv[0], nullptr, 0);
+  unsigned long bound = stoul(argv[i++], nullptr, 0);
 
-  string path2program = argv[1];
+  /* parse path to program */
+  string path2program = argv[i++];
 
+  /* parse program */
   Program program(path2program);
 
+  /* encode program */
   smtlib::Encoder formula(program, bound);
 
-  formula.print();
+  /* read specification from file */
+  ifstream specFs(argv[i++]);
+  string specification(
+      (istreambuf_iterator<char>(specFs)),
+      istreambuf_iterator<char>());
+
+  /* create solver */
+  Boolector boolector;
+
+  /* create verifier*/
+  Verifier verifier(boolector, formula, specification);
+
+  /* print program if we're pretending */
+  if (pretend)
+    verifier.print();
+
+  /* verify program an */
+  else
+    verifier.sat();
 
   return 0;
 }

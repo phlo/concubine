@@ -6,8 +6,6 @@
 #include "smtlib.hh"
 #include "program.hh"
 
-using namespace smtlib;
-
 /*******************************************************************************
  * global naming definitions
  ******************************************************************************/
@@ -77,7 +75,7 @@ string word2Hex (word val)
 /*******************************************************************************
  * SMT-Lib v2.5 Program Encoder Class
  ******************************************************************************/
-Encoder::Encoder (Program & p, unsigned long b) : program(p), bound(b)
+smtlib::Encoder::Encoder (Program & p, unsigned long b) : program(p), bound(b)
 {
   /* find jump targets */
   collectPredecessors();
@@ -176,8 +174,8 @@ Encoder::Encoder (Program & p, unsigned long b) : program(p), bound(b)
     }
 }
 
-/* Encoder::collectPredecessors (void) ****************************************/
-void Encoder::collectPredecessors ()
+/* smtlib::Encoder::collectPredecessors (void) ********************************/
+void smtlib::Encoder::collectPredecessors ()
 {
   word length = program.size();
 
@@ -195,8 +193,8 @@ void Encoder::collectPredecessors ()
     }
 }
 
-/* Encoder::addHeader (void) **************************************************/
-void Encoder::addHeader ()
+/* smtlib::Encoder::addHeader (void) ******************************************/
+void smtlib::Encoder::addHeader ()
 {
   formula << "; program: " << program.getPath() << endl;
   formula << "; bound: " << bound << endl << endl;
@@ -205,15 +203,15 @@ void Encoder::addHeader ()
   formula << smtlib::setLogic() << endl;
 }
 
-/* Encoder::addFooter (void) **************************************************/
-void Encoder::addFooter ()
+/* smtlib::Encoder::addFooter (void) ******************************************/
+void smtlib::Encoder::addFooter ()
 {
   formula << smtlib::checkSat() << endl;
   formula << smtlib::exit() << endl;
 }
 
-/* Encoder::addStmtDeclarations (void) ****************************************/
-void Encoder::addStmtDeclarations ()
+/* smtlib::Encoder::addStmtDeclarations (void) ********************************/
+void smtlib::Encoder::addStmtDeclarations ()
 {
   word length = program.size();
 
@@ -229,8 +227,8 @@ void Encoder::addStmtDeclarations ()
   formula << endl;
 }
 
-/* Encoder::addMemDeclerations (void) *****************************************/
-void Encoder::addMemDeclarations ()
+/* smtlib::Encoder::addMemDeclerations (void) *********************************/
+void smtlib::Encoder::addMemDeclarations ()
 {
   word length = program.size();
 
@@ -249,8 +247,8 @@ void Encoder::addMemDeclarations ()
   formula << endl;
 }
 
-/* Encoder::addAccuDeclarations (void) ****************************************/
-void Encoder::addAccuDeclarations ()
+/* smtlib::Encoder::addAccuDeclarations (void) ********************************/
+void smtlib::Encoder::addAccuDeclarations ()
 {
   word length = program.size();
 
@@ -270,8 +268,8 @@ void Encoder::addAccuDeclarations ()
   formula << endl;
 }
 
-/* Encoder::addHeapDeclarations (void) ****************************************/
-void Encoder::addHeapDeclarations ()
+/* smtlib::Encoder::addHeapDeclarations (void) ********************************/
+void smtlib::Encoder::addHeapDeclarations ()
 {
   word length = program.size();
 
@@ -299,8 +297,8 @@ void Encoder::addHeapDeclarations ()
   formula << endl;
 }
 
-/* Encoder::addExitDeclarations (void) ****************************************/
-void Encoder::addExitDeclarations ()
+/* smtlib::Encoder::addExitDeclarations (void) ********************************/
+void smtlib::Encoder::addExitDeclarations ()
 {
   formula << "; exit status" << endl;
   formula << smtlib::declareVar(exitVar, "Bool") << endl;
@@ -308,14 +306,14 @@ void Encoder::addExitDeclarations ()
   formula << endl;
 }
 
-/* Encoder::print (void) ******************************************************/
-void Encoder::print ()
+/* smtlib::Encoder::print (void) **********************************************/
+void smtlib::Encoder::print ()
 {
   cout << formula.str();
 }
 
-/* Encoder::toString (void) ***************************************************/
-string Encoder::toString ()
+/* smtlib::Encoder::toString (void) *******************************************/
+string smtlib::Encoder::toString ()
 {
   return formula.str();
 }
@@ -324,14 +322,14 @@ string Encoder::toString ()
  * encoding functions
  ******************************************************************************/
 
-/* Encoder::imply (string, string) ********************************************/
-inline string Encoder::imply (string condition, string expr)
+/* smtlib::Encoder::imply (string, string) ************************************/
+inline string smtlib::Encoder::imply (string condition, string expr)
 {
   return smtlib::assert(smtlib::implication(condition, expr));
 }
 
-/* Encoder::load (void) *******************************************************/
-inline string Encoder::load (Load & l)
+/* smtlib::Encoder::load (void) ***********************************************/
+inline string smtlib::Encoder::load (Load & l)
 {
   if (l.indirect)
     return smtlib::select(cur.heap, smtlib::select(cur.heap, word2Hex(l.arg)));
@@ -339,38 +337,38 @@ inline string Encoder::load (Load & l)
     return smtlib::select(cur.heap, word2Hex(l.arg));
 }
 
-/* Encoder::assignVariable (string, string) ***********************************/
-inline string Encoder::assignVariable (string dest, string src)
+/* smtlib::Encoder::assignVariable (string, string) ***************************/
+inline string smtlib::Encoder::assignVariable (string dest, string src)
 {
   return imply(cur.activator, smtlib::equality(dest, src));
 }
 
-/* Encoder::restoreMem (void) *************************************************/
-inline void Encoder::restoreMem ()
+/* smtlib::Encoder::restoreMem (void) *****************************************/
+inline void smtlib::Encoder::restoreMem ()
 {
   formula << assignVariable(cur.mem, old.mem) << endl;
 }
 
-/* Encoder::restoreAccu (void) ************************************************/
-inline void Encoder::restoreAccu ()
+/* smtlib::Encoder::restoreAccu (void) ****************************************/
+inline void smtlib::Encoder::restoreAccu ()
 {
   formula << assignVariable(cur.accu, old.accu) << endl;
 }
 
-/* Encoder::restoreHeap (void) ************************************************/
-inline void Encoder::restoreHeap ()
+/* smtlib::Encoder::restoreHeap (void) ****************************************/
+inline void smtlib::Encoder::restoreHeap ()
 {
   formula << assignVariable(cur.heap, old.heap) << endl;
 }
 
-/* Encoder::assignAccu (string) ***********************************************/
-inline void Encoder::assignAccu (string val)
+/* smtlib::Encoder::assignAccu (string) ***************************************/
+inline void smtlib::Encoder::assignAccu (string val)
 {
   formula << imply(cur.activator, smtlib::equality(cur.accu, val)) << endl;
 }
 
-/* Encoder::assignHeap (string, string) ***************************************/
-inline void Encoder::assignHeap (string idx, string val)
+/* smtlib::Encoder::assignHeap (string, string) *******************************/
+inline void smtlib::Encoder::assignHeap (string idx, string val)
 {
   formula <<  imply(
                 cur.activator,
@@ -378,8 +376,8 @@ inline void Encoder::assignHeap (string idx, string val)
           <<  endl;
 }
 
-/* Encoder::assignFinal (void) ************************************************/
-inline void Encoder::assignFinal ()
+/* smtlib::Encoder::assignFinal (void) ****************************************/
+inline void smtlib::Encoder::assignFinal ()
 {
   string stmt = stmtVar(step, pc);
 
@@ -390,8 +388,8 @@ inline void Encoder::assignFinal ()
           <<  imply(stmt, smtlib::equality(heapFinal, cur.heap)) << endl;
 }
 
-/* Encoder::activate (string, string) *****************************************/
-inline void Encoder::activate (string condition, string target)
+/* smtlib::Encoder::activate (string, string) *********************************/
+inline void smtlib::Encoder::activate (string condition, string target)
 {
   if (step < bound)
     formula <<  smtlib::assert(
@@ -401,15 +399,15 @@ inline void Encoder::activate (string condition, string target)
             <<  endl;
 }
 
-/* Encoder::activateNext (void) ***********************************************/
-inline void Encoder::activateNext ()
+/* smtlib::Encoder::activateNext (void) ***************************************/
+inline void smtlib::Encoder::activateNext ()
 {
   if (pc < program.size() - 1)
     activate(cur.activator, stmtVar(step + 1, pc + 1));
 }
 
-/* Encoder::activateJump (string, string) *************************************/
-inline void Encoder::activateJump (string condition, word target)
+/* smtlib::Encoder::activateJump (string, string) *****************************/
+inline void smtlib::Encoder::activateJump (string condition, word target)
 {
   activate(smtlib::land(cur.activator, condition), stmtVar(step + 1, target));
 
@@ -422,7 +420,7 @@ inline void Encoder::activateJump (string condition, word target)
 }
 
 /* LOAD ***********************************************************************/
-void Encoder::encode (Load & l)
+void smtlib::Encoder::encode (Load & l)
 {
   /* restore mem */
   restoreMem();
@@ -438,7 +436,7 @@ void Encoder::encode (Load & l)
 }
 
 /* STORE **********************************************************************/
-void Encoder::encode (Store & s)
+void smtlib::Encoder::encode (Store & s)
 {
   /* restore mem */
   restoreMem();
@@ -457,7 +455,7 @@ void Encoder::encode (Store & s)
 }
 
 /* ADD ************************************************************************/
-void Encoder::encode (Add & a)
+void smtlib::Encoder::encode (Add & a)
 {
   /* restore mem */
   restoreMem();
@@ -473,7 +471,7 @@ void Encoder::encode (Add & a)
 }
 
 /* ADDI ***********************************************************************/
-void Encoder::encode (Addi & a)
+void smtlib::Encoder::encode (Addi & a)
 {
   /* restore mem */
   restoreMem();
@@ -489,7 +487,7 @@ void Encoder::encode (Addi & a)
 }
 
 /* SUB ************************************************************************/
-void Encoder::encode (Sub & s)
+void smtlib::Encoder::encode (Sub & s)
 {
   /* restore mem */
   restoreMem();
@@ -505,7 +503,7 @@ void Encoder::encode (Sub & s)
 }
 
 /* SUBI ***********************************************************************/
-void Encoder::encode (Subi & s)
+void smtlib::Encoder::encode (Subi & s)
 {
   /* restore mem */
   restoreMem();
@@ -521,7 +519,7 @@ void Encoder::encode (Subi & s)
 }
 
 /* CMP ************************************************************************/
-void Encoder::encode (Cmp & c)
+void smtlib::Encoder::encode (Cmp & c)
 {
   /* restore mem */
   restoreMem();
@@ -537,7 +535,7 @@ void Encoder::encode (Cmp & c)
 }
 
 /* JMP ************************************************************************/
-void Encoder::encode (Jmp & j)
+void smtlib::Encoder::encode (Jmp & j)
 {
   /* restore mem */
   restoreMem();
@@ -553,7 +551,7 @@ void Encoder::encode (Jmp & j)
 }
 
 /* JZ *************************************************************************/
-void Encoder::encode (Jz & j)
+void smtlib::Encoder::encode (Jz & j)
 {
   /* restore mem */
   restoreMem();
@@ -569,7 +567,7 @@ void Encoder::encode (Jz & j)
 }
 
 /* JNZ ************************************************************************/
-void Encoder::encode (Jnz & j)
+void smtlib::Encoder::encode (Jnz & j)
 {
   /* restore mem */
   restoreMem();
@@ -585,7 +583,7 @@ void Encoder::encode (Jnz & j)
 }
 
 /* JS *************************************************************************/
-void Encoder::encode (Js & j)
+void smtlib::Encoder::encode (Js & j)
 {
   /* restore mem */
   restoreMem();
@@ -608,7 +606,7 @@ void Encoder::encode (Js & j)
 }
 
 /* JNS ************************************************************************/
-void Encoder::encode (Jns & j)
+void smtlib::Encoder::encode (Jns & j)
 {
   /* restore mem */
   restoreMem();
@@ -631,7 +629,7 @@ void Encoder::encode (Jns & j)
 }
 
 /* JNZNS **********************************************************************/
-void Encoder::encode (Jnzns & j)
+void smtlib::Encoder::encode (Jnzns & j)
 {
   /* restore mem */
   restoreMem();
@@ -659,7 +657,7 @@ void Encoder::encode (Jnzns & j)
 }
 
 /* MEM ************************************************************************/
-void Encoder::encode (Mem & m)
+void smtlib::Encoder::encode (Mem & m)
 {
   /* assign mem */
   formula << assignVariable(cur.mem, load(m)) << endl;
@@ -675,7 +673,7 @@ void Encoder::encode (Mem & m)
 }
 
 /* CAS ************************************************************************/
-void Encoder::encode (Cas & c)
+void smtlib::Encoder::encode (Cas & c)
 {
   formula <<  "; " << c.getSymbol()
           <<  " not implemented in sequential version!"
@@ -689,7 +687,7 @@ void Encoder::encode (Cas & c)
 }
 
 /* SYNC ***********************************************************************/
-void Encoder::encode (Sync & s)
+void smtlib::Encoder::encode (Sync & s)
 {
   formula <<  "; " << s.getSymbol()
           <<  " not implemented in sequential version!"
@@ -703,7 +701,7 @@ void Encoder::encode (Sync & s)
 }
 
 /* EXIT ***********************************************************************/
-void Encoder::encode (Exit & e)
+void smtlib::Encoder::encode (Exit & e)
 {
   /* restore mem */
   restoreMem();
