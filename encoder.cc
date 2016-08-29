@@ -1,20 +1,19 @@
 #include "encoder.hh"
 
-#include <limits>
 #include <iomanip>
+#include <iostream>
 
 #include "smtlib.hh"
 #include "program.hh"
+
+using namespace std;
 
 /*******************************************************************************
  * global naming definitions
  ******************************************************************************/
 
-/* machine word size - shouldn't change but well ... just in case */
-int wordSize = numeric_limits<word>::digits;
-
 /* bitvector definition for the given word size - used frequently */
-string bitvecWord = smtlib::bitVector(to_string(wordSize));
+string bitvecWord = smtlib::bitVector(to_string(word_size));
 
 /* state variable prefixes (to simplify changes) */
 string stmtPrefix = "STMT_";
@@ -32,25 +31,25 @@ string stmtVar (unsigned long step, word pc)
 /* memory register variable names */
 string memInitial = memPrefix + "0";
 string memFinal = memPrefix + "FINAL";
-string memVar (unsigned long step, word pc)
+string memVar (unsigned long step)
 {
-  return memPrefix + to_string(step) + "_" + to_string(pc);
+  return memPrefix + to_string(step);
 }
 
 /* accu variable names */
 string accuInitial = accuPrefix + "0";
 string accuFinal = accuPrefix + "FINAL";
-string accuVar (unsigned long step, word pc)
+string accuVar (unsigned long step)
 {
-  return accuPrefix + to_string(step) + "_" + to_string(pc);
+  return accuPrefix + to_string(step);
 }
 
 /* machine memory variable names */
 string heapInitial = heapPrefix + "0";
 string heapFinal = heapPrefix + "FINAL";
-string heapVar (unsigned long step, word pc)
+string heapVar (unsigned long step)
 {
-  return heapPrefix + to_string(step) + "_" + to_string(pc);
+  return heapPrefix + to_string(step);
 }
 
 /* exit variable names */
@@ -64,18 +63,24 @@ string word2Hex (word val)
 
   s << "#x"
     << setfill('0')
-    << setw(wordSize / 4)
+    << setw(word_size / 4)
     << hex
     << val;
 
   return s.str();
 }
 
-
 /*******************************************************************************
  * SMT-Lib v2.5 Program Encoder Class
  ******************************************************************************/
 smtlib::Encoder::Encoder (Program & p, unsigned long b) : program(p), bound(b)
+{
+  if (!program.empty())
+    encode();
+}
+
+/* smtlib::Encoder::encode (void) *********************************************/
+void smtlib::Encoder::encode ()
 {
   /* find jump targets */
   collectPredecessors();
@@ -93,6 +98,7 @@ smtlib::Encoder::Encoder (Program & p, unsigned long b) : program(p), bound(b)
   /* add initial activation */
   formula << "; initial activation" << endl;
   formula << smtlib::assert(stmtVar(1, 0)) << endl;
+  formula << endl;
 
   /* encode the program */
   for (step = 1; step <= bound; step++)
@@ -104,20 +110,21 @@ smtlib::Encoder::Encoder (Program & p, unsigned long b) : program(p), bound(b)
               << endl;
 
       unsigned long prevStep  = step - 1;
-      const bool    isFinal   =
-                      step == bound ||
-                      pc == program.size() - 1 ||
-                      dynamic_pointer_cast<Exit>(program[pc]);
 
       for (pc = 0; pc < program.size(); pc++)
         {
+          const bool isFinal =
+                        step == bound ||
+                        pc == program.size() - 1 ||
+                        dynamic_pointer_cast<Exit>(program[pc]);
+
           formula << "; " << program[pc]->getSymbol() << endl;
 
           /* assign current program state variables */
           cur.activator = stmtVar(step, pc);
-          cur.mem       = memVar(step, pc);
-          cur.accu      = accuVar(step, pc);
-          cur.heap      = heapVar(step, pc);
+          cur.mem       = memVar(step);
+          cur.accu      = accuVar(step);
+          cur.heap      = heapVar(step);
 
           /* no predecessor for the very first program statement */
           if (step == 1 || predecessors[pc].empty())
@@ -132,11 +139,9 @@ smtlib::Encoder::Encoder (Program & p, unsigned long b) : program(p), bound(b)
           /* statement is no target of a jump */
           else if (predecessors[pc].size() == 1)
             {
-              word prevPc = *(predecessors[pc].begin());
-
-              old.mem   = memVar(prevStep, prevPc);
-              old.accu  = accuVar(prevStep, prevPc);
-              old.heap  = heapVar(prevStep, prevPc);
+              old.mem   = memVar(prevStep);
+              old.accu  = accuVar(prevStep);
+              old.heap  = heapVar(prevStep);
 
               program[pc]->encode(*this);
             }
@@ -150,9 +155,9 @@ smtlib::Encoder::Encoder (Program & p, unsigned long b) : program(p), bound(b)
               for (word prevPc : predecessors[pc])
                 {
                   old.activator = stmtVar(prevStep, prevPc);
-                  old.mem       = memVar(prevStep, prevPc);
-                  old.accu      = accuVar(prevStep, prevPc);
-                  old.heap      = heapVar(prevStep, prevPc);
+                  old.mem       = memVar(prevStep);
+                  old.accu      = accuVar(prevStep);
+                  old.heap      = heapVar(prevStep);
 
                   cur.activator = smtlib::land(curStmt, old.activator);
 
@@ -196,18 +201,11 @@ void smtlib::Encoder::collectPredecessors ()
 /* smtlib::Encoder::addHeader (void) ******************************************/
 void smtlib::Encoder::addHeader ()
 {
-  formula << "; program: " << program.getPath() << endl;
+  formula << "; program: " << program.path << endl;
   formula << "; bound: " << bound << endl << endl;
 
   /* add used logic */
-  formula << smtlib::setLogic() << endl;
-}
-
-/* smtlib::Encoder::addFooter (void) ******************************************/
-void smtlib::Encoder::addFooter ()
-{
-  formula << smtlib::checkSat() << endl;
-  formula << smtlib::exit() << endl;
+  formula << smtlib::setLogic() << endl << endl;
 }
 
 /* smtlib::Encoder::addStmtDeclarations (void) ********************************/
@@ -230,16 +228,13 @@ void smtlib::Encoder::addStmtDeclarations ()
 /* smtlib::Encoder::addMemDeclerations (void) *********************************/
 void smtlib::Encoder::addMemDeclarations ()
 {
-  word length = program.size();
-
-  formula << "; mem - MEM_<bound>_<pc>" << endl;
+  formula << "; mem - MEM_<bound>" << endl;
 
   /* initial accu variable */
   formula << smtlib::declareVar(memInitial, bitvecWord) << endl;
 
   for (step = 1; step <= bound; step++)
-    for (pc = 0; pc < length; pc++)
-      formula << smtlib::declareVar(memVar(step, pc), bitvecWord) << endl;
+    formula << smtlib::declareVar(memVar(step), bitvecWord) << endl;
 
   /* final mem variable */
   formula << smtlib::declareVar(memFinal, bitvecWord) << endl;
@@ -250,17 +245,14 @@ void smtlib::Encoder::addMemDeclarations ()
 /* smtlib::Encoder::addAccuDeclarations (void) ********************************/
 void smtlib::Encoder::addAccuDeclarations ()
 {
-  word length = program.size();
-
-  formula << "; accumulator - ACCU_<bound>_<pc>" << endl;
+  formula << "; accumulator - ACCU_<bound>" << endl;
 
   /* initial accu variable */
   formula << smtlib::declareVar(accuInitial, bitvecWord) << endl;
   formula << smtlib::assert(smtlib::equality(accuInitial, word2Hex(0))) << endl;
 
   for (step = 1; step <= bound; step++)
-    for (pc = 0; pc < length; pc++)
-      formula << smtlib::declareVar(accuVar(step, pc), bitvecWord) << endl;
+    formula << smtlib::declareVar(accuVar(step), bitvecWord) << endl;
 
   /* final accu variable */
   formula << smtlib::declareVar(accuFinal, bitvecWord) << endl;
@@ -271,9 +263,7 @@ void smtlib::Encoder::addAccuDeclarations ()
 /* smtlib::Encoder::addHeapDeclarations (void) ********************************/
 void smtlib::Encoder::addHeapDeclarations ()
 {
-  word length = program.size();
-
-  formula << "; machine memory - HEAP_<bound>_<pc>" << endl;
+  formula << "; machine memory - HEAP_<bound>" << endl;
 
   /* initial heap variable */
   formula <<  smtlib::declareVar(
@@ -282,11 +272,10 @@ void smtlib::Encoder::addHeapDeclarations ()
           <<  endl;
 
   for (step = 1; step <= bound; step++)
-    for (pc = 0; pc < length; pc++)
-      formula <<  smtlib::declareVar(
-                    heapVar(step, pc),
-                    smtlib::array(bitvecWord, bitvecWord))
-              <<  endl;
+    formula <<  smtlib::declareVar(
+                  heapVar(step),
+                  smtlib::array(bitvecWord, bitvecWord))
+            <<  endl;
 
   /* final heap variable */
   formula <<  smtlib::declareVar(
@@ -599,8 +588,8 @@ void smtlib::Encoder::encode (Js & j)
       smtlib::equality(
         "#b1",
         smtlib::extract(
-          to_string(wordSize - 1),
-          to_string(wordSize - 1),
+          to_string(word_size - 1),
+          to_string(word_size - 1),
           cur.accu)),
       j.arg);
 }
@@ -622,8 +611,8 @@ void smtlib::Encoder::encode (Jns & j)
       smtlib::equality(
         "#b0",
         smtlib::extract(
-          to_string(wordSize - 1),
-          to_string(wordSize - 1),
+          to_string(word_size - 1),
+          to_string(word_size - 1),
           cur.accu)),
       j.arg);
 }
@@ -650,8 +639,8 @@ void smtlib::Encoder::encode (Jnzns & j)
         smtlib::equality(
           "#b0",
           smtlib::extract(
-            to_string(wordSize - 1),
-            to_string(wordSize - 1),
+            to_string(word_size - 1),
+            to_string(word_size - 1),
             cur.accu))),
       j.arg);
 }

@@ -1,7 +1,6 @@
 #include "parser.hh"
 
 #include <tuple>
-#include <limits>
 #include <sstream>
 
 #include "program.hh"
@@ -34,22 +33,19 @@ void Parser<Result>::parse (Result * r)
 
   if (file.is_open())
     {
-      parse(); // TODO: throw something if parse fails
+      parse();
       file.close();
     }
   else
-    cout << path << " not found" << endl;
+    throw runtime_error(path + " not found");
 }
 
 /* Parser<Program>::parse (void) **********************************************/
 template <>
-bool Parser<Program>::parse ()
+void Parser<Program>::parse ()
 {
   string token;
   InstructionPtr i;
-
-  /* store machine type's maximum value (used for dummy arguments) */
-  word wordMax = numeric_limits<word>::max();
 
   /* maps label occurrences to the according pc */
   unordered_map<string, word> labelDef;
@@ -113,7 +109,11 @@ bool Parser<Program>::parse ()
                       file >> tmp;
 
                       istringstream addr(tmp.substr(1, tmp.size() - 2));
-                      addr >> arg;
+
+                      /* check if address is a number */
+                      if (!(addr >> arg))
+                        throw runtime_error(
+                          "indirect addressing does not support labels");
 
                       i = Instruction::Set::create(token, arg);
 
@@ -121,19 +121,16 @@ bool Parser<Program>::parse ()
                       if (auto m = dynamic_pointer_cast<MemoryInstruction>(i))
                         m->indirect = true;
                       else
-                        {
-                          cout << "error: " <<
-                            token << " does not supports indirect addressing" <<
-                            endl;
-                          return false;
-                        }
+                        throw runtime_error(
+                          token +
+                          " does not support indirect addressing");
                     }
                   /* arg is a label */
                   else
                     {
                       /* create dummy Instruction which will be replaced by the
                          actual one when all labels are known */
-                      i = Instruction::Set::create(token, wordMax);
+                      i = Instruction::Set::create(token, word_max);
 
                       /* check if the instruction supports labels (is a jmp) */
                       if (dynamic_pointer_cast<Jmp>(i))
@@ -150,20 +147,15 @@ bool Parser<Program>::parse ()
                         }
                       /* error: not a jump instruction */
                       else
-                        {
-                          cout << "error: " <<
-                            token << " does not support labels" << endl;
-                          return false;
-                        }
+                        throw runtime_error(
+                          token +
+                          " does not support labels");
                     }
                 }
-
               break;
             }
-        default:
-          /* unrecognized token */
-          cout << "error: " << token << " unknown token" << endl;
-          return false;
+        default: /* unrecognized token */
+          throw runtime_error("'" + token + "'" + " unknown token");
         }
 
       result->add(i);
@@ -173,7 +165,7 @@ bool Parser<Program>::parse ()
   for (auto t : labelRef)
     {
       /* check if label exists */
-      // TODO: throws exception on invalid idx
+      // NOTE: throws exception on invalid idx
       word arg = labelDef.at(get<2>(t));
 
       /* create the actual instruction */
@@ -182,13 +174,11 @@ bool Parser<Program>::parse ()
       /* replace the dummy */
       (*result)[get<1>(t)] = i;
     }
-
-  return true;
 }
 
 /* Parser<Schedule>::parse (void) *********************************************/
 template <>
-bool Parser<Schedule>::parse ()
+void Parser<Schedule>::parse ()
 {
   string token;
 
@@ -205,32 +195,50 @@ bool Parser<Schedule>::parse ()
 
       file >> token;
 
+      /* parse seed */
       if (token == "seed")
         {
           if (file >> token && token != "=")
-            {
-              cout << "parser error: = expected" << endl;
-              return false;
-            }
+            throw runtime_error("'=' expected");
 
-          file >> result->seed;
-          foundSeed = true;
+          file >> token;
+
+          try
+            {
+              result->seed = stoul(token, nullptr, 0);
+              foundSeed = true;
+            }
+          catch (const exception & e)
+            {
+              throw runtime_error("illegal seed [" + token + "]");
+            }
         }
+      /* parse header */
       else
         {
-          ThreadID tid = stoul(token, nullptr, 0);
+          ThreadID tid;
+
+          try
+            {
+              tid = stoul(token, nullptr, 0);
+            }
+          catch (const exception & e)
+            {
+              throw runtime_error("illegal thread id [" + token + "]");
+            }
 
           if (file >> token && token != "=")
-            {
-              cout << "parser error: = expected" << endl;
-              return false;
-            }
+            throw runtime_error("'=' expected");
 
           file >> token;
 
           result->add(tid, make_shared<Program>(token));
         }
     }
+
+  /* check header */
+  if (result->programs.empty())
+    throw runtime_error("missing threads");
 
   /* parse body */
   while (file && file >> token)
@@ -241,17 +249,28 @@ bool Parser<Schedule>::parse ()
           continue;
         }
 
-      ThreadID tid = stoul(token, nullptr, 0);
+      /* try to parse thread id */
+      ThreadID tid;
+
+      try
+        {
+          tid = stoul(token, nullptr, 0);
+        }
+      catch (const exception & e)
+        {
+          throw runtime_error("illegal thread id [" + token + "]");
+        }
+
+      if (tid >= result->programs.size() || result->programs[tid] == nullptr)
+          throw runtime_error("unknown thread id");
 
       result->add(tid);
 
       /* ignore rest of the line (in case of verbose output) */
       skipLine();
     }
-
-  return true;
 }
 
 /* explicit template instantiations *******************************************/
-template class Parser<Program>;
-template class Parser<Schedule>;
+template struct Parser<Program>;
+template struct Parser<Schedule>;

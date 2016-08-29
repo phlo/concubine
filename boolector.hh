@@ -1,22 +1,22 @@
 #ifndef BOOLECTOR_HH_
 #define BOOLECTOR_HH_
 
-#include "verifier.hh"
+#include "solver.hh"
 
 /*******************************************************************************
  * Boolector
  ******************************************************************************/
 class Boolector : public Solver
 {
-  virtual string  buildCommand (void);
+  virtual std::string   buildCommand (void);
 
 public:
-  virtual bool    sat (string &);
+  virtual bool          sat (std::string &);
 };
 
 /*******************************************************************************
  * BoolectorPtr
  ******************************************************************************/
-typedef shared_ptr<Boolector> BoolectorPtr;
+typedef std::shared_ptr<Boolector> BoolectorPtr;
 
 #endif

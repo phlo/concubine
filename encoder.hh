@@ -7,9 +7,7 @@
 #include "instructionset.hh"
 
 /* forward declarations */
-class Program;
-
-using namespace std;
+struct Program;
 
 /*******************************************************************************
  * SMT-Lib v2.5 Encoder
@@ -18,19 +16,26 @@ using namespace std;
  ******************************************************************************/
 namespace smtlib
 {
-  class Encoder
+  struct Encoder
     {
       /* stores program state var names for a slim double-dispatch interface */
       struct State
         {
-          string          activator;
-          string          mem;
-          string          accu;
-          string          heap;
+          std::string     activator;
+          std::string     mem;
+          std::string     accu;
+          std::string     heap;
         };
 
+      /* constructs an Encoder for the given program and bound */
+      Encoder (Program &, unsigned long);
+
+      /*************************************************************************
+       * variables
+      *************************************************************************/
+
       /* SMT formula in SMT-LIB v2 format */
-      ostringstream       formula;
+      std::ostringstream  formula;
 
       /* reference to the program being verified */
       Program &           program;
@@ -51,17 +56,17 @@ namespace smtlib
       State               old;
 
       /* pcs of predecessor for each statement */
-      unordered_map<word, unordered_set<word>> predecessors;
+      std::unordered_map<word, std::unordered_set<word>> predecessors;
+
+      /*************************************************************************
+       * private functions
+      *************************************************************************/
 
       /* collects jump targets used in the program */
       void                collectPredecessors (void);
 
-
       /* adds smt file header (commented program and logic declaration) */
       void                addHeader (void);
-
-      /* adds smt file footer (check-sat, get-model, etc.) */
-      void                addFooter (void);
 
       /* adds activation variable declarations to formula buffer */
       void                addStmtDeclarations (void);
@@ -78,15 +83,14 @@ namespace smtlib
       /* adds exit variable declarations to formula buffer */
       void                addExitDeclarations (void);
 
-
       /* helper to simplify asserting an expression */
-      string              imply (string, string);
+      std::string         imply (std::string, std::string);
 
       /* helper to simplify encoding of (indirect) loads */
-      string              load (Load &);
+      std::string         load (Load &);
 
       /* helper to simplify assignment of an arbitrary variable */
-      string              assignVariable (string, string);
+      std::string         assignVariable (std::string, std::string);
 
       /* adds mem register restoration for the current statement */
       void                restoreMem (void);
@@ -98,32 +102,22 @@ namespace smtlib
       void                restoreHeap (void);
 
       /* adds assignment to the current statement's accu */
-      void                assignAccu (string);
+      void                assignAccu (std::string);
 
       /* adds assignment to the current statement's heap */
-      void                assignHeap (string, string);
+      void                assignHeap (std::string, std::string);
 
       /* adds assignment to the final variables for the current statement */
       void                assignFinal (void);
 
       /* adds activation for the target under the given condition */
-      void                activate (string condition, string target);
+      void                activate (std::string condition, std::string target);
 
       /* adds activation for the next statement */
       void                activateNext (void);
 
       /* adds conditional activation of target or next instruction */
-      void                activateJump (string, word);
-
-    public:
-      /* constructor */
-      Encoder (Program &, unsigned long);
-
-      /* print the SMT-Lib v2 file to stdout */
-      void                print (void);
-
-      /* returns the SMT-Lib v2 file as string */
-      string              toString (void);
+      void                activateJump (std::string, word);
 
       /* double-dispatched instruction encoding functions */
       void                encode (Load &);
@@ -147,12 +141,25 @@ namespace smtlib
 
       void                encode (Sync &);
       void                encode (Exit &);
+
+      /*************************************************************************
+       * public functions
+      *************************************************************************/
+
+      /* encodes the program */
+      void                encode (void);
+
+      /* print the SMT-Lib v2 file to stdout */
+      void                print (void);
+
+      /* returns the SMT-Lib v2 file as string */
+      std::string         toString (void);
     };
 
   /*****************************************************************************
    * EncoderPtr
    ****************************************************************************/
-  typedef shared_ptr<Encoder> EncoderPtr;
-};
+  typedef std::shared_ptr<Encoder> EncoderPtr;
+}
 
 #endif

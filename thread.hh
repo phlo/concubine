@@ -1,17 +1,24 @@
 #ifndef THREAD_HH_
 #define THREAD_HH_
 
+#include <deque>
+#include <memory>
+#include <iostream>
+
 #include "common.hh"
-#include "program.hh"
 
 /* forward declarations */
-class Machine;
+struct Program;
+struct Machine;
+
+/*******************************************************************************
+ * ThreadID
+ ******************************************************************************/
+typedef unsigned long ThreadID;
 
 /*******************************************************************************
  * Thread
  ******************************************************************************/
-typedef unsigned long ThreadID;
-
 struct Thread
 {
   enum State
@@ -23,17 +30,16 @@ struct Thread
     EXITING   // exit called
   };
 
+  Thread (Machine &, unsigned int, Program &);
+
   ThreadID      id;       // thread id
   word          pc;       // program counter
   word          mem;      // special CAS register
   word          accu;     // accumulator register
   word          sync;     // current (or previous) barrier's id
-  word          exitCode; // TODO: really necessary?
   State         state;    // thread state
   Machine &     machine;  // reference to the machine owning the thread
   Program &     program;  // reference to the program being executed
-
-  Thread (Machine &, unsigned int, Program &);
 
   word          load (word, bool);
   void          store (word, word, bool);
@@ -44,6 +50,11 @@ struct Thread
 /*******************************************************************************
  * ThreadPtr
  ******************************************************************************/
-typedef shared_ptr<Thread> ThreadPtr;
+typedef std::shared_ptr<Thread> ThreadPtr;
+
+/*******************************************************************************
+ * ThreadList
+ ******************************************************************************/
+typedef std::deque<ThreadPtr> ThreadList;
 
 #endif

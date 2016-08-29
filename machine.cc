@@ -1,59 +1,24 @@
 #include "machine.hh"
 
+#include <random>
+#include <cassert>
 #include <iostream>
 #include <algorithm>
 
-/*******************************************************************************
- * Schedulers
- ******************************************************************************/
-struct Scheduler
+#include "schedule.hh"
+
+using namespace std;
+
+/* erases a given element from a <deque> container ****************************/
+template<typename T>
+inline void erase (deque<T> & lst, T & val)
 {
-  Machine & machine;
-
-  virtual ThreadPtr next (void) = 0;
-
-  Scheduler (Machine & m) : machine(m) {};
-};
-
-class RandomScheduler : public Scheduler
-{
-  mt19937_64                          random;
-  uniform_int_distribution<ThreadID>  distribution;
-
-public:
-  RandomScheduler (Machine & m) :
-    Scheduler(m),
-    random(m.seed),
-    distribution(0, machine.threads.size() - 1)
-  {};
-
-  ThreadPtr next (void)
-    {
-      return machine.active[distribution(random) % machine.active.size()];
-    };
-};
-
-class PredefinedScheduler : public Scheduler
-{
-  Schedule &    schedule;
-  unsigned long step;
-
-public:
-  PredefinedScheduler (Machine & m, Schedule & s) :
-    Scheduler(m),
-    schedule(s),
-    step(0)
-  {};
-
-  ThreadPtr next (void) { return machine.threads[schedule[step++]]; };
-};
-
+  lst.erase(remove(lst.begin(), lst.end(), val));
+}
 
 /*******************************************************************************
  * Machine
  ******************************************************************************/
-
-/* constructor ****************************************************************/
 Machine::Machine (unsigned long s, unsigned long b) :
   seed(s),
   bound(b),
@@ -74,14 +39,14 @@ ThreadID Machine::createThread (Program & program)
   threads.push_back(ThreadPtr(new Thread(*this, id, program)));
 
   /* add to sync id list */
-  for (auto i : program.getSyncIDs())
+  for (word i : program.syncIDs)
     threadsPerSyncID[i].push_back(threads[id]);
 
   return id;
 }
 
-/* Machine::activateThreads (deque<ThreadPtr> &) ******************************/
-void Machine::activateThreads (deque<ThreadPtr> & queue)
+/* Machine::activateThreads (ThreadList &) ************************************/
+void Machine::activateThreads (ThreadList & queue)
 {
   for (ThreadPtr i : queue)
     {
@@ -90,12 +55,26 @@ void Machine::activateThreads (deque<ThreadPtr> & queue)
     }
 }
 
+/* Machine::checkAndResumeWaiting (word) **************************************/
+void Machine::checkAndResumeWaiting (word syncID)
+{
+  /* all other threads already synced to this barrier? */
+  if (waitingPerSyncID[syncID] == threadsPerSyncID[syncID].size())
+    {
+      /* reset number of threads waiting for this barrier */
+      waitingPerSyncID[syncID] = 0;
+
+      /* reactivate threads */
+      activateThreads(threadsPerSyncID[syncID]);
+    }
+}
+
 /* Machine::run (Scheduler *) *************************************************/
-int Machine::run (Scheduler * scheduler)
+int Machine::run (function<ThreadPtr(void)> scheduler)
 {
   /* print schedule header */
   for (auto t : threads)
-    cout << t->id << " = " << t->program.getPath() << endl;
+    cout << t->id << " = " << t->program.path << endl;
   cout << "seed = " << seed << endl;
   cout << "# tid";
   if (verbose)
@@ -107,9 +86,9 @@ int Machine::run (Scheduler * scheduler)
 
   bool done = active.empty();
   unsigned long steps = 0;
-  while (!done && (!bound || steps++ < bound))
+  while (!done && (steps++ < bound || !bound))
     {
-      ThreadPtr thread = scheduler->next();
+      ThreadPtr thread = scheduler();
 
       assert(thread->state == Thread::State::RUNNING);
 
@@ -125,47 +104,45 @@ int Machine::run (Scheduler * scheduler)
         case Thread::State::WAITING:
             {
               /* remove from active threads */
-              active.erase(find(active.begin(), active.end(), thread));
+              erase(active, thread);
 
-              /* current sync barrier id */
-              word s = thread->sync;
-
-              /* add to waiting map */
-              waitingPerSyncID[s].push_back(thread);
+              /* increment number of waiting threads */
+              waitingPerSyncID[thread->sync]++;
 
               /* all other threads already synced to this barrier? */
-              if (waitingPerSyncID[s].size() == threadsPerSyncID[s].size())
-                {
-                  /* reactivate threads */
-                  activateThreads(threadsPerSyncID[s]);
-                }
+              checkAndResumeWaiting(thread->sync);
+
               break;
             }
 
-        /* halted - check if all the others also finished without an exit */
+        /* halted - quit if all the others also stopped */
         case Thread::State::STOPPED:
             {
               /* remove from active threads */
-              active.erase(find(active.begin(), active.end(), thread));
+              erase(active, thread);
+
+              /* take care if last instruction was a SYNC (bypasses WAITING) */
+              if (dynamic_pointer_cast<Sync>(thread->program.back()))
+                  {
+                    /* remove from list of threads waiting for this barrier */
+                    erase(threadsPerSyncID[thread->sync], thread);
+
+                    /* activate all waiting threads if this was the last one */
+                    checkAndResumeWaiting(thread->sync);
+                  }
 
               /* check if we were the last thread standing */
-              done = true;
-              for (ThreadID i = 0; i < threads.size(); i++)
+              done = accumulate(threads.begin(), threads.end(), true,
+                [](const bool & d, const ThreadPtr & t)
                 {
-                  if (threads[i]->state != Thread::State::STOPPED)
-                    {
-                      done = false;
-                      break;
-                    }
-                }
+                  return d && t->state == Thread::State::STOPPED;
+                });
+
               break;
             }
 
         /* exiting - return exit code */
-        case Thread::State::EXITING:
-            {
-              return static_cast<int>(thread->accu);
-            }
+        case Thread::State::EXITING: return static_cast<int>(thread->accu);
 
         default:
           cout << "warning: illegal thread state transition " <<
@@ -181,18 +158,33 @@ int Machine::run (Scheduler * scheduler)
 /* Machine::simulate (void) ***************************************************/
 int Machine::simulate ()
 {
-  RandomScheduler scheduler(*this);
+  /* Mersenne Twister pseudo-random number generator */
+  mt19937_64 random(seed);
 
-  return run(&scheduler);
+  /* random scheduler */
+  function<ThreadPtr(void)> scheduler = [this, &random]
+    {
+      return this->active[random() % this->active.size()];
+    };
+
+  return run(scheduler);
 }
 
 /* Machine::replay (Schedule &) ***********************************************/
 int Machine::replay (Schedule & schedule)
 {
-  for (ProgramPtr p : schedule.getPrograms())
+  /* create threads */
+  for (ProgramPtr p : schedule.programs)
     createThread(*p);
 
-  PredefinedScheduler scheduler(*this, schedule);
+  /* index variable for iterating the Schedule */
+  unsigned long step = 0;
 
-  return run(&scheduler);
+  /* replay scheduler */
+  function<ThreadPtr(void)> scheduler = [this, &schedule, &step]
+    {
+      return this->threads[schedule[step++]];
+    };
+
+  return run(scheduler);
 }

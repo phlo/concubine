@@ -2,8 +2,11 @@
 
 #include <iostream>
 
+#include "thread.hh"
 #include "machine.hh"
 #include "encoder.hh"
+
+using namespace std;
 
 /*******************************************************************************
  * Instruction::Set
@@ -14,7 +17,7 @@ unordered_map<string, Instruction *(*)()>
 unordered_map<string, Instruction *(*)(const word)>
   Instruction::Set::unaryFactory;
 
-Instruction::Type Instruction::Set::contains (string & name)
+Instruction::Type Instruction::Set::contains (string name)
 {
   if (nullaryFactory.find(name) != nullaryFactory.end())
     return Type::NULLARY;
@@ -25,13 +28,19 @@ Instruction::Type Instruction::Set::contains (string & name)
   return Instruction::Type::UNKNOWN;
 }
 
-InstructionPtr Instruction::Set::create (string & name)
+InstructionPtr Instruction::Set::create (string name)
 {
+  if (!contains(name))
+    throw runtime_error("Instruction '" + name + "' unknown");
+
   return InstructionPtr(nullaryFactory[name]());
 }
 
-InstructionPtr Instruction::Set::create (string & name, const word arg)
+InstructionPtr Instruction::Set::create (string name, const word arg)
 {
+  if (!contains(name))
+    throw runtime_error("Instruction '" + name + "' unknown");
+
   return InstructionPtr(unaryFactory[name](arg));
 }
 

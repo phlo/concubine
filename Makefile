@@ -1,8 +1,9 @@
 # compiler flags
 CXX = g++
 #CXX =	clang++
-CXXFLAGS = -std=c++11 -g -O2 $(WFLAGS)
-WFLAGS = -pedantic -Wall -Wextra -Wundef -Wdouble-promotion -Wformat=2 -Wmissing-include-dirs -Wswitch-default -Wunused -Wuninitialized -Wshadow -Wcast-qual -Wcast-align -Wold-style-cast -Wdisabled-optimization -Wredundant-decls -Wstrict-overflow=5 -Wsign-conversion -Werror
+CFLAGS = -std=c++11 -g -O2
+CXXFLAGS = $(CFLAGS) $(WFLAGS)
+WFLAGS = -pedantic -Wall -Wextra -Wundef -Wformat=2 -Wmissing-include-dirs -Wswitch-default -Wunused -Wuninitialized -Wshadow -Wcast-qual -Wcast-align -Wold-style-cast -Wdisabled-optimization -Wredundant-decls -Wstrict-overflow -Wsign-conversion -Werror
 LDFLAGS =
 
 # additional command definitions
@@ -27,22 +28,8 @@ OBJ = $(subst .cc,.o,$(SRC))
 # executable name
 MAIN = psimsmt
 
-# deprecated
-CT=data/increment.checker.asm
-T1=data/increment.asm
-T2=data/increment.cas.asm
-
-BV=11
-PV=data/test/verify/increment-loop-lt2.asm
-SV=data/test/verify/increment-loop-lt2.spec.smt
-
-SEED_ERROR=15
-SEED_VALID=86
-
-SCHEDULE=data/increment.valid.schedule
-
 # run tests
-test: $(OBJ)
+test: build
 	$(MAKE) -C test
 
 # build executable
@@ -51,8 +38,37 @@ build: $(MAIN)
 # rebuild executable
 rebuild: clean build
 
-# deprecated: run test targets
-run: run_verify
+# build main and link executable
+$(MAIN): $(OBJ) main.cc
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJ) main.cc -o $(MAIN)
+
+# delete generated files
+clean:
+	$(MAKE) -C test clean
+	$(RM) *.o *.dSYM $(MAIN)
+
+# find trailing whitespaces
+trim:
+	grep "\s\+$$" -n *.{hh,cc} Makefile test/*.{hh,cc} test/Makefile
+
+# export compiler flags for sub-make
+export CXX CFLAGS OBJ MAIN
+
+.PHONY: test run_forever run_cas run_cas_forever trim
+
+# program files
+CT=test/data/increment.checker.asm
+T1=test/data/increment.asm
+T2=test/data/increment.cas.asm
+
+BV=5
+PV=test/data/load.store.arithmetic.asm
+SV=test/data/load.store.arithmetic.spec.smt
+
+SCHEDULE=data/increment.invalid.schedule
+
+# demo targets
+run: run_forever
 
 run_forever: $(MAIN)
 	./run_forever ./simulate_with_random_seed $(CT) $(T1) $(T1)
@@ -64,24 +80,10 @@ run_cas_forever: $(MAIN)
 	./run_forever ./simulate_with_random_seed $(CT) $(T2) $(T2)
 
 run_replay: $(MAIN)
-	./$(MAIN) replay -v $(SCHEDULE)
+	cd test && ../$(MAIN) replay -v $(SCHEDULE)
 
 run_verify: $(MAIN)
 	./$(MAIN) verify $(BV) $(PV) $(SV)
 
 run_verify_pretend: $(MAIN)
 	./$(MAIN) verify -p $(BV) $(PV) $(SV)
-
-# build main and link executable
-$(MAIN): $(OBJ) main.cc
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJ) main.cc -o $(MAIN)
-
-# delete generated files
-clean:
-	$(MAKE) -C test clean
-	$(RM) *.o *.dSYM $(MAIN)
-
-# export compiler flags for sub-make
-export CXX CXXFLAGS OBJ
-
-.PHONY: test run_forever run_cas run_cas_forever

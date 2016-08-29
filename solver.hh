@@ -1,29 +1,27 @@
 #ifndef SOLVER_HH_
 #define SOLVER_HH_
 
+#include <string>
 #include <memory>
-#include <sstream>
-
-using namespace std;
 
 /*******************************************************************************
- * SolverPtr
+ * Solver
  ******************************************************************************/
 struct Solver
 {
-  string          stdOut;
+  std::string           stdOut;
 
-  int             execute (string &);
+  int                   execute (std::string &);
 
-  virtual string  buildCommand (void) = 0;
+  virtual std::string   buildCommand (void) = 0;
 
-  virtual bool    sat (string &) = 0;
+  virtual bool          sat (std::string &) = 0;
 };
 
 
 /*******************************************************************************
  * SolverPtr
  ******************************************************************************/
-typedef shared_ptr<Solver> SolverPtr;
+typedef std::shared_ptr<Solver> SolverPtr;
 
 #endif

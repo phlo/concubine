@@ -1,6 +1,8 @@
 #include "program.hh"
 
-#include <iostream>
+#include <sstream>
+
+#include "parser.hh"
 
 using namespace std;
 
@@ -8,7 +10,7 @@ using namespace std;
 Program::Program() {}
 
 /* construct from file ********************************************************/
-Program::Program(string & p) : path(p), syncIDs(), labels()
+Program::Program(string p) : path(p), syncIDs(), labels()
 {
   Parser<Program> parser(p);
   parser.parse(this);
@@ -24,53 +26,49 @@ void Program::add (InstructionPtr i)
     syncIDs.insert(s->arg);
 }
 
-/* Program::getPath (void) ****************************************************/
-string & Program::getPath () { return path; }
-
-/* Program::getSyncIDs (void) *************************************************/
-unordered_set<word> & Program::getSyncIDs () { return syncIDs; }
-
-/* Program::getLabels (void) **************************************************/
-unordered_map<word, string> & Program::getLabels () { return labels; }
-
 /* Program::print (bool) ******************************************************/
-void Program::print (bool includePC)
+string Program::print (bool includePC)
 {
+  ostringstream ss;
+
   for (word i = 0; i < size(); i++)
-    {
-      print(includePC, i);
-      cout << endl;
-    }
+    ss <<  print(includePC, i);
+
+  return ss.str();
 }
 
 /* Program::print (bool, word) ************************************************/
-void Program::print (bool includePC, word pc)
+string Program::print (bool includePC, word pc)
 {
+  ostringstream ss;
+
   /* check if instruction can be referenced by a label */
   if (labels.find(pc) != labels.end())
     {
-      cout << labels[pc];
+      ss << labels[pc];
 
       if (includePC)
-        cout << "\t";
+        ss << "\t";
       else
-        cout << ": ";
+        ss << ": ";
     }
   else if (includePC)
-    cout << pc << "\t";
+    ss << pc << "\t";
 
   /* instruction symbol */
   InstructionPtr cmd = at(pc);
-  cout << cmd->getSymbol() << "\t";
+  ss << cmd->getSymbol() << "\t";
 
   /* print unary instruction's argument */
   if (UnaryInstructionPtr u = dynamic_pointer_cast<UnaryInstruction>(cmd))
     {
       if (dynamic_pointer_cast<Jmp>(cmd) && labels.find(u->arg) != labels.end())
-        cout << labels[u->arg];
+        ss << labels[u->arg];
       else if (auto m = dynamic_pointer_cast<MemoryInstruction>(u))
-        cout << (m->indirect ? "[" : "") << m->arg << (m->indirect ? "]" : "");
+        ss << (m->indirect ? "[" : "") << m->arg << (m->indirect ? "]" : "");
       else
-        cout << u->arg;
+        ss << u->arg;
     }
+
+  return ss.str();
 }

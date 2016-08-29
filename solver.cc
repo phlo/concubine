@@ -1,9 +1,8 @@
 #include "solver.hh"
 
-#include <cstdio>
-#include <stdexcept>
-
 #include "shell.hh"
+
+using namespace std;
 
 /* Solver::execute (string &) *************************************************/
 int Solver::execute (string & formula)

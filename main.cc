@@ -5,6 +5,7 @@
 #include <stdexcept>
 
 #include "parser.hh"
+#include "encoder.hh"
 #include "machine.hh"
 #include "verifier.hh"
 #include "boolector.hh"
@@ -65,15 +66,15 @@ void printUsageVerify (char * name)
 
 /*******************************************************************************
  * main functions
- * TODO: error handling!!!
  ******************************************************************************/
+void printError (string what) { cerr << "error: " << what << endl; }
 
 /* help ***********************************************************************/
 int help (char * name, int argc, char **argv)
 {
   if (argc < 1)
     {
-      cout << "no command given" << endl << endl;
+      printError("no command given");
       printUsageHelp(name);
       return -1;
     }
@@ -96,7 +97,7 @@ int help (char * name, int argc, char **argv)
     }
   else
     {
-      cout << "unknown command '" << argv[0] << "'" << endl << endl;
+      printError("unknown command " + string(argv[0]));
       printUsageHelp(name);
       return -1;
     }
@@ -109,7 +110,7 @@ int simulate (char * name, int argc, char ** argv)
 {
   unsigned int      seed = time(NULL);
   unsigned int      bound = 0;
-  deque<Program *>  threads;
+  ProgramList       threads;
 
   for (int i = 0; i < argc; i++)
     {
@@ -121,23 +122,57 @@ int simulate (char * name, int argc, char ** argv)
         }
       else if (arg == "-s")
         {
-          // throws std::invalid_argument
-          seed = stoul((arg = argv[++i]), nullptr, 0);
+          try
+            {
+              if (++i < argc)
+                seed = stoul((arg = argv[i]), nullptr, 0);
+              else
+                {
+                  printError("missing seed");
+                  return -1;
+                }
+            }
+          catch (...)
+            {
+              printError("illegal seed [" + arg + "]");
+              return -1;
+            }
         }
       else if (arg == "-k")
         {
-          // throws std::invalid_argument
-          bound = stoul((arg = argv[++i]), nullptr, 0);
+          try
+            {
+              if (++i < argc)
+                bound = stoul((arg = argv[i]), nullptr, 0);
+              else
+                {
+                  printError("missing bound");
+                  return -1;
+                }
+            }
+          catch (...)
+            {
+              printError("illegal bound [" + arg + "]");
+              return -1;
+            }
         }
       else
         {
-          threads.push_back(new Program(arg));
+          try
+            {
+              threads.push_back(make_shared<Program>(arg));
+            }
+          catch (const exception & e)
+            {
+              printError(e.what());
+              return -1;
+            }
         }
     }
 
   if (threads.empty())
     {
-      cout << "got nothing to run" << endl;
+      printError("got nothing to run");
       printUsageSimulate(name);
       return -1;
     }
@@ -155,7 +190,7 @@ int replay (char * name, int argc, char ** argv)
 {
   if (argc < 1)
     {
-      cout << "no schedule given" << endl << endl;
+      printError("no schedule given");
       printUsageReplay(name);
       return -1;
     }
@@ -173,8 +208,21 @@ int replay (char * name, int argc, char ** argv)
         }
       else if (arg == "-k")
         {
-          // throws std::invalid_argument
-          bound = stoul((arg = argv[++i]), nullptr, 0);
+          try
+            {
+              if (++i < argc)
+                bound = stoul((arg = argv[i]), nullptr, 0);
+              else
+                {
+                  printError("missing bound");
+                  return -1;
+                }
+            }
+          catch (...)
+            {
+              printError("illegal bound [" + arg + "]");
+              return -1;
+            }
         }
       else
         {
@@ -182,21 +230,29 @@ int replay (char * name, int argc, char ** argv)
         }
     }
 
-  /* create and parse schedule */
-  Schedule schedule(path2schedule);
+  try
+    {
+      /* create and parse schedule */
+      Schedule schedule(path2schedule);
 
-  /* run given schedule */
-  Machine machine(schedule.getSeed(), bound);
+      /* run given schedule */
+      Machine machine(schedule.seed, bound);
 
-  return machine.replay(schedule);
+      return machine.replay(schedule);
+    }
+  catch (const exception & e)
+    {
+      printError(e.what());
+      return -1;
+    }
 }
 
 /* verify *********************************************************************/
 int verify (char * name, int argc, char ** argv)
 {
-  if (argc < 3)
+  if (argc < 2)
     {
-      cout << "too few arguments" << endl << endl;
+      printError("too few arguments");
       printUsageVerify(name);
       return -1;
     }
@@ -213,38 +269,70 @@ int verify (char * name, int argc, char ** argv)
       i++;
     }
 
+  /* check for bound and program */
+  if (argc < i + 1)
+    {
+      printError("too few arguments");
+      printUsageVerify(name);
+      return -1;
+    }
+
   /* parse bound */
-  // throws std::invalid_argument
-  unsigned long bound = stoul(argv[i++], nullptr, 0);
+  unsigned long bound = 0;
+  try
+    {
+      bound = stoul(argv[i++], nullptr, 0);
 
-  /* parse path to program */
-  string path2program = argv[i++];
+      if (bound < 1) throw runtime_error("");
+    }
+  catch (...)
+    {
+      printError("illegal bound [" + string(argv[i-1]) + "]");
+      return -1;
+    }
 
-  /* parse program */
-  Program program(path2program);
+  try
+    {
+      /* parse path to program */
+      string path2program = argv[i++];
 
-  /* encode program */
-  smtlib::Encoder formula(program, bound);
+      /* parse program */
+      Program program(path2program);
 
-  /* read specification from file */
-  ifstream specFs(argv[i++]);
-  string specification(
-      (istreambuf_iterator<char>(specFs)),
-      istreambuf_iterator<char>());
+      /* encode program */
+      smtlib::Encoder formula(program, bound);
 
-  /* create solver */
-  Boolector boolector;
+      /* read specification from file */
+      string specification;
+      if (i < argc)
+        {
+          ifstream specFs(argv[i]);
+          specification.assign((istreambuf_iterator<char>(specFs)),
+                                istreambuf_iterator<char>());
 
-  /* create verifier*/
-  Verifier verifier(boolector, formula, specification);
+          if (specification.empty())
+            throw runtime_error(string(argv[i]) + " not found");
+        }
 
-  /* print program if we're pretending */
-  if (pretend)
-    verifier.print();
+      /* create solver */
+      Boolector boolector;
 
-  /* verify program an */
-  else
-    verifier.sat();
+      /* create verifier*/
+      Verifier verifier(boolector, formula, specification);
+
+      /* print program if we're pretending */
+      if (pretend)
+        verifier.print();
+
+      /* verify program */
+      else
+        return verifier.sat();
+    }
+  catch (const exception & e)
+    {
+      printError(e.what());
+      return -1;
+    }
 
   return 0;
 }

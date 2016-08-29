@@ -3,68 +3,52 @@
 
 #include <deque>
 #include <unordered_set>
-#include <unordered_map>
 
-#include "parser.hh"
 #include "instructionset.hh"
-
-class Program;
-
-/*******************************************************************************
- * ProgramPtr
- ******************************************************************************/
-typedef shared_ptr<Program>     ProgramPtr;
-
-/*******************************************************************************
- * ProgramList
- ******************************************************************************/
-typedef deque<ProgramPtr>       ProgramList;
-
-/*******************************************************************************
- * ProgramListPtr
- ******************************************************************************/
-typedef shared_ptr<ProgramList> ProgramListPtr;
 
 /*******************************************************************************
  * Program
  ******************************************************************************/
-class Program : public deque<InstructionPtr>
+struct Program : public std::deque<InstructionPtr>
 {
-  /* be friends with the Parser - for a minimal public interface */
-  friend class Parser<Program>;
-
-  /* path to program file */
-  string                        path;
-
-  /* sync barriers */
-  unordered_set<word>           syncIDs;
-
-  /* maps program counters to the label referencing it */
-  unordered_map<word, string>   labels;
-
-public:
-  /* default constructor */
+  /* default constructor (for testing) */
   Program (void);
 
-  /* construct from file (by name) */
-  Program (string &);
+  /* construct from file */
+  Program (std::string);
+
+  /* path to program file */
+  std::string                             path;
+
+  /* sync barriers */
+  std::unordered_set<word>                syncIDs;
+
+  /* maps program counters to the label referencing it */
+  std::unordered_map<word, std::string>   labels;
 
   /* appends instruction to the program */
-  void                          add (InstructionPtr);
-
-  /* returns path to program file */
-  string &                      getPath (void);
-
-  /* returns set of contained sync barrier ids */
-  unordered_set<word> &         getSyncIDs (void);
-
-  /* returns label map */
-  unordered_map<word, string> & getLabels (void);
+  void                                    add (InstructionPtr);
 
   /* print whole program */
-  void                          print (bool);
+  std::string                             print (bool);
 
   /* print instruction at pc */
-  void                          print (bool, word);
+  std::string                             print (bool, word);
 };
+
+/*******************************************************************************
+ * ProgramPtr
+ ******************************************************************************/
+typedef std::shared_ptr<Program>          ProgramPtr;
+
+/*******************************************************************************
+ * ProgramList
+ ******************************************************************************/
+typedef std::deque<ProgramPtr>            ProgramList;
+
+/*******************************************************************************
+ * ProgramListPtr
+ ******************************************************************************/
+typedef std::shared_ptr<ProgramList>      ProgramListPtr;
+
 #endif

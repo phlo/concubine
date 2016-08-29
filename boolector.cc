@@ -1,9 +1,13 @@
 #include "boolector.hh"
 
+#include <iostream>
+
+using namespace std;
+
 /* Boolector::buildCommand (void) *********************************************/
 string Boolector::buildCommand ()
 {
-  return "boolector -m | grep sat";
+  return "boolector -m";
 }
 
 /* Boolector::sat (string &) **************************************************/
@@ -13,5 +17,5 @@ bool Boolector::sat (string & formula)
 
   cout << stdOut;
 
-  return stdOut == "sat";
+  return stdOut == "sat\n";
 }

@@ -10,7 +10,10 @@
 
 #define PIPE_READ 0
 #define PIPE_WRITE 1
+
 #define BUFFER_SIZE 128
+
+using namespace std;
 
 /* sysError (void) - custom strerror wrapper **********************************/
 inline string sysError () { return "[" + string(strerror(errno)) + "]"; }
@@ -37,7 +40,7 @@ string Shell::run (string cmd, string & input)
 
   /* stdout pipe file descriptors */
   int stdOut[2];
-  
+
   /* pid returned by fork (0 == child) */
   int pid;
 
@@ -75,7 +78,7 @@ string Shell::run (string cmd, string & input)
 
       /* run shell command as child process */
       execlp("bash", "bash", "-c", cmd.c_str(), static_cast<char *>(0));
-      
+
       /* exec should not return - if we get here, an error must have happened */
       throw runtime_error("executing shell command " + sysError());
     }

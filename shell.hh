@@ -4,8 +4,6 @@
 #include <memory>
 #include <string>
 
-using namespace std;
-
 /*******************************************************************************
  * Shell
 *******************************************************************************/
@@ -15,20 +13,20 @@ class Shell
   int exitCode;
 
 public:
-  
+
   /* returns last exit code (like $?) */
   int lastExitCode (void);
 
-  /* run shell command and returns it's output */
-  string run (string);
+  /* runs shell command and returns it's output */
+  std::string run (std::string);
 
-  /* pipe input into shell command and return it's output */
-  string run (string, string &);
+  /* pipes input into shell command and returns it's output */
+  std::string run (std::string, std::string &);
 };
 
 /*******************************************************************************
  * ShellPtr
 *******************************************************************************/
-typedef shared_ptr<Shell> ShellPtr;
+typedef std::shared_ptr<Shell> ShellPtr;
 
 #endif

@@ -2,67 +2,72 @@
 #define MACHINE_HH_
 
 #include <array>
-#include <deque>
-#include <random>
 #include <unordered_map>
-
-#include <cassert>
 
 #include "common.hh"
 #include "thread.hh"
-#include "schedule.hh"
-
-using namespace std;
 
 /* forward declarations */
-struct Scheduler;
+struct Schedule;
 
 /*******************************************************************************
  * Machine
  ******************************************************************************/
-class Machine
+struct Machine
 {
-  friend struct Thread;
-  friend class  RandomScheduler;
-  friend class  PredefinedScheduler;
+  /* constructs a new machine with given seed and bound */
+  Machine (unsigned long seed = 0, unsigned long bound = 0);
+
+  /*****************************************************************************
+   * variables
+   ****************************************************************************/
 
   /* thread scheduling */
-  unsigned long                                 seed;
+  unsigned long                         seed;
 
   /* bounded execution */
-  unsigned long                                 bound;
+  unsigned long                         bound;
 
   /* list of active threads */
-  deque<ThreadPtr>                              active;
+  ThreadList                            active;
 
   /* list of all threads */
-  deque<ThreadPtr>                              threads;
+  ThreadList                            threads;
 
   /* machine memory */
-  array<word, numeric_limits<word>::max() + 1>  memory;
+  std::array<word, word_max>            memory;
 
-  /* lists of threads containing calls to a specific sync barrier (id) */
-  unordered_map<word, deque<ThreadPtr>>         threadsPerSyncID;
+  /* number of threads containing calls to a specific sync barrier (id) */
+  std::unordered_map<word, ThreadList>  threadsPerSyncID;
 
-  /* lists of threads currently waiting for a specific sync barrier (id) */
-  unordered_map<word, deque<ThreadPtr>>         waitingPerSyncID;
+  /* number of threads currently waiting for a specific sync barrier (id) */
+  std::unordered_map<word, word>        waitingPerSyncID;
 
-  /* add all threads to the active queue and sets them running */
-  void  activateThreads (deque<ThreadPtr> &);
+  /*****************************************************************************
+   * private functions
+   ****************************************************************************/
+
+  /* adds all threads to the active queue and sets them running */
+  void                                  activateThreads (ThreadList &);
+
+  /* checks if all threads reached the given barrier id and resumes them */
+  void                                  checkAndResumeWaiting (word);
 
   /* run the machine, using the specified scheduler */
-  int   run (Scheduler *);
+  int                                   run (std::function<ThreadPtr(void)>);
 
-public:
-  Machine (unsigned long seed, unsigned long bound);
+  /*****************************************************************************
+   * public functions
+   ****************************************************************************/
 
   /* creates a thread using the given program, thread id == number of threads*/
-  ThreadID  createThread (Program &);
+  ThreadID                              createThread (Program &);
 
   /* runs the machine using a random schedule */
-  int       simulate (void);
+  int                                   simulate (void);
 
   /* replay the given schedule (schedule must match machine configuration) */
-  int       replay (Schedule &);
+  int                                   replay (Schedule &);
 };
+
 #endif

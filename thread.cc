@@ -1,6 +1,9 @@
 #include "thread.hh"
 
 #include "machine.hh"
+#include "program.hh"
+
+using namespace std;
 
 /* constructor ****************************************************************/
 Thread::Thread (Machine & m, unsigned int i, Program & p) :
@@ -9,7 +12,6 @@ Thread::Thread (Machine & m, unsigned int i, Program & p) :
   mem(0),
   accu(0),
   sync(0),
-  exitCode(0),
   state(INITIAL),
   machine(m),
   program(p)
@@ -33,31 +35,31 @@ void Thread::store (word addr, word val, bool indirect)
 /* Thread::execute (void) *****************************************************/
 void Thread::execute ()
 {
-  if (pc < program.size())
+  if (pc >= program.size())
+    throw runtime_error("illegal pc [" + to_string(pc) + "]");
+
+  /* print thread id */
+  cout << id;
+
+  /* verbose enabled */
+  if (verbose)
     {
-      /* print thread id */
-      cout << id;
+      cout << "\t";
 
-      /* verbose enabled */
-      if (verbose)
-        {
-          cout << "\t";
-
-          /* print instruction details */
-          program.print(true, pc);
-        }
-
-      /* execute instruction */
-      program[pc]->execute(*this);
-
-      /* print accu */
-      if (verbose)
-        cout << "\t" << accu;
-
-      cout << endl;
+      /* print instruction details */
+      cout << program.print(true, pc);
     }
-  else
-    {
-      state = Thread::State::STOPPED;
-    }
+
+  /* execute instruction */
+  program[pc]->execute(*this);
+
+  /* print accu */
+  if (verbose)
+    cout << "\t" << accu;
+
+  cout << endl;
+
+  /* set state to STOPPED if it was the last command in the program */
+  if (pc >= program.size())
+    state = Thread::State::STOPPED;
 }

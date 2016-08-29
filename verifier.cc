@@ -1,6 +1,10 @@
 #include "verifier.hh"
 
 #include "smtlib.hh"
+#include "solver.hh"
+#include "encoder.hh"
+
+using namespace std;
 
 /*******************************************************************************
  * Verifier
@@ -14,7 +18,7 @@ Verifier::Verifier (Solver & s, smtlib::Encoder & f, string & spec) :
 /* Verifier::print (void) *****************************************************/
 void Verifier::print ()
 {
-  cout  << formula.toString() << "\n"
+  cout  << formula.toString()
         << specification << "\n"
         << smtlib::checkSat() << "\n"
         << smtlib::exit() << "\n";
@@ -24,7 +28,7 @@ void Verifier::print ()
 bool Verifier::sat ()
 {
   string smt =
-      formula.toString() + "\n" +
+      formula.toString() +
       specification + "\n" +
       smtlib::checkSat() + "\n" +
       smtlib::exit();

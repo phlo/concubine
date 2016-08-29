@@ -1,8 +1,7 @@
 #ifndef SCHEDULE_HH_
 #define SCHEDULE_HH_
 
-#include <deque>
-#include <unordered_set>
+#include <string>
 
 #include "thread.hh"
 #include "program.hh"
@@ -10,36 +9,33 @@
 /*******************************************************************************
  * Schedule
  ******************************************************************************/
-class Schedule : public deque<ThreadID>
+struct Schedule : public std::deque<ThreadID>
 {
-  /* be friends with the Parser - for a minimal public interface */
-  friend class Parser<Schedule>;
+  /* default constructor (for testing) */
+  Schedule (void);
+
+  /* construct from file */
+  Schedule (std::string);
 
   /* path to schedule file */
-  string                path;
+  std::string           path;
 
   /* seed used to produce that particular schedule */
   unsigned long         seed;
 
   /* programs used to generate the schedule */
-  deque<ProgramPtr>     programs;
+  ProgramList           programs;
 
   /* append a thread id to be scheduled next */
   void                  add (ThreadID);
 
   /* add a program */
   void                  add (ThreadID, ProgramPtr);
-
-public:
-  Schedule (string &);
-
-  /* sets the used seed */
-  unsigned long         getSeed (void);
-
-  /* path to schedule file */
-  string &              getPath (void);
-
-  /* programs used */
-  deque<ProgramPtr> &   getPrograms (void);
 };
+
+/*******************************************************************************
+ * SchedulePtr
+ ******************************************************************************/
+typedef std::shared_ptr<Schedule> SchedulePtr;
+
 #endif

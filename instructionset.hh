@@ -1,16 +1,15 @@
 #ifndef INSTRUCTIONSET_HH_
 #define INSTRUCTIONSET_HH_
 
+#include <memory>
 #include <string>
 #include <unordered_map>
 
 #include "common.hh"
 
-using namespace std;
-
 /* forward declarations */
 struct Thread;
-namespace smtlib { class Encoder; }
+namespace smtlib { struct Encoder; }
 
 /*******************************************************************************
  * Common Instruction Base Class (Nullary)
@@ -53,31 +52,31 @@ struct Instruction
   struct Set
     {
       /* map containing pointers to instruction object factories */
-      static  unordered_map<string, Instruction * (*)()>
+      static  std::unordered_map<std::string, Instruction * (*)()>
               nullaryFactory;
 
       /* map containing pointers to unary instruction object factories */
-      static  unordered_map<string, Instruction * (*)(const word)>
+      static  std::unordered_map<std::string, Instruction * (*)(const word)>
               unaryFactory;
 
       virtual ~Set (void) = 0; // for a purely static class
 
-      static Instruction::Type        contains (string &);
-      static shared_ptr<Instruction>  create (string &);
-      static shared_ptr<Instruction>  create (string &, const word);
+      static Instruction::Type            contains (std::string);
+      static std::shared_ptr<Instruction> create (std::string);
+      static std::shared_ptr<Instruction> create (std::string, const word);
     };
 
   /* Instruction Members ******************************************************/
-  virtual Type            getType   (void);
-  virtual OPCode          getOPCode (void) = 0;
-  virtual const string &  getSymbol (void) = 0;
+  virtual Type                getType   (void);
+  virtual OPCode              getOPCode (void) = 0;
+  virtual const std::string & getSymbol (void) = 0;
 
-  virtual void            execute (Thread &) = 0;
+  virtual void                execute (Thread &) = 0;
 
-  virtual void            encode (smtlib::Encoder &) = 0;
+  virtual void                encode (smtlib::Encoder &) = 0;
 };
 
-typedef shared_ptr<Instruction> InstructionPtr;
+typedef std::shared_ptr<Instruction> InstructionPtr;
 
 
 /*******************************************************************************
@@ -96,7 +95,7 @@ struct UnaryInstruction : public Instruction
   virtual void    encode (smtlib::Encoder &) = 0;
 };
 
-typedef shared_ptr<UnaryInstruction> UnaryInstructionPtr;
+typedef std::shared_ptr<UnaryInstruction> UnaryInstructionPtr;
 
 
 /*******************************************************************************
@@ -113,21 +112,21 @@ struct MemoryInstruction : public UnaryInstruction
   virtual void    encode (smtlib::Encoder &) = 0;
 };
 
-typedef shared_ptr<MemoryInstruction> MemoryInstructionPtr;
+typedef std::shared_ptr<MemoryInstruction> MemoryInstructionPtr;
 
 
 /*******************************************************************************
  * Instructions
  ******************************************************************************/
-#define DECLARE_COMMON_INSTRUCTION_MEMBERS()              \
-    static  const string      symbol;                     \
-                                                          \
-    virtual       OPCode      getOPCode ();               \
-    virtual const string &    getSymbol ();               \
-                                                          \
-    virtual       void        execute (Thread &);         \
-                                                          \
-    virtual       void        encode (smtlib::Encoder &); \
+#define DECLARE_COMMON_INSTRUCTION_MEMBERS()                \
+    static  const std::string   symbol;                     \
+                                                            \
+    virtual       OPCode        getOPCode ();               \
+    virtual const std::string & getSymbol ();               \
+                                                            \
+    virtual       void          execute (Thread &);         \
+                                                            \
+    virtual       void          encode (smtlib::Encoder &); \
 
 #define DECLARE_INSTRUCTION_NULLARY(classname, baseclass, ...)  \
   struct classname : public baseclass                           \
@@ -135,7 +134,7 @@ typedef shared_ptr<MemoryInstruction> MemoryInstructionPtr;
     DECLARE_COMMON_INSTRUCTION_MEMBERS ()                       \
     __VA_ARGS__                                                 \
   };                                                            \
-  typedef shared_ptr<classname> classname##Ptr;
+  typedef std::shared_ptr<classname> classname##Ptr;
 
 #define DECLARE_INSTRUCTION_UNARY(classname, baseclass, ...)  \
   struct classname : public baseclass                         \
@@ -144,7 +143,7 @@ typedef shared_ptr<MemoryInstruction> MemoryInstructionPtr;
     __VA_ARGS__                                               \
     classname (const word a) : baseclass(a) {};               \
   };                                                          \
-  typedef shared_ptr<classname> classname##Ptr;
+  typedef std::shared_ptr<classname> classname##Ptr;
 
 DECLARE_INSTRUCTION_UNARY   (Load,  MemoryInstruction, )
 DECLARE_INSTRUCTION_UNARY   (Store, MemoryInstruction, )

@@ -3,28 +3,25 @@
 
 #include <string>
 #include <fstream>
-#include <iostream>
-
-using namespace std;
 
 /*******************************************************************************
  * Parser
  ******************************************************************************/
 template <typename Result>
-class Parser
+struct Parser
 {
-  bool      skip;
-  string    path;
-  ifstream  file;
-  Result *  result;
+  Parser (std::string &);
 
-  void      skipLine (void);
+  bool            skip;
+  std::string     path;
+  std::ifstream   file;
+  Result *        result;
 
-  bool      parse (void);
+  void            skipLine (void);
 
-public:
-  Parser (string &);
+  void            parse (void);
 
-  void parse (Result *);
+  void            parse (Result *);
 };
+
 #endif
