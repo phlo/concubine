@@ -293,14 +293,17 @@ int verify (char * name, int argc, char ** argv)
 
   try
     {
+      /* list of programs (idx == thread id) */
+      ProgramList programs;
+
       /* parse path to program */
       string path2program = argv[i++];
 
       /* parse program */
-      Program program(path2program);
+      programs.push_back(make_shared<Program>(path2program));
 
       /* encode program */
-      smtlib::Encoder formula(program, bound);
+      smtlib::Encoder formula(programs, bound);
 
       /* read specification from file */
       string specification;

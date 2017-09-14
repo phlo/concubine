@@ -34,7 +34,7 @@ TEST_RUN := run_all_tests
 
 # run all tests
 run: $(TEST_RUN)
-	./$(TEST_RUN)
+	./$(TEST_RUN) --gtest_filter=Encoder*
 
 # build executable containing all test cases
 $(TEST_RUN): $(OBJ) $(TEST_OBJ) $(GTEST_LIB)

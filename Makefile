@@ -86,4 +86,4 @@ run_verify: $(MAIN)
 	./$(MAIN) verify $(BV) $(PV) $(SV)
 
 run_verify_pretend: $(MAIN)
-	./$(MAIN) verify -p $(BV) $(PV) $(SV)
+	@./$(MAIN) verify -p $(BV) $(PV) $(SV)

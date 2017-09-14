@@ -15,13 +15,13 @@ using namespace std;
 struct VerifierTest : public ::testing::Test
 {
   Boolector       boolector;
-  Program         program;
+  ProgramList     programs;
   smtlib::Encoder encoder;
   string          specification;
   Verifier        verifier;
 
   VerifierTest () :
-    encoder(program, 0),
+    encoder(programs, 0),
     verifier(boolector, encoder, specification) {}
 };
 

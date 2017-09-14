@@ -4,10 +4,7 @@
 #include <sstream>
 #include <unordered_set>
 
-#include "instructionset.hh"
-
-/* forward declarations */
-struct Program;
+#include "program.hh"
 
 /*******************************************************************************
  * SMT-Lib v2.5 Encoder
@@ -28,7 +25,7 @@ namespace smtlib
         };
 
       /* constructs an Encoder for the given program and bound */
-      Encoder (Program &, unsigned long);
+      Encoder (ProgramList &, unsigned long);
 
       /*************************************************************************
        * variables
@@ -37,16 +34,19 @@ namespace smtlib
       /* SMT formula in SMT-LIB v2 format */
       std::ostringstream  formula;
 
-      /* reference to the program being verified */
-      Program &           program;
+      /* reference to the programs being verified (index == thread id) */
+      ProgramList &       programs;
 
       /* bound */
       unsigned long       bound;
 
-      /* current step while encoding */
+      /* current thread id */
+      word                thread;
+
+      /* current step */
       unsigned long       step;
 
-      /* current pc while encoding */
+      /* current pc */
       word                pc;
 
       /* current state (for a slim double-dispatch encoding interface) */
@@ -62,13 +62,16 @@ namespace smtlib
        * private functions
       *************************************************************************/
 
-      /* collects jump targets used in the program */
+      /* collects jump targets used in the current program */
       void                collectPredecessors (void);
 
       /* adds smt file header (commented program and logic declaration) */
       void                addHeader (void);
 
-      /* adds activation variable declarations to formula buffer */
+      /* adds thread activation variable declarations to formula buffer */
+      void                addThreadDeclarations (void);
+
+      /* adds statement activation variable declarations to formula buffer */
       void                addStmtDeclarations (void);
 
       /* adds mem variable declarations to formula buffer */
@@ -82,6 +85,9 @@ namespace smtlib
 
       /* adds exit variable declarations to formula buffer */
       void                addExitDeclarations (void);
+
+      /* adds cardinality constraints for thread activation per step */
+      void                addThreadConstraints (void);
 
       /* helper to simplify asserting an expression */
       std::string         imply (std::string, std::string);
@@ -119,6 +125,9 @@ namespace smtlib
       /* adds conditional activation of target or next instruction */
       void                activateJump (std::string, word);
 
+      /* encodes the current program (programs[thread]) */
+      void                encodeProgram (void);
+
       /* double-dispatched instruction encoding functions */
       void                encode (Load &);
       void                encode (Store &);
@@ -146,7 +155,7 @@ namespace smtlib
        * public functions
       *************************************************************************/
 
-      /* encodes the program */
+      /* encodes the whole machine configuration */
       void                encode (void);
 
       /* print the SMT-Lib v2 file to stdout */
