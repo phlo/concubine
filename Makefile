@@ -29,13 +29,16 @@ OBJ = $(subst .cc,.o,$(SRC))
 MAIN = psimsmt
 
 # run tests
+.PHONY: test
 test: build
 	$(MAKE) -C test
 
 # build executable
+.PHONY: build
 build: $(MAIN)
 
 # rebuild executable
+.PHONY: rebuild
 rebuild: clean build
 
 # build main and link executable
@@ -43,18 +46,25 @@ $(MAIN): $(OBJ) main.cc
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJ) main.cc -o $(MAIN)
 
 # delete generated files
+.PHONY: clean
 clean:
 	$(MAKE) -C test clean
 	$(RM) *.o *.dSYM $(MAIN)
 
 # find trailing whitespaces
+.PHONY: trim
 trim:
 	grep "\s\+$$" -n *.{hh,cc} Makefile test/*.{hh,cc} test/Makefile
+
+# print CFLAGS
+.PHONY: flags
+flags:
+	@echo $(CXXFLAGS)
 
 # export compiler flags for sub-make
 export CXX CFLAGS OBJ MAIN
 
-.PHONY: test run_forever run_cas run_cas_forever trim
+# demo #########################################################################
 
 # program files
 CT=test/data/increment.checker.asm
@@ -68,22 +78,29 @@ SV=test/data/load.store.arithmetic.spec.smt
 SCHEDULE=data/increment.invalid.schedule
 
 # demo targets
+.PHONY: run
 run: run_forever
 
+.PHONY: run_forever
 run_forever: $(MAIN)
 	./run_forever ./simulate_with_random_seed $(CT) $(T1) $(T1)
 
+.PHONY: run_cas
 run_cas: $(MAIN)
 	./simulate_with_random_seed $(CT) $(T2) $(T2)
 
+.PHONY: run_cas_forever
 run_cas_forever: $(MAIN)
 	./run_forever ./simulate_with_random_seed $(CT) $(T2) $(T2)
 
+.PHONY: run_replay
 run_replay: $(MAIN)
 	cd test && ../$(MAIN) replay -v $(SCHEDULE)
 
+.PHONY: run_verify
 run_verify: $(MAIN)
 	./$(MAIN) verify $(BV) $(PV) $(SV)
 
+.PHONY: run_verify_pretend
 run_verify_pretend: $(MAIN)
 	@./$(MAIN) verify -p $(BV) $(PV) $(SV)
