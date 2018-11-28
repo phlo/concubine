@@ -14,7 +14,7 @@ using namespace std;
 struct EncoderTest : public ::testing::Test
 {
   ProgramList     programs;
-  smtlib::Encoder encoder;
+  SMTLibEncoder   encoder;
 
   EncoderTest () : programs(), encoder(programs, 0) {};
 };

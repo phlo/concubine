@@ -2,6 +2,7 @@
 #define MACHINE_HH_
 
 #include <array>
+#include <functional>
 #include <unordered_map>
 
 #include "common.hh"

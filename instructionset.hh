@@ -9,7 +9,7 @@
 
 /* forward declarations */
 struct Thread;
-namespace smtlib { struct Encoder; }
+struct Encoder;
 
 /*******************************************************************************
  * Common Instruction Base Class (Nullary)
@@ -73,7 +73,7 @@ struct Instruction
 
   virtual void                execute (Thread &) = 0;
 
-  virtual void                encode (smtlib::Encoder &) = 0;
+  virtual void                encode (Encoder &) = 0;
 };
 
 typedef std::shared_ptr<Instruction> InstructionPtr;
@@ -92,7 +92,7 @@ struct UnaryInstruction : public Instruction
 
   virtual void    execute (Thread &) = 0;
 
-  virtual void    encode (smtlib::Encoder &) = 0;
+  virtual void    encode (Encoder &) = 0;
 };
 
 typedef std::shared_ptr<UnaryInstruction> UnaryInstructionPtr;
@@ -109,7 +109,7 @@ struct MemoryInstruction : public UnaryInstruction
 
   virtual void    execute (Thread &) = 0;
 
-  virtual void    encode (smtlib::Encoder &) = 0;
+  virtual void    encode (Encoder &) = 0;
 };
 
 typedef std::shared_ptr<MemoryInstruction> MemoryInstructionPtr;
@@ -126,7 +126,7 @@ typedef std::shared_ptr<MemoryInstruction> MemoryInstructionPtr;
                                                             \
     virtual       void          execute (Thread &);         \
                                                             \
-    virtual       void          encode (smtlib::Encoder &); \
+    virtual       void          encode (Encoder &); \
 
 #define DECLARE_INSTRUCTION_NULLARY(classname, baseclass, ...)  \
   struct classname : public baseclass                           \

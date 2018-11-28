@@ -7,7 +7,7 @@
 
 /* forward declarations */
 struct Solver;
-namespace smtlib { struct Encoder; }
+struct SMTLibEncoder;
 
 /*******************************************************************************
  * Verifier
@@ -15,13 +15,13 @@ namespace smtlib { struct Encoder; }
 struct Verifier
 {
   /* constructs a verifier, using the given solver, formula and specification */
-  Verifier (Solver &, smtlib::Encoder &, std::string &);
+  Verifier (Solver &, SMTLibEncoder &, std::string &);
 
   /* wrapper to external smt solver */
   Solver &            solver;
 
   /* smt encoder, storing the formula */
-  smtlib::Encoder &   formula;
+  SMTLibEncoder &   formula;
 
   /* specification in SMT-Lib v2 format */
   std::string &       specification;

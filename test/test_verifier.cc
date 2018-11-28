@@ -16,7 +16,7 @@ struct VerifierTest : public ::testing::Test
 {
   Boolector       boolector;
   ProgramList     programs;
-  smtlib::Encoder encoder;
+  SMTLibEncoder   encoder;
   string          specification;
   Verifier        verifier;
 

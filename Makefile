@@ -22,6 +22,9 @@ SRC = instructionset.cc \
       solver.cc \
       boolector.cc
 
+# header files
+HEADER = $(subst .cc,.hh,$(SRC))
+
 # object files
 OBJ = $(subst .cc,.o,$(SRC))
 
@@ -42,7 +45,7 @@ build: $(MAIN)
 rebuild: clean build
 
 # build main and link executable
-$(MAIN): $(OBJ) main.cc
+$(MAIN): $(HEADER) $(OBJ) main.cc
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJ) main.cc -o $(MAIN)
 
 # delete generated files
