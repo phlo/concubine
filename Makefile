@@ -44,6 +44,21 @@ build: $(MAIN)
 .PHONY: rebuild
 rebuild: clean build
 
+# http://make.mad-scientist.net/papers/advanced-auto-dependency-generation/#combine
+DEPDIR := /tmp/psimsmt/
+$(shell mkdir -p $(DEPDIR) >/dev/null)
+DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
+POSTCOMPILE = @mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d && touch $@
+
+$(DEPDIR)%.d: ;
+.PRECIOUS: $(DEPDIR)/%.d
+
+include $(wildcard $(patsubst %,$(DEPDIR)/%.d,$(basename $(SRC))))
+
+%.o: %.cc $(DEPDIR)/%.d
+	$(CXX) $(DEPFLAGS) $(CXXFLAGS) -o $@ $<
+	$(POSTCOMPILE)
+
 # build main and link executable
 $(MAIN): $(HEADER) $(OBJ) main.cc
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJ) main.cc -o $(MAIN)
