@@ -19,6 +19,7 @@ struct EncoderTest : public ::testing::Test
   EncoderTest () : programs(), encoder(programs, 0) {};
 };
 
+#ifdef __IGNORE__
 /* collectPredecessors ********************************************************/
 TEST_F(EncoderTest, collectPredecessors)
 {
@@ -72,7 +73,7 @@ TEST_F(EncoderTest, addHeader)
   programs.push_back(make_shared<Program>());
   programs.push_back(make_shared<Program>());
   programs.push_back(make_shared<Program>());
-  
+
   programs[0]->path = "program1.asm";
   programs[1]->path = "program2.asm";
   programs[2]->path = "program3.asm";
@@ -353,3 +354,4 @@ TEST_F(EncoderTest, addMultiThreadConstraints)
 //}
 
 // TODO: more tests for multi-threaded encoder
+#endif /* __IGNORE__ */

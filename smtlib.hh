@@ -1,7 +1,10 @@
 #ifndef SMTLIB_HH_
 #define SMTLIB_HH_
 
+#include <cstdarg>
 #include <string>
+#include <sstream>
+#include <vector>
 
 /*******************************************************************************
  * SMT-Lib v2.5 std::string generators for commonly used expressions
@@ -34,7 +37,23 @@ namespace smtlib
       return "(" + op + " " + arg1 + " " + arg2 + " " + arg3 + ")";
     }
 
+
+  inline std::string expr (std::vector<std::string> const & args)
+    {
+      std::ostringstream sb;
+      sb << '(';
+      for (size_t i = 0; i < args.size(); i++)
+        {
+          if (i)
+            sb << ' ';
+          sb << args[i];
+        }
+      sb << ')';
+      return sb.str();
+    }
+
   /* assertion ****************************************************************/
+  #undef assert
   inline std::string assert (std::string arg)
     {
       return unaryExpr("assert", arg);
@@ -149,6 +168,28 @@ namespace smtlib
     {
       return "(exit)";
     }
-}
 
+  /* boolean cardinality constraint (naive - pair wise) ***********************/
+  inline std::string
+  cardinality_exactly_one_naive (std::vector<std::string> const & vars)
+    {
+      std::ostringstream c;
+
+      for (size_t i = 0; i < vars.size(); i++)
+        for (size_t j = i + 1; j < vars.size(); j++)
+          c << lor(lnot(vars[i]), lnot(vars[j])) << '\n';
+
+      c << "bar";
+
+      return c.str();
+    }
+
+  /* boolean cardinality constraint (Carsten Sinz's sequential counter) *******/
+  inline std::string
+  cardinality_exactly_one_sinz (std::vector<std::string> const & vars)
+    {
+      (void) vars;
+      return 0;
+    }
+}
 #endif

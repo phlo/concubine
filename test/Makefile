@@ -1,7 +1,7 @@
 # NOTE: depends on exported variables by parent Makefile
-#       - CFLAGS
-#       - OBJ
-#       - MAIN
+# - CFLAGS
+# - OBJ
+# - MAIN
 
 # googletest root
 GTEST_DIR = lib/googletest/googletest
@@ -23,8 +23,11 @@ WFLAGS = -pedantic -Wall -Wextra
 # object files of code to test (exported)
 OBJ := $(addprefix ../,$(OBJ))
 
+# test source files
+SRC := $(wildcard test_*.cc)
+
 # object files of test cases (test_*.cc)
-TEST_OBJ := $(subst .cc,.o,$(wildcard test_*.cc))
+TEST_OBJ := $(subst .cc,.o,$(SRC))
 
 # main file
 TEST_MAIN := main_gtest.cc
@@ -51,5 +54,8 @@ clean:
 # delete generated files and libraries
 clean-all: clean
 	make -C $(dir $(GTEST_LIB)) clean
+
+# auto-dependency generation
+include ../dependencies.mk
 
 .PHONY: run clean clean-all
