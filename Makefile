@@ -6,9 +6,6 @@ CXXFLAGS = $(CFLAGS) $(WFLAGS)
 WFLAGS = -pedantic -Wall -Wextra -Wundef -Wformat=2 -Wmissing-include-dirs -Wswitch-default -Wunused -Wuninitialized -Wshadow -Wcast-qual -Wcast-align -Wold-style-cast -Wdisabled-optimization -Wredundant-decls -Wstrict-overflow -Wsign-conversion -Werror
 LDFLAGS =
 
-# additional command definitions
-RM = rm -rf
-
 # source files (excluding main.cc)
 SRC = instructionset.cc \
       schedule.cc \
@@ -21,9 +18,6 @@ SRC = instructionset.cc \
       shell.cc \
       solver.cc \
       boolector.cc
-
-# header files
-# HEADER = $(subst .cc,.hh,$(SRC))
 
 # object files
 OBJ = $(subst .cc,.o,$(SRC))
@@ -52,7 +46,7 @@ $(MAIN): $(OBJ) main.cc
 .PHONY: clean
 clean:
 	$(MAKE) -C test clean
-	$(RM) *.o *.dSYM $(MAIN)
+	-rm -rf *.o *.dSYM $(MAIN)
 
 # find trailing whitespaces
 .PHONY: trim
@@ -64,12 +58,11 @@ trim:
 flags:
 	@echo $(CXXFLAGS)
 
+# export compiler flags for sub-make
+export CXX CXXFLAGS OBJ
+
 # auto-dependency generation
 include dependencies.mk
-
-# export compiler flags for sub-make
-# export CXX CFLAGS DEPDIR DEPFLAGS POSTCOMPILE OBJ MAIN SRC
-export CXX CFLAGS OBJ MAIN SRC
 
 # demo #########################################################################
 

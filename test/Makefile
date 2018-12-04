@@ -1,7 +1,7 @@
 # NOTE: depends on exported variables by parent Makefile
-# - CFLAGS
+# - CXX
+# - CXXFLAGS
 # - OBJ
-# - MAIN
 
 # googletest root
 GTEST_DIR = lib/googletest/googletest
@@ -10,15 +10,11 @@ GTEST_DIR = lib/googletest/googletest
 GTEST_LIB = $(GTEST_DIR)/make/gtest-all.o
 
 # compiler flags (exported from parent makefile)
-CXXFLAGS = $(CFLAGS) \
-           $(WFLAGS) \
-           -isystem $(GTEST_DIR)/include \
-           -I../ \
-           -pthread \
-           -D__TEST__
-
-# compiler warnings
-WFLAGS = -pedantic -Wall -Wextra
+CXXFLAGS := $(CXXFLAGS) \
+			-isystem $(GTEST_DIR)/include \
+			-I../ \
+			-pthread \
+			-D__TEST__
 
 # object files of code to test (exported)
 OBJ := $(addprefix ../,$(OBJ))
@@ -36,6 +32,7 @@ TEST_MAIN := main_gtest.cc
 TEST_RUN := run_all_tests
 
 # run all tests
+.PHONY: run
 run: $(TEST_RUN)
 	./$(TEST_RUN) --gtest_filter=-*verify*
 
@@ -48,14 +45,14 @@ $(GTEST_LIB):
 	make -C $(dir $(GTEST_LIB)) $(notdir $(GTEST_LIB))
 
 # delete generated files
+.PHONY: clean
 clean:
 	-rm -rf *.o *.dSYM $(TEST_RUN)
 
 # delete generated files and libraries
+.PHONY: clean-all
 clean-all: clean
 	make -C $(dir $(GTEST_LIB)) clean
 
 # auto-dependency generation
 include ../dependencies.mk
-
-.PHONY: run clean clean-all
