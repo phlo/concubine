@@ -29,7 +29,7 @@ TEST_F(InstructionSetTest, Factory)
   ASSERT_EQ(0, dynamic_pointer_cast<UnaryInstruction>(instruction)->arg);
 
   /* negative arg */
-  instruction = Instruction::Set::create("LOAD", -1);
+  instruction = Instruction::Set::create("LOAD", static_cast<word>(-1));
 
   ASSERT_STREQ("LOAD", instruction->getSymbol().c_str());
   ASSERT_EQ(Instruction::Type::UNARY, instruction->getType());
@@ -197,7 +197,7 @@ TEST_F(InstructionSetTest, JMP)
 
   ASSERT_EQ(0, thread.pc);
 
-  instruction = Instruction::Set::create("JMP", -1);
+  instruction = Instruction::Set::create("JMP", static_cast<word>(-1));
 
   instruction->execute(thread);
 
@@ -270,7 +270,7 @@ TEST_F(InstructionSetTest, JS)
   ASSERT_EQ(1, thread.pc);
 
   /* true */
-  thread.accu = -1;
+  thread.accu = static_cast<word>(-1);
 
   ASSERT_EQ(word_max, thread.accu);
 
@@ -295,7 +295,7 @@ TEST_F(InstructionSetTest, JNS)
   ASSERT_EQ(0, thread.pc);
 
   /* false */
-  thread.accu = -1;
+  thread.accu = static_cast<word>(-1);
 
   ASSERT_EQ(word_max, thread.accu);
 
@@ -320,7 +320,7 @@ TEST_F(InstructionSetTest, JNZNS)
   ASSERT_EQ(1, thread.pc);
 
   /* false => JS */
-  thread.accu = -1;
+  thread.accu = static_cast<word>(-1);
 
   ASSERT_EQ(word_max, thread.accu);
 

@@ -12,9 +12,9 @@ class StreamRedirecter
 
 public:
 
-  StreamRedirecter (std::basic_ios<char> & src, std::basic_ios<char> & dest) :
-    src(src),
-    dest(dest),
+  StreamRedirecter (std::basic_ios<char> & from, std::basic_ios<char> & to) :
+    src(from),
+    dest(to),
     src_rdbuf(src.rdbuf())
     {}
 
