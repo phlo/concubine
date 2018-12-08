@@ -46,7 +46,7 @@ $(MAIN): $(OBJ) main.cc
 .PHONY: clean
 clean:
 	$(MAKE) -C test clean
-	-rm -rf *.o *.dSYM $(MAIN)
+	-rm -rf *.o *.d *.dSYM $(MAIN)
 
 # find trailing whitespaces
 .PHONY: trim

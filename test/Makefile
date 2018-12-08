@@ -47,7 +47,7 @@ $(GTEST_LIB):
 # delete generated files
 .PHONY: clean
 clean:
-	-rm -rf *.o *.dSYM $(TEST_RUN)
+	-rm -rf *.o *.d *.dSYM $(TEST_RUN)
 
 # delete generated files and libraries
 .PHONY: clean-all

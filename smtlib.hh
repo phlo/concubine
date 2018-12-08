@@ -1,7 +1,6 @@
 #ifndef SMTLIB_HH_
 #define SMTLIB_HH_
 
-#include <cstdarg>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -13,113 +12,113 @@
  ******************************************************************************/
 namespace smtlib
 {
-  inline std::string expr (std::vector<std::string> const & args)
+  /* line feed */
+  const char endl = '\n';
+
+  /* n-ary expression */
+  inline std::string expr (
+                           const char * op,
+                           std::vector<std::string> const & args
+                          )
     {
       std::ostringstream sb;
-      sb << '(';
-      for (size_t i = 0; i < args.size(); i++)
-        {
-          if (i)
-            sb << ' ';
-          sb << args[i];
-        }
+      sb << '(' << op;
+      for (const auto & a : args)
+        sb << ' ' << a;
       sb << ')';
       return sb.str();
     }
 
   /* assertion ****************************************************************/
-#pragma push_macro("assert")
-#undef assert
-  inline std::string assert (std::string arg)
+  inline std::string assertion (std::string arg)
     {
-      return expr({"assert", arg});
+      return expr("assert", {arg});
     }
-#pragma pop_macro("assert")
 
   /* logical not **************************************************************/
   inline std::string lnot (std::string arg)
     {
-      return expr({"not", arg});
+      return expr("not", {arg});
     }
 
   /* logical or ***************************************************************/
-  inline std::string lor (std::string arg1, std::string arg2)
+  inline std::string lor (std::vector<std::string> const & args)
     {
-      return expr({"or", arg1, arg2});
+      return expr("or", args);
     }
 
   /* logical and **************************************************************/
-  inline std::string land (std::string arg1, std::string arg2)
+  inline std::string land (std::vector<std::string> const & args)
     {
-      return expr({"and", arg1, arg2});
-    }
-
-  /* equality *****************************************************************/
-  inline std::string equality (std::string arg1, std::string arg2)
-    {
-      return expr({"=", arg1, arg2});
+      return expr("and", args);
     }
 
   /* implication **************************************************************/
   inline std::string implication (std::string arg1, std::string arg2)
     {
-      return expr({"=>", arg1, arg2});
+      return expr("=>", {arg1, arg2});
+    }
+
+  /* equality *****************************************************************/
+  inline std::string equality (std::vector<std::string> const & args)
+    {
+      return expr("=", args);
     }
 
   /* bit-vector add ***********************************************************/
-  inline std::string bvadd (std::string arg1, std::string arg2)
+  inline std::string bvadd (std::vector<std::string> const & args)
     {
-      return expr({"bvadd", arg1, arg2});
+      return expr("bvadd", args);
     }
 
   /* bit-vector sub ***********************************************************/
-  inline std::string bvsub (std::string arg1, std::string arg2)
+  inline std::string bvsub (std::vector<std::string> const & args)
     {
-      return expr({"bvsub", arg1, arg2});
+      return expr("bvsub", args);
     }
 
   /* array select *************************************************************/
   inline std::string select (std::string array, std::string index)
     {
-      return expr({"select", array, index});
+      return expr("select", {array, index});
     }
 
   /* array store **************************************************************/
   inline std::string store (
-                            std::string arg1,
-                            std::string arg2,
-                            std::string arg3
+                            std::string array,
+                            std::string index,
+                            std::string value
                            )
     {
-      return expr({"store", arg1, arg2, arg3});
+      return expr("store", {array, index, value});
     }
 
   /* bit-vector extract *******************************************************/
   inline std::string extract (
-                              std::string start,
-                              std::string end,
+                              std::string msb,
+                              std::string lsb,
                               std::string bitvec
                              )
     {
-      return expr({expr({"_ extract", start, end}), bitvec});
+      return expr(expr("_ extract", {msb, lsb}).c_str(), {bitvec});
     }
 
   /* variable declaration *****************************************************/
   inline std::string declareVar (std::string name, std::string type)
     {
-      return expr({"declare-fun", name, "()", type});
+      return expr("declare-fun", {name, "()", type});
     }
 
   /* bit-vector declaration ***************************************************/
-  inline std::string bitVector (std::string size)
+  inline std::string bitvector (std::string size)
     {
-      return expr({"_ BitVec", size});
+      return expr("_ BitVec", {size});
     }
 
   /* array declaration ********************************************************/
   inline std::string array (std::string arg1, std::string arg2)
     {
-      return expr({"Array", arg1, arg2});
+      return expr("Array", {arg1, arg2});
     }
 
   /* set logic to QF_AUFBV ****************************************************/
@@ -146,25 +145,64 @@ namespace smtlib
       return "(exit)";
     }
 
-  /* boolean cardinality constraint (naive - pair wise) ***********************/
+  /* boolean cardinality constraint =1: naive (pair wise) *********************/
   inline std::string
-  cardinality_exactly_one_naive (std::vector<std::string> const & vars)
+  card_constraint_naive (std::vector<std::string> const & vars)
     {
-      std::ostringstream c;
+      std::ostringstream constraint;
+      std::vector<std::string>::const_iterator it1, it2;
 
+      /* iterators */
+      for (it1 = vars.begin(); it1 != vars.end(); ++it1)
+        for (it2 = it1 + 1; it2 != vars.end(); ++it2)
+          constraint << assertion(lor({lnot(*it1), lnot(*it2)})) << endl;
+
+      /* indices */
+      /*
       for (size_t i = 0; i < vars.size(); i++)
         for (size_t j = i + 1; j < vars.size(); j++)
-          c << lor(lnot(vars[i]), lnot(vars[j])) << '\n';
+          constraint << assertion(lor({lnot(vars[i]), lnot(vars[j])})) << endl;
+      */
 
-      return c.str();
+      return constraint.str();
     }
 
-  /* boolean cardinality constraint (Carsten Sinz's sequential counter) *******/
+  /* boolean cardinality constraint =1: Carsten Sinz's sequential counter *****/
   inline std::string
-  cardinality_exactly_one_sinz (std::vector<std::string> const & vars)
+  card_constraint_sinz (std::vector<std::string> const & vars)
     {
-      (void) vars;
-      return 0;
+      unsigned int i;
+      size_t n = vars.size();
+      std::vector<std::string> aux;
+      std::ostringstream constraint;
+
+      /* n-1 auxiliary variables */
+      for (i = 0; i < n - 1; i++)
+        {
+          aux.push_back(vars[i] + "_aux");
+          constraint << declareVar(aux[i], "Bool") << endl;
+        }
+
+      /* constraint */
+      constraint
+        << endl
+        << assertion(lor(vars))
+        << endl
+        << assertion(lor({lnot(vars[0]), aux[0]}))
+        << endl
+        << assertion(lor({lnot(vars[n - 1]), lnot(aux[n - 2])}))
+        << endl;
+
+      for (i = 1; i < n - 1; i++)
+        constraint
+          << assertion(lor({lnot(vars[i]), aux[i]}))
+          << endl
+          << assertion(lor({lnot(aux[i - 1]), aux[i]}))
+          << endl
+          << assertion(lor({lnot(vars[i]), lnot(aux[i - 1])}))
+          << endl;
+
+      return constraint.str();
     }
 }
 #endif
