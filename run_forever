@@ -1,8 +1,0 @@
-#!/bin/bash
-while true; do
-  $*
-  ret=$?;
-  if [ "$ret" != "0" ]; then
-    exit $ret;
-  fi;
-done
