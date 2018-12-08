@@ -141,13 +141,16 @@ TEST(SMTLibTest, cardinality_exactly_one_naive)
 {
   const char * expected;
 
-  expected = "(assert (or (not x1) (not x2)))\n";
+  expected =
+    "(assert (or x1 x2))\n"
+    "(assert (or (not x1) (not x2)))\n";
 
   ASSERT_STREQ(
     expected,
     smtlib::card_constraint_naive({"x1", "x2"}).c_str());
 
   expected =
+    "(assert (or x1 x2 x3))\n"
     "(assert (or (not x1) (not x2)))\n"
     "(assert (or (not x1) (not x3)))\n"
     "(assert (or (not x2) (not x3)))\n";
@@ -157,6 +160,7 @@ TEST(SMTLibTest, cardinality_exactly_one_naive)
     smtlib::card_constraint_naive({"x1", "x2", "x3"}).c_str());
 
   expected =
+    "(assert (or x1 x2 x3 x4))\n"
     "(assert (or (not x1) (not x2)))\n"
     "(assert (or (not x1) (not x3)))\n"
     "(assert (or (not x1) (not x4)))\n"

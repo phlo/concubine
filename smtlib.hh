@@ -167,6 +167,9 @@ namespace smtlib
       std::ostringstream constraint;
       std::vector<std::string>::const_iterator it1, it2;
 
+      /* require one to be true */
+      constraint << assertion(lor(vars)) << endl;
+
       /* iterators */
       for (it1 = vars.begin(); it1 != vars.end(); ++it1)
         for (it2 = it1 + 1; it2 != vars.end(); ++it2)
