@@ -1,7 +1,10 @@
 #ifndef SMTLIB_HH_
 #define SMTLIB_HH_
 
+#include "common.hh"
+
 #include <string>
+#include <iomanip>
 #include <sstream>
 #include <vector>
 
@@ -15,7 +18,19 @@ namespace smtlib
   /* line feed */
   const char endl = '\n';
 
-  /* n-ary expression */
+  /* converts integer to its word sized SMT-Lib hex constant ******************/
+  inline std::string word2hex (word val)
+    {
+      std::ostringstream s;
+      s << "#x"
+        << std::setfill('0')
+        << std::setw(word_size / 4)
+        << std::hex
+        << val;
+      return s.str();
+    }
+
+  /* n-ary expression *********************************************************/
   inline std::string expr (
                            const char * op,
                            std::vector<std::string> const & args

@@ -4,6 +4,16 @@
 
 using namespace std;
 
+/* word2hex *******************************************************************/
+TEST(SMTLibTest, word2hex)
+{
+  ASSERT_STREQ("#x0000", smtlib::word2hex(0).c_str());
+  ASSERT_STREQ("#x0001", smtlib::word2hex(1).c_str());
+  ASSERT_STREQ("#x000a", smtlib::word2hex(10).c_str());
+  ASSERT_STREQ("#x000f", smtlib::word2hex(15).c_str());
+  ASSERT_STREQ("#x0020", smtlib::word2hex(32).c_str());
+}
+
 /* expr ***********************************************************************/
 TEST(SMTLibTest, expr)
 {
