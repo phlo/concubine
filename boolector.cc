@@ -4,8 +4,8 @@
 
 using namespace std;
 
-/* Boolector::buildCommand (void) *********************************************/
-string Boolector::buildCommand ()
+/* Boolector::build_command (void) ********************************************/
+string Boolector::build_command ()
 {
   return "boolector -m";
 }
@@ -15,7 +15,7 @@ bool Boolector::sat (string & formula)
 {
   execute(formula);
 
-  cout << stdOut;
+  cout << std_out;
 
-  return stdOut == "sat\n";
+  return std_out == "sat\n";
 }

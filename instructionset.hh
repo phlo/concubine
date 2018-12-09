@@ -53,11 +53,11 @@ struct Instruction
     {
       /* map containing pointers to instruction object factories */
       static  std::unordered_map<std::string, Instruction * (*)()>
-              nullaryFactory;
+              nullary_factory;
 
       /* map containing pointers to unary instruction object factories */
       static  std::unordered_map<std::string, Instruction * (*)(const word)>
-              unaryFactory;
+              unary_factory;
 
       virtual ~Set (void) = 0; // for a purely static class
 
@@ -67,9 +67,9 @@ struct Instruction
     };
 
   /* Instruction Members ******************************************************/
-  virtual Type                getType   (void);
-  virtual OPCode              getOPCode (void) = 0;
-  virtual const std::string & getSymbol (void) = 0;
+  virtual Type                get_type   (void);
+  virtual OPCode              get_opcode (void) = 0;
+  virtual const std::string & get_symbol (void) = 0;
 
   virtual void                execute (Thread &) = 0;
 
@@ -88,7 +88,7 @@ struct UnaryInstruction : public Instruction
 
   UnaryInstruction (const word);
 
-  virtual Type    getType (void);
+  virtual Type    get_type (void);
 
   virtual void    execute (Thread &) = 0;
 
@@ -118,14 +118,14 @@ typedef std::shared_ptr<MemoryInstruction> MemoryInstructionPtr;
 /*******************************************************************************
  * Instructions
  ******************************************************************************/
-#define DECLARE_COMMON_INSTRUCTION_MEMBERS()                \
-    static  const std::string   symbol;                     \
-                                                            \
-    virtual       OPCode        getOPCode ();               \
-    virtual const std::string & getSymbol ();               \
-                                                            \
-    virtual       void          execute (Thread &);         \
-                                                            \
+#define DECLARE_COMMON_INSTRUCTION_MEMBERS()        \
+    static  const std::string   symbol;             \
+                                                    \
+    virtual       OPCode        get_opcode ();      \
+    virtual const std::string & get_symbol ();      \
+                                                    \
+    virtual       void          execute (Thread &); \
+                                                    \
     virtual       void          encode (Encoder &); \
 
 #define DECLARE_INSTRUCTION_NULLARY(classname, baseclass, ...)  \

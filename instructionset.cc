@@ -12,17 +12,17 @@ using namespace std;
  * Instruction::Set
  ******************************************************************************/
 unordered_map<string, Instruction *(*)()>
-  Instruction::Set::nullaryFactory;
+  Instruction::Set::nullary_factory;
 
 unordered_map<string, Instruction *(*)(const word)>
-  Instruction::Set::unaryFactory;
+  Instruction::Set::unary_factory;
 
 Instruction::Type Instruction::Set::contains (string name)
 {
-  if (nullaryFactory.find(name) != nullaryFactory.end())
+  if (nullary_factory.find(name) != nullary_factory.end())
     return Type::NULLARY;
 
-  if (unaryFactory.find(name) != unaryFactory.end())
+  if (unary_factory.find(name) != unary_factory.end())
     return Type::UNARY;
 
   return Instruction::Type::UNKNOWN;
@@ -33,7 +33,7 @@ InstructionPtr Instruction::Set::create (string name)
   if (!contains(name))
     throw runtime_error("Instruction '" + name + "' unknown");
 
-  return InstructionPtr(nullaryFactory[name]());
+  return InstructionPtr(nullary_factory[name]());
 }
 
 InstructionPtr Instruction::Set::create (string name, const word arg)
@@ -41,7 +41,7 @@ InstructionPtr Instruction::Set::create (string name, const word arg)
   if (!contains(name))
     throw runtime_error("Instruction '" + name + "' unknown");
 
-  return InstructionPtr(unaryFactory[name](arg));
+  return InstructionPtr(unary_factory[name](arg));
 }
 
 
@@ -49,7 +49,7 @@ InstructionPtr Instruction::Set::create (string name, const word arg)
  * Instruction
  ******************************************************************************/
 
-Instruction::Type Instruction::getType ()
+Instruction::Type Instruction::get_type ()
 {
   return Instruction::Type::NULLARY;
 }
@@ -60,7 +60,7 @@ Instruction::Type Instruction::getType ()
  ******************************************************************************/
 UnaryInstruction::UnaryInstruction (const word a) : arg(a) {}
 
-Instruction::Type UnaryInstruction::getType ()
+Instruction::Type UnaryInstruction::get_type ()
 {
   return Instruction::Type::UNARY;
 }
@@ -81,16 +81,16 @@ MemoryInstruction::MemoryInstruction (const word a) :
  * use preprocessor to simplify definition of instructions
  * NOTE: 'execute' defined outside!
  ******************************************************************************/
-#define DEFINE_COMMON_INSTRUCTION_MEMBERS(classname)                        \
-  Instruction::OPCode classname::getOPCode () { return OPCode::classname; } \
-  const string& classname::getSymbol () { return classname::symbol; }       \
+#define DEFINE_COMMON_INSTRUCTION_MEMBERS(classname)                          \
+  Instruction::OPCode classname::get_opcode () { return OPCode::classname; }  \
+  const string& classname::get_symbol () { return classname::symbol; }        \
   void classname::encode (Encoder & formula) { formula.encode(*this); }
 
 #define DEFINE_INSTRUCTION_NULLARY(classname, identifier)           \
   DEFINE_COMMON_INSTRUCTION_MEMBERS (classname)                     \
   const string  classname::symbol = [](string sym)->const string    \
   {                                                                 \
-    Instruction::Set::nullaryFactory[sym] = []()->Instruction *     \
+    Instruction::Set::nullary_factory[sym] = []()->Instruction *    \
       {                                                             \
         return new classname;                                       \
       };                                                            \
@@ -101,7 +101,7 @@ MemoryInstruction::MemoryInstruction (const word a) :
   DEFINE_COMMON_INSTRUCTION_MEMBERS(classname)                              \
   const string  classname::symbol = [](string sym)->const string            \
   {                                                                         \
-    Instruction::Set::unaryFactory[sym] = [](const word a)->Instruction *   \
+    Instruction::Set::unary_factory[sym] = [](const word a)->Instruction *  \
       {                                                                     \
         return new classname(a);                                            \
       };                                                                    \

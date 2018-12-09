@@ -10,12 +10,12 @@
 class Shell
 {
   /* last exit code ($?) */
-  int exitCode;
+  int exit_code;
 
 public:
 
   /* returns last exit code (like $?) */
-  int lastExitCode (void);
+  int last_exit_code (void);
 
   /* runs shell command and returns it's output */
   std::string run (std::string);

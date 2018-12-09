@@ -9,11 +9,11 @@
  ******************************************************************************/
 struct Solver
 {
-  std::string           stdOut;
+  std::string           std_out;
 
   int                   execute (std::string &);
 
-  virtual std::string   buildCommand (void) = 0;
+  virtual std::string   build_command (void) = 0;
 
   virtual bool          sat (std::string &) = 0;
 };

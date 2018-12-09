@@ -8,7 +8,7 @@
  ******************************************************************************/
 class Boolector : public Solver
 {
-  virtual std::string   buildCommand (void);
+  virtual std::string   build_command (void);
 
 public:
   virtual bool          sat (std::string &);

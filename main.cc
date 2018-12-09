@@ -16,7 +16,7 @@ using namespace std;
 bool verbose = false;
 
 /* usage output ***************************************************************/
-void printUsageMain (char * name)
+void print_usage_main (char * name)
 {
   cout << "usage: " << name <<
   " <command> [<arg> ...]" <<
@@ -28,12 +28,12 @@ void printUsageMain (char * name)
   "  verify     verifies a given (single-threaded) program" << endl;
 }
 
-void printUsageHelp (char * name)
+void print_usage_help (char * name)
 {
   cout << "usage: " << name << " help <command>" << endl;
 }
 
-void printUsageSimulate (char * name)
+void print_usage_simulate (char * name)
 {
   cout << "usage: " << name <<
   " simulate [-v] [-s <seed>] [-k <bound>] <program> ..." <<
@@ -44,7 +44,7 @@ void printUsageSimulate (char * name)
   "  program    one ore more source files, each being executed as a separate thread" << endl;
 }
 
-void printUsageReplay (char * name)
+void print_usage_replay (char * name)
 {
   cout << "usage: " << name <<
   " replay [-v] [-k <bound>] <schedule>" <<
@@ -54,7 +54,7 @@ void printUsageReplay (char * name)
   "  schedule   the schedule to replay" << endl;
 }
 
-void printUsageVerify (char * name)
+void print_usage_verify (char * name)
 {
   cout << "usage: " << name <<
   " verify [-p] <bound> <program> <specification>" <<
@@ -67,38 +67,38 @@ void printUsageVerify (char * name)
 /*******************************************************************************
  * main functions
  ******************************************************************************/
-void printError (string what) { cerr << "error: " << what << endl; }
+void print_error (string what) { cerr << "error: " << what << endl; }
 
 /* help ***********************************************************************/
 int help (char * name, int argc, char **argv)
 {
   if (argc < 1)
     {
-      printError("no command given");
-      printUsageHelp(name);
+      print_error("no command given");
+      print_usage_help(name);
       return -1;
     }
 
   if (!strcmp(argv[0], "help"))
     {
-      printUsageHelp(name);
+      print_usage_help(name);
     }
   else if (!strcmp(argv[0], "simulate"))
     {
-      printUsageSimulate(name);
+      print_usage_simulate(name);
     }
   else if (!strcmp(argv[0], "replay"))
     {
-      printUsageReplay(name);
+      print_usage_replay(name);
     }
   else if (!strcmp(argv[0], "verify"))
     {
-      printUsageVerify(name);
+      print_usage_verify(name);
     }
   else
     {
-      printError("unknown command " + string(argv[0]));
-      printUsageHelp(name);
+      print_error("unknown command " + string(argv[0]));
+      print_usage_help(name);
       return -1;
     }
 
@@ -128,13 +128,13 @@ int simulate (char * name, int argc, char ** argv)
                 seed = stoul((arg = argv[i]), nullptr, 0);
               else
                 {
-                  printError("missing seed");
+                  print_error("missing seed");
                   return -1;
                 }
             }
           catch (...)
             {
-              printError("illegal seed [" + arg + "]");
+              print_error("illegal seed [" + arg + "]");
               return -1;
             }
         }
@@ -146,13 +146,13 @@ int simulate (char * name, int argc, char ** argv)
                 bound = stoul((arg = argv[i]), nullptr, 0);
               else
                 {
-                  printError("missing bound");
+                  print_error("missing bound");
                   return -1;
                 }
             }
           catch (...)
             {
-              printError("illegal bound [" + arg + "]");
+              print_error("illegal bound [" + arg + "]");
               return -1;
             }
         }
@@ -164,7 +164,7 @@ int simulate (char * name, int argc, char ** argv)
             }
           catch (const exception & e)
             {
-              printError(e.what());
+              print_error(e.what());
               return -1;
             }
         }
@@ -172,15 +172,15 @@ int simulate (char * name, int argc, char ** argv)
 
   if (threads.empty())
     {
-      printError("got nothing to run");
-      printUsageSimulate(name);
+      print_error("got nothing to run");
+      print_usage_simulate(name);
       return -1;
     }
 
   /* run program with given seed */
   Machine machine(seed, bound);
   for (auto p : threads)
-    machine.createThread(*p);
+    machine.create_thread(*p);
 
   return machine.simulate();
 }
@@ -190,8 +190,8 @@ int replay (char * name, int argc, char ** argv)
 {
   if (argc < 1)
     {
-      printError("no schedule given");
-      printUsageReplay(name);
+      print_error("no schedule given");
+      print_usage_replay(name);
       return -1;
     }
 
@@ -214,13 +214,13 @@ int replay (char * name, int argc, char ** argv)
                 bound = stoul((arg = argv[i]), nullptr, 0);
               else
                 {
-                  printError("missing bound");
+                  print_error("missing bound");
                   return -1;
                 }
             }
           catch (...)
             {
-              printError("illegal bound [" + arg + "]");
+              print_error("illegal bound [" + arg + "]");
               return -1;
             }
         }
@@ -242,7 +242,7 @@ int replay (char * name, int argc, char ** argv)
     }
   catch (const exception & e)
     {
-      printError(e.what());
+      print_error(e.what());
       return -1;
     }
 }
@@ -252,8 +252,8 @@ int verify (char * name, int argc, char ** argv)
 {
   if (argc < 2)
     {
-      printError("too few arguments");
-      printUsageVerify(name);
+      print_error("too few arguments");
+      print_usage_verify(name);
       return -1;
     }
 
@@ -272,8 +272,8 @@ int verify (char * name, int argc, char ** argv)
   /* check for bound and program */
   if (argc < i + 1)
     {
-      printError("too few arguments");
-      printUsageVerify(name);
+      print_error("too few arguments");
+      print_usage_verify(name);
       return -1;
     }
 
@@ -287,7 +287,7 @@ int verify (char * name, int argc, char ** argv)
     }
   catch (...)
     {
-      printError("illegal bound [" + string(argv[i-1]) + "]");
+      print_error("illegal bound [" + string(argv[i-1]) + "]");
       return -1;
     }
 
@@ -309,8 +309,8 @@ int verify (char * name, int argc, char ** argv)
       string specification;
       if (i < argc)
         {
-          ifstream specFs(argv[i]);
-          specification.assign((istreambuf_iterator<char>(specFs)),
+          ifstream spec_fs(argv[i]);
+          specification.assign((istreambuf_iterator<char>(spec_fs)),
                                 istreambuf_iterator<char>());
 
           if (specification.empty())
@@ -333,7 +333,7 @@ int verify (char * name, int argc, char ** argv)
     }
   catch (const exception & e)
     {
-      printError(e.what());
+      print_error(e.what());
       return -1;
     }
 
@@ -365,6 +365,6 @@ int main (int argc, char ** argv)
     }
 
   /* found no command */
-  printUsageMain(argv[0]);
+  print_usage_main(argv[0]);
   return -1;
 }

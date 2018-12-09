@@ -9,7 +9,7 @@ int Solver::execute (string & formula)
 {
   Shell shell;
 
-  stdOut = shell.run(buildCommand(), formula);
+  std_out = shell.run(build_command(), formula);
 
-  return shell.lastExitCode();
+  return shell.last_exit_code();
 }

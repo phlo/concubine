@@ -39,20 +39,20 @@ struct Machine
   std::array<word, word_max>            memory;
 
   /* number of threads containing calls to a specific sync barrier (id) */
-  std::unordered_map<word, ThreadList>  threadsPerSyncID;
+  std::unordered_map<word, ThreadList>  threads_per_sync_id;
 
   /* number of threads currently waiting for a specific sync barrier (id) */
-  std::unordered_map<word, word>        waitingPerSyncID;
+  std::unordered_map<word, word>        waiting_per_sync_id;
 
   /*****************************************************************************
    * private functions
    ****************************************************************************/
 
   /* adds all threads to the active queue and sets them running */
-  void                                  activateThreads (ThreadList &);
+  void                                  activate_threads (ThreadList &);
 
   /* checks if all threads reached the given barrier id and resumes them */
-  void                                  checkAndResumeWaiting (word);
+  void                                  check_and_resume_waiting (word);
 
   /* run the machine, using the specified scheduler */
   int                                   run (std::function<ThreadPtr(void)>);
@@ -62,7 +62,7 @@ struct Machine
    ****************************************************************************/
 
   /* creates a thread using the given program, thread id == number of threads*/
-  ThreadID                              createThread (Program &);
+  ThreadID                              create_thread (Program &);
 
   /* runs the machine using a random schedule */
   int                                   simulate (void);

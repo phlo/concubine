@@ -21,7 +21,7 @@ struct Program : public std::deque<InstructionPtr>
   std::string                             path;
 
   /* sync barriers */
-  std::unordered_set<word>                syncIDs;
+  std::unordered_set<word>                sync_ids;
 
   /* maps program counters to the label referencing it */
   std::unordered_map<word, std::string>   labels;

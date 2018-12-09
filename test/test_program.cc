@@ -19,12 +19,12 @@ TEST_F(ProgramTest, add)
 {
   program.add(Instruction::Set::create("ADD", 1));
   ASSERT_EQ(1, program.size());
-  ASSERT_EQ(0, program.syncIDs.size());
+  ASSERT_EQ(0, program.sync_ids.size());
 
   program.add(Instruction::Set::create("SYNC", 1));
   ASSERT_EQ(2, program.size());
-  ASSERT_EQ(1, program.syncIDs.size());
-  ASSERT_TRUE(program.syncIDs.find(1) != program.syncIDs.end());
+  ASSERT_EQ(1, program.sync_ids.size());
+  ASSERT_TRUE(program.sync_ids.find(1) != program.sync_ids.end());
 }
 
 /* parse **********************************************************************/
@@ -33,7 +33,7 @@ TEST_F(ProgramTest, parse)
   program = Program("data/increment.cas.asm");
 
   ASSERT_EQ(5, program.size());
-  ASSERT_EQ(1, program.syncIDs.size());
+  ASSERT_EQ(1, program.sync_ids.size());
   ASSERT_STREQ("START", program.labels[0].c_str());
 
   ASSERT_STREQ("START\tMEM\t1", program.print(true, 0).c_str());
@@ -46,7 +46,7 @@ TEST_F(ProgramTest, parse)
   program = Program("data/indirect.addressing.asm");
 
   ASSERT_EQ(5, program.size());
-  ASSERT_EQ(0, program.syncIDs.size());
+  ASSERT_EQ(0, program.sync_ids.size());
   ASSERT_EQ(0, program.labels.size());
 
   ASSERT_STREQ("0\tADDI\t1",    program.print(true, 0).c_str());
@@ -56,8 +56,8 @@ TEST_F(ProgramTest, parse)
   ASSERT_STREQ("4\tCMP\t[1]",   program.print(true, 4).c_str());
 }
 
-/* parseFileNotFound **********************************************************/
-TEST_F(ProgramTest, parseFileNotFound)
+/* parse_file_not_found *******************************************************/
+TEST_F(ProgramTest, parse_file_not_found)
 {
   string file = "file_not_found";
 
@@ -71,12 +71,12 @@ TEST_F(ProgramTest, parseFileNotFound)
     }
 }
 
-/* parseIllegalInstruction ****************************************************/
-TEST_F(ProgramTest, parseIllegalInstruction)
+/* parse_illegal_instruction **************************************************/
+TEST_F(ProgramTest, parse_illegal_instruction)
 {
-  string dummyFile = "data/increment.asm";
+  string dummy_file = "data/increment.asm";
 
-  Parser<Program> parser(dummyFile);
+  Parser<Program> parser(dummy_file);
 
   /* illegal instruction */
   istringstream inbuf("NOP");

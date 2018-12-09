@@ -17,9 +17,9 @@ Parser<Result>::Parser(string & p) :
   result(nullptr)
 {}
 
-/* Parser<Result>::skipLine (void) ********************************************/
+/* Parser<Result>::skip_line (void) *******************************************/
 template <typename Result>
-void Parser<Result>::skipLine ()
+void Parser<Result>::skip_line ()
 {
   string line;
   getline(file, line);
@@ -48,17 +48,17 @@ void Parser<Program>::parse ()
   InstructionPtr i;
 
   /* maps label occurrences to the according pc */
-  unordered_map<string, word> labelDef;
+  unordered_map<string, word> label_def;
 
   /* list of jump instructions at pc referencing a certain label */
-  deque<tuple<string, word, string>> labelRef;
+  deque<tuple<string, word, string>> label_ref;
 
   while (file && file >> token)
     {
       /* comment block started? */
       if (token.front() == '#')
         {
-          skipLine();
+          skip_line();
           continue;
         }
       /* found label? */
@@ -68,7 +68,7 @@ void Parser<Program>::parse ()
           string label = token.substr(0, token.size() - 1);
 
           /* store label and the pc it was defined */
-          labelDef[label] = pc;
+          label_def[label] = pc;
           result->labels[pc] = label;
 
           /* read labelled command */
@@ -143,7 +143,7 @@ void Parser<Program>::parse ()
                           word pc = static_cast<word>(result->size());
 
                           /* add tuple to the list of labelled jumps */
-                          labelRef.push_back(make_tuple(token, pc, label));
+                          label_ref.push_back(make_tuple(token, pc, label));
                         }
                       /* error: not a jump instruction */
                       else
@@ -162,11 +162,11 @@ void Parser<Program>::parse ()
     }
 
   /* replace labelled dummy instructions */
-  for (auto t : labelRef)
+  for (auto t : label_ref)
     {
       /* check if label exists */
       // NOTE: throws exception on invalid idx
-      word arg = labelDef.at(get<2>(t));
+      word arg = label_def.at(get<2>(t));
 
       /* create the actual instruction */
       i = Instruction::Set::create(get<0>(t), arg);
@@ -182,14 +182,14 @@ void Parser<Schedule>::parse ()
 {
   string token;
 
-  bool foundSeed = false;
+  bool found_seed = false;
 
   /* parse header */
-  while (file && !foundSeed)
+  while (file && !found_seed)
     {
       if (file.peek() == '#')
         {
-          skipLine();
+          skip_line();
           continue;
         }
 
@@ -206,7 +206,7 @@ void Parser<Schedule>::parse ()
           try
             {
               result->seed = stoul(token, nullptr, 0);
-              foundSeed = true;
+              found_seed = true;
             }
           catch (const exception & e)
             {
@@ -245,7 +245,7 @@ void Parser<Schedule>::parse ()
     {
       if (token[0] == '#')
         {
-          skipLine();
+          skip_line();
           continue;
         }
 
@@ -267,7 +267,7 @@ void Parser<Schedule>::parse ()
       result->add(tid);
 
       /* ignore rest of the line (in case of verbose output) */
-      skipLine();
+      skip_line();
     }
 }
 

@@ -15,11 +15,11 @@
 
 using namespace std;
 
-/* sysError (void) - custom strerror wrapper **********************************/
-inline string sysError () { return "[" + string(strerror(errno)) + "]"; }
+/* sys_error (void) - custom strerror wrapper *********************************/
+inline string sys_error () { return "[" + string(strerror(errno)) + "]"; }
 
-/* Shell::lastExitCode (void) *************************************************/
-int Shell::lastExitCode () { return exitCode; }
+/* Shell::last_exit_code (void) ***********************************************/
+int Shell::last_exit_code () { return exit_code; }
 
 /* Shell::run (string) ********************************************************/
 string Shell::run (string cmd)
@@ -36,21 +36,21 @@ string Shell::run (string cmd, string & input)
   string output = "";
 
   /* stdin pipe file descriptors */
-  int stdIn[2];
+  int std_in[2];
 
   /* stdout pipe file descriptors */
-  int stdOut[2];
+  int std_out[2];
 
   /* pid returned by fork (0 == child) */
   int pid;
 
   /* open stdin pipe */
-  if (pipe(stdIn) < 0)
-    throw runtime_error("creating input pipe " + sysError());
+  if (pipe(std_in) < 0)
+    throw runtime_error("creating input pipe " + sys_error());
 
   /* open stdout pipe */
-  if (pipe(stdOut) < 0)
-    throw runtime_error("creating output pipe " + sysError());
+  if (pipe(std_out) < 0)
+    throw runtime_error("creating output pipe " + sys_error());
 
   /* fork process */
   pid = fork();
@@ -59,28 +59,28 @@ string Shell::run (string cmd, string & input)
   if (pid == 0)
     {
       /* redirect stdin */
-      if (dup2(stdIn[PIPE_READ], STDIN_FILENO) < 0)
-        throw runtime_error("redirecting stdin " + sysError());
+      if (dup2(std_in[PIPE_READ], STDIN_FILENO) < 0)
+        throw runtime_error("redirecting stdin " + sys_error());
 
       /* redirect stdout */
-      if (dup2(stdOut[PIPE_WRITE], STDOUT_FILENO) < 0)
-        throw runtime_error("redirecting stdout " + sysError());
+      if (dup2(std_out[PIPE_WRITE], STDOUT_FILENO) < 0)
+        throw runtime_error("redirecting stdout " + sys_error());
 
       /* redirect stderr */
-      if (dup2(stdOut[PIPE_WRITE], STDERR_FILENO) < 0)
-        throw runtime_error("redirecting stderr " + sysError());
+      if (dup2(std_out[PIPE_WRITE], STDERR_FILENO) < 0)
+        throw runtime_error("redirecting stderr " + sys_error());
 
       /* close file descriptors - only used by parent */
-      close(stdIn[PIPE_READ]);
-      close(stdIn[PIPE_WRITE]);
-      close(stdOut[PIPE_READ]);
-      close(stdOut[PIPE_WRITE]);
+      close(std_in[PIPE_READ]);
+      close(std_in[PIPE_WRITE]);
+      close(std_out[PIPE_READ]);
+      close(std_out[PIPE_WRITE]);
 
       /* run shell command as child process */
       execlp("bash", "bash", "-c", cmd.c_str(), static_cast<char *>(0));
 
       /* exec should not return - if we get here, an error must have happened */
-      throw runtime_error("executing shell command " + sysError());
+      throw runtime_error("executing shell command " + sys_error());
     }
   /* parent process */
   else if (pid > 0)
@@ -89,27 +89,27 @@ string Shell::run (string cmd, string & input)
       char buffer[BUFFER_SIZE];
 
       /* close unused file descriptors */
-      close(stdIn[PIPE_READ]);
-      close(stdOut[PIPE_WRITE]);
+      close(std_in[PIPE_READ]);
+      close(std_out[PIPE_WRITE]);
 
       /* write given input to stdin of child */
       if (!input.empty())
-        if (write(stdIn[PIPE_WRITE], input.c_str(), input.length()) < 0)
-          throw runtime_error("writing to stdin " + sysError());
+        if (write(std_in[PIPE_WRITE], input.c_str(), input.length()) < 0)
+          throw runtime_error("writing to stdin " + sys_error());
 
       /* close stdin pipe file descriptor */
-      close(stdIn[PIPE_WRITE]);
+      close(std_in[PIPE_WRITE]);
 
       /* read stdout from child */
-      int numRead = 0;
-      while ((numRead = read(stdOut[PIPE_READ], buffer, BUFFER_SIZE - 1)) > 0)
+      int num_read = 0;
+      while ((num_read = read(std_out[PIPE_READ], buffer, BUFFER_SIZE - 1)) > 0)
         {
-          buffer[numRead] = '\0';
+          buffer[num_read] = '\0';
           output += buffer;
         }
 
       /* close remaining file descriptors */
-      close(stdOut[PIPE_READ]);
+      close(std_out[PIPE_READ]);
 
       /* wait for child to finish and assign exit code */
       int wstatus;
@@ -117,20 +117,20 @@ string Shell::run (string cmd, string & input)
       waitpid(pid, &wstatus, 0);
 
       if (WIFEXITED(wstatus))
-        exitCode = WEXITSTATUS(wstatus);
+        exit_code = WEXITSTATUS(wstatus);
       else
-        throw runtime_error("child process exited prematurely " + sysError());
+        throw runtime_error("child process exited prematurely " + sys_error());
     }
   /* fork failed */
   else
     {
       /* close file descriptors */
-      close(stdIn[PIPE_READ]);
-      close(stdIn[PIPE_WRITE]);
-      close(stdOut[PIPE_READ]);
-      close(stdOut[PIPE_WRITE]);
+      close(std_in[PIPE_READ]);
+      close(std_in[PIPE_WRITE]);
+      close(std_out[PIPE_READ]);
+      close(std_out[PIPE_WRITE]);
 
-      throw runtime_error("fork failed " + sysError());
+      throw runtime_error("fork failed " + sys_error());
     }
 
   return output;

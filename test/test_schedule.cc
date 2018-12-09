@@ -14,8 +14,8 @@ struct ScheduleTest : public ::testing::Test
   Schedule schedule;
 };
 
-/* addThread ******************************************************************/
-TEST_F(ScheduleTest, addThread)
+/* add_thread *****************************************************************/
+TEST_F(ScheduleTest, add_thread)
 {
   schedule.add(0);
   ASSERT_EQ(0, schedule[0]);
@@ -26,8 +26,8 @@ TEST_F(ScheduleTest, addThread)
   ASSERT_EQ(2, schedule.size());
 }
 
-/* addProgram *****************************************************************/
-TEST_F(ScheduleTest, addProgram)
+/* add_program ****************************************************************/
+TEST_F(ScheduleTest, add_program)
 {
   schedule.add(0, make_shared<Program>("data/increment.asm"));
   ASSERT_EQ(1, schedule.programs.size());
@@ -47,14 +47,12 @@ TEST_F(ScheduleTest, parse)
   ASSERT_EQ(13, schedule.size());
 }
 
-/* parseFileNotFound **********************************************************/
-TEST_F(ScheduleTest, parseFileNotFound)
+/* parse_file_not_found *******************************************************/
+TEST_F(ScheduleTest, parse_file_not_found)
 {
-  string file = "file_not_found";
-
   try
     {
-      schedule = Schedule(file);
+      schedule = Schedule("file_not_found");
     }
   catch (const exception & e)
     {
@@ -62,12 +60,12 @@ TEST_F(ScheduleTest, parseFileNotFound)
     }
 }
 
-/* parseIllegalSchedule *******************************************************/
-TEST_F(ScheduleTest, parseIllegalSchedule)
+/* parse_illegal_schedule *****************************************************/
+TEST_F(ScheduleTest, parse_illegal_schedule)
 {
-  string dummyFile = "data/increment.asm";
+  string dummy_file = "data/increment.asm";
 
-  Parser<Schedule> parser(dummyFile);
+  Parser<Schedule> parser(dummy_file);
 
   /* no seed */
   istringstream inbuf(" \

@@ -10,7 +10,7 @@ using namespace std;
 Program::Program() {}
 
 /* construct from file ********************************************************/
-Program::Program(string p) : path(p), syncIDs(), labels()
+Program::Program(string p) : path(p), sync_ids(), labels()
 {
   Parser<Program> parser(p);
   parser.parse(this);
@@ -23,22 +23,22 @@ void Program::add (InstructionPtr i)
 
   /* collect sync barrier ids */
   if (SyncPtr s = dynamic_pointer_cast<Sync>(i))
-    syncIDs.insert(s->arg);
+    sync_ids.insert(s->arg);
 }
 
 /* Program::print (bool) ******************************************************/
-string Program::print (bool includePC)
+string Program::print (bool include_pc)
 {
   ostringstream ss;
 
   for (word i = 0; i < size(); i++)
-    ss <<  print(includePC, i);
+    ss <<  print(include_pc, i);
 
   return ss.str();
 }
 
 /* Program::print (bool, word) ************************************************/
-string Program::print (bool includePC, word pc)
+string Program::print (bool include_pc, word pc)
 {
   ostringstream ss;
 
@@ -47,17 +47,17 @@ string Program::print (bool includePC, word pc)
     {
       ss << labels[pc];
 
-      if (includePC)
+      if (include_pc)
         ss << "\t";
       else
         ss << ": ";
     }
-  else if (includePC)
+  else if (include_pc)
     ss << pc << "\t";
 
   /* instruction symbol */
   InstructionPtr cmd = at(pc);
-  ss << cmd->getSymbol() << "\t";
+  ss << cmd->get_symbol() << "\t";
 
   /* print unary instruction's argument */
   if (UnaryInstructionPtr u = dynamic_pointer_cast<UnaryInstruction>(cmd))

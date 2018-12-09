@@ -20,7 +20,7 @@ void Verifier::print ()
 {
   cout  << formula.to_string()
         << specification << "\n"
-        << smtlib::checkSat() << "\n"
+        << smtlib::check_sat() << "\n"
         << smtlib::exit() << "\n";
 }
 
@@ -30,14 +30,14 @@ bool Verifier::sat ()
   string smt =
       formula.to_string() +
       specification + "\n" +
-      smtlib::checkSat() + "\n" +
+      smtlib::check_sat() + "\n" +
       smtlib::exit();
 
   return solver.sat(smt);
 }
 
-/* Verifier::getSchedule (void) ***********************************************/
-SchedulePtr Verifier::getSchedule ()
+/* Verifier::get_schedule (void) **********************************************/
+SchedulePtr Verifier::get_schedule ()
 {
   return nullptr;
 }

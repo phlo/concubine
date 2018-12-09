@@ -12,68 +12,67 @@ struct ShellTest : public ::testing::Test
   Shell shell;
 };
 
-/* ReturnCode *****************************************************************/
-TEST_F(ShellTest, ReturnCode)
+/* return_code ****************************************************************/
+TEST_F(ShellTest, return_code)
 {
   shell.run("exit 0");
-  ASSERT_EQ(0, shell.lastExitCode());
+  ASSERT_EQ(0, shell.last_exit_code());
 
   shell.run("exit 1");
-  ASSERT_EQ(1, shell.lastExitCode());
+  ASSERT_EQ(1, shell.last_exit_code());
 
   shell.run("exit -1");
-  ASSERT_EQ(255, shell.lastExitCode());
+  ASSERT_EQ(255, shell.last_exit_code());
 }
 
-/* Output *********************************************************************/
-TEST_F(ShellTest, Ouput)
+/* output *********************************************************************/
+TEST_F(ShellTest, ouput)
 {
-  string expectedOutput = "hello shell";
+  string expected = "hello shell";
 
-  string actualOutput = shell.run("echo -n " + expectedOutput);
+  string actual = shell.run("echo -n " + expected);
 
-  ASSERT_EQ(0, shell.lastExitCode());
-  ASSERT_STREQ(expectedOutput.c_str(), actualOutput.c_str());
+  ASSERT_EQ(0, shell.last_exit_code());
+  ASSERT_STREQ(expected.c_str(), actual.c_str());
 }
 
-/* InputOutput ****************************************************************/
-TEST_F(ShellTest, InputOutput)
+/* input_output ***************************************************************/
+TEST_F(ShellTest, input_output)
 {
-  string input = "hello shell";
-  string expectedOutput = input;
+  string expected = "hello shell";
 
-  string actualOutput = shell.run("cat", input);
+  string actual = shell.run("cat", expected);
 
-  ASSERT_EQ(0, shell.lastExitCode());
-  ASSERT_STREQ(expectedOutput.c_str(), actualOutput.c_str());
+  ASSERT_EQ(0, shell.last_exit_code());
+  ASSERT_STREQ(expected.c_str(), actual.c_str());
 }
 
-/* PipeInPipe *****************************************************************/
-TEST_F(ShellTest, PipeInPipe)
+/* pipe_in_pipe ***************************************************************/
+TEST_F(ShellTest, pipe_in_pipe)
 {
   string input = "3\n2\n4\n5\n1\n3\n2\n4\n5\n1\n";
-  string expectedOutput = "1\n2\n3\n4\n5\n";
+  string expected = "1\n2\n3\n4\n5\n";
 
-  string actualOutput = shell.run("sort | uniq", input);
+  string actual = shell.run("sort | uniq", input);
 
-  ASSERT_EQ(0, shell.lastExitCode());
-  ASSERT_STREQ(expectedOutput.c_str(), actualOutput.c_str());
+  ASSERT_EQ(0, shell.last_exit_code());
+  ASSERT_STREQ(expected.c_str(), actual.c_str());
 }
 
-/* Abuse **********************************************************************/
-TEST_F(ShellTest, Abuse)
+/* abuse **********************************************************************/
+TEST_F(ShellTest, abuse)
 {
-  string expectedOutput = "bash: unknown: command not found\n";
-  string actualOutput = shell.run("unknown");
+  string expected = "bash: unknown: command not found\n";
+  string actual = shell.run("unknown");
 
-  ASSERT_EQ(127, shell.lastExitCode());
-  ASSERT_STREQ(expectedOutput.c_str(), actualOutput.c_str());
+  ASSERT_EQ(127, shell.last_exit_code());
+  ASSERT_STREQ(expected.c_str(), actual.c_str());
 
-  actualOutput = shell.run("");
-  ASSERT_STREQ("", actualOutput.c_str());
+  actual = shell.run("");
+  ASSERT_STREQ("", actual.c_str());
 
   string input;
-  actualOutput = shell.run("echo ", input);
-  ASSERT_EQ(0, shell.lastExitCode());
-  ASSERT_STREQ("\n", actualOutput.c_str());
+  actual= shell.run("echo ", input);
+  ASSERT_EQ(0, shell.last_exit_code());
+  ASSERT_STREQ("\n", actual.c_str());
 }

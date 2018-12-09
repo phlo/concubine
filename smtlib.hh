@@ -119,7 +119,7 @@ namespace smtlib
     }
 
   /* variable declaration *****************************************************/
-  inline std::string declareVar (std::string name, std::string type)
+  inline std::string declare_var (std::string name, std::string type)
     {
       return expr("declare-fun", {name, "()", type});
     }
@@ -137,19 +137,19 @@ namespace smtlib
     }
 
   /* set logic to QF_AUFBV ****************************************************/
-  inline std::string setLogic ()
+  inline std::string set_logic ()
     {
       return "(set-logic QF_AUFBV)";
     }
 
   /* check satisfiability *****************************************************/
-  inline std::string checkSat ()
+  inline std::string check_sat ()
     {
       return "(check-sat)";
     }
 
   /* get model ****************************************************************/
-  inline std::string getModel ()
+  inline std::string get_model ()
     {
       return "(get-model)";
     }
@@ -198,7 +198,7 @@ namespace smtlib
       for (i = 0; i < n - 1; i++)
         {
           aux.push_back(vars[i] + "_aux");
-          constraint << declareVar(aux[i], "Bool") << endl;
+          constraint << declare_var(aux[i], "Bool") << endl;
         }
 
       /* constraint */

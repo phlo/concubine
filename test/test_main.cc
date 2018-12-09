@@ -17,72 +17,74 @@ struct MainTest : public ::testing::Test
   Shell shell;
 };
 
-/* illegalCommands ************************************************************/
-TEST_F(MainTest, illegalCommands)
+/* illegal_commands ***********************************************************/
+TEST_F(MainTest, illegal_commands)
 {
   string cmd = executable;
 
   string actual = shell.run(cmd + " WRONG");
 
-  ASSERT_EQ(255, shell.lastExitCode());
+  ASSERT_EQ(255, shell.last_exit_code());
 
   string expected = "error: no command given";
 
   actual = shell.run(cmd + " help");
 
-  ASSERT_EQ(255, shell.lastExitCode());
+  ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_STREQ(expected.c_str(), actual.substr(0, expected.length()).c_str());
 
   expected = "error: unknown command WRONG";
 
   actual = shell.run(cmd + " help WRONG");
 
-  ASSERT_EQ(255, shell.lastExitCode());
+  ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_STREQ(expected.c_str(), actual.substr(0, expected.length()).c_str());
 }
 
-/* simulateIncrement0 *********************************************************/
-TEST_F(MainTest, simulateIncrement0)
+/* simulate_increment_0 *******************************************************/
+TEST_F(MainTest, simulate_increment_0)
 {
   /* read expected schedule from file */
-  ifstream scheduleFile("data/increment.invalid.schedule");
-  string expected(( istreambuf_iterator<char>(scheduleFile) ),
+  ifstream schedule_file("data/increment.invalid.schedule");
+  string expected(( istreambuf_iterator<char>(schedule_file) ),
                     istreambuf_iterator<char>());
 
   string args           = " simulate -v -s 0 ";
-  string checkerFile    = " data/increment.checker.asm ";
-  string incrementFile  = " data/increment.asm ";
+  string checker_file   = " data/increment.checker.asm ";
+  string increment_file = " data/increment.asm ";
 
-  string cmd = executable + args + checkerFile + incrementFile + incrementFile;
+  string cmd =
+    executable + args + checker_file + increment_file + increment_file;
 
   string actual = shell.run(cmd);
 
-  ASSERT_EQ(1, shell.lastExitCode());
+  ASSERT_EQ(1, shell.last_exit_code());
   ASSERT_STREQ(expected.c_str(), actual.c_str());
 }
 
-/* simulateIncrementCAS *******************************************************/
-TEST_F(MainTest, simulateIncrementCAS)
+/* simulate_increment_cas *****************************************************/
+TEST_F(MainTest, simulate_increment_cas)
 {
   /* read expected schedule from file */
-  ifstream scheduleFile("data/increment.cas.schedule");
-  string expected(( istreambuf_iterator<char>(scheduleFile) ),
+  ifstream schedule_file("data/increment.cas.schedule");
+  string expected(( istreambuf_iterator<char>(schedule_file) ),
                     istreambuf_iterator<char>());
 
   string args           = " simulate -v -s 0 ";
-  string checkerFile    = " data/increment.checker.asm ";
-  string incrementFile  = " data/increment.cas.asm ";
+  string checker_file   = " data/increment.checker.asm ";
+  string increment_file = " data/increment.cas.asm ";
 
-  string cmd = executable + args + checkerFile + incrementFile + incrementFile;
+  string cmd =
+    executable + args + checker_file + increment_file + increment_file;
 
   string actual = shell.run(cmd);
 
-  ASSERT_EQ(0, shell.lastExitCode());
+  ASSERT_EQ(0, shell.last_exit_code());
   ASSERT_STREQ(expected.c_str(), actual.c_str());
 }
 
-/* simulateMissingArgs ********************************************************/
-TEST_F(MainTest, simulateMissingArgs)
+/* simulate_missing_args ******************************************************/
+TEST_F(MainTest, simulate_missing_args)
 {
   string args = " simulate";
 
@@ -90,48 +92,48 @@ TEST_F(MainTest, simulateMissingArgs)
 
   string actual = shell.run(executable + args);
 
-  ASSERT_EQ(255, shell.lastExitCode());
+  ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_STREQ(expected.c_str(), actual.substr(0, expected.length()).c_str());
 
   actual = shell.run(executable + args + " -v");
 
-  ASSERT_EQ(255, shell.lastExitCode());
+  ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_STREQ(expected.c_str(), actual.substr(0, expected.length()).c_str());
 
   expected = "error: missing seed\n";
 
   actual = shell.run(executable + args + " -s");
 
-  ASSERT_EQ(255, shell.lastExitCode());
+  ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_STREQ(expected.c_str(), actual.substr(0, expected.length()).c_str());
 
   expected = "error: missing bound\n";
 
   actual = shell.run(executable + args + " -k");
 
-  ASSERT_EQ(255, shell.lastExitCode());
+  ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_STREQ(expected.c_str(), actual.substr(0, expected.length()).c_str());
 }
 
-/* simulateFileNotFound *******************************************************/
-TEST_F(MainTest, simulateFileNotFound)
+/* simulate_file_not_found ****************************************************/
+TEST_F(MainTest, simulate_file_not_found)
 {
   string args = " simulate ";
 
-  string programFile = "file_not_found";
+  string program_file = "file_not_found";
 
-  string cmd = executable + args + programFile;
+  string cmd = executable + args + program_file;
 
   string actual = shell.run(cmd);
 
-  string expected = "error: " + programFile + " not found\n";
+  string expected = "error: " + program_file + " not found\n";
 
-  ASSERT_EQ(255, shell.lastExitCode());
+  ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_STREQ(expected.c_str(), actual.c_str());
 }
 
-/* simulateIllegalSeed ********************************************************/
-TEST_F(MainTest, simulateIllegalSeed)
+/* simulate_illegal_seed ******************************************************/
+TEST_F(MainTest, simulate_illegal_seed)
 {
   string args = " simulate -s WRONG ";
 
@@ -141,12 +143,12 @@ TEST_F(MainTest, simulateIllegalSeed)
 
   string expected = "error: illegal seed [WRONG]\n";
 
-  ASSERT_EQ(255, shell.lastExitCode());
+  ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_STREQ(expected.c_str(), actual.c_str());
 }
 
-/* simulateIllegalBound *******************************************************/
-TEST_F(MainTest, simulateIllegalBound)
+/* simulate_illegal_bound *****************************************************/
+TEST_F(MainTest, simulate_illegal_bound)
 {
   string args = " simulate -k WRONG ";
 
@@ -156,52 +158,52 @@ TEST_F(MainTest, simulateIllegalBound)
 
   string expected = "error: illegal bound [WRONG]\n";
 
-  ASSERT_EQ(255, shell.lastExitCode());
+  ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_STREQ(expected.c_str(), actual.c_str());
 }
 
-/* replayIncrement0 ***********************************************************/
-TEST_F(MainTest, replayIncrement0)
+/* replay_increment_0 *********************************************************/
+TEST_F(MainTest, replay_increment_0)
 {
-  string scheduleFile = "data/increment.invalid.schedule";
+  string schedule_file = "data/increment.invalid.schedule";
 
   /* read expected schedule from file */
-  ifstream sfs(scheduleFile);
+  ifstream sfs(schedule_file);
   string expected(( istreambuf_iterator<char>(sfs) ),
                     istreambuf_iterator<char>());
 
   string args = " replay -v ";
 
-  string cmd = executable + args + scheduleFile;
+  string cmd = executable + args + schedule_file;
 
   string actual = shell.run(cmd);
 
-  ASSERT_EQ(1, shell.lastExitCode());
+  ASSERT_EQ(1, shell.last_exit_code());
   ASSERT_STREQ(expected.c_str(), actual.c_str());
 }
 
-/* replayIncrementCAS *********************************************************/
-TEST_F(MainTest, replayIncrementCAS)
+/* replay_increment_cas *******************************************************/
+TEST_F(MainTest, replay_increment_cas)
 {
-  string scheduleFile = "data/increment.cas.schedule";
+  string schedule_file = "data/increment.cas.schedule";
 
   /* read expected schedule from file */
-  ifstream sfs(scheduleFile);
+  ifstream sfs(schedule_file);
   string expected(( istreambuf_iterator<char>(sfs) ),
                     istreambuf_iterator<char>());
 
   string args = " replay -v ";
 
-  string cmd = executable + args + scheduleFile;
+  string cmd = executable + args + schedule_file;
 
   string actual = shell.run(cmd);
 
-  ASSERT_EQ(0, shell.lastExitCode());
+  ASSERT_EQ(0, shell.last_exit_code());
   ASSERT_STREQ(expected.c_str(), actual.c_str());
 }
 
-/* replayMissingArgs **********************************************************/
-TEST_F(MainTest, replayMissingArgs)
+/* replay_missing_args ********************************************************/
+TEST_F(MainTest, replay_missing_args)
 {
   string args = " replay";
 
@@ -209,41 +211,41 @@ TEST_F(MainTest, replayMissingArgs)
 
   string actual = shell.run(executable + args);
 
-  ASSERT_EQ(255, shell.lastExitCode());
+  ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_STREQ(expected.c_str(), actual.substr(0, expected.length()).c_str());
 
   actual = shell.run(executable + args + " -v");
 
-  ASSERT_EQ(255, shell.lastExitCode());
+  ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_STREQ(expected.c_str(), actual.substr(0, expected.length()).c_str());
 
   expected = "error: missing bound\n";
 
   actual = shell.run(executable + args + " -k");
 
-  ASSERT_EQ(255, shell.lastExitCode());
+  ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_STREQ(expected.c_str(), actual.substr(0, expected.length()).c_str());
 }
 
-/* replayFileNotFound *********************************************************/
-TEST_F(MainTest, replayFileNotFound)
+/* replay_file_not_found ******************************************************/
+TEST_F(MainTest, replay_file_not_found)
 {
   string args = " replay ";
 
-  string programFile = "file_not_found";
+  string program_file = "file_not_found";
 
-  string cmd = executable + args + programFile;
+  string cmd = executable + args + program_file;
 
   string actual = shell.run(cmd);
 
-  string expected = "error: " + programFile + " not found\n";
+  string expected = "error: " + program_file + " not found\n";
 
-  ASSERT_EQ(255, shell.lastExitCode());
+  ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_STREQ(expected.c_str(), actual.c_str());
 }
 
-/* replayIllegalBound *********************************************************/
-TEST_F(MainTest, replayIllegalBound)
+/* replay_illegal_bound *******************************************************/
+TEST_F(MainTest, replay_illegal_bound)
 {
   string args = " replay -k WRONG ";
 
@@ -253,18 +255,18 @@ TEST_F(MainTest, replayIllegalBound)
 
   string expected = "error: illegal bound [WRONG]\n";
 
-  ASSERT_EQ(255, shell.lastExitCode());
+  ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_STREQ(expected.c_str(), actual.c_str());
 }
 
-/* verifyPretend **************************************************************/
-TEST_F(MainTest, verifyPretend)
+/* verify_pretend *************************************************************/
+TEST_F(MainTest, verify_pretend)
 {
   string args               = " verify -p 5 ";
-  string programFile        = "data/load.store.arithmetic.asm";
-  string specificationFile  = "data/load.store.arithmetic.spec.smt";
+  string program_file       = "data/load.store.arithmetic.asm";
+  string specification_file = "data/load.store.arithmetic.spec.smt";
 
-  string cmd = executable + args + programFile + " " + specificationFile;
+  string cmd = executable + args + program_file + " " + specification_file;
 
   /* read expected smt formula from file */
   ifstream ffs("data/load.store.arithmetic.encoded.smt");
@@ -272,7 +274,7 @@ TEST_F(MainTest, verifyPretend)
                     istreambuf_iterator<char>());
 
   /* read specification from file */
-  ifstream sfs(specificationFile);
+  ifstream sfs(specification_file);
   string specification((istreambuf_iterator<char>(sfs)),
                         istreambuf_iterator<char>());
 
@@ -280,29 +282,29 @@ TEST_F(MainTest, verifyPretend)
 
   string actual = shell.run(cmd);
 
-  EXPECT_EQ(0, shell.lastExitCode());
+  EXPECT_EQ(0, shell.last_exit_code());
   ASSERT_STREQ(expected.c_str(), actual.c_str());
 }
 
-/* verifyLoadStoreArithmetic **************************************************/
-TEST_F(MainTest, verifyLoadStoreArithmetic)
+/* verify_load_store_arithmetic ***********************************************/
+TEST_F(MainTest, verify_load_store_arithmetic)
 {
   string args               = " verify 5 ";
-  string programFile        = "data/load.store.arithmetic.asm";
-  string specificationFile  = "data/load.store.arithmetic.spec.smt";
+  string program_file       = "data/load.store.arithmetic.asm";
+  string specification_file = "data/load.store.arithmetic.spec.smt";
 
-  string cmd = executable + args + programFile + " " + specificationFile;
+  string cmd = executable + args + program_file + " " + specification_file;
 
   string expected = "unsat\n";
 
   string actual = shell.run(cmd);
 
-  ASSERT_EQ(0, shell.lastExitCode());
+  ASSERT_EQ(0, shell.last_exit_code());
   ASSERT_STREQ(expected.c_str(), actual.c_str());
 }
 
-/* verifyMissingArgs **********************************************************/
-TEST_F(MainTest, verifyMissingArgs)
+/* verify_missing_args ********************************************************/
+TEST_F(MainTest, verify_missing_args)
 {
   string args = " verify";
 
@@ -310,26 +312,26 @@ TEST_F(MainTest, verifyMissingArgs)
 
   string actual = shell.run(executable + args);
 
-  ASSERT_EQ(255, shell.lastExitCode());
+  ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_STREQ(expected.c_str(), actual.substr(0, expected.length()).c_str());
 
   expected = "error: illegal bound [WRONG]\n";
 
   actual = shell.run(executable + args + " -p WRONG");
 
-  ASSERT_EQ(255, shell.lastExitCode());
+  ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_STREQ(expected.c_str(), actual.substr(0, expected.length()).c_str());
 
   expected = "error: illegal bound [0]\n";
 
   actual = shell.run(executable + args + " -p 0");
 
-  ASSERT_EQ(255, shell.lastExitCode());
+  ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_STREQ(expected.c_str(), actual.substr(0, expected.length()).c_str());
 }
 
-/* verifyFileNotFound *********************************************************/
-TEST_F(MainTest, verifyFileNotFound)
+/* verify_file_not_found ******************************************************/
+TEST_F(MainTest, verify_file_not_found)
 {
   string args = " verify 1 ";
   string cmd = executable + args;
@@ -338,11 +340,11 @@ TEST_F(MainTest, verifyFileNotFound)
 
   string actual = shell.run(cmd + "file_not_found");
 
-  ASSERT_EQ(255, shell.lastExitCode());
+  ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_STREQ(expected.c_str(), actual.c_str());
 
   actual = shell.run(cmd + "data/increment.asm file_not_found");
 
-  ASSERT_EQ(255, shell.lastExitCode());
+  ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_STREQ(expected.c_str(), actual.c_str());
 }

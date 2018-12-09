@@ -110,12 +110,12 @@ TEST(SMTLibTest, extract)
   ASSERT_STREQ(expected, smtlib::extract("msb", "lsb", "bv").c_str());
 }
 
-/* declareVar *****************************************************************/
-TEST(SMTLibTest, declareVar)
+/* declare_var ****************************************************************/
+TEST(SMTLibTest, declare_var)
 {
   const char * expected = "(declare-fun x1 () Bool)";
 
-  ASSERT_STREQ(expected, smtlib::declareVar("x1", "Bool").c_str());
+  ASSERT_STREQ(expected, smtlib::declare_var("x1", "Bool").c_str());
 }
 
 /* bitvector ******************************************************************/

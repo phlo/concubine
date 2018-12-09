@@ -21,8 +21,8 @@ struct MachineTest : public ::testing::Test
   Machine machine;
 };
 
-/* activateThreads ************************************************************/
-TEST_F(MachineTest, activateThreads)
+/* activate_threads ***********************************************************/
+TEST_F(MachineTest, activate_threads)
 {
   Program program;
 
@@ -31,54 +31,54 @@ TEST_F(MachineTest, activateThreads)
 
   program.add(Instruction::Set::create("ADDI", 1));
 
-  machine.createThread(program);
+  machine.create_thread(program);
 
   ASSERT_TRUE(machine.active.empty());
   ASSERT_EQ(1, machine.threads.size());
   ASSERT_EQ(Thread::State::INITIAL, machine.threads[0]->state);
 
-  machine.activateThreads(machine.threads);
+  machine.activate_threads(machine.threads);
 
   ASSERT_EQ(1, machine.active.size());
   ASSERT_EQ(Thread::State::RUNNING, machine.active[0]->state);
   ASSERT_EQ(machine.threads[0], machine.active[0]);
 }
 
-/* createThread ***************************************************************/
-TEST_F(MachineTest, createThread)
+/* create_thread **************************************************************/
+TEST_F(MachineTest, create_thread)
 {
   Program program;
 
   ASSERT_TRUE(machine.active.empty());
   ASSERT_TRUE(machine.threads.empty());
-  ASSERT_TRUE(machine.threadsPerSyncID.empty());
-  ASSERT_TRUE(machine.waitingPerSyncID.empty());
+  ASSERT_TRUE(machine.threads_per_sync_id.empty());
+  ASSERT_TRUE(machine.waiting_per_sync_id.empty());
 
   program.add(Instruction::Set::create("ADDI", 1));
 
-  machine.createThread(program);
+  machine.create_thread(program);
 
   ASSERT_TRUE(machine.active.empty());
   ASSERT_EQ(1, machine.threads.size());
-  ASSERT_TRUE(machine.threadsPerSyncID.empty());
-  ASSERT_TRUE(machine.waitingPerSyncID.empty());
+  ASSERT_TRUE(machine.threads_per_sync_id.empty());
+  ASSERT_TRUE(machine.waiting_per_sync_id.empty());
 
   program.add(Instruction::Set::create("SYNC", 1));
 
-  machine.createThread(program);
+  machine.create_thread(program);
 
   ASSERT_TRUE(machine.active.empty());
   ASSERT_EQ(2, machine.threads.size());
-  ASSERT_EQ(1, machine.threadsPerSyncID[1].size());
-  ASSERT_TRUE(machine.waitingPerSyncID.empty());
+  ASSERT_EQ(1, machine.threads_per_sync_id[1].size());
+  ASSERT_TRUE(machine.waiting_per_sync_id.empty());
 
   /* basically tests mapped default value */
-  ASSERT_EQ(0, machine.waitingPerSyncID[0]);
-  ASSERT_TRUE(!machine.waitingPerSyncID.empty());
+  ASSERT_EQ(0, machine.waiting_per_sync_id[0]);
+  ASSERT_TRUE(!machine.waiting_per_sync_id.empty());
 }
 
-/* runSimple ******************************************************************/
-TEST_F(MachineTest, runSimple)
+/* run_simple *****************************************************************/
+TEST_F(MachineTest, run_simple)
 {
   cout.setstate(ios_base::failbit);
 
@@ -86,13 +86,13 @@ TEST_F(MachineTest, runSimple)
 
   program.add(Instruction::Set::create("ADDI", 1));
 
-  machine.createThread(program);
-  machine.createThread(program);
+  machine.create_thread(program);
+  machine.create_thread(program);
 
   ASSERT_EQ(0, machine.active.size());
   ASSERT_EQ(2, machine.threads.size());
-  ASSERT_TRUE(machine.threadsPerSyncID.empty());
-  ASSERT_TRUE(machine.waitingPerSyncID.empty());
+  ASSERT_TRUE(machine.threads_per_sync_id.empty());
+  ASSERT_TRUE(machine.waiting_per_sync_id.empty());
 
   unsigned long step = 0;
 
@@ -143,8 +143,8 @@ TEST_F(MachineTest, runSimple)
   cout.clear();
 }
 
-/* runAddSyncExit *************************************************************/
-TEST_F(MachineTest, runAddSyncExit)
+/* run_add_sync_exit **********************************************************/
+TEST_F(MachineTest, run_add_sync_exit)
 {
   cout.setstate(ios_base::failbit);
 
@@ -154,13 +154,13 @@ TEST_F(MachineTest, runAddSyncExit)
   program.add(Instruction::Set::create("SYNC", 1));
   program.add(Instruction::Set::create("EXIT", 1));
 
-  machine.createThread(program);
-  machine.createThread(program);
+  machine.create_thread(program);
+  machine.create_thread(program);
 
   ASSERT_EQ(0, machine.active.size());
   ASSERT_EQ(2, machine.threads.size());
-  ASSERT_EQ(2, machine.threadsPerSyncID[1].size());
-  ASSERT_EQ(0, machine.waitingPerSyncID[1]);
+  ASSERT_EQ(2, machine.threads_per_sync_id[1].size());
+  ASSERT_EQ(0, machine.waiting_per_sync_id[1]);
 
   unsigned long step = 0;
 
@@ -201,7 +201,7 @@ TEST_F(MachineTest, runAddSyncExit)
               EXPECT_EQ(Thread::State::RUNNING, machine.threads[1]->state);
 
               EXPECT_EQ(1, machine.active.size());
-              EXPECT_EQ(1, machine.waitingPerSyncID[1]);
+              EXPECT_EQ(1, machine.waiting_per_sync_id[1]);
 
               return machine.threads[1];
             }
@@ -216,7 +216,7 @@ TEST_F(MachineTest, runAddSyncExit)
               EXPECT_EQ(Thread::State::RUNNING, machine.threads[1]->state);
 
               EXPECT_EQ(2, machine.active.size());
-              EXPECT_EQ(0, machine.waitingPerSyncID[1]);
+              EXPECT_EQ(0, machine.waiting_per_sync_id[1]);
 
               return machine.threads[0];
             }
@@ -234,8 +234,8 @@ TEST_F(MachineTest, runAddSyncExit)
   cout.clear();
 }
 
-/* runRaceCondition ***********************************************************/
-TEST_F(MachineTest, runRaceCondition)
+/* run_race_condition *********************************************************/
+TEST_F(MachineTest, run_race_condition)
 {
   cout.setstate(ios_base::failbit);
 
@@ -255,14 +255,14 @@ TEST_F(MachineTest, runRaceCondition)
   checker.add(Instruction::Set::create("EXIT", 1));
   checker.add(Instruction::Set::create("EXIT", 0));
 
-  machine.createThread(checker);
-  machine.createThread(program);
-  machine.createThread(program);
+  machine.create_thread(checker);
+  machine.create_thread(program);
+  machine.create_thread(program);
 
   ASSERT_EQ(0, machine.active.size());
   ASSERT_EQ(3, machine.threads.size());
-  ASSERT_EQ(3, machine.threadsPerSyncID[1].size());
-  ASSERT_EQ(0, machine.waitingPerSyncID[1]);
+  ASSERT_EQ(3, machine.threads_per_sync_id[1].size());
+  ASSERT_EQ(0, machine.waiting_per_sync_id[1]);
 
   unsigned long step = 0;
 
@@ -295,7 +295,7 @@ TEST_F(MachineTest, runRaceCondition)
               EXPECT_EQ(0, machine.threads[2]->accu);
 
               EXPECT_EQ(2, machine.active.size());
-              EXPECT_EQ(1, machine.waitingPerSyncID[1]);
+              EXPECT_EQ(1, machine.waiting_per_sync_id[1]);
               EXPECT_EQ(Thread::State::WAITING, machine.threads[0]->state);
 
               return machine.threads[1];
@@ -380,7 +380,7 @@ TEST_F(MachineTest, runRaceCondition)
               EXPECT_EQ(1, machine.threads[2]->accu);
 
               EXPECT_EQ(1, machine.active.size());
-              EXPECT_EQ(1, machine.waitingPerSyncID[1]);
+              EXPECT_EQ(1, machine.waiting_per_sync_id[1]);
               EXPECT_EQ(Thread::State::WAITING, machine.threads[0]->state);
               EXPECT_EQ(Thread::State::STOPPED, machine.threads[1]->state);
 
@@ -396,7 +396,7 @@ TEST_F(MachineTest, runRaceCondition)
               EXPECT_EQ(1, machine.threads[2]->accu);
 
               EXPECT_EQ(1, machine.active.size());
-              EXPECT_EQ(0, machine.waitingPerSyncID[1]);
+              EXPECT_EQ(0, machine.waiting_per_sync_id[1]);
               EXPECT_EQ(Thread::State::RUNNING, machine.threads[0]->state);
               EXPECT_EQ(Thread::State::STOPPED, machine.threads[1]->state);
               EXPECT_EQ(Thread::State::STOPPED, machine.threads[2]->state);
@@ -463,8 +463,8 @@ TEST_F(MachineTest, runRaceCondition)
   cout.clear();
 }
 
-/* runZeroBound ***************************************************************/
-TEST_F(MachineTest, runZeroBound)
+/* run_zero_bound *************************************************************/
+TEST_F(MachineTest, run_zero_bound)
 {
   cout.setstate(ios_base::failbit);
 
@@ -472,7 +472,7 @@ TEST_F(MachineTest, runZeroBound)
 
   program.add(Instruction::Set::create("JMP", 0));
 
-  machine.createThread(program);
+  machine.create_thread(program);
 
   unsigned long step = 0;
 
@@ -513,12 +513,12 @@ TEST_F(MachineTest, runZeroBound)
   cout.clear();
 }
 
-/* simulateIncrement0 *********************************************************/
-TEST_F(MachineTest, simulateIncrement0)
+/* simulate_increment_0 *******************************************************/
+TEST_F(MachineTest, simulate_increment_0)
 {
   /* read expected schedule from file */
-  ifstream scheduleFile("data/increment.invalid.schedule");
-  string schedule(( istreambuf_iterator<char>(scheduleFile) ),
+  ifstream schedule_file("data/increment.invalid.schedule");
+  string schedule(( istreambuf_iterator<char>(schedule_file) ),
                     istreambuf_iterator<char>());
 
   ostringstream ss;
@@ -526,16 +526,16 @@ TEST_F(MachineTest, simulateIncrement0)
 
   machine.seed          = 0;
 
-  string checkerFile    = "data/increment.checker.asm";
-  string incrementFile  = "data/increment.asm";
+  string checker_file   = "data/increment.checker.asm";
+  string increment_file = "data/increment.asm";
 
-  Program checker(checkerFile);
-  Program increment_1(incrementFile);
-  Program increment_2(incrementFile);
+  Program checker(checker_file);
+  Program increment_1(increment_file);
+  Program increment_2(increment_file);
 
-  machine.createThread(checker);
-  machine.createThread(increment_1);
-  machine.createThread(increment_2);
+  machine.create_thread(checker);
+  machine.create_thread(increment_1);
+  machine.create_thread(increment_2);
 
   /* redirect stdout */
   redirecter.start();
@@ -549,12 +549,12 @@ TEST_F(MachineTest, simulateIncrement0)
   ASSERT_STREQ(schedule.c_str(), ss.str().c_str());
 }
 
-/* simulateIncrementCAS *******************************************************/
-TEST_F(MachineTest, simulateIncrementCAS)
+/* simulate_increment_cas *****************************************************/
+TEST_F(MachineTest, simulate_increment_cas)
 {
   /* read expected schedule from file */
-  ifstream scheduleFile("data/increment.cas.schedule");
-  string schedule(( istreambuf_iterator<char>(scheduleFile) ),
+  ifstream schedule_file("data/increment.cas.schedule");
+  string schedule(( istreambuf_iterator<char>(schedule_file) ),
                     istreambuf_iterator<char>());
 
   ostringstream ss;
@@ -562,16 +562,16 @@ TEST_F(MachineTest, simulateIncrementCAS)
 
   machine.seed          = 0;
 
-  string checkerFile    = "data/increment.checker.asm";
-  string incrementFile  = "data/increment.cas.asm";
+  string checker_file   = "data/increment.checker.asm";
+  string increment_file = "data/increment.cas.asm";
 
-  Program checker(checkerFile);
-  Program increment_1(incrementFile);
-  Program increment_2(incrementFile);
+  Program checker(checker_file);
+  Program increment_1(increment_file);
+  Program increment_2(increment_file);
 
-  machine.createThread(checker);
-  machine.createThread(increment_1);
-  machine.createThread(increment_2);
+  machine.create_thread(checker);
+  machine.create_thread(increment_1);
+  machine.create_thread(increment_2);
 
   /* redirect stdout */
   redirecter.start();
@@ -585,17 +585,17 @@ TEST_F(MachineTest, simulateIncrementCAS)
   ASSERT_STREQ(schedule.c_str(), ss.str().c_str());
 }
 
-/* replayIncrementCAS *********************************************************/
-TEST_F(MachineTest, replayIncrement0)
+/* replay_increment_0 *********************************************************/
+TEST_F(MachineTest, replay_increment_0)
 {
-  string scheduleFile   = "data/increment.invalid.schedule";
+  string schedule_file = "data/increment.invalid.schedule";
 
   /* read expected schedule from file */
-  ifstream sfs(scheduleFile);
-  string scheduleStr((istreambuf_iterator<char>(sfs)),
+  ifstream sfs(schedule_file);
+  string schedule_str((istreambuf_iterator<char>(sfs)),
                       istreambuf_iterator<char>());
 
-  Schedule schedule(scheduleFile);
+  Schedule schedule(schedule_file);
 
   ostringstream ss;
   StreamRedirecter redirecter(cout, ss);
@@ -608,20 +608,20 @@ TEST_F(MachineTest, replayIncrement0)
   redirecter.stop();
 
   /* compare output */
-  ASSERT_STREQ(scheduleStr.c_str(), ss.str().c_str());
+  ASSERT_STREQ(schedule_str.c_str(), ss.str().c_str());
 }
 
-/* replayIncrementCAS *********************************************************/
-TEST_F(MachineTest, replayIncrementCAS)
+/* replay_increment_cas *******************************************************/
+TEST_F(MachineTest, replay_increment_cas)
 {
-  string scheduleFile   = "data/increment.cas.schedule";
+  string schedule_file = "data/increment.cas.schedule";
 
   /* read expected schedule from file */
-  ifstream sfs(scheduleFile);
-  string scheduleStr((istreambuf_iterator<char>(sfs)),
+  ifstream sfs(schedule_file);
+  string schedule_str((istreambuf_iterator<char>(sfs)),
                       istreambuf_iterator<char>());
 
-  Schedule schedule(scheduleFile);
+  Schedule schedule(schedule_file);
 
   ostringstream ss;
   StreamRedirecter redirecter(cout, ss);
@@ -634,5 +634,5 @@ TEST_F(MachineTest, replayIncrementCAS)
   redirecter.stop();
 
   /* compare output */
-  ASSERT_STREQ(scheduleStr.c_str(), ss.str().c_str());
+  ASSERT_STREQ(schedule_str.c_str(), ss.str().c_str());
 }

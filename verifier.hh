@@ -21,7 +21,7 @@ struct Verifier
   Solver &            solver;
 
   /* smt encoder, storing the formula */
-  SMTLibEncoder &   formula;
+  SMTLibEncoder &     formula;
 
   /* specification in SMT-Lib v2 format */
   std::string &       specification;
@@ -33,7 +33,7 @@ struct Verifier
   bool                sat (void);
 
   /* returns conflicting Schedule if solver returns SAT and null otherwise */
-  SchedulePtr         getSchedule (void);
+  SchedulePtr         get_schedule (void);
 };
 
 /*******************************************************************************

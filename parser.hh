@@ -17,7 +17,7 @@ struct Parser
   std::ifstream   file;
   Result *        result;
 
-  void            skipLine (void);
+  void            skip_line (void);
 
   void            parse (void);
 

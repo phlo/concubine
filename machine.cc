@@ -25,12 +25,12 @@ Machine::Machine (unsigned long s, unsigned long b) :
   active(),
   threads(),
   memory({{0}}), // initialize with zeros ffs ..
-  threadsPerSyncID(),
-  waitingPerSyncID()
+  threads_per_sync_id(),
+  waiting_per_sync_id()
 {}
 
-/* Machine::createThread (Program &) ******************************************/
-ThreadID Machine::createThread (Program & program)
+/* Machine::create_thread (Program &) *****************************************/
+ThreadID Machine::create_thread (Program & program)
 {
   /* determine thread id */
   ThreadID id = threads.size();
@@ -39,14 +39,14 @@ ThreadID Machine::createThread (Program & program)
   threads.push_back(ThreadPtr(new Thread(*this, id, program)));
 
   /* add to sync id list */
-  for (word i : program.syncIDs)
-    threadsPerSyncID[i].push_back(threads[id]);
+  for (word i : program.sync_ids)
+    threads_per_sync_id[i].push_back(threads[id]);
 
   return id;
 }
 
-/* Machine::activateThreads (ThreadList &) ************************************/
-void Machine::activateThreads (ThreadList & queue)
+/* Machine::activate_threads (ThreadList &) ***********************************/
+void Machine::activate_threads (ThreadList & queue)
 {
   for (ThreadPtr i : queue)
     {
@@ -55,17 +55,17 @@ void Machine::activateThreads (ThreadList & queue)
     }
 }
 
-/* Machine::checkAndResumeWaiting (word) **************************************/
-void Machine::checkAndResumeWaiting (word syncID)
+/* Machine::check_and_resume_waiting (word) ***********************************/
+void Machine::check_and_resume_waiting (word sync_id)
 {
   /* all other threads already synced to this barrier? */
-  if (waitingPerSyncID[syncID] == threadsPerSyncID[syncID].size())
+  if (waiting_per_sync_id[sync_id] == threads_per_sync_id[sync_id].size())
     {
       /* reset number of threads waiting for this barrier */
-      waitingPerSyncID[syncID] = 0;
+      waiting_per_sync_id[sync_id] = 0;
 
       /* reactivate threads */
-      activateThreads(threadsPerSyncID[syncID]);
+      activate_threads(threads_per_sync_id[sync_id]);
     }
 }
 
@@ -82,7 +82,7 @@ int Machine::run (function<ThreadPtr(void)> scheduler)
   cout << endl;
 
   assert(active.empty());
-  activateThreads(threads);
+  activate_threads(threads);
 
   bool done = active.empty();
   unsigned long steps = 0;
@@ -107,10 +107,10 @@ int Machine::run (function<ThreadPtr(void)> scheduler)
               erase(active, thread);
 
               /* increment number of waiting threads */
-              waitingPerSyncID[thread->sync]++;
+              waiting_per_sync_id[thread->sync]++;
 
               /* all other threads already synced to this barrier? */
-              checkAndResumeWaiting(thread->sync);
+              check_and_resume_waiting(thread->sync);
 
               break;
             }
@@ -125,10 +125,10 @@ int Machine::run (function<ThreadPtr(void)> scheduler)
               if (dynamic_pointer_cast<Sync>(thread->program.back()))
                   {
                     /* remove from list of threads waiting for this barrier */
-                    erase(threadsPerSyncID[thread->sync], thread);
+                    erase(threads_per_sync_id[thread->sync], thread);
 
                     /* activate all waiting threads if this was the last one */
-                    checkAndResumeWaiting(thread->sync);
+                    check_and_resume_waiting(thread->sync);
                   }
 
               /* check if we were the last thread standing */
@@ -175,7 +175,7 @@ int Machine::replay (Schedule & schedule)
 {
   /* create threads */
   for (ProgramPtr p : schedule.programs)
-    createThread(*p);
+    create_thread(*p);
 
   /* index variable for iterating the Schedule */
   unsigned long step = 0;
