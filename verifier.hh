@@ -15,13 +15,13 @@ struct SMTLibEncoder;
 struct Verifier
 {
   /* constructs a verifier, using the given solver, formula and specification */
-  Verifier (Solver &, SMTLibEncoder &, std::string &);
+  Verifier (Solver &, Encoder &, std::string &);
 
   /* wrapper to external smt solver */
   Solver &            solver;
 
   /* smt encoder, storing the formula */
-  SMTLibEncoder &     formula;
+  Encoder &           formula;
 
   /* specification in SMT-Lib v2 format */
   std::string &       specification;

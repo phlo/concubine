@@ -303,7 +303,7 @@ int verify (char * name, int argc, char ** argv)
       programs.push_back(make_shared<Program>(path2program));
 
       /* encode program */
-      SMTLibEncoder formula(programs, bound);
+      SMTLibEncoderFunctional formula(ProgramListPtr(&programs), bound);
 
       /* read specification from file */
       string specification;

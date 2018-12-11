@@ -9,7 +9,7 @@ using namespace std;
 /*******************************************************************************
  * Verifier
 *******************************************************************************/
-Verifier::Verifier (Solver & s, SMTLibEncoder & f, string & spec) :
+Verifier::Verifier (Solver & s, Encoder & f, string & spec) :
   solver(s),
   formula(f),
   specification(spec)

@@ -15,14 +15,15 @@ using namespace std;
 struct VerifierTest : public ::testing::Test
 {
   Boolector       boolector;
-  ProgramList     programs;
-  SMTLibEncoder   encoder;
+  ProgramListPtr  programs;
+  EncoderPtr      encoder;
   string          specification;
   Verifier        verifier;
 
   VerifierTest () :
-    encoder(programs, 0),
-    verifier(boolector, encoder, specification) {}
+    programs(nullptr),
+    encoder(make_shared<SMTLibEncoderFunctional>(SMTLibEncoderFunctional(programs, 0))),
+    verifier(boolector, *encoder, specification) {}
 };
 
 /* sat ************************************************************************/

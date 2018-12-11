@@ -13,13 +13,25 @@ using namespace std;
 *******************************************************************************/
 struct EncoderTest : public ::testing::Test
 {
-  ProgramList     programs;
-  SMTLibEncoder   encoder;
+  ProgramListPtr  programs;
+  EncoderPtr      encoder;
 
   EncoderTest () : programs(), encoder(programs, 0) {};
 };
 
 #ifdef __IGNORE__
+/* testing ********************************************************************/
+TEST_F(EncoderTest, replace_test)
+{
+  // programs.push_back(make_shared<Program>());
+
+  SMTLibEncoder e = SMTLibEncoder(programs, 1);
+
+  e.encode();
+
+  ASSERT_STREQ("", e.formula.str().c_str());
+}
+
 /* collectPredecessors ********************************************************/
 TEST_F(EncoderTest, collectPredecessors)
 {

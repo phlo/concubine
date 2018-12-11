@@ -12,29 +12,29 @@
 struct Encoder
 {
   /* constructs an Encoder for the given program and bound */
-  Encoder (ProgramList &, unsigned long);
-
-  /* SMT formula */
-  std::ostringstream  formula;
+  Encoder (const ProgramListPtr, unsigned long);
 
   /* reference to the programs being verified (index == thread id) */
-  ProgramList &       programs;
+  const ProgramListPtr  programs;
 
   /* bound */
-  unsigned long       bound;
+  unsigned long         bound;
+
+  /* SMT formula */
+  std::ostringstream    formula;
 
   /* current thread id */
-  word                thread;
+  word                  thread;
 
   /* current pc */
-  word                pc;
+  word                  pc;
 
   /* pcs of predecessor for each statement */
   std::unordered_map<
     word,
     std::unordered_map<
       word,
-      std::unordered_set<word>
+      std::unordered_set<InstructionPtr>
     >
   > predecessors;
 
@@ -68,6 +68,9 @@ struct Encoder
   /* collects jump targets used in the current program */
   void                collectPredecessors (void);
 
+  /* initialize internal data structures */
+  void                preprocess (void);
+
   /*****************************************************************************
    * public functions
   *****************************************************************************/
@@ -88,12 +91,20 @@ struct Encoder
 typedef std::shared_ptr<Encoder> EncoderPtr;
 
 /*******************************************************************************
- * SMT-Lib v2.5 Encoder
+ * SMT-Lib v2.5 Encoder Base Class
  ******************************************************************************/
 struct SMTLibEncoder : public Encoder
 {
+  std::string         stmt_var (const word, const word, const word);
+};
+
+/*******************************************************************************
+ * SMT-Lib v2.5 Functional Encoder Class
+ ******************************************************************************/
+struct SMTLibEncoderFunctional : public Encoder
+{
   /* constructs an Encoder for the given program and bound */
-  SMTLibEncoder (ProgramList &, unsigned long);
+  SMTLibEncoderFunctional (const ProgramListPtr, unsigned long);
 
   /* double-dispatched instruction encoding functions */
   virtual void        encode (Load &);
