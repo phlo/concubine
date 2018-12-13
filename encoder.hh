@@ -1,13 +1,14 @@
 #ifndef ENCODER_HH_
 #define ENCODER_HH_
 
+#include <functional>
 #include <sstream>
 #include <unordered_set>
 
 #include "program.hh"
 
 /*******************************************************************************
- * Encodes the given Program into a SMT formula.
+ * Encodes the given Programs into a SMT formula.
  ******************************************************************************/
 struct Encoder
 {
@@ -37,39 +38,47 @@ struct Encoder
     word,
     std::unordered_map<
       word,
-      std::unordered_set<InstructionPtr>
-    >
-  > predecessors;
+      std::unordered_set<word>>> predecessors;
+
+  /* pcs of sync statements (per id) */
+  std::unordered_map<
+    word,
+    std::unordered_map<
+      word,
+      std::unordered_set<word>>> sync_pcs;
 
   /*****************************************************************************
    * private functions
   *****************************************************************************/
 
+  void                      iterate_threads (std::function<void(void)>);
+  void                      iterate_threads (std::function<void(ProgramPtr)>);
+
   /* double-dispatched instruction encoding functions */
-  virtual void        encode (Load &) = 0;
-  virtual void        encode (Store &) = 0;
+  virtual std::string encode (Load &) = 0;
+  virtual std::string encode (Store &) = 0;
 
-  virtual void        encode (Add &) = 0;
-  virtual void        encode (Addi &) = 0;
-  virtual void        encode (Sub &) = 0;
-  virtual void        encode (Subi &) = 0;
+  virtual std::string encode (Add &) = 0;
+  virtual std::string encode (Addi &) = 0;
+  virtual std::string encode (Sub &) = 0;
+  virtual std::string encode (Subi &) = 0;
 
-  virtual void        encode (Cmp &) = 0;
-  virtual void        encode (Jmp &) = 0;
-  virtual void        encode (Jz &) = 0;
-  virtual void        encode (Jnz &) = 0;
-  virtual void        encode (Js &) = 0;
-  virtual void        encode (Jns &) = 0;
-  virtual void        encode (Jnzns &) = 0;
+  virtual std::string encode (Cmp &) = 0;
+  virtual std::string encode (Jmp &) = 0;
+  virtual std::string encode (Jz &) = 0;
+  virtual std::string encode (Jnz &) = 0;
+  virtual std::string encode (Js &) = 0;
+  virtual std::string encode (Jns &) = 0;
+  virtual std::string encode (Jnzns &) = 0;
 
-  virtual void        encode (Mem &) = 0;
-  virtual void        encode (Cas &) = 0;
+  virtual std::string encode (Mem &) = 0;
+  virtual std::string encode (Cas &) = 0;
 
-  virtual void        encode (Sync &) = 0;
-  virtual void        encode (Exit &) = 0;
+  virtual std::string encode (Sync &) = 0;
+  virtual std::string encode (Exit &) = 0;
 
   /* collects jump targets used in the current program */
-  void                collectPredecessors (void);
+  void                collect_predecessors (void);
 
   /* initialize internal data structures */
   void                preprocess (void);
@@ -109,9 +118,16 @@ struct SMTLibEncoder : public Encoder
 
   static const std::string  exit_code_var;
 
+  /* variable comments */
   static const std::string  heap_comment;
   static const std::string  accu_comment;
   static const std::string  mem_comment;
+
+  static const std::string  stmt_comment;
+  static const std::string  thread_comment;
+  static const std::string  sync_comment;
+  static const std::string  exec_comment;
+  static const std::string  exit_comment;
 
   /* state variable generators */
   std::string               heap_var (void);
@@ -119,17 +135,20 @@ struct SMTLibEncoder : public Encoder
   std::string               mem_var (void);
 
   /* transition variable generators */
-  std::string               thread_var (void);
   std::string               stmt_var (void);
+  std::string               thread_var (void);
   std::string               exec_var (void);
   std::string               cas_var (void);
   std::string               sync_var (void);
   std::string               exit_var (void);
 
   /* variable declaration generators */
-  void                      declare_heap (void);
-  void                      declare_accu (void);
-  void                      declare_mem (void);
+  void                      declare_heap_var (void);
+  void                      declare_accu_vars (void);
+  void                      declare_mem_vars (void);
+
+  void                      declare_stmt_vars (void);
+  void                      declare_thread_vars (void);
 
   /* expression generators */
   std::string               assign_var (std::string, std::string);
@@ -138,11 +157,18 @@ struct SMTLibEncoder : public Encoder
   std::string               assign_mem (std::string);
 
   /* common encodings */
-  void                      set_logic_and_add_globals (void);
-  void                      initial_state (void);
+  void                      add_initial_state (void);
+  void                      add_initial_statement_activation (void);
 
   /* adds a section header comment to the formula */
-  void                      add_comment_section (const char *);
+  // void                      add_comment_section (const char *);
+  void                      add_comment_section (const std::string &);
+  void                      add_comment_subsection (const std::string &);
+
+  /* collects jump targets used in the current program */
+  void                      collect_sync_stmts (void);
+
+  virtual void              encode (void);
 };
 
 /*******************************************************************************
@@ -153,34 +179,41 @@ struct SMTLibEncoderFunctional : public SMTLibEncoder
   /* constructs an SMTLibEncoderFunctional for the given program and bound */
   SMTLibEncoderFunctional (const ProgramListPtr, unsigned long);
 
-  /* double-dispatched instruction encoding functions */
-  virtual void        encode (Load &);
-  virtual void        encode (Store &);
+  std::unordered_map<word, std::vector<word>> accu_altering_pcs;
+  std::unordered_map<word, std::vector<word>> mem_altering_pcs;
+  std::unordered_map<word, std::vector<word>> heap_altering_pcs;
 
-  virtual void        encode (Add &);
-  virtual void        encode (Addi &);
-  virtual void        encode (Sub &);
-  virtual void        encode (Subi &);
-
-  virtual void        encode (Cmp &);
-  virtual void        encode (Jmp &);
-  virtual void        encode (Jz &);
-  virtual void        encode (Jnz &);
-  virtual void        encode (Js &);
-  virtual void        encode (Jns &);
-  virtual void        encode (Jnzns &);
-
-  virtual void        encode (Mem &);
-  virtual void        encode (Cas &);
-
-  virtual void        encode (Sync &);
-  virtual void        encode (Exit &);
-
-  /*****************************************************************************
-   * public functions
-  *****************************************************************************/
+  void                add_statement_activation (void);
+  void                add_thread_scheduling (void);
+  void                add_synchronization_constraints (void);
+  void                add_statement_execution (void);
+  void                add_exit_call (void);
+  void                add_state_update (void);
 
   /* encodes the whole machine configuration */
   virtual void        encode (void);
+
+  /* double-dispatched instruction encoding functions */
+  virtual std::string encode (Load &);
+  virtual std::string encode (Store &);
+
+  virtual std::string encode (Add &);
+  virtual std::string encode (Addi &);
+  virtual std::string encode (Sub &);
+  virtual std::string encode (Subi &);
+
+  virtual std::string encode (Cmp &);
+  virtual std::string encode (Jmp &);
+  virtual std::string encode (Jz &);
+  virtual std::string encode (Jnz &);
+  virtual std::string encode (Js &);
+  virtual std::string encode (Jns &);
+  virtual std::string encode (Jnzns &);
+
+  virtual std::string encode (Mem &);
+  virtual std::string encode (Cas &);
+
+  virtual std::string encode (Sync &);
+  virtual std::string encode (Exit &);
 };
 #endif

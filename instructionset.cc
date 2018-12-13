@@ -81,10 +81,10 @@ MemoryInstruction::MemoryInstruction (const word a) :
  * use preprocessor to simplify definition of instructions
  * NOTE: 'execute' defined outside!
  ******************************************************************************/
-#define DEFINE_COMMON_INSTRUCTION_MEMBERS(classname)                          \
-  Instruction::OPCode classname::get_opcode () { return OPCode::classname; }  \
-  const string& classname::get_symbol () { return classname::symbol; }        \
-  void classname::encode (Encoder & formula) { formula.encode(*this); }
+#define DEFINE_COMMON_INSTRUCTION_MEMBERS(classname)                           \
+  Instruction::OPCode classname::get_opcode () { return OPCode::classname; }   \
+  const string& classname::get_symbol () { return classname::symbol; }         \
+  string classname::encode (Encoder & formula) { return formula.encode(*this); }
 
 #define DEFINE_INSTRUCTION_NULLARY(classname, identifier)           \
   DEFINE_COMMON_INSTRUCTION_MEMBERS (classname)                     \

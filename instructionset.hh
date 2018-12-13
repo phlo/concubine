@@ -73,7 +73,7 @@ struct Instruction
 
   virtual void                execute (Thread &) = 0;
 
-  virtual void                encode (Encoder &) = 0;
+  virtual std::string         encode (Encoder &) = 0;
 };
 
 typedef std::shared_ptr<Instruction> InstructionPtr;
@@ -84,15 +84,15 @@ typedef std::shared_ptr<Instruction> InstructionPtr;
  ******************************************************************************/
 struct UnaryInstruction : public Instruction
 {
-  const word      arg;
+  const word          arg;
 
   UnaryInstruction (const word);
 
-  virtual Type    get_type (void);
+  virtual Type        get_type (void);
 
-  virtual void    execute (Thread &) = 0;
+  virtual void        execute (Thread &) = 0;
 
-  virtual void    encode (Encoder &) = 0;
+  virtual std::string encode (Encoder &) = 0;
 };
 
 typedef std::shared_ptr<UnaryInstruction> UnaryInstructionPtr;
@@ -103,13 +103,13 @@ typedef std::shared_ptr<UnaryInstruction> UnaryInstructionPtr;
  ******************************************************************************/
 struct MemoryInstruction : public UnaryInstruction
 {
-  bool indirect;
+  bool                indirect;
 
   MemoryInstruction (const word);
 
-  virtual void    execute (Thread &) = 0;
+  virtual void        execute (Thread &) = 0;
 
-  virtual void    encode (Encoder &) = 0;
+  virtual std::string encode (Encoder &) = 0;
 };
 
 typedef std::shared_ptr<MemoryInstruction> MemoryInstructionPtr;
@@ -126,7 +126,7 @@ typedef std::shared_ptr<MemoryInstruction> MemoryInstructionPtr;
                                                     \
     virtual       void          execute (Thread &); \
                                                     \
-    virtual       void          encode (Encoder &); \
+    virtual       std::string   encode (Encoder &); \
 
 #define DECLARE_INSTRUCTION_NULLARY(classname, baseclass, ...)  \
   struct classname : public baseclass                           \

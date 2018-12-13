@@ -1,7 +1,6 @@
 #include "encoder.hh"
 
 #include <iostream>
-#include <regex>
 
 #include "smtlib.hh"
 
@@ -14,31 +13,45 @@ Encoder::Encoder (const ProgramListPtr p, unsigned long b) :
   programs(p),
   num_threads(p->size()),
   bound(b)
-{}
-
-/* Encoder::collectPredecessors (void) ****************************************/
-void Encoder::collectPredecessors ()
 {
-  predecessors.clear();
+  preprocess();
+}
 
-  word length = programs->at(thread)->size();
+void Encoder::iterate_threads (function<void()> fun)
+{
+  for (thread = 1; thread <= num_threads; thread++)
+    fun();
+}
 
-  for (pc = 0; pc < length; pc++)
+void Encoder::iterate_threads (function<void(ProgramPtr)> fun)
+{
+  thread = 1;
+  for (const ProgramPtr p_ptr : *programs)
     {
-      /* add previous statement if pc > 0 */
-      if (pc > 0)
-        predecessors[thread][pc].insert(programs->at(thread)->at(pc - 1u));
-
-      /* add current pc to predecessors of target statement */
-      /* NOTE: possible improvement: remove pc of JMP from successor before
-       * adding to the target statement */
-      if (JmpPtr j = dynamic_pointer_cast<Jmp>(programs->at(thread)->at(pc)))
-        predecessors[thread][j->arg].insert(programs->at(thread)->at(pc));
+      fun(p_ptr);
+      thread++;
     }
 }
 
-/* Encoder::encode (void) *****************************************************/
-void Encoder::encode () {}
+void Encoder::preprocess ()
+{
+  iterate_threads([&] (ProgramPtr p) {
+    Program & program = *p;
+    for (pc = 0; pc < program.size(); pc++)
+      {
+        /* collect predecessors */
+        if (pc > 0)
+          predecessors[thread][pc].insert(pc - 1u);
+
+        if (JmpPtr j = dynamic_pointer_cast<Jmp>(program[pc]))
+          predecessors[thread][j->arg].insert(pc);
+
+        /* collect sync statemets */
+        if (SyncPtr s = dynamic_pointer_cast<Sync>(program[pc]))
+          sync_pcs[s->arg][thread].insert(pc);
+      }
+  });
+}
 
 /* Encoder::print (void) ******************************************************/
 void Encoder::print () { cout << formula.str(); }
@@ -70,6 +83,21 @@ const string SMTLibEncoder::accu_comment =
 const string SMTLibEncoder::mem_comment =
   "; mem states - mem_<step>_<thread>";
 
+const string SMTLibEncoder::stmt_comment =
+  "; statement activation variables - stmt_<step>_<thread>_<pc>";
+
+const string SMTLibEncoder::thread_comment =
+  "; thread activation variables - thread_<step>_<thread>";
+
+const string SMTLibEncoder::sync_comment =
+  "; sync variables - sync_<step>_<id>";
+
+const string SMTLibEncoder::exec_comment =
+  "; statement execution variables - exec_<step>_<thread>_<pc>";
+
+const string SMTLibEncoder::exit_comment =
+  "; exit variable - exit_<step>";
+
 /* state variable generators */
 string SMTLibEncoder::heap_var ()
 {
@@ -86,30 +114,75 @@ string SMTLibEncoder::mem_var ()
   return "mem_" + ::to_string(step) + '_' + ::to_string(thread);
 }
 
+/* transition variable generators */
+string SMTLibEncoder::stmt_var ()
+{
+  return "stmt_"
+    + ::to_string(step)
+    + '_' + ::to_string(thread)
+    + '_' + ::to_string(pc);
+}
+
+string SMTLibEncoder::thread_var ()
+{
+  return "thread_" + ::to_string(step) + '_' + ::to_string(thread);
+}
+
+string SMTLibEncoder::exit_var ()
+{
+  return "exit_" + ::to_string(step);
+}
+
 /* variable declaration generators */
-void SMTLibEncoder::declare_heap ()
+void SMTLibEncoder::declare_heap_var ()
 {
   if (verbose)
     formula << heap_comment << eol;
+
   formula << smtlib::declare_array_var(heap_var(), bv_sort, bv_sort) << eol;
 }
 
-void SMTLibEncoder::declare_accu ()
+void SMTLibEncoder::declare_accu_vars ()
 {
   if (verbose)
     formula << accu_comment << eol;
 
-  for (thread = 0; thread < num_threads; thread++)
+  iterate_threads([&] {
     formula << smtlib::declare_var(accu_var(), bv_sort) << eol;
+  });
 }
 
-void SMTLibEncoder::declare_mem ()
+void SMTLibEncoder::declare_mem_vars ()
 {
   if (verbose)
     formula << mem_comment << eol;
 
-  for (thread = 0; thread < num_threads; thread++)
+  iterate_threads([&] {
     formula << smtlib::declare_var(mem_var(), bv_sort) << eol;
+  });
+}
+
+void SMTLibEncoder::declare_stmt_vars ()
+{
+  if (verbose)
+    formula << stmt_comment << eol;
+
+  iterate_threads([&] (ProgramPtr p) {
+    for (pc = 0; pc < p->size(); pc++)
+      formula << smtlib::declare_bool_var(stmt_var()) << eol;
+
+    formula << eol;
+  });
+}
+
+void SMTLibEncoder::declare_thread_vars ()
+{
+  if (verbose)
+    formula << thread_comment << eol;
+
+  iterate_threads([&] {
+    formula << smtlib::declare_bool_var(thread_var()) << eol;
+  });
 }
 
 /* expression generators */
@@ -123,10 +196,65 @@ string SMTLibEncoder::assign_accu (string exp)
   return smtlib::assertion(smtlib::equality({accu_var(), exp}));
 }
 
-#define FOR_ALL_THREADS for (thread = 0; thread < num_threads; thread++)
-
 /* common encodings */
-void SMTLibEncoder::set_logic_and_add_globals ()
+void SMTLibEncoder::add_initial_state ()
+{
+  if (verbose)
+    add_comment_section("initial state");
+
+  /* accu */
+  declare_accu_vars();
+
+  formula << eol;
+
+  iterate_threads([&] {
+    formula << assign_var(accu_var(), smtlib::word2hex(0)) << eol;
+  });
+
+  formula << eol;
+
+  /* CAS memory register */
+  declare_mem_vars();
+
+  formula << eol;
+
+  iterate_threads([&] {
+    formula << assign_var(mem_var(), smtlib::word2hex(0)) << eol;
+  });
+
+  formula << eol;
+
+  /* heap */
+  declare_heap_var();
+}
+
+void SMTLibEncoder::add_initial_statement_activation ()
+{
+  formula << "; initial statement activation" << eol;
+
+  iterate_threads([&] (ProgramPtr p) {
+    for (pc = 0; pc < p->size(); pc++)
+      formula
+        << smtlib::assertion(pc ? smtlib::lnot(stmt_var()) : stmt_var())
+        << eol;
+
+    formula << eol;
+  });
+}
+
+void SMTLibEncoder::add_comment_section (const string & msg)
+{
+  formula << setw(79) << setfill(';') << ';' << eol;
+  formula << "; " << msg << eol;
+  formula << setw(79) << setfill(';') << ';' << eol << eol;
+}
+
+void SMTLibEncoder::add_comment_subsection (const string & msg)
+{
+  formula << left << setfill(';') << setw(80) << ("; " + msg + " ") << eol;
+}
+
+void SMTLibEncoder::encode ()
 {
   /* set logic */
   formula << smtlib::set_logic() << eol << eol;
@@ -135,43 +263,10 @@ void SMTLibEncoder::set_logic_and_add_globals ()
   if (verbose)
     formula << "; exit code" << eol;
 
-  formula << smtlib::declare_bool_var(exit_code_var) << eol;
-}
+  formula << smtlib::declare_bool_var(exit_code_var) << eol << eol;
 
-void SMTLibEncoder::initial_state ()
-{
-  if (verbose)
-    add_comment_section("; initial state");
-
-  /* accu */
-  declare_accu();
-
-  formula << eol;
-
-  for (thread = 0; thread < num_threads; thread++)
-    formula << assign_var(accu_var(), smtlib::word2hex(0)) << eol;
-
-  formula << eol;
-
-  /* CAS memory register */
-  declare_mem();
-
-  formula << eol;
-
-  for (thread = 0; thread < num_threads; thread++)
-    formula << assign_var(mem_var(), smtlib::word2hex(0)) << eol;
-
-  formula << eol;
-
-  /* heap */
-  declare_heap();
-}
-
-void SMTLibEncoder::add_comment_section (const char * msg)
-{
-  formula << setw(80) << setfill(';') << eol;
-  formula << msg << eol;
-  formula << setw(80) << setfill(';') << eol << eol;
+  /* set initial state */
+  add_initial_state();
 }
 
 /*******************************************************************************
@@ -182,22 +277,80 @@ SMTLibEncoderFunctional::SMTLibEncoderFunctional (
                                                   unsigned long b
                                                  ) : SMTLibEncoder(p, b) {}
 
-/* SMTLibEncoderFunctional::encode (void) *************************************/
-void SMTLibEncoderFunctional::encode ()
+void SMTLibEncoderFunctional::add_statement_activation ()
 {
-  /* set logic and add global variable declarations */
-  set_logic_and_add_globals();
+  if (verbose)
+    add_comment_subsection("statement activation");
 
   formula << eol;
 
-  /* set initial state */
-  initial_state();
+  declare_stmt_vars();
+
+  if (step == 1)
+    {
+      add_initial_statement_activation();
+      return;
+    }
+
+  iterate_threads([&] (ProgramPtr p) {
+    Program & program = *p;
+    for (pc = 0; pc < program.size(); pc++)
+      {
+        // TODO
+        for (word pre : predecessors[thread][pc])
+          {
+            if (JmpPtr j = dynamic_pointer_cast<Jmp>(program[pre]))
+              {
+                j->encode(*this);
+              }
+            else
+              {
+              }
+          }
+      }
+  });
+}
+
+void SMTLibEncoderFunctional::add_thread_scheduling ()
+{
+  vector<string> variables;
+
+  iterate_threads([&] { variables.push_back(thread_var()); });
+
+  variables.push_back(exit_var());
+
+  if (verbose)
+    add_comment_subsection("thread scheduling");
+
+  formula << eol;
+
+  declare_thread_vars();
+
+  formula
+    << eol
+    << (num_threads > 5
+      ? smtlib::card_constraint_sinz(variables)
+      : smtlib::card_constraint_naive(variables))
+    << eol;
+}
+
+/* SMTLibEncoderFunctional::encode (void) *************************************/
+void SMTLibEncoderFunctional::encode ()
+{
+  /* set logic and add common variable declarations */
+  SMTLibEncoder::encode();
+
+  formula << eol;
 
   for (step = 1; step <= bound; step++)
     {
+      add_comment_section("step " + ::to_string(step));
+
       /* statement activation */
+      add_statement_activation();
 
       /* thread scheduling */
+      add_thread_scheduling();
 
       /* synchronization constraints */
 
@@ -210,103 +363,120 @@ void SMTLibEncoderFunctional::encode ()
 }
 
 /* SMTLibEncoderFunctional::encode (Load &) ***********************************/
-void SMTLibEncoderFunctional::encode (Load & l)
+string SMTLibEncoderFunctional::encode (Load & l)
 {
   (void) l;
+  return "";
 }
 
 /* SMTLibEncoderFunctional::encode (Store &) **********************************/
-void SMTLibEncoderFunctional::encode (Store & s)
+string SMTLibEncoderFunctional::encode (Store & s)
 {
   (void) s;
+  return "";
 }
 
 /* SMTLibEncoderFunctional::encode (Add &) ************************************/
-void SMTLibEncoderFunctional::encode (Add & a)
+string SMTLibEncoderFunctional::encode (Add & a)
 {
   (void) a;
+  return "";
 }
 
 /* SMTLibEncoderFunctional::encode (Addi &) ***********************************/
-void SMTLibEncoderFunctional::encode (Addi & a)
+string SMTLibEncoderFunctional::encode (Addi & a)
 {
   (void) a;
+  return "";
 }
 
 /* SMTLibEncoderFunctional::encode (Sub &) ************************************/
-void SMTLibEncoderFunctional::encode (Sub & s)
+string SMTLibEncoderFunctional::encode (Sub & s)
 {
   (void) s;
+  return "";
 }
 
 /* SMTLibEncoderFunctional::encode (Subi &) ***********************************/
-void SMTLibEncoderFunctional::encode (Subi & s)
+string SMTLibEncoderFunctional::encode (Subi & s)
 {
   (void) s;
+  return "";
 }
 
 /* SMTLibEncoderFunctional::encode (Cmp &) ************************************/
-void SMTLibEncoderFunctional::encode (Cmp & c)
+string SMTLibEncoderFunctional::encode (Cmp & c)
 {
   (void) c;
+  return "";
 }
 
 /* SMTLibEncoderFunctional::encode (Jmp &) ************************************/
-void SMTLibEncoderFunctional::encode (Jmp & j)
+string SMTLibEncoderFunctional::encode (Jmp & j)
 {
   (void) j;
+  return "";
 }
 
 /* SMTLibEncoderFunctional::encode (Jz &) *************************************/
-void SMTLibEncoderFunctional::encode (Jz & j)
+string SMTLibEncoderFunctional::encode (Jz & j)
 {
   (void) j;
+  return "";
 }
 
 /* SMTLibEncoderFunctional::encode (Jnz &) ************************************/
-void SMTLibEncoderFunctional::encode (Jnz & j)
+string SMTLibEncoderFunctional::encode (Jnz & j)
 {
   (void) j;
+  return "";
 }
 
 /* SMTLibEncoderFunctional::encode (Js &) *************************************/
-void SMTLibEncoderFunctional::encode (Js & j)
+string SMTLibEncoderFunctional::encode (Js & j)
 {
   (void) j;
+  return "";
 }
 
 /* SMTLibEncoderFunctional::encode (Jns &) ************************************/
-void SMTLibEncoderFunctional::encode (Jns & j)
+string SMTLibEncoderFunctional::encode (Jns & j)
 {
   (void) j;
+  return "";
 }
 
 /* SMTLibEncoderFunctional::encode (Jnzns &) **********************************/
-void SMTLibEncoderFunctional::encode (Jnzns & j)
+string SMTLibEncoderFunctional::encode (Jnzns & j)
 {
   (void) j;
+  return "";
 }
 
 /* SMTLibEncoderFunctional::encode (Mem &) ************************************/
-void SMTLibEncoderFunctional::encode (Mem & m)
+string SMTLibEncoderFunctional::encode (Mem & m)
 {
   (void) m;
+  return "";
 }
 
 /* SMTLibEncoderFunctional::encode (Cas &) ************************************/
-void SMTLibEncoderFunctional::encode (Cas & c)
+string SMTLibEncoderFunctional::encode (Cas & c)
 {
   (void) c;
+  return "";
 }
 
 /* SMTLibEncoderFunctional::encode (Sync &) ***********************************/
-void SMTLibEncoderFunctional::encode (Sync & s)
+string SMTLibEncoderFunctional::encode (Sync & s)
 {
   (void) s;
+  return "";
 }
 
 /* SMTLibEncoderFunctional::encode (Exit &) ***********************************/
-void SMTLibEncoderFunctional::encode (Exit & e)
+string SMTLibEncoderFunctional::encode (Exit & e)
 {
   (void) e;
+  return "";
 }
