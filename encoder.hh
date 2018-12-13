@@ -17,8 +17,11 @@ struct Encoder
   /* reference to the programs being verified (index == thread id) */
   const ProgramListPtr  programs;
 
+  /* number of threads (short hand for programs->size()) */
+  const unsigned long   num_threads;
+
   /* bound */
-  unsigned long         bound;
+  const unsigned long   bound;
 
   /* SMT formula */
   std::ostringstream    formula;
@@ -95,15 +98,59 @@ typedef std::shared_ptr<Encoder> EncoderPtr;
  ******************************************************************************/
 struct SMTLibEncoder : public Encoder
 {
-  std::string         stmt_var (const word, const word, const word);
+  /* constructs an SMTLibEncoder for the given program and bound */
+  SMTLibEncoder (const ProgramListPtr, unsigned long);
+
+  /* encoder variables */
+  unsigned long             step;
+
+  /* string constants */
+  static const std::string  bv_sort;
+
+  static const std::string  exit_code_var;
+
+  static const std::string  heap_comment;
+  static const std::string  accu_comment;
+  static const std::string  mem_comment;
+
+  /* state variable generators */
+  std::string               heap_var (void);
+  std::string               accu_var (void);
+  std::string               mem_var (void);
+
+  /* transition variable generators */
+  std::string               thread_var (void);
+  std::string               stmt_var (void);
+  std::string               exec_var (void);
+  std::string               cas_var (void);
+  std::string               sync_var (void);
+  std::string               exit_var (void);
+
+  /* variable declaration generators */
+  void                      declare_heap (void);
+  void                      declare_accu (void);
+  void                      declare_mem (void);
+
+  /* expression generators */
+  std::string               assign_var (std::string, std::string);
+
+  std::string               assign_accu (std::string);
+  std::string               assign_mem (std::string);
+
+  /* common encodings */
+  void                      set_logic_and_add_globals (void);
+  void                      initial_state (void);
+
+  /* adds a section header comment to the formula */
+  void                      add_comment_section (const char *);
 };
 
 /*******************************************************************************
  * SMT-Lib v2.5 Functional Encoder Class
  ******************************************************************************/
-struct SMTLibEncoderFunctional : public Encoder
+struct SMTLibEncoderFunctional : public SMTLibEncoder
 {
-  /* constructs an Encoder for the given program and bound */
+  /* constructs an SMTLibEncoderFunctional for the given program and bound */
   SMTLibEncoderFunctional (const ProgramListPtr, unsigned long);
 
   /* double-dispatched instruction encoding functions */

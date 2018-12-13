@@ -6,13 +6,13 @@
 #include "smtlib.hh"
 
 using namespace std;
-using namespace smtlib;
 
 /*******************************************************************************
  * Encoder Base Class
  ******************************************************************************/
 Encoder::Encoder (const ProgramListPtr p, unsigned long b) :
   programs(p),
+  num_threads(p->size()),
   bound(b)
 {}
 
@@ -49,6 +49,130 @@ string Encoder::to_string () { return formula.str(); }
 /*******************************************************************************
  * SMT-Lib v2.5 Encoder Base Class
  ******************************************************************************/
+SMTLibEncoder::SMTLibEncoder (
+                              const ProgramListPtr p,
+                              unsigned long b
+                             ) : Encoder(p, b), step(0) {}
+
+/* string constants ***********************************************************/
+const string SMTLibEncoder::bv_sort =
+  smtlib::bitvector(word_size);
+
+const string SMTLibEncoder::exit_code_var =
+  "exit_code";
+
+const string SMTLibEncoder::heap_comment =
+  "; heap states - heap_<step>";
+
+const string SMTLibEncoder::accu_comment =
+  "; accu states - accu_<step>_<thread>";
+
+const string SMTLibEncoder::mem_comment =
+  "; mem states - mem_<step>_<thread>";
+
+/* state variable generators */
+string SMTLibEncoder::heap_var ()
+{
+  return "heap_" + ::to_string(step);
+}
+
+string SMTLibEncoder::accu_var ()
+{
+  return "accu_" + ::to_string(step) + '_' + ::to_string(thread);
+}
+
+string SMTLibEncoder::mem_var ()
+{
+  return "mem_" + ::to_string(step) + '_' + ::to_string(thread);
+}
+
+/* variable declaration generators */
+void SMTLibEncoder::declare_heap ()
+{
+  if (verbose)
+    formula << heap_comment << eol;
+  formula << smtlib::declare_array_var(heap_var(), bv_sort, bv_sort) << eol;
+}
+
+void SMTLibEncoder::declare_accu ()
+{
+  if (verbose)
+    formula << accu_comment << eol;
+
+  for (thread = 0; thread < num_threads; thread++)
+    formula << smtlib::declare_var(accu_var(), bv_sort) << eol;
+}
+
+void SMTLibEncoder::declare_mem ()
+{
+  if (verbose)
+    formula << mem_comment << eol;
+
+  for (thread = 0; thread < num_threads; thread++)
+    formula << smtlib::declare_var(mem_var(), bv_sort) << eol;
+}
+
+/* expression generators */
+string SMTLibEncoder::assign_var (string var, string exp)
+{
+  return smtlib::assertion(smtlib::equality({var, exp}));
+}
+
+string SMTLibEncoder::assign_accu (string exp)
+{
+  return smtlib::assertion(smtlib::equality({accu_var(), exp}));
+}
+
+#define FOR_ALL_THREADS for (thread = 0; thread < num_threads; thread++)
+
+/* common encodings */
+void SMTLibEncoder::set_logic_and_add_globals ()
+{
+  /* set logic */
+  formula << smtlib::set_logic() << eol << eol;
+
+  /* declare exit code */
+  if (verbose)
+    formula << "; exit code" << eol;
+
+  formula << smtlib::declare_bool_var(exit_code_var) << eol;
+}
+
+void SMTLibEncoder::initial_state ()
+{
+  if (verbose)
+    add_comment_section("; initial state");
+
+  /* accu */
+  declare_accu();
+
+  formula << eol;
+
+  for (thread = 0; thread < num_threads; thread++)
+    formula << assign_var(accu_var(), smtlib::word2hex(0)) << eol;
+
+  formula << eol;
+
+  /* CAS memory register */
+  declare_mem();
+
+  formula << eol;
+
+  for (thread = 0; thread < num_threads; thread++)
+    formula << assign_var(mem_var(), smtlib::word2hex(0)) << eol;
+
+  formula << eol;
+
+  /* heap */
+  declare_heap();
+}
+
+void SMTLibEncoder::add_comment_section (const char * msg)
+{
+  formula << setw(80) << setfill(';') << eol;
+  formula << msg << eol;
+  formula << setw(80) << setfill(';') << eol << eol;
+}
 
 /*******************************************************************************
  * SMT-Lib v2.5 Functional Encoder Class
@@ -56,31 +180,33 @@ string Encoder::to_string () { return formula.str(); }
 SMTLibEncoderFunctional::SMTLibEncoderFunctional (
                                                   const ProgramListPtr p,
                                                   unsigned long b
-                                                 )
-  : Encoder(p, b)
-{}
+                                                 ) : SMTLibEncoder(p, b) {}
 
 /* SMTLibEncoderFunctional::encode (void) *************************************/
 void SMTLibEncoderFunctional::encode ()
 {
-  /* set logic */
-  formula << smtlib::set_logic();
+  /* set logic and add global variable declarations */
+  set_logic_and_add_globals();
 
-  /* declare exit code */
+  formula << eol;
 
   /* set initial state */
+  initial_state();
 
-  /* statement activation */
+  for (step = 1; step <= bound; step++)
+    {
+      /* statement activation */
 
-  /* thread scheduling */
+      /* thread scheduling */
 
-  /* synchronization constraints */
+      /* synchronization constraints */
 
-  /* statement execution */
+      /* statement execution */
 
-  /* exit call */
+      /* exit call */
 
-  /* state update */
+      /* state update */
+    }
 }
 
 /* SMTLibEncoderFunctional::encode (Load &) ***********************************/

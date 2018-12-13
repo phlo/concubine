@@ -13,13 +13,30 @@ using namespace std;
 *******************************************************************************/
 struct EncoderTest : public ::testing::Test
 {
-  ProgramListPtr  programs;
+  ProgramList     programs;
   EncoderPtr      encoder;
 
-  EncoderTest () : programs(), encoder(programs, 0) {};
+  EncoderTest () : programs(), encoder(nullptr) { };
 };
 
-#ifdef __IGNORE__
+TEST_F(EncoderTest, test)
+{
+  const char * program1 = "../wiki/encoding/concurrent-increment.sync.thread1.asm";
+  const char * program2 = "../wiki/encoding/concurrent-increment.sync.thread2.asm";
+
+  programs.push_back(make_shared<Program>(program1));
+  programs.push_back(make_shared<Program>(program2));
+
+  encoder = make_shared<SMTLibEncoderFunctional>(make_shared<ProgramList>(programs), 2);
+
+  encoder->encode();
+
+  string formula = encoder->to_string();
+
+  ASSERT_STREQ("", formula.c_str());
+}
+
+#ifdef __NIGNORE__
 /* testing ********************************************************************/
 TEST_F(EncoderTest, replace_test)
 {

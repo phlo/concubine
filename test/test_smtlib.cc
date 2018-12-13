@@ -110,6 +110,24 @@ TEST(SMTLibTest, extract)
   ASSERT_STREQ(expected, smtlib::extract("msb", "lsb", "bv").c_str());
 }
 
+/* bitvector ******************************************************************/
+TEST(SMTLibTest, bitvector)
+{
+  const char * expected = "(_ BitVec 16)";
+
+  ASSERT_STREQ(expected, smtlib::bitvector(16).c_str());
+}
+
+/* array **********************************************************************/
+TEST(SMTLibTest, array)
+{
+  const char * expected = "(Array (_ BitVec 16) (_ BitVec 16))";
+
+  std::string bv = smtlib::bitvector(16);
+
+  ASSERT_STREQ(expected, smtlib::array(bv, bv).c_str());
+}
+
 /* declare_var ****************************************************************/
 TEST(SMTLibTest, declare_var)
 {
@@ -118,22 +136,29 @@ TEST(SMTLibTest, declare_var)
   ASSERT_STREQ(expected, smtlib::declare_var("x1", "Bool").c_str());
 }
 
-/* bitvector ******************************************************************/
-TEST(SMTLibTest, bitvector)
+/* declare_bool_var ***********************************************************/
+TEST(SMTLibTest, declare_bool_var)
 {
-  const char * expected = "(_ BitVec 16)";
+  const char * expected = "(declare-fun x1 () Bool)";
 
-  ASSERT_STREQ(expected, smtlib::bitvector("16").c_str());
+  ASSERT_STREQ(expected, smtlib::declare_bool_var("x1").c_str());
 }
 
-/* array **********************************************************************/
-TEST(SMTLibTest, array)
+/* declare_bv_var *************************************************************/
+TEST(SMTLibTest, declare_bv_var)
 {
-  const char * expected = "(Array (_ BitVec 16) (_ BitVec 16))";
+  const char * expected = "(declare-fun x1 () (_ BitVec 16))";
 
-  std::string bv = smtlib::bitvector("16");
+  ASSERT_STREQ(expected, smtlib::declare_bv_var("x1", 16).c_str());
+}
 
-  ASSERT_STREQ(expected, smtlib::array(bv, bv).c_str());
+/* declare_array_var **********************************************************/
+TEST(SMTLibTest, declare_array_var)
+{
+  const string bv16 = smtlib::bitvector(16);
+  const char * expected = "(declare-fun x1 () (Array (_ BitVec 16) (_ BitVec 16)))";
+
+  ASSERT_STREQ(expected, smtlib::declare_array_var("x1", bv16, bv16).c_str());
 }
 
 /* card_constraint_naive ******************************************************/

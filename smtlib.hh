@@ -15,9 +15,6 @@
  ******************************************************************************/
 namespace smtlib
 {
-  /* line feed */
-  const char endl = '\n';
-
   /* converts integer to its word sized SMT-Lib hex constant ******************/
   inline std::string word2hex (word val)
     {
@@ -118,22 +115,44 @@ namespace smtlib
       return expr(expr("_ extract", {msb, lsb}).c_str(), {bitvec});
     }
 
+  /* bit-vector sort **********************************************************/
+  inline std::string bitvector (unsigned size)
+    {
+      return expr("_ BitVec", {std::to_string(size)});
+    }
+
+  /* array sort ***************************************************************/
+  inline std::string array (std::string idx_t, std::string val_t)
+    {
+      return expr("Array", {idx_t, val_t});
+    }
+
   /* variable declaration *****************************************************/
   inline std::string declare_var (std::string name, std::string type)
     {
       return expr("declare-fun", {name, "()", type});
     }
 
-  /* bit-vector declaration ***************************************************/
-  inline std::string bitvector (std::string size)
+  /* boolean variable declaration *********************************************/
+  inline std::string declare_bool_var (std::string name)
     {
-      return expr("_ BitVec", {size});
+      return declare_var(name, "Bool");
     }
 
-  /* array declaration ********************************************************/
-  inline std::string array (std::string arg1, std::string arg2)
+  /* bitvector variable declaration *******************************************/
+  inline std::string declare_bv_var (std::string name, unsigned size)
     {
-      return expr("Array", {arg1, arg2});
+      return declare_var(name, bitvector(size));
+    }
+
+  /* array variable declaration ***********************************************/
+  inline std::string declare_array_var (
+                                        std::string name,
+                                        std::string idx_t,
+                                        std::string val_t
+                                       )
+    {
+      return declare_var(name, array(idx_t, val_t));
     }
 
   /* set logic to QF_AUFBV ****************************************************/
@@ -168,18 +187,18 @@ namespace smtlib
       std::vector<std::string>::const_iterator it1, it2;
 
       /* require one to be true */
-      constraint << assertion(lor(vars)) << endl;
+      constraint << assertion(lor(vars)) << eol;
 
       /* iterators */
       for (it1 = vars.begin(); it1 != vars.end(); ++it1)
         for (it2 = it1 + 1; it2 != vars.end(); ++it2)
-          constraint << assertion(lor({lnot(*it1), lnot(*it2)})) << endl;
+          constraint << assertion(lor({lnot(*it1), lnot(*it2)})) << eol;
 
       /* indices */
       /*
       for (size_t i = 0; i < vars.size(); i++)
         for (size_t j = i + 1; j < vars.size(); j++)
-          constraint << assertion(lor({lnot(vars[i]), lnot(vars[j])})) << endl;
+          constraint << assertion(lor({lnot(vars[i]), lnot(vars[j])})) << eol;
       */
 
       return constraint.str();
@@ -198,27 +217,27 @@ namespace smtlib
       for (i = 0; i < n - 1; i++)
         {
           aux.push_back(vars[i] + "_aux");
-          constraint << declare_var(aux[i], "Bool") << endl;
+          constraint << declare_var(aux[i], "Bool") << eol;
         }
 
       /* constraint */
       constraint
-        << endl
+        << eol
         << assertion(lor(vars))
-        << endl
+        << eol
         << assertion(lor({lnot(vars[0]), aux[0]}))
-        << endl
+        << eol
         << assertion(lor({lnot(vars[n - 1]), lnot(aux[n - 2])}))
-        << endl;
+        << eol;
 
       for (i = 1; i < n - 1; i++)
         constraint
           << assertion(lor({lnot(vars[i]), aux[i]}))
-          << endl
+          << eol
           << assertion(lor({lnot(aux[i - 1]), aux[i]}))
-          << endl
+          << eol
           << assertion(lor({lnot(vars[i]), lnot(aux[i - 1])}))
-          << endl;
+          << eol;
 
       return constraint.str();
     }

@@ -3,14 +3,20 @@
 
 #include <limits>
 
-/* Machine Type ***************************************************************/
+/* machine type ***************************************************************/
+
 typedef unsigned short  word;
 typedef short           signed_word;
 
 const   word            word_max  = std::numeric_limits<word>::max();
 const   word            word_size = std::numeric_limits<word>::digits;
 
-/* Global Flags ***************************************************************/
+/* global variables ***********************************************************/
+
+/* verbose output */
 extern bool             verbose;
+
+/* end of line character */
+const char              eol = '\n';
 
 #endif
