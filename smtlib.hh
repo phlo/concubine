@@ -77,6 +77,12 @@ namespace smtlib
       return expr("=", args);
     }
 
+  /* if-then-else *************************************************************/
+  inline std::string ite (std::string cond, std::string t, std::string f)
+    {
+      return expr("ite", {cond, t, f});
+    }
+
   /* bit-vector add ***********************************************************/
   inline std::string bvadd (std::vector<std::string> const & args)
     {

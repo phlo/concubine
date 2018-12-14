@@ -70,6 +70,14 @@ TEST(SMTLibTest, equality)
   ASSERT_STREQ(expected, smtlib::equality({"x1", "x2", "x3"}).c_str());
 }
 
+/* if-then-else ***************************************************************/
+TEST(SMTLibTest, ite)
+{
+  const char * expected = "(ite x1 x2 x3)";
+
+  ASSERT_STREQ(expected, smtlib::ite("x1", "x2", "x3").c_str());
+}
+
 /* bvadd **********************************************************************/
 TEST(SMTLibTest, bvadd)
 {
