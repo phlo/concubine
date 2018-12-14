@@ -3,7 +3,8 @@
 
 #include <functional>
 #include <sstream>
-#include <unordered_set>
+#include <map>
+#include <set>
 
 #include "program.hh"
 
@@ -34,18 +35,18 @@ struct Encoder
   word                  pc;
 
   /* pcs of predecessor for each statement */
-  std::unordered_map<
+  std::map<
     word,
-    std::unordered_map<
+    std::map<
       word,
-      std::unordered_set<word>>> predecessors;
+      std::set<word>>>  predecessors;
 
   /* pcs of sync statements (per id) */
-  std::unordered_map<
+  std::map<
     word,
-    std::unordered_map<
+    std::map<
       word,
-      std::unordered_set<word>>> sync_pcs;
+      std::set<word>>>  sync_pcs;
 
   /*****************************************************************************
    * private functions
@@ -145,6 +146,7 @@ struct SMTLibEncoder : public Encoder
   std::string               exec_var (const word, const word, const word);
   std::string               exec_var (void);
   std::string               cas_var (void);
+  std::string               sync_var (const word, const word);
   std::string               sync_var (void);
   std::string               exit_var (void);
 
@@ -155,6 +157,9 @@ struct SMTLibEncoder : public Encoder
 
   void                      declare_stmt_vars (void);
   void                      declare_thread_vars (void);
+  void                      declare_exec_vars (void);
+  void                      declare_cas_var (void);
+  void                      declare_sync_vars (void);
 
   /* expression generators */
   std::string               assign_var (std::string, std::string);
@@ -165,10 +170,10 @@ struct SMTLibEncoder : public Encoder
   /* common encodings */
   void                      add_initial_state (void);
   void                      add_initial_statement_activation (void);
+
   void                      add_synchronization_constraints (void);
 
   /* adds a section header comment to the formula */
-  // void                      add_comment_section (const char *);
   void                      add_comment_section (const std::string &);
   void                      add_comment_subsection (const std::string &);
 

@@ -156,6 +156,11 @@ string SMTLibEncoder::exec_var ()
   return exec_var(step, thread, pc);
 }
 
+string SMTLibEncoder::sync_var (const word k, const word id)
+{
+  return "sync_" + ::to_string(k) + '_' + ::to_string(id);
+}
+
 string SMTLibEncoder::exit_var ()
 {
   return "exit_" + ::to_string(step);
@@ -211,6 +216,28 @@ void SMTLibEncoder::declare_thread_vars ()
   iterate_threads([&] {
     formula << smtlib::declare_bool_var(thread_var()) << eol;
   });
+}
+
+void SMTLibEncoder::declare_exec_vars ()
+{
+  if (verbose)
+    formula << exec_comment << eol;
+
+  iterate_threads([&] (ProgramPtr p) {
+    for (pc = 0; pc < p->size(); pc++)
+      formula << smtlib::declare_bool_var(exec_var()) << eol;
+
+    formula << eol;
+  });
+}
+
+void SMTLibEncoder::declare_sync_vars ()
+{
+  if (verbose)
+    formula << sync_comment << eol;
+
+  for (const auto & s : sync_pcs)
+    formula << smtlib::declare_bool_var(sync_var(step, s.first)) << eol;
 }
 
 /* expression generators */
@@ -270,11 +297,89 @@ void SMTLibEncoder::add_initial_statement_activation ()
   });
 }
 
+void SMTLibEncoder::add_synchronization_constraints ()
+{
+  if (verbose)
+    add_comment_subsection("synchronization constraints");
+
+  formula << eol;
+
+  declare_sync_vars();
+
+  formula << eol;
+
+  if (verbose)
+    formula << "; all threads synchronized?" << eol;
+
+  for (const auto & [id, threads] : sync_pcs)
+    {
+      vector<string> stmt_args;
+      vector<string> thread_args;
+
+      for (const auto & [t, stmts] : threads)
+        {
+          thread_args.push_back(thread_var(step, t));
+
+          for (const auto & s : stmts)
+            stmt_args.push_back(stmt_var(step, t, s));
+        }
+
+      formula <<
+        assign_var(
+          sync_var(step, id),
+          smtlib::land({
+            smtlib::land(stmt_args),
+            smtlib::lor(thread_args)})) <<
+        eol;
+    }
+
+  formula << eol;
+
+  if (verbose)
+    formula << "; prevent scheduling of waiting threads" << eol;
+
+  for (const auto & id : sync_pcs)
+    for (const auto & [this_thread, this_stmts] : id.second)
+      {
+        vector<string> args;
+
+        /* build disjunction of this threads SYNC statements */
+        for (const auto & this_pc : this_stmts)
+          args.push_back(stmt_var(step, this_thread, this_pc));
+
+        string this_sync = args.size() > 1 ? smtlib::lor(args) : args[0];
+
+        args.clear();
+
+        /* build disjunction of the other threads negated SYNC statements */
+        for (const auto & [other_thread, other_stmts] : id.second)
+          {
+            if (this_thread == other_thread)
+              continue;
+
+            for (const auto & other_pc : other_stmts)
+              args.push_back(
+                smtlib::lnot(stmt_var(step, other_thread, other_pc)));
+          }
+
+        string other_sync = args.size() > 1 ? smtlib::lor(args) : args[0];
+
+        /* add blocking assertion */
+        formula <<
+          smtlib::assertion(
+            smtlib::implication(
+              smtlib::land({this_sync, other_sync}),
+              smtlib::lnot(thread_var(step, this_thread)))) <<
+          " ; barrier " << id.first << " thread " << this_thread << // TODO
+          eol;
+      }
+}
+
 void SMTLibEncoder::add_comment_section (const string & msg)
 {
-  formula << setw(79) << setfill(';') << ';' << eol;
+  formula << setw(80) << setfill(';') << ';' << eol;
   formula << "; " << msg << eol;
-  formula << setw(79) << setfill(';') << ';' << eol << eol;
+  formula << setw(80) << setfill(';') << ';' << eol << eol;
 }
 
 void SMTLibEncoder::add_comment_subsection (const string & msg)
@@ -393,6 +498,7 @@ void SMTLibEncoderFunctional::encode ()
       add_thread_scheduling();
 
       /* synchronization constraints */
+      add_synchronization_constraints();
 
       /* statement execution */
 
