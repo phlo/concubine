@@ -130,13 +130,19 @@ struct SMTLibEncoder : public Encoder
   static const std::string  exit_comment;
 
   /* state variable generators */
+  std::string               heap_var (const word);
   std::string               heap_var (void);
+  std::string               accu_var (const word, const word);
   std::string               accu_var (void);
+  std::string               mem_var (const word, const word);
   std::string               mem_var (void);
 
   /* transition variable generators */
+  std::string               stmt_var (const word, const word, const word);
   std::string               stmt_var (void);
+  std::string               thread_var (const word, const word);
   std::string               thread_var (void);
+  std::string               exec_var (const word, const word, const word);
   std::string               exec_var (void);
   std::string               cas_var (void);
   std::string               sync_var (void);
@@ -159,6 +165,7 @@ struct SMTLibEncoder : public Encoder
   /* common encodings */
   void                      add_initial_state (void);
   void                      add_initial_statement_activation (void);
+  void                      add_synchronization_constraints (void);
 
   /* adds a section header comment to the formula */
   // void                      add_comment_section (const char *);
@@ -185,7 +192,6 @@ struct SMTLibEncoderFunctional : public SMTLibEncoder
 
   void                add_statement_activation (void);
   void                add_thread_scheduling (void);
-  void                add_synchronization_constraints (void);
   void                add_statement_execution (void);
   void                add_exit_call (void);
   void                add_state_update (void);

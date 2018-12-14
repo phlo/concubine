@@ -104,9 +104,14 @@ string SMTLibEncoder::heap_var ()
   return "heap_" + ::to_string(step);
 }
 
+string SMTLibEncoder::accu_var (const word k, const word t)
+{
+  return "accu_" + ::to_string(k) + '_' + ::to_string(t);
+}
+
 string SMTLibEncoder::accu_var ()
 {
-  return "accu_" + ::to_string(step) + '_' + ::to_string(thread);
+  return accu_var(step, thread);
 }
 
 string SMTLibEncoder::mem_var ()
@@ -115,17 +120,40 @@ string SMTLibEncoder::mem_var ()
 }
 
 /* transition variable generators */
-string SMTLibEncoder::stmt_var ()
+string SMTLibEncoder::stmt_var (const word k, const word t, const word p)
 {
   return "stmt_"
-    + ::to_string(step)
-    + '_' + ::to_string(thread)
-    + '_' + ::to_string(pc);
+    + ::to_string(k)
+    + '_' + ::to_string(t)
+    + '_' + ::to_string(p);
+}
+
+string SMTLibEncoder::stmt_var ()
+{
+  return stmt_var(step, thread, pc);
+}
+
+string SMTLibEncoder::thread_var (const word k, const word t)
+{
+  return "thread_" + ::to_string(k) + '_' + ::to_string(t);
 }
 
 string SMTLibEncoder::thread_var ()
 {
-  return "thread_" + ::to_string(step) + '_' + ::to_string(thread);
+  return thread_var(step, thread);
+}
+
+string SMTLibEncoder::exec_var (const word k, const word t, const word p)
+{
+  return "exec_"
+    + ::to_string(k)
+    + '_' + ::to_string(t)
+    + '_' + ::to_string(p);
+}
+
+string SMTLibEncoder::exec_var ()
+{
+  return exec_var(step, thread, pc);
 }
 
 string SMTLibEncoder::exit_var ()
@@ -287,28 +315,40 @@ void SMTLibEncoderFunctional::add_statement_activation ()
   declare_stmt_vars();
 
   if (step == 1)
-    {
-      add_initial_statement_activation();
-      return;
-    }
+    add_initial_statement_activation();
+  else
+    iterate_threads([&] (ProgramPtr p) {
+      for (pc = 0; pc < p->size(); pc++)
+        {
+          /* statement reactivation */
+          string expr =
+            smtlib::land({
+              stmt_var(step - 1, thread, pc),
+              smtlib::lnot(exec_var(step - 1, thread, pc))});
 
-  iterate_threads([&] (ProgramPtr p) {
-    Program & program = *p;
-    for (pc = 0; pc < program.size(); pc++)
-      {
-        // TODO
-        for (word pre : predecessors[thread][pc])
-          {
-            if (JmpPtr j = dynamic_pointer_cast<Jmp>(program[pre]))
-              {
-                j->encode(*this);
-              }
-            else
-              {
-              }
-          }
-      }
-  });
+          for (word prev : predecessors[thread][pc])
+            {
+              /* predecessor's execution variable */
+              string val = exec_var(step - 1, thread, prev);
+
+              /* build conjunction of execution variable and jump condition */
+              if (JmpPtr j = dynamic_pointer_cast<Jmp>(p->at(prev)))
+                {
+                  /* JMP has no condition and returns an empty string */
+                  string cond = j->encode(*this);
+
+                  val = cond.empty() ? val : smtlib::land({val, cond});
+                }
+
+              /* add predecessor to the activation */
+              expr = smtlib::ite(stmt_var(step - 1, thread, prev), val, expr);
+            }
+
+          formula << assign_var(stmt_var(), expr) << eol;
+        }
+
+      formula << eol;
+    });
 }
 
 void SMTLibEncoderFunctional::add_thread_scheduling ()
@@ -428,8 +468,11 @@ string SMTLibEncoderFunctional::encode (Jz & j)
 /* SMTLibEncoderFunctional::encode (Jnz &) ************************************/
 string SMTLibEncoderFunctional::encode (Jnz & j)
 {
-  (void) j;
-  return "";
+  return
+      smtlib::lnot(
+        smtlib::equality({
+          accu_var(step - 1, thread),
+          smtlib::word2hex(j.arg)}));
 }
 
 /* SMTLibEncoderFunctional::encode (Js &) *************************************/
