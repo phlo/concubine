@@ -48,12 +48,15 @@ struct Encoder
       word,
       std::set<word>>>  sync_pcs;
 
+  /* pcs of exit calls */
+  std::map<word, std::vector<word>> exit_pcs;
+
   /*****************************************************************************
    * private functions
   *****************************************************************************/
 
-  void                      iterate_threads (std::function<void(void)>);
-  void                      iterate_threads (std::function<void(ProgramPtr)>);
+  void                iterate_threads (std::function<void(void)>);
+  void                iterate_threads (std::function<void(Program &)>);
 
   /* double-dispatched instruction encoding functions */
   virtual std::string encode (Load &) = 0;
@@ -148,6 +151,7 @@ struct SMTLibEncoder : public Encoder
   std::string               cas_var (void);
   std::string               sync_var (const word, const word);
   std::string               sync_var (void);
+  std::string               exit_var (const word);
   std::string               exit_var (void);
 
   /* variable declaration generators */
@@ -160,6 +164,7 @@ struct SMTLibEncoder : public Encoder
   void                      declare_exec_vars (void);
   void                      declare_cas_var (void);
   void                      declare_sync_vars (void);
+  void                      declare_exit_var (void);
 
   /* expression generators */
   std::string               assign_var (std::string, std::string);

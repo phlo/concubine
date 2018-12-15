@@ -27,7 +27,7 @@ TEST_F(EncoderTest, test)
   programs.push_back(make_shared<Program>(program1));
   programs.push_back(make_shared<Program>(program2));
 
-  encoder = make_shared<SMTLibEncoderFunctional>(make_shared<ProgramList>(programs), 2);
+  encoder = make_shared<SMTLibEncoderFunctional>(make_shared<ProgramList>(programs), 3);
 
   encoder->encode();
 

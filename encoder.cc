@@ -23,20 +23,19 @@ void Encoder::iterate_threads (function<void()> fun)
     fun();
 }
 
-void Encoder::iterate_threads (function<void(ProgramPtr)> fun)
+void Encoder::iterate_threads (function<void(Program &)> fun)
 {
   thread = 1;
   for (const ProgramPtr p_ptr : *programs)
     {
-      fun(p_ptr);
+      fun(*p_ptr);
       thread++;
     }
 }
 
 void Encoder::preprocess ()
 {
-  iterate_threads([&] (ProgramPtr p) {
-    Program & program = *p;
+  iterate_threads([&] (Program & program) {
     for (pc = 0; pc < program.size(); pc++)
       {
         /* collect predecessors */
@@ -49,6 +48,10 @@ void Encoder::preprocess ()
         /* collect sync statemets */
         if (SyncPtr s = dynamic_pointer_cast<Sync>(program[pc]))
           sync_pcs[s->arg][thread].insert(pc);
+
+        /* collect exit calls */
+        if (ExitPtr e = dynamic_pointer_cast<Exit>(program[pc]))
+          exit_pcs[thread].push_back(pc);
       }
   });
 }
@@ -161,9 +164,14 @@ string SMTLibEncoder::sync_var (const word k, const word id)
   return "sync_" + ::to_string(k) + '_' + ::to_string(id);
 }
 
+string SMTLibEncoder::exit_var (const word k)
+{
+  return "exit_" + ::to_string(k);
+}
+
 string SMTLibEncoder::exit_var ()
 {
-  return "exit_" + ::to_string(step);
+  return exit_var(step);
 }
 
 /* variable declaration generators */
@@ -200,8 +208,8 @@ void SMTLibEncoder::declare_stmt_vars ()
   if (verbose)
     formula << stmt_comment << eol;
 
-  iterate_threads([&] (ProgramPtr p) {
-    for (pc = 0; pc < p->size(); pc++)
+  iterate_threads([&] (Program & program) {
+    for (pc = 0; pc < program.size(); pc++)
       formula << smtlib::declare_bool_var(stmt_var()) << eol;
 
     formula << eol;
@@ -223,8 +231,8 @@ void SMTLibEncoder::declare_exec_vars ()
   if (verbose)
     formula << exec_comment << eol;
 
-  iterate_threads([&] (ProgramPtr p) {
-    for (pc = 0; pc < p->size(); pc++)
+  iterate_threads([&] (Program & program) {
+    for (pc = 0; pc < program.size(); pc++)
       formula << smtlib::declare_bool_var(exec_var()) << eol;
 
     formula << eol;
@@ -238,6 +246,14 @@ void SMTLibEncoder::declare_sync_vars ()
 
   for (const auto & s : sync_pcs)
     formula << smtlib::declare_bool_var(sync_var(step, s.first)) << eol;
+}
+
+void SMTLibEncoder::declare_exit_var ()
+{
+  if (verbose)
+    formula << exit_comment << eol;
+
+  formula << smtlib::declare_bool_var(exit_var()) << eol;
 }
 
 /* expression generators */
@@ -287,8 +303,8 @@ void SMTLibEncoder::add_initial_statement_activation ()
 {
   formula << "; initial statement activation" << eol;
 
-  iterate_threads([&] (ProgramPtr p) {
-    for (pc = 0; pc < p->size(); pc++)
+  iterate_threads([&] (Program & program) {
+    for (pc = 0; pc < program.size(); pc++)
       formula
         << smtlib::assertion(pc ? smtlib::lnot(stmt_var()) : stmt_var())
         << eol;
@@ -408,12 +424,12 @@ void SMTLibEncoder::add_statement_execution ()
 
   declare_exec_vars();
 
-  iterate_threads([&] (ProgramPtr p) {
-    for (pc = 0; pc < p->size(); pc++)
+  iterate_threads([&] (Program & program) {
+    for (pc = 0; pc < program.size(); pc++)
       {
         string activator = thread_var();
 
-        if (SyncPtr s = dynamic_pointer_cast<Sync>(p->at(pc)))
+        if (SyncPtr s = dynamic_pointer_cast<Sync>(program[pc]))
           activator = sync_var(step, s->arg);
 
         formula <<
@@ -472,8 +488,8 @@ void SMTLibEncoderFunctional::add_statement_activation ()
   if (step == 1)
     add_initial_statement_activation();
   else
-    iterate_threads([&] (ProgramPtr p) {
-      for (pc = 0; pc < p->size(); pc++)
+    iterate_threads([&] (Program & program) {
+      for (pc = 0; pc < program.size(); pc++)
         {
           /* statement reactivation */
           string expr =
@@ -487,7 +503,7 @@ void SMTLibEncoderFunctional::add_statement_activation ()
               string val = exec_var(step - 1, thread, prev);
 
               /* build conjunction of execution variable and jump condition */
-              if (JmpPtr j = dynamic_pointer_cast<Jmp>(p->at(prev)))
+              if (JmpPtr j = dynamic_pointer_cast<Jmp>(program[prev]))
                 {
                   /* JMP has no condition and returns an empty string */
                   string cond = j->encode(*this);
@@ -529,6 +545,49 @@ void SMTLibEncoderFunctional::add_thread_scheduling ()
     << eol;
 }
 
+void SMTLibEncoderFunctional::add_exit_call ()
+{
+  /* skip if step == 1 or EXIT isn't called at all */
+  if (exit_pcs.empty() || step == 1)
+    return;
+
+  if (verbose)
+    add_comment_subsection("exit call");
+
+  formula << eol;
+
+  declare_exit_var();
+
+  formula << eol;
+
+  /* assign exit variable */
+  vector<string> args;
+
+  if (step > 2)
+    args.push_back(exit_var(step - 1));
+
+  iterate_threads([&] {
+    for (const word & exit_pc : exit_pcs[thread])
+      args.push_back(exec_var(step - 1, thread, exit_pc));
+  });
+
+  formula << assign_var(exit_var(), smtlib::lor(args)) << eol << eol;
+
+  /* assign exit code */
+  iterate_threads([&] (Program & program) {
+    for (const word & exit_pc : exit_pcs[thread])
+      /* TODO: implication or ite? */
+      formula <<
+        smtlib::assertion(
+          smtlib::implication(
+            exec_var(step, thread, exit_pc),
+            program[exit_pc]->encode(*this))) <<
+        eol;
+  });
+
+  formula << eol;
+}
+
 /* SMTLibEncoderFunctional::encode (void) *************************************/
 void SMTLibEncoderFunctional::encode ()
 {
@@ -554,6 +613,7 @@ void SMTLibEncoderFunctional::encode ()
       add_statement_execution();
 
       /* exit call */
+      add_exit_call();
 
       /* state update */
     }
@@ -677,6 +737,5 @@ string SMTLibEncoderFunctional::encode (Sync & s)
 /* SMTLibEncoderFunctional::encode (Exit &) ***********************************/
 string SMTLibEncoderFunctional::encode (Exit & e)
 {
-  (void) e;
-  return "";
+  return assign_var(exit_code_var, smtlib::word2hex(e.arg));
 }
