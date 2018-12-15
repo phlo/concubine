@@ -172,6 +172,7 @@ struct SMTLibEncoder : public Encoder
   void                      add_initial_statement_activation (void);
 
   void                      add_synchronization_constraints (void);
+  void                      add_statement_execution (void);
 
   /* adds a section header comment to the formula */
   void                      add_comment_section (const std::string &);
@@ -197,7 +198,6 @@ struct SMTLibEncoderFunctional : public SMTLibEncoder
 
   void                add_statement_activation (void);
   void                add_thread_scheduling (void);
-  void                add_statement_execution (void);
   void                add_exit_call (void);
   void                add_state_update (void);
 

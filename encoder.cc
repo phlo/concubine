@@ -364,15 +364,65 @@ void SMTLibEncoder::add_synchronization_constraints ()
 
         string other_sync = args.size() > 1 ? smtlib::lor(args) : args[0];
 
-        /* add blocking assertion */
+        /* add thread blocking assertion */
         formula <<
           smtlib::assertion(
             smtlib::implication(
               smtlib::land({this_sync, other_sync}),
               smtlib::lnot(thread_var(step, this_thread)))) <<
-          " ; barrier " << id.first << " thread " << this_thread << // TODO
+          " ; barrier " << id.first << ": thread " << this_thread <<
           eol;
       }
+
+  formula << eol;
+}
+
+// DEBUG: TODO remove
+string sync_pcs_to_string (SMTLibEncoder & encoder)
+{
+  ostringstream ss;
+
+  for (const auto & [id, threads] : encoder.sync_pcs)
+    {
+      ss << id << ": " << eol;
+
+      for (const auto & [thread, pcs] : threads)
+        {
+          ss << "  " << thread << ":";
+          for (const auto & pc : pcs)
+            ss << " " << pc;
+          ss << eol;
+        }
+    }
+
+  return ss.str();
+}
+
+void SMTLibEncoder::add_statement_execution ()
+{
+  if (verbose)
+    add_comment_subsection(
+      "statement execution - shorthand for statement & thread activation");
+
+  formula << eol;
+
+  declare_exec_vars();
+
+  iterate_threads([&] (ProgramPtr p) {
+    for (pc = 0; pc < p->size(); pc++)
+      {
+        string activator = thread_var();
+
+        if (SyncPtr s = dynamic_pointer_cast<Sync>(p->at(pc)))
+          activator = sync_var(step, s->arg);
+
+        formula <<
+          assign_var(exec_var(), smtlib::land({stmt_var(), activator})) <<
+          eol;
+      }
+
+    formula << eol;
+  });
 }
 
 void SMTLibEncoder::add_comment_section (const string & msg)
@@ -501,6 +551,7 @@ void SMTLibEncoderFunctional::encode ()
       add_synchronization_constraints();
 
       /* statement execution */
+      add_statement_execution();
 
       /* exit call */
 
