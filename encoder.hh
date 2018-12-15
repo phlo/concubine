@@ -57,6 +57,7 @@ struct Encoder
 
   void                iterate_threads (std::function<void(void)>);
   void                iterate_threads (std::function<void(Program &)>);
+  void                iterate_threads_reverse (std::function<void(Program &)>);
 
   /* double-dispatched instruction encoding functions */
   virtual std::string encode (Load &) = 0;
@@ -81,11 +82,8 @@ struct Encoder
   virtual std::string encode (Sync &) = 0;
   virtual std::string encode (Exit &) = 0;
 
-  /* collects jump targets used in the current program */
-  void                collect_predecessors (void);
-
   /* initialize internal data structures */
-  void                preprocess (void);
+  virtual void        preprocess (void);
 
   /*****************************************************************************
    * public functions
@@ -183,8 +181,7 @@ struct SMTLibEncoder : public Encoder
   void                      add_comment_section (const std::string &);
   void                      add_comment_subsection (const std::string &);
 
-  /* collects jump targets used in the current program */
-  void                      collect_sync_stmts (void);
+  std::string               load(Load &);
 
   virtual void              encode (void);
 };
@@ -197,14 +194,22 @@ struct SMTLibEncoderFunctional : public SMTLibEncoder
   /* constructs an SMTLibEncoderFunctional for the given program and bound */
   SMTLibEncoderFunctional (const ProgramListPtr, unsigned long);
 
-  std::unordered_map<word, std::vector<word>> accu_altering_pcs;
-  std::unordered_map<word, std::vector<word>> mem_altering_pcs;
-  std::unordered_map<word, std::vector<word>> heap_altering_pcs;
+  /* heap altering pcs */
+  std::unordered_map<word, std::vector<word>> heap_pcs;
+
+  /* accumulator altering pcs */
+  std::unordered_map<word, std::vector<word>> accu_pcs;
+
+  /* CAS memory register altering pcs */
+  std::unordered_map<word, std::vector<word>> mem_pcs;
 
   void                add_statement_activation (void);
   void                add_thread_scheduling (void);
   void                add_exit_call (void);
   void                add_state_update (void);
+
+  /* initialize internal data structures */
+  virtual void        preprocess (void);
 
   /* encodes the whole machine configuration */
   virtual void        encode (void);
