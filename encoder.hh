@@ -51,6 +51,9 @@ struct Encoder
   /* pcs of exit calls */
   std::map<word, std::vector<word>> exit_pcs;
 
+  /* threads containing CAS statements */
+  std::set<word>        cas_threads;
+
   /*****************************************************************************
    * private functions
   *****************************************************************************/
@@ -127,8 +130,9 @@ struct SMTLibEncoder : public Encoder
 
   static const std::string  stmt_comment;
   static const std::string  thread_comment;
-  static const std::string  sync_comment;
   static const std::string  exec_comment;
+  static const std::string  cas_comment;
+  static const std::string  sync_comment;
   static const std::string  exit_comment;
 
   /* state variable generators */
@@ -146,9 +150,9 @@ struct SMTLibEncoder : public Encoder
   std::string               thread_var (void);
   std::string               exec_var (const word, const word, const word);
   std::string               exec_var (void);
+  std::string               cas_var (const word, const word);
   std::string               cas_var (void);
   std::string               sync_var (const word, const word);
-  std::string               sync_var (void);
   std::string               exit_var (const word);
   std::string               exit_var (void);
 
@@ -160,7 +164,7 @@ struct SMTLibEncoder : public Encoder
   void                      declare_stmt_vars (void);
   void                      declare_thread_vars (void);
   void                      declare_exec_vars (void);
-  void                      declare_cas_var (void);
+  void                      declare_cas_vars (void);
   void                      declare_sync_vars (void);
   void                      declare_exit_var (void);
 
@@ -185,6 +189,11 @@ struct SMTLibEncoder : public Encoder
 
   virtual void              encode (void);
 };
+
+/*******************************************************************************
+ * SMTLibEncoderPtr
+ ******************************************************************************/
+typedef std::shared_ptr<SMTLibEncoder> SMTLibEncoderPtr;
 
 /*******************************************************************************
  * SMT-Lib v2.5 Functional Encoder Class

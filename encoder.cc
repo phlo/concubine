@@ -55,6 +55,10 @@ void Encoder::preprocess ()
         if (JmpPtr j = dynamic_pointer_cast<Jmp>(program[pc]))
           predecessors[thread][j->arg].insert(pc);
 
+        /* collect CAS statemets */
+        if (CasPtr c = dynamic_pointer_cast<Cas>(program[pc]))
+          cas_threads.insert(thread);
+
         /* collect sync statemets */
         if (SyncPtr s = dynamic_pointer_cast<Sync>(program[pc]))
           sync_pcs[s->arg][thread].insert(pc);
@@ -102,11 +106,14 @@ const string SMTLibEncoder::stmt_comment =
 const string SMTLibEncoder::thread_comment =
   "; thread activation variables - thread_<step>_<thread>";
 
-const string SMTLibEncoder::sync_comment =
-  "; sync variables - sync_<step>_<id>";
-
 const string SMTLibEncoder::exec_comment =
   "; statement execution variables - exec_<step>_<thread>_<pc>";
+
+const string SMTLibEncoder::cas_comment =
+  "; CAS condition - cas_<step>_<thread>";
+
+const string SMTLibEncoder::sync_comment =
+  "; sync variables - sync_<step>_<id>";
 
 const string SMTLibEncoder::exit_comment =
   "; exit variable - exit_<step>";
@@ -177,6 +184,16 @@ string SMTLibEncoder::exec_var (const word k, const word t, const word p)
 string SMTLibEncoder::exec_var ()
 {
   return exec_var(step, thread, pc);
+}
+
+string SMTLibEncoder::cas_var (const word k, const word t)
+{
+  return "cas_" + ::to_string(k) + '_' + ::to_string(t);
+}
+
+string SMTLibEncoder::cas_var ()
+{
+  return cas_var(step, thread);
 }
 
 string SMTLibEncoder::sync_var (const word k, const word id)
@@ -256,6 +273,20 @@ void SMTLibEncoder::declare_exec_vars ()
       formula << smtlib::declare_bool_var(exec_var()) << eol;
 
     formula << eol;
+  });
+}
+
+void SMTLibEncoder::declare_cas_vars ()
+{
+  if (cas_threads.empty())
+    return;
+
+  if (verbose)
+    formula << cas_comment << eol;
+
+  iterate_threads([&] {
+    if (cas_threads.find(thread) != cas_threads.end())
+      formula << smtlib::declare_bool_var(cas_var()) << eol;
   });
 }
 
