@@ -32,7 +32,7 @@ string Program::print (bool include_pc)
   ostringstream ss;
 
   for (word i = 0; i < size(); i++)
-    ss <<  print(include_pc, i);
+    ss <<  print(include_pc, i) << eol;
 
   return ss.str();
 }

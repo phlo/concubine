@@ -50,7 +50,9 @@ void Encoder::preprocess ()
       {
         /* collect predecessors */
         if (pc > 0)
-          predecessors[thread][pc].insert(pc - 1u);
+          if (!dynamic_pointer_cast<Exit>(program[pc - 1u]))
+            if (program[pc - 1u]->get_symbol() != "JMP")
+              predecessors[thread][pc].insert(pc - 1u);
 
         if (JmpPtr j = dynamic_pointer_cast<Jmp>(program[pc]))
           predecessors[thread][j->arg].insert(pc);
@@ -65,7 +67,7 @@ void Encoder::preprocess ()
 
         /* collect exit calls */
         if (ExitPtr e = dynamic_pointer_cast<Exit>(program[pc]))
-          exit_pcs[thread].push_back(pc);
+          exit_pcs[thread].insert(pc);
       }
   });
 }
@@ -75,6 +77,57 @@ void Encoder::print () { cout << formula.str(); }
 
 /* Encoder::to_string (void) **************************************************/
 string Encoder::to_string () { return formula.str(); }
+
+/* DEBUG **********************************************************************/
+string Encoder::predecessors_to_string ()
+{
+  ostringstream ss;
+
+  for (const auto & [_thread, _pcs] : predecessors)
+    for (const auto & [_pc, _predecessors] : _pcs)
+      {
+        ss << "thread " << _thread << " @ " << _pc << " :";
+        for (const auto & prev : _predecessors)
+          ss << " " << prev;
+        ss << eol;
+      }
+
+  return ss.str();
+}
+
+string Encoder::sync_pcs_to_string ()
+{
+  ostringstream ss;
+
+  for (const auto & [id, threads] : sync_pcs)
+    {
+      ss << "sync " << id << ": " << eol;
+      for (const auto & [_thread, pcs] : threads)
+        {
+          ss << "  " << _thread << ":";
+          for (const auto & _pc : pcs)
+            ss << " " << _pc;
+          ss << eol;
+        }
+    }
+
+  return ss.str();
+}
+
+string Encoder::exit_pcs_to_string ()
+{
+  ostringstream ss;
+
+  for (const auto & [_thread, pcs] : exit_pcs)
+    {
+      ss << "thread " << _thread << ":";
+      for (const auto & _pc : pcs)
+        ss << ' ' << _pc;
+      ss << eol;
+    }
+
+  return ss.str();
+}
 
 /*******************************************************************************
  * SMT-Lib v2.5 Encoder Base Class

@@ -12,9 +12,9 @@ struct SMTLibEncoderTest : public ::testing::Test
 
   SMTLibEncoderPtr create_encoder (const word bound)
     {
-        return make_shared<SMTLibEncoderFunctional>(
-          make_shared<ProgramList>(programs),
-          bound);
+      return make_shared<SMTLibEncoderFunctional>(
+        make_shared<ProgramList>(programs),
+        bound);
     }
 
   void reset_encoder (const word bound, unsigned long step)

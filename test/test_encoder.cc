@@ -1,386 +1,315 @@
 #include <gtest/gtest.h>
 
-#include <fstream>
-
-#include "shell.hh"
 #include "encoder.hh"
-#include "program.hh"
 
 using namespace std;
 
-/*******************************************************************************
- * Test Case Fixture
-*******************************************************************************/
 struct EncoderTest : public ::testing::Test
 {
-  ProgramList     programs;
-  EncoderPtr      encoder;
+  const char *      expected;
+  ProgramList       programs;
+  EncoderPtr        encoder = create_encoder(0);
 
-  EncoderTest () : programs(), encoder(nullptr) { };
+  EncoderPtr create_encoder (const word bound)
+    {
+      return make_shared<SMTLibEncoderFunctional>(
+        make_shared<ProgramList>(programs),
+        bound);
+    }
+
+  void reset_encoder (const word bound)
+    {
+      encoder = create_encoder(bound);
+      encoder->thread = 1;
+    }
+
+  void add_dummy_programs (unsigned num, unsigned size)
+    {
+      InstructionPtr op = Instruction::Set::create("ADDI", 1);
+      for (size_t i = 0; i < num; i++)
+        {
+          programs.push_back(shared_ptr<Program>(new Program()));
+          for (size_t j = 0; j < size; j++)
+            programs[i]->add(op);
+        }
+
+      encoder = create_encoder(0);
+    }
 };
 
-TEST_F(EncoderTest, test)
+// void iterate_threads (std::function<void(void)>);
+TEST_F(EncoderTest, iterate_threads_void_void)
 {
-  const char * program1 = "../wiki/encoding/concurrent-increment.sync.thread1.asm";
-  const char * program2 = "../wiki/encoding/concurrent-increment.sync.thread2.asm";
+  add_dummy_programs(3, 3);
 
-  programs.push_back(make_shared<Program>(program1));
-  programs.push_back(make_shared<Program>(program2));
+  word thread = 1;
 
-  encoder = make_shared<SMTLibEncoderFunctional>(make_shared<ProgramList>(programs), 3);
-
-  encoder->encode();
-
-  string formula = encoder->to_string();
-
-  ASSERT_STREQ("", formula.c_str());
+  encoder->iterate_threads([&] { ASSERT_EQ(thread++, encoder->thread); });
 }
 
-#ifdef __NIGNORE__
-/* testing ********************************************************************/
-TEST_F(EncoderTest, replace_test)
+// void iterate_threads (std::function<void(Program &)>);
+TEST_F(EncoderTest, iterate_threads_void_program)
 {
-  // programs.push_back(make_shared<Program>());
+  add_dummy_programs(3, 3);
 
-  SMTLibEncoder e = SMTLibEncoder(programs, 1);
+  word thread = 1;
 
-  e.encode();
-
-  ASSERT_STREQ("", e.formula.str().c_str());
+  encoder->iterate_threads([&] (Program & p) {
+    ASSERT_EQ(thread, encoder->thread);
+    ASSERT_EQ(&*programs[thread++ - 1u], &p);
+  });
 }
 
-/* collectPredecessors ********************************************************/
-TEST_F(EncoderTest, collectPredecessors)
+// void iterate_threads_reverse (std::function<void(Program &)>);
+TEST_F(EncoderTest, iterate_threads_reverse_void_program)
 {
-  /* initialize with a single program */
-  programs.push_back(make_shared<Program>());
+  add_dummy_programs(3, 3);
 
-  /* simple - no jumps etc. */
-  programs[0]->add(Instruction::Set::create("LOAD",  1));
-  programs[0]->add(Instruction::Set::create("ADDI",  1));
-  programs[0]->add(Instruction::Set::create("STORE", 1));
+  word thread = programs.size();
 
-  encoder.collectPredecessors();
-
-  ASSERT_EQ(2, encoder.predecessors.size());
-
-  ASSERT_TRUE(encoder.predecessors[1] == unordered_set<word>({0}));
-  ASSERT_TRUE(encoder.predecessors[2] == unordered_set<word>({1}));
-
-  /* jump to start */
-  programs[0]->add(Instruction::Set::create("JMP", 0));
-
-  encoder.collectPredecessors();
-
-  ASSERT_EQ(4, encoder.predecessors.size());
-
-  ASSERT_TRUE(encoder.predecessors[0] == unordered_set<word>({3}));
-  ASSERT_TRUE(encoder.predecessors[1] == unordered_set<word>({0}));
-  ASSERT_TRUE(encoder.predecessors[2] == unordered_set<word>({1}));
-  ASSERT_TRUE(encoder.predecessors[3] == unordered_set<word>({2}));
-
-  programs[0]->clear();
-  encoder.predecessors.clear();
-
-  /* two predecessors */
-  programs[0]->add(Instruction::Set::create("LOAD",  1));
-  programs[0]->add(Instruction::Set::create("ADDI",  1));
-  programs[0]->add(Instruction::Set::create("JNZ",   1));
-
-  encoder.collectPredecessors();
-
-  ASSERT_EQ(2, encoder.predecessors.size());
-
-  ASSERT_TRUE(encoder.predecessors[1] == unordered_set<word>({0, 2}));
-  ASSERT_TRUE(encoder.predecessors[2] == unordered_set<word>({1}));
+  encoder->iterate_threads_reverse([&] (Program & p) {
+    ASSERT_EQ(thread--, encoder->thread);
+    ASSERT_EQ(&*programs[thread], &p);
+  });
 }
 
-/* addHeader ******************************************************************/
-TEST_F(EncoderTest, addHeader)
+// virtual void preprocess (void);
+TEST_F(EncoderTest, preprocess_predecessors)
 {
-  /* initialize with a couple of programs */
-  programs.push_back(make_shared<Program>());
-  programs.push_back(make_shared<Program>());
-  programs.push_back(make_shared<Program>());
+  for (size_t i = 0; i < 3; i++)
+    {
+      programs.push_back(shared_ptr<Program>(new Program()));
 
-  programs[0]->path = "program1.asm";
-  programs[1]->path = "program2.asm";
-  programs[2]->path = "program3.asm";
+      programs[i]->add(Instruction::Set::create("ADDI", 1));
+      programs[i]->add(Instruction::Set::create("ADDI", 1));
+      programs[i]->add(Instruction::Set::create("ADDI", 1));
+    }
 
-  encoder.bound = 1;
+  reset_encoder(0);
 
-  encoder.addHeader();
-
-  string expected =
-    "; bound: " + to_string(encoder.bound) + "\n" +
-    "; programs: \n"
-    ";   0: " + programs[0]->path + "\n" +
-    ";   1: " + programs[1]->path + "\n" +
-    ";   2: " + programs[2]->path + "\n" +
-    "\n" +
-    "(set-logic QF_AUFBV)\n\n";
-
-  ASSERT_STREQ(expected.c_str(), encoder.formula.str().c_str());
+  for (const auto & [thread, predecessors] : encoder->predecessors)
+    {
+      ASSERT_EQ(thread, encoder->thread++);
+      ASSERT_THROW(predecessors.at(0), out_of_range);
+      ASSERT_EQ(set<word>({0}), predecessors.at(1));
+      ASSERT_EQ(set<word>({1}), predecessors.at(2));
+    }
 }
 
-/* addThreadDeclarations ******************************************************/
-TEST_F(EncoderTest, addThreadDeclarations)
+TEST_F(EncoderTest, preprocess_predecessors_jump)
 {
-  /* initialize with a couple of programs */
-  programs.push_back(make_shared<Program>());
-  programs.push_back(make_shared<Program>());
-  programs.push_back(make_shared<Program>());
+  for (size_t i = 0; i < 3; i++)
+    {
+      programs.push_back(shared_ptr<Program>(new Program()));
 
-  encoder.bound = 2;
+      programs[i]->add(Instruction::Set::create("ADDI", 1));
+      programs[i]->add(Instruction::Set::create("ADDI", 1));
+      programs[i]->add(Instruction::Set::create("JNZ", 1));
+    }
 
-  encoder.addThreadDeclarations();
+  reset_encoder(0);
 
-  string expected = string() +
-    "; thread activation - THREAD_<step>_<thread>\n" +
-    "(declare-fun THREAD_1_0 () Bool)\n" +
-    "(declare-fun THREAD_1_1 () Bool)\n" +
-    "(declare-fun THREAD_1_2 () Bool)\n" +
-    "(declare-fun THREAD_2_0 () Bool)\n" +
-    "(declare-fun THREAD_2_1 () Bool)\n" +
-    "(declare-fun THREAD_2_2 () Bool)\n" +
-    "\n" +
-    "(declare-fun THREAD_FINAL () Bool)\n\n";
+  for (const auto & [thread, predecessors] : encoder->predecessors)
+    {
+      ASSERT_EQ(thread, encoder->thread++);
+      ASSERT_THROW(predecessors.at(0), out_of_range);
+      ASSERT_EQ(set<word>({0, 2}), predecessors.at(1));
+      ASSERT_EQ(set<word>({1}), predecessors.at(2));
+    }
 
-  ASSERT_STREQ(expected.c_str(), encoder.formula.str().c_str());
+  /* jump to initial statement */
+  for (const auto & p : programs)
+    p->add(Instruction::Set::create("JNZNS", 0));
+
+  reset_encoder(0);
+
+  for (const auto & [thread, predecessors] : encoder->predecessors)
+    {
+      ASSERT_EQ(thread, encoder->thread++);
+      ASSERT_EQ(set<word>({3}), predecessors.at(0));
+      ASSERT_EQ(set<word>({0, 2}), predecessors.at(1));
+      ASSERT_EQ(set<word>({1}), predecessors.at(2));
+      ASSERT_EQ(set<word>({2}), predecessors.at(3));
+    }
 }
 
-/* addStmtDeclarations ********************************************************/
-TEST_F(EncoderTest, addStmtDeclarations)
+TEST_F(EncoderTest, preprocess_predecessors_exit)
 {
-  /* initialize with a couple of programs */
-  programs.push_back(make_shared<Program>());
-  programs.push_back(programs[0]);
-  programs.push_back(programs[0]);
+  for (size_t i = 0; i < 3; i++)
+    {
+      programs.push_back(shared_ptr<Program>(new Program()));
 
-  programs[0]->add(Instruction::Set::create("ADDI", 1));
-  programs[0]->add(Instruction::Set::create("ADDI", 1));
+      programs[i]->add(Instruction::Set::create("EXIT", 1));
+      programs[i]->add(Instruction::Set::create("ADDI", 1));
+    }
 
-  encoder.bound = 2;
+  reset_encoder(0);
 
-  encoder.addStmtDeclarations();
-
-  string expected = string() +
-    "; program statement activation - STMT_<step>_<thread>_<pc>\n" +
-    "(declare-fun STMT_1_0_0 () Bool)\n" +
-    "(declare-fun STMT_1_0_1 () Bool)\n" +
-    "(declare-fun STMT_1_1_0 () Bool)\n" +
-    "(declare-fun STMT_1_1_1 () Bool)\n" +
-    "(declare-fun STMT_1_2_0 () Bool)\n" +
-    "(declare-fun STMT_1_2_1 () Bool)\n" +
-    "(declare-fun STMT_2_0_0 () Bool)\n" +
-    "(declare-fun STMT_2_0_1 () Bool)\n" +
-    "(declare-fun STMT_2_1_0 () Bool)\n" +
-    "(declare-fun STMT_2_1_1 () Bool)\n" +
-    "(declare-fun STMT_2_2_0 () Bool)\n" +
-    "(declare-fun STMT_2_2_1 () Bool)\n" +
-    "\n" +
-    "(declare-fun STMT_0_FINAL () Bool)\n" +
-    "(declare-fun STMT_1_FINAL () Bool)\n" +
-    "(declare-fun STMT_2_FINAL () Bool)\n\n";
-
-  ASSERT_STREQ(expected.c_str(), encoder.formula.str().c_str());
+  ASSERT_TRUE(encoder->predecessors.empty());
 }
 
-/* addMemDeclarations *********************************************************/
-TEST_F(EncoderTest, addMemDeclarations)
+TEST_F(EncoderTest, preprocess_predecessors_extra)
 {
-  /* initialize with a couple of programs */
-  programs.push_back(make_shared<Program>());
-  programs.push_back(programs[0]);
-  programs.push_back(programs[0]);
+  for (size_t i = 0; i < 3; i++)
+    {
+      programs.push_back(shared_ptr<Program>(new Program()));
 
-  encoder.bound = 2;
+      programs[i]->add(Instruction::Set::create("ADDI", 1));
+      programs[i]->add(Instruction::Set::create("ADDI", 1));
+      programs[i]->add(Instruction::Set::create("ADDI", 1));
+    }
 
-  encoder.addMemDeclarations();
+  reset_encoder(0);
 
-  string expected = string() +
-    "; cas memory register - MEM_<step>_<thread>\n" +
-    "(declare-fun MEM_0 () (_ BitVec 16))\n" +
-    "(declare-fun MEM_1_0 () (_ BitVec 16))\n" +
-    "(declare-fun MEM_1_1 () (_ BitVec 16))\n" +
-    "(declare-fun MEM_1_2 () (_ BitVec 16))\n" +
-    "(declare-fun MEM_2_0 () (_ BitVec 16))\n" +
-    "(declare-fun MEM_2_1 () (_ BitVec 16))\n" +
-    "(declare-fun MEM_2_2 () (_ BitVec 16))\n" +
-    "\n" +
-    "(declare-fun MEM_0_FINAL () (_ BitVec 16))\n" +
-    "(declare-fun MEM_1_FINAL () (_ BitVec 16))\n" +
-    "(declare-fun MEM_2_FINAL () (_ BitVec 16))\n\n";
+  for (const auto & [thread, predecessors] : encoder->predecessors)
+    {
+      ASSERT_EQ(thread, encoder->thread++);
+      ASSERT_THROW(predecessors.at(0), out_of_range);
+      ASSERT_EQ(set<word>({0}), predecessors.at(1));
+      ASSERT_EQ(set<word>({1}), predecessors.at(2));
+    }
 
-  ASSERT_STREQ(expected.c_str(), encoder.formula.str().c_str());
+  /* jump */
+  for (const auto & p : programs)
+    p->add(Instruction::Set::create("JMP", 1));
+
+  reset_encoder(0);
+
+  for (const auto & [thread, predecessors] : encoder->predecessors)
+    {
+      ASSERT_EQ(thread, encoder->thread++);
+      ASSERT_THROW(predecessors.at(0), out_of_range);
+      ASSERT_EQ(set<word>({0, 3}), predecessors.at(1));
+      ASSERT_EQ(set<word>({1}), predecessors.at(2));
+      ASSERT_EQ(set<word>({2}), predecessors.at(3));
+    }
+
+  /* jump to initial statement */
+  for (const auto & p : programs)
+    p->add(Instruction::Set::create("JNZNS", 0));
+
+  reset_encoder(0);
+
+  for (const auto & [thread, predecessors] : encoder->predecessors)
+    {
+      ASSERT_EQ(thread, encoder->thread++);
+      ASSERT_EQ(set<word>({4}), predecessors.at(0));
+      ASSERT_EQ(set<word>({0, 3}), predecessors.at(1));
+      ASSERT_EQ(set<word>({1}), predecessors.at(2));
+      ASSERT_EQ(set<word>({2}), predecessors.at(3));
+      ASSERT_THROW(predecessors.at(4), out_of_range);
+    }
+
+  /* exit call */
+  for (const auto & p : programs)
+    p->insert(p->begin() + 1, Instruction::Set::create("EXIT", 1));
+
+  reset_encoder(0);
+
+  for (const auto & [thread, predecessors] : encoder->predecessors)
+    {
+      ASSERT_EQ(thread, encoder->thread++);
+      ASSERT_EQ(set<word>({5}), predecessors.at(0));
+      ASSERT_EQ(set<word>({0, 4}), predecessors.at(1));
+      ASSERT_THROW(predecessors.at(2), out_of_range);
+      ASSERT_EQ(set<word>({2}), predecessors.at(3));
+      ASSERT_EQ(set<word>({3}), predecessors.at(4));
+      ASSERT_THROW(predecessors.at(5), out_of_range);
+    }
 }
 
-/* addAccuDeclarations ********************************************************/
-TEST_F(EncoderTest, addAccuDeclarations)
+TEST_F(EncoderTest, preprocess_sync_pcs)
 {
-  /* initialize with a couple of programs */
-  programs.push_back(make_shared<Program>());
-  programs.push_back(programs[0]);
-  programs.push_back(programs[0]);
+  for (size_t i = 0; i < 3; i++)
+    {
+      programs.push_back(shared_ptr<Program>(new Program()));
 
-  programs[0]->add(Instruction::Set::create("ADDI", 1));
-  programs[0]->add(Instruction::Set::create("ADDI", 1));
+      programs[i]->add(Instruction::Set::create("SYNC", 1));
+      programs[i]->add(Instruction::Set::create("SYNC", 2));
+      programs[i]->add(Instruction::Set::create("SYNC", 3));
+    }
 
-  encoder.bound = 2;
+  reset_encoder(0);
 
-  encoder.addAccuDeclarations();
-
-  string expected = string() +
-    "; accumulator - ACCU_<step>_<thread>\n" +
-    "(declare-fun ACCU_0 () (_ BitVec 16))\n" +
-    "(assert (= ACCU_0 #x0000))\n" +
-    "(declare-fun ACCU_1_0 () (_ BitVec 16))\n" +
-    "(declare-fun ACCU_1_1 () (_ BitVec 16))\n" +
-    "(declare-fun ACCU_1_2 () (_ BitVec 16))\n" +
-    "(declare-fun ACCU_2_0 () (_ BitVec 16))\n" +
-    "(declare-fun ACCU_2_1 () (_ BitVec 16))\n" +
-    "(declare-fun ACCU_2_2 () (_ BitVec 16))\n" +
-    "\n" +
-    "(declare-fun ACCU_0_FINAL () (_ BitVec 16))\n" +
-    "(declare-fun ACCU_1_FINAL () (_ BitVec 16))\n" +
-    "(declare-fun ACCU_2_FINAL () (_ BitVec 16))\n\n";
-
-  ASSERT_STREQ(expected.c_str(), encoder.formula.str().c_str());
+  for (const auto & [id, threads] : encoder->sync_pcs)
+    for (const auto & pcs : threads)
+      ASSERT_EQ(set<word>({static_cast<word>(id - 1)}), get<1>(pcs));
 }
 
-/* addHeapDeclarations ********************************************************/
-TEST_F(EncoderTest, addHeapDeclarations)
+TEST_F(EncoderTest, preprocess_exit_pcs)
 {
-  /* initialize with a couple of programs */
-  programs.push_back(make_shared<Program>());
-  programs.push_back(programs[0]);
-  programs.push_back(programs[0]);
+  for (size_t i = 0; i < 3; i++)
+    {
+      programs.push_back(shared_ptr<Program>(new Program()));
 
-  programs[0]->add(Instruction::Set::create("ADDI", 1));
-  programs[0]->add(Instruction::Set::create("ADDI", 1));
+      programs[i]->add(Instruction::Set::create("EXIT", 1));
+      programs[i]->add(Instruction::Set::create("EXIT", 2));
+      programs[i]->add(Instruction::Set::create("EXIT", 3));
+    }
 
-  encoder.bound = 2;
+  reset_encoder(0);
 
-  encoder.addHeapDeclarations();
-
-  string expected = string() +
-    "; machine memory - HEAP_<step>\n" +
-    "(declare-fun HEAP_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n" +
-    "(declare-fun HEAP_1 () (Array (_ BitVec 16) (_ BitVec 16)))\n" +
-    "(declare-fun HEAP_2 () (Array (_ BitVec 16) (_ BitVec 16)))\n" +
-    "\n" +
-    "(declare-fun HEAP_FINAL () (Array (_ BitVec 16) (_ BitVec 16)))\n\n";
-
-  ASSERT_STREQ(expected.c_str(), encoder.formula.str().c_str());
+  for (const auto & pcs : encoder->exit_pcs)
+    ASSERT_EQ(set<word>({0, 1, 2}), get<1>(pcs));
 }
 
-/* addExitDeclarations ********************************************************/
-TEST_F(EncoderTest, addExitDeclarations)
+TEST_F(EncoderTest, preprocess_cas_threads)
 {
-  encoder.addExitDeclarations();
+  for (size_t i = 0; i < 3; i++)
+    {
+      programs.push_back(shared_ptr<Program>(new Program()));
 
-  string expected = string() +
-    "; exit status\n" +
-    "(declare-fun EXIT () Bool)\n" +
-    "(declare-fun EXIT_CODE () (_ BitVec 16))\n\n";
+      programs[i]->add(Instruction::Set::create("CAS", 1));
+    }
 
-  ASSERT_STREQ(expected.c_str(), encoder.formula.str().c_str());
+  reset_encoder(0);
+
+  ASSERT_EQ(set<word>({1, 2, 3}), encoder->cas_threads);
 }
 
-/* addSingleThreadConstraints *************************************************/
-TEST_F(EncoderTest, addSingleThreadConstraints)
+TEST_F(EncoderTest, preprocess)
 {
-  /* initialize with a couple of programs */
-  programs.push_back(make_shared<Program>());
+  for (size_t i = 0; i < 3; i++)
+    {
+      programs.push_back(shared_ptr<Program>(new Program()));
 
-  encoder.bound = 3;
+      programs[i]->add(Instruction::Set::create("CAS", 1));   // 0
+      programs[i]->add(Instruction::Set::create("ADDI", 1));  // 1
+      programs[i]->add(Instruction::Set::create("JNS", 1));   // 2
+      programs[i]->add(Instruction::Set::create("SYNC", 1));  // 3
+      programs[i]->add(Instruction::Set::create("JMP", 6));   // 4
+      programs[i]->add(Instruction::Set::create("EXIT", 1));  // 5
+      programs[i]->add(Instruction::Set::create("SYNC", 2));  // 6
+    }
 
-  encoder.addThreadConstraints();
+  reset_encoder(0);
 
-  string expected = string() +
-    "; thread constraints (exactly one active at any step)\n" +
-    "(assert THREAD_1_0)\n" +
-    "(assert THREAD_2_0)\n" +
-    "(assert THREAD_3_0)\n" +
-    "\n";
+  for (const auto & [thread, predecessors] : encoder->predecessors)
+    {
+      ASSERT_EQ(thread, encoder->thread++);
+      ASSERT_THROW(predecessors.at(0), out_of_range);
+      ASSERT_EQ(set<word>({0, 2}), predecessors.at(1));
+      ASSERT_EQ(set<word>({1}), predecessors.at(2));
+      ASSERT_EQ(set<word>({2}), predecessors.at(3));
+      ASSERT_EQ(set<word>({3}), predecessors.at(4));
+      ASSERT_THROW(predecessors.at(5), out_of_range);
+      ASSERT_EQ(set<word>({4}), predecessors.at(6));
+    }
 
-  ASSERT_STREQ(expected.c_str(), encoder.formula.str().c_str());
+  for (const auto & [id, threads] : encoder->sync_pcs)
+    for (const auto & pcs : threads)
+      ASSERT_EQ(id == 1 ? set<word>({3}) : set<word>({6}), get<1>(pcs));
+
+  for (const auto & pcs : encoder->exit_pcs)
+      ASSERT_EQ(set<word>({5}), get<1>(pcs));
+
+  ASSERT_EQ(set<word>({1, 2, 3}), encoder->cas_threads);
 }
 
-
-/* addMultiThreadConstraints **************************************************/
-TEST_F(EncoderTest, addMultiThreadConstraints)
+// string to_string (void);
+TEST_F(EncoderTest, to_string)
 {
-  /* initialize with a couple of programs */
-  programs.push_back(make_shared<Program>());
-  programs.push_back(programs[0]);
-  programs.push_back(programs[0]);
+  encoder->formula << "foo";
 
-  encoder.bound = 3;
-
-  encoder.addThreadConstraints();
-
-  string expected = string() +
-    "; thread constraints (exactly one active at any step)\n" +
-    "(assert (or (not THREAD_1_0) (not THREAD_1_1)))\n" +
-    "(assert (or (not THREAD_1_0) (not THREAD_1_2)))\n" +
-    "(assert (or (not THREAD_1_1) (not THREAD_1_2)))\n" +
-    "\n" +
-    "(assert (or (not THREAD_2_0) (not THREAD_2_1)))\n" +
-    "(assert (or (not THREAD_2_0) (not THREAD_2_2)))\n" +
-    "(assert (or (not THREAD_2_1) (not THREAD_2_2)))\n" +
-    "\n" +
-    "(assert (or (not THREAD_3_0) (not THREAD_3_1)))\n" +
-    "(assert (or (not THREAD_3_0) (not THREAD_3_2)))\n" +
-    "(assert (or (not THREAD_3_1) (not THREAD_3_2)))\n" +
-    "\n";
-
-  ASSERT_STREQ(expected.c_str(), encoder.formula.str().c_str());
-
-  Shell shell;
-
-  encoder.formula.str("");
-  encoder.formula.clear();
-
-  encoder.addThreadDeclarations();
-  encoder.addThreadConstraints();
-
-  string formula = encoder.formula.str();
-
-  string model = shell.run("boolector -m", formula);
-
-  expected = string() +
-    "sat\n" +
-    "2 0 THREAD_1_0\n" +
-    "3 1 THREAD_1_1\n" +
-    "4 0 THREAD_1_2\n" +
-    "5 1 THREAD_2_0\n" +
-    "6 0 THREAD_2_1\n" +
-    "7 0 THREAD_2_2\n" +
-    "8 1 THREAD_3_0\n" +
-    "9 0 THREAD_3_1\n" +
-    "10 0 THREAD_3_2\n" +
-    "11 0 THREAD_FINAL\n";
-
-  ASSERT_STREQ(expected.c_str(), model.c_str());
+  ASSERT_STREQ("foo", encoder->to_string().c_str());
 }
-
-///* LoadStoreArithmetic ********************************************************/
-//TEST_F(EncoderTest, LoadStoreArithmetic)
-//{
-//  /* read expected smt formula from file */
-//  ifstream scheduleFile("data/load.store.arithmetic.encoded.smt");
-//  string schedule(( istreambuf_iterator<char>(scheduleFile) ),
-//                    istreambuf_iterator<char>());
-//
-//  program = Program("data/load.store.arithmetic.asm");
-//
-//  encoder.bound = 5;
-//
-//  encoder.encode();
-//
-//  ASSERT_STREQ(schedule.c_str(), encoder.formula.str().c_str());
-//}
-
-// TODO: more tests for multi-threaded encoder
-#endif /* __IGNORE__ */

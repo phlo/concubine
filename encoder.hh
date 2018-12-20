@@ -41,7 +41,7 @@ struct Encoder
       word,
       std::set<word>>>  predecessors;
 
-  /* pcs of sync statements (per id) */
+  /* pcs of sync statements (sync id -> thread -> pc) */
   std::map<
     word,
     std::map<
@@ -49,7 +49,7 @@ struct Encoder
       std::set<word>>>  sync_pcs;
 
   /* pcs of exit calls */
-  std::map<word, std::vector<word>> exit_pcs;
+  std::map<word, std::set<word>> exit_pcs;
 
   /* threads containing CAS statements */
   std::set<word>        cas_threads;
@@ -100,6 +100,13 @@ struct Encoder
 
   /* returns the SMT formula as string */
   std::string         to_string (void);
+
+  /*****************************************************************************
+   * DEBUG
+  *****************************************************************************/
+  std::string         predecessors_to_string (void);
+  std::string         sync_pcs_to_string (void);
+  std::string         exit_pcs_to_string (void);
 };
 
 /*******************************************************************************
