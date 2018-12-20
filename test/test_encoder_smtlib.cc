@@ -4,13 +4,9 @@
 
 using namespace std;
 
-/*******************************************************************************
- * Test Case Fixture
-*******************************************************************************/
 struct SMTLibEncoderTest : public ::testing::Test
 {
   const char *      expected;
-
   ProgramList       programs;
   SMTLibEncoderPtr  encoder = create_encoder(0);
 
@@ -544,8 +540,8 @@ TEST_F(SMTLibEncoderTest, declare_cas_vars)
   ASSERT_STREQ(expected, encoder->formula.str().c_str());
 
   /* 1 CAS per thread */
-  for (size_t i = 1; i < 3; i++)
-    programs[i]->add(Instruction::Set::create("CAS", 0));
+  for (const auto & p : programs)
+      p->add(Instruction::Set::create("CAS", 0));
 
   reset_encoder(0, 1);
 
@@ -595,8 +591,8 @@ TEST_F(SMTLibEncoderTest, declare_sync_vars)
   word sync_id = 1;
 
   /* 3 different sync ids */
-  for (size_t i = 0; i < 3; i++)
-    programs[i]->add(Instruction::Set::create("SYNC", sync_id++));
+  for (const auto & p : programs)
+    p->add(Instruction::Set::create("SYNC", sync_id++));
 
   reset_encoder(0, 1);
 
@@ -611,8 +607,8 @@ TEST_F(SMTLibEncoderTest, declare_sync_vars)
   ASSERT_STREQ(expected, encoder->formula.str().c_str());
 
   /* same sync ids */
-  for (size_t i = 0; i < 3; i++)
-    programs[i]->add(Instruction::Set::create("SYNC", sync_id));
+  for (const auto & p : programs)
+    p->add(Instruction::Set::create("SYNC", sync_id));
 
   reset_encoder(0, 1);
 
@@ -930,7 +926,6 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
 // void add_statement_execution (void);
 TEST_F(SMTLibEncoderTest, add_statement_execution)
 {
-  /* base case */
   add_dummy_programs(3, 3);
 
   encoder->step = 1;
@@ -1037,11 +1032,140 @@ TEST_F(SMTLibEncoderTest, add_statement_execution)
   ASSERT_STREQ(expected, encoder->formula.str().c_str());
 }
 
-// TODO
 // void add_comment_section (const std::string &);
+TEST_F(SMTLibEncoderTest, add_comment_section)
+{
+  encoder->add_comment_section("foo");
+
+  expected =
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; foo\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n";
+
+  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+
+  /* empty argument */
+  reset_encoder(0, 0);
+
+  encoder->add_comment_section("");
+
+  expected =
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; \n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n";
+
+  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+}
 
 // void add_comment_subsection (const std::string &);
+TEST_F(SMTLibEncoderTest, add_comment_subsection)
+{
+  encoder->add_comment_subsection("foo");
+
+  expected =
+    "; foo ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n";
+
+  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+
+  /* empty argument */
+  reset_encoder(0, 0);
+
+  encoder->add_comment_subsection("");
+
+  expected =
+    ";  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n";
+
+  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+}
 
 // string load(Load &);
+TEST_F(SMTLibEncoderTest, load)
+{
+  Load l = Load(1);
+
+  encoder->step = 1;
+
+  expected = "(select heap_0 #x0001)";
+
+  ASSERT_STREQ(expected, encoder->load(l).c_str());
+
+  /* indirect */
+  l.indirect = true;
+
+  expected = "(select heap_0 (select heap_0 #x0001))";
+
+  ASSERT_STREQ(expected, encoder->load(l).c_str());
+}
 
 // virtual void encode (void);
+TEST_F(SMTLibEncoderTest, encode)
+{
+  add_dummy_programs(3, 3);
+
+  encoder->encode();
+
+  expected =
+    "(set-logic QF_AUFBV)\n"
+    "\n"
+    "; exit code\n"
+    "(declare-fun exit_code () Bool)\n"
+    "\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; initial state\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; accu states - accu_<step>_<thread>\n"
+    "(declare-fun accu_0_1 () (_ BitVec 16))\n"
+    "(declare-fun accu_0_2 () (_ BitVec 16))\n"
+    "(declare-fun accu_0_3 () (_ BitVec 16))\n"
+    "\n"
+    "(assert (= accu_0_1 #x0000))\n"
+    "(assert (= accu_0_2 #x0000))\n"
+    "(assert (= accu_0_3 #x0000))\n"
+    "\n"
+    "; mem states - mem_<step>_<thread>\n"
+    "(declare-fun mem_0_1 () (_ BitVec 16))\n"
+    "(declare-fun mem_0_2 () (_ BitVec 16))\n"
+    "(declare-fun mem_0_3 () (_ BitVec 16))\n"
+    "\n"
+    "(assert (= mem_0_1 #x0000))\n"
+    "(assert (= mem_0_2 #x0000))\n"
+    "(assert (= mem_0_3 #x0000))\n"
+    "\n"
+    "; heap states - heap_<step>\n"
+    "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n\n";
+
+  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+
+  /* verbosity */
+  reset_encoder(0, 0);
+
+  verbose = false;
+  encoder->encode();
+  verbose = true;
+
+  expected =
+    "(set-logic QF_AUFBV)\n"
+    "\n"
+    "(declare-fun exit_code () Bool)\n"
+    "\n"
+    "(declare-fun accu_0_1 () (_ BitVec 16))\n"
+    "(declare-fun accu_0_2 () (_ BitVec 16))\n"
+    "(declare-fun accu_0_3 () (_ BitVec 16))\n"
+    "\n"
+    "(assert (= accu_0_1 #x0000))\n"
+    "(assert (= accu_0_2 #x0000))\n"
+    "(assert (= accu_0_3 #x0000))\n"
+    "\n"
+    "(declare-fun mem_0_1 () (_ BitVec 16))\n"
+    "(declare-fun mem_0_2 () (_ BitVec 16))\n"
+    "(declare-fun mem_0_3 () (_ BitVec 16))\n"
+    "\n"
+    "(assert (= mem_0_1 #x0000))\n"
+    "(assert (= mem_0_2 #x0000))\n"
+    "(assert (= mem_0_3 #x0000))\n"
+    "\n"
+    "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n\n";
+
+  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+}
