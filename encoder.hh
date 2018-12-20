@@ -171,9 +171,6 @@ struct SMTLibEncoder : public Encoder
   /* expression generators */
   std::string               assign_var (std::string, std::string);
 
-  std::string               assign_accu (std::string);
-  std::string               assign_mem (std::string);
-
   /* common encodings */
   void                      add_initial_state (void);
   void                      add_initial_statement_activation (void);

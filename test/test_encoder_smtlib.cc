@@ -695,4 +695,353 @@ TEST_F(SMTLibEncoderTest, declare_exit_vars)
   ASSERT_STREQ(expected, encoder->formula.str().c_str());
 }
 
-// TODO: string assign_var (std::string, std::string);
+// string assign_var (string, string);
+TEST_F(SMTLibEncoderTest, assign_var)
+{
+  ASSERT_STREQ(
+    "(assert (= foo bar))",
+    encoder->assign_var("foo", "bar").c_str());
+}
+
+// void add_initial_state (void);
+TEST_F(SMTLibEncoderTest, add_initial_state)
+{
+  add_dummy_programs(3, 3);
+
+  encoder->add_initial_state();
+
+  expected =
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; initial state\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; accu states - accu_<step>_<thread>\n"
+    "(declare-fun accu_0_1 () (_ BitVec 16))\n"
+    "(declare-fun accu_0_2 () (_ BitVec 16))\n"
+    "(declare-fun accu_0_3 () (_ BitVec 16))\n"
+    "\n"
+    "(assert (= accu_0_1 #x0000))\n"
+    "(assert (= accu_0_2 #x0000))\n"
+    "(assert (= accu_0_3 #x0000))\n"
+    "\n"
+    "; mem states - mem_<step>_<thread>\n"
+    "(declare-fun mem_0_1 () (_ BitVec 16))\n"
+    "(declare-fun mem_0_2 () (_ BitVec 16))\n"
+    "(declare-fun mem_0_3 () (_ BitVec 16))\n"
+    "\n"
+    "(assert (= mem_0_1 #x0000))\n"
+    "(assert (= mem_0_2 #x0000))\n"
+    "(assert (= mem_0_3 #x0000))\n"
+    "\n"
+    "; heap states - heap_<step>\n"
+    "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n";
+
+  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+
+  /* verbosity */
+  reset_encoder(0, 0);
+
+  verbose = false;
+  encoder->add_initial_state();
+  verbose = true;
+
+  expected =
+    "(declare-fun accu_0_1 () (_ BitVec 16))\n"
+    "(declare-fun accu_0_2 () (_ BitVec 16))\n"
+    "(declare-fun accu_0_3 () (_ BitVec 16))\n"
+    "\n"
+    "(assert (= accu_0_1 #x0000))\n"
+    "(assert (= accu_0_2 #x0000))\n"
+    "(assert (= accu_0_3 #x0000))\n"
+    "\n"
+    "(declare-fun mem_0_1 () (_ BitVec 16))\n"
+    "(declare-fun mem_0_2 () (_ BitVec 16))\n"
+    "(declare-fun mem_0_3 () (_ BitVec 16))\n"
+    "\n"
+    "(assert (= mem_0_1 #x0000))\n"
+    "(assert (= mem_0_2 #x0000))\n"
+    "(assert (= mem_0_3 #x0000))\n"
+    "\n"
+    "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n";
+
+  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+}
+
+// void add_initial_statement_activation (void);
+TEST_F(SMTLibEncoderTest, add_initial_statement_activation)
+{
+  add_dummy_programs(3, 3);
+
+  encoder->step = 1;
+
+  encoder->add_initial_statement_activation();
+
+  expected =
+    "; initial statement activation\n"
+    "(assert stmt_1_1_0)\n"
+    "(assert (not stmt_1_1_1))\n"
+    "(assert (not stmt_1_1_2))\n"
+    "\n"
+    "(assert stmt_1_2_0)\n"
+    "(assert (not stmt_1_2_1))\n"
+    "(assert (not stmt_1_2_2))\n"
+    "\n"
+    "(assert stmt_1_3_0)\n"
+    "(assert (not stmt_1_3_1))\n"
+    "(assert (not stmt_1_3_2))\n\n";
+
+  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+
+  /* verbosity */
+  reset_encoder(0, 1);
+
+  verbose = false;
+  encoder->add_initial_statement_activation();
+  verbose = true;
+
+  expected =
+    "(assert stmt_1_1_0)\n"
+    "(assert (not stmt_1_1_1))\n"
+    "(assert (not stmt_1_1_2))\n"
+    "\n"
+    "(assert stmt_1_2_0)\n"
+    "(assert (not stmt_1_2_1))\n"
+    "(assert (not stmt_1_2_2))\n"
+    "\n"
+    "(assert stmt_1_3_0)\n"
+    "(assert (not stmt_1_3_1))\n"
+    "(assert (not stmt_1_3_2))\n\n";
+
+  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+}
+
+// void add_synchronization_constraints (void);
+TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
+{
+  /* single sync barrier */
+  for (size_t i = 0; i < 3; i++)
+    {
+      programs.push_back(shared_ptr<Program>(new Program()));
+      programs[i]->add(Instruction::Set::create("SYNC", 1));
+    }
+
+  reset_encoder(0, 1);
+
+  encoder->add_synchronization_constraints();
+
+  expected =
+    "; synchronization constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; sync variables - sync_<step>_<id>\n"
+    "(declare-fun sync_1_1 () Bool)\n"
+    "\n"
+    "; all threads synchronized?\n"
+    "(assert (= sync_1_1 (and stmt_1_1_0 stmt_1_2_0 stmt_1_3_0 (or thread_1_1 thread_1_2 thread_1_3))))\n"
+    "\n"
+    "; prevent scheduling of waiting threads\n"
+    "(assert (=> (and stmt_1_1_0 (or (not stmt_1_2_0) (not stmt_1_3_0))) (not thread_1_1))) ; barrier 1: thread 1\n"
+    "(assert (=> (and stmt_1_2_0 (or (not stmt_1_1_0) (not stmt_1_3_0))) (not thread_1_2))) ; barrier 1: thread 2\n"
+    "(assert (=> (and stmt_1_3_0 (or (not stmt_1_1_0) (not stmt_1_2_0))) (not thread_1_3))) ; barrier 1: thread 3\n\n";
+
+  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+
+  /* two different barriers */
+  for (const auto & p : programs)
+    p->add(Instruction::Set::create("SYNC", 2));
+
+  reset_encoder(0, 1);
+
+  encoder->add_synchronization_constraints();
+
+  expected =
+    "; synchronization constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; sync variables - sync_<step>_<id>\n"
+    "(declare-fun sync_1_1 () Bool)\n"
+    "(declare-fun sync_1_2 () Bool)\n"
+    "\n"
+    "; all threads synchronized?\n"
+    "(assert (= sync_1_1 (and stmt_1_1_0 stmt_1_2_0 stmt_1_3_0 (or thread_1_1 thread_1_2 thread_1_3))))\n"
+    "(assert (= sync_1_2 (and stmt_1_1_1 stmt_1_2_1 stmt_1_3_1 (or thread_1_1 thread_1_2 thread_1_3))))\n"
+    "\n"
+    "; prevent scheduling of waiting threads\n"
+    "(assert (=> (and stmt_1_1_0 (or (not stmt_1_2_0) (not stmt_1_3_0))) (not thread_1_1))) ; barrier 1: thread 1\n"
+    "(assert (=> (and stmt_1_2_0 (or (not stmt_1_1_0) (not stmt_1_3_0))) (not thread_1_2))) ; barrier 1: thread 2\n"
+    "(assert (=> (and stmt_1_3_0 (or (not stmt_1_1_0) (not stmt_1_2_0))) (not thread_1_3))) ; barrier 1: thread 3\n"
+    "(assert (=> (and stmt_1_1_1 (or (not stmt_1_2_1) (not stmt_1_3_1))) (not thread_1_1))) ; barrier 2: thread 1\n"
+    "(assert (=> (and stmt_1_2_1 (or (not stmt_1_1_1) (not stmt_1_3_1))) (not thread_1_2))) ; barrier 2: thread 2\n"
+    "(assert (=> (and stmt_1_3_1 (or (not stmt_1_1_1) (not stmt_1_2_1))) (not thread_1_3))) ; barrier 2: thread 3\n\n";
+
+  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+
+  /* two identical barriers */
+  for (const auto & p : programs)
+    p->add(Instruction::Set::create("SYNC", 1));
+
+  reset_encoder(0, 1);
+
+  encoder->add_synchronization_constraints();
+
+  expected =
+    "; synchronization constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; sync variables - sync_<step>_<id>\n"
+    "(declare-fun sync_1_1 () Bool)\n"
+    "(declare-fun sync_1_2 () Bool)\n"
+    "\n"
+    "; all threads synchronized?\n"
+    "(assert (= sync_1_1 (and (or stmt_1_1_0 stmt_1_1_2) (or stmt_1_2_0 stmt_1_2_2) (or stmt_1_3_0 stmt_1_3_2) (or thread_1_1 thread_1_2 thread_1_3))))\n"
+    "(assert (= sync_1_2 (and stmt_1_1_1 stmt_1_2_1 stmt_1_3_1 (or thread_1_1 thread_1_2 thread_1_3))))\n"
+    "\n"
+    "; prevent scheduling of waiting threads\n"
+    "(assert (=> (and (or stmt_1_1_0 stmt_1_1_2) (or (not stmt_1_2_0) (not stmt_1_2_2) (not stmt_1_3_0) (not stmt_1_3_2))) (not thread_1_1))) ; barrier 1: thread 1\n"
+    "(assert (=> (and (or stmt_1_2_0 stmt_1_2_2) (or (not stmt_1_1_0) (not stmt_1_1_2) (not stmt_1_3_0) (not stmt_1_3_2))) (not thread_1_2))) ; barrier 1: thread 2\n"
+    "(assert (=> (and (or stmt_1_3_0 stmt_1_3_2) (or (not stmt_1_1_0) (not stmt_1_1_2) (not stmt_1_2_0) (not stmt_1_2_2))) (not thread_1_3))) ; barrier 1: thread 3\n"
+    "(assert (=> (and stmt_1_1_1 (or (not stmt_1_2_1) (not stmt_1_3_1))) (not thread_1_1))) ; barrier 2: thread 1\n"
+    "(assert (=> (and stmt_1_2_1 (or (not stmt_1_1_1) (not stmt_1_3_1))) (not thread_1_2))) ; barrier 2: thread 2\n"
+    "(assert (=> (and stmt_1_3_1 (or (not stmt_1_1_1) (not stmt_1_2_1))) (not thread_1_3))) ; barrier 2: thread 3\n\n";
+
+  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+
+  /* verbosity */
+  for (const auto & p : programs)
+    p->erase(p->begin() + 1, p->end());
+
+  ASSERT_EQ(programs[0]->size(), 1);
+
+  reset_encoder(0, 1);
+
+  verbose = false;
+  encoder->add_synchronization_constraints();
+  verbose = true;
+
+  expected =
+    "(declare-fun sync_1_1 () Bool)\n"
+    "\n"
+    "(assert (= sync_1_1 (and stmt_1_1_0 stmt_1_2_0 stmt_1_3_0 (or thread_1_1 thread_1_2 thread_1_3))))\n"
+    "\n"
+    "(assert (=> (and stmt_1_1_0 (or (not stmt_1_2_0) (not stmt_1_3_0))) (not thread_1_1)))\n"
+    "(assert (=> (and stmt_1_2_0 (or (not stmt_1_1_0) (not stmt_1_3_0))) (not thread_1_2)))\n"
+    "(assert (=> (and stmt_1_3_0 (or (not stmt_1_1_0) (not stmt_1_2_0))) (not thread_1_3)))\n\n";
+
+  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+}
+
+// void add_statement_execution (void);
+TEST_F(SMTLibEncoderTest, add_statement_execution)
+{
+  /* base case */
+  add_dummy_programs(3, 3);
+
+  encoder->step = 1;
+
+  encoder->add_statement_execution();
+
+  expected =
+    "; statement execution - shorthand for statement & thread activation ;;;;;;;;;;;;\n"
+    "\n"
+    "; statement execution variables - exec_<step>_<thread>_<pc>\n"
+    "(declare-fun exec_1_1_0 () Bool)\n"
+    "(declare-fun exec_1_1_1 () Bool)\n"
+    "(declare-fun exec_1_1_2 () Bool)\n"
+    "\n"
+    "(declare-fun exec_1_2_0 () Bool)\n"
+    "(declare-fun exec_1_2_1 () Bool)\n"
+    "(declare-fun exec_1_2_2 () Bool)\n"
+    "\n"
+    "(declare-fun exec_1_3_0 () Bool)\n"
+    "(declare-fun exec_1_3_1 () Bool)\n"
+    "(declare-fun exec_1_3_2 () Bool)\n"
+    "\n"
+    "(assert (= exec_1_1_0 (and stmt_1_1_0 thread_1_1)))\n"
+    "(assert (= exec_1_1_1 (and stmt_1_1_1 thread_1_1)))\n"
+    "(assert (= exec_1_1_2 (and stmt_1_1_2 thread_1_1)))\n"
+    "\n"
+    "(assert (= exec_1_2_0 (and stmt_1_2_0 thread_1_2)))\n"
+    "(assert (= exec_1_2_1 (and stmt_1_2_1 thread_1_2)))\n"
+    "(assert (= exec_1_2_2 (and stmt_1_2_2 thread_1_2)))\n"
+    "\n"
+    "(assert (= exec_1_3_0 (and stmt_1_3_0 thread_1_3)))\n"
+    "(assert (= exec_1_3_1 (and stmt_1_3_1 thread_1_3)))\n"
+    "(assert (= exec_1_3_2 (and stmt_1_3_2 thread_1_3)))\n\n";
+
+  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+
+  /* last statement is a sync barrier */
+  for (const auto & p : programs)
+    p->add(Instruction::Set::create("SYNC", 1));
+
+  reset_encoder(0, 1);
+
+  encoder->add_statement_execution();
+
+  expected =
+    "; statement execution - shorthand for statement & thread activation ;;;;;;;;;;;;\n"
+    "\n"
+    "; statement execution variables - exec_<step>_<thread>_<pc>\n"
+    "(declare-fun exec_1_1_0 () Bool)\n"
+    "(declare-fun exec_1_1_1 () Bool)\n"
+    "(declare-fun exec_1_1_2 () Bool)\n"
+    "(declare-fun exec_1_1_3 () Bool)\n"
+    "\n"
+    "(declare-fun exec_1_2_0 () Bool)\n"
+    "(declare-fun exec_1_2_1 () Bool)\n"
+    "(declare-fun exec_1_2_2 () Bool)\n"
+    "(declare-fun exec_1_2_3 () Bool)\n"
+    "\n"
+    "(declare-fun exec_1_3_0 () Bool)\n"
+    "(declare-fun exec_1_3_1 () Bool)\n"
+    "(declare-fun exec_1_3_2 () Bool)\n"
+    "(declare-fun exec_1_3_3 () Bool)\n"
+    "\n"
+    "(assert (= exec_1_1_0 (and stmt_1_1_0 thread_1_1)))\n"
+    "(assert (= exec_1_1_1 (and stmt_1_1_1 thread_1_1)))\n"
+    "(assert (= exec_1_1_2 (and stmt_1_1_2 thread_1_1)))\n"
+    "(assert (= exec_1_1_3 (and stmt_1_1_3 sync_1_1)))\n"
+    "\n"
+    "(assert (= exec_1_2_0 (and stmt_1_2_0 thread_1_2)))\n"
+    "(assert (= exec_1_2_1 (and stmt_1_2_1 thread_1_2)))\n"
+    "(assert (= exec_1_2_2 (and stmt_1_2_2 thread_1_2)))\n"
+    "(assert (= exec_1_2_3 (and stmt_1_2_3 sync_1_1)))\n"
+    "\n"
+    "(assert (= exec_1_3_0 (and stmt_1_3_0 thread_1_3)))\n"
+    "(assert (= exec_1_3_1 (and stmt_1_3_1 thread_1_3)))\n"
+    "(assert (= exec_1_3_2 (and stmt_1_3_2 thread_1_3)))\n"
+    "(assert (= exec_1_3_3 (and stmt_1_3_3 sync_1_1)))\n\n";
+
+  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+
+  /* verbosity */
+  for (const auto & p : programs)
+    p->erase(p->begin() + 1, p->end());
+
+  reset_encoder(0, 1);
+
+  verbose = false;
+  encoder->add_statement_execution();
+  verbose = true;
+
+  expected =
+    "(declare-fun exec_1_1_0 () Bool)\n"
+    "\n"
+    "(declare-fun exec_1_2_0 () Bool)\n"
+    "\n"
+    "(declare-fun exec_1_3_0 () Bool)\n"
+    "\n"
+    "(assert (= exec_1_1_0 (and stmt_1_1_0 thread_1_1)))\n"
+    "\n"
+    "(assert (= exec_1_2_0 (and stmt_1_2_0 thread_1_2)))\n"
+    "\n"
+    "(assert (= exec_1_3_0 (and stmt_1_3_0 thread_1_3)))\n\n";
+
+  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+}
+
+// TODO
+// void add_comment_section (const std::string &);
+
+// void add_comment_subsection (const std::string &);
+
+// string load(Load &);
+
+// virtual void encode (void);
