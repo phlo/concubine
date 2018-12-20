@@ -498,27 +498,6 @@ void SMTLibEncoder::add_synchronization_constraints ()
   formula << eol;
 }
 
-// DEBUG: TODO remove
-string sync_pcs_to_string (SMTLibEncoder & encoder)
-{
-  ostringstream ss;
-
-  for (const auto & [id, threads] : encoder.sync_pcs)
-    {
-      ss << id << ": " << eol;
-
-      for (const auto & [thread, pcs] : threads)
-        {
-          ss << "  " << thread << ":";
-          for (const auto & pc : pcs)
-            ss << " " << pc;
-          ss << eol;
-        }
-    }
-
-  return ss.str();
-}
-
 void SMTLibEncoder::add_statement_execution ()
 {
   if (verbose)
@@ -988,7 +967,7 @@ string SMTLibEncoderFunctional::encode (Cas & c)
         smtlib::select(heap, addr)}),
       smtlib::store(
         heap,
-        smtlib::select(heap, addr),
+        addr,
         accu_var(step - 1, thread)),
       heap);
 }

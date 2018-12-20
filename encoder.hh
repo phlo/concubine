@@ -250,4 +250,10 @@ struct SMTLibEncoderFunctional : public SMTLibEncoder
   virtual std::string encode (Sync &);
   virtual std::string encode (Exit &);
 };
+
+/*******************************************************************************
+ * SMTLibEncoderFunctionalPtr
+ ******************************************************************************/
+typedef std::shared_ptr<SMTLibEncoderFunctional> SMTLibEncoderFunctionalPtr;
+
 #endif
