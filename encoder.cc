@@ -577,8 +577,6 @@ void SMTLibEncoderFunctional::add_statement_activation ()
   if (verbose)
     add_comment_subsection("statement activation");
 
-  formula << eol;
-
   declare_stmt_vars();
 
   if (step == 1)
@@ -604,7 +602,15 @@ void SMTLibEncoderFunctional::add_statement_activation ()
                   /* JMP has no condition and returns an empty string */
                   string cond = j->encode(*this);
 
-                  val = cond.empty() ? val : smtlib::land({val, cond});
+                  val = cond.empty()
+                    ? val
+                    : smtlib::land({
+                        val,
+                        /* only activate successor if jump condition failed */
+                        prev == pc - 1 && j->arg != pc
+                          ? smtlib::lnot(cond)
+                          : cond
+                      });
                 }
 
               /* add predecessor to the activation */

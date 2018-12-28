@@ -27,33 +27,342 @@ struct SMTLibEncoderFunctionalTest : public ::testing::Test
       encoder = create_encoder(bound, step);
     }
 
-  /*
-  void add_dummy_programs (unsigned num, unsigned size)
+  void add_instruction_set (unsigned num)
     {
-      InstructionPtr op = Instruction::Set::create("ADDI", 1);
       for (size_t i = 0; i < num; i++)
         {
           programs.push_back(shared_ptr<Program>(new Program()));
-          for (size_t j = 0; j < size; j++)
-            programs[i]->add(op);
+
+          programs[i]->add(Instruction::Set::create("LOAD", 1));  // 0
+          programs[i]->add(Instruction::Set::create("STORE", 1)); // 1
+          programs[i]->add(Instruction::Set::create("ADD", 1));   // 2
+          programs[i]->add(Instruction::Set::create("ADDI", 1));  // 3
+          programs[i]->add(Instruction::Set::create("SUB", 1));   // 4
+          programs[i]->add(Instruction::Set::create("SUBI", 1));  // 5
+          programs[i]->add(Instruction::Set::create("CMP", 1));   // 6
+          programs[i]->add(Instruction::Set::create("JMP", 1));   // 7
+          programs[i]->add(Instruction::Set::create("JZ", 1));    // 8
+          programs[i]->add(Instruction::Set::create("JNZ", 1));   // 9
+          programs[i]->add(Instruction::Set::create("JS", 1));    // 10
+          programs[i]->add(Instruction::Set::create("JNS", 1));   // 11
+          programs[i]->add(Instruction::Set::create("JNZNS", 1)); // 12
+          programs[i]->add(Instruction::Set::create("MEM", 1));   // 13
+          programs[i]->add(Instruction::Set::create("CAS", 1));   // 14
+          programs[i]->add(Instruction::Set::create("SYNC", 1));  // 15
+          programs[i]->add(Instruction::Set::create("EXIT", 1));  // 16
         }
 
-      encoder = create_encoder(1);
+      reset_encoder(0, 0);
     }
-  */
 };
 
 // void add_statement_activation (void);
+TEST_F(SMTLibEncoderFunctionalTest, add_statement_activation_basic)
+{
+  for (size_t i = 0; i < 3; i++)
+    {
+      programs.push_back(shared_ptr<Program>(new Program()));
+
+      programs[i]->add(Instruction::Set::create("ADDI", 1));
+      programs[i]->add(Instruction::Set::create("STORE", 1));
+    }
+
+  reset_encoder(0, 2);
+
+  encoder->add_statement_activation();
+
+  expected =
+    "; statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
+    "(declare-fun stmt_2_1_0 () Bool)\n"
+    "(declare-fun stmt_2_1_1 () Bool)\n"
+    "\n"
+    "(declare-fun stmt_2_2_0 () Bool)\n"
+    "(declare-fun stmt_2_2_1 () Bool)\n"
+    "\n"
+    "(declare-fun stmt_2_3_0 () Bool)\n"
+    "(declare-fun stmt_2_3_1 () Bool)\n"
+    "\n"
+    "(assert (= stmt_2_1_0 (and stmt_1_1_0 (not exec_1_1_0))))\n"
+    "(assert (= stmt_2_1_1 (ite stmt_1_1_0 exec_1_1_0 (and stmt_1_1_1 (not exec_1_1_1)))))\n"
+    "\n"
+    "(assert (= stmt_2_2_0 (and stmt_1_2_0 (not exec_1_2_0))))\n"
+    "(assert (= stmt_2_2_1 (ite stmt_1_2_0 exec_1_2_0 (and stmt_1_2_1 (not exec_1_2_1)))))\n"
+    "\n"
+    "(assert (= stmt_2_3_0 (and stmt_1_3_0 (not exec_1_3_0))))\n"
+    "(assert (= stmt_2_3_1 (ite stmt_1_3_0 exec_1_3_0 (and stmt_1_3_1 (not exec_1_3_1)))))\n\n";
+
+  ASSERT_EQ(expected, encoder->formula.str());
+
+  /* verbosity */
+  reset_encoder(0, 2);
+
+  verbose = false;
+  encoder->add_statement_activation();
+  verbose = true;
+
+  expected =
+    "(declare-fun stmt_2_1_0 () Bool)\n"
+    "(declare-fun stmt_2_1_1 () Bool)\n"
+    "\n"
+    "(declare-fun stmt_2_2_0 () Bool)\n"
+    "(declare-fun stmt_2_2_1 () Bool)\n"
+    "\n"
+    "(declare-fun stmt_2_3_0 () Bool)\n"
+    "(declare-fun stmt_2_3_1 () Bool)\n"
+    "\n"
+    "(assert (= stmt_2_1_0 (and stmt_1_1_0 (not exec_1_1_0))))\n"
+    "(assert (= stmt_2_1_1 (ite stmt_1_1_0 exec_1_1_0 (and stmt_1_1_1 (not exec_1_1_1)))))\n"
+    "\n"
+    "(assert (= stmt_2_2_0 (and stmt_1_2_0 (not exec_1_2_0))))\n"
+    "(assert (= stmt_2_2_1 (ite stmt_1_2_0 exec_1_2_0 (and stmt_1_2_1 (not exec_1_2_1)))))\n"
+    "\n"
+    "(assert (= stmt_2_3_0 (and stmt_1_3_0 (not exec_1_3_0))))\n"
+    "(assert (= stmt_2_3_1 (ite stmt_1_3_0 exec_1_3_0 (and stmt_1_3_1 (not exec_1_3_1)))))\n\n";
+
+  ASSERT_EQ(expected, encoder->formula.str());
+}
+
+TEST_F(SMTLibEncoderFunctionalTest, add_statement_activation_jmp)
+{
+  for (size_t i = 0; i < 3; i++)
+    {
+      programs.push_back(shared_ptr<Program>(new Program()));
+
+      programs[i]->add(Instruction::Set::create("ADDI", 1));
+      programs[i]->add(Instruction::Set::create("STORE", 1));
+      programs[i]->add(Instruction::Set::create("JMP", 1));
+    }
+
+  reset_encoder(0, 2);
+
+  encoder->add_statement_activation();
+
+  expected =
+    "; statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
+    "(declare-fun stmt_2_1_0 () Bool)\n"
+    "(declare-fun stmt_2_1_1 () Bool)\n"
+    "(declare-fun stmt_2_1_2 () Bool)\n"
+    "\n"
+    "(declare-fun stmt_2_2_0 () Bool)\n"
+    "(declare-fun stmt_2_2_1 () Bool)\n"
+    "(declare-fun stmt_2_2_2 () Bool)\n"
+    "\n"
+    "(declare-fun stmt_2_3_0 () Bool)\n"
+    "(declare-fun stmt_2_3_1 () Bool)\n"
+    "(declare-fun stmt_2_3_2 () Bool)\n"
+    "\n"
+    "(assert (= stmt_2_1_0 (and stmt_1_1_0 (not exec_1_1_0))))\n"
+    "(assert (= stmt_2_1_1 (ite stmt_1_1_2 exec_1_1_2 (ite stmt_1_1_0 exec_1_1_0 (and stmt_1_1_1 (not exec_1_1_1))))))\n"
+    "(assert (= stmt_2_1_2 (ite stmt_1_1_1 exec_1_1_1 (and stmt_1_1_2 (not exec_1_1_2)))))\n"
+    "\n"
+    "(assert (= stmt_2_2_0 (and stmt_1_2_0 (not exec_1_2_0))))\n"
+    "(assert (= stmt_2_2_1 (ite stmt_1_2_2 exec_1_2_2 (ite stmt_1_2_0 exec_1_2_0 (and stmt_1_2_1 (not exec_1_2_1))))))\n"
+    "(assert (= stmt_2_2_2 (ite stmt_1_2_1 exec_1_2_1 (and stmt_1_2_2 (not exec_1_2_2)))))\n"
+    "\n"
+    "(assert (= stmt_2_3_0 (and stmt_1_3_0 (not exec_1_3_0))))\n"
+    "(assert (= stmt_2_3_1 (ite stmt_1_3_2 exec_1_3_2 (ite stmt_1_3_0 exec_1_3_0 (and stmt_1_3_1 (not exec_1_3_1))))))\n"
+    "(assert (= stmt_2_3_2 (ite stmt_1_3_1 exec_1_3_1 (and stmt_1_3_2 (not exec_1_3_2)))))\n\n";
+
+  ASSERT_EQ(expected, encoder->formula.str());
+}
+
+TEST_F(SMTLibEncoderFunctionalTest, add_statement_activation_jmp_conditional)
+{
+  for (size_t i = 0; i < 3; i++)
+    {
+      programs.push_back(shared_ptr<Program>(new Program()));
+
+      programs[i]->add(Instruction::Set::create("ADDI", 1));
+      programs[i]->add(Instruction::Set::create("STORE", 1));
+      programs[i]->add(Instruction::Set::create("JZ", 1));
+    }
+
+  reset_encoder(0, 2);
+
+  encoder->add_statement_activation();
+
+  expected =
+    "; statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
+    "(declare-fun stmt_2_1_0 () Bool)\n"
+    "(declare-fun stmt_2_1_1 () Bool)\n"
+    "(declare-fun stmt_2_1_2 () Bool)\n"
+    "\n"
+    "(declare-fun stmt_2_2_0 () Bool)\n"
+    "(declare-fun stmt_2_2_1 () Bool)\n"
+    "(declare-fun stmt_2_2_2 () Bool)\n"
+    "\n"
+    "(declare-fun stmt_2_3_0 () Bool)\n"
+    "(declare-fun stmt_2_3_1 () Bool)\n"
+    "(declare-fun stmt_2_3_2 () Bool)\n"
+    "\n"
+    "(assert (= stmt_2_1_0 (and stmt_1_1_0 (not exec_1_1_0))))\n"
+    "(assert (= stmt_2_1_1 (ite stmt_1_1_2 (and exec_1_1_2 (= accu_1_1 #x0000)) (ite stmt_1_1_0 exec_1_1_0 (and stmt_1_1_1 (not exec_1_1_1))))))\n"
+    "(assert (= stmt_2_1_2 (ite stmt_1_1_1 exec_1_1_1 (and stmt_1_1_2 (not exec_1_1_2)))))\n"
+    "\n"
+    "(assert (= stmt_2_2_0 (and stmt_1_2_0 (not exec_1_2_0))))\n"
+    "(assert (= stmt_2_2_1 (ite stmt_1_2_2 (and exec_1_2_2 (= accu_1_2 #x0000)) (ite stmt_1_2_0 exec_1_2_0 (and stmt_1_2_1 (not exec_1_2_1))))))\n"
+    "(assert (= stmt_2_2_2 (ite stmt_1_2_1 exec_1_2_1 (and stmt_1_2_2 (not exec_1_2_2)))))\n"
+    "\n"
+    "(assert (= stmt_2_3_0 (and stmt_1_3_0 (not exec_1_3_0))))\n"
+    "(assert (= stmt_2_3_1 (ite stmt_1_3_2 (and exec_1_3_2 (= accu_1_3 #x0000)) (ite stmt_1_3_0 exec_1_3_0 (and stmt_1_3_1 (not exec_1_3_1))))))\n"
+    "(assert (= stmt_2_3_2 (ite stmt_1_3_1 exec_1_3_1 (and stmt_1_3_2 (not exec_1_3_2)))))\n\n";
+
+  ASSERT_EQ(expected, encoder->formula.str());
+}
+
+TEST_F(SMTLibEncoderFunctionalTest, add_statement_activation_jmp_start)
+{
+  for (size_t i = 0; i < 3; i++)
+    {
+      programs.push_back(shared_ptr<Program>(new Program()));
+
+      programs[i]->add(Instruction::Set::create("ADDI", 1));
+      programs[i]->add(Instruction::Set::create("STORE", 1));
+      programs[i]->add(Instruction::Set::create("JZ", 0));
+    }
+
+  reset_encoder(0, 2);
+
+  encoder->add_statement_activation();
+
+  expected =
+    "; statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
+    "(declare-fun stmt_2_1_0 () Bool)\n"
+    "(declare-fun stmt_2_1_1 () Bool)\n"
+    "(declare-fun stmt_2_1_2 () Bool)\n"
+    "\n"
+    "(declare-fun stmt_2_2_0 () Bool)\n"
+    "(declare-fun stmt_2_2_1 () Bool)\n"
+    "(declare-fun stmt_2_2_2 () Bool)\n"
+    "\n"
+    "(declare-fun stmt_2_3_0 () Bool)\n"
+    "(declare-fun stmt_2_3_1 () Bool)\n"
+    "(declare-fun stmt_2_3_2 () Bool)\n"
+    "\n"
+    "(assert (= stmt_2_1_0 (ite stmt_1_1_2 (and exec_1_1_2 (= accu_1_1 #x0000)) (and stmt_1_1_0 (not exec_1_1_0)))))\n"
+    "(assert (= stmt_2_1_1 (ite stmt_1_1_0 exec_1_1_0 (and stmt_1_1_1 (not exec_1_1_1)))))\n"
+    "(assert (= stmt_2_1_2 (ite stmt_1_1_1 exec_1_1_1 (and stmt_1_1_2 (not exec_1_1_2)))))\n"
+    "\n"
+    "(assert (= stmt_2_2_0 (ite stmt_1_2_2 (and exec_1_2_2 (= accu_1_2 #x0000)) (and stmt_1_2_0 (not exec_1_2_0)))))\n"
+    "(assert (= stmt_2_2_1 (ite stmt_1_2_0 exec_1_2_0 (and stmt_1_2_1 (not exec_1_2_1)))))\n"
+    "(assert (= stmt_2_2_2 (ite stmt_1_2_1 exec_1_2_1 (and stmt_1_2_2 (not exec_1_2_2)))))\n"
+    "\n"
+    "(assert (= stmt_2_3_0 (ite stmt_1_3_2 (and exec_1_3_2 (= accu_1_3 #x0000)) (and stmt_1_3_0 (not exec_1_3_0)))))\n"
+    "(assert (= stmt_2_3_1 (ite stmt_1_3_0 exec_1_3_0 (and stmt_1_3_1 (not exec_1_3_1)))))\n"
+    "(assert (= stmt_2_3_2 (ite stmt_1_3_1 exec_1_3_1 (and stmt_1_3_2 (not exec_1_3_2)))))\n\n";
+
+  ASSERT_EQ(expected, encoder->formula.str());
+}
+
+TEST_F(SMTLibEncoderFunctionalTest, add_statement_activation_jmp_twice)
+{
+  for (size_t i = 0; i < 3; i++)
+    {
+      programs.push_back(shared_ptr<Program>(new Program()));
+
+      programs[i]->add(Instruction::Set::create("ADDI", 1));
+      programs[i]->add(Instruction::Set::create("STORE", 1));
+      programs[i]->add(Instruction::Set::create("JZ", 1));
+      programs[i]->add(Instruction::Set::create("JNZ", 1));
+    }
+
+  reset_encoder(0, 2);
+
+  encoder->add_statement_activation();
+
+  expected =
+    "; statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
+    "(declare-fun stmt_2_1_0 () Bool)\n"
+    "(declare-fun stmt_2_1_1 () Bool)\n"
+    "(declare-fun stmt_2_1_2 () Bool)\n"
+    "(declare-fun stmt_2_1_3 () Bool)\n"
+    "\n"
+    "(declare-fun stmt_2_2_0 () Bool)\n"
+    "(declare-fun stmt_2_2_1 () Bool)\n"
+    "(declare-fun stmt_2_2_2 () Bool)\n"
+    "(declare-fun stmt_2_2_3 () Bool)\n"
+    "\n"
+    "(declare-fun stmt_2_3_0 () Bool)\n"
+    "(declare-fun stmt_2_3_1 () Bool)\n"
+    "(declare-fun stmt_2_3_2 () Bool)\n"
+    "(declare-fun stmt_2_3_3 () Bool)\n"
+    "\n"
+    "(assert (= stmt_2_1_0 (and stmt_1_1_0 (not exec_1_1_0))))\n"
+    "(assert (= stmt_2_1_1 (ite stmt_1_1_3 (and exec_1_1_3 (not (= accu_1_1 #x0000))) (ite stmt_1_1_2 (and exec_1_1_2 (= accu_1_1 #x0000)) (ite stmt_1_1_0 exec_1_1_0 (and stmt_1_1_1 (not exec_1_1_1)))))))\n"
+    "(assert (= stmt_2_1_2 (ite stmt_1_1_1 exec_1_1_1 (and stmt_1_1_2 (not exec_1_1_2)))))\n"
+    "(assert (= stmt_2_1_3 (ite stmt_1_1_2 (and exec_1_1_2 (not (= accu_1_1 #x0000))) (and stmt_1_1_3 (not exec_1_1_3)))))\n"
+    "\n"
+    "(assert (= stmt_2_2_0 (and stmt_1_2_0 (not exec_1_2_0))))\n"
+    "(assert (= stmt_2_2_1 (ite stmt_1_2_3 (and exec_1_2_3 (not (= accu_1_2 #x0000))) (ite stmt_1_2_2 (and exec_1_2_2 (= accu_1_2 #x0000)) (ite stmt_1_2_0 exec_1_2_0 (and stmt_1_2_1 (not exec_1_2_1)))))))\n"
+    "(assert (= stmt_2_2_2 (ite stmt_1_2_1 exec_1_2_1 (and stmt_1_2_2 (not exec_1_2_2)))))\n"
+    "(assert (= stmt_2_2_3 (ite stmt_1_2_2 (and exec_1_2_2 (not (= accu_1_2 #x0000))) (and stmt_1_2_3 (not exec_1_2_3)))))\n"
+    "\n"
+    "(assert (= stmt_2_3_0 (and stmt_1_3_0 (not exec_1_3_0))))\n"
+    "(assert (= stmt_2_3_1 (ite stmt_1_3_3 (and exec_1_3_3 (not (= accu_1_3 #x0000))) (ite stmt_1_3_2 (and exec_1_3_2 (= accu_1_3 #x0000)) (ite stmt_1_3_0 exec_1_3_0 (and stmt_1_3_1 (not exec_1_3_1)))))))\n"
+    "(assert (= stmt_2_3_2 (ite stmt_1_3_1 exec_1_3_1 (and stmt_1_3_2 (not exec_1_3_2)))))\n"
+    "(assert (= stmt_2_3_3 (ite stmt_1_3_2 (and exec_1_3_2 (not (= accu_1_3 #x0000))) (and stmt_1_3_3 (not exec_1_3_3)))))\n\n";
+
+  ASSERT_EQ(expected, encoder->formula.str());
+}
 
 // void add_thread_scheduling (void);
+// TODO
 
 // void add_exit_call (void);
+// TODO
 
 // void add_state_update (void);
+// TODO
 
 // virtual void preprocess (void);
+TEST_F(SMTLibEncoderFunctionalTest, preprocess_heap_pcs)
+{
+  add_instruction_set(3);
+
+  ASSERT_EQ(3, encoder->heap_pcs.size());
+
+  vector<word> heap_pcs({1, 14});
+
+  for (const auto & pcs: encoder->heap_pcs)
+    ASSERT_EQ(heap_pcs, pcs.second);
+}
+
+TEST_F(SMTLibEncoderFunctionalTest, preprocess_accu_pcs)
+{
+  add_instruction_set(3);
+
+  ASSERT_EQ(3, encoder->accu_pcs.size());
+
+  vector<word> accu_pcs({0, 2, 3, 4, 5, 6});
+
+  for (const auto & pcs: encoder->accu_pcs)
+    ASSERT_EQ(accu_pcs, pcs.second);
+}
+
+TEST_F(SMTLibEncoderFunctionalTest, preprocess_mem_pcs)
+{
+  add_instruction_set(3);
+
+  ASSERT_EQ(3, encoder->mem_pcs.size());
+
+  vector<word> mem_pcs({13});
+
+  for (const auto & pcs: encoder->mem_pcs)
+    ASSERT_EQ(mem_pcs, pcs.second);
+}
 
 // virtual void encode (void);
+// TODO
 
 // virtual std::string encode (Load &);
 TEST_F(SMTLibEncoderFunctionalTest, LOAD)
