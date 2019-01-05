@@ -694,79 +694,70 @@ void SMTLibEncoderFunctional::add_state_update ()
   if (verbose)
     add_comment_subsection("state update");
 
+  /* accumulator */
+  declare_accu_vars();
+
   formula << eol;
 
-  /* accumulator */
-  if (!accu_pcs.empty())
-    {
-      declare_accu_vars();
+  iterate_threads([&] (Program & program) {
+    vector<word> & pcs = accu_pcs[thread];
+    string expr = accu_var(step - 1, thread);
 
-      formula << eol;
+    // for (const word & _pc : accu_pcs[thread])
+    for (auto rit = pcs.rbegin(); rit != pcs.rend(); ++rit)
+      expr = eol +
+        smtlib::ite(
+          exec_var(step, thread, *rit),
+          program[*rit]->encode(*this),
+          expr);
 
-      iterate_threads([&] (Program & program) {
-        vector<word> & pcs = accu_pcs[thread];
-        string expr = accu_var(step - 1, thread);
-
-        // for (const word & _pc : accu_pcs[thread])
-        for (auto rit = pcs.rbegin(); rit != pcs.rend(); ++rit)
-          expr = eol +
-            smtlib::ite(
-              exec_var(step, thread, *rit),
-              program[*rit]->encode(*this),
-              expr);
-
-        formula << assign_var(accu_var(), expr) << eol;
-      });
-    }
+    formula << assign_var(accu_var(), expr) << eol;
+  });
 
   formula << eol;
 
   /* CAS memory register */
-  if (!mem_pcs.empty())
-    {
-      declare_mem_vars();
+  declare_mem_vars();
 
-      formula << eol;
+  formula << eol;
 
-      iterate_threads([&] (Program & program) {
-        vector<word> & pcs = mem_pcs[thread];
-        string expr = mem_var(step - 1, thread);
+  iterate_threads([&] (Program & program) {
+    vector<word> & pcs = mem_pcs[thread];
+    string expr = mem_var(step - 1, thread);
 
-        // for (const word & _pc : mem_pcs[thread])
-        for (auto rit = pcs.rbegin(); rit != pcs.rend(); ++rit)
-          expr = eol +
-            smtlib::ite(
-              exec_var(step, thread, *rit),
-              program[*rit]->encode(*this),
-              expr);
+    // for (const word & _pc : mem_pcs[thread])
+    for (auto rit = pcs.rbegin(); rit != pcs.rend(); ++rit)
+      expr = eol +
+        smtlib::ite(
+          exec_var(step, thread, *rit),
+          program[*rit]->encode(*this),
+          expr);
 
-        formula << assign_var(mem_var(), expr) << eol;
-      });
-    }
+    formula << assign_var(mem_var(), expr) << eol;
+  });
+
+  formula << eol;
 
   /* heap */
-  if (!heap_pcs.empty())
-    {
-      declare_heap_var();
+  declare_heap_var();
 
-      formula << eol;
+  formula << eol;
 
-      string expr = heap_var(step - 1);
+  string expr = heap_var(step - 1);
 
-      iterate_threads_reverse([&] (Program & program) {
-        vector<word> & pcs = heap_pcs[thread];
+  iterate_threads_reverse([&] (Program & program) {
+    vector<word> & pcs = heap_pcs[thread];
 
-        // for (const word & _pc : heap_pcs[thread])
-        for (auto rit = pcs.rbegin(); rit != pcs.rend(); ++rit)
-          expr = eol +
-            smtlib::ite(
-              exec_var(step, thread, *rit),
-              program[*rit]->encode(*this),
-              expr);
-      });
+    // for (const word & _pc : heap_pcs[thread])
+    for (auto rit = pcs.rbegin(); rit != pcs.rend(); ++rit)
+      expr = eol +
+        smtlib::ite(
+          exec_var(step, thread, *rit),
+          program[*rit]->encode(*this),
+          expr);
+  });
 
-      formula << assign_var(heap_var(), expr) << eol;
-    }
+  formula << assign_var(heap_var(), expr) << eol;
 
   formula << eol;
 }

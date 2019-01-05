@@ -533,16 +533,173 @@ TEST_F(SMTLibEncoderFunctionalTest, add_exit_call)
 }
 
 // void add_state_update (void);
-// TODO
 TEST_F(SMTLibEncoderFunctionalTest, add_state_update)
 {
   add_instruction_set(3);
 
   encoder->add_state_update();
 
-  expected = "";
+  expected =
+    "; state update ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; accu states - accu_<step>_<thread>\n"
+    "(declare-fun accu_1_1 () (_ BitVec 16))\n"
+    "(declare-fun accu_1_2 () (_ BitVec 16))\n"
+    "(declare-fun accu_1_3 () (_ BitVec 16))\n"
+    "\n"
+    "(assert (= accu_1_1 \n"
+      "(ite exec_1_1_0 "
+        "(select heap_0 #x0001) \n"
+        "(ite exec_1_1_2 "
+          "(bvadd accu_0_1 (select heap_0 #x0001)) \n"
+          "(ite exec_1_1_3 "
+            "(bvadd accu_0_1 #x0001) \n"
+            "(ite exec_1_1_4 "
+              "(bvsub accu_0_1 (select heap_0 #x0001)) \n"
+              "(ite exec_1_1_5 "
+                "(bvsub accu_0_1 #x0001) \n"
+                "(ite exec_1_1_6 "
+                  "(bvsub accu_0_1 (select heap_0 #x0001)) "
+                  "accu_0_1))))))))\n"
+    "(assert (= accu_1_2 \n"
+      "(ite exec_1_2_0 "
+        "(select heap_0 #x0001) \n"
+        "(ite exec_1_2_2 "
+          "(bvadd accu_0_2 (select heap_0 #x0001)) \n"
+          "(ite exec_1_2_3 "
+            "(bvadd accu_0_2 #x0001) \n"
+            "(ite exec_1_2_4 "
+              "(bvsub accu_0_2 (select heap_0 #x0001)) \n"
+              "(ite exec_1_2_5 "
+                "(bvsub accu_0_2 #x0001) \n"
+                "(ite exec_1_2_6 "
+                  "(bvsub accu_0_2 (select heap_0 #x0001)) "
+                  "accu_0_2))))))))\n"
+    "(assert (= accu_1_3 \n"
+      "(ite exec_1_3_0 "
+        "(select heap_0 #x0001) \n"
+        "(ite exec_1_3_2 "
+          "(bvadd accu_0_3 (select heap_0 #x0001)) \n"
+          "(ite exec_1_3_3 "
+            "(bvadd accu_0_3 #x0001) \n"
+            "(ite exec_1_3_4 "
+              "(bvsub accu_0_3 (select heap_0 #x0001)) \n"
+              "(ite exec_1_3_5 "
+                "(bvsub accu_0_3 #x0001) \n"
+                "(ite exec_1_3_6 "
+                  "(bvsub accu_0_3 (select heap_0 #x0001)) "
+                  "accu_0_3))))))))\n"
+    "\n"
+    "; mem states - mem_<step>_<thread>\n"
+    "(declare-fun mem_1_1 () (_ BitVec 16))\n"
+    "(declare-fun mem_1_2 () (_ BitVec 16))\n"
+    "(declare-fun mem_1_3 () (_ BitVec 16))\n"
+    "\n"
+    "(assert (= mem_1_1 \n"
+      "(ite exec_1_1_13 (select heap_0 #x0001) mem_0_1)))\n"
+    "(assert (= mem_1_2 \n"
+      "(ite exec_1_2_13 (select heap_0 #x0001) mem_0_2)))\n"
+    "(assert (= mem_1_3 \n"
+      "(ite exec_1_3_13 (select heap_0 #x0001) mem_0_3)))\n"
+    "\n"
+    "; heap states - heap_<step>\n"
+    "(declare-fun heap_1 () (Array (_ BitVec 16) (_ BitVec 16)))\n"
+    "\n"
+    "(assert (= heap_1 \n"
+      "(ite exec_1_1_1 "
+        "(store heap_0 #x0001 accu_0_1) \n"
+        "(ite exec_1_1_14 "
+          "(ite (= mem_0_1 (select heap_0 #x0001)) "
+            "(store heap_0 #x0001 accu_0_1) "
+            "heap_0) \n"
+          "(ite exec_1_2_1 "
+            "(store heap_0 #x0001 accu_0_2) \n"
+            "(ite exec_1_2_14 "
+              "(ite (= mem_0_2 (select heap_0 #x0001)) "
+                "(store heap_0 #x0001 accu_0_2) "
+                "heap_0) \n"
+              "(ite exec_1_3_1 "
+                "(store heap_0 #x0001 accu_0_3) \n"
+                "(ite exec_1_3_14 "
+                  "(ite (= mem_0_3 (select heap_0 #x0001)) "
+                    "(store heap_0 #x0001 accu_0_3) "
+                    "heap_0) "
+                  "heap_0))))))))\n\n";
 
-  // ASSERT_EQ(expected, encoder->formula.str());
+  ASSERT_EQ(expected, encoder->formula.str());
+
+  /* no state altering statements */
+  programs.clear();
+
+  for (size_t i = 0; i < 3; i++)
+    {
+      programs.push_back(shared_ptr<Program>(new Program()));
+
+      programs[i]->add(Instruction::Set::create("JMP", 1));
+      programs[i]->add(Instruction::Set::create("JMP", 0));
+    }
+
+  reset_encoder(1, 1);
+
+  encoder->add_state_update();
+
+  expected =
+    "; state update ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; accu states - accu_<step>_<thread>\n"
+    "(declare-fun accu_1_1 () (_ BitVec 16))\n"
+    "(declare-fun accu_1_2 () (_ BitVec 16))\n"
+    "(declare-fun accu_1_3 () (_ BitVec 16))\n"
+    "\n"
+    "(assert (= accu_1_1 accu_0_1))\n"
+    "(assert (= accu_1_2 accu_0_2))\n"
+    "(assert (= accu_1_3 accu_0_3))\n"
+    "\n"
+    "; mem states - mem_<step>_<thread>\n"
+    "(declare-fun mem_1_1 () (_ BitVec 16))\n"
+    "(declare-fun mem_1_2 () (_ BitVec 16))\n"
+    "(declare-fun mem_1_3 () (_ BitVec 16))\n"
+    "\n"
+    "(assert (= mem_1_1 mem_0_1))\n"
+    "(assert (= mem_1_2 mem_0_2))\n"
+    "(assert (= mem_1_3 mem_0_3))\n"
+    "\n"
+    "; heap states - heap_<step>\n"
+    "(declare-fun heap_1 () (Array (_ BitVec 16) (_ BitVec 16)))\n"
+    "\n"
+    "(assert (= heap_1 heap_0))\n\n";
+
+  ASSERT_EQ(expected, encoder->formula.str());
+
+  /* verbosity */
+  reset_encoder(1, 1);
+
+  verbose = false;
+  encoder->add_state_update();
+  verbose = true;
+
+  expected =
+    "(declare-fun accu_1_1 () (_ BitVec 16))\n"
+    "(declare-fun accu_1_2 () (_ BitVec 16))\n"
+    "(declare-fun accu_1_3 () (_ BitVec 16))\n"
+    "\n"
+    "(assert (= accu_1_1 accu_0_1))\n"
+    "(assert (= accu_1_2 accu_0_2))\n"
+    "(assert (= accu_1_3 accu_0_3))\n"
+    "\n"
+    "(declare-fun mem_1_1 () (_ BitVec 16))\n"
+    "(declare-fun mem_1_2 () (_ BitVec 16))\n"
+    "(declare-fun mem_1_3 () (_ BitVec 16))\n"
+    "\n"
+    "(assert (= mem_1_1 mem_0_1))\n"
+    "(assert (= mem_1_2 mem_0_2))\n"
+    "(assert (= mem_1_3 mem_0_3))\n"
+    "\n"
+    "(declare-fun heap_1 () (Array (_ BitVec 16) (_ BitVec 16)))\n"
+    "\n"
+    "(assert (= heap_1 heap_0))\n\n";
+
+  ASSERT_EQ(expected, encoder->formula.str());
 }
 
 // virtual void preprocess (void);

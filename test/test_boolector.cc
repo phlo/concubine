@@ -31,13 +31,13 @@ TEST_F(BoolectorTest, sat)
 TEST_F(BoolectorTest, unsat)
 {
   string formula =
-  "(set-logic QF_AUFBV)\n"
-  "(declare-fun x1 () Bool)\n"
-  "(declare-fun x2 () Bool)\n"
-  "(assert (not x1))\n"
-  "(assert (and x1 x2))\n"
-  "(check-sat)\n"
-  "(exit)\n";
+    "(set-logic QF_AUFBV)\n"
+    "(declare-fun x1 () Bool)\n"
+    "(declare-fun x2 () Bool)\n"
+    "(assert (not x1))\n"
+    "(assert (and x1 x2))\n"
+    "(check-sat)\n"
+    "(exit)\n";
 
   ostringstream ss;
   StreamRedirecter redirecter(cout, ss);
