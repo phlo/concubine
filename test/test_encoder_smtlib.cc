@@ -1107,9 +1107,6 @@ TEST_F(SMTLibEncoderTest, encode)
   expected =
     "(set-logic QF_AUFBV)\n"
     "\n"
-    "; exit code\n"
-    "(declare-fun exit_code () Bool)\n"
-    "\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "; initial state\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
@@ -1146,8 +1143,6 @@ TEST_F(SMTLibEncoderTest, encode)
 
   expected =
     "(set-logic QF_AUFBV)\n"
-    "\n"
-    "(declare-fun exit_code () Bool)\n"
     "\n"
     "(declare-fun accu_0_1 () (_ BitVec 16))\n"
     "(declare-fun accu_0_2 () (_ BitVec 16))\n"

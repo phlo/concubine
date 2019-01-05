@@ -468,6 +468,9 @@ TEST_F(SMTLibEncoderFunctionalTest, add_exit_call)
     "\n"
     "(assert (= exit_3 (or exit_2 exec_2_1_0 exec_2_2_0 exec_2_3_0)))\n"
     "\n"
+    "; exit code\n"
+    "(declare-fun exit_code () (_ BitVec 16))\n"
+    "\n"
     "(assert (= exit_code "
       "(ite exec_1_1_0 "
         "#x0000 "
@@ -492,16 +495,41 @@ TEST_F(SMTLibEncoderFunctionalTest, add_exit_call)
   ASSERT_EQ(expected, encoder->formula.str());
 
   /* verbosity */
-  reset_encoder(10, 2);
+  reset_encoder(3, 3);
 
   verbose = false;
   encoder->add_exit_call();
   verbose = true;
 
   expected =
-    "(declare-fun exit_2 () Bool)\n"
+    "(declare-fun exit_3 () Bool)\n"
     "\n"
-    "(assert (= exit_2 (or exec_1_1_0 exec_1_2_0 exec_1_3_0)))\n\n";
+    "(assert (= exit_3 (or exit_2 exec_2_1_0 exec_2_2_0 exec_2_3_0)))\n"
+    "\n"
+    "(declare-fun exit_code () (_ BitVec 16))\n"
+    "\n"
+    "(assert (= exit_code "
+      "(ite exec_1_1_0 "
+        "#x0000 "
+        "(ite exec_1_2_0 "
+          "#x0001 "
+          "(ite exec_1_3_0 "
+            "#x0002 "
+            "(ite exec_2_1_0 "
+              "#x0000 "
+              "(ite exec_2_2_0 "
+                "#x0001 "
+                "(ite exec_2_3_0 "
+                  "#x0002 "
+                  "(ite exec_3_1_0 "
+                    "#x0000 "
+                    "(ite exec_3_2_0 "
+                      "#x0001 "
+                      "(ite exec_3_3_0 "
+                        "#x0002 "
+                        "#x0000)))))))))))\n\n";
+
+  ASSERT_EQ(expected, encoder->formula.str());
 }
 
 // void add_state_update (void);

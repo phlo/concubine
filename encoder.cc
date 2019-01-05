@@ -279,7 +279,7 @@ void SMTLibEncoder::declare_accu_vars ()
     formula << accu_comment << eol;
 
   iterate_threads([&] {
-    formula << smtlib::declare_var(accu_var(), bv_sort) << eol;
+    formula << smtlib::declare_bv_var(accu_var(), word_size) << eol;
   });
 }
 
@@ -289,7 +289,7 @@ void SMTLibEncoder::declare_mem_vars ()
     formula << mem_comment << eol;
 
   iterate_threads([&] {
-    formula << smtlib::declare_var(mem_var(), bv_sort) << eol;
+    formula << smtlib::declare_bv_var(mem_var(), word_size) << eol;
   });
 }
 
@@ -551,12 +551,6 @@ void SMTLibEncoder::encode ()
   /* set logic */
   formula << smtlib::set_logic() << eol << eol;
 
-  /* declare exit code */
-  if (verbose)
-    formula << "; exit code" << eol;
-
-  formula << smtlib::declare_bool_var(exit_code_var) << eol << eol;
-
   /* set initial state */
   add_initial_state();
 }
@@ -674,6 +668,11 @@ void SMTLibEncoderFunctional::add_exit_call ()
   /* assign exit code */
   if (step == bound)
     {
+      if (verbose)
+        formula << "; exit code" << eol;
+
+      formula << smtlib::declare_bv_var(exit_code_var, word_size) << eol << eol;
+
       string exit_code_ite = smtlib::word2hex(0);
 
       for (unsigned long k = step; k > 0; k--)
