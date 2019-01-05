@@ -635,8 +635,6 @@ void SMTLibEncoderFunctional::add_thread_scheduling ()
   if (verbose)
     add_comment_subsection("thread scheduling");
 
-  formula << eol;
-
   declare_thread_vars();
 
   formula
@@ -650,19 +648,17 @@ void SMTLibEncoderFunctional::add_thread_scheduling ()
 void SMTLibEncoderFunctional::add_exit_call ()
 {
   /* skip if step == 1 or EXIT isn't called at all */
-  if (exit_pcs.empty() || step == 1)
+  if (exit_pcs.empty() || step < 2)
     return;
 
   if (verbose)
     add_comment_subsection("exit call");
 
-  formula << eol;
-
+  /* assign exit variable */
   declare_exit_var();
 
   formula << eol;
 
-  /* assign exit variable */
   vector<string> args;
 
   if (step > 2)
@@ -676,18 +672,22 @@ void SMTLibEncoderFunctional::add_exit_call ()
   formula << assign_var(exit_var(), smtlib::lor(args)) << eol << eol;
 
   /* assign exit code */
-  iterate_threads([&] (Program & program) {
-    for (const word & exit_pc : exit_pcs[thread])
-      /* TODO: implication or ite? */
-      formula <<
-        smtlib::assertion(
-          smtlib::implication(
-            exec_var(step, thread, exit_pc),
-            program[exit_pc]->encode(*this))) <<
-        eol;
-  });
+  if (step == bound)
+    {
+      string exit_code_ite = smtlib::word2hex(0);
 
-  formula << eol;
+      for (unsigned long k = step; k > 0; k--)
+        iterate_threads_reverse([&] (Program & program) {
+          for (const word & exit_pc : exit_pcs[thread])
+            exit_code_ite =
+              smtlib::ite(
+                exec_var(k, thread, exit_pc),
+                program[exit_pc]->encode(*this),
+                exit_code_ite);
+        });
+
+      formula << assign_var(exit_code_var, exit_code_ite) << eol << eol;
+    }
 }
 
 void SMTLibEncoderFunctional::add_state_update ()
@@ -987,5 +987,5 @@ string SMTLibEncoderFunctional::encode (Sync & s [[maybe_unused]])
 /* SMTLibEncoderFunctional::encode (Exit &) ***********************************/
 string SMTLibEncoderFunctional::encode (Exit & e)
 {
-  return assign_var(exit_code_var, smtlib::word2hex(e.arg));
+  return smtlib::word2hex(e.arg);
 }
