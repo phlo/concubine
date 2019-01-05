@@ -34,9 +34,9 @@ TEST_RUN := run_all_tests
 # run all tests
 .PHONY: run
 run: $(TEST_RUN)
-	./$(TEST_RUN) --gtest_filter=*SMTLibEncoderFunctional*.*
+	# ./$(TEST_RUN) --gtest_filter=*SMTLibEncoderFunctional*.*
 	# ./$(TEST_RUN) --gtest_filter=*Encoder*.*
-	# ./$(TEST_RUN) --gtest_filter=-*verify*
+	./$(TEST_RUN) --gtest_filter=-*verify*
 
 # build executable containing all test cases
 $(TEST_RUN): $(OBJ) $(TEST_OBJ) $(GTEST_LIB)

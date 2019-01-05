@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "boolector.hh"
 #include "smtlib.hh"
 
 using namespace std;
@@ -206,6 +207,41 @@ TEST(SMTLibTest, cardinality_exactly_one_naive)
     smtlib::card_constraint_naive({"x1", "x2", "x3", "x4"}).c_str());
 }
 
+TEST(SMTLibTest, cardinality_exactly_one_naive_sat)
+{
+  Boolector btor;
+
+  vector<string> vars({"x1", "x2", "x3"});
+
+  string formula = smtlib::set_logic() + eol;
+
+  for (const auto & v : vars)
+    formula += smtlib::declare_bool_var(v) + eol;
+
+  formula += smtlib::card_constraint_naive(vars);
+
+  /* not none */
+  string spec = formula;
+
+  for (const auto & v : vars)
+    spec += smtlib::assertion(smtlib::lnot(v)) + eol;
+
+  spec += smtlib::check_sat() + eol;
+
+  ASSERT_FALSE(btor.sat(spec));
+
+  /* not more than one */
+  spec = formula;
+
+  for (size_t i = 0; i < vars.size() - 1; i++)
+    for (size_t j = i + 1; j < vars.size(); j++)
+      spec += smtlib::assertion(smtlib::land({vars[i], vars[j]})) + eol;
+
+  spec += smtlib::check_sat() + eol;
+
+  ASSERT_FALSE(btor.sat(spec));
+}
+
 /* card_constraint_sinz *******************************************************/
 TEST(SMTLibTest, cardinality_exactly_one_sinz)
 {
@@ -261,4 +297,39 @@ TEST(SMTLibTest, cardinality_exactly_one_sinz)
   ASSERT_STREQ(
     expected,
     smtlib::card_constraint_sinz({"x1", "x2", "x3", "x4"}).c_str());
+}
+
+TEST(SMTLibTest, cardinality_exactly_one_sinz_sat)
+{
+  Boolector btor;
+
+  vector<string> vars({"x1", "x2", "x3", "x4", "x5", "x6"});
+
+  string formula = smtlib::set_logic() + eol;
+
+  for (const auto & v : vars)
+    formula += smtlib::declare_bool_var(v) + eol;
+
+  formula += smtlib::card_constraint_sinz(vars);
+
+  /* not none */
+  string spec = formula;
+
+  for (const auto & v : vars)
+    spec += smtlib::assertion(smtlib::lnot(v)) + eol;
+
+  spec += smtlib::check_sat() + eol;
+
+  ASSERT_FALSE(btor.sat(spec));
+
+  /* not more than one */
+  spec = formula;
+
+  for (size_t i = 0; i < vars.size() - 1; i++)
+    for (size_t j = i + 1; j < vars.size(); j++)
+      spec += smtlib::assertion(smtlib::land({vars[i], vars[j]})) + eol;
+
+  spec += smtlib::check_sat() + eol;
+
+  ASSERT_FALSE(btor.sat(spec));
 }
