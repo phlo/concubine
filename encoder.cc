@@ -622,8 +622,10 @@ void SMTLibEncoderFunctional::add_thread_scheduling ()
 {
   vector<string> variables;
 
+  /* add thread activation variables */
   iterate_threads([&] { variables.push_back(thread_var()); });
 
+  /* add exit variable */
   if (step > 1)
     variables.push_back(exit_var());
 
@@ -634,7 +636,7 @@ void SMTLibEncoderFunctional::add_thread_scheduling ()
 
   formula
     << eol
-    << (num_threads > 5
+    << (num_threads > 5 // TODO: add use_sinz helper (assigned once)?
       ? smtlib::card_constraint_sinz(variables)
       : smtlib::card_constraint_naive(variables))
     << eol;
@@ -741,9 +743,6 @@ void SMTLibEncoderFunctional::add_state_update ()
 
 void SMTLibEncoderFunctional::add_exit_code ()
 {
-  if (step != bound)
-    return;
-
   if (verbose)
     add_comment_subsection("exit code");
 
@@ -805,6 +804,8 @@ void SMTLibEncoderFunctional::encode ()
       /* state update */
       add_state_update();
     }
+
+  step--;
 
   add_exit_code();
 }
