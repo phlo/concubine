@@ -624,7 +624,8 @@ void SMTLibEncoderFunctional::add_thread_scheduling ()
 
   iterate_threads([&] { variables.push_back(thread_var()); });
 
-  variables.push_back(exit_var());
+  if (step > 1)
+    variables.push_back(exit_var());
 
   if (verbose)
     add_comment_subsection("thread scheduling");
@@ -648,7 +649,6 @@ void SMTLibEncoderFunctional::add_exit_call ()
   if (verbose)
     add_comment_subsection("exit call");
 
-  /* assign exit variable */
   declare_exit_var();
 
   formula << eol;
@@ -664,29 +664,6 @@ void SMTLibEncoderFunctional::add_exit_call ()
   });
 
   formula << assign_var(exit_var(), smtlib::lor(args)) << eol << eol;
-
-  /* assign exit code */
-  if (step == bound)
-    {
-      if (verbose)
-        formula << "; exit code" << eol;
-
-      formula << smtlib::declare_bv_var(exit_code_var, word_size) << eol << eol;
-
-      string exit_code_ite = smtlib::word2hex(0);
-
-      for (unsigned long k = step; k > 0; k--)
-        iterate_threads_reverse([&] (Program & program) {
-          for (const word & exit_pc : exit_pcs[thread])
-            exit_code_ite =
-              smtlib::ite(
-                exec_var(k, thread, exit_pc),
-                program[exit_pc]->encode(*this),
-                exit_code_ite);
-        });
-
-      formula << assign_var(exit_code_var, exit_code_ite) << eol << eol;
-    }
 }
 
 void SMTLibEncoderFunctional::add_state_update ()
@@ -762,6 +739,31 @@ void SMTLibEncoderFunctional::add_state_update ()
   formula << eol;
 }
 
+void SMTLibEncoderFunctional::add_exit_code ()
+{
+  if (step != bound)
+    return;
+
+  if (verbose)
+    add_comment_subsection("exit code");
+
+  formula << smtlib::declare_bv_var(exit_code_var, word_size) << eol << eol;
+
+  string exit_code_ite = smtlib::word2hex(0);
+
+  for (unsigned long k = step; k > 0; k--)
+    iterate_threads_reverse([&] (Program & program) {
+      for (const word & exit_pc : exit_pcs[thread])
+        exit_code_ite =
+          smtlib::ite(
+            exec_var(k, thread, exit_pc),
+            program[exit_pc]->encode(*this),
+            exit_code_ite);
+    });
+
+  formula << assign_var(exit_code_var, exit_code_ite) << eol << eol;
+}
+
 void SMTLibEncoderFunctional::preprocess ()
 {
   Encoder::preprocess();
@@ -785,6 +787,9 @@ void SMTLibEncoderFunctional::encode ()
     {
       add_comment_section("step " + ::to_string(step));
 
+      /* exit variable */
+      add_exit_call();
+
       /* statement activation */
       add_statement_activation();
 
@@ -797,12 +802,11 @@ void SMTLibEncoderFunctional::encode ()
       /* statement execution */
       add_statement_execution();
 
-      /* exit call */
-      add_exit_call();
-
       /* state update */
       add_state_update();
     }
+
+  add_exit_code();
 }
 
 #define ALTERS_HEAP if (!step) { heap_pcs[thread].push_back(pc); return ""; }

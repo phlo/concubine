@@ -220,6 +220,7 @@ struct SMTLibEncoderFunctional : public SMTLibEncoder
   void                add_thread_scheduling (void);
   void                add_exit_call (void);
   void                add_state_update (void);
+  void                add_exit_code (void);
 
   /* initialize internal data structures */
   virtual void        preprocess (void);
