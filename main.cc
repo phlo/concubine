@@ -294,28 +294,20 @@ int verify (char * name, int argc, char ** argv)
   try
     {
       /* list of programs (idx == thread id) */
-      ProgramList programs;
+      ProgramListPtr programs(new ProgramList());
 
-      /* parse path to program */
-      string path2program = argv[i++];
-
-      /* parse program */
-      programs.push_back(make_shared<Program>(path2program));
+      /* parse programs */
+      while (i < argc)
+        programs->push_back(ProgramPtr(new Program(argv[i++])));
 
       /* encode program */
-      SMTLibEncoderFunctional formula(ProgramListPtr(&programs), bound);
+      SMTLibEncoderFunctional formula(programs, bound);
+
+      // TODO: encode implicitly?
+      formula.encode();
 
       /* read specification from file */
       string specification;
-      if (i < argc)
-        {
-          ifstream spec_fs(argv[i]);
-          specification.assign((istreambuf_iterator<char>(spec_fs)),
-                                istreambuf_iterator<char>());
-
-          if (specification.empty())
-            throw runtime_error(string(argv[i]) + " not found");
-        }
 
       /* create solver */
       Boolector boolector;
@@ -326,8 +318,6 @@ int verify (char * name, int argc, char ** argv)
       /* print program if we're pretending */
       if (pretend)
         verifier.print();
-
-      /* verify program */
       else
         return verifier.sat();
     }
