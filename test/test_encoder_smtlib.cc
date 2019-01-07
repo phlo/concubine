@@ -730,7 +730,7 @@ TEST_F(SMTLibEncoderTest, add_initial_state)
     "(assert (= mem_0_3 #x0000))\n"
     "\n"
     "; heap states - heap_<step>\n"
-    "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n";
+    "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n\n";
 
   ASSERT_STREQ(expected, encoder->formula.str().c_str());
 
@@ -758,7 +758,7 @@ TEST_F(SMTLibEncoderTest, add_initial_state)
     "(assert (= mem_0_2 #x0000))\n"
     "(assert (= mem_0_3 #x0000))\n"
     "\n"
-    "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n";
+    "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n\n";
 
   ASSERT_STREQ(expected, encoder->formula.str().c_str());
 }
@@ -835,9 +835,9 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
     "(assert (= sync_1_1 (and stmt_1_1_0 stmt_1_2_0 stmt_1_3_0 (or thread_1_1 thread_1_2 thread_1_3))))\n"
     "\n"
     "; prevent scheduling of waiting threads\n"
-    "(assert (=> (and stmt_1_1_0 (or (not stmt_1_2_0) (not stmt_1_3_0))) (not thread_1_1))) ; barrier 1: thread 1\n"
-    "(assert (=> (and stmt_1_2_0 (or (not stmt_1_1_0) (not stmt_1_3_0))) (not thread_1_2))) ; barrier 1: thread 2\n"
-    "(assert (=> (and stmt_1_3_0 (or (not stmt_1_1_0) (not stmt_1_2_0))) (not thread_1_3))) ; barrier 1: thread 3\n\n";
+    "(assert (=> (and stmt_1_1_0 (not sync_1_1)) (not thread_1_1))) ; barrier 1: thread 1\n"
+    "(assert (=> (and stmt_1_2_0 (not sync_1_1)) (not thread_1_2))) ; barrier 1: thread 2\n"
+    "(assert (=> (and stmt_1_3_0 (not sync_1_1)) (not thread_1_3))) ; barrier 1: thread 3\n\n";
 
   ASSERT_STREQ(expected, encoder->formula.str().c_str());
 
@@ -861,12 +861,12 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
     "(assert (= sync_1_2 (and stmt_1_1_1 stmt_1_2_1 stmt_1_3_1 (or thread_1_1 thread_1_2 thread_1_3))))\n"
     "\n"
     "; prevent scheduling of waiting threads\n"
-    "(assert (=> (and stmt_1_1_0 (or (not stmt_1_2_0) (not stmt_1_3_0))) (not thread_1_1))) ; barrier 1: thread 1\n"
-    "(assert (=> (and stmt_1_2_0 (or (not stmt_1_1_0) (not stmt_1_3_0))) (not thread_1_2))) ; barrier 1: thread 2\n"
-    "(assert (=> (and stmt_1_3_0 (or (not stmt_1_1_0) (not stmt_1_2_0))) (not thread_1_3))) ; barrier 1: thread 3\n"
-    "(assert (=> (and stmt_1_1_1 (or (not stmt_1_2_1) (not stmt_1_3_1))) (not thread_1_1))) ; barrier 2: thread 1\n"
-    "(assert (=> (and stmt_1_2_1 (or (not stmt_1_1_1) (not stmt_1_3_1))) (not thread_1_2))) ; barrier 2: thread 2\n"
-    "(assert (=> (and stmt_1_3_1 (or (not stmt_1_1_1) (not stmt_1_2_1))) (not thread_1_3))) ; barrier 2: thread 3\n\n";
+    "(assert (=> (and stmt_1_1_0 (not sync_1_1)) (not thread_1_1))) ; barrier 1: thread 1\n"
+    "(assert (=> (and stmt_1_2_0 (not sync_1_1)) (not thread_1_2))) ; barrier 1: thread 2\n"
+    "(assert (=> (and stmt_1_3_0 (not sync_1_1)) (not thread_1_3))) ; barrier 1: thread 3\n"
+    "(assert (=> (and stmt_1_1_1 (not sync_1_2)) (not thread_1_1))) ; barrier 2: thread 1\n"
+    "(assert (=> (and stmt_1_2_1 (not sync_1_2)) (not thread_1_2))) ; barrier 2: thread 2\n"
+    "(assert (=> (and stmt_1_3_1 (not sync_1_2)) (not thread_1_3))) ; barrier 2: thread 3\n\n";
 
   ASSERT_STREQ(expected, encoder->formula.str().c_str());
 
@@ -890,12 +890,12 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
     "(assert (= sync_1_2 (and stmt_1_1_1 stmt_1_2_1 stmt_1_3_1 (or thread_1_1 thread_1_2 thread_1_3))))\n"
     "\n"
     "; prevent scheduling of waiting threads\n"
-    "(assert (=> (and (or stmt_1_1_0 stmt_1_1_2) (or (not stmt_1_2_0) (not stmt_1_2_2) (not stmt_1_3_0) (not stmt_1_3_2))) (not thread_1_1))) ; barrier 1: thread 1\n"
-    "(assert (=> (and (or stmt_1_2_0 stmt_1_2_2) (or (not stmt_1_1_0) (not stmt_1_1_2) (not stmt_1_3_0) (not stmt_1_3_2))) (not thread_1_2))) ; barrier 1: thread 2\n"
-    "(assert (=> (and (or stmt_1_3_0 stmt_1_3_2) (or (not stmt_1_1_0) (not stmt_1_1_2) (not stmt_1_2_0) (not stmt_1_2_2))) (not thread_1_3))) ; barrier 1: thread 3\n"
-    "(assert (=> (and stmt_1_1_1 (or (not stmt_1_2_1) (not stmt_1_3_1))) (not thread_1_1))) ; barrier 2: thread 1\n"
-    "(assert (=> (and stmt_1_2_1 (or (not stmt_1_1_1) (not stmt_1_3_1))) (not thread_1_2))) ; barrier 2: thread 2\n"
-    "(assert (=> (and stmt_1_3_1 (or (not stmt_1_1_1) (not stmt_1_2_1))) (not thread_1_3))) ; barrier 2: thread 3\n\n";
+    "(assert (=> (and (or stmt_1_1_0 stmt_1_1_2) (not sync_1_1)) (not thread_1_1))) ; barrier 1: thread 1\n"
+    "(assert (=> (and (or stmt_1_2_0 stmt_1_2_2) (not sync_1_1)) (not thread_1_2))) ; barrier 1: thread 2\n"
+    "(assert (=> (and (or stmt_1_3_0 stmt_1_3_2) (not sync_1_1)) (not thread_1_3))) ; barrier 1: thread 3\n"
+    "(assert (=> (and stmt_1_1_1 (not sync_1_2)) (not thread_1_1))) ; barrier 2: thread 1\n"
+    "(assert (=> (and stmt_1_2_1 (not sync_1_2)) (not thread_1_2))) ; barrier 2: thread 2\n"
+    "(assert (=> (and stmt_1_3_1 (not sync_1_2)) (not thread_1_3))) ; barrier 2: thread 3\n\n";
 
   ASSERT_STREQ(expected, encoder->formula.str().c_str());
 
@@ -916,9 +916,9 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
     "\n"
     "(assert (= sync_1_1 (and stmt_1_1_0 stmt_1_2_0 stmt_1_3_0 (or thread_1_1 thread_1_2 thread_1_3))))\n"
     "\n"
-    "(assert (=> (and stmt_1_1_0 (or (not stmt_1_2_0) (not stmt_1_3_0))) (not thread_1_1)))\n"
-    "(assert (=> (and stmt_1_2_0 (or (not stmt_1_1_0) (not stmt_1_3_0))) (not thread_1_2)))\n"
-    "(assert (=> (and stmt_1_3_0 (or (not stmt_1_1_0) (not stmt_1_2_0))) (not thread_1_3)))\n\n";
+    "(assert (=> (and stmt_1_1_0 (not sync_1_1)) (not thread_1_1)))\n"
+    "(assert (=> (and stmt_1_2_0 (not sync_1_1)) (not thread_1_2)))\n"
+    "(assert (=> (and stmt_1_3_0 (not sync_1_1)) (not thread_1_3)))\n\n";
 
   ASSERT_STREQ(expected, encoder->formula.str().c_str());
 }
@@ -1102,7 +1102,7 @@ TEST_F(SMTLibEncoderTest, encode)
 {
   add_dummy_programs(3, 3);
 
-  encoder->encode();
+  encoder->SMTLibEncoder::encode();
 
   expected =
     "(set-logic QF_AUFBV)\n"
@@ -1138,7 +1138,7 @@ TEST_F(SMTLibEncoderTest, encode)
   reset_encoder(0, 0);
 
   verbose = false;
-  encoder->encode();
+  encoder->SMTLibEncoder::encode();
   verbose = true;
 
   expected =

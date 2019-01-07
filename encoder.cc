@@ -396,6 +396,8 @@ void SMTLibEncoder::add_initial_state ()
 
   /* heap */
   declare_heap_var();
+
+  formula << eol;
 }
 
 void SMTLibEncoder::add_initial_statement_activation ()
@@ -469,24 +471,11 @@ void SMTLibEncoder::add_synchronization_constraints ()
 
         args.clear();
 
-        /* build disjunction of the other threads negated SYNC statements */
-        for (const auto & [other_thread, other_stmts] : id.second)
-          {
-            if (this_thread == other_thread)
-              continue;
-
-            for (const auto & other_pc : other_stmts)
-              args.push_back(
-                smtlib::lnot(stmt_var(step, other_thread, other_pc)));
-          }
-
-        string other_sync = args.size() > 1 ? smtlib::lor(args) : args[0];
-
         /* add thread blocking assertion */
         formula <<
           smtlib::assertion(
             smtlib::implication(
-              smtlib::land({this_sync, other_sync}),
+              smtlib::land({this_sync, smtlib::lnot(sync_var(step, id.first))}),
               smtlib::lnot(thread_var(step, this_thread))));
 
         if (verbose)
@@ -750,15 +739,16 @@ void SMTLibEncoderFunctional::add_exit_code ()
 
   string exit_code_ite = smtlib::word2hex(0);
 
-  for (unsigned long k = step; k > 0; k--)
-    iterate_threads_reverse([&] (Program & program) {
-      for (const word & exit_pc : exit_pcs[thread])
-        exit_code_ite =
-          smtlib::ite(
-            exec_var(k, thread, exit_pc),
-            program[exit_pc]->encode(*this),
-            exit_code_ite);
-    });
+  if (step > 1)
+    for (unsigned long k = step; k > 0; k--)
+      iterate_threads_reverse([&] (Program & program) {
+        for (const word & exit_pc : exit_pcs[thread])
+          exit_code_ite =
+            smtlib::ite(
+              exec_var(k, thread, exit_pc),
+              program[exit_pc]->encode(*this),
+              exit_code_ite);
+      });
 
   formula << assign_var(exit_code_var, exit_code_ite) << eol << eol;
 }
@@ -779,8 +769,6 @@ void SMTLibEncoderFunctional::encode ()
 {
   /* set logic and add common variable declarations */
   SMTLibEncoder::encode();
-
-  formula << eol;
 
   for (step = 1; step <= bound; step++)
     {

@@ -789,11 +789,18 @@ TEST_F(SMTLibEncoderFunctionalTest, add_exit_code)
     }
 
   /* step 1 */
-  reset_encoder(10, 1);
+  reset_encoder(1, 1);
 
   encoder->add_exit_code();
 
-  ASSERT_EQ("", encoder->formula.str());
+  expected =
+    "; exit code ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "(declare-fun exit_code () (_ BitVec 16))\n"
+    "\n"
+    "(assert (= exit_code #x0000))\n\n";
+
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* reached bound */
   reset_encoder(3, 3);
@@ -906,7 +913,7 @@ TEST_F(SMTLibEncoderFunctionalTest, encode)
 
   encoder =
     make_shared<SMTLibEncoderFunctional>(
-      make_shared<ProgramList>(programs), 12);
+      make_shared<ProgramList>(programs), 20);
 
   encoder->encode();
 
