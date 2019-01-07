@@ -311,5 +311,5 @@ TEST_F(EncoderTest, to_string)
 {
   encoder->formula << "foo";
 
-  ASSERT_STREQ("foo", encoder->to_string().c_str());
+  ASSERT_STREQ("foo", encoder->str().c_str());
 }

@@ -99,7 +99,7 @@ struct Encoder
   void                print (void);
 
   /* returns the SMT formula as string */
-  std::string         to_string (void);
+  std::string         str (void);
 
   /*****************************************************************************
    * DEBUG

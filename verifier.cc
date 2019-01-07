@@ -18,7 +18,7 @@ Verifier::Verifier (Solver & s, Encoder & f, string & spec) :
 /* Verifier::print (void) *****************************************************/
 void Verifier::print ()
 {
-  cout  << formula.to_string()
+  cout  << formula.str()
         << specification << "\n"
         << smtlib::check_sat() << "\n"
         << smtlib::exit() << "\n";
@@ -28,7 +28,7 @@ void Verifier::print ()
 bool Verifier::sat ()
 {
   string smt =
-      formula.to_string() +
+      formula.str() +
       specification + "\n" +
       smtlib::check_sat() + "\n" +
       smtlib::exit();

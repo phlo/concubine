@@ -75,8 +75,8 @@ void Encoder::preprocess ()
 /* Encoder::print (void) ******************************************************/
 void Encoder::print () { cout << formula.str(); }
 
-/* Encoder::to_string (void) **************************************************/
-string Encoder::to_string () { return formula.str(); }
+/* Encoder::str (void) ********************************************************/
+string Encoder::str () { return formula.str(); }
 
 /* DEBUG **********************************************************************/
 string Encoder::predecessors_to_string ()
@@ -174,7 +174,7 @@ const string SMTLibEncoder::exit_comment =
 /* state variable generators */
 string SMTLibEncoder::heap_var (const word k)
 {
-  return "heap_" + ::to_string(k);
+  return "heap_" + to_string(k);
 }
 
 string SMTLibEncoder::heap_var ()
@@ -184,7 +184,7 @@ string SMTLibEncoder::heap_var ()
 
 string SMTLibEncoder::accu_var (const word k, const word t)
 {
-  return "accu_" + ::to_string(k) + '_' + ::to_string(t);
+  return "accu_" + to_string(k) + '_' + to_string(t);
 }
 
 string SMTLibEncoder::accu_var ()
@@ -194,7 +194,7 @@ string SMTLibEncoder::accu_var ()
 
 string SMTLibEncoder::mem_var (const word k, const word t)
 {
-  return "mem_" + ::to_string(k) + '_' + ::to_string(t);
+  return "mem_" + to_string(k) + '_' + to_string(t);
 }
 
 string SMTLibEncoder::mem_var ()
@@ -206,9 +206,9 @@ string SMTLibEncoder::mem_var ()
 string SMTLibEncoder::stmt_var (const word k, const word t, const word p)
 {
   return "stmt_"
-    + ::to_string(k)
-    + '_' + ::to_string(t)
-    + '_' + ::to_string(p);
+    + to_string(k)
+    + '_' + to_string(t)
+    + '_' + to_string(p);
 }
 
 string SMTLibEncoder::stmt_var ()
@@ -218,7 +218,7 @@ string SMTLibEncoder::stmt_var ()
 
 string SMTLibEncoder::thread_var (const word k, const word t)
 {
-  return "thread_" + ::to_string(k) + '_' + ::to_string(t);
+  return "thread_" + to_string(k) + '_' + to_string(t);
 }
 
 string SMTLibEncoder::thread_var ()
@@ -229,9 +229,9 @@ string SMTLibEncoder::thread_var ()
 string SMTLibEncoder::exec_var (const word k, const word t, const word p)
 {
   return "exec_"
-    + ::to_string(k)
-    + '_' + ::to_string(t)
-    + '_' + ::to_string(p);
+    + to_string(k)
+    + '_' + to_string(t)
+    + '_' + to_string(p);
 }
 
 string SMTLibEncoder::exec_var ()
@@ -241,7 +241,7 @@ string SMTLibEncoder::exec_var ()
 
 string SMTLibEncoder::cas_var (const word k, const word t)
 {
-  return "cas_" + ::to_string(k) + '_' + ::to_string(t);
+  return "cas_" + to_string(k) + '_' + to_string(t);
 }
 
 string SMTLibEncoder::cas_var ()
@@ -251,12 +251,12 @@ string SMTLibEncoder::cas_var ()
 
 string SMTLibEncoder::sync_var (const word k, const word id)
 {
-  return "sync_" + ::to_string(k) + '_' + ::to_string(id);
+  return "sync_" + to_string(k) + '_' + to_string(id);
 }
 
 string SMTLibEncoder::exit_var (const word k)
 {
-  return "exit_" + ::to_string(k);
+  return "exit_" + to_string(k);
 }
 
 string SMTLibEncoder::exit_var ()
@@ -772,7 +772,7 @@ void SMTLibEncoderFunctional::encode ()
 
   for (step = 1; step <= bound; step++)
     {
-      add_comment_section("step " + ::to_string(step));
+      add_comment_section("step " + to_string(step));
 
       /* exit variable */
       add_exit_call();
@@ -897,8 +897,8 @@ string SMTLibEncoderFunctional::encode (Js & j [[maybe_unused]])
       smtlib::equality({
         "#b1",
         smtlib::extract(
-          ::to_string(word_size - 1),
-          ::to_string(word_size - 1),
+          to_string(word_size - 1),
+          to_string(word_size - 1),
           accu_var(step - 1, thread))});
 }
 
@@ -909,8 +909,8 @@ string SMTLibEncoderFunctional::encode (Jns & j [[maybe_unused]])
       smtlib::equality({
         "#b0",
         smtlib::extract(
-          ::to_string(word_size - 1),
-          ::to_string(word_size - 1),
+          to_string(word_size - 1),
+          to_string(word_size - 1),
           accu_var(step - 1, thread))});
 }
 
@@ -926,8 +926,8 @@ string SMTLibEncoderFunctional::encode (Jnzns & j [[maybe_unused]])
       smtlib::equality({
         "#b0",
         smtlib::extract(
-          ::to_string(word_size - 1),
-          ::to_string(word_size - 1),
+          to_string(word_size - 1),
+          to_string(word_size - 1),
           accu_var(step - 1, thread))})});
 }
 

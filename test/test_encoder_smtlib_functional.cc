@@ -919,7 +919,7 @@ TEST_F(SMTLibEncoderFunctionalTest, encode)
 
   Boolector btor;
 
-  string formula = encoder->to_string();
+  string formula = encoder->str();
 
   btor.sat(formula);
 
