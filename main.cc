@@ -20,54 +20,55 @@ void print_usage_main (char * name)
 {
   cout << "usage: " << name <<
   " <command> [<arg> ...]" <<
-  endl << endl <<
-  "available commands:" << endl <<
-  "  help       print help for a specific <command>" << endl <<
-  "  simulate   simulate concurrent programs" << endl <<
-  "  replay     reevaluates a given schedule" << endl <<
-  "  verify     verifies a given (single-threaded) program" << endl;
+  eol << eol <<
+  "available commands:" << eol <<
+  "  help       print help for a specific <command>" << eol <<
+  "  simulate   simulate concurrent programs" << eol <<
+  "  replay     reevaluates a given schedule" << eol <<
+  "  verify     verifies a given (single-threaded) program" << eol;
 }
 
 void print_usage_help (char * name)
 {
-  cout << "usage: " << name << " help <command>" << endl;
+  cout << "usage: " << name << " help <command>" << eol;
 }
 
 void print_usage_simulate (char * name)
 {
   cout << "usage: " << name <<
   " simulate [-v] [-s <seed>] [-k <bound>] <program> ..." <<
-  endl << endl <<
-  "  -v         verbose schedule output" << endl <<
-  "  -s seed    random number generator's seed" << endl <<
-  "  -k bound   execute a maximum of <bound> steps" << endl <<
-  "  program    one ore more source files, each being executed as a separate thread" << endl;
+  eol << eol <<
+  "  -v         verbose schedule output" << eol <<
+  "  -s seed    random number generator's seed" << eol <<
+  "  -k bound   execute a maximum of <bound> steps" << eol <<
+  "  program    one ore more source files, each being executed as a separate thread" << eol;
 }
 
 void print_usage_replay (char * name)
 {
   cout << "usage: " << name <<
   " replay [-v] [-k <bound>] <schedule>" <<
-  endl << endl <<
-  "  -v         verbose schedule output" << endl <<
-  "  -k bound   execute a maximum of <bound> steps" << endl <<
-  "  schedule   the schedule to replay" << endl;
+  eol << eol <<
+  "  -v         verbose schedule output" << eol <<
+  "  -k bound   execute a maximum of <bound> steps" << eol <<
+  "  schedule   the schedule to replay" << eol;
 }
 
 void print_usage_verify (char * name)
 {
   cout << "usage: " << name <<
-  " verify [-p] <bound> <program> <specification>" <<
-  endl << endl <<
-  "  -p         prints the generated SMT-Lib v2 file and exits" << endl <<
-  "  bound      execute a maximum of <bound> steps" << endl <<
-  "  program    the program to encode" << endl;
+  " verify [-v] [-p] <bound> <program> ..." <<
+  eol << eol <<
+  "  -v         verbose formula output" << eol <<
+  "  -p         prints the generated SMT-Lib v2 formula and exits" << eol <<
+  "  bound      execute a maximum of <bound> steps" << eol <<
+  "  program    one or more programs to encode" << eol;
 }
 
 /*******************************************************************************
  * main functions
  ******************************************************************************/
-void print_error (string what) { cerr << "error: " << what << endl; }
+void print_error (string what) { cerr << "error: " << what << eol; }
 
 /* help ***********************************************************************/
 int help (char * name, int argc, char **argv)
@@ -262,15 +263,21 @@ int verify (char * name, int argc, char ** argv)
   /* only print smt file if true */
   bool pretend = false;
 
-  /* check pretend flag */
-  if (!strcmp(argv[i], "-p"))
+  /* parse flags */
+  while (i < argc)
     {
-      pretend = true;
+      if (!strcmp(argv[i], "-p"))
+        pretend = true;
+      else if (!strcmp(argv[i], "-v"))
+        verbose = true;
+      else
+        break;
+
       i++;
     }
 
   /* check for bound and program */
-  if (argc < i + 1)
+  if (argc < i + 2)
     {
       print_error("too few arguments");
       print_usage_verify(name);
@@ -287,7 +294,7 @@ int verify (char * name, int argc, char ** argv)
     }
   catch (...)
     {
-      print_error("illegal bound [" + string(argv[i-1]) + "]");
+      print_error("illegal bound [" + string(argv[i - 1]) + "]");
       return -1;
     }
 
