@@ -673,7 +673,7 @@ void SMTLibEncoderFunctional::add_state_update ()
 
     // for (const word & _pc : accu_pcs[thread])
     for (auto rit = pcs.rbegin(); rit != pcs.rend(); ++rit)
-      expr = eol +
+      expr =
         smtlib::ite(
           exec_var(step, thread, *rit),
           program[*rit]->encode(*this),
@@ -695,7 +695,7 @@ void SMTLibEncoderFunctional::add_state_update ()
 
     // for (const word & _pc : mem_pcs[thread])
     for (auto rit = pcs.rbegin(); rit != pcs.rend(); ++rit)
-      expr = eol +
+      expr =
         smtlib::ite(
           exec_var(step, thread, *rit),
           program[*rit]->encode(*this),
@@ -718,7 +718,7 @@ void SMTLibEncoderFunctional::add_state_update ()
 
     // for (const word & _pc : heap_pcs[thread])
     for (auto rit = pcs.rbegin(); rit != pcs.rend(); ++rit)
-      expr = eol +
+      expr =
         smtlib::ite(
           exec_var(step, thread, *rit),
           program[*rit]->encode(*this),
@@ -772,7 +772,8 @@ void SMTLibEncoderFunctional::encode ()
 
   for (step = 1; step <= bound; step++)
     {
-      add_comment_section("step " + to_string(step));
+      if (verbose)
+        add_comment_section("step " + to_string(step));
 
       /* exit variable */
       add_exit_call();
