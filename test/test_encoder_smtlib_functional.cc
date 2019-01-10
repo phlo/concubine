@@ -1,12 +1,14 @@
 #include <gtest/gtest.h>
 
+#include <fstream>
+
 #include "encoder.hh"
 
 using namespace std;
 
 struct SMTLibEncoderFunctionalTest : public ::testing::Test
 {
-  const char *                expected;
+  string                      expected;
   ProgramList                 programs;
   SMTLibEncoderFunctionalPtr  encoder = create_encoder(1, 1);
 
@@ -636,7 +638,9 @@ TEST_F(SMTLibEncoderFunctionalTest, add_state_update)
                 "(bvsub accu_0_1 #x0001) "
                 "(ite exec_1_1_6 "
                   "(bvsub accu_0_1 (select heap_0 #x0001)) "
-                  "accu_0_1))))))))\n"
+                  "(ite exec_1_1_13 "
+                    "(select heap_0 #x0001) "
+                    "accu_0_1)))))))))\n"
     "(assert (= accu_1_2 "
       "(ite exec_1_2_0 "
         "(select heap_0 #x0001) "
@@ -650,7 +654,9 @@ TEST_F(SMTLibEncoderFunctionalTest, add_state_update)
                 "(bvsub accu_0_2 #x0001) "
                 "(ite exec_1_2_6 "
                   "(bvsub accu_0_2 (select heap_0 #x0001)) "
-                  "accu_0_2))))))))\n"
+                  "(ite exec_1_2_13 "
+                    "(select heap_0 #x0001) "
+                    "accu_0_2)))))))))\n"
     "(assert (= accu_1_3 "
       "(ite exec_1_3_0 "
         "(select heap_0 #x0001) "
@@ -664,7 +670,9 @@ TEST_F(SMTLibEncoderFunctionalTest, add_state_update)
                 "(bvsub accu_0_3 #x0001) "
                 "(ite exec_1_3_6 "
                   "(bvsub accu_0_3 (select heap_0 #x0001)) "
-                  "accu_0_3))))))))\n"
+                  "(ite exec_1_3_13 "
+                    "(select heap_0 #x0001) "
+                    "accu_0_3)))))))))\n"
     "\n"
     "; mem states - mem_<step>_<thread>\n"
     "(declare-fun mem_1_1 () (_ BitVec 16))\n"
@@ -885,7 +893,7 @@ TEST_F(SMTLibEncoderFunctionalTest, preprocess)
   /* accu altering pcs */
   ASSERT_EQ(3, encoder->accu_pcs.size());
 
-  vector<word> accu_pcs({0, 2, 3, 4, 5, 6});
+  vector<word> accu_pcs({0, 2, 3, 4, 5, 6, 13});
 
   for (const auto & pcs: encoder->accu_pcs)
     ASSERT_EQ(accu_pcs, pcs.second);
@@ -900,32 +908,48 @@ TEST_F(SMTLibEncoderFunctionalTest, preprocess)
 }
 
 // virtual void encode (void);
-// TODO
-#include "boolector.hh"
-TEST_F(SMTLibEncoderFunctionalTest, encode)
+TEST_F(SMTLibEncoderFunctionalTest, encode_sync)
 {
+  /* concurrent increment using SYNC */
   programs.push_back(
     shared_ptr<Program>(
-      new Program("../wiki/encoding/concurrent-increment.sync.thread1.asm")));
+      new Program("data/increment.sync.thread.0.asm")));
   programs.push_back(
     shared_ptr<Program>(
-      new Program("../wiki/encoding/concurrent-increment.sync.thread2.asm")));
+      new Program("data/increment.sync.thread.n.asm")));
 
   encoder =
     make_shared<SMTLibEncoderFunctional>(
-      make_shared<ProgramList>(programs), 20);
+      make_shared<ProgramList>(programs), 8);
 
   encoder->encode();
 
-  Boolector btor;
+  ifstream ifs("data/increment.sync.2threads.functional.smt2");
+  expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
 
-  string formula = encoder->str();
+  ASSERT_EQ(expected, encoder->formula.str());
+}
 
-  btor.sat(formula);
+TEST_F(SMTLibEncoderFunctionalTest, encode_cas)
+{
+  /* concurrent increment using CAS */
+  programs.push_back(
+    shared_ptr<Program>(
+      new Program("data/increment.cas.asm")));
+  programs.push_back(
+    shared_ptr<Program>(
+      new Program("data/increment.cas.asm")));
 
-  cout << btor.std_out << eol;
+  encoder =
+    make_shared<SMTLibEncoderFunctional>(
+      make_shared<ProgramList>(programs), 8);
 
-  ASSERT_EQ("", formula);
+  encoder->encode();
+
+  ifstream ifs("data/increment.cas.2threads.functional.smt2");
+  expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
+
+  ASSERT_EQ(expected, encoder->formula.str());
 }
 
 // virtual std::string encode (Load &);

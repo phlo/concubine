@@ -615,7 +615,7 @@ void SMTLibEncoderFunctional::add_thread_scheduling ()
   iterate_threads([&] { variables.push_back(thread_var()); });
 
   /* add exit variable */
-  if (step > 1)
+  if (step > 1 && !exit_pcs.empty())
     variables.push_back(exit_var());
 
   if (verbose)
@@ -803,8 +803,6 @@ void SMTLibEncoderFunctional::encode ()
 
 #define ALTERS_ACCU if (!step) { accu_pcs[thread].push_back(pc); return ""; }
 
-#define ALTERS_MEM if (!step) { mem_pcs[thread].push_back(pc); return ""; }
-
 /* SMTLibEncoderFunctional::encode (Load &) ***********************************/
 string SMTLibEncoderFunctional::encode (Load & l)
 {
@@ -935,7 +933,12 @@ string SMTLibEncoderFunctional::encode (Jnzns & j [[maybe_unused]])
 /* SMTLibEncoderFunctional::encode (Mem &) ************************************/
 string SMTLibEncoderFunctional::encode (Mem & m)
 {
-  ALTERS_MEM;
+  if (!step)
+    {
+      accu_pcs[thread].push_back(pc);
+      mem_pcs[thread].push_back(pc);
+      return "";
+    }
 
   return load(m);
 }
