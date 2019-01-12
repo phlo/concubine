@@ -370,7 +370,7 @@ string SMTLibEncoder::assign_var (string var, string exp)
 void SMTLibEncoder::add_initial_state ()
 {
   if (verbose)
-    add_comment_section("initial state");
+    formula << smtlib::comment_section("initial state");
 
   /* accu */
   declare_accu_vars();
@@ -418,7 +418,7 @@ void SMTLibEncoder::add_initial_statement_activation ()
 void SMTLibEncoder::add_synchronization_constraints ()
 {
   if (verbose)
-    add_comment_subsection("synchronization constraints");
+    formula << smtlib::comment_subsection("synchronization constraints");
 
   declare_sync_vars();
 
@@ -490,7 +490,7 @@ void SMTLibEncoder::add_synchronization_constraints ()
 void SMTLibEncoder::add_statement_execution ()
 {
   if (verbose)
-    add_comment_subsection(
+    formula << smtlib::comment_subsection(
       "statement execution - shorthand for statement & thread activation");
 
   declare_exec_vars();
@@ -511,18 +511,6 @@ void SMTLibEncoder::add_statement_execution ()
 
     formula << eol;
   });
-}
-
-void SMTLibEncoder::add_comment_section (const string & msg)
-{
-  formula << setw(80) << setfill(';') << ';' << eol;
-  formula << "; " << msg << eol;
-  formula << setw(80) << setfill(';') << ';' << eol << eol;
-}
-
-void SMTLibEncoder::add_comment_subsection (const string & msg)
-{
-  formula << left << setfill(';') << setw(80) << ("; " + msg + " ") << eol << eol;
 }
 
 string SMTLibEncoder::load (Load & l)
@@ -558,7 +546,7 @@ SMTLibEncoderFunctional::SMTLibEncoderFunctional (
 void SMTLibEncoderFunctional::add_statement_activation ()
 {
   if (verbose)
-    add_comment_subsection("statement activation");
+    formula << smtlib::comment_subsection("statement activation");
 
   declare_stmt_vars();
 
@@ -619,7 +607,7 @@ void SMTLibEncoderFunctional::add_thread_scheduling ()
     variables.push_back(exit_var());
 
   if (verbose)
-    add_comment_subsection("thread scheduling");
+    formula << smtlib::comment_subsection("thread scheduling");
 
   declare_thread_vars();
 
@@ -638,7 +626,7 @@ void SMTLibEncoderFunctional::add_exit_call ()
     return;
 
   if (verbose)
-    add_comment_subsection("exit call");
+    formula << smtlib::comment_subsection("exit call");
 
   declare_exit_var();
 
@@ -660,7 +648,7 @@ void SMTLibEncoderFunctional::add_exit_call ()
 void SMTLibEncoderFunctional::add_state_update ()
 {
   if (verbose)
-    add_comment_subsection("state update");
+    formula << smtlib::comment_subsection("state update");
 
   /* accumulator */
   declare_accu_vars();
@@ -733,7 +721,7 @@ void SMTLibEncoderFunctional::add_state_update ()
 void SMTLibEncoderFunctional::add_exit_code ()
 {
   if (verbose)
-    add_comment_subsection("exit code");
+    formula << smtlib::comment_subsection("exit code");
 
   formula << smtlib::declare_bv_var(exit_code_var, word_size) << eol << eol;
 
@@ -773,7 +761,7 @@ void SMTLibEncoderFunctional::encode ()
   for (step = 1; step <= bound; step++)
     {
       if (verbose)
-        add_comment_section("step " + to_string(step));
+        formula << smtlib::comment_section("step " + to_string(step));
 
       /* exit variable */
       add_exit_call();

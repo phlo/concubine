@@ -185,10 +185,6 @@ struct SMTLibEncoder : public Encoder
   void                      add_synchronization_constraints (void);
   void                      add_statement_execution (void);
 
-  /* adds a section header comment to the formula */
-  void                      add_comment_section (const std::string &);
-  void                      add_comment_subsection (const std::string &);
-
   std::string               load(Load &);
 
   virtual void              encode (void);

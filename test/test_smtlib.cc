@@ -23,6 +23,33 @@ TEST(SMTLibTest, expr)
   ASSERT_STREQ(expected, smtlib::expr("op", {"x1", "x2", "x3"}).c_str());
 }
 
+/* comment ******************************************************************/
+TEST(SMTLibTest, comment)
+{
+  ASSERT_EQ("; foo", smtlib::comment("foo"));
+}
+
+/* comment section **********************************************************/
+TEST(SMTLibTest, comment_section)
+{
+  ASSERT_EQ(
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; foo\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n",
+    smtlib::comment_section("foo"));
+}
+
+/* comment subsection *******************************************************/
+TEST(SMTLibTest, comment_subsection)
+{
+  ASSERT_EQ(
+    "; foo ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n",
+    smtlib::comment_subsection("foo"));
+}
+
 /* assertion ******************************************************************/
 TEST(SMTLibTest, assert)
 {

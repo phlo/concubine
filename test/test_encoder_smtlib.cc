@@ -1032,52 +1032,6 @@ TEST_F(SMTLibEncoderTest, add_statement_execution)
   ASSERT_STREQ(expected, encoder->formula.str().c_str());
 }
 
-// void add_comment_section (const std::string &);
-TEST_F(SMTLibEncoderTest, add_comment_section)
-{
-  encoder->add_comment_section("foo");
-
-  expected =
-    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "; foo\n"
-    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n";
-
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
-
-  /* empty argument */
-  reset_encoder(0, 0);
-
-  encoder->add_comment_section("");
-
-  expected =
-    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "; \n"
-    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n";
-
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
-}
-
-// void add_comment_subsection (const std::string &);
-TEST_F(SMTLibEncoderTest, add_comment_subsection)
-{
-  encoder->add_comment_subsection("foo");
-
-  expected =
-    "; foo ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n";
-
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
-
-  /* empty argument */
-  reset_encoder(0, 0);
-
-  encoder->add_comment_subsection("");
-
-  expected =
-    ";  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n";
-
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
-}
-
 // string load(Load &);
 TEST_F(SMTLibEncoderTest, load)
 {

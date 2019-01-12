@@ -41,6 +41,30 @@ namespace smtlib
       return sb.str();
     }
 
+  /* comment ******************************************************************/
+  inline std::string comment (std::string comment)
+    {
+      return "; " + comment;
+    }
+
+  /* comment line *************************************************************/
+  const std::string comment_line =
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n";
+
+  /* comment section **********************************************************/
+  inline std::string comment_section (std::string comment)
+    {
+      return comment_line + "; " + comment + eol + comment_line + eol;
+    }
+
+  /* comment subsection *******************************************************/
+  inline std::string comment_subsection (std::string comment)
+    {
+      std::string c = comment_line + eol;
+      return c.replace(1, 2 + comment.size(), " " + comment + " ");
+    }
+
   /* assertion ****************************************************************/
   inline std::string assertion (std::string arg)
     {
