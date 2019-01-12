@@ -36,32 +36,33 @@ void print_usage_help (char * name)
 void print_usage_simulate (char * name)
 {
   cout << "usage: " << name <<
-  " simulate [-v] [-s <seed>] [-k <bound>] <program> ..." <<
+  " simulate [-k <bound>] [-s <seed>] [-v] <program> ..." <<
   eol << eol <<
-  "  -v         verbose schedule output" << eol <<
-  "  -s seed    random number generator's seed" << eol <<
   "  -k bound   execute a maximum of <bound> steps" << eol <<
+  "  -s seed    random number generator's seed" << eol <<
+  "  -v         verbose schedule output" << eol <<
   "  program    one ore more source files, each being executed as a separate thread" << eol;
 }
 
 void print_usage_replay (char * name)
 {
   cout << "usage: " << name <<
-  " replay [-v] [-k <bound>] <schedule>" <<
+  " replay [-k <bound>] [-v] <schedule>" <<
   eol << eol <<
-  "  -v         verbose schedule output" << eol <<
   "  -k bound   execute a maximum of <bound> steps" << eol <<
+  "  -v         verbose schedule output" << eol <<
   "  schedule   the schedule to replay" << eol;
 }
 
 void print_usage_verify (char * name)
 {
   cout << "usage: " << name <<
-  " verify [-v] [-p] <bound> <program> ..." <<
+  " verify [-c <file>] [-p] [-v] <bound> <program> ..." <<
   eol << eol <<
+  "  -c file    include additional constraints from file" << eol <<
+  "  -p         prints the generated formula and exits" << eol <<
   "  -v         verbose formula output" << eol <<
-  "  -p         prints the generated SMT-Lib v2 formula and exits" << eol <<
-  "  bound      execute a maximum of <bound> steps" << eol <<
+  "  bound      execute a specific number of steps" << eol <<
   "  program    one or more programs to encode" << eol;
 }
 
@@ -258,49 +259,72 @@ int verify (char * name, int argc, char ** argv)
       return -1;
     }
 
-  int i = 0;
-
-  /* only print smt file if true */
-  bool pretend = false;
-
-  /* parse flags */
-  while (i < argc)
-    {
-      if (!strcmp(argv[i], "-p"))
-        pretend = true;
-      else if (!strcmp(argv[i], "-v"))
-        verbose = true;
-      else
-        break;
-
-      i++;
-    }
-
-  /* check for bound and program */
-  if (argc < i + 2)
-    {
-      print_error("too few arguments");
-      print_usage_verify(name);
-      return -1;
-    }
-
-  /* parse bound */
-  unsigned long bound = 0;
   try
     {
-      bound = stoul(argv[i++], nullptr, 0);
+      int i = 0;
 
-      if (bound < 1) throw runtime_error("");
-    }
-  catch (...)
-    {
-      print_error("illegal bound [" + string(argv[i - 1]) + "]");
-      return -1;
-    }
+      /* only print formula */
+      bool pretend = false;
 
-  try
-    {
-      /* list of programs (idx == thread id) */
+      /* additional constraints from file */
+      string constraints;
+
+      /* parse flags */
+      do
+        if (!strcmp(argv[i], "-c"))
+          {
+            if (++i >= argc)
+              {
+                print_error("missing constraints file");
+                print_usage_verify(name);
+                return -1;
+              }
+
+            ifstream ifs(argv[i]);
+            constraints.assign(
+              istreambuf_iterator<char>(ifs),
+              istreambuf_iterator<char>());
+
+            if (constraints.empty())
+              throw runtime_error(string(argv[i]) + " not found");
+          }
+        else if (!strcmp(argv[i], "-p"))
+          pretend = true;
+        else if (!strcmp(argv[i], "-v"))
+          verbose = true;
+        else if (argv[i][0] == '-')
+          {
+            print_error("unknown option [" + string(argv[i]) + "]");
+            print_usage_verify(name);
+            return -1;
+          }
+        else
+          break;
+      while (++i < argc);
+
+      /* check for bound and program */
+      if (argc < i + 2)
+        {
+          print_error("too few arguments");
+          print_usage_verify(name);
+          return -1;
+        }
+
+      /* parse bound */
+      unsigned long bound = 0;
+      try
+        {
+          bound = stoul(argv[i++], nullptr, 0);
+
+          if (bound < 1) throw runtime_error("");
+        }
+      catch (...)
+        {
+          print_error("illegal bound [" + string(argv[i - 1]) + "]");
+          return -1;
+        }
+
+      /* list of programs (thread id == idx + 1) */
       ProgramListPtr programs(new ProgramList());
 
       /* parse programs */
@@ -313,14 +337,11 @@ int verify (char * name, int argc, char ** argv)
       // TODO: encode implicitly?
       formula.encode();
 
-      /* read specification from file */
-      string specification;
-
       /* create solver */
       Boolector boolector;
 
       /* create verifier*/
-      Verifier verifier(boolector, formula, specification);
+      Verifier verifier(boolector, formula, constraints);
 
       /* print program if we're pretending */
       if (pretend)

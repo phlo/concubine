@@ -6,15 +6,15 @@
 
 using namespace std;
 
-/* executable file name */
-const char * executable = "../psimsmt";
-
 /*******************************************************************************
  * Test Case Fixture
 *******************************************************************************/
 struct MainTest : public ::testing::Test
 {
   Shell shell;
+
+  /* executable file name */
+  string executable = "../psimsmt";
 };
 
 /* illegal_commands ***********************************************************/
@@ -303,31 +303,74 @@ TEST_F(MainTest, verify_load_store_arithmetic)
   ASSERT_STREQ(expected.c_str(), actual.c_str());
 }
 
-/* verify_missing_args ********************************************************/
-TEST_F(MainTest, verify_missing_args)
+/* verify_illegal_args ********************************************************/
+TEST_F(MainTest, verify_illegal_args)
 {
-  string args = " verify";
+  executable      = executable + " verify ";
+  string program  = "data/increment.cas.asm";
 
+  /* no arguments */
   string expected = "error: too few arguments\n";
 
-  string actual = shell.run(executable + args);
+  string actual = shell.run(executable);
 
   ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.substr(0, expected.length()).c_str());
+  ASSERT_EQ(expected, actual.substr(0, expected.length()));
 
+  /* unknown option */
+  expected = "error: unknown option [-foo]\n";
+
+  actual = shell.run(executable + "-foo 1 " + program);
+
+  ASSERT_EQ(255, shell.last_exit_code());
+  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+
+  /* missing bound */
+  expected = "error: illegal bound [" + program + "]\n";
+
+  actual = shell.run(executable + program + " " + program);
+
+  ASSERT_EQ(255, shell.last_exit_code());
+  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+
+  /* illegal bound (string) */
   expected = "error: illegal bound [WRONG]\n";
 
-  actual = shell.run(executable + args + " -p WRONG");
+  actual = shell.run(executable + "WRONG " + program);
 
   ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.substr(0, expected.length()).c_str());
+  ASSERT_EQ(expected, actual.substr(0, expected.length()));
 
+  /* illegal bound (0) */
   expected = "error: illegal bound [0]\n";
 
-  actual = shell.run(executable + args + " -p 0");
+  actual = shell.run(executable + "0 " + program);
 
   ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.substr(0, expected.length()).c_str());
+  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+
+  /* constraint file (missing) */
+  expected = "error: 1 not found\n";
+
+  actual = shell.run(executable + "-c 1 " + program);
+
+  ASSERT_EQ(255, shell.last_exit_code());
+  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+
+  expected = "error: missing constraints file\n";
+
+  actual = shell.run(executable + "-p -v -c");
+
+  ASSERT_EQ(255, shell.last_exit_code());
+  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+
+  /* constraint file (not found) */
+  expected = "error: FILE not found\n";
+
+  actual = shell.run(executable + "-c FILE 1 " + program);
+
+  ASSERT_EQ(255, shell.last_exit_code());
+  ASSERT_EQ(expected, actual.substr(0, expected.length()));
 }
 
 /* verify_file_not_found ******************************************************/

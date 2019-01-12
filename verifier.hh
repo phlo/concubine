@@ -14,7 +14,7 @@ struct SMTLibEncoder;
 *******************************************************************************/
 struct Verifier
 {
-  /* constructs a verifier, using the given solver, formula and specification */
+  /* constructs a verifier, using the given solver, formula and constraints */
   Verifier (Solver &, Encoder &, std::string &);
 
   /* wrapper to external smt solver */
@@ -23,8 +23,8 @@ struct Verifier
   /* smt encoder, storing the formula */
   Encoder &           formula;
 
-  /* specification in SMT-Lib v2 format */
-  std::string &       specification;
+  /* additional constraints in SMT-Lib v2 format */
+  std::string &       constraints;
 
   /* print the complete (formula + specification) SMT-Lib v2 file to stdout */
   void                print (void);

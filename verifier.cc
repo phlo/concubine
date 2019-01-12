@@ -9,17 +9,20 @@ using namespace std;
 /*******************************************************************************
  * Verifier
 *******************************************************************************/
-Verifier::Verifier (Solver & s, Encoder & f, string & spec) :
+Verifier::Verifier (Solver & s, Encoder & f, string & c) :
   solver(s),
   formula(f),
-  specification(spec)
+  constraints(c)
 {}
 
 /* Verifier::print (void) *****************************************************/
 void Verifier::print ()
 {
   cout  << formula.str()
-        << (specification.empty() ? "" : specification + "\n")
+        << (constraints.empty()
+          ? ""
+          : (verbose ? smtlib::comment_section("additional constraints") : "") +
+            constraints + eol)
         << smtlib::check_sat() << "\n"
         << smtlib::exit() << "\n";
 }
@@ -29,7 +32,7 @@ bool Verifier::sat ()
 {
   string smt =
       formula.str() +
-      (specification.empty() ? "" : specification + "\n") +
+      (constraints.empty() ? "" : constraints + "\n") +
       smtlib::check_sat() + "\n" +
       smtlib::exit();
 
