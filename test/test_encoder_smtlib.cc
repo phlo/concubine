@@ -812,6 +812,237 @@ TEST_F(SMTLibEncoderTest, add_initial_statement_activation)
   ASSERT_EQ(expected, encoder->formula.str());
 }
 
+// void add_thread_scheduling (void);
+TEST_F(SMTLibEncoderTest, add_thread_scheduling_naive)
+{
+  for (size_t i = 0; i < 3; i++)
+    {
+      programs.push_back(shared_ptr<Program>(new Program()));
+
+      programs[i]->add(Instruction::Set::create("ADDI", 1));
+    }
+
+  reset_encoder(1, 1);
+
+  encoder->add_thread_scheduling();
+
+  expected =
+    "; thread scheduling ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; thread activation variables - thread_<step>_<thread>\n"
+    "(declare-fun thread_1_1 () Bool)\n"
+    "(declare-fun thread_1_2 () Bool)\n"
+    "(declare-fun thread_1_3 () Bool)\n"
+    "\n"
+    "(assert (or thread_1_1 thread_1_2 thread_1_3))\n"
+    "(assert (or (not thread_1_1) (not thread_1_2)))\n"
+    "(assert (or (not thread_1_1) (not thread_1_3)))\n"
+    "(assert (or (not thread_1_2) (not thread_1_3)))\n\n";
+
+  ASSERT_EQ(expected, encoder->formula.str());
+
+  /* EXIT call - step 1 */
+  for (const auto & p : programs)
+    p->add(Instruction::Set::create("EXIT", 1));
+
+  reset_encoder(1, 1);
+
+  encoder->add_thread_scheduling();
+
+  expected =
+    "; thread scheduling ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; thread activation variables - thread_<step>_<thread>\n"
+    "(declare-fun thread_1_1 () Bool)\n"
+    "(declare-fun thread_1_2 () Bool)\n"
+    "(declare-fun thread_1_3 () Bool)\n"
+    "\n"
+    "(assert (or thread_1_1 thread_1_2 thread_1_3))\n"
+    "(assert (or (not thread_1_1) (not thread_1_2)))\n"
+    "(assert (or (not thread_1_1) (not thread_1_3)))\n"
+    "(assert (or (not thread_1_2) (not thread_1_3)))\n\n";
+
+  ASSERT_EQ(expected, encoder->formula.str());
+
+  /* EXIT call - step 2 */
+  reset_encoder(2, 2);
+
+  encoder->add_thread_scheduling();
+
+  expected =
+    "; thread scheduling ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; thread activation variables - thread_<step>_<thread>\n"
+    "(declare-fun thread_2_1 () Bool)\n"
+    "(declare-fun thread_2_2 () Bool)\n"
+    "(declare-fun thread_2_3 () Bool)\n"
+    "\n"
+    "(assert (or thread_2_1 thread_2_2 thread_2_3 exit_2))\n"
+    "(assert (or (not thread_2_1) (not thread_2_2)))\n"
+    "(assert (or (not thread_2_1) (not thread_2_3)))\n"
+    "(assert (or (not thread_2_1) (not exit_2)))\n"
+    "(assert (or (not thread_2_2) (not thread_2_3)))\n"
+    "(assert (or (not thread_2_2) (not exit_2)))\n"
+    "(assert (or (not thread_2_3) (not exit_2)))\n\n";
+
+  ASSERT_EQ(expected, encoder->formula.str());
+
+  /* verbosity */
+  reset_encoder(1, 1);
+
+  verbose = false;
+  encoder->add_thread_scheduling();
+  verbose = true;
+
+  expected =
+    "(declare-fun thread_1_1 () Bool)\n"
+    "(declare-fun thread_1_2 () Bool)\n"
+    "(declare-fun thread_1_3 () Bool)\n"
+    "\n"
+    "(assert (or thread_1_1 thread_1_2 thread_1_3))\n"
+    "(assert (or (not thread_1_1) (not thread_1_2)))\n"
+    "(assert (or (not thread_1_1) (not thread_1_3)))\n"
+    "(assert (or (not thread_1_2) (not thread_1_3)))\n\n";
+
+  ASSERT_EQ(expected, encoder->formula.str());
+}
+
+TEST_F(SMTLibEncoderTest, add_thread_scheduling_sinz)
+{
+  for (size_t i = 0; i < 6; i++)
+    {
+      programs.push_back(shared_ptr<Program>(new Program()));
+
+      programs[i]->add(Instruction::Set::create("ADDI", 1));
+    }
+
+  reset_encoder(1, 1);
+
+  encoder->add_thread_scheduling();
+
+  expected =
+    "; thread scheduling ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; thread activation variables - thread_<step>_<thread>\n"
+    "(declare-fun thread_1_1 () Bool)\n"
+    "(declare-fun thread_1_2 () Bool)\n"
+    "(declare-fun thread_1_3 () Bool)\n"
+    "(declare-fun thread_1_4 () Bool)\n"
+    "(declare-fun thread_1_5 () Bool)\n"
+    "(declare-fun thread_1_6 () Bool)\n"
+    "\n"
+    "(declare-fun thread_1_1_aux () Bool)\n"
+    "(declare-fun thread_1_2_aux () Bool)\n"
+    "(declare-fun thread_1_3_aux () Bool)\n"
+    "(declare-fun thread_1_4_aux () Bool)\n"
+    "(declare-fun thread_1_5_aux () Bool)\n"
+    "\n"
+    "(assert (or thread_1_1 thread_1_2 thread_1_3 thread_1_4 thread_1_5 thread_1_6))\n"
+    "(assert (or (not thread_1_1) thread_1_1_aux))\n"
+    "(assert (or (not thread_1_6) (not thread_1_5_aux)))\n"
+    "(assert (or (not thread_1_2) thread_1_2_aux))\n"
+    "(assert (or (not thread_1_1_aux) thread_1_2_aux))\n"
+    "(assert (or (not thread_1_2) (not thread_1_1_aux)))\n"
+    "(assert (or (not thread_1_3) thread_1_3_aux))\n"
+    "(assert (or (not thread_1_2_aux) thread_1_3_aux))\n"
+    "(assert (or (not thread_1_3) (not thread_1_2_aux)))\n"
+    "(assert (or (not thread_1_4) thread_1_4_aux))\n"
+    "(assert (or (not thread_1_3_aux) thread_1_4_aux))\n"
+    "(assert (or (not thread_1_4) (not thread_1_3_aux)))\n"
+    "(assert (or (not thread_1_5) thread_1_5_aux))\n"
+    "(assert (or (not thread_1_4_aux) thread_1_5_aux))\n"
+    "(assert (or (not thread_1_5) (not thread_1_4_aux)))\n\n";
+
+  ASSERT_EQ(expected, encoder->formula.str());
+
+  /* EXIT call - step 1 */
+  for (const auto & p : programs)
+    p->add(Instruction::Set::create("EXIT", 1));
+
+  reset_encoder(1, 1);
+
+  encoder->add_thread_scheduling();
+
+  expected =
+    "; thread scheduling ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; thread activation variables - thread_<step>_<thread>\n"
+    "(declare-fun thread_1_1 () Bool)\n"
+    "(declare-fun thread_1_2 () Bool)\n"
+    "(declare-fun thread_1_3 () Bool)\n"
+    "(declare-fun thread_1_4 () Bool)\n"
+    "(declare-fun thread_1_5 () Bool)\n"
+    "(declare-fun thread_1_6 () Bool)\n"
+    "\n"
+    "(declare-fun thread_1_1_aux () Bool)\n"
+    "(declare-fun thread_1_2_aux () Bool)\n"
+    "(declare-fun thread_1_3_aux () Bool)\n"
+    "(declare-fun thread_1_4_aux () Bool)\n"
+    "(declare-fun thread_1_5_aux () Bool)\n"
+    "\n"
+    "(assert (or thread_1_1 thread_1_2 thread_1_3 thread_1_4 thread_1_5 thread_1_6))\n"
+    "(assert (or (not thread_1_1) thread_1_1_aux))\n"
+    "(assert (or (not thread_1_6) (not thread_1_5_aux)))\n"
+    "(assert (or (not thread_1_2) thread_1_2_aux))\n"
+    "(assert (or (not thread_1_1_aux) thread_1_2_aux))\n"
+    "(assert (or (not thread_1_2) (not thread_1_1_aux)))\n"
+    "(assert (or (not thread_1_3) thread_1_3_aux))\n"
+    "(assert (or (not thread_1_2_aux) thread_1_3_aux))\n"
+    "(assert (or (not thread_1_3) (not thread_1_2_aux)))\n"
+    "(assert (or (not thread_1_4) thread_1_4_aux))\n"
+    "(assert (or (not thread_1_3_aux) thread_1_4_aux))\n"
+    "(assert (or (not thread_1_4) (not thread_1_3_aux)))\n"
+    "(assert (or (not thread_1_5) thread_1_5_aux))\n"
+    "(assert (or (not thread_1_4_aux) thread_1_5_aux))\n"
+    "(assert (or (not thread_1_5) (not thread_1_4_aux)))\n\n";
+
+  ASSERT_EQ(expected, encoder->formula.str());
+
+  /* EXIT call - step 2 */
+  reset_encoder(2, 2);
+
+  encoder->add_thread_scheduling();
+
+  expected =
+    "; thread scheduling ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; thread activation variables - thread_<step>_<thread>\n"
+    "(declare-fun thread_2_1 () Bool)\n"
+    "(declare-fun thread_2_2 () Bool)\n"
+    "(declare-fun thread_2_3 () Bool)\n"
+    "(declare-fun thread_2_4 () Bool)\n"
+    "(declare-fun thread_2_5 () Bool)\n"
+    "(declare-fun thread_2_6 () Bool)\n"
+    "\n"
+    "(declare-fun thread_2_1_aux () Bool)\n"
+    "(declare-fun thread_2_2_aux () Bool)\n"
+    "(declare-fun thread_2_3_aux () Bool)\n"
+    "(declare-fun thread_2_4_aux () Bool)\n"
+    "(declare-fun thread_2_5_aux () Bool)\n"
+    "(declare-fun thread_2_6_aux () Bool)\n"
+    "\n"
+    "(assert (or thread_2_1 thread_2_2 thread_2_3 thread_2_4 thread_2_5 thread_2_6 exit_2))\n"
+    "(assert (or (not thread_2_1) thread_2_1_aux))\n"
+    "(assert (or (not exit_2) (not thread_2_6_aux)))\n"
+    "(assert (or (not thread_2_2) thread_2_2_aux))\n"
+    "(assert (or (not thread_2_1_aux) thread_2_2_aux))\n"
+    "(assert (or (not thread_2_2) (not thread_2_1_aux)))\n"
+    "(assert (or (not thread_2_3) thread_2_3_aux))\n"
+    "(assert (or (not thread_2_2_aux) thread_2_3_aux))\n"
+    "(assert (or (not thread_2_3) (not thread_2_2_aux)))\n"
+    "(assert (or (not thread_2_4) thread_2_4_aux))\n"
+    "(assert (or (not thread_2_3_aux) thread_2_4_aux))\n"
+    "(assert (or (not thread_2_4) (not thread_2_3_aux)))\n"
+    "(assert (or (not thread_2_5) thread_2_5_aux))\n"
+    "(assert (or (not thread_2_4_aux) thread_2_5_aux))\n"
+    "(assert (or (not thread_2_5) (not thread_2_4_aux)))\n"
+    "(assert (or (not thread_2_6) thread_2_6_aux))\n"
+    "(assert (or (not thread_2_5_aux) thread_2_6_aux))\n"
+    "(assert (or (not thread_2_6) (not thread_2_5_aux)))\n\n";
+
+  ASSERT_EQ(expected, encoder->formula.str());
+}
+
 // void add_synchronization_constraints (void);
 TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
 {

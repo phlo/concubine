@@ -419,6 +419,30 @@ void SMTLibEncoder::add_initial_statement_activation ()
   });
 }
 
+void SMTLibEncoder::add_thread_scheduling ()
+{
+  vector<string> variables;
+
+  /* add thread activation variables */
+  iterate_threads([&] { variables.push_back(thread_var()); });
+
+  /* add exit variable */
+  if (step > 1 && !exit_pcs.empty())
+    variables.push_back(exit_var());
+
+  if (verbose)
+    formula << smtlib::comment_subsection("thread scheduling");
+
+  declare_thread_vars();
+
+  formula
+    << eol
+    << (use_sinz_constraint
+      ? smtlib::card_constraint_sinz(variables)
+      : smtlib::card_constraint_naive(variables))
+    << eol;
+}
+
 void SMTLibEncoder::add_synchronization_constraints ()
 {
   if (verbose)
@@ -600,30 +624,6 @@ void SMTLibEncoderFunctional::add_statement_activation ()
 
       formula << eol;
     });
-}
-
-void SMTLibEncoderFunctional::add_thread_scheduling ()
-{
-  vector<string> variables;
-
-  /* add thread activation variables */
-  iterate_threads([&] { variables.push_back(thread_var()); });
-
-  /* add exit variable */
-  if (step > 1 && !exit_pcs.empty())
-    variables.push_back(exit_var());
-
-  if (verbose)
-    formula << smtlib::comment_subsection("thread scheduling");
-
-  declare_thread_vars();
-
-  formula
-    << eol
-    << (use_sinz_constraint
-      ? smtlib::card_constraint_sinz(variables)
-      : smtlib::card_constraint_naive(variables))
-    << eol;
 }
 
 void SMTLibEncoderFunctional::add_exit_call ()

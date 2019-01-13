@@ -185,6 +185,7 @@ struct SMTLibEncoder : public Encoder
   void                      add_initial_state (void);
   void                      add_initial_statement_activation (void);
 
+  void                      add_thread_scheduling (void);
   void                      add_synchronization_constraints (void);
   void                      add_statement_execution (void);
 
@@ -216,7 +217,6 @@ struct SMTLibEncoderFunctional : public SMTLibEncoder
   std::unordered_map<word, std::vector<word>> mem_pcs;
 
   void                add_statement_activation (void);
-  void                add_thread_scheduling (void);
   void                add_exit_call (void);
   void                add_state_update (void);
   void                add_exit_code (void);
