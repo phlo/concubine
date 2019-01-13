@@ -537,10 +537,13 @@ void SMTLibEncoder::encode ()
  ******************************************************************************/
 SMTLibEncoderFunctional::SMTLibEncoderFunctional (
                                                   const ProgramListPtr p,
-                                                  unsigned long b
+                                                  unsigned long b,
+                                                  bool e
                                                  ) : SMTLibEncoder(p, b)
 {
   preprocess();
+
+  if (e) encode();
 }
 
 void SMTLibEncoderFunctional::add_statement_activation ()

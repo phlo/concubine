@@ -14,7 +14,8 @@ struct SMTLibEncoderTest : public ::testing::Test
     {
       return make_shared<SMTLibEncoderFunctional>(
         make_shared<ProgramList>(programs),
-        bound);
+        bound,
+        false);
     }
 
   void reset_encoder (const word bound, unsigned long step)
@@ -40,75 +41,75 @@ struct SMTLibEncoderTest : public ::testing::Test
 // string heap_var (const word);
 TEST_F(SMTLibEncoderTest, heap_var_args)
 {
-  ASSERT_STREQ("heap_0", encoder->heap_var(0).c_str());
-  ASSERT_STREQ("heap_1", encoder->heap_var(1).c_str());
-  ASSERT_STREQ("heap_2", encoder->heap_var(2).c_str());
+  ASSERT_EQ("heap_0", encoder->heap_var(0));
+  ASSERT_EQ("heap_1", encoder->heap_var(1));
+  ASSERT_EQ("heap_2", encoder->heap_var(2));
 }
 
 // string heap_var (void);
 TEST_F(SMTLibEncoderTest, heap_var)
 {
-  ASSERT_STREQ("heap_0", encoder->heap_var().c_str());
+  ASSERT_EQ("heap_0", encoder->heap_var());
 
   encoder->step = 1;
-  ASSERT_STREQ("heap_1", encoder->heap_var().c_str());
+  ASSERT_EQ("heap_1", encoder->heap_var());
 
   encoder->step = 2;
-  ASSERT_STREQ("heap_2", encoder->heap_var().c_str());
+  ASSERT_EQ("heap_2", encoder->heap_var());
 }
 
 // string accu_var (const word, const word);
 TEST_F(SMTLibEncoderTest, accu_var_args)
 {
-  ASSERT_STREQ("accu_0_1", encoder->accu_var(0, 1).c_str());
-  ASSERT_STREQ("accu_1_2", encoder->accu_var(1, 2).c_str());
-  ASSERT_STREQ("accu_2_3", encoder->accu_var(2, 3).c_str());
+  ASSERT_EQ("accu_0_1", encoder->accu_var(0, 1));
+  ASSERT_EQ("accu_1_2", encoder->accu_var(1, 2));
+  ASSERT_EQ("accu_2_3", encoder->accu_var(2, 3));
 }
 
 // string accu_var (void);
 TEST_F(SMTLibEncoderTest, accu_var)
 {
   encoder->thread = 1;
-  ASSERT_STREQ("accu_0_1", encoder->accu_var().c_str());
+  ASSERT_EQ("accu_0_1", encoder->accu_var());
 
   encoder->step = 1;
   encoder->thread = 2;
-  ASSERT_STREQ("accu_1_2", encoder->accu_var().c_str());
+  ASSERT_EQ("accu_1_2", encoder->accu_var());
 
   encoder->step = 2;
   encoder->thread = 3;
-  ASSERT_STREQ("accu_2_3", encoder->accu_var().c_str());
+  ASSERT_EQ("accu_2_3", encoder->accu_var());
 }
 
 // string mem_var (const word, const word);
 TEST_F(SMTLibEncoderTest, mem_var_args)
 {
-  ASSERT_STREQ("mem_0_1", encoder->mem_var(0, 1).c_str());
-  ASSERT_STREQ("mem_1_2", encoder->mem_var(1, 2).c_str());
-  ASSERT_STREQ("mem_2_3", encoder->mem_var(2, 3).c_str());
+  ASSERT_EQ("mem_0_1", encoder->mem_var(0, 1));
+  ASSERT_EQ("mem_1_2", encoder->mem_var(1, 2));
+  ASSERT_EQ("mem_2_3", encoder->mem_var(2, 3));
 }
 
 // string mem_var (void);
 TEST_F(SMTLibEncoderTest, mem_var)
 {
   encoder->thread = 1;
-  ASSERT_STREQ("mem_0_1", encoder->mem_var().c_str());
+  ASSERT_EQ("mem_0_1", encoder->mem_var());
 
   encoder->step = 1;
   encoder->thread = 2;
-  ASSERT_STREQ("mem_1_2", encoder->mem_var().c_str());
+  ASSERT_EQ("mem_1_2", encoder->mem_var());
 
   encoder->step = 2;
   encoder->thread = 3;
-  ASSERT_STREQ("mem_2_3", encoder->mem_var().c_str());
+  ASSERT_EQ("mem_2_3", encoder->mem_var());
 }
 
 // string stmt_var (const word, const word, const word);
 TEST_F(SMTLibEncoderTest, stmt_var_args)
 {
-  ASSERT_STREQ("stmt_0_1_2", encoder->stmt_var(0, 1, 2).c_str());
-  ASSERT_STREQ("stmt_1_2_3", encoder->stmt_var(1, 2, 3).c_str());
-  ASSERT_STREQ("stmt_2_3_4", encoder->stmt_var(2, 3, 4).c_str());
+  ASSERT_EQ("stmt_0_1_2", encoder->stmt_var(0, 1, 2));
+  ASSERT_EQ("stmt_1_2_3", encoder->stmt_var(1, 2, 3));
+  ASSERT_EQ("stmt_2_3_4", encoder->stmt_var(2, 3, 4));
 }
 
 // string stmt_var (void);
@@ -116,48 +117,48 @@ TEST_F(SMTLibEncoderTest, stmt_var)
 {
   encoder->thread = 1;
   encoder->pc = 2;
-  ASSERT_STREQ("stmt_0_1_2", encoder->stmt_var().c_str());
+  ASSERT_EQ("stmt_0_1_2", encoder->stmt_var());
 
   encoder->step = 1;
   encoder->thread = 2;
   encoder->pc = 3;
-  ASSERT_STREQ("stmt_1_2_3", encoder->stmt_var().c_str());
+  ASSERT_EQ("stmt_1_2_3", encoder->stmt_var());
 
   encoder->step = 2;
   encoder->thread = 3;
   encoder->pc = 4;
-  ASSERT_STREQ("stmt_2_3_4", encoder->stmt_var().c_str());
+  ASSERT_EQ("stmt_2_3_4", encoder->stmt_var());
 }
 
 // string thread_var (const word, const word);
 TEST_F(SMTLibEncoderTest, thread_var_args)
 {
-  ASSERT_STREQ("thread_0_1", encoder->thread_var(0, 1).c_str());
-  ASSERT_STREQ("thread_1_2", encoder->thread_var(1, 2).c_str());
-  ASSERT_STREQ("thread_2_3", encoder->thread_var(2, 3).c_str());
+  ASSERT_EQ("thread_0_1", encoder->thread_var(0, 1));
+  ASSERT_EQ("thread_1_2", encoder->thread_var(1, 2));
+  ASSERT_EQ("thread_2_3", encoder->thread_var(2, 3));
 }
 
 // string thread_var (void);
 TEST_F(SMTLibEncoderTest, thread_var)
 {
   encoder->thread = 1;
-  ASSERT_STREQ("thread_0_1", encoder->thread_var().c_str());
+  ASSERT_EQ("thread_0_1", encoder->thread_var());
 
   encoder->step = 1;
   encoder->thread = 2;
-  ASSERT_STREQ("thread_1_2", encoder->thread_var().c_str());
+  ASSERT_EQ("thread_1_2", encoder->thread_var());
 
   encoder->step = 2;
   encoder->thread = 3;
-  ASSERT_STREQ("thread_2_3", encoder->thread_var().c_str());
+  ASSERT_EQ("thread_2_3", encoder->thread_var());
 }
 
 // string exec_var (const word, const word, const word);
 TEST_F(SMTLibEncoderTest, exec_var_args)
 {
-  ASSERT_STREQ("exec_0_1_2", encoder->exec_var(0, 1, 2).c_str());
-  ASSERT_STREQ("exec_1_2_3", encoder->exec_var(1, 2, 3).c_str());
-  ASSERT_STREQ("exec_2_3_4", encoder->exec_var(2, 3, 4).c_str());
+  ASSERT_EQ("exec_0_1_2", encoder->exec_var(0, 1, 2));
+  ASSERT_EQ("exec_1_2_3", encoder->exec_var(1, 2, 3));
+  ASSERT_EQ("exec_2_3_4", encoder->exec_var(2, 3, 4));
 }
 
 // string exec_var (void);
@@ -165,69 +166,69 @@ TEST_F(SMTLibEncoderTest, exec_var)
 {
   encoder->thread = 1;
   encoder->pc = 2;
-  ASSERT_STREQ("exec_0_1_2", encoder->exec_var().c_str());
+  ASSERT_EQ("exec_0_1_2", encoder->exec_var());
 
   encoder->step = 1;
   encoder->thread = 2;
   encoder->pc = 3;
-  ASSERT_STREQ("exec_1_2_3", encoder->exec_var().c_str());
+  ASSERT_EQ("exec_1_2_3", encoder->exec_var());
 
   encoder->step = 2;
   encoder->thread = 3;
   encoder->pc = 4;
-  ASSERT_STREQ("exec_2_3_4", encoder->exec_var().c_str());
+  ASSERT_EQ("exec_2_3_4", encoder->exec_var());
 }
 
 // string cas_var (const word, const word);
 TEST_F(SMTLibEncoderTest, cas_var_args)
 {
-  ASSERT_STREQ("cas_0_1", encoder->cas_var(0, 1).c_str());
-  ASSERT_STREQ("cas_1_2", encoder->cas_var(1, 2).c_str());
-  ASSERT_STREQ("cas_2_3", encoder->cas_var(2, 3).c_str());
+  ASSERT_EQ("cas_0_1", encoder->cas_var(0, 1));
+  ASSERT_EQ("cas_1_2", encoder->cas_var(1, 2));
+  ASSERT_EQ("cas_2_3", encoder->cas_var(2, 3));
 }
 
 // string cas_var (void);
 TEST_F(SMTLibEncoderTest, cas_var)
 {
   encoder->thread = 1;
-  ASSERT_STREQ("cas_0_1", encoder->cas_var().c_str());
+  ASSERT_EQ("cas_0_1", encoder->cas_var());
 
   encoder->step = 1;
   encoder->thread = 2;
-  ASSERT_STREQ("cas_1_2", encoder->cas_var().c_str());
+  ASSERT_EQ("cas_1_2", encoder->cas_var());
 
   encoder->step = 2;
   encoder->thread = 3;
-  ASSERT_STREQ("cas_2_3", encoder->cas_var().c_str());
+  ASSERT_EQ("cas_2_3", encoder->cas_var());
 }
 
 // string sync_var (const word, const word);
 TEST_F(SMTLibEncoderTest, sync_var_args)
 {
-  ASSERT_STREQ("sync_0_1", encoder->sync_var(0, 1).c_str());
-  ASSERT_STREQ("sync_1_2", encoder->sync_var(1, 2).c_str());
-  ASSERT_STREQ("sync_2_3", encoder->sync_var(2, 3).c_str());
+  ASSERT_EQ("sync_0_1", encoder->sync_var(0, 1));
+  ASSERT_EQ("sync_1_2", encoder->sync_var(1, 2));
+  ASSERT_EQ("sync_2_3", encoder->sync_var(2, 3));
 }
 
 // string exit_var (const word);
 TEST_F(SMTLibEncoderTest, exit_var_args)
 {
-  ASSERT_STREQ("exit_0", encoder->exit_var(0).c_str());
-  ASSERT_STREQ("exit_1", encoder->exit_var(1).c_str());
-  ASSERT_STREQ("exit_2", encoder->exit_var(2).c_str());
+  ASSERT_EQ("exit_0", encoder->exit_var(0));
+  ASSERT_EQ("exit_1", encoder->exit_var(1));
+  ASSERT_EQ("exit_2", encoder->exit_var(2));
 }
 
 // string exit_var (void);
 TEST_F(SMTLibEncoderTest, exit_var)
 {
   encoder->thread = 1;
-  ASSERT_STREQ("exit_0", encoder->exit_var().c_str());
+  ASSERT_EQ("exit_0", encoder->exit_var());
 
   encoder->step = 1;
-  ASSERT_STREQ("exit_1", encoder->exit_var().c_str());
+  ASSERT_EQ("exit_1", encoder->exit_var());
 
   encoder->step = 2;
-  ASSERT_STREQ("exit_2", encoder->exit_var().c_str());
+  ASSERT_EQ("exit_2", encoder->exit_var());
 }
 
 // void declare_heap_var (void);
@@ -239,7 +240,7 @@ TEST_F(SMTLibEncoderTest, declare_heap_var)
     "; heap states - heap_<step>\n"
     "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 }
 
 // void declare_accu_vars (void);
@@ -256,7 +257,7 @@ TEST_F(SMTLibEncoderTest, declare_accu_vars)
     "(declare-fun accu_0_2 () (_ BitVec 16))\n"
     "(declare-fun accu_0_3 () (_ BitVec 16))\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* step 1 */
   reset_encoder(0, 1);
@@ -269,7 +270,7 @@ TEST_F(SMTLibEncoderTest, declare_accu_vars)
     "(declare-fun accu_1_2 () (_ BitVec 16))\n"
     "(declare-fun accu_1_3 () (_ BitVec 16))\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* verbosity */
   reset_encoder(0, 0);
@@ -283,7 +284,7 @@ TEST_F(SMTLibEncoderTest, declare_accu_vars)
     "(declare-fun accu_0_2 () (_ BitVec 16))\n"
     "(declare-fun accu_0_3 () (_ BitVec 16))\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 }
 
 // void declare_mem_vars (void);
@@ -300,7 +301,7 @@ TEST_F(SMTLibEncoderTest, declare_mem_vars)
     "(declare-fun mem_0_2 () (_ BitVec 16))\n"
     "(declare-fun mem_0_3 () (_ BitVec 16))\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* step 1 */
   reset_encoder(0, 1);
@@ -313,7 +314,7 @@ TEST_F(SMTLibEncoderTest, declare_mem_vars)
     "(declare-fun mem_1_2 () (_ BitVec 16))\n"
     "(declare-fun mem_1_3 () (_ BitVec 16))\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* verbosity */
   reset_encoder(0, 0);
@@ -327,7 +328,7 @@ TEST_F(SMTLibEncoderTest, declare_mem_vars)
     "(declare-fun mem_0_2 () (_ BitVec 16))\n"
     "(declare-fun mem_0_3 () (_ BitVec 16))\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 }
 
 // void declare_stmt_vars (void);
@@ -354,7 +355,7 @@ TEST_F(SMTLibEncoderTest, declare_stmt_vars)
     "(declare-fun stmt_1_3_1 () Bool)\n"
     "(declare-fun stmt_1_3_2 () Bool)\n\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* step 2 */
   reset_encoder(0, 2);
@@ -375,7 +376,7 @@ TEST_F(SMTLibEncoderTest, declare_stmt_vars)
     "(declare-fun stmt_2_3_1 () Bool)\n"
     "(declare-fun stmt_2_3_2 () Bool)\n\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* verbosity */
   reset_encoder(0, 1);
@@ -397,7 +398,7 @@ TEST_F(SMTLibEncoderTest, declare_stmt_vars)
     "(declare-fun stmt_1_3_1 () Bool)\n"
     "(declare-fun stmt_1_3_2 () Bool)\n\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 }
 
 // void declare_thread_vars (void);
@@ -416,7 +417,7 @@ TEST_F(SMTLibEncoderTest, declare_thread_vars)
     "(declare-fun thread_1_2 () Bool)\n"
     "(declare-fun thread_1_3 () Bool)\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* step 2 */
   reset_encoder(0, 2);
@@ -429,7 +430,7 @@ TEST_F(SMTLibEncoderTest, declare_thread_vars)
     "(declare-fun thread_2_2 () Bool)\n"
     "(declare-fun thread_2_3 () Bool)\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* verbosity */
   reset_encoder(0, 1);
@@ -443,7 +444,7 @@ TEST_F(SMTLibEncoderTest, declare_thread_vars)
     "(declare-fun thread_1_2 () Bool)\n"
     "(declare-fun thread_1_3 () Bool)\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 }
 
 // void declare_exec_vars (void);
@@ -470,7 +471,7 @@ TEST_F(SMTLibEncoderTest, declare_exec_vars)
     "(declare-fun exec_1_3_1 () Bool)\n"
     "(declare-fun exec_1_3_2 () Bool)\n\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* step 2 */
   reset_encoder(0, 2);
@@ -491,7 +492,7 @@ TEST_F(SMTLibEncoderTest, declare_exec_vars)
     "(declare-fun exec_2_3_1 () Bool)\n"
     "(declare-fun exec_2_3_2 () Bool)\n\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* verbosity */
   reset_encoder(0, 1);
@@ -513,7 +514,7 @@ TEST_F(SMTLibEncoderTest, declare_exec_vars)
     "(declare-fun exec_1_3_1 () Bool)\n"
     "(declare-fun exec_1_3_2 () Bool)\n\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 }
 
 // void declare_cas_vars (void);
@@ -524,7 +525,7 @@ TEST_F(SMTLibEncoderTest, declare_cas_vars)
   /* no CAS statement */
   encoder->declare_cas_vars();
 
-  ASSERT_STREQ("", encoder->formula.str().c_str());
+  ASSERT_EQ("", encoder->formula.str());
 
   /* single CAS in thread 1 */
   programs[0]->add(Instruction::Set::create("CAS", 0));
@@ -537,7 +538,7 @@ TEST_F(SMTLibEncoderTest, declare_cas_vars)
     "; CAS condition - cas_<step>_<thread>\n"
     "(declare-fun cas_1_1 () Bool)\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* 1 CAS per thread */
   for (const auto & p : programs)
@@ -553,7 +554,7 @@ TEST_F(SMTLibEncoderTest, declare_cas_vars)
     "(declare-fun cas_1_2 () Bool)\n"
     "(declare-fun cas_1_3 () Bool)\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* step 2 */
   reset_encoder(0, 2);
@@ -566,7 +567,7 @@ TEST_F(SMTLibEncoderTest, declare_cas_vars)
     "(declare-fun cas_2_2 () Bool)\n"
     "(declare-fun cas_2_3 () Bool)\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* verbosity */
   reset_encoder(0, 1);
@@ -580,7 +581,7 @@ TEST_F(SMTLibEncoderTest, declare_cas_vars)
     "(declare-fun cas_1_2 () Bool)\n"
     "(declare-fun cas_1_3 () Bool)\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 }
 
 // void declare_sync_vars (void);
@@ -604,7 +605,7 @@ TEST_F(SMTLibEncoderTest, declare_sync_vars)
     "(declare-fun sync_1_2 () Bool)\n"
     "(declare-fun sync_1_3 () Bool)\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* same sync ids */
   for (const auto & p : programs)
@@ -621,7 +622,7 @@ TEST_F(SMTLibEncoderTest, declare_sync_vars)
     "(declare-fun sync_1_3 () Bool)\n"
     "(declare-fun sync_1_4 () Bool)\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* step 2 */
   reset_encoder(0, 2);
@@ -635,7 +636,7 @@ TEST_F(SMTLibEncoderTest, declare_sync_vars)
     "(declare-fun sync_2_3 () Bool)\n"
     "(declare-fun sync_2_4 () Bool)\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* verbosity */
   reset_encoder(0, 1);
@@ -650,7 +651,7 @@ TEST_F(SMTLibEncoderTest, declare_sync_vars)
     "(declare-fun sync_1_3 () Bool)\n"
     "(declare-fun sync_1_4 () Bool)\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 }
 
 // void declare_exit_var (void);
@@ -665,7 +666,7 @@ TEST_F(SMTLibEncoderTest, declare_exit_vars)
     "; exit variable - exit_<step>\n"
     "(declare-fun exit_1 () Bool)\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* step 2 */
   reset_encoder(0, 2);
@@ -676,7 +677,7 @@ TEST_F(SMTLibEncoderTest, declare_exit_vars)
     "; exit variable - exit_<step>\n"
     "(declare-fun exit_2 () Bool)\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* verbosity */
   reset_encoder(0, 1);
@@ -688,15 +689,15 @@ TEST_F(SMTLibEncoderTest, declare_exit_vars)
   expected =
     "(declare-fun exit_1 () Bool)\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 }
 
 // string assign_var (string, string);
 TEST_F(SMTLibEncoderTest, assign_var)
 {
-  ASSERT_STREQ(
+  ASSERT_EQ(
     "(assert (= foo bar))",
-    encoder->assign_var("foo", "bar").c_str());
+    encoder->assign_var("foo", "bar"));
 }
 
 // void add_initial_state (void);
@@ -732,7 +733,7 @@ TEST_F(SMTLibEncoderTest, add_initial_state)
     "; heap states - heap_<step>\n"
     "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* verbosity */
   reset_encoder(0, 0);
@@ -760,7 +761,7 @@ TEST_F(SMTLibEncoderTest, add_initial_state)
     "\n"
     "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 }
 
 // void add_initial_statement_activation (void);
@@ -786,7 +787,7 @@ TEST_F(SMTLibEncoderTest, add_initial_statement_activation)
     "(assert (not stmt_1_3_1))\n"
     "(assert (not stmt_1_3_2))\n\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* verbosity */
   reset_encoder(0, 1);
@@ -808,7 +809,7 @@ TEST_F(SMTLibEncoderTest, add_initial_statement_activation)
     "(assert (not stmt_1_3_1))\n"
     "(assert (not stmt_1_3_2))\n\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 }
 
 // void add_synchronization_constraints (void);
@@ -839,7 +840,7 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
     "(assert (=> (and stmt_1_2_0 (not sync_1_1)) (not thread_1_2))) ; barrier 1: thread 2\n"
     "(assert (=> (and stmt_1_3_0 (not sync_1_1)) (not thread_1_3))) ; barrier 1: thread 3\n\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* two different barriers */
   for (const auto & p : programs)
@@ -868,7 +869,7 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
     "(assert (=> (and stmt_1_2_1 (not sync_1_2)) (not thread_1_2))) ; barrier 2: thread 2\n"
     "(assert (=> (and stmt_1_3_1 (not sync_1_2)) (not thread_1_3))) ; barrier 2: thread 3\n\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* two identical barriers */
   for (const auto & p : programs)
@@ -897,7 +898,7 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
     "(assert (=> (and stmt_1_2_1 (not sync_1_2)) (not thread_1_2))) ; barrier 2: thread 2\n"
     "(assert (=> (and stmt_1_3_1 (not sync_1_2)) (not thread_1_3))) ; barrier 2: thread 3\n\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* verbosity */
   for (const auto & p : programs)
@@ -920,7 +921,7 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
     "(assert (=> (and stmt_1_2_0 (not sync_1_1)) (not thread_1_2)))\n"
     "(assert (=> (and stmt_1_3_0 (not sync_1_1)) (not thread_1_3)))\n\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 }
 
 // void add_statement_execution (void);
@@ -960,7 +961,7 @@ TEST_F(SMTLibEncoderTest, add_statement_execution)
     "(assert (= exec_1_3_1 (and stmt_1_3_1 thread_1_3)))\n"
     "(assert (= exec_1_3_2 (and stmt_1_3_2 thread_1_3)))\n\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* last statement is a sync barrier */
   for (const auto & p : programs)
@@ -1004,7 +1005,7 @@ TEST_F(SMTLibEncoderTest, add_statement_execution)
     "(assert (= exec_1_3_2 (and stmt_1_3_2 thread_1_3)))\n"
     "(assert (= exec_1_3_3 (and stmt_1_3_3 sync_1_1)))\n\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* verbosity */
   for (const auto & p : programs)
@@ -1029,7 +1030,7 @@ TEST_F(SMTLibEncoderTest, add_statement_execution)
     "\n"
     "(assert (= exec_1_3_0 (and stmt_1_3_0 thread_1_3)))\n\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 }
 
 // string load(Load &);
@@ -1041,14 +1042,14 @@ TEST_F(SMTLibEncoderTest, load)
 
   expected = "(select heap_0 #x0001)";
 
-  ASSERT_STREQ(expected, encoder->load(l).c_str());
+  ASSERT_EQ(expected, encoder->load(l));
 
   /* indirect */
   l.indirect = true;
 
   expected = "(select heap_0 (select heap_0 #x0001))";
 
-  ASSERT_STREQ(expected, encoder->load(l).c_str());
+  ASSERT_EQ(expected, encoder->load(l));
 }
 
 // virtual void encode (void);
@@ -1086,7 +1087,7 @@ TEST_F(SMTLibEncoderTest, encode)
     "; heap states - heap_<step>\n"
     "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 
   /* verbosity */
   reset_encoder(0, 0);
@@ -1116,5 +1117,5 @@ TEST_F(SMTLibEncoderTest, encode)
     "\n"
     "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n\n";
 
-  ASSERT_STREQ(expected, encoder->formula.str().c_str());
+  ASSERT_EQ(expected, encoder->formula.str());
 }

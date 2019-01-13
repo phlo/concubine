@@ -33,7 +33,7 @@ TEST_F(ShellTest, ouput)
   string actual = shell.run("echo -n " + expected);
 
   ASSERT_EQ(0, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.c_str());
+  ASSERT_EQ(expected, actual);
 }
 
 /* input_output ***************************************************************/
@@ -44,7 +44,7 @@ TEST_F(ShellTest, input_output)
   string actual = shell.run("cat", expected);
 
   ASSERT_EQ(0, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.c_str());
+  ASSERT_EQ(expected, actual);
 }
 
 /* pipe_in_pipe ***************************************************************/
@@ -56,7 +56,7 @@ TEST_F(ShellTest, pipe_in_pipe)
   string actual = shell.run("sort | uniq", input);
 
   ASSERT_EQ(0, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.c_str());
+  ASSERT_EQ(expected, actual);
 }
 
 /* abuse **********************************************************************/
@@ -66,13 +66,13 @@ TEST_F(ShellTest, abuse)
   string actual = shell.run("unknown");
 
   ASSERT_EQ(127, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.c_str());
+  ASSERT_EQ(expected, actual);
 
   actual = shell.run("");
-  ASSERT_STREQ("", actual.c_str());
+  ASSERT_EQ("", actual);
 
   string input;
   actual= shell.run("echo ", input);
   ASSERT_EQ(0, shell.last_exit_code());
-  ASSERT_STREQ("\n", actual.c_str());
+  ASSERT_EQ("\n", actual);
 }

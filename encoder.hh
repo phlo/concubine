@@ -201,7 +201,7 @@ typedef std::shared_ptr<SMTLibEncoder> SMTLibEncoderPtr;
 struct SMTLibEncoderFunctional : public SMTLibEncoder
 {
   /* constructs an SMTLibEncoderFunctional for the given program and bound */
-  SMTLibEncoderFunctional (const ProgramListPtr, unsigned long);
+  SMTLibEncoderFunctional (const ProgramListPtr, unsigned long, bool = true);
 
   /* heap altering pcs */
   std::unordered_map<word, std::vector<word>> heap_pcs;

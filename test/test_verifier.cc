@@ -39,6 +39,6 @@ TEST_F(VerifierTest, sat)
 
   redirecter.stop();
 
-  ASSERT_STREQ("sat\n", ss.str().c_str());
+  ASSERT_EQ("sat\n", ss.str());
 }
 #endif

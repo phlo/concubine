@@ -17,7 +17,8 @@ struct SMTLibEncoderFunctionalTest : public ::testing::Test
       SMTLibEncoderFunctionalPtr e =
         make_shared<SMTLibEncoderFunctional>(
           make_shared<ProgramList>(programs),
-          bound);
+          bound,
+          false);
 
       e->step = step;
 
@@ -922,8 +923,6 @@ TEST_F(SMTLibEncoderFunctionalTest, encode_sync)
     make_shared<SMTLibEncoderFunctional>(
       make_shared<ProgramList>(programs), 8);
 
-  encoder->encode();
-
   ifstream ifs("data/increment.sync.functional.t2.k8.smt2");
   expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
 
@@ -944,8 +943,6 @@ TEST_F(SMTLibEncoderFunctionalTest, encode_cas)
     make_shared<SMTLibEncoderFunctional>(
       make_shared<ProgramList>(programs), 8);
 
-  encoder->encode();
-
   ifstream ifs("data/increment.cas.functional.t2.k8.smt2");
   expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
 
@@ -957,16 +954,16 @@ TEST_F(SMTLibEncoderFunctionalTest, LOAD)
 {
   Load load = Load(1);
 
-  ASSERT_STREQ(
+  ASSERT_EQ(
     "(select heap_0 #x0001)",
-    encoder->encode(load).c_str());
+    encoder->encode(load));
 
   /* indirect */
   load.indirect = true;
 
-  ASSERT_STREQ(
+  ASSERT_EQ(
     "(select heap_0 (select heap_0 #x0001))",
-    encoder->encode(load).c_str());
+    encoder->encode(load));
 }
 
 // virtual std::string encode (Store &);
@@ -974,16 +971,16 @@ TEST_F(SMTLibEncoderFunctionalTest, STORE)
 {
   Store store = Store(1);
 
-  ASSERT_STREQ(
+  ASSERT_EQ(
     "(store heap_0 #x0001 accu_0_1)",
-    encoder->encode(store).c_str());
+    encoder->encode(store));
 
   /* indirect */
   store.indirect = true;
 
-  ASSERT_STREQ(
+  ASSERT_EQ(
     "(store heap_0 (select heap_0 #x0001) accu_0_1)",
-    encoder->encode(store).c_str());
+    encoder->encode(store));
 }
 
 // virtual std::string encode (Add &);
@@ -991,16 +988,16 @@ TEST_F(SMTLibEncoderFunctionalTest, ADD)
 {
   Add add = Add(1);
 
-  ASSERT_STREQ(
+  ASSERT_EQ(
     "(bvadd accu_0_1 (select heap_0 #x0001))",
-    encoder->encode(add).c_str());
+    encoder->encode(add));
 
   /* indirect */
   add.indirect = true;
 
-  ASSERT_STREQ(
+  ASSERT_EQ(
     "(bvadd accu_0_1 (select heap_0 (select heap_0 #x0001)))",
-    encoder->encode(add).c_str());
+    encoder->encode(add));
 }
 
 // virtual std::string encode (Addi &);
@@ -1008,9 +1005,9 @@ TEST_F(SMTLibEncoderFunctionalTest, ADDI)
 {
   Addi addi = Addi(1);
 
-  ASSERT_STREQ(
+  ASSERT_EQ(
     "(bvadd accu_0_1 #x0001)",
-    encoder->encode(addi).c_str());
+    encoder->encode(addi));
 }
 
 // virtual std::string encode (Sub &);
@@ -1018,16 +1015,16 @@ TEST_F(SMTLibEncoderFunctionalTest, SUB)
 {
   Sub sub = Sub(1);
 
-  ASSERT_STREQ(
+  ASSERT_EQ(
     "(bvsub accu_0_1 (select heap_0 #x0001))",
-    encoder->encode(sub).c_str());
+    encoder->encode(sub));
 
   /* indirect */
   sub.indirect = true;
 
-  ASSERT_STREQ(
+  ASSERT_EQ(
     "(bvsub accu_0_1 (select heap_0 (select heap_0 #x0001)))",
-    encoder->encode(sub).c_str());
+    encoder->encode(sub));
 }
 
 // virtual std::string encode (Subi &);
@@ -1035,9 +1032,9 @@ TEST_F(SMTLibEncoderFunctionalTest, SUBI)
 {
   Subi subi = Subi(1);
 
-  ASSERT_STREQ(
+  ASSERT_EQ(
     "(bvsub accu_0_1 #x0001)",
-    encoder->encode(subi).c_str());
+    encoder->encode(subi));
 }
 
 // virtual std::string encode (Cmp &);
@@ -1045,16 +1042,16 @@ TEST_F(SMTLibEncoderFunctionalTest, CMP)
 {
   Cmp cmp = Cmp(1);
 
-  ASSERT_STREQ(
+  ASSERT_EQ(
     "(bvsub accu_0_1 (select heap_0 #x0001))",
-    encoder->encode(cmp).c_str());
+    encoder->encode(cmp));
 
   /* indirect */
   cmp.indirect = true;
 
-  ASSERT_STREQ(
+  ASSERT_EQ(
     "(bvsub accu_0_1 (select heap_0 (select heap_0 #x0001)))",
-    encoder->encode(cmp).c_str());
+    encoder->encode(cmp));
 }
 
 // virtual std::string encode (Jmp &);
@@ -1070,9 +1067,9 @@ TEST_F(SMTLibEncoderFunctionalTest, JZ)
 {
   Jz jz = Jz(1);
 
-  ASSERT_STREQ(
+  ASSERT_EQ(
     "(= accu_0_1 #x0000)",
-    encoder->encode(jz).c_str());
+    encoder->encode(jz));
 }
 
 // virtual std::string encode (Jnz &);
@@ -1080,9 +1077,9 @@ TEST_F(SMTLibEncoderFunctionalTest, JNZ)
 {
   Jnz jnz = Jnz(1);
 
-  ASSERT_STREQ(
+  ASSERT_EQ(
     "(not (= accu_0_1 #x0000))",
-    encoder->encode(jnz).c_str());
+    encoder->encode(jnz));
 }
 
 // virtual std::string encode (Js &);
@@ -1134,16 +1131,16 @@ TEST_F(SMTLibEncoderFunctionalTest, MEM)
 {
   Mem mem = Mem(1);
 
-  ASSERT_STREQ(
+  ASSERT_EQ(
     "(select heap_0 #x0001)",
-    encoder->encode(mem).c_str());
+    encoder->encode(mem));
 
   /* indirect */
   mem.indirect = true;
 
-  ASSERT_STREQ(
+  ASSERT_EQ(
     "(select heap_0 (select heap_0 #x0001))",
-    encoder->encode(mem).c_str());
+    encoder->encode(mem));
 }
 
 // virtual std::string encode (Cas &);
@@ -1151,22 +1148,22 @@ TEST_F(SMTLibEncoderFunctionalTest, CAS)
 {
   Cas cas = Cas(1);
 
-  ASSERT_STREQ(
+  ASSERT_EQ(
     "(ite "
       "(= mem_0_1 (select heap_0 #x0001)) "
       "(store heap_0 #x0001 accu_0_1) "
       "heap_0)",
-    encoder->encode(cas).c_str());
+    encoder->encode(cas));
 
   /* indirect */
   cas.indirect = true;
 
-  ASSERT_STREQ(
+  ASSERT_EQ(
     "(ite "
       "(= mem_0_1 (select heap_0 (select heap_0 #x0001))) "
       "(store heap_0 (select heap_0 #x0001) accu_0_1) "
       "heap_0)",
-    encoder->encode(cas).c_str());
+    encoder->encode(cas));
 }
 
 // virtual std::string encode (Sync &);
@@ -1182,5 +1179,5 @@ TEST_F(SMTLibEncoderFunctionalTest, EXIT)
 {
   Exit exit = Exit(1);
 
-  ASSERT_STREQ("#x0001", encoder->encode(exit).c_str());
+  ASSERT_EQ("#x0001", encoder->encode(exit));
 }

@@ -57,10 +57,17 @@ void print_usage_replay (char * name)
 void print_usage_verify (char * name)
 {
   cout << "usage: " << name <<
-  " verify [-c <file>] [-p] [-v] <bound> <program> ..." <<
-  eol << eol <<
+  " verify [options] <bound> <program> ..."
+  << eol << eol <<
+  "options:" << eol <<
   "  -c file    include additional constraints from file" << eol <<
+  "  -e encoder use a specific encoding:" << eol <<
+  "             smtlib-functional (default)" << eol <<
+  "             smtlib-relational" << eol <<
+  "             btor2 (requires -s boolector)" << eol <<
   "  -p         prints the generated formula and exits" << eol <<
+  "  -s solver  use a specific solver:" << eol <<
+  "             boolector (default)" << eol <<
   "  -v         verbose formula output" << eol <<
   "  bound      execute a specific number of steps" << eol <<
   "  program    one or more programs to encode" << eol;
@@ -333,9 +340,6 @@ int verify (char * name, int argc, char ** argv)
 
       /* encode program */
       SMTLibEncoderFunctional formula(programs, bound);
-
-      // TODO: encode implicitly?
-      formula.encode();
 
       /* create solver */
       Boolector boolector;

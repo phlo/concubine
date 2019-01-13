@@ -14,7 +14,8 @@ struct EncoderTest : public ::testing::Test
     {
       return make_shared<SMTLibEncoderFunctional>(
         make_shared<ProgramList>(programs),
-        bound);
+        bound,
+        false);
     }
 
   void reset_encoder (const word bound)
@@ -306,10 +307,10 @@ TEST_F(EncoderTest, preprocess)
   ASSERT_EQ(set<word>({1, 2, 3}), encoder->cas_threads);
 }
 
-// string to_string (void);
-TEST_F(EncoderTest, to_string)
+// string str (void);
+TEST_F(EncoderTest, str)
 {
   encoder->formula << "foo";
 
-  ASSERT_STREQ("foo", encoder->str().c_str());
+  ASSERT_EQ("foo", encoder->str());
 }
