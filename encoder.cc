@@ -971,3 +971,36 @@ string SMTLibEncoderFunctional::encode (Exit & e)
 {
   return smtlib::word2hex(e.arg);
 }
+
+/*******************************************************************************
+ * SMT-Lib v2.5 Relational Encoder Class
+ ******************************************************************************/
+SMTLibEncoderRelational::SMTLibEncoderRelational (
+                                                  const ProgramListPtr p,
+                                                  unsigned long b,
+                                                  bool e
+                                                 ) : SMTLibEncoder(p, b)
+{
+  if (e) encode();
+}
+
+void SMTLibEncoderRelational::encode ()
+{
+  /* set logic and add common variable declarations */
+  SMTLibEncoder::encode();
+
+  for (step = 1; step <= bound; step++)
+    {
+      if (verbose)
+        formula << smtlib::comment_section("step " + to_string(step));
+
+      /* thread scheduling */
+      add_thread_scheduling();
+
+      /* synchronization constraints */
+      add_synchronization_constraints();
+
+      /* statement execution */
+      add_statement_execution();
+    }
+}

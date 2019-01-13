@@ -256,4 +256,44 @@ struct SMTLibEncoderFunctional : public SMTLibEncoder
  ******************************************************************************/
 typedef std::shared_ptr<SMTLibEncoderFunctional> SMTLibEncoderFunctionalPtr;
 
+/*******************************************************************************
+ * SMT-Lib v2.5 Functional Encoder Class
+ ******************************************************************************/
+struct SMTLibEncoderRelational : public SMTLibEncoder
+{
+  /* constructs an SMTLibEncoderRelational for the given program and bound */
+  SMTLibEncoderRelational (const ProgramListPtr, unsigned long, bool = true);
+
+  /* encodes the whole machine configuration */
+  virtual void        encode (void);
+
+  /* double-dispatched instruction encoding functions */
+  virtual std::string encode (Load &);
+  virtual std::string encode (Store &);
+
+  virtual std::string encode (Add &);
+  virtual std::string encode (Addi &);
+  virtual std::string encode (Sub &);
+  virtual std::string encode (Subi &);
+
+  virtual std::string encode (Cmp &);
+  virtual std::string encode (Jmp &);
+  virtual std::string encode (Jz &);
+  virtual std::string encode (Jnz &);
+  virtual std::string encode (Js &);
+  virtual std::string encode (Jns &);
+  virtual std::string encode (Jnzns &);
+
+  virtual std::string encode (Mem &);
+  virtual std::string encode (Cas &);
+
+  virtual std::string encode (Sync &);
+  virtual std::string encode (Exit &);
+};
+
+/*******************************************************************************
+ * SMTLibEncoderRelationalPtr
+ ******************************************************************************/
+typedef std::shared_ptr<SMTLibEncoderRelational> SMTLibEncoderRelationalPtr;
+
 #endif
