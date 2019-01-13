@@ -173,6 +173,9 @@ int Machine::simulate ()
 /* Machine::replay (Schedule &) ***********************************************/
 int Machine::replay (Schedule & schedule)
 {
+  /* set bound */
+  bound = schedule.size();
+
   /* create threads */
   for (ProgramPtr p : schedule.programs)
     create_thread(*p);

@@ -2,6 +2,7 @@
 
 #include "boolector.hh"
 #include "smtlib.hh"
+#include "streamredirecter.hh"
 
 using namespace std;
 
@@ -238,6 +239,9 @@ TEST(SMTLibTest, cardinality_exactly_one_naive_sat)
 {
   Boolector btor;
 
+  ostringstream ss;
+  StreamRedirecter redirecter(cout, ss);
+
   vector<string> vars({"x1", "x2", "x3"});
 
   string formula = smtlib::set_logic() + eol;
@@ -255,7 +259,11 @@ TEST(SMTLibTest, cardinality_exactly_one_naive_sat)
 
   spec += smtlib::check_sat() + eol;
 
+  redirecter.start();
+
   ASSERT_FALSE(btor.sat(spec));
+
+  redirecter.stop();
 
   /* not more than one */
   spec = formula;
@@ -266,7 +274,11 @@ TEST(SMTLibTest, cardinality_exactly_one_naive_sat)
 
   spec += smtlib::check_sat() + eol;
 
+  redirecter.start();
+
   ASSERT_FALSE(btor.sat(spec));
+
+  redirecter.stop();
 }
 
 /* card_constraint_sinz *******************************************************/
@@ -330,6 +342,9 @@ TEST(SMTLibTest, cardinality_exactly_one_sinz_sat)
 {
   Boolector btor;
 
+  ostringstream ss;
+  StreamRedirecter redirecter(cout, ss);
+
   vector<string> vars({"x1", "x2", "x3", "x4", "x5", "x6"});
 
   string formula = smtlib::set_logic() + eol;
@@ -347,7 +362,11 @@ TEST(SMTLibTest, cardinality_exactly_one_sinz_sat)
 
   spec += smtlib::check_sat() + eol;
 
+  redirecter.start();
+
   ASSERT_FALSE(btor.sat(spec));
+
+  redirecter.stop();
 
   /* not more than one */
   spec = formula;
@@ -358,5 +377,9 @@ TEST(SMTLibTest, cardinality_exactly_one_sinz_sat)
 
   spec += smtlib::check_sat() + eol;
 
+  redirecter.start();
+
   ASSERT_FALSE(btor.sat(spec));
+
+  redirecter.stop();
 }

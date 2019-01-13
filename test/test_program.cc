@@ -32,15 +32,17 @@ TEST_F(ProgramTest, parse)
 {
   program = Program("data/increment.cas.asm");
 
-  ASSERT_EQ(5, program.size());
+  ASSERT_EQ(6, program.size());
   ASSERT_EQ(1, program.sync_ids.size());
-  ASSERT_STREQ("START", program.labels[0].c_str());
+  ASSERT_EQ(1, program.labels.size());
+  ASSERT_EQ("LOOP", program.labels[2]);
 
-  ASSERT_STREQ("START\tMEM\t1", program.print(true, 0).c_str());
-  ASSERT_STREQ("1\tADDI\t1",    program.print(true, 1).c_str());
-  ASSERT_STREQ("2\tCAS\t1",     program.print(true, 2).c_str());
-  ASSERT_STREQ("3\tJZ\tSTART",  program.print(true, 3).c_str());
-  ASSERT_STREQ("4\tSYNC\t1",    program.print(true, 4).c_str());
+  ASSERT_EQ("0\tSTORE\t0",  program.print(true, 0));
+  ASSERT_EQ("1\tSYNC\t0",   program.print(true, 1));
+  ASSERT_EQ("LOOP\tMEM\t0", program.print(true, 2));
+  ASSERT_EQ("3\tADDI\t1",   program.print(true, 3));
+  ASSERT_EQ("4\tCAS\t0",    program.print(true, 4));
+  ASSERT_EQ("5\tJMP\tLOOP", program.print(true, 5));
 
   /* indirect addressing */
   program = Program("data/indirect.addressing.asm");
@@ -49,11 +51,11 @@ TEST_F(ProgramTest, parse)
   ASSERT_EQ(0, program.sync_ids.size());
   ASSERT_EQ(0, program.labels.size());
 
-  ASSERT_STREQ("0\tADDI\t1",    program.print(true, 0).c_str());
-  ASSERT_STREQ("1\tSTORE\t[1]", program.print(true, 1).c_str());
-  ASSERT_STREQ("2\tLOAD\t1",    program.print(true, 2).c_str());
-  ASSERT_STREQ("3\tADD\t[1]",   program.print(true, 3).c_str());
-  ASSERT_STREQ("4\tCMP\t[1]",   program.print(true, 4).c_str());
+  ASSERT_EQ("0\tADDI\t1",     program.print(true, 0));
+  ASSERT_EQ("1\tSTORE\t[1]",  program.print(true, 1));
+  ASSERT_EQ("2\tLOAD\t1",     program.print(true, 2));
+  ASSERT_EQ("3\tADD\t[1]",    program.print(true, 3));
+  ASSERT_EQ("4\tCMP\t[1]",    program.print(true, 4));
 }
 
 /* parse_file_not_found *******************************************************/
@@ -74,7 +76,7 @@ TEST_F(ProgramTest, parse_file_not_found)
 /* parse_illegal_instruction **************************************************/
 TEST_F(ProgramTest, parse_illegal_instruction)
 {
-  string dummy_file = "data/increment.asm";
+  string dummy_file = "data/fibonacci.asm";
 
   Parser<Program> parser(dummy_file);
 

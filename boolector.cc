@@ -1,7 +1,5 @@
 #include "boolector.hh"
 
-#include <iostream>
-
 using namespace std;
 
 string Boolector::build_command ()

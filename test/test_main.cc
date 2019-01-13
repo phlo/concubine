@@ -31,56 +31,55 @@ TEST_F(MainTest, illegal_commands)
   actual = shell.run(cmd + " help");
 
   ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.substr(0, expected.length()).c_str());
+  ASSERT_EQ(expected, actual.substr(0, expected.length()));
 
   expected = "error: unknown command WRONG";
 
   actual = shell.run(cmd + " help WRONG");
 
   ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.substr(0, expected.length()).c_str());
+  ASSERT_EQ(expected, actual.substr(0, expected.length()));
 }
 
-/* simulate_increment_0 *******************************************************/
-TEST_F(MainTest, simulate_increment_0)
+/* simulate_increment_sync ****************************************************/
+TEST_F(MainTest, simulate_increment_sync)
 {
   /* read expected schedule from file */
-  ifstream schedule_file("data/increment.invalid.schedule");
+  ifstream schedule_file("data/increment.sync.t2.k16.schedule");
   string expected(( istreambuf_iterator<char>(schedule_file) ),
                     istreambuf_iterator<char>());
 
-  string args           = " simulate -v -s 0 ";
-  string checker_file   = " data/increment.checker.asm ";
-  string increment_file = " data/increment.asm ";
+  string args         = " simulate -v -s 0 -k 16 ";
+  string increment_0  = " data/increment.sync.thread.0.asm ";
+  string increment_n  = " data/increment.sync.thread.n.asm ";
 
   string cmd =
-    executable + args + checker_file + increment_file + increment_file;
+    executable + args + increment_0 + " " + increment_n;
 
   string actual = shell.run(cmd);
 
-  ASSERT_EQ(1, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.c_str());
+  ASSERT_EQ(0, shell.last_exit_code());
+  ASSERT_EQ(expected, actual);
 }
 
 /* simulate_increment_cas *****************************************************/
 TEST_F(MainTest, simulate_increment_cas)
 {
   /* read expected schedule from file */
-  ifstream schedule_file("data/increment.cas.schedule");
+  ifstream schedule_file("data/increment.cas.t2.k16.schedule");
   string expected(( istreambuf_iterator<char>(schedule_file) ),
                     istreambuf_iterator<char>());
 
-  string args           = " simulate -v -s 0 ";
-  string checker_file   = " data/increment.checker.asm ";
-  string increment_file = " data/increment.cas.asm ";
+  string args       = " simulate -v -s 0 -k 16 ";
+  string increment  = "data/increment.cas.asm";
 
   string cmd =
-    executable + args + checker_file + increment_file + increment_file;
+    executable + args + increment + " " + increment;
 
   string actual = shell.run(cmd);
 
   ASSERT_EQ(0, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.c_str());
+  ASSERT_EQ(expected, actual);
 }
 
 /* simulate_missing_args ******************************************************/
@@ -93,26 +92,26 @@ TEST_F(MainTest, simulate_missing_args)
   string actual = shell.run(executable + args);
 
   ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.substr(0, expected.length()).c_str());
+  ASSERT_EQ(expected, actual.substr(0, expected.length()));
 
   actual = shell.run(executable + args + " -v");
 
   ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.substr(0, expected.length()).c_str());
+  ASSERT_EQ(expected, actual.substr(0, expected.length()));
 
   expected = "error: missing seed\n";
 
   actual = shell.run(executable + args + " -s");
 
   ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.substr(0, expected.length()).c_str());
+  ASSERT_EQ(expected, actual.substr(0, expected.length()));
 
   expected = "error: missing bound\n";
 
   actual = shell.run(executable + args + " -k");
 
   ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.substr(0, expected.length()).c_str());
+  ASSERT_EQ(expected, actual.substr(0, expected.length()));
 }
 
 /* simulate_file_not_found ****************************************************/
@@ -129,7 +128,7 @@ TEST_F(MainTest, simulate_file_not_found)
   string expected = "error: " + program_file + " not found\n";
 
   ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.c_str());
+  ASSERT_EQ(expected, actual);
 }
 
 /* simulate_illegal_seed ******************************************************/
@@ -144,7 +143,7 @@ TEST_F(MainTest, simulate_illegal_seed)
   string expected = "error: illegal seed [WRONG]\n";
 
   ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.c_str());
+  ASSERT_EQ(expected, actual);
 }
 
 /* simulate_illegal_bound *****************************************************/
@@ -159,33 +158,13 @@ TEST_F(MainTest, simulate_illegal_bound)
   string expected = "error: illegal bound [WRONG]\n";
 
   ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.c_str());
+  ASSERT_EQ(expected, actual);
 }
 
-/* replay_increment_0 *********************************************************/
-TEST_F(MainTest, replay_increment_0)
+/* replay_increment_sync ******************************************************/
+TEST_F(MainTest, replay_increment_sync)
 {
-  string schedule_file = "data/increment.invalid.schedule";
-
-  /* read expected schedule from file */
-  ifstream sfs(schedule_file);
-  string expected(( istreambuf_iterator<char>(sfs) ),
-                    istreambuf_iterator<char>());
-
-  string args = " replay -v ";
-
-  string cmd = executable + args + schedule_file;
-
-  string actual = shell.run(cmd);
-
-  ASSERT_EQ(1, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.c_str());
-}
-
-/* replay_increment_cas *******************************************************/
-TEST_F(MainTest, replay_increment_cas)
-{
-  string schedule_file = "data/increment.cas.schedule";
+  string schedule_file = "data/increment.sync.t2.k16.schedule";
 
   /* read expected schedule from file */
   ifstream sfs(schedule_file);
@@ -199,7 +178,27 @@ TEST_F(MainTest, replay_increment_cas)
   string actual = shell.run(cmd);
 
   ASSERT_EQ(0, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.c_str());
+  ASSERT_EQ(expected, actual);
+}
+
+/* replay_increment_cas *******************************************************/
+TEST_F(MainTest, replay_increment_cas)
+{
+  string schedule_file = "data/increment.cas.t2.k16.schedule";
+
+  /* read expected schedule from file */
+  ifstream sfs(schedule_file);
+  string expected(( istreambuf_iterator<char>(sfs) ),
+                    istreambuf_iterator<char>());
+
+  string args = " replay -v ";
+
+  string cmd = executable + args + schedule_file;
+
+  string actual = shell.run(cmd);
+
+  ASSERT_EQ(0, shell.last_exit_code());
+  ASSERT_EQ(expected, actual);
 }
 
 /* replay_missing_args ********************************************************/
@@ -212,19 +211,19 @@ TEST_F(MainTest, replay_missing_args)
   string actual = shell.run(executable + args);
 
   ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.substr(0, expected.length()).c_str());
+  ASSERT_EQ(expected, actual.substr(0, expected.length()));
 
   actual = shell.run(executable + args + " -v");
 
   ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.substr(0, expected.length()).c_str());
+  ASSERT_EQ(expected, actual.substr(0, expected.length()));
 
   expected = "error: missing bound\n";
 
   actual = shell.run(executable + args + " -k");
 
   ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.substr(0, expected.length()).c_str());
+  ASSERT_EQ(expected, actual.substr(0, expected.length()));
 }
 
 /* replay_file_not_found ******************************************************/
@@ -241,7 +240,7 @@ TEST_F(MainTest, replay_file_not_found)
   string expected = "error: " + program_file + " not found\n";
 
   ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.c_str());
+  ASSERT_EQ(expected, actual);
 }
 
 /* replay_illegal_bound *******************************************************/
@@ -256,51 +255,44 @@ TEST_F(MainTest, replay_illegal_bound)
   string expected = "error: illegal bound [WRONG]\n";
 
   ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.c_str());
+  ASSERT_EQ(expected, actual);
 }
 
 /* verify_pretend *************************************************************/
-TEST_F(MainTest, verify_pretend)
+TEST_F(MainTest, verify_pretend_functional_cas)
 {
-  string args               = " verify -p 5 ";
-  string program_file       = "data/load.store.arithmetic.asm";
-  string specification_file = "data/load.store.arithmetic.spec.smt";
+  string args         = " verify -v -p 8 ";
+  string program_file = "data/increment.cas.asm";
 
-  string cmd = executable + args + program_file + " " + specification_file;
+  string cmd = executable + args + program_file + " " + program_file;
 
   /* read expected smt formula from file */
-  ifstream ffs("data/load.store.arithmetic.encoded.smt");
+  ifstream ffs("data/increment.cas.functional.t2.k8.smt2");
   string expected(( istreambuf_iterator<char>(ffs) ),
                     istreambuf_iterator<char>());
 
-  /* read specification from file */
-  ifstream sfs(specification_file);
-  string specification((istreambuf_iterator<char>(sfs)),
-                        istreambuf_iterator<char>());
-
-  expected += specification + "\n(check-sat)\n(exit)\n";
+  expected += "(check-sat)\n(exit)\n";
 
   string actual = shell.run(cmd);
 
   EXPECT_EQ(0, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.c_str());
+  ASSERT_EQ(expected, actual);
 }
 
-/* verify_load_store_arithmetic ***********************************************/
-TEST_F(MainTest, verify_load_store_arithmetic)
+/* verify_cas *****************************************************************/
+TEST_F(MainTest, verify_cas)
 {
-  string args               = " verify 5 ";
-  string program_file       = "data/load.store.arithmetic.asm";
-  string specification_file = "data/load.store.arithmetic.spec.smt";
+  string args     = " verify -v 8 ";
+  string program  = "data/increment.cas.asm";
 
-  string cmd = executable + args + program_file + " " + specification_file;
+  string cmd = executable + args + program + " " + program;
 
-  string expected = "unsat\n";
+  string expected = "sat";
 
   string actual = shell.run(cmd);
 
-  ASSERT_EQ(0, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.c_str());
+  ASSERT_EQ(1, shell.last_exit_code());
+  ASSERT_EQ("sat", actual.substr(0, 3));
 }
 
 /* verify_illegal_args ********************************************************/
@@ -384,10 +376,10 @@ TEST_F(MainTest, verify_file_not_found)
   string actual = shell.run(cmd + "file_not_found");
 
   ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.c_str());
+  ASSERT_EQ(expected, actual);
 
-  actual = shell.run(cmd + "data/increment.asm file_not_found");
+  actual = shell.run(cmd + "data/increment.cas.asm file_not_found");
 
   ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_STREQ(expected.c_str(), actual.c_str());
+  ASSERT_EQ(expected, actual);
 }

@@ -513,67 +513,27 @@ TEST_F(MachineTest, run_zero_bound)
   cout.clear();
 }
 
-/* simulate_increment_0 *******************************************************/
-TEST_F(MachineTest, simulate_increment_0)
+/* simulate_increment_sync ****************************************************/
+TEST_F(MachineTest, simulate_increment_sync)
 {
   /* read expected schedule from file */
-  ifstream schedule_file("data/increment.invalid.schedule");
+  ifstream schedule_file("data/increment.sync.t2.k16.schedule");
   string schedule(( istreambuf_iterator<char>(schedule_file) ),
                     istreambuf_iterator<char>());
 
+  Program increment_0("data/increment.sync.thread.0.asm");
+  Program increment_n("data/increment.sync.thread.n.asm");
+
+  machine.seed  = 0;
+  machine.bound = 16;
+
+  machine.create_thread(increment_0);
+  machine.create_thread(increment_n);
+
+  /* redirect stdout */
   ostringstream ss;
   StreamRedirecter redirecter(cout, ss);
 
-  machine.seed          = 0;
-
-  string checker_file   = "data/increment.checker.asm";
-  string increment_file = "data/increment.asm";
-
-  Program checker(checker_file);
-  Program increment_1(increment_file);
-  Program increment_2(increment_file);
-
-  machine.create_thread(checker);
-  machine.create_thread(increment_1);
-  machine.create_thread(increment_2);
-
-  /* redirect stdout */
-  redirecter.start();
-
-  /* run it */
-  ASSERT_EQ(1, machine.simulate());
-
-  redirecter.stop();
-
-  /* compare output */
-  ASSERT_STREQ(schedule.c_str(), ss.str().c_str());
-}
-
-/* simulate_increment_cas *****************************************************/
-TEST_F(MachineTest, simulate_increment_cas)
-{
-  /* read expected schedule from file */
-  ifstream schedule_file("data/increment.cas.schedule");
-  string schedule(( istreambuf_iterator<char>(schedule_file) ),
-                    istreambuf_iterator<char>());
-
-  ostringstream ss;
-  StreamRedirecter redirecter(cout, ss);
-
-  machine.seed          = 0;
-
-  string checker_file   = "data/increment.checker.asm";
-  string increment_file = "data/increment.cas.asm";
-
-  Program checker(checker_file);
-  Program increment_1(increment_file);
-  Program increment_2(increment_file);
-
-  machine.create_thread(checker);
-  machine.create_thread(increment_1);
-  machine.create_thread(increment_2);
-
-  /* redirect stdout */
   redirecter.start();
 
   /* run it */
@@ -582,39 +542,44 @@ TEST_F(MachineTest, simulate_increment_cas)
   redirecter.stop();
 
   /* compare output */
-  ASSERT_STREQ(schedule.c_str(), ss.str().c_str());
+  ASSERT_EQ(schedule, ss.str());
 }
 
-/* replay_increment_0 *********************************************************/
-TEST_F(MachineTest, replay_increment_0)
+/* simulate_increment_cas *****************************************************/
+TEST_F(MachineTest, simulate_increment_cas)
 {
-  string schedule_file = "data/increment.invalid.schedule";
-
   /* read expected schedule from file */
-  ifstream sfs(schedule_file);
-  string schedule_str((istreambuf_iterator<char>(sfs)),
-                      istreambuf_iterator<char>());
+  ifstream schedule_file("data/increment.cas.t2.k16.schedule");
+  string schedule(( istreambuf_iterator<char>(schedule_file) ),
+                    istreambuf_iterator<char>());
 
-  Schedule schedule(schedule_file);
+  Program increment("data/increment.cas.asm");
 
+  machine.seed  = 0;
+  machine.bound = 16;
+
+  machine.create_thread(increment);
+  machine.create_thread(increment);
+
+  /* redirect stdout */
   ostringstream ss;
   StreamRedirecter redirecter(cout, ss);
 
   redirecter.start();
 
-  /* replay */
-  ASSERT_EQ(1, machine.replay(schedule));
+  /* run it */
+  ASSERT_EQ(0, machine.simulate());
 
   redirecter.stop();
 
   /* compare output */
-  ASSERT_STREQ(schedule_str.c_str(), ss.str().c_str());
+  ASSERT_EQ(schedule, ss.str());
 }
 
-/* replay_increment_cas *******************************************************/
-TEST_F(MachineTest, replay_increment_cas)
+/* replay_increment_sync ******************************************************/
+TEST_F(MachineTest, replay_increment_sync)
 {
-  string schedule_file = "data/increment.cas.schedule";
+  string schedule_file = "data/increment.sync.t2.k16.schedule";
 
   /* read expected schedule from file */
   ifstream sfs(schedule_file);
@@ -623,6 +588,7 @@ TEST_F(MachineTest, replay_increment_cas)
 
   Schedule schedule(schedule_file);
 
+  /* redirect stdout */
   ostringstream ss;
   StreamRedirecter redirecter(cout, ss);
 
@@ -631,8 +597,49 @@ TEST_F(MachineTest, replay_increment_cas)
   /* replay */
   ASSERT_EQ(0, machine.replay(schedule));
 
+  ASSERT_EQ(2, machine.memory[0]);
+
+  ASSERT_EQ(1, machine.threads[0]->accu);
+  ASSERT_EQ(0, machine.threads[0]->mem);
+  ASSERT_EQ(2, machine.threads[1]->accu);
+  ASSERT_EQ(0, machine.threads[1]->mem);
+
   redirecter.stop();
 
   /* compare output */
-  ASSERT_STREQ(schedule_str.c_str(), ss.str().c_str());
+  ASSERT_EQ(schedule_str, ss.str());
+}
+
+/* replay_increment_cas *******************************************************/
+TEST_F(MachineTest, replay_increment_cas)
+{
+  string schedule_file = "data/increment.cas.t2.k16.schedule";
+
+  /* read expected schedule from file */
+  ifstream sfs(schedule_file);
+  string schedule_str((istreambuf_iterator<char>(sfs)),
+                      istreambuf_iterator<char>());
+
+  Schedule schedule(schedule_file);
+
+  /* redirect stdout */
+  ostringstream ss;
+  StreamRedirecter redirecter(cout, ss);
+
+  redirecter.start();
+
+  /* replay */
+  ASSERT_EQ(0, machine.replay(schedule));
+
+  ASSERT_EQ(2, machine.memory[0]);
+
+  ASSERT_EQ(1, machine.threads[0]->accu);
+  ASSERT_EQ(1, machine.threads[0]->mem);
+  ASSERT_EQ(0, machine.threads[1]->accu);
+  ASSERT_EQ(0, machine.threads[1]->mem);
+
+  redirecter.stop();
+
+  /* compare output */
+  ASSERT_EQ(schedule_str, ss.str());
 }

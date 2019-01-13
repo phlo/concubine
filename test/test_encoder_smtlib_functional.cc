@@ -924,7 +924,7 @@ TEST_F(SMTLibEncoderFunctionalTest, encode_sync)
 
   encoder->encode();
 
-  ifstream ifs("data/increment.sync.2threads.functional.smt2");
+  ifstream ifs("data/increment.sync.functional.t2.k8.smt2");
   expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
 
   ASSERT_EQ(expected, encoder->formula.str());
@@ -946,7 +946,7 @@ TEST_F(SMTLibEncoderFunctionalTest, encode_cas)
 
   encoder->encode();
 
-  ifstream ifs("data/increment.cas.2threads.functional.smt2");
+  ifstream ifs("data/increment.cas.functional.t2.k8.smt2");
   expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
 
   ASSERT_EQ(expected, encoder->formula.str());
@@ -1184,25 +1184,3 @@ TEST_F(SMTLibEncoderFunctionalTest, EXIT)
 
   ASSERT_STREQ("#x0001", encoder->encode(exit).c_str());
 }
-
-/*******************************************************************************
- * DEPRECATED
-*******************************************************************************/
-#ifdef __NIGNORE__
-TEST_F(EncoderTest, test)
-{
-  const char * program1 = "../wiki/encoding/concurrent-increment.sync.thread1.asm";
-  const char * program2 = "../wiki/encoding/concurrent-increment.sync.thread2.asm";
-
-  programs.push_back(make_shared<Program>(program1));
-  programs.push_back(make_shared<Program>(program2));
-
-  encoder = make_shared<SMTLibEncoderFunctional>(make_shared<ProgramList>(programs), 3);
-
-  encoder->encode();
-
-  string formula = encoder->to_string();
-
-  ASSERT_STREQ("", formula.c_str());
-}
-#endif
