@@ -125,6 +125,9 @@ struct SMTLibEncoder : public Encoder
   /* encoder variables */
   unsigned long             step;
 
+  /* use Sinz's cardinality constraint (num_threads > 5) */
+  const bool                use_sinz_constraint;
+
   /* string constants */
   static const std::string  bv_sort;
 

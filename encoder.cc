@@ -135,7 +135,11 @@ string Encoder::exit_pcs_to_string ()
 SMTLibEncoder::SMTLibEncoder (
                               const ProgramListPtr p,
                               unsigned long b
-                             ) : Encoder(p, b), step(0) {}
+                             ) :
+  Encoder(p, b),
+  step(0),
+  use_sinz_constraint(num_threads > 5)
+{}
 
 /* string constants ***********************************************************/
 const string SMTLibEncoder::bv_sort =
@@ -616,7 +620,7 @@ void SMTLibEncoderFunctional::add_thread_scheduling ()
 
   formula
     << eol
-    << (num_threads > 5 // TODO: add use_sinz helper (assigned once)?
+    << (use_sinz_constraint
       ? smtlib::card_constraint_sinz(variables)
       : smtlib::card_constraint_naive(variables))
     << eol;
