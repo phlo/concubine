@@ -984,6 +984,89 @@ SMTLibEncoderRelational::SMTLibEncoderRelational (
   if (e) encode();
 }
 
+string SMTLibEncoderRelational::imply (string antecedent, string consequent)
+{
+  return smtlib::assertion(smtlib::implication(antecedent, consequent)) + eol;
+}
+
+string SMTLibEncoderRelational::assign_heap (string addr, string val)
+{
+  return
+    imply(
+      exec_var(),
+      smtlib::equality({
+        heap_var(),
+        smtlib::store(heap_var(step - 1), addr, val)}));
+}
+
+string SMTLibEncoderRelational::assign_accu (string val)
+{
+  return imply(exec_var(), smtlib::equality({accu_var(), val}));
+}
+
+string SMTLibEncoderRelational::assign_mem (string val)
+{
+  return imply(exec_var(), smtlib::equality({mem_var(), val}));
+}
+
+string SMTLibEncoderRelational::preserve_heap ()
+{
+  return
+    imply(
+      exec_var(),
+      smtlib::equality({heap_var(), heap_var(step - 1)}));
+}
+
+string SMTLibEncoderRelational::preserve_accu ()
+{
+  return
+    imply(
+      exec_var(),
+      smtlib::equality({accu_var(), accu_var(step - 1, thread)}));
+}
+
+string SMTLibEncoderRelational::preserve_mem ()
+{
+  return
+    imply(
+      exec_var(),
+      smtlib::equality({mem_var(), mem_var(step - 1, thread)}));
+}
+
+string SMTLibEncoderRelational::activate_next_stmt ()
+{
+  return imply(exec_var(), stmt_var(step + 1, thread, pc + 1));
+}
+
+void SMTLibEncoderRelational::add_exit_call ()
+{
+  if (step < 2)
+    return;
+
+  if (verbose)
+    formula << smtlib::comment_subsection("exit call");
+
+  declare_exit_var();
+
+  formula << eol;
+
+  if (step > 2)
+    formula <<
+      smtlib::assertion(
+        smtlib::implication(exit_var(step - 1), exit_var())) <<
+      eol << eol;
+}
+
+void SMTLibEncoderRelational::add_instructions ()
+{
+  iterate_threads([&] (Program & program) {
+    for (pc = 0; pc < program.size(); pc++)
+      formula << program[pc]->encode(*this) << eol;
+
+    formula << eol;
+  });
+}
+
 void SMTLibEncoderRelational::encode ()
 {
   /* set logic and add common variable declarations */
@@ -994,6 +1077,9 @@ void SMTLibEncoderRelational::encode ()
       if (verbose)
         formula << smtlib::comment_section("step " + to_string(step));
 
+      /* exit variable */
+      add_exit_call();
+
       /* thread scheduling */
       add_thread_scheduling();
 
@@ -1002,5 +1088,128 @@ void SMTLibEncoderRelational::encode ()
 
       /* statement execution */
       add_statement_execution();
+
+      /* encode instructions */
+      add_instructions();
     }
+}
+
+string SMTLibEncoderRelational::encode (Load & l)
+{
+  return
+    assign_accu(load(l)) +
+    preserve_mem() +
+    preserve_heap() +
+    activate_next_stmt();
+}
+
+string SMTLibEncoderRelational::encode (Store & s)
+{
+  string addr(
+    s.indirect
+      ? smtlib::select(heap_var(step - 1), smtlib::word2hex(s.arg))
+      : smtlib::word2hex(s.arg));
+
+  return
+    preserve_accu() +
+    preserve_mem() +
+    assign_heap(addr, accu_var(step - 1, thread)) +
+    activate_next_stmt();
+}
+
+string SMTLibEncoderRelational::encode (Add & a)
+{
+  return
+    assign_accu(smtlib::bvadd({accu_var(step - 1, thread), load(a)})) +
+    preserve_mem() +
+    preserve_heap() +
+    activate_next_stmt();
+}
+
+string SMTLibEncoderRelational::encode (Addi & a)
+{
+  return
+    assign_accu(
+      smtlib::bvadd({accu_var(step - 1, thread), smtlib::word2hex(a.arg)})) +
+    preserve_mem() +
+    preserve_heap() +
+    activate_next_stmt();
+}
+
+string SMTLibEncoderRelational::encode (Sub & s)
+{
+  (void) s;
+  return "";
+}
+
+string SMTLibEncoderRelational::encode (Subi & s)
+{
+  (void) s;
+  return "";
+}
+
+string SMTLibEncoderRelational::encode (Cmp & c)
+{
+  (void) c;
+  return "";
+}
+
+string SMTLibEncoderRelational::encode (Jmp & j)
+{
+  (void) j;
+  return "";
+}
+
+string SMTLibEncoderRelational::encode (Jz & j)
+{
+  (void) j;
+  return "";
+}
+
+string SMTLibEncoderRelational::encode (Jnz & j)
+{
+  (void) j;
+  return "";
+}
+
+string SMTLibEncoderRelational::encode (Js & j)
+{
+  (void) j;
+  return "";
+}
+
+string SMTLibEncoderRelational::encode (Jns & j)
+{
+  (void) j;
+  return "";
+}
+
+string SMTLibEncoderRelational::encode (Jnzns & j)
+{
+  (void) j;
+  return "";
+}
+
+string SMTLibEncoderRelational::encode (Mem & m)
+{
+  (void) m;
+  return "";
+}
+
+string SMTLibEncoderRelational::encode (Cas & c)
+{
+  (void) c;
+  return "";
+}
+
+string SMTLibEncoderRelational::encode (Sync & s)
+{
+  (void) s;
+  return "";
+}
+
+string SMTLibEncoderRelational::encode (Exit & e)
+{
+  (void) e;
+  return "";
 }

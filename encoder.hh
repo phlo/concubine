@@ -264,6 +264,21 @@ struct SMTLibEncoderRelational : public SMTLibEncoder
   /* constructs an SMTLibEncoderRelational for the given program and bound */
   SMTLibEncoderRelational (const ProgramListPtr, unsigned long, bool = true);
 
+  std::string         imply (std::string, std::string);
+
+  std::string         assign_heap (std::string, std::string);
+  std::string         assign_accu (std::string);
+  std::string         assign_mem (std::string);
+
+  std::string         preserve_heap (void);
+  std::string         preserve_accu (void);
+  std::string         preserve_mem (void);
+
+  std::string         activate_next_stmt (void);
+
+  void                add_exit_call (void);
+  void                add_instructions (void);
+
   /* encodes the whole machine configuration */
   virtual void        encode (void);
 
