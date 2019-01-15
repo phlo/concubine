@@ -1045,6 +1045,14 @@ string SMTLibEncoderRelational::activate_jmp (string condition, word target)
         stmt_var(k, thread, pc + 1)));
 }
 
+void SMTLibEncoderRelational::add_exit_code ()
+{
+  if (verbose)
+    formula << smtlib::comment_subsection("exit code");
+
+  formula << smtlib::declare_bv_var(exit_code_var, word_size) << eol << eol;
+}
+
 void SMTLibEncoderRelational::add_exit_flag ()
 {
   if (step >= bound)
@@ -1140,6 +1148,9 @@ void SMTLibEncoderRelational::encode ()
 {
   /* set logic and add common variable declarations */
   SMTLibEncoder::encode();
+
+  /* declare exit code variable */
+  add_exit_code();
 
   /* declare 1st step's statement activation variables */
   add_statement_declaration();

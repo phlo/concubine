@@ -144,6 +144,19 @@ TEST_F(SMTLibEncoderRelationalTest, activate_jmp)
     encoder->activate_jmp("foo", 10));
 }
 
+// void add_exit_code (void);
+TEST_F(SMTLibEncoderRelationalTest, add_exit_code)
+{
+  encoder->add_exit_code();
+
+  expected =
+    "; exit code ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "(declare-fun exit_code () (_ BitVec 16))\n\n";
+
+  ASSERT_EQ(expected, encoder->formula.str());
+}
+
 // void add_exit_flag (void);
 TEST_F(SMTLibEncoderRelationalTest, add_exit_flag)
 {
