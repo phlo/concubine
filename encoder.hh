@@ -266,7 +266,7 @@ struct SMTLibEncoderRelational : public SMTLibEncoder
 
   std::string         imply (std::string, std::string);
 
-  std::string         assign_heap (std::string, std::string);
+  std::string         assign_heap (std::string);
   std::string         assign_accu (std::string);
   std::string         assign_mem (std::string);
 
@@ -274,10 +274,13 @@ struct SMTLibEncoderRelational : public SMTLibEncoder
   std::string         preserve_accu (void);
   std::string         preserve_mem (void);
 
-  std::string         activate_next_stmt (void);
+  std::string         activate_next (void);
+  std::string         activate_pc (word);
+  std::string         activate_jmp (std::string, word);
 
   void                add_exit_call (void);
-  void                add_instructions (void);
+  void                add_state_update (void);
+  void                add_state_preservation (void);
 
   /* encodes the whole machine configuration */
   virtual void        encode (void);

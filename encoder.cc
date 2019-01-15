@@ -274,7 +274,9 @@ void SMTLibEncoder::declare_heap_var ()
   if (verbose)
     formula << heap_comment << eol;
 
-  formula << smtlib::declare_array_var(heap_var(), bv_sort, bv_sort) << eol;
+  formula
+    << smtlib::declare_array_var(heap_var(), bv_sort, bv_sort)
+    << eol << eol;
 }
 
 void SMTLibEncoder::declare_accu_vars ()
@@ -285,6 +287,8 @@ void SMTLibEncoder::declare_accu_vars ()
   iterate_threads([&] {
     formula << smtlib::declare_bv_var(accu_var(), word_size) << eol;
   });
+
+  formula << eol;
 }
 
 void SMTLibEncoder::declare_mem_vars ()
@@ -295,6 +299,8 @@ void SMTLibEncoder::declare_mem_vars ()
   iterate_threads([&] {
     formula << smtlib::declare_bv_var(mem_var(), word_size) << eol;
   });
+
+  formula << eol;
 }
 
 void SMTLibEncoder::declare_stmt_vars ()
@@ -345,6 +351,8 @@ void SMTLibEncoder::declare_cas_vars ()
     if (cas_threads.find(thread) != cas_threads.end())
       formula << smtlib::declare_bool_var(cas_var()) << eol;
   });
+
+  formula << eol;
 }
 
 void SMTLibEncoder::declare_sync_vars ()
@@ -354,6 +362,8 @@ void SMTLibEncoder::declare_sync_vars ()
 
   for (const auto & s : sync_pcs)
     formula << smtlib::declare_bool_var(sync_var(step, s.first)) << eol;
+
+  formula << eol;
 }
 
 void SMTLibEncoder::declare_exit_var ()
@@ -361,7 +371,7 @@ void SMTLibEncoder::declare_exit_var ()
   if (verbose)
     formula << exit_comment << eol;
 
-  formula << smtlib::declare_bool_var(exit_var()) << eol;
+  formula << smtlib::declare_bool_var(exit_var()) << eol << eol;
 }
 
 /* expression generators */
@@ -379,8 +389,6 @@ void SMTLibEncoder::add_initial_state ()
   /* accu */
   declare_accu_vars();
 
-  formula << eol;
-
   iterate_threads([&] {
     formula << assign_var(accu_var(), smtlib::word2hex(0)) << eol;
   });
@@ -390,8 +398,6 @@ void SMTLibEncoder::add_initial_state ()
   /* CAS memory register */
   declare_mem_vars();
 
-  formula << eol;
-
   iterate_threads([&] {
     formula << assign_var(mem_var(), smtlib::word2hex(0)) << eol;
   });
@@ -400,8 +406,6 @@ void SMTLibEncoder::add_initial_state ()
 
   /* heap */
   declare_heap_var();
-
-  formula << eol;
 }
 
 void SMTLibEncoder::add_initial_statement_activation ()
@@ -449,8 +453,6 @@ void SMTLibEncoder::add_synchronization_constraints ()
     formula << smtlib::comment_subsection("synchronization constraints");
 
   declare_sync_vars();
-
-  formula << eol;
 
   if (verbose)
     formula << "; all threads synchronized?" << eol;
@@ -637,8 +639,6 @@ void SMTLibEncoderFunctional::add_exit_call ()
 
   declare_exit_var();
 
-  formula << eol;
-
   vector<string> args;
 
   if (step > 2)
@@ -660,8 +660,6 @@ void SMTLibEncoderFunctional::add_state_update ()
   /* accumulator */
   declare_accu_vars();
 
-  formula << eol;
-
   iterate_threads([&] (Program & program) {
     vector<word> & pcs = accu_pcs[thread];
     string expr = accu_var(step - 1, thread);
@@ -682,8 +680,6 @@ void SMTLibEncoderFunctional::add_state_update ()
   /* CAS memory register */
   declare_mem_vars();
 
-  formula << eol;
-
   iterate_threads([&] (Program & program) {
     vector<word> & pcs = mem_pcs[thread];
     string expr = mem_var(step - 1, thread);
@@ -703,8 +699,6 @@ void SMTLibEncoderFunctional::add_state_update ()
 
   /* heap */
   declare_heap_var();
-
-  formula << eol;
 
   string expr = heap_var(step - 1);
 
@@ -989,14 +983,9 @@ string SMTLibEncoderRelational::imply (string antecedent, string consequent)
   return smtlib::assertion(smtlib::implication(antecedent, consequent)) + eol;
 }
 
-string SMTLibEncoderRelational::assign_heap (string addr, string val)
+string SMTLibEncoderRelational::assign_heap (string exp)
 {
-  return
-    imply(
-      exec_var(),
-      smtlib::equality({
-        heap_var(),
-        smtlib::store(heap_var(step - 1), addr, val)}));
+  return imply(exec_var(), smtlib::equality({heap_var(), exp}));
 }
 
 string SMTLibEncoderRelational::assign_accu (string val)
@@ -1033,9 +1022,27 @@ string SMTLibEncoderRelational::preserve_mem ()
       smtlib::equality({mem_var(), mem_var(step - 1, thread)}));
 }
 
-string SMTLibEncoderRelational::activate_next_stmt ()
+string SMTLibEncoderRelational::activate_next ()
 {
-  return imply(exec_var(), stmt_var(step + 1, thread, pc + 1));
+  return activate_pc(pc + 1);
+}
+
+string SMTLibEncoderRelational::activate_pc (word target)
+{
+  return imply(exec_var(), stmt_var(step + 1, thread, target));
+}
+
+string SMTLibEncoderRelational::activate_jmp (string condition, word target)
+{
+  word k = step + 1;
+
+  return
+    imply(
+      exec_var(),
+      smtlib::ite(
+        condition,
+        stmt_var(k, thread, target),
+        stmt_var(k, thread, pc + 1)));
 }
 
 void SMTLibEncoderRelational::add_exit_call ()
@@ -1048,20 +1055,62 @@ void SMTLibEncoderRelational::add_exit_call ()
 
   declare_exit_var();
 
-  formula << eol;
-
   if (step > 2)
-    formula <<
-      smtlib::assertion(
-        smtlib::implication(exit_var(step - 1), exit_var())) <<
-      eol << eol;
+    formula << imply(exit_var(step - 1), exit_var()) << eol;
 }
 
-void SMTLibEncoderRelational::add_instructions ()
+void SMTLibEncoderRelational::add_state_update ()
 {
+  if (verbose)
+    formula << smtlib::comment_subsection("state update");
+
+  declare_accu_vars();
+  declare_mem_vars();
+  declare_heap_var();
+
   iterate_threads([&] (Program & program) {
     for (pc = 0; pc < program.size(); pc++)
-      formula << program[pc]->encode(*this) << eol;
+      formula
+        << (verbose
+          ? "; thread " +
+            to_string(thread) +
+            "@" +
+            to_string(pc) +
+            ": " +
+            program.print(false, pc) +
+            eol
+          : "")
+        << program[pc]->encode(*this)
+        << eol;
+  });
+}
+
+void SMTLibEncoderRelational::add_state_preservation ()
+{
+  if (verbose)
+    formula << smtlib::comment_subsection("state preservation");
+
+  iterate_threads([&] {
+    vector<string> args({thread_var()});
+
+    /* collect sync variables related to this thread */
+    for (const auto & [id, threads] : sync_pcs)
+      if (threads.find(thread) != threads.end())
+        args.push_back(sync_var(step, id));
+
+    string condition = smtlib::lnot(smtlib::land(args));
+
+    /* preserver accu */
+    formula <<
+      imply(
+        condition,
+        smtlib::equality({accu_var(), accu_var(step - 1, thread)}));
+
+    /* preserve CAS memory register */
+    formula <<
+      imply(
+        condition,
+        smtlib::equality({mem_var(), mem_var(step - 1, thread)}));
 
     formula << eol;
   });
@@ -1090,7 +1139,10 @@ void SMTLibEncoderRelational::encode ()
       add_statement_execution();
 
       /* encode instructions */
-      add_instructions();
+      add_state_update();
+
+      /* preserve thread's state if it wasn't executed */
+      add_state_preservation();
     }
 }
 
@@ -1100,7 +1152,7 @@ string SMTLibEncoderRelational::encode (Load & l)
     assign_accu(load(l)) +
     preserve_mem() +
     preserve_heap() +
-    activate_next_stmt();
+    activate_next();
 }
 
 string SMTLibEncoderRelational::encode (Store & s)
@@ -1113,8 +1165,12 @@ string SMTLibEncoderRelational::encode (Store & s)
   return
     preserve_accu() +
     preserve_mem() +
-    assign_heap(addr, accu_var(step - 1, thread)) +
-    activate_next_stmt();
+    assign_heap(
+      smtlib::store(
+        heap_var(step - 1),
+        addr,
+        accu_var(step - 1, thread))) +
+    activate_next();
 }
 
 string SMTLibEncoderRelational::encode (Add & a)
@@ -1123,7 +1179,7 @@ string SMTLibEncoderRelational::encode (Add & a)
     assign_accu(smtlib::bvadd({accu_var(step - 1, thread), load(a)})) +
     preserve_mem() +
     preserve_heap() +
-    activate_next_stmt();
+    activate_next();
 }
 
 string SMTLibEncoderRelational::encode (Addi & a)
@@ -1133,83 +1189,169 @@ string SMTLibEncoderRelational::encode (Addi & a)
       smtlib::bvadd({accu_var(step - 1, thread), smtlib::word2hex(a.arg)})) +
     preserve_mem() +
     preserve_heap() +
-    activate_next_stmt();
+    activate_next();
 }
 
 string SMTLibEncoderRelational::encode (Sub & s)
 {
-  (void) s;
-  return "";
+  return
+    assign_accu(smtlib::bvsub({accu_var(step - 1, thread), load(s)})) +
+    preserve_mem() +
+    preserve_heap() +
+    activate_next();
 }
 
 string SMTLibEncoderRelational::encode (Subi & s)
 {
-  (void) s;
-  return "";
+  return
+    assign_accu(
+      smtlib::bvsub({accu_var(step - 1, thread), smtlib::word2hex(s.arg)})) +
+    preserve_mem() +
+    preserve_heap() +
+    activate_next();
 }
 
 string SMTLibEncoderRelational::encode (Cmp & c)
 {
-  (void) c;
-  return "";
+  return
+    assign_accu(smtlib::bvsub({accu_var(step - 1, thread), load(c)})) +
+    preserve_mem() +
+    preserve_heap() +
+    activate_next();
 }
 
 string SMTLibEncoderRelational::encode (Jmp & j)
 {
-  (void) j;
-  return "";
+  return
+    preserve_accu() +
+    preserve_mem() +
+    preserve_heap() +
+    activate_pc(j.arg);
 }
 
 string SMTLibEncoderRelational::encode (Jz & j)
 {
-  (void) j;
-  return "";
+  return
+    preserve_accu() +
+    preserve_mem() +
+    preserve_heap() +
+    activate_jmp(
+      smtlib::equality({accu_var(), smtlib::word2hex(0)}),
+      j.arg);
 }
 
 string SMTLibEncoderRelational::encode (Jnz & j)
 {
-  (void) j;
-  return "";
+  return
+    preserve_accu() +
+    preserve_mem() +
+    preserve_heap() +
+    activate_jmp(
+      smtlib::lnot(smtlib::equality({accu_var(), smtlib::word2hex(0)})),
+      j.arg);
 }
 
 string SMTLibEncoderRelational::encode (Js & j)
 {
-  (void) j;
-  return "";
+  return
+    preserve_accu() +
+    preserve_mem() +
+    preserve_heap() +
+    activate_jmp(
+      smtlib::equality({
+        "#b1",
+        smtlib::extract(
+          to_string(word_size - 1),
+          to_string(word_size - 1),
+          accu_var())}),
+      j.arg);
 }
 
 string SMTLibEncoderRelational::encode (Jns & j)
 {
-  (void) j;
-  return "";
+  return
+    preserve_accu() +
+    preserve_mem() +
+    preserve_heap() +
+    activate_jmp(
+      smtlib::equality({
+        "#b0",
+        smtlib::extract(
+          to_string(word_size - 1),
+          to_string(word_size - 1),
+          accu_var())}),
+      j.arg);
 }
 
 string SMTLibEncoderRelational::encode (Jnzns & j)
 {
-  (void) j;
-  return "";
+  return
+    preserve_accu() +
+    preserve_mem() +
+    preserve_heap() +
+    activate_jmp(
+      smtlib::land({
+        smtlib::lnot(smtlib::equality({accu_var(), smtlib::word2hex(0)})),
+        smtlib::equality({
+          "#b0",
+          smtlib::extract(
+            to_string(word_size - 1),
+            to_string(word_size - 1),
+            accu_var())})}),
+      j.arg);
 }
 
 string SMTLibEncoderRelational::encode (Mem & m)
 {
-  (void) m;
-  return "";
+  return
+    assign_accu(load(m)) +
+    assign_mem(accu_var()) +
+    preserve_heap() +
+    activate_next();
 }
 
 string SMTLibEncoderRelational::encode (Cas & c)
 {
-  (void) c;
-  return "";
+  string heap = heap_var(step - 1);
+  string addr = c.indirect
+    ? smtlib::select(heap_var(step - 1), smtlib::word2hex(c.arg))
+    : smtlib::word2hex(c.arg);
+
+  return
+    preserve_accu() +
+    preserve_mem() +
+    assign_heap(
+      smtlib::ite(
+        smtlib::equality({
+          mem_var(step - 1, thread),
+          smtlib::select(heap, addr)}),
+        smtlib::store(
+          heap,
+          addr,
+          accu_var(step - 1, thread)),
+        heap)) +
+    activate_next();
 }
 
-string SMTLibEncoderRelational::encode (Sync & s)
+string SMTLibEncoderRelational::encode (Sync & s [[maybe_unused]])
 {
-  (void) s;
-  return "";
+  return
+    preserve_accu() +
+    preserve_mem() +
+    preserve_heap() +
+    activate_next();
 }
 
 string SMTLibEncoderRelational::encode (Exit & e)
 {
-  (void) e;
-  return "";
+  return
+    preserve_accu() +
+    preserve_mem() +
+    preserve_heap() +
+    imply(
+      exec_var(),
+      exit_var(step + 1)) +
+    imply(
+      exec_var(),
+      smtlib::equality({exit_code_var, smtlib::word2hex(e.arg)}));
 }
