@@ -1059,6 +1059,22 @@ void SMTLibEncoderRelational::add_exit_call ()
     formula << imply(exit_var(step - 1), exit_var()) << eol;
 }
 
+void SMTLibEncoderRelational::add_statement_declaration ()
+{
+  if (step >= bound)
+    return;
+
+  if (verbose)
+    formula
+      << smtlib::comment_subsection("statement activation forward declaration");
+
+  step++;
+
+  declare_stmt_vars();
+
+  step--;
+}
+
 void SMTLibEncoderRelational::add_state_update ()
 {
   if (verbose)
@@ -1121,6 +1137,9 @@ void SMTLibEncoderRelational::encode ()
   /* set logic and add common variable declarations */
   SMTLibEncoder::encode();
 
+  /* declare 1st step's statement activation variables */
+  add_statement_declaration();
+
   for (step = 1; step <= bound; step++)
     {
       if (verbose)
@@ -1137,6 +1156,9 @@ void SMTLibEncoderRelational::encode ()
 
       /* statement execution */
       add_statement_execution();
+
+      /* add forward declaration of statement activation variables */
+      add_statement_declaration();
 
       /* encode instructions */
       add_state_update();

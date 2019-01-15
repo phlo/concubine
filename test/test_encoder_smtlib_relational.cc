@@ -204,6 +204,94 @@ TEST_F(SMTLibEncoderRelationalTest, add_exit_call)
   ASSERT_EQ(expected, encoder->formula.str());
 }
 
+// void add_statement_declaration (void);
+TEST_F(SMTLibEncoderRelationalTest, add_statement_declaration)
+{
+  for (size_t i = 0; i < 3; i++)
+    {
+      programs.push_back(ProgramPtr(new Program()));
+
+      programs[i]->add(Instruction::Set::create("LOAD", 1));
+      programs[i]->add(Instruction::Set::create("ADDI", 1));
+      programs[i]->add(Instruction::Set::create("STORE", 1));
+    }
+
+  /* step 0 */
+  reset_encoder(2, 0);
+
+  encoder->add_statement_declaration();
+
+  expected =
+    "; statement activation forward declaration ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
+    "(declare-fun stmt_1_1_0 () Bool)\n"
+    "(declare-fun stmt_1_1_1 () Bool)\n"
+    "(declare-fun stmt_1_1_2 () Bool)\n"
+    "\n"
+    "(declare-fun stmt_1_2_0 () Bool)\n"
+    "(declare-fun stmt_1_2_1 () Bool)\n"
+    "(declare-fun stmt_1_2_2 () Bool)\n"
+    "\n"
+    "(declare-fun stmt_1_3_0 () Bool)\n"
+    "(declare-fun stmt_1_3_1 () Bool)\n"
+    "(declare-fun stmt_1_3_2 () Bool)\n\n";
+
+  ASSERT_EQ(expected, encoder->formula.str());
+
+  /* step 1 */
+  reset_encoder(2, 1);
+
+  encoder->add_statement_declaration();
+
+  expected =
+    "; statement activation forward declaration ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
+    "(declare-fun stmt_2_1_0 () Bool)\n"
+    "(declare-fun stmt_2_1_1 () Bool)\n"
+    "(declare-fun stmt_2_1_2 () Bool)\n"
+    "\n"
+    "(declare-fun stmt_2_2_0 () Bool)\n"
+    "(declare-fun stmt_2_2_1 () Bool)\n"
+    "(declare-fun stmt_2_2_2 () Bool)\n"
+    "\n"
+    "(declare-fun stmt_2_3_0 () Bool)\n"
+    "(declare-fun stmt_2_3_1 () Bool)\n"
+    "(declare-fun stmt_2_3_2 () Bool)\n\n";
+
+  ASSERT_EQ(expected, encoder->formula.str());
+
+  /* step 2 == bound */
+  reset_encoder(2, 2);
+
+  encoder->add_statement_declaration();
+
+  ASSERT_EQ("", encoder->formula.str());
+
+  /* verbosity */
+  reset_encoder(2, 0);
+
+  verbose = false;
+  encoder->add_statement_declaration();
+  verbose = true;
+
+  expected =
+    "(declare-fun stmt_1_1_0 () Bool)\n"
+    "(declare-fun stmt_1_1_1 () Bool)\n"
+    "(declare-fun stmt_1_1_2 () Bool)\n"
+    "\n"
+    "(declare-fun stmt_1_2_0 () Bool)\n"
+    "(declare-fun stmt_1_2_1 () Bool)\n"
+    "(declare-fun stmt_1_2_2 () Bool)\n"
+    "\n"
+    "(declare-fun stmt_1_3_0 () Bool)\n"
+    "(declare-fun stmt_1_3_1 () Bool)\n"
+    "(declare-fun stmt_1_3_2 () Bool)\n\n";
+
+  ASSERT_EQ(expected, encoder->formula.str());
+}
+
 // void add_state_update (void);
 TEST_F(SMTLibEncoderRelationalTest, add_state_update)
 {
@@ -419,13 +507,13 @@ TEST_F(SMTLibEncoderRelationalTest, encode)
   ifstream ifs("data/increment.sync.functional.t2.k8.smt2");
   expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
 
-  // ASSERT_EQ("", encoder->formula.str());
+  EXPECT_EQ("", encoder->formula.str());
 
   Boolector btor;
 
   string formula = encoder->formula.str();
 
-  // ASSERT_TRUE(btor.sat(formula));
+  ASSERT_TRUE(btor.sat(formula));
 }
 
 // virtual std::string encode (Load &);
