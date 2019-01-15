@@ -173,7 +173,7 @@ const string SMTLibEncoder::sync_comment =
   "; sync variables - sync_<step>_<id>";
 
 const string SMTLibEncoder::exit_comment =
-  "; exit variable - exit_<step>";
+  "; exit flag - exit_<step>";
 
 /* state variable generators */
 string SMTLibEncoder::heap_var (const word k)
@@ -430,7 +430,7 @@ void SMTLibEncoder::add_thread_scheduling ()
   /* add thread activation variables */
   iterate_threads([&] { variables.push_back(thread_var()); });
 
-  /* add exit variable */
+  /* add exit flag */
   if (step > 1 && !exit_pcs.empty())
     variables.push_back(exit_var());
 
@@ -628,14 +628,14 @@ void SMTLibEncoderFunctional::add_statement_activation ()
     });
 }
 
-void SMTLibEncoderFunctional::add_exit_call ()
+void SMTLibEncoderFunctional::add_exit_flag ()
 {
   /* skip if step == 1 or EXIT isn't called at all */
   if (exit_pcs.empty() || step < 2)
     return;
 
   if (verbose)
-    formula << smtlib::comment_subsection("exit call");
+    formula << smtlib::comment_subsection("exit flag");
 
   declare_exit_var();
 
@@ -764,8 +764,8 @@ void SMTLibEncoderFunctional::encode ()
       if (verbose)
         formula << smtlib::comment_section("step " + to_string(step));
 
-      /* exit variable */
-      add_exit_call();
+      /* exit flag */
+      add_exit_flag();
 
       /* statement activation */
       add_statement_activation();
@@ -1045,13 +1045,13 @@ string SMTLibEncoderRelational::activate_jmp (string condition, word target)
         stmt_var(k, thread, pc + 1)));
 }
 
-void SMTLibEncoderRelational::add_exit_call ()
+void SMTLibEncoderRelational::add_exit_flag ()
 {
   if (step < 2)
     return;
 
   if (verbose)
-    formula << smtlib::comment_subsection("exit call");
+    formula << smtlib::comment_subsection("exit flag");
 
   declare_exit_var();
 
@@ -1145,8 +1145,8 @@ void SMTLibEncoderRelational::encode ()
       if (verbose)
         formula << smtlib::comment_section("step " + to_string(step));
 
-      /* exit variable */
-      add_exit_call();
+      /* exit flag */
+      add_exit_flag();
 
       /* thread scheduling */
       add_thread_scheduling();

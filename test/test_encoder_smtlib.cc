@@ -663,7 +663,7 @@ TEST_F(SMTLibEncoderTest, declare_exit_vars)
   encoder->declare_exit_var();
 
   expected =
-    "; exit variable - exit_<step>\n"
+    "; exit flag - exit_<step>\n"
     "(declare-fun exit_1 () Bool)\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
@@ -674,7 +674,7 @@ TEST_F(SMTLibEncoderTest, declare_exit_vars)
   encoder->declare_exit_var();
 
   expected =
-    "; exit variable - exit_<step>\n"
+    "; exit flag - exit_<step>\n"
     "(declare-fun exit_2 () Bool)\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
