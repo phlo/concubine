@@ -1047,16 +1047,20 @@ string SMTLibEncoderRelational::activate_jmp (string condition, word target)
 
 void SMTLibEncoderRelational::add_exit_flag ()
 {
-  if (step < 2)
+  if (step >= bound)
     return;
 
   if (verbose)
-    formula << smtlib::comment_subsection("exit flag");
+    formula << smtlib::comment_subsection("exit flag forward declaration");
+
+  step++;
 
   declare_exit_var();
 
-  if (step > 2)
-    formula << imply(exit_var(step - 1), exit_var()) << eol;
+  step--;
+
+  if (step > 1)
+    formula << imply(exit_var(), exit_var(step + 1)) << eol;
 }
 
 void SMTLibEncoderRelational::add_statement_declaration ()

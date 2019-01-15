@@ -155,32 +155,25 @@ TEST_F(SMTLibEncoderRelationalTest, add_exit_flag)
     }
 
   /* step 1 */
-  reset_encoder(10, 1);
-
-  encoder->add_exit_flag();
-
-  ASSERT_EQ("", encoder->formula.str());
-
-  /* step 2 */
-  reset_encoder(10, 2);
+  reset_encoder(3, 1);
 
   encoder->add_exit_flag();
 
   expected =
-    "; exit flag ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; exit flag forward declaration ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; exit flag - exit_<step>\n"
     "(declare-fun exit_2 () Bool)\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
-  /* step 3 - reached bound */
-  reset_encoder(3, 3);
+  /* step 2 */
+  reset_encoder(3, 2);
 
   encoder->add_exit_flag();
 
   expected =
-    "; exit flag ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; exit flag forward declaration ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; exit flag - exit_<step>\n"
     "(declare-fun exit_3 () Bool)\n"
@@ -189,8 +182,15 @@ TEST_F(SMTLibEncoderRelationalTest, add_exit_flag)
 
   ASSERT_EQ(expected, encoder->formula.str());
 
-  /* verbosity */
+  /* step 3 - reached bound */
   reset_encoder(3, 3);
+
+  encoder->add_exit_flag();
+
+  ASSERT_EQ("", encoder->formula.str());
+
+  /* verbosity */
+  reset_encoder(3, 2);
 
   verbose = false;
   encoder->add_exit_flag();
@@ -502,18 +502,18 @@ TEST_F(SMTLibEncoderRelationalTest, encode)
 
   encoder =
     make_shared<SMTLibEncoderRelational>(
-      make_shared<ProgramList>(programs), 8);
+      make_shared<ProgramList>(programs), 2);
 
   ifstream ifs("data/increment.sync.functional.t2.k8.smt2");
   expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
 
-  // EXPECT_EQ("", encoder->formula.str());
+  EXPECT_EQ("", encoder->formula.str());
 
   Boolector btor;
 
   string formula = encoder->formula.str();
 
-  // ASSERT_TRUE(btor.sat(formula));
+  ASSERT_TRUE(btor.sat(formula));
 }
 
 // virtual std::string encode (Load &);
