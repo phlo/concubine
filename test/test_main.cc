@@ -258,10 +258,10 @@ TEST_F(MainTest, replay_illegal_bound)
   ASSERT_EQ(expected, actual);
 }
 
-/* verify_pretend *************************************************************/
-TEST_F(MainTest, verify_pretend_functional_cas)
+/* solve_pretend **************************************************************/
+TEST_F(MainTest, solve_pretend_functional_cas)
 {
-  string args         = " verify -v -p 8 ";
+  string args         = " solve -v -p 8 ";
   string program_file = "data/increment.cas.asm";
 
   string cmd = executable + args + program_file + " " + program_file;
@@ -279,10 +279,10 @@ TEST_F(MainTest, verify_pretend_functional_cas)
   ASSERT_EQ(expected, actual);
 }
 
-/* verify_cas *****************************************************************/
-TEST_F(MainTest, verify_cas)
+/* solve_cas ******************************************************************/
+TEST_F(MainTest, solve_cas)
 {
-  string args     = " verify -v 8 ";
+  string args     = " solve -v 8 ";
   string program  = "data/increment.cas.asm";
 
   string cmd = executable + args + program + " " + program;
@@ -295,10 +295,10 @@ TEST_F(MainTest, verify_cas)
   ASSERT_EQ("sat", actual.substr(0, 3));
 }
 
-/* verify_illegal_args ********************************************************/
-TEST_F(MainTest, verify_illegal_args)
+/* solve_illegal_args *********************************************************/
+TEST_F(MainTest, solve_illegal_args)
 {
-  executable      = executable + " verify ";
+  executable      = executable + " solve ";
   string program  = "data/increment.cas.asm";
 
   /* no arguments */
@@ -381,10 +381,10 @@ TEST_F(MainTest, verify_illegal_args)
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
 }
 
-/* verify_file_not_found ******************************************************/
-TEST_F(MainTest, verify_file_not_found)
+/* solve_file_not_found *******************************************************/
+TEST_F(MainTest, solve_file_not_found)
 {
-  string args = " verify 1 ";
+  string args = " solve 1 ";
   string cmd = executable + args;
 
   string expected = "error: file_not_found not found\n";

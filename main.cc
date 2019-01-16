@@ -25,7 +25,7 @@ void print_usage_main (char * name)
   "  help       print help for a specific <command>" << eol <<
   "  simulate   simulate concurrent programs" << eol <<
   "  replay     reevaluates a given schedule" << eol <<
-  "  verify     verifies a given (single-threaded) program" << eol;
+  "  solve      solve concurrent programs using SMT" << eol;
 }
 
 void print_usage_help (char * name)
@@ -54,10 +54,10 @@ void print_usage_replay (char * name)
   "  schedule   the schedule to replay" << eol;
 }
 
-void print_usage_verify (char * name)
+void print_usage_solve (char * name)
 {
   cout << "usage: " << name <<
-  " verify [options] <bound> <program> ..."
+  " solve [options] <bound> <program> ..."
   << eol << eol <<
   "options:" << eol <<
   "  -c file    include additional constraints from file" << eol <<
@@ -101,9 +101,9 @@ int help (char * name, int argc, char **argv)
     {
       print_usage_replay(name);
     }
-  else if (!strcmp(argv[0], "verify"))
+  else if (!strcmp(argv[0], "solve"))
     {
-      print_usage_verify(name);
+      print_usage_solve(name);
     }
   else
     {
@@ -257,13 +257,13 @@ int replay (char * name, int argc, char ** argv)
     }
 }
 
-/* verify *********************************************************************/
-int verify (char * name, int argc, char ** argv)
+/* solve **********************************************************************/
+int solve (char * name, int argc, char ** argv)
 {
   if (argc < 2)
     {
       print_error("too few arguments");
-      print_usage_verify(name);
+      print_usage_solve(name);
       return -1;
     }
 
@@ -290,7 +290,7 @@ int verify (char * name, int argc, char ** argv)
             if (++i >= argc)
               {
                 print_error("missing constraints file");
-                print_usage_verify(name);
+                print_usage_solve(name);
                 return -1;
               }
 
@@ -307,7 +307,7 @@ int verify (char * name, int argc, char ** argv)
             if (++i >= argc)
               {
                 print_error("missing encoder");
-                print_usage_verify(name);
+                print_usage_solve(name);
                 return -1;
               }
 
@@ -328,7 +328,7 @@ int verify (char * name, int argc, char ** argv)
         else if (argv[i][0] == '-')
           {
             print_error("unknown option [" + string(argv[i]) + "]");
-            print_usage_verify(name);
+            print_usage_solve(name);
             return -1;
           }
         else
@@ -339,7 +339,7 @@ int verify (char * name, int argc, char ** argv)
       if (argc < i + 2)
         {
           print_error("too few arguments");
-          print_usage_verify(name);
+          print_usage_solve(name);
           return -1;
         }
 
@@ -378,7 +378,7 @@ int verify (char * name, int argc, char ** argv)
       else
         {
           print_error("unknown encoder [" + encoder_name + "]");
-          print_usage_verify(name);
+          print_usage_solve(name);
           return -1;
         }
 
@@ -418,9 +418,9 @@ int main (int argc, char ** argv)
         {
           return replay(argv[0], argc - 2, argv + 2);
         }
-      else if (!strcmp(argv[1], "verify"))
+      else if (!strcmp(argv[1], "solve"))
         {
-          return verify(argv[0], argc - 2, argv + 2);
+          return solve(argv[0], argc - 2, argv + 2);
         }
     }
 
