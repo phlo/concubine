@@ -341,7 +341,7 @@ TEST_F(MainTest, verify_illegal_args)
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
 
-  /* constraint file (missing) */
+  /* constraint file missing */
   expected = "error: 1 not found\n";
 
   actual = shell.run(executable + "-c 1 " + program);
@@ -351,15 +351,31 @@ TEST_F(MainTest, verify_illegal_args)
 
   expected = "error: missing constraints file\n";
 
-  actual = shell.run(executable + "-p -v -c");
+  actual = shell.run(executable + "-v -c");
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
 
-  /* constraint file (not found) */
+  /* constraint file not found */
   expected = "error: FILE not found\n";
 
   actual = shell.run(executable + "-c FILE 1 " + program);
+
+  ASSERT_EQ(255, shell.last_exit_code());
+  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+
+  /* encoder missing */
+  expected = "error: missing encoder\n";
+
+  actual = shell.run(executable + "-v -e");
+
+  ASSERT_EQ(255, shell.last_exit_code());
+  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+
+  /* unknown encoder */
+  expected = "error: unknown encoder [FOO]\n";
+
+  actual = shell.run(executable + "-e FOO 1 " + program);
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));

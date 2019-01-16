@@ -61,13 +61,14 @@ void print_usage_verify (char * name)
   << eol << eol <<
   "options:" << eol <<
   "  -c file    include additional constraints from file" << eol <<
-  "  -e encoder use a specific encoding:" << eol <<
-  "             smtlib-functional (default)" << eol <<
-  "             smtlib-relational" << eol <<
-  "             btor2 (requires -s boolector)" << eol <<
+  "  -e encoder use a specific encoding, options are:" << eol <<
+  "             * smtlib-functional (default)" << eol <<
+  "             * smtlib-relational" << eol <<
+  "             * btor2 (implies -s boolector)" << eol <<
   "  -p         prints the generated formula and exits" << eol <<
-  "  -s solver  use a specific solver:" << eol <<
-  "             boolector (default)" << eol <<
+  "  -s solver  use a specific solver, options are:" << eol <<
+  "             * boolector (default)" << eol <<
+  "             * z3" << eol <<
   "  -v         verbose formula output" << eol <<
   "  bound      execute a specific number of steps" << eol <<
   "  program    one or more programs to encode" << eol;
@@ -276,6 +277,12 @@ int verify (char * name, int argc, char ** argv)
       /* additional constraints from file */
       string constraints;
 
+      /* encoder name */
+      string encoder_name = "smtlib-functional";
+
+      /* solver to use */
+      SolverPtr solver = BoolectorPtr(new Boolector());
+
       /* parse flags */
       do
         if (!strcmp(argv[i], "-c"))
@@ -295,10 +302,29 @@ int verify (char * name, int argc, char ** argv)
             if (constraints.empty())
               throw runtime_error(string(argv[i]) + " not found");
           }
+        else if (!strcmp(argv[i], "-e"))
+          {
+            if (++i >= argc)
+              {
+                print_error("missing encoder");
+                print_usage_verify(name);
+                return -1;
+              }
+
+            encoder_name = argv[i];
+          }
         else if (!strcmp(argv[i], "-p"))
-          pretend = true;
+          {
+            pretend = true;
+          }
+        else if (!strcmp(argv[i], "-s"))
+          {
+            throw runtime_error("solver selection not implemented");
+          }
         else if (!strcmp(argv[i], "-v"))
-          verbose = true;
+          {
+            verbose = true;
+          }
         else if (argv[i][0] == '-')
           {
             print_error("unknown option [" + string(argv[i]) + "]");
@@ -339,13 +365,25 @@ int verify (char * name, int argc, char ** argv)
         programs->push_back(ProgramPtr(new Program(argv[i++])));
 
       /* encode program */
-      SMTLibEncoderFunctional formula(programs, bound);
+      EncoderPtr encoder;
 
-      /* create solver */
-      Boolector boolector;
+      if (encoder_name == "smtlib-functional")
+        encoder = SMTLibEncoderFunctionalPtr(
+          new SMTLibEncoderFunctional(programs, bound));
+      else if (encoder_name == "smtlib-relational")
+        encoder = SMTLibEncoderRelationalPtr(
+          new SMTLibEncoderRelational(programs, bound));
+      else if (encoder_name == "btor2")
+        throw runtime_error("btor2 encoder not implemented");
+      else
+        {
+          print_error("unknown encoder [" + encoder_name + "]");
+          print_usage_verify(name);
+          return -1;
+        }
 
       /* create verifier*/
-      Verifier verifier(boolector, formula, constraints);
+      Verifier verifier(*solver, *encoder, constraints);
 
       /* print program if we're pretending */
       if (pretend)
