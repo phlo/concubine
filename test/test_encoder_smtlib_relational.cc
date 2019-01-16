@@ -167,66 +167,6 @@ TEST_F(SMTLibEncoderRelationalTest, add_exit_code)
   ASSERT_EQ(expected, encoder->formula.str());
 }
 
-// void add_exit_flag (void);
-TEST_F(SMTLibEncoderRelationalTest, add_exit_flag)
-{
-  for (size_t i = 0; i < 3; i++)
-    {
-      programs.push_back(shared_ptr<Program>(new Program()));
-
-      programs[i]->add(Instruction::Set::create("EXIT", i));
-    }
-
-  /* step 1 */
-  reset_encoder(3, 1);
-
-  encoder->add_exit_flag();
-
-  expected =
-    "; exit flag forward declaration ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    "; exit flag - exit_<step>\n"
-    "(declare-fun exit_2 () Bool)\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
-
-  /* step 2 */
-  reset_encoder(3, 2);
-
-  encoder->add_exit_flag();
-
-  expected =
-    "; exit flag forward declaration ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    "; exit flag - exit_<step>\n"
-    "(declare-fun exit_3 () Bool)\n"
-    "\n"
-    "(assert (=> exit_2 exit_3))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
-
-  /* step 3 - reached bound */
-  reset_encoder(3, 3);
-
-  encoder->add_exit_flag();
-
-  ASSERT_EQ("", encoder->formula.str());
-
-  /* verbosity */
-  reset_encoder(3, 2);
-
-  verbose = false;
-  encoder->add_exit_flag();
-  verbose = true;
-
-  expected =
-    "(declare-fun exit_3 () Bool)\n"
-    "\n"
-    "(assert (=> exit_2 exit_3))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
-}
-
 // void add_statement_declaration (void);
 TEST_F(SMTLibEncoderRelationalTest, add_statement_declaration)
 {
@@ -691,7 +631,7 @@ TEST_F(SMTLibEncoderRelationalTest, encode)
 
   encoder =
     make_shared<SMTLibEncoderRelational>(
-      make_shared<ProgramList>(programs), 2);
+      make_shared<ProgramList>(programs), 12);
 
   ifstream ifs("data/increment.sync.functional.t2.k8.smt2");
   expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
@@ -1025,17 +965,6 @@ TEST_F(SMTLibEncoderRelationalTest, EXIT)
     "(assert (=> exec_1_1_0 (= accu_1_1 accu_0_1)))\n"
     "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
     "(assert (=> exec_1_1_0 (= heap_1 heap_0)))\n"
-    "(assert (=> exec_1_1_0 exit_2))\n"
     "(assert (=> exec_1_1_0 (= exit_code #x0001)))\n",
-    encoder->encode(exit));
-
-  /* step == bound */
-  encoder->step = encoder->bound;
-
-  ASSERT_EQ(
-    "(assert (=> exec_2_1_0 (= accu_2_1 accu_1_1)))\n"
-    "(assert (=> exec_2_1_0 (= mem_2_1 mem_1_1)))\n"
-    "(assert (=> exec_2_1_0 (= heap_2 heap_1)))\n"
-    "(assert (=> exec_2_1_0 (= exit_code #x0001)))\n",
     encoder->encode(exit));
 }

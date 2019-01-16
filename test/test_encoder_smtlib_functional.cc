@@ -318,68 +318,6 @@ TEST_F(SMTLibEncoderFunctionalTest, add_statement_activation_jmp_twice)
   ASSERT_EQ(expected, encoder->formula.str());
 }
 
-// void add_exit_flag (void);
-TEST_F(SMTLibEncoderFunctionalTest, add_exit_flag)
-{
-  for (size_t i = 0; i < 3; i++)
-    {
-      programs.push_back(shared_ptr<Program>(new Program()));
-
-      programs[i]->add(Instruction::Set::create("EXIT", i));
-    }
-
-  /* step 1 */
-  reset_encoder(10, 1);
-
-  encoder->add_exit_flag();
-
-  ASSERT_EQ("", encoder->formula.str());
-
-  /* step 2 */
-  reset_encoder(10, 2);
-
-  encoder->add_exit_flag();
-
-  expected =
-    "; exit flag ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    "; exit flag - exit_<step>\n"
-    "(declare-fun exit_2 () Bool)\n"
-    "\n"
-    "(assert (= exit_2 (or exec_1_1_0 exec_1_2_0 exec_1_3_0)))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
-
-  /* step 3 - reached bound */
-  reset_encoder(3, 3);
-
-  encoder->add_exit_flag();
-
-  expected =
-    "; exit flag ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    "; exit flag - exit_<step>\n"
-    "(declare-fun exit_3 () Bool)\n"
-    "\n"
-    "(assert (= exit_3 (or exit_2 exec_2_1_0 exec_2_2_0 exec_2_3_0)))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
-
-  /* verbosity */
-  reset_encoder(3, 3);
-
-  verbose = false;
-  encoder->add_exit_flag();
-  verbose = true;
-
-  expected =
-    "(declare-fun exit_3 () Bool)\n"
-    "\n"
-    "(assert (= exit_3 (or exit_2 exec_2_1_0 exec_2_2_0 exec_2_3_0)))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
-}
-
 // void add_state_update (void);
 TEST_F(SMTLibEncoderFunctionalTest, add_state_update)
 {

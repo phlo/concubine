@@ -423,6 +423,30 @@ void SMTLibEncoder::add_initial_statement_activation ()
   });
 }
 
+void SMTLibEncoder::add_exit_flag ()
+{
+  /* skip if step == 1 or EXIT isn't called at all */
+  if (exit_pcs.empty() || step < 2)
+    return;
+
+  if (verbose)
+    formula << smtlib::comment_subsection("exit flag");
+
+  declare_exit_var();
+
+  vector<string> args;
+
+  if (step > 2)
+    args.push_back(exit_var(step - 1));
+
+  iterate_threads([&] {
+    for (const word & exit_pc : exit_pcs[thread])
+      args.push_back(exec_var(step - 1, thread, exit_pc));
+  });
+
+  formula << assign_var(exit_var(), smtlib::lor(args)) << eol << eol;
+}
+
 void SMTLibEncoder::add_thread_scheduling ()
 {
   vector<string> variables;
@@ -626,30 +650,6 @@ void SMTLibEncoderFunctional::add_statement_activation ()
 
       formula << eol;
     });
-}
-
-void SMTLibEncoderFunctional::add_exit_flag ()
-{
-  /* skip if step == 1 or EXIT isn't called at all */
-  if (exit_pcs.empty() || step < 2)
-    return;
-
-  if (verbose)
-    formula << smtlib::comment_subsection("exit flag");
-
-  declare_exit_var();
-
-  vector<string> args;
-
-  if (step > 2)
-    args.push_back(exit_var(step - 1));
-
-  iterate_threads([&] {
-    for (const word & exit_pc : exit_pcs[thread])
-      args.push_back(exec_var(step - 1, thread, exit_pc));
-  });
-
-  formula << assign_var(exit_var(), smtlib::lor(args)) << eol << eol;
 }
 
 void SMTLibEncoderFunctional::add_state_update ()
@@ -1056,24 +1056,6 @@ void SMTLibEncoderRelational::add_exit_code ()
   formula << smtlib::declare_bv_var(exit_code_var, word_size) << eol << eol;
 }
 
-void SMTLibEncoderRelational::add_exit_flag ()
-{
-  if (step >= bound)
-    return;
-
-  if (verbose)
-    formula << smtlib::comment_subsection("exit flag forward declaration");
-
-  step++;
-
-  declare_exit_var();
-
-  step--;
-
-  if (step > 1)
-    formula << imply(exit_var(), exit_var(step + 1)) << eol;
-}
-
 void SMTLibEncoderRelational::add_statement_declaration ()
 {
   if (step >= bound)
@@ -1404,7 +1386,6 @@ string SMTLibEncoderRelational::encode (Exit & e)
     preserve_accu() +
     preserve_mem() +
     preserve_heap() +
-    (step < bound ? imply(exec_var(), exit_var(step + 1)) : "") +
     imply(
       exec_var(),
       smtlib::equality({exit_code_var, smtlib::word2hex(e.arg)}));
