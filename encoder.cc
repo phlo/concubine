@@ -1024,7 +1024,7 @@ string SMTLibEncoderRelational::preserve_mem ()
 
 string SMTLibEncoderRelational::activate_next ()
 {
-  return activate_pc(pc + 1);
+  return step < bound ? activate_pc(pc + 1) : "";
 }
 
 string SMTLibEncoderRelational::activate_pc (word target)
@@ -1034,6 +1034,9 @@ string SMTLibEncoderRelational::activate_pc (word target)
 
 string SMTLibEncoderRelational::activate_jmp (string condition, word target)
 {
+  if (step >= bound)
+    return "";
+
   word k = step + 1;
 
   return
@@ -1083,6 +1086,9 @@ void SMTLibEncoderRelational::add_statement_declaration ()
   step++;
 
   declare_stmt_vars();
+
+  if (step == 1)
+    add_initial_statement_activation();
 
   step--;
 }
@@ -1385,9 +1391,7 @@ string SMTLibEncoderRelational::encode (Exit & e)
     preserve_accu() +
     preserve_mem() +
     preserve_heap() +
-    imply(
-      exec_var(),
-      exit_var(step + 1)) +
+    (step < bound ? imply(exec_var(), exit_var(step + 1)) : "") +
     imply(
       exec_var(),
       smtlib::equality({exit_code_var, smtlib::word2hex(e.arg)}));
