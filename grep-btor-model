@@ -1,0 +1,3 @@
+#!/bin/bash
+
+grep "^[0-9]\+.* \(1 thread\|1 stmt\|1 exec\|1 sync\|1 exit\|accu\|mem\|heap\|exit_code\)"
