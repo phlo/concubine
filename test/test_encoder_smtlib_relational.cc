@@ -770,34 +770,44 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_preservation)
 }
 
 // virtual void encode (void);
-// TODO
-#include "boolector.hh"
-TEST_F(SMTLibEncoderRelationalTest, encode)
+TEST_F(SMTLibEncoderRelationalTest, encode_sync)
 {
   /* concurrent increment using SYNC */
   programs.push_back(
     shared_ptr<Program>(
-      // new Program("data/increment.sync.thread.0.asm")));
+      new Program("data/increment.sync.thread.0.asm")));
+  programs.push_back(
+    shared_ptr<Program>(
+      new Program("data/increment.sync.thread.n.asm")));
+
+  encoder =
+    make_shared<SMTLibEncoderRelational>(
+      make_shared<ProgramList>(programs), 8);
+
+  ifstream ifs("data/increment.sync.relational.t2.k8.smt2");
+  expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
+
+  ASSERT_EQ(expected, encoder->formula.str());
+}
+
+TEST_F(SMTLibEncoderRelationalTest, encode_cas)
+{
+  /* concurrent increment using CAS */
+  programs.push_back(
+    shared_ptr<Program>(
       new Program("data/increment.cas.asm")));
   programs.push_back(
     shared_ptr<Program>(
-      // new Program("data/increment.sync.thread.n.asm")));
       new Program("data/increment.cas.asm")));
 
   encoder =
     make_shared<SMTLibEncoderRelational>(
-      make_shared<ProgramList>(programs), 12);
+      make_shared<ProgramList>(programs), 8);
 
-  ifstream ifs("data/increment.sync.functional.t2.k8.smt2");
+  ifstream ifs("data/increment.cas.relational.t2.k8.smt2");
   expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
 
-  // EXPECT_EQ("", encoder->formula.str());
-
-  Boolector btor;
-
-  string formula = encoder->formula.str();
-
-  // ASSERT_TRUE(btor.sat(formula));
+  ASSERT_EQ(expected, encoder->formula.str());
 }
 
 // virtual std::string encode (Load &);
