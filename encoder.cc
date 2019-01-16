@@ -1022,30 +1022,39 @@ string SMTLibEncoderRelational::preserve_mem ()
       smtlib::equality({mem_var(), mem_var(step - 1, thread)}));
 }
 
+string SMTLibEncoderRelational::stmt_activation (word target)
+{
+  vector<string> args;
+
+  for (word cur = 0; cur < programs->at(thread - 1u)->size(); cur++)
+    args.push_back(
+      cur == target
+        ? stmt_var(step + 1, thread, target)
+        : smtlib::lnot(stmt_var(step + 1, thread, cur)));
+
+  return smtlib::land(args);
+}
+
+string SMTLibEncoderRelational::activate_pc (word target)
+{
+  return step < bound ? imply(exec_var(), stmt_activation(target)) : "";
+}
+
 string SMTLibEncoderRelational::activate_next ()
 {
   return step < bound ? activate_pc(pc + 1) : "";
 }
 
-string SMTLibEncoderRelational::activate_pc (word target)
-{
-  return imply(exec_var(), stmt_var(step + 1, thread, target));
-}
-
 string SMTLibEncoderRelational::activate_jmp (string condition, word target)
 {
-  if (step >= bound)
-    return "";
-
-  word k = step + 1;
-
-  return
-    imply(
-      exec_var(),
-      smtlib::ite(
-        condition,
-        stmt_var(k, thread, target),
-        stmt_var(k, thread, pc + 1)));
+  return step < bound
+    ? imply(
+        exec_var(),
+        smtlib::ite(
+          condition,
+          stmt_activation(target),
+          stmt_activation(pc + 1)))
+    : "";
 }
 
 void SMTLibEncoderRelational::add_exit_code ()

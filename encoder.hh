@@ -274,8 +274,10 @@ struct SMTLibEncoderRelational : public SMTLibEncoder
   std::string         preserve_accu (void);
   std::string         preserve_mem (void);
 
-  std::string         activate_next (void);
+  std::string         stmt_activation (word);
+
   std::string         activate_pc (word);
+  std::string         activate_next (void);
   std::string         activate_jmp (std::string, word);
 
   void                add_exit_code (void);
