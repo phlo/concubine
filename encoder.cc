@@ -1124,7 +1124,7 @@ void SMTLibEncoderRelational::add_state_preservation ()
   if (verbose)
     formula << smtlib::comment_subsection("state preservation");
 
-  iterate_threads([&] {
+  iterate_threads([&] (Program & program) {
     vector<string> args({thread_var()});
 
     /* collect sync variables related to this thread */
@@ -1132,7 +1132,8 @@ void SMTLibEncoderRelational::add_state_preservation ()
       if (threads.find(thread) != threads.end())
         args.push_back(sync_var(step, id));
 
-    string condition = smtlib::lnot(smtlib::land(args));
+    // TODO add condition helper variable wait_<step>_<thread>?
+    string condition = smtlib::lnot(smtlib::lor(args));
 
     /* preserver accu */
     formula <<
@@ -1145,6 +1146,18 @@ void SMTLibEncoderRelational::add_state_preservation ()
       imply(
         condition,
         smtlib::equality({mem_var(), mem_var(step - 1, thread)}));
+
+    /* preserver statement activation */
+    if (step < bound)
+      {
+        formula << eol;
+
+        for (pc = 0; pc < program.size(); pc++)
+          formula <<
+            imply(
+              condition,
+              smtlib::equality({stmt_var(step + 1, thread, pc), stmt_var()}));
+      }
 
     formula << eol;
   });

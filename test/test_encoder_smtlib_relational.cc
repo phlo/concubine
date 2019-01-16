@@ -572,33 +572,106 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_preservation)
   expected =
     "; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "(assert (=> (not (and thread_1_1 sync_1_1)) (= accu_1_1 accu_0_1)))\n"
-    "(assert (=> (not (and thread_1_1 sync_1_1)) (= mem_1_1 mem_0_1)))\n"
+    "(assert (=> (not (or thread_1_1 sync_1_1)) (= accu_1_1 accu_0_1)))\n"
+    "(assert (=> (not (or thread_1_1 sync_1_1)) (= mem_1_1 mem_0_1)))\n"
     "\n"
-    "(assert (=> (not (and thread_1_2 sync_1_1)) (= accu_1_2 accu_0_2)))\n"
-    "(assert (=> (not (and thread_1_2 sync_1_1)) (= mem_1_2 mem_0_2)))\n"
+    "(assert (=> (not (or thread_1_1 sync_1_1)) (= stmt_2_1_0 stmt_1_1_0)))\n"
+    "(assert (=> (not (or thread_1_1 sync_1_1)) (= stmt_2_1_1 stmt_1_1_1)))\n"
+    "(assert (=> (not (or thread_1_1 sync_1_1)) (= stmt_2_1_2 stmt_1_1_2)))\n"
+    "(assert (=> (not (or thread_1_1 sync_1_1)) (= stmt_2_1_3 stmt_1_1_3)))\n"
+    "(assert (=> (not (or thread_1_1 sync_1_1)) (= stmt_2_1_4 stmt_1_1_4)))\n"
+    "(assert (=> (not (or thread_1_1 sync_1_1)) (= stmt_2_1_5 stmt_1_1_5)))\n"
+    "(assert (=> (not (or thread_1_1 sync_1_1)) (= stmt_2_1_6 stmt_1_1_6)))\n"
+    "(assert (=> (not (or thread_1_1 sync_1_1)) (= stmt_2_1_7 stmt_1_1_7)))\n"
+    "(assert (=> (not (or thread_1_1 sync_1_1)) (= stmt_2_1_8 stmt_1_1_8)))\n"
+    "(assert (=> (not (or thread_1_1 sync_1_1)) (= stmt_2_1_9 stmt_1_1_9)))\n"
+    "(assert (=> (not (or thread_1_1 sync_1_1)) (= stmt_2_1_10 stmt_1_1_10)))\n"
+    "(assert (=> (not (or thread_1_1 sync_1_1)) (= stmt_2_1_11 stmt_1_1_11)))\n"
+    "(assert (=> (not (or thread_1_1 sync_1_1)) (= stmt_2_1_12 stmt_1_1_12)))\n"
+    "(assert (=> (not (or thread_1_1 sync_1_1)) (= stmt_2_1_13 stmt_1_1_13)))\n"
+    "(assert (=> (not (or thread_1_1 sync_1_1)) (= stmt_2_1_14 stmt_1_1_14)))\n"
+    "(assert (=> (not (or thread_1_1 sync_1_1)) (= stmt_2_1_15 stmt_1_1_15)))\n"
+    "(assert (=> (not (or thread_1_1 sync_1_1)) (= stmt_2_1_16 stmt_1_1_16)))\n"
     "\n"
-    "(assert (=> (not (and thread_1_3 sync_1_1)) (= accu_1_3 accu_0_3)))\n"
-    "(assert (=> (not (and thread_1_3 sync_1_1)) (= mem_1_3 mem_0_3)))\n\n";
+    "(assert (=> (not (or thread_1_2 sync_1_1)) (= accu_1_2 accu_0_2)))\n"
+    "(assert (=> (not (or thread_1_2 sync_1_1)) (= mem_1_2 mem_0_2)))\n"
+    "\n"
+    "(assert (=> (not (or thread_1_2 sync_1_1)) (= stmt_2_2_0 stmt_1_2_0)))\n"
+    "(assert (=> (not (or thread_1_2 sync_1_1)) (= stmt_2_2_1 stmt_1_2_1)))\n"
+    "(assert (=> (not (or thread_1_2 sync_1_1)) (= stmt_2_2_2 stmt_1_2_2)))\n"
+    "(assert (=> (not (or thread_1_2 sync_1_1)) (= stmt_2_2_3 stmt_1_2_3)))\n"
+    "(assert (=> (not (or thread_1_2 sync_1_1)) (= stmt_2_2_4 stmt_1_2_4)))\n"
+    "(assert (=> (not (or thread_1_2 sync_1_1)) (= stmt_2_2_5 stmt_1_2_5)))\n"
+    "(assert (=> (not (or thread_1_2 sync_1_1)) (= stmt_2_2_6 stmt_1_2_6)))\n"
+    "(assert (=> (not (or thread_1_2 sync_1_1)) (= stmt_2_2_7 stmt_1_2_7)))\n"
+    "(assert (=> (not (or thread_1_2 sync_1_1)) (= stmt_2_2_8 stmt_1_2_8)))\n"
+    "(assert (=> (not (or thread_1_2 sync_1_1)) (= stmt_2_2_9 stmt_1_2_9)))\n"
+    "(assert (=> (not (or thread_1_2 sync_1_1)) (= stmt_2_2_10 stmt_1_2_10)))\n"
+    "(assert (=> (not (or thread_1_2 sync_1_1)) (= stmt_2_2_11 stmt_1_2_11)))\n"
+    "(assert (=> (not (or thread_1_2 sync_1_1)) (= stmt_2_2_12 stmt_1_2_12)))\n"
+    "(assert (=> (not (or thread_1_2 sync_1_1)) (= stmt_2_2_13 stmt_1_2_13)))\n"
+    "(assert (=> (not (or thread_1_2 sync_1_1)) (= stmt_2_2_14 stmt_1_2_14)))\n"
+    "(assert (=> (not (or thread_1_2 sync_1_1)) (= stmt_2_2_15 stmt_1_2_15)))\n"
+    "(assert (=> (not (or thread_1_2 sync_1_1)) (= stmt_2_2_16 stmt_1_2_16)))\n"
+    "\n"
+    "(assert (=> (not (or thread_1_3 sync_1_1)) (= accu_1_3 accu_0_3)))\n"
+    "(assert (=> (not (or thread_1_3 sync_1_1)) (= mem_1_3 mem_0_3)))\n"
+    "\n"
+    "(assert (=> (not (or thread_1_3 sync_1_1)) (= stmt_2_3_0 stmt_1_3_0)))\n"
+    "(assert (=> (not (or thread_1_3 sync_1_1)) (= stmt_2_3_1 stmt_1_3_1)))\n"
+    "(assert (=> (not (or thread_1_3 sync_1_1)) (= stmt_2_3_2 stmt_1_3_2)))\n"
+    "(assert (=> (not (or thread_1_3 sync_1_1)) (= stmt_2_3_3 stmt_1_3_3)))\n"
+    "(assert (=> (not (or thread_1_3 sync_1_1)) (= stmt_2_3_4 stmt_1_3_4)))\n"
+    "(assert (=> (not (or thread_1_3 sync_1_1)) (= stmt_2_3_5 stmt_1_3_5)))\n"
+    "(assert (=> (not (or thread_1_3 sync_1_1)) (= stmt_2_3_6 stmt_1_3_6)))\n"
+    "(assert (=> (not (or thread_1_3 sync_1_1)) (= stmt_2_3_7 stmt_1_3_7)))\n"
+    "(assert (=> (not (or thread_1_3 sync_1_1)) (= stmt_2_3_8 stmt_1_3_8)))\n"
+    "(assert (=> (not (or thread_1_3 sync_1_1)) (= stmt_2_3_9 stmt_1_3_9)))\n"
+    "(assert (=> (not (or thread_1_3 sync_1_1)) (= stmt_2_3_10 stmt_1_3_10)))\n"
+    "(assert (=> (not (or thread_1_3 sync_1_1)) (= stmt_2_3_11 stmt_1_3_11)))\n"
+    "(assert (=> (not (or thread_1_3 sync_1_1)) (= stmt_2_3_12 stmt_1_3_12)))\n"
+    "(assert (=> (not (or thread_1_3 sync_1_1)) (= stmt_2_3_13 stmt_1_3_13)))\n"
+    "(assert (=> (not (or thread_1_3 sync_1_1)) (= stmt_2_3_14 stmt_1_3_14)))\n"
+    "(assert (=> (not (or thread_1_3 sync_1_1)) (= stmt_2_3_15 stmt_1_3_15)))\n"
+    "(assert (=> (not (or thread_1_3 sync_1_1)) (= stmt_2_3_16 stmt_1_3_16)))\n\n";
+
+  ASSERT_EQ(expected, encoder->formula.str());
+
+  /* step == bound */
+  reset_encoder(2, 2);
+
+  encoder->add_state_preservation();
+
+  expected =
+    "; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "(assert (=> (not (or thread_2_1 sync_2_1)) (= accu_2_1 accu_1_1)))\n"
+    "(assert (=> (not (or thread_2_1 sync_2_1)) (= mem_2_1 mem_1_1)))\n"
+    "\n"
+    "(assert (=> (not (or thread_2_2 sync_2_1)) (= accu_2_2 accu_1_2)))\n"
+    "(assert (=> (not (or thread_2_2 sync_2_1)) (= mem_2_2 mem_1_2)))\n"
+    "\n"
+    "(assert (=> (not (or thread_2_3 sync_2_1)) (= accu_2_3 accu_1_3)))\n"
+    "(assert (=> (not (or thread_2_3 sync_2_1)) (= mem_2_3 mem_1_3)))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
   /* verbosity */
-  reset_encoder(1, 1);
+  reset_encoder(2, 2);
 
   verbose = false;
   encoder->add_state_preservation();
   verbose = true;
 
   expected =
-    "(assert (=> (not (and thread_1_1 sync_1_1)) (= accu_1_1 accu_0_1)))\n"
-    "(assert (=> (not (and thread_1_1 sync_1_1)) (= mem_1_1 mem_0_1)))\n"
+    "(assert (=> (not (or thread_2_1 sync_2_1)) (= accu_2_1 accu_1_1)))\n"
+    "(assert (=> (not (or thread_2_1 sync_2_1)) (= mem_2_1 mem_1_1)))\n"
     "\n"
-    "(assert (=> (not (and thread_1_2 sync_1_1)) (= accu_1_2 accu_0_2)))\n"
-    "(assert (=> (not (and thread_1_2 sync_1_1)) (= mem_1_2 mem_0_2)))\n"
+    "(assert (=> (not (or thread_2_2 sync_2_1)) (= accu_2_2 accu_1_2)))\n"
+    "(assert (=> (not (or thread_2_2 sync_2_1)) (= mem_2_2 mem_1_2)))\n"
     "\n"
-    "(assert (=> (not (and thread_1_3 sync_1_1)) (= accu_1_3 accu_0_3)))\n"
-    "(assert (=> (not (and thread_1_3 sync_1_1)) (= mem_1_3 mem_0_3)))\n\n";
+    "(assert (=> (not (or thread_2_3 sync_2_1)) (= accu_2_3 accu_1_3)))\n"
+    "(assert (=> (not (or thread_2_3 sync_2_1)) (= mem_2_3 mem_1_3)))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 }
