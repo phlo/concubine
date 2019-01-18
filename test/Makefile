@@ -38,11 +38,14 @@ run: $(TEST_RUN)
 	./$(TEST_RUN)
 
 # build executable containing all test cases
-$(TEST_RUN): $(OBJ) $(TEST_OBJ) $(GTEST_LIB)
+$(TEST_RUN): $(GTEST_LIB) $(OBJ) $(TEST_OBJ)
 	$(CXX) $(CXXFLAGS) $^ $(TEST_MAIN) -o $@
 
 # build googletest library
-$(GTEST_LIB):
+$(GTEST_DIR):
+	git submodule update --init
+
+$(GTEST_LIB): $(GTEST_DIR)
 	CXXFLAGS="" $(MAKE) -C $(dir $(GTEST_LIB)) $(notdir $(GTEST_LIB))
 
 # delete generated files
