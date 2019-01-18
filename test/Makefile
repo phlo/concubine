@@ -10,8 +10,7 @@ GTEST_DIR = lib/googletest/googletest
 GTEST_LIB = $(GTEST_DIR)/make/gtest-all.o
 
 # compiler flags (exported from parent makefile)
-CXXFLAGS := $(CXXFLAGS) \
-			-isystem $(GTEST_DIR)/include \
+CXXFLAGS += -isystem $(GTEST_DIR)/include \
 			-I../ \
 			-pthread \
 			-D__TEST__
@@ -44,7 +43,7 @@ $(TEST_RUN): $(OBJ) $(TEST_OBJ) $(GTEST_LIB)
 
 # build googletest library
 $(GTEST_LIB):
-	make -C $(dir $(GTEST_LIB)) $(notdir $(GTEST_LIB))
+	CXXFLAGS="" $(MAKE) -C $(dir $(GTEST_LIB)) $(notdir $(GTEST_LIB))
 
 # delete generated files
 .PHONY: clean
@@ -54,7 +53,7 @@ clean:
 # delete generated files and libraries
 .PHONY: clean-all
 clean-all: clean
-	make -C $(dir $(GTEST_LIB)) clean
+	$(MAKE) -C $(dir $(GTEST_LIB)) clean
 
 # auto-dependency generation
 include ../dependencies.mk
