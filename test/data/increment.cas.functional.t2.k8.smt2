@@ -886,9 +886,10 @@
 
 (assert (= heap_8 (ite exec_8_1_0 (store heap_7 #x0000 accu_7_1) (ite exec_8_1_4 (ite (= mem_7_1 (select heap_7 #x0000)) (store heap_7 #x0000 accu_7_1) heap_7) (ite exec_8_2_0 (store heap_7 #x0000 accu_7_2) (ite exec_8_2_4 (ite (= mem_7_2 (select heap_7 #x0000)) (store heap_7 #x0000 accu_7_2) heap_7) heap_7))))))
 
-; exit code ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; exit code
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (declare-fun exit_code () (_ BitVec 16))
 
 (assert (= exit_code #x0000))
-

@@ -21,8 +21,7 @@
 ; heap states - heap_<step>
 (declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))
 
-; exit code ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+; exit code
 (declare-fun exit_code () (_ BitVec 16))
 
 ; statement activation forward declaration ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1788,3 +1787,8 @@
 (assert (=> (not (or thread_8_2 sync_8_0 sync_8_1)) (= accu_8_2 accu_7_2)))
 (assert (=> (not (or thread_8_2 sync_8_0 sync_8_1)) (= mem_8_2 mem_7_2)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; exit code
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> (not exit_8) (= exit_code #x0000)))

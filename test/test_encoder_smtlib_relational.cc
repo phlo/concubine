@@ -254,12 +254,36 @@ TEST_F(SMTLibEncoderRelationalTest, activate_jmp)
 // void add_exit_code (void);
 TEST_F(SMTLibEncoderRelationalTest, add_exit_code)
 {
+  /* no call to EXIT */
+  add_dummy_programs(3);
+
   encoder->add_exit_code();
 
   expected =
-    "; exit code ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; exit code\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "(declare-fun exit_code () (_ BitVec 16))\n\n";
+    "(assert (= exit_code #x0000))\n";
+
+  ASSERT_EQ(expected, encoder->formula.str());
+
+  reset_encoder(3, 1);
+
+  /* step == bound */
+  for (const auto & program : programs)
+    program->add(Instruction::Set::create("EXIT", 1));
+
+  reset_encoder(3, 3);
+
+  encoder->add_exit_code();
+
+  expected =
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; exit code\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "(assert (=> (not exit_3) (= exit_code #x0000)))\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 }

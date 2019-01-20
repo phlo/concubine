@@ -1077,9 +1077,10 @@
 
 (assert (= heap_8 (ite exec_8_1_0 (store heap_7 #x0000 accu_7_1) (ite exec_8_1_4 (store heap_7 #x0000 accu_7_1) (ite exec_8_2_4 (store heap_7 #x0000 accu_7_2) heap_7)))))
 
-; exit code ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; exit code
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (declare-fun exit_code () (_ BitVec 16))
 
 (assert (= exit_code (ite exec_1_1_7 #x0001 (ite exec_1_2_6 #x0001 (ite exec_2_1_7 #x0001 (ite exec_2_2_6 #x0001 (ite exec_3_1_7 #x0001 (ite exec_3_2_6 #x0001 (ite exec_4_1_7 #x0001 (ite exec_4_2_6 #x0001 (ite exec_5_1_7 #x0001 (ite exec_5_2_6 #x0001 (ite exec_6_1_7 #x0001 (ite exec_6_2_6 #x0001 (ite exec_7_1_7 #x0001 (ite exec_7_2_6 #x0001 (ite exec_8_1_7 #x0001 (ite exec_8_2_6 #x0001 #x0000))))))))))))))))))
-

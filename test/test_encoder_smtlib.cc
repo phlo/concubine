@@ -692,6 +692,16 @@ TEST_F(SMTLibEncoderTest, declare_exit_vars)
   ASSERT_EQ(expected, encoder->formula.str());
 }
 
+// void declare_exit_code (void);
+TEST_F(SMTLibEncoderTest, declare_exit_code)
+{
+  encoder->declare_exit_code();
+
+  expected = "(declare-fun exit_code () (_ BitVec 16))\n\n";
+
+  ASSERT_EQ(expected, encoder->formula.str());
+}
+
 // string assign_var (string, string);
 TEST_F(SMTLibEncoderTest, assign_var)
 {
@@ -815,6 +825,16 @@ TEST_F(SMTLibEncoderTest, add_initial_statement_activation)
 // void add_exit_flag (void);
 TEST_F(SMTLibEncoderTest, add_exit_flag)
 {
+  /* no call to EXIT in step 2 */
+  add_dummy_programs(3, 2);
+
+  encoder->add_exit_flag();
+
+  ASSERT_EQ("", encoder->formula.str());
+
+  /* step 1 */
+  programs.clear();
+
   for (size_t i = 0; i < 3; i++)
     {
       programs.push_back(shared_ptr<Program>(new Program()));
@@ -822,7 +842,6 @@ TEST_F(SMTLibEncoderTest, add_exit_flag)
       programs[i]->add(Instruction::Set::create("EXIT", i));
     }
 
-  /* step 1 */
   reset_encoder(10, 1);
 
   encoder->add_exit_flag();

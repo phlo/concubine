@@ -374,6 +374,11 @@ void SMTLibEncoder::declare_exit_var ()
   formula << smtlib::declare_bool_var(exit_var()) << eol << eol;
 }
 
+void SMTLibEncoder::declare_exit_code ()
+{
+  formula << smtlib::declare_bv_var(exit_code_var, word_size) << eol << eol;
+}
+
 /* expression generators */
 string SMTLibEncoder::assign_var (string var, string exp)
 {
@@ -722,24 +727,23 @@ void SMTLibEncoderFunctional::add_state_update ()
 void SMTLibEncoderFunctional::add_exit_code ()
 {
   if (verbose)
-    formula << smtlib::comment_subsection("exit code");
+    formula << smtlib::comment_section("exit code");
 
-  formula << smtlib::declare_bv_var(exit_code_var, word_size) << eol << eol;
+  declare_exit_code();
 
   string exit_code_ite = smtlib::word2hex(0);
 
-  if (step > 1)
-    for (unsigned long k = step; k > 0; k--)
-      iterate_threads_reverse([&] (Program & program) {
-        for (const word & exit_pc : exit_pcs[thread])
-          exit_code_ite =
-            smtlib::ite(
-              exec_var(k, thread, exit_pc),
-              program[exit_pc]->encode(*this),
-              exit_code_ite);
-      });
+  for (unsigned long k = step; k > 0; k--)
+    iterate_threads_reverse([&] (Program & program) {
+      for (const word & exit_pc : exit_pcs[thread])
+        exit_code_ite =
+          smtlib::ite(
+            exec_var(k, thread, exit_pc),
+            program[exit_pc]->encode(*this),
+            exit_code_ite);
+    });
 
-  formula << assign_var(exit_code_var, exit_code_ite) << eol << eol;
+  formula << assign_var(exit_code_var, exit_code_ite) << eol;
 }
 
 void SMTLibEncoderFunctional::preprocess ()
@@ -785,6 +789,7 @@ void SMTLibEncoderFunctional::encode ()
 
   step--;
 
+  /* assign exit code */
   add_exit_code();
 }
 
@@ -1060,9 +1065,14 @@ string SMTLibEncoderRelational::activate_jmp (string condition, word target)
 void SMTLibEncoderRelational::add_exit_code ()
 {
   if (verbose)
-    formula << smtlib::comment_subsection("exit code");
+    formula << smtlib::comment_section("exit code");
 
-  formula << smtlib::declare_bv_var(exit_code_var, word_size) << eol << eol;
+  formula <<
+    (exit_pcs.empty()
+      ? assign_var(exit_code_var, smtlib::word2hex(0)) + eol
+      : imply(
+          smtlib::lnot(exit_var()),
+          smtlib::equality({exit_code_var, smtlib::word2hex(0)})));
 }
 
 void SMTLibEncoderRelational::add_statement_declaration ()
@@ -1160,7 +1170,10 @@ void SMTLibEncoderRelational::encode ()
   SMTLibEncoder::encode();
 
   /* declare exit code variable */
-  add_exit_code();
+  if (verbose)
+    formula << "; exit code" << eol;
+
+  declare_exit_code();
 
   /* declare 1st step's statement activation variables */
   add_statement_declaration();
@@ -1191,6 +1204,11 @@ void SMTLibEncoderRelational::encode ()
       /* preserve thread's state if it wasn't executed */
       add_state_preservation();
     }
+
+  step--;
+
+  /* ensure exit code assignment */
+  add_exit_code();
 }
 
 string SMTLibEncoderRelational::encode (Load & l)

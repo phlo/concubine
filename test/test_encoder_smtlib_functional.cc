@@ -497,6 +497,30 @@ TEST_F(SMTLibEncoderFunctionalTest, add_state_update)
 // void add_exit_code (void);
 TEST_F(SMTLibEncoderFunctionalTest, add_exit_code)
 {
+  /* no call to EXIT */
+  for (size_t i = 0; i < 3; i++)
+    {
+      programs.push_back(shared_ptr<Program>(new Program()));
+
+      programs[i]->add(Instruction::Set::create("ADDI", i));
+    }
+
+  encoder->add_exit_code();
+
+  expected =
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; exit code\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "(declare-fun exit_code () (_ BitVec 16))\n"
+    "\n"
+    "(assert (= exit_code #x0000))\n";
+
+  ASSERT_EQ(expected, encoder->formula.str());
+
+  /* step 1 */
+  programs.clear();
+
   for (size_t i = 0; i < 3; i++)
     {
       programs.push_back(shared_ptr<Program>(new Program()));
@@ -504,17 +528,25 @@ TEST_F(SMTLibEncoderFunctionalTest, add_exit_code)
       programs[i]->add(Instruction::Set::create("EXIT", i));
     }
 
-  /* step 1 */
   reset_encoder(1, 1);
 
   encoder->add_exit_code();
 
   expected =
-    "; exit code ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; exit code\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "(declare-fun exit_code () (_ BitVec 16))\n"
     "\n"
-    "(assert (= exit_code #x0000))\n\n";
+    "(assert (= exit_code "
+      "(ite exec_1_1_0 "
+        "#x0000 "
+        "(ite exec_1_2_0 "
+          "#x0001 "
+          "(ite exec_1_3_0 "
+            "#x0002 "
+            "#x0000)))))\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -524,7 +556,9 @@ TEST_F(SMTLibEncoderFunctionalTest, add_exit_code)
   encoder->add_exit_code();
 
   expected =
-    "; exit code ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; exit code\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "(declare-fun exit_code () (_ BitVec 16))\n"
     "\n"
@@ -547,7 +581,7 @@ TEST_F(SMTLibEncoderFunctionalTest, add_exit_code)
                       "#x0001 "
                       "(ite exec_3_3_0 "
                         "#x0002 "
-                        "#x0000)))))))))))\n\n";
+                        "#x0000)))))))))))\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -580,7 +614,7 @@ TEST_F(SMTLibEncoderFunctionalTest, add_exit_code)
                       "#x0001 "
                       "(ite exec_3_3_0 "
                         "#x0002 "
-                        "#x0000)))))))))))\n\n";
+                        "#x0000)))))))))))\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 }

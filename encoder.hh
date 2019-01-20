@@ -177,6 +177,7 @@ struct SMTLibEncoder : public Encoder
   void                      declare_cas_vars (void);
   void                      declare_sync_vars (void);
   void                      declare_exit_var (void);
+  void                      declare_exit_code (void);
 
   /* expression generators */
   std::string               assign_var (std::string, std::string);

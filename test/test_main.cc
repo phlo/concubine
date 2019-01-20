@@ -258,7 +258,7 @@ TEST_F(MainTest, replay_illegal_bound)
   ASSERT_EQ(expected, actual);
 }
 
-/* solve_pretend **************************************************************/
+/* solve_pretend_functional_cas ***********************************************/
 TEST_F(MainTest, solve_pretend_functional_cas)
 {
   string args         = " solve -v -p 8 ";
