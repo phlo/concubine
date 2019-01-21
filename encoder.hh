@@ -318,4 +318,44 @@ struct SMTLibEncoderRelational : public SMTLibEncoder
  ******************************************************************************/
 typedef std::shared_ptr<SMTLibEncoderRelational> SMTLibEncoderRelationalPtr;
 
+/*******************************************************************************
+ * Btor2 Encoder Class
+ ******************************************************************************/
+struct Btor2Encoder : public Encoder
+{
+  /* constructs a Btor2Encoder for the given program and bound */
+  Btor2Encoder (const ProgramListPtr, unsigned long, bool = true);
+
+  /* encodes the whole machine configuration */
+  virtual void        encode (void);
+
+  /* double-dispatched instruction encoding functions */
+  virtual std::string encode (Load &);
+  virtual std::string encode (Store &);
+
+  virtual std::string encode (Add &);
+  virtual std::string encode (Addi &);
+  virtual std::string encode (Sub &);
+  virtual std::string encode (Subi &);
+
+  virtual std::string encode (Cmp &);
+  virtual std::string encode (Jmp &);
+  virtual std::string encode (Jz &);
+  virtual std::string encode (Jnz &);
+  virtual std::string encode (Js &);
+  virtual std::string encode (Jns &);
+  virtual std::string encode (Jnzns &);
+
+  virtual std::string encode (Mem &);
+  virtual std::string encode (Cas &);
+
+  virtual std::string encode (Sync &);
+  virtual std::string encode (Exit &);
+};
+
+/*******************************************************************************
+ * Btor2EncoderPtr
+ ******************************************************************************/
+typedef std::shared_ptr<Btor2Encoder> Btor2EncoderPtr;
+
 #endif

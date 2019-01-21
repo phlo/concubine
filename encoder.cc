@@ -1417,3 +1417,121 @@ string SMTLibEncoderRelational::encode (Exit & e)
       exec_var(),
       smtlib::equality({exit_code_var, smtlib::word2hex(e.arg)}));
 }
+
+/*******************************************************************************
+ * Btor2 Encoder Class
+ ******************************************************************************/
+Btor2Encoder::Btor2Encoder (
+                            const ProgramListPtr p,
+                            unsigned long b,
+                            bool e
+                           ) : Encoder(p, b)
+{
+  if (e) encode();
+}
+
+void Btor2Encoder::encode ()
+{
+}
+
+string Btor2Encoder::encode (Load & l)
+{
+  (void) l;
+  return "";
+}
+
+string Btor2Encoder::encode (Store & s)
+{
+  (void) s;
+  return "";
+}
+
+string Btor2Encoder::encode (Add & a)
+{
+  (void) a;
+  return "";
+}
+
+string Btor2Encoder::encode (Addi & a)
+{
+  (void) a;
+  return "";
+}
+
+string Btor2Encoder::encode (Sub & s)
+{
+  (void) s;
+  return "";
+}
+
+string Btor2Encoder::encode (Subi & s)
+{
+  (void) s;
+  return "";
+}
+
+string Btor2Encoder::encode (Cmp & c)
+{
+  (void) c;
+  return "";
+}
+
+string Btor2Encoder::encode (Jmp & j)
+{
+  (void) j;
+  return "";
+}
+
+string Btor2Encoder::encode (Jz & j)
+{
+  (void) j;
+  return "";
+}
+
+string Btor2Encoder::encode (Jnz & j)
+{
+  (void) j;
+  return "";
+}
+
+string Btor2Encoder::encode (Js & j)
+{
+  (void) j;
+  return "";
+}
+
+string Btor2Encoder::encode (Jns & j)
+{
+  (void) j;
+  return "";
+}
+
+string Btor2Encoder::encode (Jnzns & j)
+{
+  (void) j;
+  return "";
+}
+
+string Btor2Encoder::encode (Mem & m)
+{
+  (void) m;
+  return "";
+}
+
+string Btor2Encoder::encode (Cas & c)
+{
+  (void) c;
+  return "";
+}
+
+string Btor2Encoder::encode (Sync & s)
+{
+  (void) s;
+  return "";
+}
+
+string Btor2Encoder::encode (Exit & e)
+{
+  (void) e;
+  return "";
+}
