@@ -14,7 +14,6 @@ SRC = instructionset.cc \
       parser.cc \
       thread.cc \
       encoder.cc \
-      verifier.cc \
       shell.cc \
       solver.cc \
       boolector.cc

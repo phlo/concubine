@@ -4,24 +4,37 @@
 #include <string>
 #include <memory>
 
-/*******************************************************************************
- * Solver
- ******************************************************************************/
+#include "schedule.hh"
+
+struct Encoder;
+
 struct Solver
 {
-  std::string           std_out;
+  /* the solver's stdout */
+  std::string         std_out;
 
-  int                   execute (std::string &);
+  /* the solver's exit code */
+  int                 exit_code;
 
-  virtual std::string   build_command (void) = 0;
+  /* evaluate arbitrary formula */
+  bool                sat (std::string &);
 
-  virtual bool          sat (std::string &) = 0;
+  /* print the complete (formula + specification) to stdout */
+  void                print (Encoder &, std::string &);
+
+  /* run solver and return schedule */
+  SchedulePtr         solve (Encoder &, std::string &);
+
+  /* build command line for the specific solver */
+  virtual std::string build_command (void) = 0;
+
+  /* build formula for the specific solver */
+  virtual std::string build_formula (Encoder &, std::string &) = 0;
+
+  /* build schedule based on the specific solver's output */
+  virtual SchedulePtr build_schedule (void) = 0;
 };
 
-
-/*******************************************************************************
- * SolverPtr
- ******************************************************************************/
 typedef std::shared_ptr<Solver> SolverPtr;
 
 #endif

@@ -271,7 +271,7 @@ TEST_F(MainTest, solve_pretend_functional_cas)
   string expected(( istreambuf_iterator<char>(ffs) ),
                     istreambuf_iterator<char>());
 
-  expected += "(check-sat)\n(exit)\n";
+  expected += "\n(check-sat)\n(exit)\n";
 
   string actual = shell.run(cmd);
 
@@ -291,7 +291,7 @@ TEST_F(MainTest, solve_cas)
 
   string actual = shell.run(cmd);
 
-  ASSERT_EQ(1, shell.last_exit_code());
+  ASSERT_EQ(0, shell.last_exit_code());
   ASSERT_EQ("sat", actual.substr(0, 3));
 }
 

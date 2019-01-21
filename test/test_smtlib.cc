@@ -235,7 +235,7 @@ TEST(SMTLibTest, cardinality_exactly_one_naive)
     smtlib::card_constraint_naive({"x1", "x2", "x3", "x4"}));
 }
 
-TEST(SMTLibTest, cardinality_exactly_one_naive_sat)
+TEST(SMTLibTest, cardinality_exactly_one_naive_verify)
 {
   Boolector btor;
 
@@ -338,7 +338,7 @@ TEST(SMTLibTest, cardinality_exactly_one_sinz)
     smtlib::card_constraint_sinz({"x1", "x2", "x3", "x4"}));
 }
 
-TEST(SMTLibTest, cardinality_exactly_one_sinz_sat)
+TEST(SMTLibTest, cardinality_exactly_one_sinz_verify)
 {
   Boolector btor;
 

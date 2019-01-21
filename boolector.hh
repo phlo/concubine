@@ -3,20 +3,15 @@
 
 #include "solver.hh"
 
-/*******************************************************************************
- * Boolector
- ******************************************************************************/
-class Boolector : public Solver
+struct Boolector : public Solver
 {
-  virtual std::string   build_command (void);
+  virtual std::string build_command (void);
 
-public:
-  virtual bool          sat (std::string &);
+  virtual std::string build_formula (Encoder &, std::string &);
+
+  virtual SchedulePtr build_schedule (void);
 };
 
-/*******************************************************************************
- * BoolectorPtr
- ******************************************************************************/
 typedef std::shared_ptr<Boolector> BoolectorPtr;
 
 #endif

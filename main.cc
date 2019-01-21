@@ -7,7 +7,6 @@
 #include "parser.hh"
 #include "encoder.hh"
 #include "machine.hh"
-#include "verifier.hh"
 #include "boolector.hh"
 
 using namespace std;
@@ -280,9 +279,6 @@ int solve (char * name, int argc, char ** argv)
       /* encoder name */
       string encoder_name = "smtlib-functional";
 
-      /* solver to use */
-      SolverPtr solver = BoolectorPtr(new Boolector());
-
       /* parse flags */
       do
         if (!strcmp(argv[i], "-c"))
@@ -382,14 +378,14 @@ int solve (char * name, int argc, char ** argv)
           return -1;
         }
 
-      /* create verifier*/
-      Verifier verifier(*solver, *encoder, constraints);
+      /* create solver */
+      SolverPtr solver = BoolectorPtr(new Boolector()); // TODO: select solver
 
       /* print program if we're pretending */
       if (pretend)
-        verifier.print();
+        solver->print(*encoder, constraints);
       else
-        return verifier.sat();
+        solver->solve(*encoder, constraints); // TODO: print schedule
     }
   catch (const exception & e)
     {

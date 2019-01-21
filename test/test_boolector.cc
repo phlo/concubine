@@ -14,7 +14,7 @@ struct BoolectorTest : public ::testing::Test
 
 TEST_F(BoolectorTest, sat)
 {
-  string formula = "(exit)";
+  string formula = "(assert true)(check-sat)";
 
   ostringstream ss;
   StreamRedirecter redirecter(cout, ss);
@@ -30,14 +30,7 @@ TEST_F(BoolectorTest, sat)
 
 TEST_F(BoolectorTest, unsat)
 {
-  string formula =
-    "(set-logic QF_AUFBV)\n"
-    "(declare-fun x1 () Bool)\n"
-    "(declare-fun x2 () Bool)\n"
-    "(assert (not x1))\n"
-    "(assert (and x1 x2))\n"
-    "(check-sat)\n"
-    "(exit)\n";
+  string formula = "(assert false)(check-sat)";
 
   ostringstream ss;
   StreamRedirecter redirecter(cout, ss);
