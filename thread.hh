@@ -9,7 +9,7 @@
 
 /* forward declarations */
 struct Program;
-struct Machine;
+struct Simulator;
 
 /*******************************************************************************
  * ThreadID
@@ -30,16 +30,16 @@ struct Thread
     EXITING   // exit called
   };
 
-  Thread (Machine &, unsigned int, Program &);
+  Thread (Simulator &, unsigned int, Program &);
 
-  ThreadID      id;       // thread id
-  word          pc;       // program counter
-  word          mem;      // special CAS register
-  word          accu;     // accumulator register
-  word          sync;     // current (or previous) barrier's id
-  State         state;    // thread state
-  Machine &     machine;  // reference to the machine owning the thread
-  Program &     program;  // reference to the program being executed
+  ThreadID      id;         // thread id
+  word          pc;         // program counter
+  word          mem;        // special CAS register
+  word          accu;       // accumulator register
+  word          sync;       // current (or previous) barrier's id
+  State         state;      // thread state
+  Simulator &   simulator;  // reference to the simulator owning the thread
+  Program &     program;    // reference to the program being executed
 
   word          load (word, bool);
   void          store (word, word, bool);

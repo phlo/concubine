@@ -6,7 +6,7 @@
 
 #include "parser.hh"
 #include "encoder.hh"
-#include "machine.hh"
+#include "simulator.hh"
 #include "boolector.hh"
 
 using namespace std;
@@ -187,11 +187,11 @@ int simulate (char * name, int argc, char ** argv)
     }
 
   /* run program with given seed */
-  Machine machine(seed, bound);
+  Simulator simulator(seed, bound);
   for (auto p : threads)
-    machine.create_thread(*p);
+    simulator.create_thread(*p);
 
-  return machine.simulate();
+  return simulator.simulate();
 }
 
 /* replay *********************************************************************/
@@ -245,9 +245,9 @@ int replay (char * name, int argc, char ** argv)
       Schedule schedule(path2schedule);
 
       /* run given schedule */
-      Machine machine(schedule.seed, bound);
+      Simulator simulator(schedule.seed, bound);
 
-      return machine.replay(schedule);
+      return simulator.replay(schedule);
     }
   catch (const exception & e)
     {

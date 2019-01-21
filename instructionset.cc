@@ -2,9 +2,9 @@
 
 #include <iostream>
 
-#include "thread.hh"
-#include "machine.hh"
 #include "encoder.hh"
+#include "simulator.hh"
+#include "thread.hh"
 
 using namespace std;
 

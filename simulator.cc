@@ -1,4 +1,4 @@
-#include "machine.hh"
+#include "simulator.hh"
 
 #include <random>
 #include <cassert>
@@ -17,9 +17,9 @@ inline void erase (deque<T> & lst, T & val)
 }
 
 /*******************************************************************************
- * Machine
+ * Simulator
  ******************************************************************************/
-Machine::Machine (unsigned long s, unsigned long b) :
+Simulator::Simulator (unsigned long s, unsigned long b) :
   seed(s),
   bound(b),
   active(),
@@ -29,8 +29,8 @@ Machine::Machine (unsigned long s, unsigned long b) :
   waiting_per_sync_id()
 {}
 
-/* Machine::create_thread (Program &) *****************************************/
-ThreadID Machine::create_thread (Program & program)
+/* Simulator::create_thread (Program &) ***************************************/
+ThreadID Simulator::create_thread (Program & program)
 {
   /* determine thread id */
   ThreadID id = threads.size();
@@ -45,8 +45,8 @@ ThreadID Machine::create_thread (Program & program)
   return id;
 }
 
-/* Machine::activate_threads (ThreadList &) ***********************************/
-void Machine::activate_threads (ThreadList & queue)
+/* Simulator::activate_threads (ThreadList &) *********************************/
+void Simulator::activate_threads (ThreadList & queue)
 {
   for (ThreadPtr i : queue)
     {
@@ -55,8 +55,8 @@ void Machine::activate_threads (ThreadList & queue)
     }
 }
 
-/* Machine::check_and_resume_waiting (word) ***********************************/
-void Machine::check_and_resume_waiting (word sync_id)
+/* Simulator::check_and_resume_waiting (word) *********************************/
+void Simulator::check_and_resume_waiting (word sync_id)
 {
   /* all other threads already synced to this barrier? */
   if (waiting_per_sync_id[sync_id] == threads_per_sync_id[sync_id].size())
@@ -69,8 +69,8 @@ void Machine::check_and_resume_waiting (word sync_id)
     }
 }
 
-/* Machine::run (Scheduler *) *************************************************/
-int Machine::run (function<ThreadPtr(void)> scheduler)
+/* Simulator::run (Scheduler *) ***********************************************/
+int Simulator::run (function<ThreadPtr(void)> scheduler)
 {
   /* print schedule header */
   for (auto t : threads)
@@ -155,8 +155,8 @@ int Machine::run (function<ThreadPtr(void)> scheduler)
   return 0;
 }
 
-/* Machine::simulate (void) ***************************************************/
-int Machine::simulate ()
+/* Simulator::simulate (void) *************************************************/
+int Simulator::simulate ()
 {
   /* Mersenne Twister pseudo-random number generator */
   mt19937_64 random(seed);
@@ -170,8 +170,8 @@ int Machine::simulate ()
   return run(scheduler);
 }
 
-/* Machine::replay (Schedule &) ***********************************************/
-int Machine::replay (Schedule & schedule)
+/* Simulator::replay (Schedule &) *********************************************/
+int Simulator::replay (Schedule & schedule)
 {
   /* set bound */
   bound = schedule.size();

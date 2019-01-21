@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "machine.hh"
+#include "simulator.hh"
 #include "program.hh"
 
 using namespace std;
@@ -12,22 +12,22 @@ struct ThreadTest : public ::testing::Test
 {
   Program         program;
   Thread          thread;
-  Machine         machine;
+  Simulator       simulator;
 
-  ThreadTest () : thread(machine, 0, program) {};
+  ThreadTest () : thread(simulator, 0, program) {};
 };
 
 /* Load ***********************************************************************/
 TEST_F(ThreadTest, load)
 {
   /* load direct */
-  machine.memory[0] = 1;
+  simulator.memory[0] = 1;
 
-  ASSERT_EQ(1, machine.memory[0]);
+  ASSERT_EQ(1, simulator.memory[0]);
   ASSERT_EQ(1, thread.load(0, false));
 
   /* load indirect */
-  ASSERT_EQ(0, machine.memory[1]);
+  ASSERT_EQ(0, simulator.memory[1]);
   ASSERT_EQ(1, thread.load(1, true));
 }
 
@@ -35,18 +35,18 @@ TEST_F(ThreadTest, load)
 TEST_F(ThreadTest, store)
 {
   /* store direct */
-  ASSERT_EQ(0, machine.memory[0]);
+  ASSERT_EQ(0, simulator.memory[0]);
 
   thread.store(0, 1, false);
 
-  ASSERT_EQ(1, machine.memory[0]);
+  ASSERT_EQ(1, simulator.memory[0]);
 
   /* store indirect */
-  ASSERT_EQ(0, machine.memory[1]);
+  ASSERT_EQ(0, simulator.memory[1]);
 
   thread.store(1, 0, true);
 
-  ASSERT_EQ(0, machine.memory[0]);
+  ASSERT_EQ(0, simulator.memory[0]);
 }
 
 /* Execute ********************************************************************/

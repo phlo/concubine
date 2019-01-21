@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "program.hh"
-#include "machine.hh"
+#include "simulator.hh"
 
 using namespace std;
 
@@ -12,10 +12,10 @@ struct InstructionSetTest : public ::testing::Test
 {
   Program         program;
   Thread          thread;
-  Machine         machine;
+  Simulator       simulator;
   InstructionPtr  instruction;
 
-  InstructionSetTest () : thread(machine, 0, program) {};
+  InstructionSetTest () : thread(simulator, 0, program) {};
 };
 
 /* Instruction::Set::create (Factory) *****************************************/
@@ -52,16 +52,16 @@ TEST_F(InstructionSetTest, LOAD)
 {
   instruction = Instruction::Set::create("LOAD", 0);
 
-  machine.memory[0] = 1;
+  simulator.memory[0] = 1;
 
   ASSERT_EQ("LOAD", instruction->get_symbol());
 
   ASSERT_EQ(0, thread.accu);
-  ASSERT_EQ(1, machine.memory[0]);
+  ASSERT_EQ(1, simulator.memory[0]);
 
   instruction->execute(thread);
 
-  ASSERT_EQ(1, machine.memory[0]);
+  ASSERT_EQ(1, simulator.memory[0]);
   ASSERT_EQ(1, thread.accu);
   ASSERT_EQ(1, thread.pc);
 }
@@ -76,11 +76,11 @@ TEST_F(InstructionSetTest, STORE)
   thread.accu = 1;
 
   ASSERT_EQ(1, thread.accu);
-  ASSERT_EQ(0, machine.memory[0]);
+  ASSERT_EQ(0, simulator.memory[0]);
 
   instruction->execute(thread);
 
-  ASSERT_EQ(1, machine.memory[0]);
+  ASSERT_EQ(1, simulator.memory[0]);
   ASSERT_EQ(1, thread.accu);
   ASSERT_EQ(1, thread.pc);
 }
@@ -92,14 +92,14 @@ TEST_F(InstructionSetTest, ADD)
 
   ASSERT_EQ("ADD", instruction->get_symbol());
 
-  machine.memory[0] = 1;
+  simulator.memory[0] = 1;
 
   ASSERT_EQ(0, thread.accu);
-  ASSERT_EQ(1, machine.memory[0]);
+  ASSERT_EQ(1, simulator.memory[0]);
 
   instruction->execute(thread);
 
-  ASSERT_EQ(1, machine.memory[0]);
+  ASSERT_EQ(1, simulator.memory[0]);
   ASSERT_EQ(1, thread.accu);
   ASSERT_EQ(1, thread.pc);
 }
@@ -127,14 +127,14 @@ TEST_F(InstructionSetTest, SUB)
   ASSERT_EQ("SUB", instruction->get_symbol());
 
   thread.accu = 1;
-  machine.memory[0] = 1;
+  simulator.memory[0] = 1;
 
   ASSERT_EQ(1, thread.accu);
-  ASSERT_EQ(1, machine.memory[0]);
+  ASSERT_EQ(1, simulator.memory[0]);
 
   instruction->execute(thread);
 
-  ASSERT_EQ(1, machine.memory[0]);
+  ASSERT_EQ(1, simulator.memory[0]);
   ASSERT_EQ(0, thread.accu);
   ASSERT_EQ(1, thread.pc);
 }
@@ -165,21 +165,21 @@ TEST_F(InstructionSetTest, CMP)
 
   /* true */
   thread.accu = 1;
-  machine.memory[0] = 1;
+  simulator.memory[0] = 1;
 
   ASSERT_EQ(1, thread.accu);
-  ASSERT_EQ(1, machine.memory[0]);
+  ASSERT_EQ(1, simulator.memory[0]);
 
   instruction->execute(thread);
 
-  ASSERT_EQ(1, machine.memory[0]);
+  ASSERT_EQ(1, simulator.memory[0]);
   ASSERT_EQ(0, thread.accu);
   ASSERT_EQ(1, thread.pc);
 
   /* false */
   instruction->execute(thread);
 
-  ASSERT_EQ(1, machine.memory[0]);
+  ASSERT_EQ(1, simulator.memory[0]);
   ASSERT_EQ(word_max, thread.accu);
   ASSERT_EQ(2, thread.pc);
 }
@@ -345,18 +345,18 @@ TEST_F(InstructionSetTest, MEM)
 
   ASSERT_EQ("MEM", instruction->get_symbol());
 
-  machine.memory[0] = 1;
+  simulator.memory[0] = 1;
 
   ASSERT_EQ(0, thread.mem);
   ASSERT_EQ(0, thread.accu);
-  ASSERT_EQ(1, machine.memory[0]);
+  ASSERT_EQ(1, simulator.memory[0]);
 
   instruction->execute(thread);
 
   ASSERT_EQ(1, thread.pc);
   ASSERT_EQ(1, thread.mem);
   ASSERT_EQ(1, thread.accu);
-  ASSERT_EQ(1, machine.memory[0]);
+  ASSERT_EQ(1, simulator.memory[0]);
 }
 
 /* CAS ************************************************************************/
@@ -369,18 +369,18 @@ TEST_F(InstructionSetTest, CAS)
   /* success */
   thread.mem = 1;
   thread.accu = 0;
-  machine.memory[0] = 1;
+  simulator.memory[0] = 1;
 
   ASSERT_EQ(1, thread.mem);
   ASSERT_EQ(0, thread.accu);
-  ASSERT_EQ(1, machine.memory[0]);
+  ASSERT_EQ(1, simulator.memory[0]);
 
   instruction->execute(thread);
 
   ASSERT_EQ(1, thread.pc);
   ASSERT_EQ(1, thread.mem);
   ASSERT_EQ(1, thread.accu);
-  ASSERT_EQ(0, machine.memory[0]);
+  ASSERT_EQ(0, simulator.memory[0]);
 
   /* fail */
   instruction->execute(thread);
@@ -388,7 +388,7 @@ TEST_F(InstructionSetTest, CAS)
   ASSERT_EQ(2, thread.pc);
   ASSERT_EQ(1, thread.mem);
   ASSERT_EQ(0, thread.accu);
-  ASSERT_EQ(0, machine.memory[0]);
+  ASSERT_EQ(0, simulator.memory[0]);
 }
 
 /* SYNC ***********************************************************************/

@@ -12,12 +12,12 @@
 struct Schedule;
 
 /*******************************************************************************
- * Machine
+ * Simulator
  ******************************************************************************/
-struct Machine
+struct Simulator
 {
-  /* constructs a new machine with given seed and bound */
-  Machine (unsigned long seed = 0, unsigned long bound = 0);
+  /* constructs a new simulator with given seed and bound */
+  Simulator (unsigned long seed = 0, unsigned long bound = 0);
 
   /*****************************************************************************
    * variables
@@ -35,7 +35,7 @@ struct Machine
   /* list of all threads */
   ThreadList                            threads;
 
-  /* machine memory */
+  /* main memory (heap) */
   std::array<word, word_max>            memory;
 
   /* number of threads containing calls to a specific sync barrier (id) */
@@ -54,7 +54,7 @@ struct Machine
   /* checks if all threads reached the given barrier id and resumes them */
   void                                  check_and_resume_waiting (word);
 
-  /* run the machine, using the specified scheduler */
+  /* run the simulator, using the specified scheduler */
   int                                   run (std::function<ThreadPtr(void)>);
 
   /*****************************************************************************
@@ -64,10 +64,10 @@ struct Machine
   /* creates a thread using the given program, thread id == number of threads*/
   ThreadID                              create_thread (Program &);
 
-  /* runs the machine using a random schedule */
+  /* runs the simulator using a random schedule */
   int                                   simulate (void);
 
-  /* replay the given schedule (schedule must match machine configuration) */
+  /* replay the given schedule (schedule must match simulator configuration) */
   int                                   replay (Schedule &);
 };
 

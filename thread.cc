@@ -1,35 +1,35 @@
 #include "thread.hh"
 
-#include "machine.hh"
+#include "simulator.hh"
 #include "program.hh"
 
 using namespace std;
 
 /* constructor ****************************************************************/
-Thread::Thread (Machine & m, unsigned int i, Program & p) :
+Thread::Thread (Simulator & s, unsigned int i, Program & p) :
   id(i),
   pc(0),
   mem(0),
   accu(0),
   sync(0),
   state(INITIAL),
-  machine(m),
+  simulator(s),
   program(p)
 {}
 
 /* Thread::load (word) ********************************************************/
 word Thread::load (word addr, bool indirect)
 {
-  return indirect ? machine.memory[machine.memory[addr]] : machine.memory[addr];
+  return
+    indirect
+      ? simulator.memory[simulator.memory[addr]]
+      : simulator.memory[addr];
 }
 
 /* Thread::store (word, word) *************************************************/
 void Thread::store (word addr, word val, bool indirect)
 {
-  if (indirect)
-    machine.memory[machine.memory[addr]] = val;
-  else
-    machine.memory[addr] = val;
+  simulator.memory[indirect ? simulator.memory[addr] : addr] = val;
 }
 
 /* Thread::execute (void) *****************************************************/

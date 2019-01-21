@@ -7,16 +7,16 @@ WFLAGS = -pedantic -Wall -Wextra -Wundef -Wformat=2 -Wmissing-include-dirs -Wswi
 LDFLAGS =
 
 # source files (excluding main.cc)
-SRC = instructionset.cc \
-      schedule.cc \
-      program.cc \
-      machine.cc \
-      parser.cc \
-      thread.cc \
+SRC = boolector.cc \
       encoder.cc \
+      instructionset.cc \
+      parser.cc \
+      program.cc \
+      schedule.cc \
       shell.cc \
+      simulator.cc \
       solver.cc \
-      boolector.cc
+      thread.cc
 
 # object files
 OBJ = $(subst .cc,.o,$(SRC))
