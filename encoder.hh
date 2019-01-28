@@ -326,6 +326,17 @@ struct Btor2Encoder : public Encoder
   /* constructs a Btor2Encoder for the given program and bound */
   Btor2Encoder (const ProgramListPtr, unsigned long, bool = true);
 
+  unsigned long       node;
+
+  std::set<word>      constants;
+
+  void                declare_sorts (void);
+  void                declare_constants (void);
+
+  void                add_step_counter (void);
+
+  virtual void        preprocess (void);
+
   /* encodes the whole machine configuration */
   virtual void        encode (void);
 

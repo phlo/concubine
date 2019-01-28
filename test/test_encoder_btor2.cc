@@ -25,9 +25,9 @@ struct Btor2EncoderTest : public ::testing::Test
 
   void add_dummy_programs (unsigned num, unsigned size)
     {
-      InstructionPtr op = Instruction::Set::create("ADDI", 1);
       for (size_t i = 0; i < num; i++)
         {
+          InstructionPtr op = Instruction::Set::create("ADDI", i + 1);
           programs.push_back(shared_ptr<Program>(new Program()));
           for (size_t j = 0; j < size; j++)
             programs[i]->add(op);
@@ -36,3 +36,10 @@ struct Btor2EncoderTest : public ::testing::Test
       encoder = create_encoder(0);
     }
 };
+
+TEST_F(Btor2EncoderTest, preprocess)
+{
+  add_dummy_programs(3, 3);
+
+  ASSERT_EQ(set<word>({1, 2, 3}), encoder->constants);
+}

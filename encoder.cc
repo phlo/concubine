@@ -1425,9 +1425,21 @@ Btor2Encoder::Btor2Encoder (
                             const ProgramListPtr p,
                             unsigned long b,
                             bool e
-                           ) : Encoder(p, b)
+                           ) : Encoder(p, b), node(0)
 {
+  preprocess();
+
   if (e) encode();
+}
+
+void Btor2Encoder::preprocess ()
+{
+  /* collect constants */
+  iterate_threads([&] (Program & p) {
+    for (pc = 0; pc < p.size(); pc++)
+      if (UnaryInstructionPtr i = dynamic_pointer_cast<UnaryInstruction>(p[pc]))
+        constants.insert(i->arg);
+  });
 }
 
 void Btor2Encoder::encode ()
