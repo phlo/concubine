@@ -36,122 +36,86 @@ namespace btor2
       return c.replace(1, 2 + comment.size(), " " + comment + " ");
     }
 
-  inline std::string declare_sort (unsigned nid, unsigned bits)
+  inline std::string declare_sort (std::string nid, std::string bits)
     {
-      return std::to_string(nid) + " sort bitvec " + std::to_string(bits) + eol;
+      return nid + " sort bitvec " + bits + eol;
     }
 
   inline std::string declare_array (
-                                    unsigned nid,
-                                    unsigned idx_width,
-                                    unsigned val_width
+                                    std::string nid,
+                                    std::string idx_width,
+                                    std::string val_width
                                    )
     {
+      return nid + " sort array " + idx_width + " " + val_width + eol;
+    }
+
+  inline std::string constd (std::string nid, std::string sid, std::string val)
+    {
       return
-        std::to_string(nid) +
-        " sort array " +
-        std::to_string(idx_width) +
-        " " + std::to_string(val_width) +
+        nid + " " +
+        (val == "0"
+          ? "zero " + sid
+          : val == "1"
+            ? "one " + sid
+            : "constd " + sid + " " + val) +
         eol;
     }
 
-  inline std::string constd (unsigned nid, unsigned sid, unsigned val)
+  inline std::string input (std::string nid, std::string sid)
     {
-      /* TODO: decide!
-      if (!val)
-        return std::to_string(nid) + " zero " + std::to_string(sid);
-      else if (val == 1)
-        return std::to_string(nid) + " one " + std::to_string(sid);
-      else
-        return
-          std::to_string(nid) +
-          " constd " +
-          std::to_string(sid) +
-          " " +
-          std::to_string(val) +
-          eol;
-      */
-
-      return
-        std::to_string(nid) + " " +
-        (!val
-          ? "zero " + std::to_string(sid)
-          : val == 1
-            ? "one " + std::to_string(sid)
-            : "constd " + std::to_string(sid) + " " + std::to_string(val)) +
-        eol;
+      return nid + " input " + sid + eol;
     }
 
-  inline std::string input (unsigned nid, unsigned sid)
+  inline std::string state (std::string nid, std::string sid)
     {
-      return std::to_string(nid) + " input " + std::to_string(sid) + eol;
-    }
-
-  inline std::string state (unsigned nid, unsigned sid)
-    {
-      return std::to_string(nid) + " state " + std::to_string(sid) + eol;
+      return nid + " state " + sid + eol;
     }
 
   inline std::string init (
-                           unsigned nid,
-                           unsigned sid,
-                           unsigned state,
-                           unsigned val
+                           std::string nid,
+                           std::string sid,
+                           std::string state,
+                           std::string val
                           )
     {
-      return
-        std::to_string(nid) +
-        " init " +
-        std::to_string(sid) +
-        " " +
-        std::to_string(state) +
-        " " +
-        std::to_string(val) +
-        eol;
+      return nid + " init " + sid + " " + state + " " + val + eol;
     }
 
   inline std::string next (
-                           unsigned nid,
-                           unsigned sid,
-                           unsigned state,
-                           unsigned val
+                           std::string nid,
+                           std::string sid,
+                           std::string state,
+                           std::string val
                           )
     {
-      return
-        std::to_string(nid) +
-        " next " +
-        std::to_string(sid) +
-        " " +
-        std::to_string(state) +
-        " " +
-        std::to_string(val) +
-        eol;
+      return nid + " next " + sid + " " + state + " " + val + eol;
     }
 
-  inline std::string constraint (unsigned nid, unsigned node)
+  inline std::string constraint (std::string nid, std::string node)
     {
-      return std::to_string(nid) + " constraint " + std::to_string(node) + eol;
+      return nid + " constraint " + node + eol;
     }
 
-  inline std::string bad (unsigned nid, unsigned node)
+  inline std::string bad (std::string nid, std::string node)
     {
-      return std::to_string(nid) + " bad " + std::to_string(node) + eol;
+      return nid + " bad " + node + eol;
     }
 
-  inline std::string fair (unsigned nid, unsigned node)
+  inline std::string fair (std::string nid, std::string node)
     {
-      return std::to_string(nid) + " fair " + std::to_string(node) + eol;
+      return nid + " fair " + node + eol;
     }
 
-  inline std::string output (unsigned nid, unsigned node)
+  inline std::string output (std::string nid, std::string node)
     {
-      return std::to_string(nid) + " output " + std::to_string(node) + eol;
+      return nid + " output " + node + eol;
     }
 
   inline std::string justice (
-                              unsigned nid,
-                              unsigned num,
-                              std::vector<unsigned> conditions
+                              std::string nid,
+                              std::string num,
+                              std::vector<std::string> conditions
                              )
     {
       std::ostringstream ss;
@@ -161,62 +125,36 @@ namespace btor2
       std::copy(
         conditions.begin(),
         conditions.end() - 1,
-        std::ostream_iterator<unsigned>(ss, " "));
+        std::ostream_iterator<std::string>(ss, " "));
 
       ss << conditions.back() << eol;
 
       return ss.str();
     }
 
-  inline std::string sext (unsigned nid, unsigned sid, unsigned width)
+  inline std::string sext (std::string nid, std::string sid, std::string width)
     {
-      return
-        std::to_string(nid) +
-        " sext " +
-        std::to_string(sid) +
-        " " +
-        std::to_string(width) +
-        eol;
+      return nid + " sext " + sid + " " + width + eol;
     }
 
-  inline std::string uext (unsigned nid, unsigned sid, unsigned width)
+  inline std::string uext (std::string nid, std::string sid, std::string width)
     {
-      return
-        std::to_string(nid) +
-        " uext " +
-        std::to_string(sid) +
-        " " +
-        std::to_string(width) +
-        eol;
+      return nid + " uext " + sid + " " + width + eol;
     }
 
   inline std::string slice (
-                            unsigned nid,
-                            unsigned sid,
-                            unsigned upper,
-                            unsigned lower
+                            std::string nid,
+                            std::string sid,
+                            std::string upper,
+                            std::string lower
                            )
     {
-      return
-        std::to_string(nid) +
-        " slice " +
-        std::to_string(sid) +
-        " " +
-        std::to_string(upper) +
-        " " +
-        std::to_string(lower) +
-        eol;
+      return nid + " slice " + sid + " " + upper + " " + lower + eol;
     }
 
-  inline std::string lnot (unsigned nid, unsigned sid, unsigned node)
+  inline std::string lnot (std::string nid, std::string sid, std::string node)
     {
-      return
-        std::to_string(nid) +
-        " not " +
-        std::to_string(sid) +
-        " " +
-        std::to_string(node) +
-        eol;
+      return nid + " not " + sid + " " + node + eol;
     }
 }
 #endif

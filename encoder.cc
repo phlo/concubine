@@ -1433,9 +1433,9 @@ Btor2Encoder::Btor2Encoder (
 
 void Btor2Encoder::declare_sorts ()
 {
-  formula << btor2::declare_sort(node++, 1);
-  formula << btor2::declare_sort(node++, word_size);
-  formula << btor2::declare_array(node++, 2, 2);
+  formula << btor2::declare_sort(to_string(node++), "1");
+  formula << btor2::declare_sort(to_string(node++), to_string(word_size));
+  formula << btor2::declare_array(to_string(node++), "2", "2");
 }
 
 void Btor2Encoder::declare_constants ()
