@@ -156,5 +156,467 @@ namespace btor2
     {
       return nid + " not " + sid + " " + node + eol;
     }
+
+  inline std::string inc (std::string nid, std::string sid, std::string node)
+    {
+      return nid + " inc " + sid + " " + node + eol;
+    }
+
+  inline std::string dec (std::string nid, std::string sid, std::string node)
+    {
+      return nid + " dec " + sid + " " + node + eol;
+    }
+
+  inline std::string neg (std::string nid, std::string sid, std::string node)
+    {
+      return nid + " neg " + sid + " " + node + eol;
+    }
+
+  inline std::string redand (std::string nid, std::string sid, std::string node)
+    {
+      return nid + " redand " + sid + " " + node + eol;
+    }
+
+  inline std::string redor (std::string nid, std::string sid, std::string node)
+    {
+      return nid + " redor " + sid + " " + node + eol;
+    }
+
+  inline std::string redxor (std::string nid, std::string sid, std::string node)
+    {
+      return nid + " redxor " + sid + " " + node + eol;
+    }
+
+  inline std::string iff (
+                          std::string nid,
+                          std::string sid,
+                          std::string arg1,
+                          std::string arg2
+                         )
+    {
+      return nid + " iff " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string implies (
+                              std::string nid,
+                              std::string sid,
+                              std::string arg1,
+                              std::string arg2
+                             )
+    {
+      return nid + " implies " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string eq (
+                         std::string nid,
+                         std::string sid,
+                         std::string arg1,
+                         std::string arg2
+                        )
+    {
+      return nid + " eq " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string neq (
+                          std::string nid,
+                          std::string sid,
+                          std::string arg1,
+                          std::string arg2
+                         )
+    {
+      return nid + " neq " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string sgt (
+                          std::string nid,
+                          std::string sid,
+                          std::string arg1,
+                          std::string arg2
+                         )
+    {
+      return nid + " sgt " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string ugt (
+                          std::string nid,
+                          std::string sid,
+                          std::string arg1,
+                          std::string arg2
+                         )
+    {
+      return nid + " ugt " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string sgte (
+                           std::string nid,
+                           std::string sid,
+                           std::string arg1,
+                           std::string arg2
+                          )
+    {
+      return nid + " sgte " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string ugte (
+                           std::string nid,
+                           std::string sid,
+                           std::string arg1,
+                           std::string arg2
+                          )
+    {
+      return nid + " ugte " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string slt (
+                          std::string nid,
+                          std::string sid,
+                          std::string arg1,
+                          std::string arg2
+                         )
+    {
+      return nid + " slt " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string ult (
+                          std::string nid,
+                          std::string sid,
+                          std::string arg1,
+                          std::string arg2
+                         )
+    {
+      return nid + " ult " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string slte (
+                           std::string nid,
+                           std::string sid,
+                           std::string arg1,
+                           std::string arg2
+                          )
+    {
+      return nid + " slte " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string ulte (
+                           std::string nid,
+                           std::string sid,
+                           std::string arg1,
+                           std::string arg2
+                          )
+    {
+      return nid + " ulte " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string land (
+                           std::string nid,
+                           std::string sid,
+                           std::string arg1,
+                           std::string arg2
+                          )
+    {
+      return nid + " and " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string nand (
+                           std::string nid,
+                           std::string sid,
+                           std::string arg1,
+                           std::string arg2
+                          )
+    {
+      return nid + " nand " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string nor (
+                          std::string nid,
+                          std::string sid,
+                          std::string arg1,
+                          std::string arg2
+                         )
+    {
+      return nid + " nor " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string lor (
+                          std::string nid,
+                          std::string sid,
+                          std::string arg1,
+                          std::string arg2
+                         )
+    {
+      return nid + " or " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string xnor (
+                           std::string nid,
+                           std::string sid,
+                           std::string arg1,
+                           std::string arg2
+                          )
+    {
+      return nid + " xnor " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string lxor (
+                           std::string nid,
+                           std::string sid,
+                           std::string arg1,
+                           std::string arg2
+                          )
+    {
+      return nid + " xor " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string rol (
+                          std::string nid,
+                          std::string sid,
+                          std::string arg1,
+                          std::string arg2
+                         )
+    {
+      return nid + " rol " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string ror (
+                          std::string nid,
+                          std::string sid,
+                          std::string arg1,
+                          std::string arg2
+                         )
+    {
+      return nid + " ror " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string sll (
+                          std::string nid,
+                          std::string sid,
+                          std::string arg1,
+                          std::string arg2
+                         )
+    {
+      return nid + " sll " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string sra (
+                          std::string nid,
+                          std::string sid,
+                          std::string arg1,
+                          std::string arg2
+                         )
+    {
+      return nid + " sra " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string srl (
+                          std::string nid,
+                          std::string sid,
+                          std::string arg1,
+                          std::string arg2
+                         )
+    {
+      return nid + " srl " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string add (
+                          std::string nid,
+                          std::string sid,
+                          std::string arg1,
+                          std::string arg2
+                         )
+    {
+      return nid + " add " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string mul (
+                          std::string nid,
+                          std::string sid,
+                          std::string arg1,
+                          std::string arg2
+                         )
+    {
+      return nid + " mul " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string sdiv (
+                           std::string nid,
+                           std::string sid,
+                           std::string arg1,
+                           std::string arg2
+                          )
+    {
+      return nid + " sdiv " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string udiv (
+                           std::string nid,
+                           std::string sid,
+                           std::string arg1,
+                           std::string arg2
+                          )
+    {
+      return nid + " udiv " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string smod (
+                           std::string nid,
+                           std::string sid,
+                           std::string arg1,
+                           std::string arg2
+                          )
+    {
+      return nid + " smod " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string srem (
+                           std::string nid,
+                           std::string sid,
+                           std::string arg1,
+                           std::string arg2
+                          )
+    {
+      return nid + " srem " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string urem (
+                           std::string nid,
+                           std::string sid,
+                           std::string arg1,
+                           std::string arg2
+                          )
+    {
+      return nid + " urem " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string sub (
+                          std::string nid,
+                          std::string sid,
+                          std::string arg1,
+                          std::string arg2
+                         )
+    {
+      return nid + " sub " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string saddo (
+                            std::string nid,
+                            std::string sid,
+                            std::string arg1,
+                            std::string arg2
+                           )
+    {
+      return nid + " saddo " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string uaddo (
+                            std::string nid,
+                            std::string sid,
+                            std::string arg1,
+                            std::string arg2
+                           )
+    {
+      return nid + " uaddo " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string sdivo (
+                            std::string nid,
+                            std::string sid,
+                            std::string arg1,
+                            std::string arg2
+                           )
+    {
+      return nid + " sdivo " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string udivo (
+                            std::string nid,
+                            std::string sid,
+                            std::string arg1,
+                            std::string arg2
+                           )
+    {
+      return nid + " udivo " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string smulo (
+                            std::string nid,
+                            std::string sid,
+                            std::string arg1,
+                            std::string arg2
+                           )
+    {
+      return nid + " smulo " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string umulo (
+                            std::string nid,
+                            std::string sid,
+                            std::string arg1,
+                            std::string arg2
+                           )
+    {
+      return nid + " umulo " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string ssubo (
+                            std::string nid,
+                            std::string sid,
+                            std::string arg1,
+                            std::string arg2
+                           )
+    {
+      return nid + " ssubo " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string usubo (
+                            std::string nid,
+                            std::string sid,
+                            std::string arg1,
+                            std::string arg2
+                           )
+    {
+      return nid + " usubo " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string concat (
+                             std::string nid,
+                             std::string sid,
+                             std::string arg1,
+                             std::string arg2
+                            )
+    {
+      return nid + " concat " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string read (
+                           std::string nid,
+                           std::string sid,
+                           std::string arg1,
+                           std::string arg2
+                          )
+    {
+      return nid + " read " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  inline std::string ite (
+                          std::string nid,
+                          std::string sid,
+                          std::string arg1,
+                          std::string arg2,
+                          std::string arg3
+                         )
+    {
+      return nid + " ite " + sid + " " + arg1 + " " + arg2 + " " + arg3 + eol;
+    }
+
+  inline std::string write (
+                            std::string nid,
+                            std::string sid,
+                            std::string arg1,
+                            std::string arg2,
+                            std::string arg3
+                           )
+    {
+      return nid + " write " + sid + " " + arg1 + " " + arg2 + " " + arg3 + eol;
+    }
 }
 #endif
