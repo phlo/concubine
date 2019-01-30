@@ -35,7 +35,8 @@ TEST_RUN := run_all_tests
 run: $(TEST_RUN)
 	# ./$(TEST_RUN) --gtest_filter=SMTLibEncoderFunctional*
 	# ./$(TEST_RUN) --gtest_filter=SMTLibEncoderRelational*
-	./$(TEST_RUN)
+	./$(TEST_RUN) --gtest_filter=Btor2*
+	# ./$(TEST_RUN)
 
 # build executable containing all test cases
 $(TEST_RUN): $(GTEST_LIB) $(OBJ) $(TEST_OBJ)

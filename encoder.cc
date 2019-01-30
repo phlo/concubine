@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "btor2.hh"
 #include "smtlib.hh"
 
 using namespace std;
@@ -748,8 +749,6 @@ void SMTLibEncoderFunctional::add_exit_code ()
 
 void SMTLibEncoderFunctional::preprocess ()
 {
-  Encoder::preprocess();
-
   /* initialize state update maps */
   iterate_threads([&] (Program & program) {
     for (pc = 0; pc < program.size(); pc++)
@@ -1425,11 +1424,27 @@ Btor2Encoder::Btor2Encoder (
                             const ProgramListPtr p,
                             unsigned long b,
                             bool e
-                           ) : Encoder(p, b), node(0)
+                           ) : Encoder(p, b), node(1)
 {
   preprocess();
 
   if (e) encode();
+}
+
+void Btor2Encoder::declare_sorts ()
+{
+  formula << btor2::declare_sort(node++, 1);
+  formula << btor2::declare_sort(node++, word_size);
+  formula << btor2::declare_array(node++, 2, 2);
+}
+
+void Btor2Encoder::declare_constants ()
+{
+  // for (const auto & [val, id] : constants)
+    // {
+      // const char * sym = val < 2
+      // formula << node << " constd
+    // }
 }
 
 void Btor2Encoder::preprocess ()
@@ -1438,7 +1453,7 @@ void Btor2Encoder::preprocess ()
   iterate_threads([&] (Program & p) {
     for (pc = 0; pc < p.size(); pc++)
       if (UnaryInstructionPtr i = dynamic_pointer_cast<UnaryInstruction>(p[pc]))
-        constants.insert(i->arg);
+        constants[i->arg] = "";
   });
 }
 

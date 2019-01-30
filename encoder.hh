@@ -326,42 +326,42 @@ struct Btor2Encoder : public Encoder
   /* constructs a Btor2Encoder for the given program and bound */
   Btor2Encoder (const ProgramListPtr, unsigned long, bool = true);
 
-  unsigned long       node;
+  unsigned long               node;
 
-  std::set<word>      constants;
+  std::map<word, std::string> constants;
 
-  void                declare_sorts (void);
-  void                declare_constants (void);
+  void                        declare_sorts (void);
+  void                        declare_constants (void);
 
-  void                add_step_counter (void);
+  void                        add_step_counter (void);
 
-  virtual void        preprocess (void);
+  virtual void                preprocess (void);
 
   /* encodes the whole machine configuration */
-  virtual void        encode (void);
+  virtual void                encode (void);
 
   /* double-dispatched instruction encoding functions */
-  virtual std::string encode (Load &);
-  virtual std::string encode (Store &);
+  virtual std::string         encode (Load &);
+  virtual std::string         encode (Store &);
 
-  virtual std::string encode (Add &);
-  virtual std::string encode (Addi &);
-  virtual std::string encode (Sub &);
-  virtual std::string encode (Subi &);
+  virtual std::string         encode (Add &);
+  virtual std::string         encode (Addi &);
+  virtual std::string         encode (Sub &);
+  virtual std::string         encode (Subi &);
 
-  virtual std::string encode (Cmp &);
-  virtual std::string encode (Jmp &);
-  virtual std::string encode (Jz &);
-  virtual std::string encode (Jnz &);
-  virtual std::string encode (Js &);
-  virtual std::string encode (Jns &);
-  virtual std::string encode (Jnzns &);
+  virtual std::string         encode (Cmp &);
+  virtual std::string         encode (Jmp &);
+  virtual std::string         encode (Jz &);
+  virtual std::string         encode (Jnz &);
+  virtual std::string         encode (Js &);
+  virtual std::string         encode (Jns &);
+  virtual std::string         encode (Jnzns &);
 
-  virtual std::string encode (Mem &);
-  virtual std::string encode (Cas &);
+  virtual std::string         encode (Mem &);
+  virtual std::string         encode (Cas &);
 
-  virtual std::string encode (Sync &);
-  virtual std::string encode (Exit &);
+  virtual std::string         encode (Sync &);
+  virtual std::string         encode (Exit &);
 };
 
 /*******************************************************************************

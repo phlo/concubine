@@ -37,9 +37,30 @@ struct Btor2EncoderTest : public ::testing::Test
     }
 };
 
+// void Btor2Encoder::declare_sorts ()
+TEST_F(Btor2EncoderTest, declare_sorts)
+{
+  encoder->declare_sorts();
+
+  ASSERT_EQ(
+    "1 sort bitvec 1\n"
+    "2 sort bitvec 16\n"
+    "3 sort array 2 2\n",
+    encoder->str());
+}
+
+// void Btor2Encoder::declare_constants ()
+TEST_F(Btor2EncoderTest, declare_constants)
+{
+  // TODO
+}
+
+// void Btor2Encoder::preprocess ()
 TEST_F(Btor2EncoderTest, preprocess)
 {
+  typedef map<word, string> ConstantMap;
+
   add_dummy_programs(3, 3);
 
-  ASSERT_EQ(set<word>({1, 2, 3}), encoder->constants);
+  ASSERT_EQ(ConstantMap({{1, ""}, {2, ""}, {3, ""}}), encoder->constants);
 }
