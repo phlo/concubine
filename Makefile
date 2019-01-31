@@ -8,6 +8,7 @@ LDFLAGS =
 
 # source files (excluding main.cc)
 SRC = boolector.cc \
+      btormc.cc \
       encoder.cc \
       instructionset.cc \
       parser.cc \
