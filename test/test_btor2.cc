@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
 #include "btor2.hh"
+#include "btormc.hh"
+#include "streamredirecter.hh"
 
 using namespace std;
 
@@ -553,4 +555,105 @@ TEST(Btor2Test, write)
   ASSERT_EQ("11 write 1 2 3 4\n", btor2::write("11", "1", "2", "3", "4"));
   ASSERT_EQ("12 write 2 3 4 5\n", btor2::write("12", "2", "3", "4", "5"));
   ASSERT_EQ("13 write 3 4 5 6\n", btor2::write("13", "3", "4", "5", "6"));
+}
+
+// inline string card_constraint_naive (unsigned &, vector<string> const &)
+TEST(Btor2Test, cardinality_exactly_one_naive)
+{
+  unsigned nid = 10;
+
+  ASSERT_EQ(
+    "10 or 1 1 2\n"
+    "11 constraint 10\n"
+    "12 nand 1 1 2\n"
+    "13 constraint 12\n",
+    btor2::card_constraint_naive(nid, {"1", "2"}));
+
+  ASSERT_EQ(nid, 12);
+
+  nid = 10;
+
+  // TODO: fix <=1 constraint (nands)
+  ASSERT_EQ(
+    "10 or 1 1 2\n"
+    "11 or 1 3 10\n"
+    "12 constraint 11\n"
+    "13 nand 1 1 2\n"
+    "14 nand 1 1 3\n"
+    "15 nand 1 2 3\n",
+    btor2::card_constraint_naive(nid, {"1", "2", "3"}));
+
+  ASSERT_EQ(nid, 15);
+
+  nid = 10;
+
+  // TODO: fix <=1 constraint (nands)
+  ASSERT_EQ(
+    "10 or 1 1 2\n"
+    "11 or 1 3 10\n"
+    "12 or 1 4 11\n"
+    "13 nand 1 1 2\n"
+    "14 nand 1 1 3\n"
+    "15 nand 1 1 4\n"
+    "16 nand 1 2 3\n"
+    "17 nand 1 2 4\n"
+    "18 nand 1 3 4\n",
+    btor2::card_constraint_naive(nid, {"1", "2", "3", "4"}));
+
+  ASSERT_EQ(nid, 19);
+}
+
+// TODO
+TEST(Btor2Test, cardinality_exactly_one_naive_verify)
+{
+  BtorMC btormc;
+
+  ostringstream ss;
+  StreamRedirecter redirecter(cout, ss);
+
+  string formula = btor2::declare_sort("1", "1");
+
+  vector<string> vars({"2", "3", "4"});
+
+  for (const auto & v : vars)
+    formula += btor2::state(v, "1");
+
+  unsigned nid = 5;
+
+  formula += btor2::card_constraint_naive(nid, vars);
+
+  cout << formula << eol << eol << eol;
+
+  /* not none */
+  string spec = formula;
+  string nid_zero = to_string(nid++);
+  spec += btor2::constd(nid_zero, "1", "0");
+
+  for (const auto & v : vars)
+    spec += btor2::eq(to_string(nid++), "1",  nid_zero, v);
+
+  // spec += btor2::constraint(to_string(nid), to_string(nid - 1));
+
+  // redirecter.start();
+
+  ASSERT_FALSE(btormc.sat(spec));
+
+  // redirecter.stop();
+
+  /* not more than one */
+  spec = formula;
+
+  nid = 10;
+
+  for (size_t i = 0; i < vars.size() - 1; i++)
+    for (size_t j = i + 1; j < vars.size(); j++)
+      spec += btor2::land(to_string(nid++), "1", vars[i], vars[j]);
+
+  cout << spec << eol;
+
+  // redirecter.start();
+
+  ASSERT_FALSE(btormc.sat(spec));
+
+  // redirecter.stop();
 }

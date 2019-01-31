@@ -618,5 +618,40 @@ namespace btor2
     {
       return nid + " write " + sid + " " + arg1 + " " + arg2 + " " + arg3 + eol;
     }
+
+  /* boolean cardinality constraint =1: naive (pair wise) *********************/
+  inline std::string
+  card_constraint_naive (
+                         unsigned & initial_nid,
+                         std::vector<std::string> const & vars
+                        )
+    {
+      std::ostringstream constraint;
+      std::vector<std::string>::const_iterator it1, it2;
+
+      std::string nid = std::to_string(initial_nid++);
+      std::string sid = "1";
+
+      /* require one to be true */
+      constraint << lor(nid, sid, vars[0], vars[1]);
+      for (unsigned i = 2; i < vars.size(); i++)
+        {
+          std::string nid_next = std::to_string(initial_nid++);
+          constraint << lor(nid_next, sid, vars[i], nid);
+          nid = nid_next;
+        }
+
+      // TODO: add >=1 constraint
+
+      /* iterators */
+      for (it1 = vars.begin(); it1 != vars.end(); ++it1)
+        for (it2 = it1 + 1; it2 != vars.end(); ++it2)
+          constraint <<
+            nand(nid = std::to_string(initial_nid++), sid, *it1, *it2);
+
+      // TODO: add <=1 constraint
+
+      return constraint.str();
+    }
 }
 #endif
