@@ -97,9 +97,21 @@ namespace btor2
       return nid + " constraint " + node + eol;
     }
 
+  inline std::string constraint (unsigned long & nid)
+    {
+      std::string prev = std::to_string(nid - 1);
+      return std::to_string(nid++) + " constraint " + prev + eol;
+    }
+
   inline std::string bad (std::string nid, std::string node)
     {
       return nid + " bad " + node + eol;
+    }
+
+  inline std::string bad (unsigned long & nid)
+    {
+      std::string prev = std::to_string(nid - 1);
+      return std::to_string(nid++) + " bad " + prev + eol;
     }
 
   inline std::string fair (std::string nid, std::string node)
@@ -115,21 +127,21 @@ namespace btor2
   inline std::string justice (
                               std::string nid,
                               std::string num,
-                              std::vector<std::string> conditions
+                              std::vector<std::string> const & conditions
                              )
     {
-      std::ostringstream ss;
+      std::ostringstream os;
 
-      ss << nid << " justice " << num << " ";
+      os << nid << " justice " << num << " ";
 
       std::copy(
         conditions.begin(),
         conditions.end() - 1,
-        std::ostream_iterator<std::string>(ss, " "));
+        std::ostream_iterator<std::string>(os, " "));
 
-      ss << conditions.back() << eol;
+      os << conditions.back() << eol;
 
-      return ss.str();
+      return os.str();
     }
 
   inline std::string sext (std::string nid, std::string sid, std::string width)
@@ -317,6 +329,24 @@ namespace btor2
       return nid + " and " + sid + " " + arg1 + " " + arg2 + eol;
     }
 
+  /* variadic conjunction */
+  inline std::string land (
+                           unsigned long & nid,
+                           std::string sid,
+                           std::vector<std::string> const & args
+                          )
+    {
+      std::ostringstream os;
+      std::string id = std::to_string(nid++);
+
+      os << land(id, sid, args[0], args[1]);
+
+      for (size_t i = 2; i < args.size(); i++)
+        os << land(id = std::to_string(nid++), sid, args[i], id);
+
+      return os.str();
+    }
+
   inline std::string nand (
                            std::string nid,
                            std::string sid,
@@ -345,6 +375,24 @@ namespace btor2
                          )
     {
       return nid + " or " + sid + " " + arg1 + " " + arg2 + eol;
+    }
+
+  /* variadic disjunction */
+  inline std::string lor (
+                           unsigned long & nid,
+                           std::string sid,
+                           std::vector<std::string> const & args
+                          )
+    {
+      std::ostringstream os;
+      std::string id = std::to_string(nid++);
+
+      os << lor(id, sid, args[0], args[1]);
+
+      for (size_t i = 2; i < args.size(); i++)
+        os << lor(id = std::to_string(nid++), sid, args[i], id);
+
+      return os.str();
     }
 
   inline std::string xnor (
@@ -622,36 +670,39 @@ namespace btor2
   /* boolean cardinality constraint =1: naive (pair wise) *********************/
   inline std::string
   card_constraint_naive (
-                         unsigned & initial_nid,
+                         unsigned long & nid,
+                         std::string sid,
                          std::vector<std::string> const & vars
                         )
     {
-      std::ostringstream constraint;
+      std::ostringstream os;
       std::vector<std::string>::const_iterator it1, it2;
 
-      std::string nid = std::to_string(initial_nid++);
-      std::string sid = "1";
-
       /* require one to be true */
-      constraint << lor(nid, sid, vars[0], vars[1]);
-      for (unsigned i = 2; i < vars.size(); i++)
-        {
-          std::string nid_next = std::to_string(initial_nid++);
-          constraint << lor(nid_next, sid, vars[i], nid);
-          nid = nid_next;
-        }
+      os << lor(nid, sid, vars);
 
-      // TODO: add >=1 constraint
+      /* add >=1 constraint */
+      os << constraint(nid);
 
-      /* iterators */
+      /* require at most one to be true */
+      std::vector<std::string> nands;
+
       for (it1 = vars.begin(); it1 != vars.end(); ++it1)
         for (it2 = it1 + 1; it2 != vars.end(); ++it2)
-          constraint <<
-            nand(nid = std::to_string(initial_nid++), sid, *it1, *it2);
+          os <<
+            nand(
+              nands.emplace_back(std::to_string(nid++)),
+              sid,
+              *it1,
+              *it2);
 
-      // TODO: add <=1 constraint
+      if (nands.size() > 1)
+        os << land(nid, sid, nands);
 
-      return constraint.str();
+      /* add <=1 constraint */
+      os << constraint(nid);
+
+      return os.str();
     }
 }
 #endif
