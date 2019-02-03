@@ -36,98 +36,142 @@ namespace btor2
       return c.replace(1, 2 + comment.size(), " " + comment + " ");
     }
 
-  inline std::string declare_sort (std::string nid, std::string bits)
+  inline std::string line(std::string node, std::string sym)
     {
-      return nid + " sort bitvec " + bits + eol;
+      return node + (!sym.empty() ? " " + sym : "") + eol;
+    }
+
+  inline std::string declare_sort (
+                                   std::string nid,
+                                   std::string bits,
+                                   std::string sym = ""
+                                  )
+    {
+      return line(nid + " sort bitvec " + bits, sym);
     }
 
   inline std::string declare_array (
                                     std::string nid,
                                     std::string idx_width,
-                                    std::string val_width
+                                    std::string val_width,
+                                    std::string sym = ""
                                    )
     {
-      return nid + " sort array " + idx_width + " " + val_width + eol;
+      return line(nid + " sort array " + idx_width + " " + val_width, sym);
     }
 
-  inline std::string constd (std::string nid, std::string sid, std::string val)
+  inline std::string constd (
+                             std::string nid,
+                             std::string sid,
+                             std::string val,
+                             std::string sym = ""
+                            )
     {
       return
-        nid + " " +
-        (val == "0"
-          ? "zero " + sid
-          : val == "1"
-            ? "one " + sid
-            : "constd " + sid + " " + val) +
-        eol;
+        line(
+          nid + " " +
+          (val == "0"
+            ? "zero " + sid
+            : val == "1"
+              ? "one " + sid
+              : "constd " + sid + " " + val),
+          sym);
     }
 
-  inline std::string input (std::string nid, std::string sid)
+  inline std::string input (
+                            std::string nid,
+                            std::string sid,
+                            std::string sym = ""
+                           )
     {
-      return nid + " input " + sid + eol;
+      return line(nid + " input " + sid, sym);
     }
 
-  inline std::string state (std::string nid, std::string sid)
+  inline std::string state (
+                            std::string nid,
+                            std::string sid,
+                            std::string sym = ""
+                           )
     {
-      return nid + " state " + sid + eol;
+      return line(nid + " state " + sid, sym);
+
     }
 
   inline std::string init (
                            std::string nid,
                            std::string sid,
                            std::string state,
-                           std::string val
+                           std::string val,
+                           std::string sym = ""
                           )
     {
-      return nid + " init " + sid + " " + state + " " + val + eol;
+      return line(nid + " init " + sid + " " + state + " " + val, sym);
     }
 
   inline std::string next (
                            std::string nid,
                            std::string sid,
                            std::string state,
-                           std::string val
+                           std::string val,
+                           std::string sym = ""
                           )
     {
-      return nid + " next " + sid + " " + state + " " + val + eol;
+      return line(nid + " next " + sid + " " + state + " " + val, sym);
     }
 
-  inline std::string constraint (std::string nid, std::string node)
+  inline std::string constraint (
+                                 std::string nid,
+                                 std::string node,
+                                 std::string sym = ""
+                                )
     {
-      return nid + " constraint " + node + eol;
+      return line(nid + " constraint " + node, sym);
     }
 
-  inline std::string constraint (unsigned long & nid)
-    {
-      std::string prev = std::to_string(nid - 1);
-      return std::to_string(nid++) + " constraint " + prev + eol;
-    }
-
-  inline std::string bad (std::string nid, std::string node)
-    {
-      return nid + " bad " + node + eol;
-    }
-
-  inline std::string bad (unsigned long & nid)
+  inline std::string constraint (unsigned long & nid, std::string sym = "")
     {
       std::string prev = std::to_string(nid - 1);
-      return std::to_string(nid++) + " bad " + prev + eol;
+      return line(std::to_string(nid++) + " constraint " + prev, sym);
     }
 
-  inline std::string fair (std::string nid, std::string node)
+  inline std::string bad (
+                          std::string nid,
+                          std::string node,
+                          std::string sym = ""
+                         )
     {
-      return nid + " fair " + node + eol;
+      return line(nid + " bad " + node, sym);
     }
 
-  inline std::string output (std::string nid, std::string node)
+  inline std::string bad (unsigned long & nid, std::string sym = "")
     {
-      return nid + " output " + node + eol;
+      std::string prev = std::to_string(nid - 1);
+      return line(std::to_string(nid++) + " bad " + prev, sym);
+    }
+
+  inline std::string fair (
+                           std::string nid,
+                           std::string node,
+                           std::string sym = ""
+                          )
+    {
+      return line(nid + " fair " + node, sym);
+    }
+
+  inline std::string output (
+                             std::string nid,
+                             std::string node,
+                             std::string sym = ""
+                            )
+    {
+      return line(nid + " output " + node, sym);
     }
 
   inline std::string justice (
                               std::string nid,
                               std::string num,
-                              std::vector<std::string> const & conditions
+                              std::vector<std::string> const & conditions,
+                              std::string sym = ""
                              )
     {
       std::ostringstream os;
@@ -139,201 +183,261 @@ namespace btor2
         conditions.end() - 1,
         std::ostream_iterator<std::string>(os, " "));
 
-      os << conditions.back() << eol;
+      os << conditions.back();
 
-      return os.str();
+      return line(os.str(), sym);
     }
 
-  inline std::string sext (std::string nid, std::string sid, std::string width)
+  inline std::string sext (
+                           std::string nid,
+                           std::string sid,
+                           std::string width,
+                           std::string sym = ""
+                          )
     {
-      return nid + " sext " + sid + " " + width + eol;
+      return line(nid + " sext " + sid + " " + width, sym);
     }
 
-  inline std::string uext (std::string nid, std::string sid, std::string width)
+  inline std::string uext (
+                           std::string nid,
+                           std::string sid,
+                           std::string width,
+                           std::string sym = ""
+                          )
     {
-      return nid + " uext " + sid + " " + width + eol;
+      return line(nid + " uext " + sid + " " + width, sym);
     }
 
   inline std::string slice (
                             std::string nid,
                             std::string sid,
                             std::string upper,
-                            std::string lower
+                            std::string lower,
+                            std::string sym = ""
                            )
     {
-      return nid + " slice " + sid + " " + upper + " " + lower + eol;
+      return line(nid + " slice " + sid + " " + upper + " " + lower, sym);
     }
 
-  inline std::string lnot (std::string nid, std::string sid, std::string node)
+  inline std::string lnot (
+                           std::string nid,
+                           std::string sid,
+                           std::string node,
+                           std::string sym = ""
+                          )
     {
-      return nid + " not " + sid + " " + node + eol;
+      return line(nid + " not " + sid + " " + node, sym);
     }
 
-  inline std::string inc (std::string nid, std::string sid, std::string node)
+  inline std::string inc (
+                          std::string nid,
+                          std::string sid,
+                          std::string node,
+                          std::string sym = ""
+                         )
     {
-      return nid + " inc " + sid + " " + node + eol;
+      return line(nid + " inc " + sid + " " + node, sym);
     }
 
-  inline std::string dec (std::string nid, std::string sid, std::string node)
+  inline std::string dec (
+                          std::string nid,
+                          std::string sid,
+                          std::string node,
+                          std::string sym = ""
+                         )
     {
-      return nid + " dec " + sid + " " + node + eol;
+      return line(nid + " dec " + sid + " " + node, sym);
     }
 
-  inline std::string neg (std::string nid, std::string sid, std::string node)
+  inline std::string neg (
+                          std::string nid,
+                          std::string sid,
+                          std::string node,
+                          std::string sym = ""
+                         )
     {
-      return nid + " neg " + sid + " " + node + eol;
+      return line(nid + " neg " + sid + " " + node, sym);
     }
 
-  inline std::string redand (std::string nid, std::string sid, std::string node)
+  inline std::string redand (
+                             std::string nid,
+                             std::string sid,
+                             std::string node,
+                             std::string sym = ""
+                            )
     {
-      return nid + " redand " + sid + " " + node + eol;
+      return line(nid + " redand " + sid + " " + node, sym);
     }
 
-  inline std::string redor (std::string nid, std::string sid, std::string node)
+  inline std::string redor (
+                            std::string nid,
+                            std::string sid,
+                            std::string node,
+                            std::string sym = ""
+                           )
     {
-      return nid + " redor " + sid + " " + node + eol;
+      return line(nid + " redor " + sid + " " + node, sym);
     }
 
-  inline std::string redxor (std::string nid, std::string sid, std::string node)
+  inline std::string redxor (
+                             std::string nid,
+                             std::string sid,
+                             std::string node,
+                             std::string sym = ""
+                            )
     {
-      return nid + " redxor " + sid + " " + node + eol;
+      return line(nid + " redxor " + sid + " " + node, sym);
     }
 
   inline std::string iff (
                           std::string nid,
                           std::string sid,
                           std::string arg1,
-                          std::string arg2
+                          std::string arg2,
+                          std::string sym = ""
                          )
     {
-      return nid + " iff " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " iff " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string implies (
                               std::string nid,
                               std::string sid,
                               std::string arg1,
-                              std::string arg2
+                              std::string arg2,
+                              std::string sym = ""
                              )
     {
-      return nid + " implies " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " implies " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string eq (
                          std::string nid,
                          std::string sid,
                          std::string arg1,
-                         std::string arg2
+                         std::string arg2,
+                         std::string sym = ""
                         )
     {
-      return nid + " eq " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " eq " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string neq (
                           std::string nid,
                           std::string sid,
                           std::string arg1,
-                          std::string arg2
+                          std::string arg2,
+                          std::string sym = ""
                          )
     {
-      return nid + " neq " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " neq " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string sgt (
                           std::string nid,
                           std::string sid,
                           std::string arg1,
-                          std::string arg2
+                          std::string arg2,
+                          std::string sym = ""
                          )
     {
-      return nid + " sgt " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " sgt " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string ugt (
                           std::string nid,
                           std::string sid,
                           std::string arg1,
-                          std::string arg2
+                          std::string arg2,
+                          std::string sym = ""
                          )
     {
-      return nid + " ugt " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " ugt " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string sgte (
                            std::string nid,
                            std::string sid,
                            std::string arg1,
-                           std::string arg2
+                           std::string arg2,
+                           std::string sym = ""
                           )
     {
-      return nid + " sgte " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " sgte " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string ugte (
                            std::string nid,
                            std::string sid,
                            std::string arg1,
-                           std::string arg2
+                           std::string arg2,
+                           std::string sym = ""
                           )
     {
-      return nid + " ugte " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " ugte " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string slt (
                           std::string nid,
                           std::string sid,
                           std::string arg1,
-                          std::string arg2
+                          std::string arg2,
+                          std::string sym = ""
                          )
     {
-      return nid + " slt " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " slt " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string ult (
                           std::string nid,
                           std::string sid,
                           std::string arg1,
-                          std::string arg2
+                          std::string arg2,
+                          std::string sym = ""
                          )
     {
-      return nid + " ult " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " ult " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string slte (
                            std::string nid,
                            std::string sid,
                            std::string arg1,
-                           std::string arg2
+                           std::string arg2,
+                           std::string sym = ""
                           )
     {
-      return nid + " slte " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " slte " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string ulte (
                            std::string nid,
                            std::string sid,
                            std::string arg1,
-                           std::string arg2
+                           std::string arg2,
+                           std::string sym = ""
                           )
     {
-      return nid + " ulte " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " ulte " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string land (
                            std::string nid,
                            std::string sid,
                            std::string arg1,
-                           std::string arg2
+                           std::string arg2,
+                           std::string sym = ""
                           )
     {
-      return nid + " and " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " and " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   /* variadic conjunction */
   inline std::string land (
                            unsigned long & nid,
                            std::string sid,
-                           std::vector<std::string> const & args
+                           std::vector<std::string> const & args,
+                           std::string sym = ""
                           )
     {
       std::ostringstream os;
@@ -344,44 +448,53 @@ namespace btor2
       for (size_t i = 2; i < args.size(); i++)
         os << land(id = std::to_string(nid++), sid, args[i], id);
 
-      return os.str();
+      /* remove trailing space */
+      std::string node = os.str();
+
+      node.erase(node.end() - 1);
+
+      return line(node, sym);
     }
 
   inline std::string nand (
                            std::string nid,
                            std::string sid,
                            std::string arg1,
-                           std::string arg2
+                           std::string arg2,
+                           std::string sym = ""
                           )
     {
-      return nid + " nand " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " nand " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string nor (
                           std::string nid,
                           std::string sid,
                           std::string arg1,
-                          std::string arg2
+                          std::string arg2,
+                          std::string sym = ""
                          )
     {
-      return nid + " nor " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " nor " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string lor (
                           std::string nid,
                           std::string sid,
                           std::string arg1,
-                          std::string arg2
+                          std::string arg2,
+                          std::string sym = ""
                          )
     {
-      return nid + " or " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " or " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   /* variadic disjunction */
   inline std::string lor (
                            unsigned long & nid,
                            std::string sid,
-                           std::vector<std::string> const & args
+                           std::vector<std::string> const & args,
+                           std::string sym = ""
                           )
     {
       std::ostringstream os;
@@ -392,257 +505,287 @@ namespace btor2
       for (size_t i = 2; i < args.size(); i++)
         os << lor(id = std::to_string(nid++), sid, args[i], id);
 
-      return os.str();
+      /* remove trailing space */
+      std::string node = os.str();
+
+      node.erase(node.end() - 1);
+
+      return line(node, sym);
     }
 
   inline std::string xnor (
                            std::string nid,
                            std::string sid,
                            std::string arg1,
-                           std::string arg2
+                           std::string arg2,
+                           std::string sym = ""
                           )
     {
-      return nid + " xnor " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " xnor " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string lxor (
                            std::string nid,
                            std::string sid,
                            std::string arg1,
-                           std::string arg2
+                           std::string arg2,
+                           std::string sym = ""
                           )
     {
-      return nid + " xor " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " xor " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string rol (
                           std::string nid,
                           std::string sid,
                           std::string arg1,
-                          std::string arg2
+                          std::string arg2,
+                          std::string sym = ""
                          )
     {
-      return nid + " rol " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " rol " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string ror (
                           std::string nid,
                           std::string sid,
                           std::string arg1,
-                          std::string arg2
+                          std::string arg2,
+                          std::string sym = ""
                          )
     {
-      return nid + " ror " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " ror " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string sll (
                           std::string nid,
                           std::string sid,
                           std::string arg1,
-                          std::string arg2
+                          std::string arg2,
+                          std::string sym = ""
                          )
     {
-      return nid + " sll " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " sll " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string sra (
                           std::string nid,
                           std::string sid,
                           std::string arg1,
-                          std::string arg2
+                          std::string arg2,
+                          std::string sym = ""
                          )
     {
-      return nid + " sra " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " sra " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string srl (
                           std::string nid,
                           std::string sid,
                           std::string arg1,
-                          std::string arg2
+                          std::string arg2,
+                          std::string sym = ""
                          )
     {
-      return nid + " srl " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " srl " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string add (
                           std::string nid,
                           std::string sid,
                           std::string arg1,
-                          std::string arg2
+                          std::string arg2,
+                          std::string sym = ""
                          )
     {
-      return nid + " add " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " add " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string mul (
                           std::string nid,
                           std::string sid,
                           std::string arg1,
-                          std::string arg2
+                          std::string arg2,
+                          std::string sym = ""
                          )
     {
-      return nid + " mul " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " mul " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string sdiv (
                            std::string nid,
                            std::string sid,
                            std::string arg1,
-                           std::string arg2
+                           std::string arg2,
+                           std::string sym = ""
                           )
     {
-      return nid + " sdiv " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " sdiv " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string udiv (
                            std::string nid,
                            std::string sid,
                            std::string arg1,
-                           std::string arg2
+                           std::string arg2,
+                           std::string sym = ""
                           )
     {
-      return nid + " udiv " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " udiv " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string smod (
                            std::string nid,
                            std::string sid,
                            std::string arg1,
-                           std::string arg2
+                           std::string arg2,
+                           std::string sym = ""
                           )
     {
-      return nid + " smod " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " smod " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string srem (
                            std::string nid,
                            std::string sid,
                            std::string arg1,
-                           std::string arg2
+                           std::string arg2,
+                           std::string sym = ""
                           )
     {
-      return nid + " srem " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " srem " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string urem (
                            std::string nid,
                            std::string sid,
                            std::string arg1,
-                           std::string arg2
+                           std::string arg2,
+                           std::string sym = ""
                           )
     {
-      return nid + " urem " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " urem " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string sub (
                           std::string nid,
                           std::string sid,
                           std::string arg1,
-                          std::string arg2
+                          std::string arg2,
+                          std::string sym = ""
                          )
     {
-      return nid + " sub " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " sub " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string saddo (
                             std::string nid,
                             std::string sid,
                             std::string arg1,
-                            std::string arg2
+                            std::string arg2,
+                            std::string sym = ""
                            )
     {
-      return nid + " saddo " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " saddo " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string uaddo (
                             std::string nid,
                             std::string sid,
                             std::string arg1,
-                            std::string arg2
+                            std::string arg2,
+                            std::string sym = ""
                            )
     {
-      return nid + " uaddo " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " uaddo " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string sdivo (
                             std::string nid,
                             std::string sid,
                             std::string arg1,
-                            std::string arg2
+                            std::string arg2,
+                            std::string sym = ""
                            )
     {
-      return nid + " sdivo " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " sdivo " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string udivo (
                             std::string nid,
                             std::string sid,
                             std::string arg1,
-                            std::string arg2
+                            std::string arg2,
+                            std::string sym = ""
                            )
     {
-      return nid + " udivo " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " udivo " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string smulo (
                             std::string nid,
                             std::string sid,
                             std::string arg1,
-                            std::string arg2
+                            std::string arg2,
+                            std::string sym = ""
                            )
     {
-      return nid + " smulo " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " smulo " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string umulo (
                             std::string nid,
                             std::string sid,
                             std::string arg1,
-                            std::string arg2
+                            std::string arg2,
+                            std::string sym = ""
                            )
     {
-      return nid + " umulo " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " umulo " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string ssubo (
                             std::string nid,
                             std::string sid,
                             std::string arg1,
-                            std::string arg2
+                            std::string arg2,
+                            std::string sym = ""
                            )
     {
-      return nid + " ssubo " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " ssubo " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string usubo (
                             std::string nid,
                             std::string sid,
                             std::string arg1,
-                            std::string arg2
+                            std::string arg2,
+                            std::string sym = ""
                            )
     {
-      return nid + " usubo " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " usubo " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string concat (
                              std::string nid,
                              std::string sid,
                              std::string arg1,
-                             std::string arg2
+                             std::string arg2,
+                             std::string sym = ""
                             )
     {
-      return nid + " concat " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " concat " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string read (
                            std::string nid,
                            std::string sid,
                            std::string arg1,
-                           std::string arg2
+                           std::string arg2,
+                           std::string sym = ""
                           )
     {
-      return nid + " read " + sid + " " + arg1 + " " + arg2 + eol;
+      return line(nid + " read " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string ite (
@@ -650,10 +793,12 @@ namespace btor2
                           std::string sid,
                           std::string arg1,
                           std::string arg2,
-                          std::string arg3
+                          std::string arg3,
+                          std::string sym = ""
                          )
     {
-      return nid + " ite " + sid + " " + arg1 + " " + arg2 + " " + arg3 + eol;
+      return
+        line(nid + " ite " + sid + " " + arg1 + " " + arg2 + " " + arg3, sym);
     }
 
   inline std::string write (
@@ -661,10 +806,12 @@ namespace btor2
                             std::string sid,
                             std::string arg1,
                             std::string arg2,
-                            std::string arg3
+                            std::string arg3,
+                            std::string sym = ""
                            )
     {
-      return nid + " write " + sid + " " + arg1 + " " + arg2 + " " + arg3 + eol;
+      return
+        line(nid + " write " + sid + " " + arg1 + " " + arg2 + " " + arg3, sym);
     }
 
   /* boolean cardinality constraint =1: naive (pair wise) *********************/
@@ -672,7 +819,8 @@ namespace btor2
   card_constraint_naive (
                          unsigned long & nid,
                          std::string sid,
-                         std::vector<std::string> const & vars
+                         std::vector<std::string> const & vars,
+                         std::string sym = ""
                         )
     {
       std::ostringstream os;
@@ -702,7 +850,12 @@ namespace btor2
       /* add <=1 constraint */
       os << constraint(nid);
 
-      return os.str();
+      /* remove trailing space */
+      std::string node = os.str();
+
+      node.erase(node.end() - 1);
+
+      return line(node, sym);
     }
 }
 #endif
