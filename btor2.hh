@@ -819,8 +819,7 @@ namespace btor2
   card_constraint_naive (
                          unsigned long & nid,
                          std::string sid,
-                         std::vector<std::string> const & vars,
-                         std::string sym = ""
+                         std::vector<std::string> const & vars
                         )
     {
       std::ostringstream os;
@@ -850,12 +849,72 @@ namespace btor2
       /* add <=1 constraint */
       os << constraint(nid);
 
-      /* remove trailing space */
-      std::string node = os.str();
+      return os.str();
+    }
 
-      node.erase(node.end() - 1);
+  /* boolean cardinality constraint =1: Carsten Sinz's sequential counter *****/
+  inline std::string
+  card_constraint_sinz (
+                        unsigned long & nid,
+                        std::string sid,
+                        std::vector<std::string> const & vars
+                       )
+    {
+      std::ostringstream os;
 
-      return line(node, sym);
+      unsigned int n = vars.size();
+
+      /* require one to be true */
+      os << lor(nid, sid, vars);
+
+      /* add >=1 constraint */
+      os << constraint(nid);
+
+      /* add inputs for auxiliary variables */
+      std::vector<std::string> aux;
+
+      for (size_t i = 0; i < n - 1; i++)
+        os <<
+          input(
+            aux.emplace_back(std::to_string(nid++)),
+            sid,
+            "card_aux_" + std::to_string(i));
+
+      /* Sinz's sequential counter constraint */
+      std::string prev = std::to_string(nid++);
+
+      /* ¬x_1 v s_1 */
+      os << lnot(prev, sid, vars[0]);
+      os << lor(prev = std::to_string(nid++), sid, aux[0], prev);
+      os << constraint(std::to_string(nid++), prev);
+
+      /* ¬x_n v ¬s_n-1 */
+      std::string not_x = std::to_string(nid++);
+      std::string not_s = std::to_string(nid++);
+
+      os << lnot(not_x, sid, vars.back());
+      os << lnot(not_s, sid, aux.back());
+      os << lor(prev = std::to_string(nid++), sid, not_x, not_s);
+      os << constraint(std::to_string(nid++), prev);
+
+      for (size_t i = 1; i < n - 1; i++)
+        {
+          /* ¬x_i v s_i */
+          os << lnot(not_x = std::to_string(nid++), sid, vars[i]);
+          os << lor(prev = std::to_string(nid++), sid, aux[i], not_x);
+          os << constraint(std::to_string(nid++), prev);
+
+          /* ¬s_i-1 v s_i */
+          os << lnot(not_s = std::to_string(nid++), sid, aux[i - 1]);
+          os << lor(prev = std::to_string(nid++), sid, aux[i], not_s);
+          os << constraint(std::to_string(nid++), prev);
+
+          /* ¬x_i v ¬s_i-1 */
+          os << lor(prev = std::to_string(nid++), sid, not_x, not_s);
+          os << constraint(std::to_string(nid++), prev);
+        }
+
+      return os.str();
     }
 }
 #endif

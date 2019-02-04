@@ -664,50 +664,46 @@ TEST(Btor2Test, cardinality_exactly_one_naive)
   unsigned long nid = 10;
 
   ASSERT_EQ(
-    "10 or 1 1 2\n"
+    "10 or 1 2 3\n"
     "11 constraint 10\n"
-    "12 nand 1 1 2\n"
+    "12 nand 1 2 3\n"
     "13 constraint 12\n",
-    btor2::card_constraint_naive(nid, "1", {"1", "2"}));
+    btor2::card_constraint_naive(nid, "1", {"2", "3"}));
 
   ASSERT_EQ(nid, 14);
 
-  nid = 10;
-
   ASSERT_EQ(
-    "10 or 1 1 2\n"
-    "11 or 1 3 10\n"
+    "10 or 1 2 3\n"
+    "11 or 1 4 10\n"
     "12 constraint 11\n"
-    "13 nand 1 1 2\n"
-    "14 nand 1 1 3\n"
-    "15 nand 1 2 3\n"
+    "13 nand 1 2 3\n"
+    "14 nand 1 2 4\n"
+    "15 nand 1 3 4\n"
     "16 and 1 13 14\n"
     "17 and 1 15 16\n"
     "18 constraint 17\n",
-    btor2::card_constraint_naive(nid, "1", {"1", "2", "3"}));
+    btor2::card_constraint_naive(nid = 10, "1", {"2", "3", "4"}));
 
   ASSERT_EQ(nid, 19);
 
-  nid = 10;
-
   ASSERT_EQ(
-    "10 or 1 1 2\n"
-    "11 or 1 3 10\n"
-    "12 or 1 4 11\n"
+    "10 or 1 2 3\n"
+    "11 or 1 4 10\n"
+    "12 or 1 5 11\n"
     "13 constraint 12\n"
-    "14 nand 1 1 2\n"
-    "15 nand 1 1 3\n"
-    "16 nand 1 1 4\n"
-    "17 nand 1 2 3\n"
-    "18 nand 1 2 4\n"
-    "19 nand 1 3 4\n"
+    "14 nand 1 2 3\n"
+    "15 nand 1 2 4\n"
+    "16 nand 1 2 5\n"
+    "17 nand 1 3 4\n"
+    "18 nand 1 3 5\n"
+    "19 nand 1 4 5\n"
     "20 and 1 14 15\n"
     "21 and 1 16 20\n"
     "22 and 1 17 21\n"
     "23 and 1 18 22\n"
     "24 and 1 19 23\n"
-    "25 constraint 24 foo\n",
-    btor2::card_constraint_naive(nid, "1", {"1", "2", "3", "4"}, "foo"));
+    "25 constraint 24\n",
+    btor2::card_constraint_naive(nid = 10, "1", {"2", "3", "4", "5"}));
 
   ASSERT_EQ(nid, 26);
 }
@@ -721,14 +717,139 @@ TEST(Btor2Test, cardinality_exactly_one_naive_verify)
     btor2::constd("2", "1", "0") +
     btor2::constd("3", "1", "1");
 
-  vector<string> vars({"4", "5", "6"});
+  vector<string> vars({"4", "5", "6", "7"});
+
+  unsigned long nid = 8;
 
   for (const auto & v : vars)
     formula += btor2::state(v, "1");
 
-  unsigned long nid = 7;
-
   formula += btor2::card_constraint_naive(nid, "1", vars);
+
+  /* not none */
+  vector<string> eqs_zero;
+  string spec = formula;
+
+  for (const auto & v : vars)
+    spec += btor2::eq(eqs_zero.emplace_back(to_string(nid++)), "1",  "2", v);
+
+  spec += btor2::land(nid, "1", eqs_zero);
+  spec += btor2::bad(nid);
+
+  /* not more than one */
+  vector<string> eqs_one;
+
+  for (const auto & v : vars)
+    spec += btor2::eq(eqs_one.emplace_back(to_string(nid++)), "1",  "3", v);
+
+  for (size_t i = 0; i < eqs_one.size() - 1; i++)
+    for (size_t j = i + 1; j < eqs_one.size(); j++)
+      {
+        spec += btor2::land(to_string(nid++), "1", eqs_one[i], eqs_one[j]);
+        spec += btor2::bad(nid);
+      }
+
+  ASSERT_FALSE(btormc.sat(spec));
+}
+
+// inline string card_constraint_sinz (unsigned long &, vector<string> const &)
+TEST(Btor2Test, cardinality_exactly_one_sinz)
+{
+  unsigned long nid = 10;
+
+  ASSERT_EQ(
+    "10 or 1 2 3\n"
+    "11 constraint 10\n"
+    "12 input 1 card_aux_0\n"
+    "13 not 1 2\n"
+    "14 or 1 12 13\n"
+    "15 constraint 14\n"
+    "16 not 1 3\n"
+    "17 not 1 12\n"
+    "18 or 1 16 17\n"
+    "19 constraint 18\n",
+    btor2::card_constraint_sinz(nid, "1", {"2", "3"}));
+
+  ASSERT_EQ(nid, 20);
+
+  ASSERT_EQ(
+    "10 or 1 2 3\n"
+    "11 or 1 4 10\n"
+    "12 constraint 11\n"
+    "13 input 1 card_aux_0\n"
+    "14 input 1 card_aux_1\n"
+    "15 not 1 2\n"
+    "16 or 1 13 15\n"
+    "17 constraint 16\n"
+    "18 not 1 4\n"
+    "19 not 1 14\n"
+    "20 or 1 18 19\n"
+    "21 constraint 20\n"
+    "22 not 1 3\n"
+    "23 or 1 14 22\n"
+    "24 constraint 23\n"
+    "25 not 1 13\n"
+    "26 or 1 14 25\n"
+    "27 constraint 26\n"
+    "28 or 1 22 25\n"
+    "29 constraint 28\n",
+    btor2::card_constraint_sinz(nid = 10, "1", {"2", "3", "4"}));
+
+  ASSERT_EQ(nid, 30);
+
+  ASSERT_EQ(
+    "10 or 1 1 2\n"
+    "11 or 1 3 10\n"
+    "12 or 1 4 11\n"
+    "13 constraint 12\n"
+    "14 input 1 card_aux_0\n"
+    "15 input 1 card_aux_1\n"
+    "16 input 1 card_aux_2\n"
+    "17 not 1 1\n"
+    "18 or 1 14 17\n"
+    "19 constraint 18\n"
+    "20 not 1 4\n"
+    "21 not 1 16\n"
+    "22 or 1 20 21\n"
+    "23 constraint 22\n"
+    "24 not 1 2\n"
+    "25 or 1 15 24\n"
+    "26 constraint 25\n"
+    "27 not 1 14\n"
+    "28 or 1 15 27\n"
+    "29 constraint 28\n"
+    "30 or 1 24 27\n"
+    "31 constraint 30\n"
+    "32 not 1 3\n"
+    "33 or 1 16 32\n"
+    "34 constraint 33\n"
+    "35 not 1 15\n"
+    "36 or 1 16 35\n"
+    "37 constraint 36\n"
+    "38 or 1 32 35\n"
+    "39 constraint 38\n",
+    btor2::card_constraint_sinz(nid = 10, "1", {"1", "2", "3", "4"}));
+
+  ASSERT_EQ(nid, 40);
+}
+
+TEST(Btor2Test, cardinality_exactly_one_sinz_verify)
+{
+  BtorMC btormc;
+
+  string formula =
+    btor2::declare_sort("1", "1") +
+    btor2::constd("2", "1", "0") +
+    btor2::constd("3", "1", "1");
+
+  vector<string> vars({"4", "5", "6", "7"});
+
+  unsigned long nid = 8;
+
+  for (const auto & v : vars)
+    formula += btor2::state(v, "1");
+
+  formula += btor2::card_constraint_sinz(nid, "1", vars);
 
   /* not none */
   vector<string> eqs_zero;
