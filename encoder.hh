@@ -328,6 +328,10 @@ struct Btor2Encoder : public Encoder
 
   unsigned long               node;
 
+  std::string                 sid_bool;
+  std::string                 sid_bv;
+  std::string                 sid_heap;
+
   std::map<word, std::string> constants;
 
   void                        declare_sorts (void);

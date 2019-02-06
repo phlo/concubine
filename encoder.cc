@@ -1433,32 +1433,51 @@ Btor2Encoder::Btor2Encoder (
 
 void Btor2Encoder::declare_sorts ()
 {
-  formula << btor2::declare_sort(to_string(node++), "1");
-  formula << btor2::declare_sort(to_string(node++), to_string(word_size));
-  formula << btor2::declare_array(to_string(node++), "2", "2");
+  if (verbose)
+    formula << btor2::comment_section("sorts");
+
+  formula << btor2::declare_sort(sid_bool = to_string(node++), "1");
+  formula << btor2::declare_sort(sid_bv = to_string(node++), to_string(word_size));
+  formula << btor2::declare_array(sid_heap = to_string(node++), "2", "2");
+
+  formula << eol;
 }
 
 void Btor2Encoder::declare_constants ()
 {
-  // for (const auto & [val, id] : constants)
-    // {
-      // const char * sym = val < 2
-      // formula << node << " constd
-    // }
+  if (verbose)
+    formula << btor2::comment_section("constants");
+
+  /* declare boolean constants */
+  formula << btor2::constd(to_string(node++), sid_bool, "0");
+  formula << btor2::constd(to_string(node++), sid_bool, "1");
+
+  /* declare bitvector constants */
+  for (const auto & c : constants)
+    formula <<
+      btor2::constd(
+        constants[c.first] = to_string(node++),
+        sid_bv,
+        to_string(c.first));
+
+  formula << eol;
 }
 
 void Btor2Encoder::preprocess ()
 {
   /* collect constants */
   iterate_threads([&] (Program & p) {
-    for (pc = 0; pc < p.size(); pc++)
-      if (UnaryInstructionPtr i = dynamic_pointer_cast<UnaryInstruction>(p[pc]))
+    for (const auto & op : p)
+      if (UnaryInstructionPtr i = dynamic_pointer_cast<UnaryInstruction>(op))
         constants[i->arg] = "";
   });
 }
 
 void Btor2Encoder::encode ()
 {
+  declare_sorts();
+
+  declare_constants();
 }
 
 string Btor2Encoder::encode (Load & l)

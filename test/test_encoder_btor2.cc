@@ -43,16 +43,89 @@ TEST_F(Btor2EncoderTest, declare_sorts)
   encoder->declare_sorts();
 
   ASSERT_EQ(
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; sorts\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
     "1 sort bitvec 1\n"
     "2 sort bitvec 16\n"
-    "3 sort array 2 2\n",
+    "3 sort array 2 2\n\n",
+    encoder->str());
+
+  /* verbosity */
+  reset_encoder(1);
+
+  verbose = false;
+  encoder->declare_sorts();
+  verbose = true;
+
+  ASSERT_EQ(
+    "1 sort bitvec 1\n"
+    "2 sort bitvec 16\n"
+    "3 sort array 2 2\n\n",
     encoder->str());
 }
 
 // void Btor2Encoder::declare_constants ()
 TEST_F(Btor2EncoderTest, declare_constants)
 {
-  // TODO
+  for (size_t t = 0; t < 3; t++)
+    {
+      programs.push_back(shared_ptr<Program>(new Program()));
+
+      for (size_t pc = 0; pc < 3; pc++)
+        programs.back()->add(
+          Instruction::Set::create("ADDI", t + pc + 1));
+    }
+
+  reset_encoder(1);
+
+  encoder->declare_sorts();
+  encoder->declare_constants();
+
+  ASSERT_EQ(
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; sorts\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "1 sort bitvec 1\n"
+    "2 sort bitvec 16\n"
+    "3 sort array 2 2\n"
+    "\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; constants\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "4 zero 1\n"
+    "5 one 1\n"
+    "6 one 2\n"
+    "7 constd 2 2\n"
+    "8 constd 2 3\n"
+    "9 constd 2 4\n"
+    "10 constd 2 5\n\n",
+    encoder->str());
+
+  /* verbosity */
+  reset_encoder(1);
+
+  verbose = false;
+  encoder->declare_sorts();
+  encoder->declare_constants();
+  verbose = true;
+
+  ASSERT_EQ(
+    "1 sort bitvec 1\n"
+    "2 sort bitvec 16\n"
+    "3 sort array 2 2\n"
+    "\n"
+    "4 zero 1\n"
+    "5 one 1\n"
+    "6 one 2\n"
+    "7 constd 2 2\n"
+    "8 constd 2 3\n"
+    "9 constd 2 4\n"
+    "10 constd 2 5\n\n",
+    encoder->str());
 }
 
 // void Btor2Encoder::preprocess ()
