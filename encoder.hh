@@ -337,7 +337,7 @@ struct Btor2Encoder : public Encoder
   void                        declare_sorts (void);
   void                        declare_constants (void);
 
-  void                        add_step_counter (void);
+  void                        add_bound (void);
 
   virtual void                preprocess (void);
 

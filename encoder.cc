@@ -1463,9 +1463,42 @@ void Btor2Encoder::declare_constants ()
   formula << eol;
 }
 
+void Btor2Encoder::add_bound ()
+{
+  if (verbose)
+    formula << btor2::comment_section("bound");
+
+  /* step counter */
+  if (verbose)
+    formula << btor2::comment("step counter") << eol;
+
+  string nid;
+  string nid_ctr = to_string(node++);
+
+  formula << btor2::state(nid_ctr, sid_bv, "k");
+  formula << btor2::init(to_string(node++), sid_bv, nid_ctr, constants[0]);
+  formula << btor2::add(nid = to_string(node++), sid_bv, constants[1], nid_ctr);
+  formula << btor2::next(to_string(node++), sid_bv, nid_ctr, nid);
+
+  formula << eol;
+
+  /* bound */
+  if (verbose)
+    formula << btor2::comment("bound (" + to_string(bound) + ")") << eol;
+
+  formula <<
+    btor2::eq(nid = to_string(node++), sid_bool, constants[bound], nid_ctr);
+  formula << btor2::bad(to_string(node++), nid);
+
+  formula << eol;
+}
+
 void Btor2Encoder::preprocess ()
 {
   /* collect constants */
+  constants[0] = "";
+  constants[bound] = "";
+
   iterate_threads([&] (Program & p) {
     for (const auto & op : p)
       if (UnaryInstructionPtr i = dynamic_pointer_cast<UnaryInstruction>(op))
