@@ -1431,14 +1431,19 @@ Btor2Encoder::Btor2Encoder (
   if (e) encode();
 }
 
+string Btor2Encoder::nid ()
+{
+  return to_string(node++);
+}
+
 void Btor2Encoder::declare_sorts ()
 {
   if (verbose)
     formula << btor2::comment_section("sorts");
 
-  formula << btor2::declare_sort(sid_bool = to_string(node++), "1");
-  formula << btor2::declare_sort(sid_bv = to_string(node++), to_string(word_size));
-  formula << btor2::declare_array(sid_heap = to_string(node++), "2", "2");
+  formula << btor2::declare_sort(sid_bool = nid(), "1");
+  formula << btor2::declare_sort(sid_bv = nid(), to_string(word_size));
+  formula << btor2::declare_array(sid_heap = nid(), "2", "2");
 
   formula << eol;
 }
@@ -1449,14 +1454,14 @@ void Btor2Encoder::declare_constants ()
     formula << btor2::comment_section("constants");
 
   /* declare boolean constants */
-  formula << btor2::constd(to_string(node++), sid_bool, "0");
-  formula << btor2::constd(to_string(node++), sid_bool, "1");
+  formula << btor2::constd(nid(), sid_bool, "0");
+  formula << btor2::constd(nid(), sid_bool, "1");
 
   /* declare bitvector constants */
   for (const auto & c : constants)
     formula <<
       btor2::constd(
-        constants[c.first] = to_string(node++),
+        constants[c.first] = nid(),
         sid_bv,
         to_string(c.first));
 
@@ -1472,13 +1477,13 @@ void Btor2Encoder::add_bound ()
   if (verbose)
     formula << btor2::comment("step counter") << eol;
 
-  string nid;
-  string nid_ctr = to_string(node++);
+  string nid_prev;
+  string nid_ctr = nid();
 
   formula << btor2::state(nid_ctr, sid_bv, "k");
-  formula << btor2::init(to_string(node++), sid_bv, nid_ctr, constants[0]);
-  formula << btor2::add(nid = to_string(node++), sid_bv, constants[1], nid_ctr);
-  formula << btor2::next(to_string(node++), sid_bv, nid_ctr, nid);
+  formula << btor2::init(nid(), sid_bv, nid_ctr, constants[0]);
+  formula << btor2::add(nid_prev = nid(), sid_bv, constants[1], nid_ctr);
+  formula << btor2::next(nid(), sid_bv, nid_ctr, nid_prev);
 
   formula << eol;
 
@@ -1486,9 +1491,8 @@ void Btor2Encoder::add_bound ()
   if (verbose)
     formula << btor2::comment("bound (" + to_string(bound) + ")") << eol;
 
-  formula <<
-    btor2::eq(nid = to_string(node++), sid_bool, constants[bound], nid_ctr);
-  formula << btor2::bad(to_string(node++), nid);
+  formula << btor2::eq(nid_prev = nid(), sid_bool, constants[bound], nid_ctr);
+  formula << btor2::bad(nid(), nid_prev);
 
   formula << eol;
 }

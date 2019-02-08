@@ -334,6 +334,8 @@ struct Btor2Encoder : public Encoder
 
   std::map<word, std::string> constants;
 
+  std::string                 nid (void);
+
   void                        declare_sorts (void);
   void                        declare_constants (void);
 
