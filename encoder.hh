@@ -5,6 +5,7 @@
 #include <sstream>
 #include <map>
 #include <set>
+#include <vector>
 
 #include "program.hh"
 
@@ -334,12 +335,25 @@ struct Btor2Encoder : public Encoder
 
   std::map<word, std::string> constants;
 
+  std::string                 nid_true;
+  std::string                 nid_false;
+
+  std::string                 nid_heap;
+  std::vector<std::string>    nid_accu;
+  std::vector<std::string>    nid_mem;
+
+  std::string                 nid_exit;
+  std::map<
+    word,
+    std::vector<std::string>> nid_stmt;
+
   std::string                 nid (void);
 
   void                        declare_sorts (void);
   void                        declare_constants (void);
 
   void                        add_bound (void);
+  void                        add_states (void);
 
   virtual void                preprocess (void);
 

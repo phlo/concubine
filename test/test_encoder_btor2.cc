@@ -35,6 +35,13 @@ struct Btor2EncoderTest : public ::testing::Test
 
       encoder = create_encoder(1);
     }
+
+  void add_declerations ()
+    {
+      encoder->declare_sorts();
+      encoder->declare_constants();
+      encoder->formula.str("");
+    }
 };
 
 // void Btor2Encoder::declare_sorts ();
@@ -133,9 +140,7 @@ TEST_F(Btor2EncoderTest, declare_constants)
 // void add_bound ();
 TEST_F(Btor2EncoderTest, add_bound)
 {
-  encoder->declare_sorts();
-  encoder->declare_constants();
-  encoder->formula.str("");
+  add_declerations();
 
   encoder->add_bound();
 
@@ -158,9 +163,7 @@ TEST_F(Btor2EncoderTest, add_bound)
   /* verbosity */
   reset_encoder(1);
 
-  encoder->declare_sorts();
-  encoder->declare_constants();
-  encoder->formula.str("");
+  add_declerations();
 
   verbose = false;
   encoder->add_bound();
@@ -174,6 +177,118 @@ TEST_F(Btor2EncoderTest, add_bound)
     "\n"
     "12 eq 1 7 8\n"
     "13 bad 12\n\n",
+    encoder->formula.str());
+}
+
+// void add_states ();
+TEST_F(Btor2EncoderTest, add_states)
+{
+  add_dummy_programs(3, 3);
+
+  add_declerations();
+
+  encoder->add_states();
+
+  ASSERT_EQ(
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; states\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; heap\n"
+    "10 state 3 heap\n"
+    "\n"
+    "; accumulator\n"
+    "11 state 2 accu_1\n"
+    "12 init 2 11 6\n"
+    "13 state 2 accu_2\n"
+    "14 init 2 13 6\n"
+    "15 state 2 accu_3\n"
+    "16 init 2 15 6\n"
+    "\n"
+    "; CAS memory register\n"
+    "17 state 2 mem_1\n"
+    "18 init 2 17 6\n"
+    "19 state 2 mem_2\n"
+    "20 init 2 19 6\n"
+    "21 state 2 mem_3\n"
+    "22 init 2 21 6\n"
+    "\n"
+    "; exit\n"
+    "23 state 1 exit\n"
+    "24 init 1 23 4\n"
+    "\n"
+    "; statement activation\n"
+    "25 state 1 stmt_1_0\n"
+    "26 init 1 25 5\n"
+    "27 state 1 stmt_1_1\n"
+    "28 init 1 27 4\n"
+    "29 state 1 stmt_1_2\n"
+    "30 init 1 29 4\n"
+    "\n"
+    "31 state 1 stmt_2_0\n"
+    "32 init 1 31 5\n"
+    "33 state 1 stmt_2_1\n"
+    "34 init 1 33 4\n"
+    "35 state 1 stmt_2_2\n"
+    "36 init 1 35 4\n"
+    "\n"
+    "37 state 1 stmt_3_0\n"
+    "38 init 1 37 5\n"
+    "39 state 1 stmt_3_1\n"
+    "40 init 1 39 4\n"
+    "41 state 1 stmt_3_2\n"
+    "42 init 1 41 4\n\n",
+    encoder->formula.str());
+
+  /* verbosity */
+  reset_encoder(1);
+
+  add_declerations();
+
+  verbose = false;
+  encoder->add_states();
+  verbose = true;
+
+  ASSERT_EQ(
+    "10 state 3 heap\n"
+    "\n"
+    "11 state 2 accu_1\n"
+    "12 init 2 11 6\n"
+    "13 state 2 accu_2\n"
+    "14 init 2 13 6\n"
+    "15 state 2 accu_3\n"
+    "16 init 2 15 6\n"
+    "\n"
+    "17 state 2 mem_1\n"
+    "18 init 2 17 6\n"
+    "19 state 2 mem_2\n"
+    "20 init 2 19 6\n"
+    "21 state 2 mem_3\n"
+    "22 init 2 21 6\n"
+    "\n"
+    "23 state 1 exit\n"
+    "24 init 1 23 4\n"
+    "\n"
+    "25 state 1 stmt_1_0\n"
+    "26 init 1 25 5\n"
+    "27 state 1 stmt_1_1\n"
+    "28 init 1 27 4\n"
+    "29 state 1 stmt_1_2\n"
+    "30 init 1 29 4\n"
+    "\n"
+    "31 state 1 stmt_2_0\n"
+    "32 init 1 31 5\n"
+    "33 state 1 stmt_2_1\n"
+    "34 init 1 33 4\n"
+    "35 state 1 stmt_2_2\n"
+    "36 init 1 35 4\n"
+    "\n"
+    "37 state 1 stmt_3_0\n"
+    "38 init 1 37 5\n"
+    "39 state 1 stmt_3_1\n"
+    "40 init 1 39 4\n"
+    "41 state 1 stmt_3_2\n"
+    "42 init 1 41 4\n\n",
     encoder->formula.str());
 }
 

@@ -1441,11 +1441,11 @@ void Btor2Encoder::declare_sorts ()
   if (verbose)
     formula << btor2::comment_section("sorts");
 
-  formula << btor2::declare_sort(sid_bool = nid(), "1");
-  formula << btor2::declare_sort(sid_bv = nid(), to_string(word_size));
-  formula << btor2::declare_array(sid_heap = nid(), "2", "2");
-
-  formula << eol;
+  formula <<
+    btor2::declare_sort(sid_bool = nid(), "1") <<
+    btor2::declare_sort(sid_bv = nid(), to_string(word_size)) <<
+    btor2::declare_array(sid_heap = nid(), "2", "2") <<
+    eol;
 }
 
 void Btor2Encoder::declare_constants ()
@@ -1454,8 +1454,9 @@ void Btor2Encoder::declare_constants ()
     formula << btor2::comment_section("constants");
 
   /* declare boolean constants */
-  formula << btor2::constd(nid(), sid_bool, "0");
-  formula << btor2::constd(nid(), sid_bool, "1");
+  formula <<
+    btor2::constd(nid_false = nid(), sid_bool, "0") <<
+    btor2::constd(nid_true = nid(), sid_bool, "1");
 
   /* declare bitvector constants */
   for (const auto & c : constants)
@@ -1480,21 +1481,92 @@ void Btor2Encoder::add_bound ()
   string nid_prev;
   string nid_ctr = nid();
 
-  formula << btor2::state(nid_ctr, sid_bv, "k");
-  formula << btor2::init(nid(), sid_bv, nid_ctr, constants[0]);
-  formula << btor2::add(nid_prev = nid(), sid_bv, constants[1], nid_ctr);
-  formula << btor2::next(nid(), sid_bv, nid_ctr, nid_prev);
-
-  formula << eol;
+  formula <<
+    btor2::state(nid_ctr, sid_bv, "k") <<
+    btor2::init(nid(), sid_bv, nid_ctr, constants[0]) <<
+    btor2::add(nid_prev = nid(), sid_bv, constants[1], nid_ctr) <<
+    btor2::next(nid(), sid_bv, nid_ctr, nid_prev) <<
+    eol;
 
   /* bound */
   if (verbose)
     formula << btor2::comment("bound (" + to_string(bound) + ")") << eol;
 
-  formula << btor2::eq(nid_prev = nid(), sid_bool, constants[bound], nid_ctr);
-  formula << btor2::bad(nid(), nid_prev);
+  formula <<
+    btor2::eq(nid_prev = nid(), sid_bool, constants[bound], nid_ctr) <<
+    btor2::bad(nid(), nid_prev) <<
+    eol;
+}
+
+void Btor2Encoder::add_states ()
+{
+  if (verbose)
+    formula << btor2::comment_section("states");
+
+  /* heap */
+  if (verbose)
+      formula << btor2::comment("heap") << eol;
+
+  formula << btor2::state(nid_heap = nid(), sid_heap, "heap") << eol;
+
+  /* accumulator */
+  if (verbose)
+      formula << btor2::comment("accumulator") << eol;
+
+  iterate_threads([&] () {
+    formula <<
+      btor2::state(
+        nid_accu.emplace_back(nid()),
+        sid_bv,
+        "accu_" + to_string(thread)) <<
+      btor2::init(nid(), sid_bv, nid_accu.back(), constants[0]);
+  });
 
   formula << eol;
+
+  /* CAS memory register */
+  if (verbose)
+      formula << btor2::comment("CAS memory register") << eol;
+
+  iterate_threads([&] () {
+    formula <<
+      btor2::state(
+        nid_mem.emplace_back(nid()),
+        sid_bv,
+        "mem_" + to_string(thread)) <<
+      btor2::init(nid(), sid_bv, nid_mem.back(), constants[0]);
+  });
+
+  formula << eol;
+
+  /* exit */
+  if (verbose)
+      formula << btor2::comment("exit") << eol;
+
+  formula <<
+    btor2::state(nid_exit = nid(), sid_bool, "exit") <<
+    btor2::init(nid(), sid_bool, nid_exit, nid_false) <<
+    eol;
+
+  /* statement activation */
+  if (verbose)
+      formula << btor2::comment("statement activation") << eol;
+
+  iterate_threads([&] (Program & program) {
+    for (pc = 0; pc < program.size(); pc++)
+      formula <<
+        btor2::state(
+          nid_stmt[thread].emplace_back(nid()),
+          sid_bool,
+          "stmt_" + to_string(thread) + "_" + to_string(pc)) <<
+        btor2::init(
+          nid(),
+          sid_bool,
+          nid_stmt[thread].back(),
+          pc ? nid_false : nid_true);
+
+    formula << eol;
+  });
 }
 
 void Btor2Encoder::preprocess ()
