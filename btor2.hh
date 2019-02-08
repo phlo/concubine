@@ -843,6 +843,7 @@ namespace btor2
               *it1,
               *it2);
 
+      // TODO: constraint for every nand instead?
       if (nands.size() > 1)
         os << land(nid, sid, nands);
 

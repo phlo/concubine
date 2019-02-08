@@ -42,6 +42,14 @@ struct Btor2EncoderTest : public ::testing::Test
       encoder->declare_constants();
       encoder->formula.str("");
     }
+
+  void add_states ()
+    {
+      encoder->declare_sorts();
+      encoder->declare_constants();
+      encoder->add_states();
+      encoder->formula.str("");
+    }
 };
 
 // void Btor2Encoder::declare_sorts ();
@@ -289,6 +297,86 @@ TEST_F(Btor2EncoderTest, add_states)
     "40 init 1 39 4\n"
     "41 state 1 stmt_3_2\n"
     "42 init 1 41 4\n\n",
+    encoder->formula.str());
+}
+
+// void add_thread_scheduling ();
+TEST_F(Btor2EncoderTest, add_thread_scheduling)
+{
+  add_dummy_programs(3, 3);
+
+  add_states();
+
+  encoder->add_thread_scheduling();
+
+  ASSERT_EQ(
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; thread scheduling\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "43 input 1 thread_1\n"
+    "44 not 1 43\n"
+    "\n"
+    "45 input 1 thread_2\n"
+    "46 not 1 45\n"
+    "\n"
+    "47 input 1 thread_3\n"
+    "48 not 1 47\n"
+    "\n"
+    "; cardinality constraint\n"
+    "49 or 1 43 45\n"
+    "50 or 1 47 49\n"
+    "51 or 1 23 50\n"
+    "52 constraint 51\n"
+    "53 nand 1 43 45\n"
+    "54 nand 1 43 47\n"
+    "55 nand 1 43 23\n"
+    "56 nand 1 45 47\n"
+    "57 nand 1 45 23\n"
+    "58 nand 1 47 23\n"
+    "59 and 1 53 54\n"
+    "60 and 1 55 59\n"
+    "61 and 1 56 60\n"
+    "62 and 1 57 61\n"
+    "63 and 1 58 62\n"
+    "64 constraint 63\n\n",
+    encoder->formula.str());
+
+  /* verbosity */
+  reset_encoder(1);
+
+  add_states();
+
+  verbose = false;
+  encoder->add_thread_scheduling();
+  verbose = true;
+
+  ASSERT_EQ(
+    "43 input 1 thread_1\n"
+    "44 not 1 43\n"
+    "\n"
+    "45 input 1 thread_2\n"
+    "46 not 1 45\n"
+    "\n"
+    "47 input 1 thread_3\n"
+    "48 not 1 47\n"
+    "\n"
+    "49 or 1 43 45\n"
+    "50 or 1 47 49\n"
+    "51 or 1 23 50\n"
+    "52 constraint 51\n"
+    "53 nand 1 43 45\n"
+    "54 nand 1 43 47\n"
+    "55 nand 1 43 23\n"
+    "56 nand 1 45 47\n"
+    "57 nand 1 45 23\n"
+    "58 nand 1 47 23\n"
+    "59 and 1 53 54\n"
+    "60 and 1 55 59\n"
+    "61 and 1 56 60\n"
+    "62 and 1 57 61\n"
+    "63 and 1 58 62\n"
+    "64 constraint 63\n\n",
     encoder->formula.str());
 }
 

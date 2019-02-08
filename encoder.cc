@@ -13,7 +13,8 @@ using namespace std;
 Encoder::Encoder (const ProgramListPtr p, unsigned long b) :
   programs(p),
   num_threads(p->size()),
-  bound(b)
+  bound(b),
+  use_sinz_constraint(num_threads > 4)
 {
   preprocess();
 }
@@ -138,8 +139,7 @@ SMTLibEncoder::SMTLibEncoder (
                               unsigned long b
                              ) :
   Encoder(p, b),
-  step(0),
-  use_sinz_constraint(num_threads > 5)
+  step(0)
 {}
 
 /* string constants ***********************************************************/
@@ -1567,6 +1567,40 @@ void Btor2Encoder::add_states ()
 
     formula << eol;
   });
+}
+
+void Btor2Encoder::add_thread_scheduling ()
+{
+  if (verbose)
+    formula << btor2::comment_section("thread scheduling");
+
+  /* declare thread inputs */
+  iterate_threads([&] () {
+    formula <<
+      btor2::input(
+        nid_thread.emplace_back(nid()),
+        sid_bool,
+        "thread_" + to_string(thread)) <<
+      btor2::lnot(
+        nid_block_thread.emplace_back(nid()),
+        sid_bool,
+        nid_thread.back()) <<
+      eol;
+  });
+
+  /* cardinality constraint */
+  if (verbose)
+    formula << btor2::comment("cardinality constraint") << eol;
+
+  vector<string> variables(nid_thread);
+
+  variables.push_back(nid_exit);
+
+  formula <<
+    (use_sinz_constraint
+      ? btor2::card_constraint_sinz(node, sid_bool, variables)
+      : btor2::card_constraint_naive(node, sid_bool, variables)) <<
+    eol;
 }
 
 void Btor2Encoder::preprocess ()

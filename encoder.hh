@@ -26,6 +26,9 @@ struct Encoder
   /* bound */
   const unsigned long   bound;
 
+  /* use Sinz's cardinality constraint (num_threads > 4) */
+  const bool            use_sinz_constraint;
+
   /* SMT formula */
   std::ostringstream    formula;
 
@@ -125,9 +128,6 @@ struct SMTLibEncoder : public Encoder
 
   /* encoder variables */
   unsigned long             step;
-
-  /* use Sinz's cardinality constraint (num_threads > 5) */
-  const bool                use_sinz_constraint;
 
   /* string constants */
   static const std::string  bv_sort;
@@ -343,6 +343,8 @@ struct Btor2Encoder : public Encoder
   std::vector<std::string>    nid_mem;
 
   std::string                 nid_exit;
+  std::vector<std::string>    nid_thread;
+  std::vector<std::string>    nid_block_thread;
   std::map<
     word,
     std::vector<std::string>> nid_stmt;
@@ -354,6 +356,7 @@ struct Btor2Encoder : public Encoder
 
   void                        add_bound (void);
   void                        add_states (void);
+  void                        add_thread_scheduling (void);
 
   virtual void                preprocess (void);
 
