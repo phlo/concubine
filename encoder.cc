@@ -1498,7 +1498,7 @@ void Btor2Encoder::add_bound ()
     eol;
 }
 
-void Btor2Encoder::add_states ()
+void Btor2Encoder::declare_states ()
 {
   if (verbose)
     formula << btor2::comment_section("states");

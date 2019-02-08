@@ -47,7 +47,7 @@ struct Btor2EncoderTest : public ::testing::Test
     {
       encoder->declare_sorts();
       encoder->declare_constants();
-      encoder->add_states();
+      encoder->declare_states();
       encoder->formula.str("");
     }
 };
@@ -188,14 +188,14 @@ TEST_F(Btor2EncoderTest, add_bound)
     encoder->formula.str());
 }
 
-// void add_states ();
-TEST_F(Btor2EncoderTest, add_states)
+// void declare_states ();
+TEST_F(Btor2EncoderTest, declare_states)
 {
   add_dummy_programs(3, 3);
 
   add_declerations();
 
-  encoder->add_states();
+  encoder->declare_states();
 
   ASSERT_EQ(
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
@@ -254,7 +254,7 @@ TEST_F(Btor2EncoderTest, add_states)
   add_declerations();
 
   verbose = false;
-  encoder->add_states();
+  encoder->declare_states();
   verbose = true;
 
   ASSERT_EQ(
