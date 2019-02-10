@@ -440,6 +440,10 @@ namespace btor2
                            std::string sym = ""
                           )
     {
+      if (args.size() < 2)
+        throw std::runtime_error(
+          "missing arguments [" + std::to_string(2 - args.size()) + "]");
+
       std::ostringstream os;
       std::string id = std::to_string(nid++);
 
@@ -497,6 +501,10 @@ namespace btor2
                            std::string sym = ""
                           )
     {
+      if (args.size() < 2)
+        throw std::runtime_error(
+          "missing arguments [" + std::to_string(2 - args.size()) + "]");
+
       std::ostringstream os;
       std::string id = std::to_string(nid++);
 

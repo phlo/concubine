@@ -357,6 +357,7 @@ TEST(Btor2Test, land_variadic)
 {
   unsigned long nid = 11;
 
+  /* 2 arguments */
   ASSERT_EQ("11 and 1 2 3\n", btor2::land(nid, "1", {"2", "3"}));
 
   ASSERT_EQ(12, nid);
@@ -379,6 +380,16 @@ TEST(Btor2Test, land_variadic)
     "12 and 1 4 11\n"
     "13 and 1 5 12 foo\n",
     btor2::land(nid, "1", {"2", "3", "4", "5"}, "foo"));
+
+  ASSERT_EQ(14, nid);
+
+  /* empty argument */
+  ASSERT_THROW(btor2::land(nid, "1", {}), runtime_error);
+
+  ASSERT_EQ(14, nid);
+
+  /* single argument */
+  ASSERT_THROW(btor2::land(nid, "1", {"2"}), runtime_error);
 
   ASSERT_EQ(14, nid);
 }
@@ -412,6 +423,7 @@ TEST(Btor2Test, lor_variadic)
 {
   unsigned long nid = 11;
 
+  /* 2 arguments */
   ASSERT_EQ("11 or 1 2 3\n", btor2::lor(nid, "1", {"2", "3"}));
 
   ASSERT_EQ(12, nid);
@@ -434,6 +446,16 @@ TEST(Btor2Test, lor_variadic)
     "12 or 1 4 11\n"
     "13 or 1 5 12 foo\n",
     btor2::lor(nid, "1", {"2", "3", "4", "5"}, "foo"));
+
+  ASSERT_EQ(14, nid);
+
+  /* empty argument */
+  ASSERT_THROW(btor2::lor(nid, "1", {}), runtime_error);
+
+  ASSERT_EQ(14, nid);
+
+  /* single argument */
+  ASSERT_THROW(btor2::lor(nid, "1", {"2"}), runtime_error);
 
   ASSERT_EQ(14, nid);
 }
