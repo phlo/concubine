@@ -1622,7 +1622,8 @@ void Btor2Encoder::add_synchronization_constraints ()
       btor2::lnot(
         nid_not_thread[thread] = nid(),
         sid_bool,
-        nid_thread[thread]);
+        nid_thread[thread],
+        "not_thread_" + to_string(thread));
   });
 
   formula << eol;
@@ -1647,7 +1648,12 @@ void Btor2Encoder::add_synchronization_constraints ()
             for (const auto & s : stmts)
               args.push_back(nid_stmt[t][s]);
 
-            formula << btor2::lor(node, sid_bool, args);
+            formula <<
+              btor2::lor(
+                node,
+                sid_bool,
+                args,
+                "thread_" + to_string(t) + "@sync_" + to_string(id));
 
             clauses[t] = sync_args.emplace_back(to_string(node - 1));
           }
@@ -1659,9 +1665,13 @@ void Btor2Encoder::add_synchronization_constraints ()
 
       nid_sync[id] = to_string(node - 1);
 
-      formula
-        << btor2::lnot(nid_not_sync[id] = nid(), sid_bool, nid_sync[id])
-        << eol;
+      formula <<
+        btor2::lnot(
+          nid_not_sync[id] = nid(),
+          sid_bool,
+          nid_sync[id],
+          "not_sync_" + to_string(id)) <<
+        eol;
 
       /* disable waiting threads */
       if (verbose)
@@ -1678,10 +1688,10 @@ void Btor2Encoder::add_synchronization_constraints ()
             btor2::land(
               prev = nid(),
               sid_bool,
-              nid_not_sync[id],
-              clauses[t.first]) <<
+              clauses[t.first],
+              nid_not_sync[id]) <<
             btor2::implies(nid(), sid_bool, prev, nid_not_thread[t.first]) <<
-            btor2::constraint(node) <<
+            btor2::constraint(node, "block_thread_" + to_string(t.first)) <<
             eol;
         }
     }

@@ -405,8 +405,7 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
       programs.push_back(shared_ptr<Program>(new Program()));
 
       for (size_t pc = 0; pc < 2; pc++)
-        programs.back()->add(
-          Instruction::Set::create("SYNC", pc + 1));
+        programs.back()->add(Instruction::Set::create("SYNC", pc + 1));
     }
 
   reset_encoder(1);
@@ -422,51 +421,71 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; negated thread activation variables\n"
-    "55 not 1 36\n"
-    "56 not 1 37\n"
-    "57 not 1 38\n"
+    "55 not 1 36 not_thread_1\n"
+    "56 not 1 37 not_thread_2\n"
+    "57 not 1 38 not_thread_3\n"
     "\n"
     "; synchronization condition sync_1\n"
     "58 and 1 24 28\n"
     "59 and 1 32 58 sync_1\n"
-    "60 not 1 59\n"
+    "60 not 1 59 not_sync_1\n"
     "\n"
     "; disable threads waiting for barrier 1\n"
-    "61 and 1 60 24\n"
+    "61 and 1 24 60\n"
     "62 implies 1 61 55\n"
-    "63 constraint 62\n"
+    "63 constraint 62 block_thread_1\n"
     "\n"
-    "64 and 1 60 28\n"
+    "64 and 1 28 60\n"
     "65 implies 1 64 56\n"
-    "66 constraint 65\n"
+    "66 constraint 65 block_thread_2\n"
     "\n"
-    "67 and 1 60 32\n"
+    "67 and 1 32 60\n"
     "68 implies 1 67 57\n"
-    "69 constraint 68\n"
+    "69 constraint 68 block_thread_3\n"
     "\n"
     "; synchronization condition sync_2\n"
     "70 and 1 26 30\n"
     "71 and 1 34 70 sync_2\n"
-    "72 not 1 71\n"
+    "72 not 1 71 not_sync_2\n"
     "\n"
     "; disable threads waiting for barrier 2\n"
-    "73 and 1 72 26\n"
+    "73 and 1 26 72\n"
     "74 implies 1 73 55\n"
-    "75 constraint 74\n"
+    "75 constraint 74 block_thread_1\n"
     "\n"
-    "76 and 1 72 30\n"
+    "76 and 1 30 72\n"
     "77 implies 1 76 56\n"
-    "78 constraint 77\n"
+    "78 constraint 77 block_thread_2\n"
     "\n"
-    "79 and 1 72 34\n"
+    "79 and 1 34 72\n"
     "80 implies 1 79 57\n"
-    "81 constraint 80\n\n",
+    "81 constraint 80 block_thread_3\n\n",
     encoder->formula.str());
 
   /* multiple calls to the same barrier */
-  programs.clear();
+  for (const auto & program : programs)
+    for (size_t pc = 0; pc < 4; pc++)
+      program->add(Instruction::Set::create("SYNC", pc % 2 + 1));
 
-  // TODO
+  reset_encoder(1);
+
+  add_thread_scheduling();
+
+  encoder->add_synchronization_constraints();
+
+  ASSERT_EQ(
+    vector<string>({"24", "26", "28", "30", "32", "34"}),
+    encoder->nid_stmt[1]);
+  ASSERT_EQ(
+    vector<string>({"36", "38", "40", "42", "44", "46"}),
+    encoder->nid_stmt[2]);
+  ASSERT_EQ(
+    vector<string>({"48", "50", "52", "54", "56", "58"}),
+    encoder->nid_stmt[3]);
+  ASSERT_EQ(NIDMap({{1, "89"}, {2, "107"}}), encoder->nid_sync);
+  ASSERT_EQ(
+    "",
+    encoder->formula.str());
 }
 
 // void Btor2Encoder::preprocess ();
