@@ -329,22 +329,27 @@ struct Btor2Encoder : public Encoder
 
   unsigned long               node;
 
-  std::string                 sid_bool;
-  std::string                 sid_bv;
-  std::string                 sid_heap;
+  std::string                 sid_bool,
+                              sid_bv,
+                              sid_heap,
 
-  std::map<word, std::string> constants;
+                              nid_true,
+                              nid_false,
 
-  std::string                 nid_true;
-  std::string                 nid_false;
+                              nid_heap,
 
-  std::string                 nid_heap;
-  std::vector<std::string>    nid_accu;
-  std::vector<std::string>    nid_mem;
+                              nid_exit;
 
-  std::string                 nid_exit;
-  std::vector<std::string>    nid_thread;
-  std::vector<std::string>    nid_block_thread;
+
+  // TODO: rename to nid_constants
+  std::map<word, std::string> constants,
+
+                              nid_accu,
+                              nid_mem,
+
+                              nid_thread,
+                              nid_sync;
+
   std::map<
     word,
     std::vector<std::string>> nid_stmt;
@@ -357,6 +362,7 @@ struct Btor2Encoder : public Encoder
 
   void                        add_bound (void);
   void                        add_thread_scheduling (void);
+  void                        add_synchronization_constraints (void);
 
   virtual void                preprocess (void);
 

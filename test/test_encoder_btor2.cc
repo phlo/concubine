@@ -4,6 +4,8 @@
 
 using namespace std;
 
+typedef map<word, string> NIDMap;
+
 struct Btor2EncoderTest : public ::testing::Test
 {
   const char *      expected;
@@ -50,6 +52,15 @@ struct Btor2EncoderTest : public ::testing::Test
       encoder->declare_states();
       encoder->formula.str("");
     }
+
+  void add_thread_scheduling ()
+    {
+      encoder->declare_sorts();
+      encoder->declare_constants();
+      encoder->declare_states();
+      encoder->add_thread_scheduling();
+      encoder->formula.str("");
+    }
 };
 
 // void Btor2Encoder::declare_sorts ();
@@ -57,6 +68,9 @@ TEST_F(Btor2EncoderTest, declare_sorts)
 {
   encoder->declare_sorts();
 
+  ASSERT_EQ("1", encoder->sid_bool);
+  ASSERT_EQ("2", encoder->sid_bv);
+  ASSERT_EQ("3", encoder->sid_heap);
   ASSERT_EQ(
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "; sorts\n"
@@ -98,6 +112,11 @@ TEST_F(Btor2EncoderTest, declare_constants)
   encoder->declare_sorts();
   encoder->declare_constants();
 
+  ASSERT_EQ("4", encoder->nid_false);
+  ASSERT_EQ("5", encoder->nid_true);
+  ASSERT_EQ(
+    NIDMap({{0, "6"}, {1, "7"}, {2, "8"}, {3, "9"}, {4, "10"}, {5, "11"}}),
+    encoder->constants);
   ASSERT_EQ(
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "; sorts\n"
@@ -197,6 +216,13 @@ TEST_F(Btor2EncoderTest, declare_states)
 
   encoder->declare_states();
 
+  ASSERT_EQ("10", encoder->nid_heap);
+  ASSERT_EQ(NIDMap({{1, "11"}, {2, "13"}, {3, "15"}}), encoder->nid_accu);
+  ASSERT_EQ(NIDMap({{1, "17"}, {2, "19"}, {3, "21"}}), encoder->nid_mem);
+  ASSERT_EQ("23", encoder->nid_exit);
+  ASSERT_EQ(vector<string>({"25", "27", "29"}), encoder->nid_stmt[1]);
+  ASSERT_EQ(vector<string>({"31", "33", "35"}), encoder->nid_stmt[2]);
+  ASSERT_EQ(vector<string>({"37", "39", "41"}), encoder->nid_stmt[3]);
   ASSERT_EQ(
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "; states\n"
@@ -309,37 +335,33 @@ TEST_F(Btor2EncoderTest, add_thread_scheduling)
 
   encoder->add_thread_scheduling();
 
+  ASSERT_EQ(NIDMap({{1, "43"}, {2, "44"}, {3, "45"}}), encoder->nid_thread);
   ASSERT_EQ(
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "; thread scheduling\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "43 input 1 thread_1\n"
-    "44 not 1 43\n"
-    "\n"
-    "45 input 1 thread_2\n"
-    "46 not 1 45\n"
-    "\n"
-    "47 input 1 thread_3\n"
-    "48 not 1 47\n"
+    "44 input 1 thread_2\n"
+    "45 input 1 thread_3\n"
     "\n"
     "; cardinality constraint\n"
-    "49 or 1 43 45\n"
-    "50 or 1 47 49\n"
-    "51 or 1 23 50\n"
-    "52 constraint 51\n"
-    "53 nand 1 43 45\n"
-    "54 nand 1 43 47\n"
-    "55 nand 1 43 23\n"
-    "56 nand 1 45 47\n"
-    "57 nand 1 45 23\n"
-    "58 nand 1 47 23\n"
-    "59 and 1 53 54\n"
+    "46 or 1 43 44\n"
+    "47 or 1 45 46\n"
+    "48 or 1 23 47\n"
+    "49 constraint 48\n"
+    "50 nand 1 43 44\n"
+    "51 nand 1 43 45\n"
+    "52 nand 1 43 23\n"
+    "53 nand 1 44 45\n"
+    "54 nand 1 44 23\n"
+    "55 nand 1 45 23\n"
+    "56 and 1 50 51\n"
+    "57 and 1 52 56\n"
+    "58 and 1 53 57\n"
+    "59 and 1 54 58\n"
     "60 and 1 55 59\n"
-    "61 and 1 56 60\n"
-    "62 and 1 57 61\n"
-    "63 and 1 58 62\n"
-    "64 constraint 63\n\n",
+    "61 constraint 60\n\n",
     encoder->formula.str());
 
   /* verbosity */
@@ -353,41 +375,106 @@ TEST_F(Btor2EncoderTest, add_thread_scheduling)
 
   ASSERT_EQ(
     "43 input 1 thread_1\n"
-    "44 not 1 43\n"
+    "44 input 1 thread_2\n"
+    "45 input 1 thread_3\n"
     "\n"
-    "45 input 1 thread_2\n"
-    "46 not 1 45\n"
-    "\n"
-    "47 input 1 thread_3\n"
-    "48 not 1 47\n"
-    "\n"
-    "49 or 1 43 45\n"
-    "50 or 1 47 49\n"
-    "51 or 1 23 50\n"
-    "52 constraint 51\n"
-    "53 nand 1 43 45\n"
-    "54 nand 1 43 47\n"
-    "55 nand 1 43 23\n"
-    "56 nand 1 45 47\n"
-    "57 nand 1 45 23\n"
-    "58 nand 1 47 23\n"
-    "59 and 1 53 54\n"
+    "46 or 1 43 44\n"
+    "47 or 1 45 46\n"
+    "48 or 1 23 47\n"
+    "49 constraint 48\n"
+    "50 nand 1 43 44\n"
+    "51 nand 1 43 45\n"
+    "52 nand 1 43 23\n"
+    "53 nand 1 44 45\n"
+    "54 nand 1 44 23\n"
+    "55 nand 1 45 23\n"
+    "56 and 1 50 51\n"
+    "57 and 1 52 56\n"
+    "58 and 1 53 57\n"
+    "59 and 1 54 58\n"
     "60 and 1 55 59\n"
-    "61 and 1 56 60\n"
-    "62 and 1 57 61\n"
-    "63 and 1 58 62\n"
-    "64 constraint 63\n\n",
+    "61 constraint 60\n\n",
     encoder->formula.str());
+}
+
+// void add_synchronization_constraints ();
+TEST_F(Btor2EncoderTest, add_synchronization_constraints)
+{
+  for (size_t t = 0; t < 3; t++)
+    {
+      programs.push_back(shared_ptr<Program>(new Program()));
+
+      for (size_t pc = 0; pc < 2; pc++)
+        programs.back()->add(
+          Instruction::Set::create("SYNC", pc + 1));
+    }
+
+  reset_encoder(1);
+
+  add_thread_scheduling();
+
+  encoder->add_synchronization_constraints();
+
+  ASSERT_EQ(NIDMap({{1, "59"}, {2, "71"}}), encoder->nid_sync);
+  ASSERT_EQ(
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; synchronization constraints\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; negated thread activation variables\n"
+    "55 not 1 36\n"
+    "56 not 1 37\n"
+    "57 not 1 38\n"
+    "\n"
+    "; synchronization condition sync_1\n"
+    "58 and 1 24 28\n"
+    "59 and 1 32 58 sync_1\n"
+    "60 not 1 59\n"
+    "\n"
+    "; disable threads waiting for barrier 1\n"
+    "61 and 1 60 24\n"
+    "62 implies 1 61 55\n"
+    "63 constraint 62\n"
+    "\n"
+    "64 and 1 60 28\n"
+    "65 implies 1 64 56\n"
+    "66 constraint 65\n"
+    "\n"
+    "67 and 1 60 32\n"
+    "68 implies 1 67 57\n"
+    "69 constraint 68\n"
+    "\n"
+    "; synchronization condition sync_2\n"
+    "70 and 1 26 30\n"
+    "71 and 1 34 70 sync_2\n"
+    "72 not 1 71\n"
+    "\n"
+    "; disable threads waiting for barrier 2\n"
+    "73 and 1 72 26\n"
+    "74 implies 1 73 55\n"
+    "75 constraint 74\n"
+    "\n"
+    "76 and 1 72 30\n"
+    "77 implies 1 76 56\n"
+    "78 constraint 77\n"
+    "\n"
+    "79 and 1 72 34\n"
+    "80 implies 1 79 57\n"
+    "81 constraint 80\n\n",
+    encoder->formula.str());
+
+  /* multiple calls to the same barrier */
+  programs.clear();
+
+  // TODO
 }
 
 // void Btor2Encoder::preprocess ();
 TEST_F(Btor2EncoderTest, preprocess)
 {
-  typedef map<word, string> ConstantMap;
-
   add_dummy_programs(3, 3);
 
   ASSERT_EQ(
-    ConstantMap({{0, ""}, {1, ""}, {2, ""}, {3, ""}}),
+    NIDMap({{0, ""}, {1, ""}, {2, ""}, {3, ""}}),
     encoder->constants);
 }

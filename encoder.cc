@@ -1516,10 +1516,10 @@ void Btor2Encoder::declare_states ()
   iterate_threads([&] () {
     formula <<
       btor2::state(
-        nid_accu.emplace_back(nid()),
+        nid_accu[thread] = nid(),
         sid_bv,
         "accu_" + to_string(thread)) <<
-      btor2::init(nid(), sid_bv, nid_accu.back(), constants[0]);
+      btor2::init(nid(), sid_bv, nid_accu[thread], constants[0]);
   });
 
   formula << eol;
@@ -1531,10 +1531,10 @@ void Btor2Encoder::declare_states ()
   iterate_threads([&] () {
     formula <<
       btor2::state(
-        nid_mem.emplace_back(nid()),
+        nid_mem[thread] = nid(),
         sid_bv,
         "mem_" + to_string(thread)) <<
-      btor2::init(nid(), sid_bv, nid_mem.back(), constants[0]);
+      btor2::init(nid(), sid_bv, nid_mem[thread], constants[0]);
   });
 
   formula << eol;
@@ -1578,21 +1578,21 @@ void Btor2Encoder::add_thread_scheduling ()
   iterate_threads([&] () {
     formula <<
       btor2::input(
-        nid_thread.emplace_back(nid()),
+        nid_thread[thread] = nid(),
         sid_bool,
-        "thread_" + to_string(thread)) <<
-      btor2::lnot(
-        nid_block_thread.emplace_back(nid()),
-        sid_bool,
-        nid_thread.back()) <<
-      eol;
+        "thread_" + to_string(thread));
   });
+
+  formula << eol;
 
   /* cardinality constraint */
   if (verbose)
     formula << btor2::comment("cardinality constraint") << eol;
 
-  vector<string> variables(nid_thread);
+  vector<string> variables;
+
+  for (const auto & t : nid_thread)
+    variables.push_back(t.second);
 
   variables.push_back(nid_exit);
 
@@ -1601,6 +1601,90 @@ void Btor2Encoder::add_thread_scheduling ()
       ? btor2::card_constraint_sinz(node, sid_bool, variables)
       : btor2::card_constraint_naive(node, sid_bool, variables)) <<
     eol;
+}
+
+void Btor2Encoder::add_synchronization_constraints ()
+{
+  if (verbose)
+    formula << btor2::comment_section("synchronization constraints");
+
+  /* negated synchronization constraints */
+  map<word, string> nid_not_sync;
+
+  /* negated thread activation variables */
+  map<word, string> nid_not_thread;
+
+  if (verbose)
+    formula << btor2::comment("negated thread activation variables") << eol;
+
+  iterate_threads([&] () {
+    formula <<
+      btor2::lnot(
+        nid_not_thread[thread] = nid(),
+        sid_bool,
+        nid_thread[thread]);
+  });
+
+  formula << eol;
+
+  for (const auto & [id, threads] : sync_pcs)
+    {
+      /* synchronization condition sync_<id> */
+      if (verbose)
+        formula
+          << btor2::comment("synchronization condition sync_" + to_string(id))
+          << eol;
+
+      vector<string> sync_args;
+
+      map<word, string> clauses;
+
+      for (const auto & [t, stmts] : threads)
+        if (stmts.size() > 1)
+          {
+            vector<string> args;
+
+            for (const auto & s : stmts)
+              args.push_back(nid_stmt[t][s]);
+
+            formula << btor2::lor(node, sid_bool, args);
+
+            clauses[t] = sync_args.emplace_back(to_string(node - 1));
+          }
+        else
+          clauses[t] = sync_args.emplace_back(nid_stmt[t][*stmts.begin()]);
+
+      formula
+        << btor2::land(node, sid_bool, sync_args, "sync_" + to_string(id));
+
+      nid_sync[id] = to_string(node - 1);
+
+      formula
+        << btor2::lnot(nid_not_sync[id] = nid(), sid_bool, nid_sync[id])
+        << eol;
+
+      /* disable waiting threads */
+      if (verbose)
+        formula <<
+          btor2::comment(
+            "disable threads waiting for barrier " + to_string(id)) <<
+          eol;
+
+      for (const auto & t : threads)
+        {
+          string prev;
+
+          formula <<
+            btor2::land(
+              prev = nid(),
+              sid_bool,
+              nid_not_sync[id],
+              clauses[t.first]) <<
+            btor2::implies(nid(), sid_bool, prev, nid_not_thread[t.first]) <<
+            btor2::constraint(node) <<
+            eol;
+        }
+    }
 }
 
 void Btor2Encoder::preprocess ()
