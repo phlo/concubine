@@ -1636,9 +1636,11 @@ void Btor2Encoder::add_synchronization_constraints ()
           << btor2::comment("synchronization condition sync_" + to_string(id))
           << eol;
 
-      vector<string> sync_args;
+      /* nids of synchronization conditions */
+      vector<string> sync;
 
-      map<word, string> clauses;
+      /* nids of thread blocking conditions */
+      map<word, string> block;
 
       for (const auto & [t, stmts] : threads)
         if (stmts.size() > 1)
@@ -1655,13 +1657,13 @@ void Btor2Encoder::add_synchronization_constraints ()
                 args,
                 "thread_" + to_string(t) + "@sync_" + to_string(id));
 
-            clauses[t] = sync_args.emplace_back(to_string(node - 1));
+            block[t] = sync.emplace_back(to_string(node - 1));
           }
         else
-          clauses[t] = sync_args.emplace_back(nid_stmt[t][*stmts.begin()]);
+          block[t] = sync.emplace_back(nid_stmt[t][*stmts.begin()]);
 
       formula
-        << btor2::land(node, sid_bool, sync_args, "sync_" + to_string(id));
+        << btor2::land(node, sid_bool, sync, "sync_" + to_string(id));
 
       nid_sync[id] = to_string(node - 1);
 
@@ -1688,7 +1690,7 @@ void Btor2Encoder::add_synchronization_constraints ()
             btor2::land(
               prev = nid(),
               sid_bool,
-              clauses[t.first],
+              block[t.first],
               nid_not_sync[id]) <<
             btor2::implies(nid(), sid_bool, prev, nid_not_thread[t.first]) <<
             btor2::constraint(node, "block_thread_" + to_string(t.first)) <<
