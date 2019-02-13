@@ -433,15 +433,15 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
     "; disable threads waiting for barrier 1\n"
     "61 and 1 24 60\n"
     "62 implies 1 61 55\n"
-    "63 constraint 62 block_thread_1\n"
+    "63 constraint 62 sync_1_block_1\n"
     "\n"
     "64 and 1 28 60\n"
     "65 implies 1 64 56\n"
-    "66 constraint 65 block_thread_2\n"
+    "66 constraint 65 sync_1_block_2\n"
     "\n"
     "67 and 1 32 60\n"
     "68 implies 1 67 57\n"
-    "69 constraint 68 block_thread_3\n"
+    "69 constraint 68 sync_1_block_3\n"
     "\n"
     "; synchronization condition sync_2\n"
     "70 and 1 26 30\n"
@@ -451,15 +451,15 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
     "; disable threads waiting for barrier 2\n"
     "73 and 1 26 72\n"
     "74 implies 1 73 55\n"
-    "75 constraint 74 block_thread_1\n"
+    "75 constraint 74 sync_2_block_1\n"
     "\n"
     "76 and 1 30 72\n"
     "77 implies 1 76 56\n"
-    "78 constraint 77 block_thread_2\n"
+    "78 constraint 77 sync_2_block_2\n"
     "\n"
     "79 and 1 34 72\n"
     "80 implies 1 79 57\n"
-    "81 constraint 80 block_thread_3\n\n",
+    "81 constraint 80 sync_2_block_3\n\n",
     encoder->formula.str());
 
   /* multiple calls to the same barrier */
@@ -507,15 +507,15 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
     "; disable threads waiting for barrier 1\n"
     "91 and 1 83 90\n"
     "92 implies 1 91 79\n"
-    "93 constraint 92 block_thread_1\n"
+    "93 constraint 92 sync_1_block_1\n"
     "\n"
     "94 and 1 85 90\n"
     "95 implies 1 94 80\n"
-    "96 constraint 95 block_thread_2\n"
+    "96 constraint 95 sync_1_block_2\n"
     "\n"
     "97 and 1 87 90\n"
     "98 implies 1 97 81\n"
-    "99 constraint 98 block_thread_3\n"
+    "99 constraint 98 sync_1_block_3\n"
     "\n"
     "; synchronization condition sync_2\n"
     "100 or 1 26 30\n"
@@ -531,15 +531,181 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
     "; disable threads waiting for barrier 2\n"
     "109 and 1 101 108\n"
     "110 implies 1 109 79\n"
-    "111 constraint 110 block_thread_1\n"
+    "111 constraint 110 sync_2_block_1\n"
     "\n"
     "112 and 1 103 108\n"
     "113 implies 1 112 80\n"
-    "114 constraint 113 block_thread_2\n"
+    "114 constraint 113 sync_2_block_2\n"
     "\n"
     "115 and 1 105 108\n"
     "116 implies 1 115 81\n"
-    "117 constraint 116 block_thread_3\n\n",
+    "117 constraint 116 sync_2_block_3\n\n",
+    encoder->formula.str());
+
+  /* barrier only for a subset of threads */
+  for (size_t i = 0; i < programs.size() - 1; i++)
+    programs[i]->add(Instruction::Set::create("SYNC", 3));
+
+  reset_encoder(1);
+
+  add_thread_scheduling();
+
+  encoder->add_synchronization_constraints();
+
+  ASSERT_EQ(
+    vector<string>({"25", "27", "29", "31", "33", "35", "37"}),
+    encoder->nid_stmt[1]);
+  ASSERT_EQ(
+    vector<string>({"39", "41", "43", "45", "47", "49", "51"}),
+    encoder->nid_stmt[2]);
+  ASSERT_EQ(
+    vector<string>({"53", "55", "57", "59", "61", "63"}),
+    encoder->nid_stmt[3]);
+  ASSERT_EQ(NIDMap({{1, "94"}, {2, "112"}, {3, "125"}}), encoder->nid_sync);
+  ASSERT_EQ(
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; synchronization constraints\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; negated thread activation variables\n"
+    "84 not 1 65 not_thread_1\n"
+    "85 not 1 66 not_thread_2\n"
+    "86 not 1 67 not_thread_3\n"
+    "\n"
+    "; synchronization condition sync_1\n"
+    "87 or 1 25 29\n"
+    "88 or 1 33 87 thread_1@sync_1\n"
+    "89 or 1 39 43\n"
+    "90 or 1 47 89 thread_2@sync_1\n"
+    "91 or 1 53 57\n"
+    "92 or 1 61 91 thread_3@sync_1\n"
+    "93 and 1 88 90\n"
+    "94 and 1 92 93 sync_1\n"
+    "95 not 1 94 not_sync_1\n"
+    "\n"
+    "; disable threads waiting for barrier 1\n"
+    "96 and 1 88 95\n"
+    "97 implies 1 96 84\n"
+    "98 constraint 97 sync_1_block_1\n"
+    "\n"
+    "99 and 1 90 95\n"
+    "100 implies 1 99 85\n"
+    "101 constraint 100 sync_1_block_2\n"
+    "\n"
+    "102 and 1 92 95\n"
+    "103 implies 1 102 86\n"
+    "104 constraint 103 sync_1_block_3\n"
+    "\n"
+    "; synchronization condition sync_2\n"
+    "105 or 1 27 31\n"
+    "106 or 1 35 105 thread_1@sync_2\n"
+    "107 or 1 41 45\n"
+    "108 or 1 49 107 thread_2@sync_2\n"
+    "109 or 1 55 59\n"
+    "110 or 1 63 109 thread_3@sync_2\n"
+    "111 and 1 106 108\n"
+    "112 and 1 110 111 sync_2\n"
+    "113 not 1 112 not_sync_2\n"
+    "\n"
+    "; disable threads waiting for barrier 2\n"
+    "114 and 1 106 113\n"
+    "115 implies 1 114 84\n"
+    "116 constraint 115 sync_2_block_1\n"
+    "\n"
+    "117 and 1 108 113\n"
+    "118 implies 1 117 85\n"
+    "119 constraint 118 sync_2_block_2\n"
+    "\n"
+    "120 and 1 110 113\n"
+    "121 implies 1 120 86\n"
+    "122 constraint 121 sync_2_block_3\n"
+    "\n"
+    "; synchronization condition sync_3\n"
+    "123 or 1 65 66\n"
+    "124 and 1 37 51\n"
+    "125 and 1 123 124 sync_3\n"
+    "126 not 1 125 not_sync_3\n"
+    "\n"
+    "; disable threads waiting for barrier 3\n"
+    "127 and 1 37 126\n"
+    "128 implies 1 127 84\n"
+    "129 constraint 128 sync_3_block_1\n"
+    "\n"
+    "130 and 1 51 126\n"
+    "131 implies 1 130 85\n"
+    "132 constraint 131 sync_3_block_2\n\n",
+    encoder->formula.str());
+
+  /* verbosity */
+  reset_encoder(1);
+
+  add_thread_scheduling();
+
+  verbose = false;
+  encoder->add_synchronization_constraints();
+  verbose = true;
+
+  ASSERT_EQ(
+    "84 not 1 65 not_thread_1\n"
+    "85 not 1 66 not_thread_2\n"
+    "86 not 1 67 not_thread_3\n"
+    "\n"
+    "87 or 1 25 29\n"
+    "88 or 1 33 87 thread_1@sync_1\n"
+    "89 or 1 39 43\n"
+    "90 or 1 47 89 thread_2@sync_1\n"
+    "91 or 1 53 57\n"
+    "92 or 1 61 91 thread_3@sync_1\n"
+    "93 and 1 88 90\n"
+    "94 and 1 92 93 sync_1\n"
+    "95 not 1 94 not_sync_1\n"
+    "\n"
+    "96 and 1 88 95\n"
+    "97 implies 1 96 84\n"
+    "98 constraint 97 sync_1_block_1\n"
+    "\n"
+    "99 and 1 90 95\n"
+    "100 implies 1 99 85\n"
+    "101 constraint 100 sync_1_block_2\n"
+    "\n"
+    "102 and 1 92 95\n"
+    "103 implies 1 102 86\n"
+    "104 constraint 103 sync_1_block_3\n"
+    "\n"
+    "105 or 1 27 31\n"
+    "106 or 1 35 105 thread_1@sync_2\n"
+    "107 or 1 41 45\n"
+    "108 or 1 49 107 thread_2@sync_2\n"
+    "109 or 1 55 59\n"
+    "110 or 1 63 109 thread_3@sync_2\n"
+    "111 and 1 106 108\n"
+    "112 and 1 110 111 sync_2\n"
+    "113 not 1 112 not_sync_2\n"
+    "\n"
+    "114 and 1 106 113\n"
+    "115 implies 1 114 84\n"
+    "116 constraint 115 sync_2_block_1\n"
+    "\n"
+    "117 and 1 108 113\n"
+    "118 implies 1 117 85\n"
+    "119 constraint 118 sync_2_block_2\n"
+    "\n"
+    "120 and 1 110 113\n"
+    "121 implies 1 120 86\n"
+    "122 constraint 121 sync_2_block_3\n"
+    "\n"
+    "123 or 1 65 66\n"
+    "124 and 1 37 51\n"
+    "125 and 1 123 124 sync_3\n"
+    "126 not 1 125 not_sync_3\n"
+    "\n"
+    "127 and 1 37 126\n"
+    "128 implies 1 127 84\n"
+    "129 constraint 128 sync_3_block_1\n"
+    "\n"
+    "130 and 1 51 126\n"
+    "131 implies 1 130 85\n"
+    "132 constraint 131 sync_3_block_2\n\n",
     encoder->formula.str());
 }
 
