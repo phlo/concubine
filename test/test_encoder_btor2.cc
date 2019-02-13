@@ -61,6 +61,16 @@ struct Btor2EncoderTest : public ::testing::Test
       encoder->add_thread_scheduling();
       encoder->formula.str("");
     }
+
+  void add_synchronization_constraints ()
+    {
+      encoder->declare_sorts();
+      encoder->declare_constants();
+      encoder->declare_states();
+      encoder->add_thread_scheduling();
+      encoder->add_synchronization_constraints();
+      encoder->formula.str("");
+    }
 };
 
 // void Btor2Encoder::declare_sorts ();
@@ -706,6 +716,65 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
     "130 and 1 51 126\n"
     "131 implies 1 130 85\n"
     "132 constraint 131 sync_3_block_2\n\n",
+    encoder->formula.str());
+}
+
+// void add_statement_execution ();
+TEST_F(Btor2EncoderTest, add_statement_execution)
+{
+  add_dummy_programs(3, 2);
+
+  for (const auto & program : programs)
+    program->add(Instruction::Set::create("SYNC", 1));
+
+  reset_encoder(1);
+
+  add_synchronization_constraints();
+
+  encoder->add_statement_execution();
+
+  ASSERT_EQ(vector<string>({"77", "78", "79"}), encoder->nid_exec[1]);
+  ASSERT_EQ(vector<string>({"80", "81", "82"}), encoder->nid_exec[2]);
+  ASSERT_EQ(vector<string>({"83", "84", "85"}), encoder->nid_exec[3]);
+  ASSERT_EQ(
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; statement execution - shorthand for statement & thread activation\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "77 and 1 25 43 exec_1_0\n"
+    "78 and 1 27 43 exec_1_1\n"
+    "79 and 1 29 66 exec_1_2\n"
+    "\n"
+    "80 and 1 31 44 exec_2_0\n"
+    "81 and 1 33 44 exec_2_1\n"
+    "82 and 1 35 66 exec_2_2\n"
+    "\n"
+    "83 and 1 37 45 exec_3_0\n"
+    "84 and 1 39 45 exec_3_1\n"
+    "85 and 1 41 66 exec_3_2\n\n",
+    encoder->formula.str());
+
+  /* verbosity */
+  reset_encoder(1);
+
+  add_synchronization_constraints();
+
+  verbose = false;
+  encoder->add_statement_execution();
+  verbose = true;
+
+  ASSERT_EQ(
+    "77 and 1 25 43 exec_1_0\n"
+    "78 and 1 27 43 exec_1_1\n"
+    "79 and 1 29 66 exec_1_2\n"
+    "\n"
+    "80 and 1 31 44 exec_2_0\n"
+    "81 and 1 33 44 exec_2_1\n"
+    "82 and 1 35 66 exec_2_2\n"
+    "\n"
+    "83 and 1 37 45 exec_3_0\n"
+    "84 and 1 39 45 exec_3_1\n"
+    "85 and 1 41 66 exec_3_2\n\n",
     encoder->formula.str());
 }
 

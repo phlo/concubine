@@ -352,7 +352,8 @@ struct Btor2Encoder : public Encoder
 
   std::map<
     word,
-    std::vector<std::string>> nid_stmt;
+    std::vector<std::string>> nid_stmt,
+                              nid_exec;
 
   std::string                 nid (void);
 
@@ -363,6 +364,7 @@ struct Btor2Encoder : public Encoder
   void                        add_bound (void);
   void                        add_thread_scheduling (void);
   void                        add_synchronization_constraints (void);
+  void                        add_statement_execution (void);
 
   virtual void                preprocess (void);
 

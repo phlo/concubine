@@ -1720,6 +1720,35 @@ void Btor2Encoder::add_synchronization_constraints ()
     }
 }
 
+void Btor2Encoder::add_statement_execution ()
+{
+  if (verbose)
+    formula <<
+      btor2::comment_section(
+        "statement execution - shorthand for statement & thread activation");
+
+  iterate_threads([&] (Program & program) {
+    for (pc = 0; pc < program.size(); pc++)
+      {
+        string activator = nid_thread[thread];
+
+        /* SYNC: depend on corresponding sync instead of thread variable */
+        if (SyncPtr s = dynamic_pointer_cast<Sync>(program[pc]))
+          activator = nid_sync[s->arg];
+
+        formula <<
+          btor2::land(
+            nid_exec[thread].emplace_back(nid()),
+            sid_bool,
+            nid_stmt[thread][pc],
+            activator,
+            "exec_" + to_string(thread) + "_" + to_string(pc));
+      }
+
+    formula << eol;
+  });
+}
+
 void Btor2Encoder::preprocess ()
 {
   /* collect constants */
