@@ -633,9 +633,9 @@ void SMTLibEncoderFunctional::add_statement_activation ()
               /* build conjunction of execution variable and jump condition */
               if (JmpPtr j = dynamic_pointer_cast<Jmp>(program[prev]))
                 {
-                  /* JMP has no condition and returns an empty string */
                   string cond = j->encode(*this);
 
+                  /* JMP has no condition and returns an empty string */
                   val = cond.empty()
                     ? val
                     : smtlib::land({
@@ -1749,6 +1749,79 @@ void Btor2Encoder::add_statement_execution ()
   });
 }
 
+void Btor2Encoder::add_statement_activation ()
+{
+  if (verbose)
+    formula <<
+      btor2::comment_subsection("update statement activation");
+
+  iterate_threads([&] (Program & program) {
+    for (pc = 0; pc < program.size(); pc++)
+      {
+        if (verbose)
+          formula <<
+            btor2::comment("stmt_" + to_string(thread) + "_" + to_string(pc)) <<
+            eol;
+
+        /* statement reactivation */
+        string nid_next = nid();
+
+        formula <<
+          btor2::lnot(
+            nid_next,
+            sid_bool,
+            nid_exec[thread][pc]) <<
+          btor2::land(
+            nid_next = nid(),
+            sid_bool,
+            nid_stmt[thread][pc],
+            nid_next);
+
+        for (word prev : predecessors[thread][pc])
+          {
+            /* build conjunction of execution variable and jump condition */
+            if (JmpPtr j = dynamic_pointer_cast<Jmp>(program[prev]))
+              {
+                if (prev == pc - 1 && j->arg != pc)
+                  {
+                    // TODO
+                  }
+                else
+                  {
+                    string tmp, nid_cond = j->encode(*this);
+
+                    formula <<
+                      btor2::land(
+                        tmp = nid(),
+                        sid_bool,
+                        nid_exec[thread][prev],
+                        nid_cond) <<
+                      btor2::ite(
+                        nid_next = nid(),
+                        sid_bool,
+                        nid_stmt[thread][prev],
+                        nid_next,
+                        tmp);
+                  }
+              }
+
+            /* add predecessor to the activation */
+            formula <<
+              btor2::ite(
+                nid_next = nid(),
+                sid_bool,
+                nid_stmt[thread][prev],
+                nid_exec[thread][prev],
+                nid_next);
+          }
+
+        formula <<
+          btor2::next(nid(), sid_bool, nid_stmt[thread][pc], nid_next) <<
+          eol;
+      }
+  });
+}
+
 void Btor2Encoder::preprocess ()
 {
   /* collect constants */
@@ -1811,16 +1884,18 @@ string Btor2Encoder::encode (Cmp & c)
   return "";
 }
 
-string Btor2Encoder::encode (Jmp & j)
+string Btor2Encoder::encode (Jmp & j [[maybe_unused]])
 {
-  (void) j;
   return "";
 }
 
-string Btor2Encoder::encode (Jz & j)
+string Btor2Encoder::encode (Jz & j [[maybe_unused]])
 {
-  (void) j;
-  return "";
+  string ret = nid();
+
+  formula << btor2::eq(ret, sid_bv, nid_accu[thread], constants[0]);
+
+  return ret;
 }
 
 string Btor2Encoder::encode (Jnz & j)

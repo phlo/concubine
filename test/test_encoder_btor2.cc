@@ -45,7 +45,7 @@ struct Btor2EncoderTest : public ::testing::Test
       encoder->formula.str("");
     }
 
-  void add_states ()
+  void init_thread_scheduling ()
     {
       encoder->declare_sorts();
       encoder->declare_constants();
@@ -53,7 +53,7 @@ struct Btor2EncoderTest : public ::testing::Test
       encoder->formula.str("");
     }
 
-  void add_thread_scheduling ()
+  void init_synchronization_constraints ()
     {
       encoder->declare_sorts();
       encoder->declare_constants();
@@ -62,13 +62,24 @@ struct Btor2EncoderTest : public ::testing::Test
       encoder->formula.str("");
     }
 
-  void add_synchronization_constraints ()
+  void init_statement_execution ()
     {
       encoder->declare_sorts();
       encoder->declare_constants();
       encoder->declare_states();
       encoder->add_thread_scheduling();
       encoder->add_synchronization_constraints();
+      encoder->formula.str("");
+    }
+
+  void init_statement_state_update ()
+    {
+      encoder->declare_sorts();
+      encoder->declare_constants();
+      encoder->declare_states();
+      encoder->add_thread_scheduling();
+      encoder->add_synchronization_constraints();
+      encoder->add_statement_execution();
       encoder->formula.str("");
     }
 };
@@ -341,7 +352,7 @@ TEST_F(Btor2EncoderTest, add_thread_scheduling)
 {
   add_dummy_programs(3, 3);
 
-  add_states();
+  init_thread_scheduling();
 
   encoder->add_thread_scheduling();
 
@@ -377,7 +388,7 @@ TEST_F(Btor2EncoderTest, add_thread_scheduling)
   /* verbosity */
   reset_encoder(1);
 
-  add_states();
+  init_thread_scheduling();
 
   verbose = false;
   encoder->add_thread_scheduling();
@@ -420,7 +431,7 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
 
   reset_encoder(1);
 
-  add_thread_scheduling();
+  init_synchronization_constraints();
 
   encoder->add_synchronization_constraints();
 
@@ -479,7 +490,7 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
 
   reset_encoder(1);
 
-  add_thread_scheduling();
+  init_synchronization_constraints();
 
   encoder->add_synchronization_constraints();
 
@@ -558,7 +569,7 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
 
   reset_encoder(1);
 
-  add_thread_scheduling();
+  init_synchronization_constraints();
 
   encoder->add_synchronization_constraints();
 
@@ -649,7 +660,7 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
   /* verbosity */
   reset_encoder(1);
 
-  add_thread_scheduling();
+  init_synchronization_constraints();
 
   verbose = false;
   encoder->add_synchronization_constraints();
@@ -729,7 +740,7 @@ TEST_F(Btor2EncoderTest, add_statement_execution)
 
   reset_encoder(1);
 
-  add_synchronization_constraints();
+  init_statement_execution();
 
   encoder->add_statement_execution();
 
@@ -757,7 +768,7 @@ TEST_F(Btor2EncoderTest, add_statement_execution)
   /* verbosity */
   reset_encoder(1);
 
-  add_synchronization_constraints();
+  init_statement_execution();
 
   verbose = false;
   encoder->add_statement_execution();
@@ -775,6 +786,149 @@ TEST_F(Btor2EncoderTest, add_statement_execution)
     "83 and 1 37 45 exec_3_0\n"
     "84 and 1 39 45 exec_3_1\n"
     "85 and 1 41 66 exec_3_2\n\n",
+    encoder->formula.str());
+}
+
+// void add_statement_state_update ();
+TEST_F(Btor2EncoderTest, add_statement_activation_basic)
+{
+  add_dummy_programs(3, 2);
+
+  init_statement_state_update();
+
+  encoder->add_statement_activation();
+
+  ASSERT_EQ(
+    "; update statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; stmt_1_0\n"
+    "65 not 1 59\n"
+    "66 and 1 25 65\n"
+    "67 next 1 25 66\n"
+    "\n"
+    "; stmt_1_1\n"
+    "68 not 1 60\n"
+    "69 and 1 27 68\n"
+    "70 ite 1 25 59 69\n"
+    "71 next 1 27 70\n"
+    "\n"
+    "; stmt_2_0\n"
+    "72 not 1 61\n"
+    "73 and 1 29 72\n"
+    "74 next 1 29 73\n"
+    "\n"
+    "; stmt_2_1\n"
+    "75 not 1 62\n"
+    "76 and 1 31 75\n"
+    "77 ite 1 29 61 76\n"
+    "78 next 1 31 77\n"
+    "\n"
+    "; stmt_3_0\n"
+    "79 not 1 63\n"
+    "80 and 1 33 79\n"
+    "81 next 1 33 80\n"
+    "\n"
+    "; stmt_3_1\n"
+    "82 not 1 64\n"
+    "83 and 1 35 82\n"
+    "84 ite 1 33 63 83\n"
+    "85 next 1 35 84\n\n",
+    encoder->formula.str());
+
+  /* verbosity */
+  reset_encoder(1);
+
+  init_statement_state_update();
+
+  verbose = false;
+  encoder->add_statement_activation();
+  verbose = true;
+
+  ASSERT_EQ(
+    "65 not 1 59\n"
+    "66 and 1 25 65\n"
+    "67 next 1 25 66\n"
+    "\n"
+    "68 not 1 60\n"
+    "69 and 1 27 68\n"
+    "70 ite 1 25 59 69\n"
+    "71 next 1 27 70\n"
+    "\n"
+    "72 not 1 61\n"
+    "73 and 1 29 72\n"
+    "74 next 1 29 73\n"
+    "\n"
+    "75 not 1 62\n"
+    "76 and 1 31 75\n"
+    "77 ite 1 29 61 76\n"
+    "78 next 1 31 77\n"
+    "\n"
+    "79 not 1 63\n"
+    "80 and 1 33 79\n"
+    "81 next 1 33 80\n"
+    "\n"
+    "82 not 1 64\n"
+    "83 and 1 35 82\n"
+    "84 ite 1 33 63 83\n"
+    "85 next 1 35 84\n\n",
+    encoder->formula.str());
+}
+
+// TODO
+TEST_F(Btor2EncoderTest, add_statement_activation_jmp)
+{
+  for (size_t i = 0; i < 3; i++)
+    {
+      programs.push_back(shared_ptr<Program>(new Program()));
+
+      programs[i]->add(Instruction::Set::create("ADDI", 1));
+      programs[i]->add(Instruction::Set::create("STORE", 1));
+      programs[i]->add(Instruction::Set::create("JMP", 1));
+    }
+
+  reset_encoder(1);
+
+  // init_statement_state_update();
+  encoder->declare_sorts();
+  encoder->declare_constants();
+  encoder->declare_states();
+  encoder->add_thread_scheduling();
+  encoder->add_synchronization_constraints();
+  encoder->add_statement_execution();
+
+  encoder->add_statement_activation();
+
+  ASSERT_EQ(
+    "",
+    encoder->formula.str());
+}
+
+// TODO
+TEST_F(Btor2EncoderTest, add_statement_activation_jmp_conditional)
+{
+  for (size_t i = 0; i < 3; i++)
+    {
+      programs.push_back(shared_ptr<Program>(new Program()));
+
+      programs[i]->add(Instruction::Set::create("ADDI", 1));
+      programs[i]->add(Instruction::Set::create("STORE", 1));
+      programs[i]->add(Instruction::Set::create("JZ", 1));
+    }
+
+  reset_encoder(1);
+
+  // init_statement_state_update();
+  encoder->declare_sorts();
+  encoder->declare_constants();
+  encoder->declare_states();
+  encoder->add_thread_scheduling();
+  encoder->add_synchronization_constraints();
+  encoder->add_statement_execution();
+
+  encoder->add_statement_activation();
+
+  ASSERT_EQ(
+    "",
     encoder->formula.str());
 }
 

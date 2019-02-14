@@ -365,6 +365,7 @@ struct Btor2Encoder : public Encoder
   void                        add_thread_scheduling (void);
   void                        add_synchronization_constraints (void);
   void                        add_statement_execution (void);
+  void                        add_statement_activation (void);
 
   virtual void                preprocess (void);
 
