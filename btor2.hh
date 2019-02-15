@@ -322,7 +322,7 @@ namespace btor2
       return line(nid + " eq " + sid + " " + arg1 + " " + arg2, sym);
     }
 
-  inline std::string neq (
+  inline std::string ne (
                           std::string nid,
                           std::string sid,
                           std::string arg1,
@@ -330,7 +330,7 @@ namespace btor2
                           std::string sym = ""
                          )
     {
-      return line(nid + " neq " + sid + " " + arg1 + " " + arg2, sym);
+      return line(nid + " ne " + sid + " " + arg1 + " " + arg2, sym);
     }
 
   inline std::string sgt (

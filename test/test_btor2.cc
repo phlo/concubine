@@ -272,12 +272,12 @@ TEST(Btor2Test, eq)
   ASSERT_EQ("13 eq 3 4 5 foo\n", btor2::eq("13", "3", "4", "5", "foo"));
 }
 
-// inline string neq (string, string, string, string)
-TEST(Btor2Test, neq)
+// inline string ne (string, string, string, string)
+TEST(Btor2Test, ne)
 {
-  ASSERT_EQ("11 neq 1 2 3\n", btor2::neq("11", "1", "2", "3"));
-  ASSERT_EQ("12 neq 2 3 4\n", btor2::neq("12", "2", "3", "4"));
-  ASSERT_EQ("13 neq 3 4 5 foo\n", btor2::neq("13", "3", "4", "5", "foo"));
+  ASSERT_EQ("11 ne 1 2 3\n", btor2::ne("11", "1", "2", "3"));
+  ASSERT_EQ("12 ne 2 3 4\n", btor2::ne("12", "2", "3", "4"));
+  ASSERT_EQ("13 ne 3 4 5 foo\n", btor2::ne("13", "3", "4", "5", "foo"));
 }
 
 // inline string sgt (string, string, string, string)
