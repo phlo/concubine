@@ -1459,10 +1459,10 @@ void Btor2Encoder::declare_constants ()
     btor2::constd(nid_true = nid(), sid_bool, "1");
 
   /* declare bitvector constants */
-  for (const auto & c : constants)
+  for (const auto & c : nids_const)
     formula <<
       btor2::constd(
-        constants[c.first] = nid(),
+        nids_const[c.first] = nid(),
         sid_bv,
         to_string(c.first));
 
@@ -1483,8 +1483,8 @@ void Btor2Encoder::add_bound ()
 
   formula <<
     btor2::state(nid_ctr, sid_bv, "k") <<
-    btor2::init(nid(), sid_bv, nid_ctr, constants[0]) <<
-    btor2::add(nid_prev = nid(), sid_bv, constants[1], nid_ctr) <<
+    btor2::init(nid(), sid_bv, nid_ctr, nids_const[0]) <<
+    btor2::add(nid_prev = nid(), sid_bv, nids_const[1], nid_ctr) <<
     btor2::next(nid(), sid_bv, nid_ctr, nid_prev) <<
     eol;
 
@@ -1493,7 +1493,7 @@ void Btor2Encoder::add_bound ()
     formula << btor2::comment("bound (" + to_string(bound) + ")") << eol;
 
   formula <<
-    btor2::eq(nid_prev = nid(), sid_bool, constants[bound], nid_ctr) <<
+    btor2::eq(nid_prev = nid(), sid_bool, nids_const[bound], nid_ctr) <<
     btor2::bad(nid(), nid_prev) <<
     eol;
 }
@@ -1516,10 +1516,10 @@ void Btor2Encoder::declare_states ()
   iterate_threads([&] () {
     formula <<
       btor2::state(
-        nid_accu[thread] = nid(),
+        nids_accu[thread] = nid(),
         sid_bv,
         "accu_" + to_string(thread)) <<
-      btor2::init(nid(), sid_bv, nid_accu[thread], constants[0]);
+      btor2::init(nid(), sid_bv, nids_accu[thread], nids_const[0]);
   });
 
   formula << eol;
@@ -1531,10 +1531,10 @@ void Btor2Encoder::declare_states ()
   iterate_threads([&] () {
     formula <<
       btor2::state(
-        nid_mem[thread] = nid(),
+        nids_mem[thread] = nid(),
         sid_bv,
         "mem_" + to_string(thread)) <<
-      btor2::init(nid(), sid_bv, nid_mem[thread], constants[0]);
+      btor2::init(nid(), sid_bv, nids_mem[thread], nids_const[0]);
   });
 
   formula << eol;
@@ -1556,13 +1556,13 @@ void Btor2Encoder::declare_states ()
     for (pc = 0; pc < program.size(); pc++)
       formula <<
         btor2::state(
-          nid_stmt[thread].emplace_back(nid()),
+          nids_stmt[thread].emplace_back(nid()),
           sid_bool,
           "stmt_" + to_string(thread) + "_" + to_string(pc)) <<
         btor2::init(
           nid(),
           sid_bool,
-          nid_stmt[thread].back(),
+          nids_stmt[thread].back(),
           pc ? nid_false : nid_true);
 
     formula << eol;
@@ -1578,7 +1578,7 @@ void Btor2Encoder::add_thread_scheduling ()
   iterate_threads([&] () {
     formula <<
       btor2::input(
-        nid_thread[thread] = nid(),
+        nids_thread[thread] = nid(),
         sid_bool,
         "thread_" + to_string(thread));
   });
@@ -1591,7 +1591,7 @@ void Btor2Encoder::add_thread_scheduling ()
 
   vector<string> variables;
 
-  for (const auto & t : nid_thread)
+  for (const auto & t : nids_thread)
     variables.push_back(t.second);
 
   variables.push_back(nid_exit);
@@ -1619,7 +1619,7 @@ void Btor2Encoder::add_synchronization_constraints ()
       btor2::lnot(
         nid_not_thread[thread] = nid(),
         sid_bool,
-        nid_thread[thread],
+        nids_thread[thread],
         "not_thread_" + to_string(thread));
   });
 
@@ -1648,7 +1648,7 @@ void Btor2Encoder::add_synchronization_constraints ()
             vector<string> args;
 
             for (const auto & p : pcs)
-              args.push_back(nid_stmt[t][p]);
+              args.push_back(nids_stmt[t][p]);
 
             formula <<
               btor2::lor(
@@ -1660,15 +1660,15 @@ void Btor2Encoder::add_synchronization_constraints ()
             waiting[t] = conditions.emplace_back(to_string(node - 1));
           }
         else
-          waiting[t] = conditions.emplace_back(nid_stmt[t][*pcs.begin()]);
+          waiting[t] = conditions.emplace_back(nids_stmt[t][*pcs.begin()]);
 
-      /* one of the waiting threads has to be executed */
+      /* one of the waiting threads must be executed */
       if (threads.size() != num_threads)
         {
           vector<string> args;
 
           for (const auto & t : threads)
-            args.push_back(nid_thread[t.first]);
+            args.push_back(nids_thread[t.first]);
 
           formula << btor2::lor(node, sid_bool, args);
 
@@ -1679,14 +1679,14 @@ void Btor2Encoder::add_synchronization_constraints ()
       formula
         << btor2::land(node, sid_bool, conditions, "sync_" + to_string(id));
 
-      nid_sync[id] = to_string(node - 1);
+      nids_sync[id] = to_string(node - 1);
 
       /* add negated synchronization condition */
       formula <<
         btor2::lnot(
           nid_not_sync[id] = nid(),
           sid_bool,
-          nid_sync[id],
+          nids_sync[id],
           "not_sync_" + to_string(id)) <<
         eol;
 
@@ -1730,17 +1730,17 @@ void Btor2Encoder::add_statement_execution ()
   iterate_threads([&] (Program & program) {
     for (pc = 0; pc < program.size(); pc++)
       {
-        string activator = nid_thread[thread];
+        string activator = nids_thread[thread];
 
-        /* SYNC: depend on corresponding sync instead of thread variable */
+        /* depend on corresponding sync instead of thread variable */
         if (SyncPtr s = dynamic_pointer_cast<Sync>(program[pc]))
-          activator = nid_sync[s->arg];
+          activator = nids_sync[s->arg];
 
         formula <<
           btor2::land(
-            nid_exec[thread].emplace_back(nid()),
+            nids_exec[thread].emplace_back(nid()),
             sid_bool,
-            nid_stmt[thread][pc],
+            nids_stmt[thread][pc],
             activator,
             "exec_" + to_string(thread) + "_" + to_string(pc));
       }
@@ -1756,6 +1756,14 @@ void Btor2Encoder::add_statement_activation ()
       btor2::comment_subsection("update statement activation");
 
   iterate_threads([&] (Program & program) {
+
+    /* map storing nids of jump conditions */
+    map<JmpPtr, string> nid_jmp;
+
+    /* reduce lookups */
+    const vector<string> & nids_stmt_thread = nids_stmt[thread];
+    const vector<string> & nids_exec_thread = nids_exec[thread];
+
     for (pc = 0; pc < program.size(); pc++)
       {
         if (verbose)
@@ -1763,60 +1771,83 @@ void Btor2Encoder::add_statement_activation ()
             btor2::comment("stmt_" + to_string(thread) + "_" + to_string(pc)) <<
             eol;
 
-        /* statement reactivation */
         string nid_next = nid();
+        string nid_prev = nids_exec_thread[pc];
+        string nid_stmt = nids_stmt_thread[pc];
 
+        /* add statement reactivation */
         formula <<
           btor2::lnot(
             nid_next,
             sid_bool,
-            nid_exec[thread][pc]) <<
+            nid_prev) <<
           btor2::land(
             nid_next = nid(),
             sid_bool,
-            nid_stmt[thread][pc],
+            nid_stmt,
             nid_next);
 
+        /* add activation by predecessor's execution */
         for (word prev : predecessors[thread][pc])
           {
-            /* build conjunction of execution variable and jump condition */
+            nid_prev = nids_exec_thread[prev];
+
+            /* predecessor is a jump */
             if (JmpPtr j = dynamic_pointer_cast<Jmp>(program[prev]))
               {
-                if (prev == pc - 1 && j->arg != pc)
+                string nid_cond;
+
+                /* avoid extra lookups https://stackoverflow.com/a/101980 */
+                map<JmpPtr, string>::iterator lb = nid_jmp.lower_bound(j);
+
+                if (lb != nid_jmp.end() && !(nid_jmp.key_comp()(j, lb->first)))
                   {
-                    // TODO
+                    /* get nid of existing jump condition */
+                    nid_cond = lb->second;
                   }
                 else
                   {
-                    string tmp, nid_cond = j->encode(*this);
+                    /* add jump condition */
+                    nid_cond = j->encode(*this);
 
+                    nid_jmp.insert(
+                      lb,
+                      map<JmpPtr, string>::value_type(j, nid_cond));
+                  }
+
+                /* nothing to do here for unconditional jumps (JMP) */
+                if (!nid_cond.empty())
+                  {
+                    /* add negated condition if preceding jump failed */
+                    if (prev == pc - 1 && j->arg != pc)
+                      formula <<
+                        btor2::lnot(
+                          nid_cond = nid(),
+                          sid_bool,
+                          nid_cond);
+
+                    /* add conjunction of execution variable & jump condition */
                     formula <<
                       btor2::land(
-                        tmp = nid(),
+                        nid_prev = nid(),
                         sid_bool,
-                        nid_exec[thread][prev],
-                        nid_cond) <<
-                      btor2::ite(
-                        nid_next = nid(),
-                        sid_bool,
-                        nid_stmt[thread][prev],
-                        nid_next,
-                        tmp);
+                        nid_prev,
+                        nid_cond);
                   }
               }
 
-            /* add predecessor to the activation */
+            /* add predecessors activation */
             formula <<
               btor2::ite(
                 nid_next = nid(),
                 sid_bool,
-                nid_stmt[thread][prev],
-                nid_exec[thread][prev],
+                nids_stmt_thread[prev],
+                nid_prev,
                 nid_next);
           }
 
         formula <<
-          btor2::next(nid(), sid_bool, nid_stmt[thread][pc], nid_next) <<
+          btor2::next(nid(), sid_bool, nid_stmt, nid_next) <<
           eol;
       }
   });
@@ -1825,13 +1856,13 @@ void Btor2Encoder::add_statement_activation ()
 void Btor2Encoder::preprocess ()
 {
   /* collect constants */
-  constants[0] = "";
-  constants[bound] = "";
+  nids_const[0] = "";
+  nids_const[bound] = "";
 
   iterate_threads([&] (Program & p) {
     for (const auto & op : p)
       if (UnaryInstructionPtr i = dynamic_pointer_cast<UnaryInstruction>(op))
-        constants[i->arg] = "";
+        nids_const[i->arg] = "";
   });
 }
 
@@ -1893,15 +1924,18 @@ string Btor2Encoder::encode (Jz & j [[maybe_unused]])
 {
   string ret = nid();
 
-  formula << btor2::eq(ret, sid_bv, nid_accu[thread], constants[0]);
+  formula << btor2::eq(ret, sid_bool, nids_accu[thread], nids_const[0]);
 
   return ret;
 }
 
-string Btor2Encoder::encode (Jnz & j)
+string Btor2Encoder::encode (Jnz & j [[maybe_unused]])
 {
-  (void) j;
-  return "";
+  string ret = nid();
+
+  formula << btor2::ne(ret, sid_bool, nids_accu[thread], nids_const[0]);
+
+  return ret;
 }
 
 string Btor2Encoder::encode (Js & j)

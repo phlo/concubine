@@ -129,7 +129,7 @@ struct SMTLibEncoder : public Encoder
   /* encoder variables */
   unsigned long             step;
 
-  /* string constants */
+  /* string nids_const */
   static const std::string  bv_sort;
 
   static const std::string  exit_code_var;
@@ -341,19 +341,18 @@ struct Btor2Encoder : public Encoder
                               nid_exit;
 
 
-  // TODO: rename to nid_constants
-  std::map<word, std::string> constants,
+  std::map<word, std::string> nids_const,
 
-                              nid_accu,
-                              nid_mem,
+                              nids_accu,
+                              nids_mem,
 
-                              nid_thread,
-                              nid_sync;
+                              nids_thread,
+                              nids_sync;
 
   std::map<
     word,
-    std::vector<std::string>> nid_stmt,
-                              nid_exec;
+    std::vector<std::string>> nids_stmt,
+                              nids_exec;
 
   std::string                 nid (void);
 
