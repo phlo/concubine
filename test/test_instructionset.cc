@@ -64,6 +64,11 @@ TEST_F(InstructionSetTest, LOAD)
   ASSERT_EQ(1, simulator.memory[0]);
   ASSERT_EQ(1, thread.accu);
   ASSERT_EQ(1, thread.pc);
+
+  /* attributes */
+  ASSERT_EQ(
+    Instruction::Attributes::ALTERS_ACCU,
+    instruction->get_attributes());
 }
 
 /* STORE **********************************************************************/
@@ -83,6 +88,11 @@ TEST_F(InstructionSetTest, STORE)
   ASSERT_EQ(1, simulator.memory[0]);
   ASSERT_EQ(1, thread.accu);
   ASSERT_EQ(1, thread.pc);
+
+  /* attributes */
+  ASSERT_EQ(
+    Instruction::Attributes::ALTERS_HEAP,
+    instruction->get_attributes());
 }
 
 /* ADD ************************************************************************/
@@ -102,6 +112,11 @@ TEST_F(InstructionSetTest, ADD)
   ASSERT_EQ(1, simulator.memory[0]);
   ASSERT_EQ(1, thread.accu);
   ASSERT_EQ(1, thread.pc);
+
+  /* attributes */
+  ASSERT_EQ(
+    Instruction::Attributes::ALTERS_ACCU,
+    instruction->get_attributes());
 }
 
 /* ADDI ***********************************************************************/
@@ -117,6 +132,11 @@ TEST_F(InstructionSetTest, ADDI)
 
   ASSERT_EQ(1, thread.accu);
   ASSERT_EQ(1, thread.pc);
+
+  /* attributes */
+  ASSERT_EQ(
+    Instruction::Attributes::ALTERS_ACCU,
+    instruction->get_attributes());
 }
 
 /* SUB ************************************************************************/
@@ -137,6 +157,11 @@ TEST_F(InstructionSetTest, SUB)
   ASSERT_EQ(1, simulator.memory[0]);
   ASSERT_EQ(0, thread.accu);
   ASSERT_EQ(1, thread.pc);
+
+  /* attributes */
+  ASSERT_EQ(
+    Instruction::Attributes::ALTERS_ACCU,
+    instruction->get_attributes());
 }
 
 /* SUBI ***********************************************************************/
@@ -154,6 +179,11 @@ TEST_F(InstructionSetTest, SUBI)
 
   ASSERT_EQ(0, thread.accu);
   ASSERT_EQ(1, thread.pc);
+
+  /* attributes */
+  ASSERT_EQ(
+    Instruction::Attributes::ALTERS_ACCU,
+    instruction->get_attributes());
 }
 
 /* CMP ************************************************************************/
@@ -182,6 +212,11 @@ TEST_F(InstructionSetTest, CMP)
   ASSERT_EQ(1, simulator.memory[0]);
   ASSERT_EQ(word_max, thread.accu);
   ASSERT_EQ(2, thread.pc);
+
+  /* attributes */
+  ASSERT_EQ(
+    Instruction::Attributes::ALTERS_ACCU,
+    instruction->get_attributes());
 }
 
 /* JMP ************************************************************************/
@@ -202,6 +237,9 @@ TEST_F(InstructionSetTest, JMP)
   instruction->execute(thread);
 
   ASSERT_EQ(word_max, thread.pc);
+
+  /* attributes */
+  ASSERT_EQ(0, instruction->get_attributes());
 }
 
 /* JZ *************************************************************************/
@@ -227,6 +265,9 @@ TEST_F(InstructionSetTest, JZ)
   instruction->execute(thread);
 
   ASSERT_EQ(1, thread.pc);
+
+  /* attributes */
+  ASSERT_EQ(0, instruction->get_attributes());
 }
 
 /* JNZ ************************************************************************/
@@ -252,6 +293,9 @@ TEST_F(InstructionSetTest, JNZ)
   instruction->execute(thread);
 
   ASSERT_EQ(0, thread.pc);
+
+  /* attributes */
+  ASSERT_EQ(0, instruction->get_attributes());
 }
 
 /* JS *************************************************************************/
@@ -277,6 +321,9 @@ TEST_F(InstructionSetTest, JS)
   instruction->execute(thread);
 
   ASSERT_EQ(0, thread.pc);
+
+  /* attributes */
+  ASSERT_EQ(0, instruction->get_attributes());
 }
 
 /* JNS ************************************************************************/
@@ -302,6 +349,9 @@ TEST_F(InstructionSetTest, JNS)
   instruction->execute(thread);
 
   ASSERT_EQ(1, thread.pc);
+
+  /* attributes */
+  ASSERT_EQ(0, instruction->get_attributes());
 }
 
 /* JNZNS **********************************************************************/
@@ -336,6 +386,9 @@ TEST_F(InstructionSetTest, JNZNS)
   instruction->execute(thread);
 
   ASSERT_EQ(0, thread.pc);
+
+  /* attributes */
+  ASSERT_EQ(0, instruction->get_attributes());
 }
 
 /* MEM ************************************************************************/
@@ -357,6 +410,11 @@ TEST_F(InstructionSetTest, MEM)
   ASSERT_EQ(1, thread.mem);
   ASSERT_EQ(1, thread.accu);
   ASSERT_EQ(1, simulator.memory[0]);
+
+  /* attributes */
+  ASSERT_EQ(
+    Instruction::Attributes::ALTERS_ACCU | Instruction::Attributes::ALTERS_MEM,
+    instruction->get_attributes());
 }
 
 /* CAS ************************************************************************/
@@ -389,6 +447,11 @@ TEST_F(InstructionSetTest, CAS)
   ASSERT_EQ(1, thread.mem);
   ASSERT_EQ(0, thread.accu);
   ASSERT_EQ(0, simulator.memory[0]);
+
+  /* attributes */
+  ASSERT_EQ(
+    Instruction::Attributes::ALTERS_ACCU | Instruction::Attributes::ALTERS_HEAP,
+    instruction->get_attributes());
 }
 
 /* SYNC ***********************************************************************/
@@ -407,6 +470,9 @@ TEST_F(InstructionSetTest, SYNC)
   ASSERT_EQ(1, thread.pc);
   ASSERT_EQ(1, thread.sync);
   ASSERT_EQ(Thread::State::WAITING, thread.state);
+
+  /* attributes */
+  ASSERT_EQ(0, instruction->get_attributes());
 }
 
 /* EXIT ***********************************************************************/
@@ -425,4 +491,7 @@ TEST_F(InstructionSetTest, EXIT)
   ASSERT_EQ(0, thread.pc);
   ASSERT_EQ(1, thread.accu);
   ASSERT_EQ(Thread::State::EXITING, thread.state);
+
+  /* attributes */
+  ASSERT_EQ(0, instruction->get_attributes());
 }

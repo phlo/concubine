@@ -9,6 +9,13 @@
 using namespace std;
 
 /*******************************************************************************
+ * Instruction::Attributes
+ ******************************************************************************/
+const unsigned char Instruction::Attributes::ALTERS_HEAP  = 1 << 0;
+const unsigned char Instruction::Attributes::ALTERS_ACCU  = 1 << 1;
+const unsigned char Instruction::Attributes::ALTERS_MEM   = 1 << 2;
+
+/*******************************************************************************
  * Instruction::Set
  ******************************************************************************/
 unordered_map<string, Instruction *(*)()>
@@ -81,24 +88,26 @@ MemoryInstruction::MemoryInstruction (const word a) :
  * use preprocessor to simplify definition of instructions
  * NOTE: 'execute' defined outside!
  ******************************************************************************/
-#define DEFINE_COMMON_INSTRUCTION_MEMBERS(classname)                           \
+#define DEFINE_COMMON_INSTRUCTION_MEMBERS(classname, attr)                     \
+  const unsigned char classname::attributes = attr;                            \
   Instruction::OPCode classname::get_opcode () { return OPCode::classname; }   \
   const string& classname::get_symbol () { return classname::symbol; }         \
+  unsigned char classname::get_attributes () { return classname::attributes; } \
   string classname::encode (Encoder & formula) { return formula.encode(*this); }
 
-#define DEFINE_INSTRUCTION_NULLARY(classname, identifier)           \
-  DEFINE_COMMON_INSTRUCTION_MEMBERS (classname)                     \
-  const string  classname::symbol = [](string sym)->const string    \
-  {                                                                 \
-    Instruction::Set::nullary_factory[sym] = []()->Instruction *    \
-      {                                                             \
-        return new classname;                                       \
-      };                                                            \
-    return sym;                                                     \
-  }(identifier);                                                    \
+#define DEFINE_INSTRUCTION_NULLARY(classname, identifier, attributes) \
+  DEFINE_COMMON_INSTRUCTION_MEMBERS (classname, attributes)           \
+  const string  classname::symbol = [](string sym)->const string      \
+  {                                                                   \
+    Instruction::Set::nullary_factory[sym] = []()->Instruction *      \
+      {                                                               \
+        return new classname;                                         \
+      };                                                              \
+    return sym;                                                       \
+  }(identifier);                                                      \
 
-#define DEFINE_INSTRUCTION_UNARY(classname, identifier)                     \
-  DEFINE_COMMON_INSTRUCTION_MEMBERS(classname)                              \
+#define DEFINE_INSTRUCTION_UNARY(classname, identifier, attributes)         \
+  DEFINE_COMMON_INSTRUCTION_MEMBERS(classname, attributes)                  \
   const string  classname::symbol = [](string sym)->const string            \
   {                                                                         \
     Instruction::Set::unary_factory[sym] = [](const word a)->Instruction *  \
@@ -109,7 +118,7 @@ MemoryInstruction::MemoryInstruction (const word a) :
   }(identifier);                                                            \
 
 /* LOAD ***********************************************************************/
-DEFINE_INSTRUCTION_UNARY(Load, "LOAD")
+DEFINE_INSTRUCTION_UNARY(Load, "LOAD", Attributes::ALTERS_ACCU)
 void Load::execute (Thread & thread)
 {
   thread.pc++;
@@ -117,7 +126,7 @@ void Load::execute (Thread & thread)
 }
 
 /* STORE **********************************************************************/
-DEFINE_INSTRUCTION_UNARY(Store, "STORE")
+DEFINE_INSTRUCTION_UNARY(Store, "STORE", Attributes::ALTERS_HEAP)
 void Store::execute (Thread & thread)
 {
   thread.pc++;
@@ -125,7 +134,7 @@ void Store::execute (Thread & thread)
 }
 
 /* ADD ************************************************************************/
-DEFINE_INSTRUCTION_UNARY(Add, "ADD")
+DEFINE_INSTRUCTION_UNARY(Add, "ADD", Attributes::ALTERS_ACCU)
 void Add::execute (Thread & thread)
 {
   thread.pc++;
@@ -133,7 +142,7 @@ void Add::execute (Thread & thread)
 }
 
 /* ADDI ***********************************************************************/
-DEFINE_INSTRUCTION_UNARY(Addi, "ADDI")
+DEFINE_INSTRUCTION_UNARY(Addi, "ADDI", Attributes::ALTERS_ACCU)
 void Addi::execute (Thread & thread)
 {
   thread.pc++;
@@ -141,7 +150,7 @@ void Addi::execute (Thread & thread)
 }
 
 /* SUB ************************************************************************/
-DEFINE_INSTRUCTION_UNARY(Sub, "SUB")
+DEFINE_INSTRUCTION_UNARY(Sub, "SUB", Attributes::ALTERS_ACCU)
 void Sub::execute (Thread & thread)
 {
   thread.pc++;
@@ -149,7 +158,7 @@ void Sub::execute (Thread & thread)
 }
 
 /* SUBI ***********************************************************************/
-DEFINE_INSTRUCTION_UNARY(Subi, "SUBI")
+DEFINE_INSTRUCTION_UNARY(Subi, "SUBI", Attributes::ALTERS_ACCU)
 void Subi::execute (Thread & thread)
 {
   thread.pc++;
@@ -157,7 +166,7 @@ void Subi::execute (Thread & thread)
 }
 
 /* CMP ************************************************************************/
-DEFINE_INSTRUCTION_UNARY(Cmp, "CMP")
+DEFINE_INSTRUCTION_UNARY(Cmp, "CMP", Attributes::ALTERS_ACCU)
 void Cmp::execute (Thread & thread)
 {
   thread.pc++;
@@ -168,14 +177,14 @@ void Cmp::execute (Thread & thread)
 }
 
 /* JMP ************************************************************************/
-DEFINE_INSTRUCTION_UNARY(Jmp, "JMP")
+DEFINE_INSTRUCTION_UNARY(Jmp, "JMP", 0)
 void Jmp::execute (Thread & thread)
 {
   thread.pc = arg;
 }
 
 /* JZ *************************************************************************/
-DEFINE_INSTRUCTION_UNARY(Jz, "JZ")
+DEFINE_INSTRUCTION_UNARY(Jz, "JZ", 0)
 void Jz::execute (Thread & thread)
 {
   if (thread.accu == 0)
@@ -185,7 +194,7 @@ void Jz::execute (Thread & thread)
 }
 
 /* JNZ ************************************************************************/
-DEFINE_INSTRUCTION_UNARY(Jnz, "JNZ")
+DEFINE_INSTRUCTION_UNARY(Jnz, "JNZ", 0)
 void Jnz::execute (Thread & thread)
 {
   if (thread.accu != 0)
@@ -195,7 +204,7 @@ void Jnz::execute (Thread & thread)
 }
 
 /* JS *************************************************************************/
-DEFINE_INSTRUCTION_UNARY(Js, "JS")
+DEFINE_INSTRUCTION_UNARY(Js, "JS", 0)
 void Js::execute (Thread & thread)
 {
   if (static_cast<signed_word>(thread.accu) < 0)
@@ -205,7 +214,7 @@ void Js::execute (Thread & thread)
 }
 
 /* JNS ************************************************************************/
-DEFINE_INSTRUCTION_UNARY(Jns, "JNS")
+DEFINE_INSTRUCTION_UNARY(Jns, "JNS", 0)
 void Jns::execute (Thread & thread)
 {
   if (static_cast<signed_word>(thread.accu) >= 0)
@@ -215,7 +224,7 @@ void Jns::execute (Thread & thread)
 }
 
 /* JNZNS **********************************************************************/
-DEFINE_INSTRUCTION_UNARY(Jnzns, "JNZNS")
+DEFINE_INSTRUCTION_UNARY(Jnzns, "JNZNS", 0)
 void Jnzns::execute (Thread & thread)
 {
   if (static_cast<signed_word>(thread.accu) > 0)
@@ -225,7 +234,10 @@ void Jnzns::execute (Thread & thread)
 }
 
 /* MEM ************************************************************************/
-DEFINE_INSTRUCTION_UNARY(Mem, "MEM")
+DEFINE_INSTRUCTION_UNARY(
+  Mem,
+  "MEM",
+  Attributes::ALTERS_ACCU | Attributes::ALTERS_MEM)
 void Mem::execute (Thread & thread)
 {
   Load::execute(thread);
@@ -233,7 +245,10 @@ void Mem::execute (Thread & thread)
 }
 
 /* CAS ************************************************************************/
-DEFINE_INSTRUCTION_UNARY(Cas, "CAS")
+DEFINE_INSTRUCTION_UNARY(
+  Cas,
+  "CAS",
+  Attributes::ALTERS_ACCU | Attributes::ALTERS_HEAP)
 void Cas::execute (Thread & thread)
 {
   thread.pc++;
@@ -253,7 +268,7 @@ void Cas::execute (Thread & thread)
 }
 
 /* SYNC ***********************************************************************/
-DEFINE_INSTRUCTION_UNARY(Sync, "SYNC")
+DEFINE_INSTRUCTION_UNARY(Sync, "SYNC", 0)
 void Sync::execute (Thread & thread)
 {
   thread.pc++;
@@ -262,7 +277,7 @@ void Sync::execute (Thread & thread)
 }
 
 /* EXIT ***********************************************************************/
-DEFINE_INSTRUCTION_UNARY(Exit, "EXIT")
+DEFINE_INSTRUCTION_UNARY(Exit, "EXIT", 0)
 void Exit::execute (Thread & thread)
 {
   thread.accu = arg;

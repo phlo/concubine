@@ -48,6 +48,13 @@ struct Instruction
       Cas
     };
 
+  struct Attributes
+    {
+      static const unsigned char ALTERS_HEAP;
+      static const unsigned char ALTERS_ACCU;
+      static const unsigned char ALTERS_MEM;
+    };
+
   /* Instruction Set - containing object factories to simplify parsing ********/
   struct Set
     {
@@ -70,6 +77,7 @@ struct Instruction
   virtual Type                get_type   (void);
   virtual OPCode              get_opcode (void) = 0;
   virtual const std::string & get_symbol (void) = 0;
+  virtual unsigned char       get_attributes (void) = 0;
 
   virtual void                execute (Thread &) = 0;
 
@@ -84,15 +92,16 @@ typedef std::shared_ptr<Instruction> InstructionPtr;
  ******************************************************************************/
 struct UnaryInstruction : public Instruction
 {
-  const word          arg;
+  const word            arg;
 
   UnaryInstruction (const word);
 
-  virtual Type        get_type (void);
+  virtual Type          get_type (void);
+  virtual unsigned char get_attributes (void) = 0;
 
-  virtual void        execute (Thread &) = 0;
+  virtual void          execute (Thread &) = 0;
 
-  virtual std::string encode (Encoder &) = 0;
+  virtual std::string   encode (Encoder &) = 0;
 };
 
 typedef std::shared_ptr<UnaryInstruction> UnaryInstructionPtr;
@@ -103,13 +112,15 @@ typedef std::shared_ptr<UnaryInstruction> UnaryInstructionPtr;
  ******************************************************************************/
 struct MemoryInstruction : public UnaryInstruction
 {
-  bool                indirect;
+  bool                  indirect;
 
   MemoryInstruction (const word);
 
-  virtual void        execute (Thread &) = 0;
+  virtual unsigned char get_attributes (void) = 0;
 
-  virtual std::string encode (Encoder &) = 0;
+  virtual void          execute (Thread &) = 0;
+
+  virtual std::string   encode (Encoder &) = 0;
 };
 
 typedef std::shared_ptr<MemoryInstruction> MemoryInstructionPtr;
@@ -118,15 +129,17 @@ typedef std::shared_ptr<MemoryInstruction> MemoryInstructionPtr;
 /*******************************************************************************
  * Instructions
  ******************************************************************************/
-#define DECLARE_COMMON_INSTRUCTION_MEMBERS()        \
-    static  const std::string   symbol;             \
-                                                    \
-    virtual       OPCode        get_opcode ();      \
-    virtual const std::string & get_symbol ();      \
-                                                    \
-    virtual       void          execute (Thread &); \
-                                                    \
-    virtual       std::string   encode (Encoder &); \
+#define DECLARE_COMMON_INSTRUCTION_MEMBERS()            \
+    static  const std::string   symbol;                 \
+    static  const unsigned char attributes;             \
+                                                        \
+    virtual       OPCode        get_opcode ();          \
+    virtual const std::string & get_symbol ();          \
+    virtual       unsigned char get_attributes (void);  \
+                                                        \
+    virtual       void          execute (Thread &);     \
+                                                        \
+    virtual       std::string   encode (Encoder &);     \
 
 #define DECLARE_INSTRUCTION_NULLARY(classname, baseclass, ...)  \
   struct classname : public baseclass                           \
