@@ -7,6 +7,27 @@
 
 using namespace std;
 
+/* std::map lookup helper, performing an arbitrary action for missing values */
+template <typename K, typename V, typename F>
+V lookup (map<K, V> & m, K k, F fun)
+{
+  /* avoid extra lookups https://stackoverflow.com/a/101980 */
+  auto lb = m.lower_bound(k);
+
+  if (lb != m.end() && !(m.key_comp()(k, lb->first)))
+    {
+      return lb->second;
+    }
+  else
+    {
+      typename map<K, V>::value_type val(k, fun());
+
+      m.insert(lb, val);
+
+      return val.second;
+    }
+}
+
 /*******************************************************************************
  * Encoder Base Class
  ******************************************************************************/
@@ -1799,25 +1820,9 @@ void Btor2Encoder::add_statement_activation ()
             /* predecessor is a jump */
             if (JmpPtr j = dynamic_pointer_cast<Jmp>(program[prev]))
               {
-                string nid_cond;
-
-                /* avoid extra lookups https://stackoverflow.com/a/101980 */
-                map<JmpPtr, string>::iterator lb = nid_jmp.lower_bound(j);
-
-                if (lb != nid_jmp.end() && !(nid_jmp.key_comp()(j, lb->first)))
-                  {
-                    /* get nid of existing jump condition */
-                    nid_cond = lb->second;
-                  }
-                else
-                  {
-                    /* add jump condition */
-                    nid_cond = j->encode(*this);
-
-                    nid_jmp.insert(
-                      lb,
-                      map<JmpPtr, string>::value_type(j, nid_cond));
-                  }
+                string nid_cond = lookup(nid_jmp, j, [&] () {
+                  return j->encode(*this);
+                });
 
                 /* nothing to do here for unconditional jumps (JMP) */
                 if (!nid_cond.empty())
@@ -1870,6 +1875,22 @@ void Btor2Encoder::preprocess ()
   });
 }
 
+string Btor2Encoder::load (Load & l)
+{
+  string ret = nids_const[l.arg];
+
+  function<string()> add_load = [&] () {
+    formula << btor2::read(ret = nid(), sid_bv, nid_heap, ret);
+    return ret;
+  };
+
+  ret = lookup(nids_load, l.arg, add_load);
+
+  return l.indirect
+    ? lookup(nids_indirect, l.arg, add_load)
+    : ret;
+}
+
 void Btor2Encoder::encode ()
 {
   declare_sorts();
@@ -1879,8 +1900,7 @@ void Btor2Encoder::encode ()
 
 string Btor2Encoder::encode (Load & l)
 {
-  (void) l;
-  return "";
+  return load(l);
 }
 
 string Btor2Encoder::encode (Store & s)
@@ -1962,8 +1982,7 @@ string Btor2Encoder::encode (Jnzns & j)
 
 string Btor2Encoder::encode (Mem & m)
 {
-  (void) m;
-  return "";
+  return load(m);
 }
 
 string Btor2Encoder::encode (Cas & c)

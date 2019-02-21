@@ -48,10 +48,47 @@ struct Btor2EncoderTest : public ::testing::Test
       encoder = create_encoder(1);
     }
 
+  void add_instruction_set (unsigned num)
+    {
+      for (size_t i = 0; i < num; i++)
+        {
+          programs.push_back(shared_ptr<Program>(new Program()));
+
+          programs[i]->add(Instruction::Set::create("LOAD", 1));  // 0
+          programs[i]->add(Instruction::Set::create("STORE", 1)); // 1
+          programs[i]->add(Instruction::Set::create("ADD", 1));   // 2
+          programs[i]->add(Instruction::Set::create("ADDI", 1));  // 3
+          programs[i]->add(Instruction::Set::create("SUB", 1));   // 4
+          programs[i]->add(Instruction::Set::create("SUBI", 1));  // 5
+          programs[i]->add(Instruction::Set::create("CMP", 1));   // 6
+          programs[i]->add(Instruction::Set::create("JMP", 1));   // 7
+          programs[i]->add(Instruction::Set::create("JZ", 1));    // 8
+          programs[i]->add(Instruction::Set::create("JNZ", 1));   // 9
+          programs[i]->add(Instruction::Set::create("JS", 1));    // 10
+          programs[i]->add(Instruction::Set::create("JNS", 1));   // 11
+          programs[i]->add(Instruction::Set::create("JNZNS", 1)); // 12
+          programs[i]->add(Instruction::Set::create("MEM", 1));   // 13
+          programs[i]->add(Instruction::Set::create("CAS", 1));   // 14
+          programs[i]->add(Instruction::Set::create("SYNC", 1));  // 15
+          programs[i]->add(Instruction::Set::create("EXIT", 1));  // 16
+        }
+
+      reset_encoder(1);
+    }
+
   void add_declerations ()
     {
       encoder->declare_sorts();
       encoder->declare_constants();
+      encoder->formula.str("");
+    }
+
+  void init_states ()
+    {
+      encoder->declare_sorts();
+      encoder->declare_constants();
+      encoder->add_bound();
+      encoder->declare_states();
       encoder->formula.str("");
     }
 
@@ -61,6 +98,7 @@ struct Btor2EncoderTest : public ::testing::Test
       encoder->declare_constants();
       encoder->add_bound();
       encoder->declare_states();
+      encoder->add_thread_scheduling();
       encoder->formula.str("");
     }
 
@@ -71,6 +109,7 @@ struct Btor2EncoderTest : public ::testing::Test
       encoder->add_bound();
       encoder->declare_states();
       encoder->add_thread_scheduling();
+      encoder->add_synchronization_constraints();
       encoder->formula.str("");
     }
 
@@ -82,10 +121,11 @@ struct Btor2EncoderTest : public ::testing::Test
       encoder->declare_states();
       encoder->add_thread_scheduling();
       encoder->add_synchronization_constraints();
+      encoder->add_statement_execution();
       encoder->formula.str("");
     }
 
-  void init_statement_state_update ()
+  void init_statement_activation ()
     {
       encoder->declare_sorts();
       encoder->declare_constants();
@@ -94,6 +134,7 @@ struct Btor2EncoderTest : public ::testing::Test
       encoder->add_thread_scheduling();
       encoder->add_synchronization_constraints();
       encoder->add_statement_execution();
+      encoder->add_statement_activation();
       encoder->formula.str("");
     }
 };
@@ -366,7 +407,7 @@ TEST_F(Btor2EncoderTest, add_thread_scheduling)
 {
   add_dummy_programs(3, 3);
 
-  init_thread_scheduling();
+  init_states();
 
   encoder->add_thread_scheduling();
 
@@ -402,7 +443,7 @@ TEST_F(Btor2EncoderTest, add_thread_scheduling)
   /* verbosity */
   reset_encoder(1);
 
-  init_thread_scheduling();
+  init_states();
 
   verbose = false;
   encoder->add_thread_scheduling();
@@ -445,7 +486,7 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
 
   reset_encoder(1);
 
-  init_synchronization_constraints();
+  init_thread_scheduling();
 
   encoder->add_synchronization_constraints();
 
@@ -504,7 +545,7 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
 
   reset_encoder(1);
 
-  init_synchronization_constraints();
+  init_thread_scheduling();
 
   encoder->add_synchronization_constraints();
 
@@ -583,7 +624,7 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
 
   reset_encoder(1);
 
-  init_synchronization_constraints();
+  init_thread_scheduling();
 
   encoder->add_synchronization_constraints();
 
@@ -674,7 +715,7 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
   /* verbosity */
   reset_encoder(1);
 
-  init_synchronization_constraints();
+  init_thread_scheduling();
 
   verbose = false;
   encoder->add_synchronization_constraints();
@@ -754,7 +795,7 @@ TEST_F(Btor2EncoderTest, add_statement_execution)
 
   reset_encoder(1);
 
-  init_statement_execution();
+  init_synchronization_constraints();
 
   encoder->add_statement_execution();
 
@@ -782,7 +823,7 @@ TEST_F(Btor2EncoderTest, add_statement_execution)
   /* verbosity */
   reset_encoder(1);
 
-  init_statement_execution();
+  init_synchronization_constraints();
 
   verbose = false;
   encoder->add_statement_execution();
@@ -808,7 +849,7 @@ TEST_F(Btor2EncoderTest, add_statement_activation_basic)
 {
   add_dummy_programs(3, 2);
 
-  init_statement_state_update();
+  init_statement_execution();
 
   encoder->add_statement_activation();
 
@@ -852,7 +893,7 @@ TEST_F(Btor2EncoderTest, add_statement_activation_basic)
   /* verbosity */
   reset_encoder(1);
 
-  init_statement_state_update();
+  init_statement_execution();
 
   verbose = false;
   encoder->add_statement_activation();
@@ -902,7 +943,7 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp)
 
   reset_encoder(1);
 
-  init_statement_state_update();
+  init_statement_execution();
 
   encoder->add_statement_activation();
 
@@ -994,7 +1035,7 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_conditional)
 
   reset_encoder(3);
 
-  init_statement_state_update();
+  init_statement_execution();
 
   encoder->add_statement_activation();
 
@@ -1137,7 +1178,7 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_start)
 
   reset_encoder(3);
 
-  init_statement_state_update();
+  init_statement_execution();
 
   encoder->add_statement_activation();
 
@@ -1281,7 +1322,7 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_twice)
 
   reset_encoder(3);
 
-  init_statement_state_update();
+  init_statement_execution();
 
   encoder->add_statement_activation();
 
@@ -1443,7 +1484,47 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_twice)
   */
 }
 
-// void Btor2Encoder::preprocess ();
+// void add_state_update ();
+TEST_F(Btor2EncoderTest, add_state_update)
+{
+}
+
+// std::string load(Load &);
+TEST_F(Btor2EncoderTest, load)
+{
+  add_dummy_programs(1, 1);
+
+  init_states();
+
+  Load l = Load(1);
+
+  ASSERT_EQ("23", encoder->load(l));
+  ASSERT_EQ("23 read 2 14 7\n", encoder->formula.str());
+
+  /* another load of the same memory address */
+  encoder->formula.str("");
+
+  ASSERT_EQ("23", encoder->load(l));
+  ASSERT_EQ("", encoder->formula.str());
+
+  /* indirect */
+  encoder->formula.str("");
+
+  l.indirect = true;
+
+  ASSERT_EQ("24", encoder->load(l));
+  ASSERT_EQ(
+    "24 read 2 14 23\n",
+    encoder->formula.str());
+
+  /* another load of the same memory address */
+  encoder->formula.str("");
+
+  ASSERT_EQ("24", encoder->load(l));
+  ASSERT_EQ("", encoder->formula.str());
+}
+
+// void preprocess ();
 TEST_F(Btor2EncoderTest, preprocess)
 {
   add_dummy_programs(3, 3);
@@ -1452,3 +1533,40 @@ TEST_F(Btor2EncoderTest, preprocess)
     NIDMap({{0, ""}, {1, ""}, {2, ""}, {3, ""}}),
     encoder->nids_const);
 }
+
+// virtual void encode (void);
+
+// virtual std::string encode (Load &);
+
+// virtual std::string encode (Store &);
+
+// virtual std::string encode (Add &);
+
+// virtual std::string encode (Addi &);
+
+// virtual std::string encode (Sub &);
+
+// virtual std::string encode (Subi &);
+
+// virtual std::string encode (Cmp &);
+
+// virtual std::string encode (Jmp &);
+
+// virtual std::string encode (Jz &);
+
+// virtual std::string encode (Jnz &);
+
+// virtual std::string encode (Js &);
+
+// virtual std::string encode (Jns &);
+
+// virtual std::string encode (Jnzns &);
+
+// virtual std::string encode (Mem &);
+
+// virtual std::string encode (Cas &);
+
+// virtual std::string encode (Sync &);
+
+// virtual std::string encode (Exit &);
+

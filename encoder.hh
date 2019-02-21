@@ -330,6 +330,9 @@ struct Btor2Encoder : public Encoder
   /* constructs a Btor2Encoder for the given program and bound */
   Btor2Encoder (const ProgramListPtr, unsigned long, bool = true);
 
+  /* flag to distinguish between accu and heap updates when encoding CAS */
+  bool                        update_accu;
+
   unsigned long               node;
 
   std::string                 sid_bool,
@@ -350,7 +353,10 @@ struct Btor2Encoder : public Encoder
                               nids_mem,
 
                               nids_thread,
-                              nids_sync;
+                              nids_sync,
+
+                              nids_load,
+                              nids_indirect;
 
   std::map<
     word,
@@ -368,6 +374,9 @@ struct Btor2Encoder : public Encoder
   void                        add_synchronization_constraints (void);
   void                        add_statement_execution (void);
   void                        add_statement_activation (void);
+  void                        add_state_update (void);
+
+  std::string                 load(Load &);
 
   virtual void                preprocess (void);
 
