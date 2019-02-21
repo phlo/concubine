@@ -1499,12 +1499,14 @@ TEST_F(Btor2EncoderTest, load)
   Load l = Load(1);
 
   ASSERT_EQ("23", encoder->load(l));
+  ASSERT_EQ(NIDMap({{1, "23"}}), encoder->nids_load);
   ASSERT_EQ("23 read 2 14 7\n", encoder->formula.str());
 
   /* another load of the same memory address */
   encoder->formula.str("");
 
   ASSERT_EQ("23", encoder->load(l));
+  ASSERT_EQ(NIDMap({{1, "23"}}), encoder->nids_load);
   ASSERT_EQ("", encoder->formula.str());
 
   /* indirect */
@@ -1513,6 +1515,8 @@ TEST_F(Btor2EncoderTest, load)
   l.indirect = true;
 
   ASSERT_EQ("24", encoder->load(l));
+  ASSERT_EQ(NIDMap({{1, "23"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "24"}}), encoder->nids_load_indirect);
   ASSERT_EQ(
     "24 read 2 14 23\n",
     encoder->formula.str());
@@ -1521,6 +1525,52 @@ TEST_F(Btor2EncoderTest, load)
   encoder->formula.str("");
 
   ASSERT_EQ("24", encoder->load(l));
+  ASSERT_EQ(NIDMap({{1, "23"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "24"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("", encoder->formula.str());
+}
+
+// std::string store(Store &);
+TEST_F(Btor2EncoderTest, store)
+{
+  add_dummy_programs(1, 1);
+
+  init_states();
+
+  Store s = Store(1);
+
+  encoder->thread = 1;
+
+  ASSERT_EQ("23", encoder->store(s));
+  ASSERT_EQ(NIDMap({{1, "23"}}), encoder->nids_store);
+  ASSERT_EQ("23 write 3 14 7 15\n", encoder->formula.str());
+
+  /* another store to the same memory address */
+  encoder->formula.str("");
+
+  ASSERT_EQ("23", encoder->store(s));
+  ASSERT_EQ(NIDMap({{1, "23"}}), encoder->nids_store);
+  ASSERT_EQ("", encoder->formula.str());
+
+  /* indirect */
+  encoder->formula.str("");
+
+  s.indirect = true;
+
+  ASSERT_EQ("25", encoder->store(s));
+  ASSERT_EQ(NIDMap({{1, "24"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "25"}}), encoder->nids_store_indirect);
+  ASSERT_EQ(
+    "24 read 2 14 7\n"
+    "25 write 3 14 24 15\n",
+    encoder->formula.str());
+
+  /* another store to the same memory address */
+  encoder->formula.str("");
+
+  ASSERT_EQ("25", encoder->store(s));
+  ASSERT_EQ(NIDMap({{1, "24"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "25"}}), encoder->nids_store_indirect);
   ASSERT_EQ("", encoder->formula.str());
 }
 

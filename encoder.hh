@@ -356,7 +356,9 @@ struct Btor2Encoder : public Encoder
                               nids_sync,
 
                               nids_load,
-                              nids_indirect;
+                              nids_load_indirect,
+                              nids_store,
+                              nids_store_indirect;
 
   std::map<
     word,
@@ -376,7 +378,10 @@ struct Btor2Encoder : public Encoder
   void                        add_statement_activation (void);
   void                        add_state_update (void);
 
+  std::string                 add_load(std::string *);
+
   std::string                 load(Load &);
+  std::string                 store(Store &);
 
   virtual void                preprocess (void);
 

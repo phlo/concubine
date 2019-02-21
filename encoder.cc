@@ -1875,20 +1875,55 @@ void Btor2Encoder::preprocess ()
   });
 }
 
+string Btor2Encoder::add_load (string * nid_idx)
+{
+  formula << btor2::read(*nid_idx = nid(), sid_bv, nid_heap, *nid_idx);
+
+  return *nid_idx;
+}
+
 string Btor2Encoder::load (Load & l)
 {
-  string ret = nids_const[l.arg];
+  string nid_load = nids_const[l.arg];
 
-  function<string()> add_load = [&] () {
-    formula << btor2::read(ret = nid(), sid_bv, nid_heap, ret);
-    return ret;
-  };
+  auto add_load = bind(&Btor2Encoder::add_load, this, &nid_load);
 
-  ret = lookup(nids_load, l.arg, add_load);
+  nid_load = lookup(nids_load, l.arg, add_load);
 
   return l.indirect
-    ? lookup(nids_indirect, l.arg, add_load)
-    : ret;
+    ? lookup(nids_load_indirect, l.arg, add_load)
+    : nid_load;
+}
+
+/* NOTE: requires thread to be set */
+string Btor2Encoder::store (Store & s)
+{
+  string nid_store = nids_const[s.arg];
+
+  if (s.indirect)
+    nid_store =
+      lookup(
+        nids_load,
+        s.arg,
+        bind(&Btor2Encoder::add_load, this, &nid_store));
+
+  return
+    lookup(
+      s.indirect
+        ? nids_store_indirect
+        : nids_store,
+      s.arg,
+      [&] () {
+        formula <<
+          btor2::write(
+            nid_store = nid(),
+            sid_heap,
+            nid_heap,
+            nid_store,
+            nids_accu[thread]);
+
+        return nid_store;
+      });
 }
 
 void Btor2Encoder::encode ()
