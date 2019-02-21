@@ -1249,7 +1249,11 @@ TEST_F(SMTLibEncoderRelationalTest, CAS)
   Cas cas = Cas(1);
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 (= accu_1_1 accu_0_1)))\n"
+    "(assert (=> exec_1_1_0 (= accu_1_1 "
+      "(ite "
+        "(= mem_0_1 (select heap_0 #x0001)) "
+        "#x0001 "
+        "#x0000))))\n"
     "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
     "(assert (=> exec_1_1_0 (= heap_1 "
       "(ite (= mem_0_1 (select heap_0 #x0001)) "
@@ -1267,7 +1271,11 @@ TEST_F(SMTLibEncoderRelationalTest, CAS)
   cas.indirect = true;
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 (= accu_1_1 accu_0_1)))\n"
+    "(assert (=> exec_1_1_0 (= accu_1_1 "
+      "(ite "
+        "(= mem_0_1 (select heap_0 (select heap_0 #x0001))) "
+        "#x0001 "
+        "#x0000))))\n"
     "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
     "(assert (=> exec_1_1_0 (= heap_1 "
       "(ite (= mem_0_1 (select heap_0 (select heap_0 #x0001))) "

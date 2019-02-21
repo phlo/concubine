@@ -167,7 +167,7 @@
 (assert (=> exec_1_1_3 (and (not stmt_2_1_0) (not stmt_2_1_1) (not stmt_2_1_2) (not stmt_2_1_3) stmt_2_1_4 (not stmt_2_1_5))))
 
 ; thread 1@4: CAS	0
-(assert (=> exec_1_1_4 (= accu_1_1 accu_0_1)))
+(assert (=> exec_1_1_4 (= accu_1_1 (ite (= mem_0_1 (select heap_0 #x0000)) #x0001 #x0000))))
 (assert (=> exec_1_1_4 (= mem_1_1 mem_0_1)))
 (assert (=> exec_1_1_4 (= heap_1 (ite (= mem_0_1 (select heap_0 #x0000)) (store heap_0 #x0000 accu_0_1) heap_0))))
 (assert (=> exec_1_1_4 (and (not stmt_2_1_0) (not stmt_2_1_1) (not stmt_2_1_2) (not stmt_2_1_3) (not stmt_2_1_4) stmt_2_1_5)))
@@ -203,7 +203,7 @@
 (assert (=> exec_1_2_3 (and (not stmt_2_2_0) (not stmt_2_2_1) (not stmt_2_2_2) (not stmt_2_2_3) stmt_2_2_4 (not stmt_2_2_5))))
 
 ; thread 2@4: CAS	0
-(assert (=> exec_1_2_4 (= accu_1_2 accu_0_2)))
+(assert (=> exec_1_2_4 (= accu_1_2 (ite (= mem_0_2 (select heap_0 #x0000)) #x0001 #x0000))))
 (assert (=> exec_1_2_4 (= mem_1_2 mem_0_2)))
 (assert (=> exec_1_2_4 (= heap_1 (ite (= mem_0_2 (select heap_0 #x0000)) (store heap_0 #x0000 accu_0_2) heap_0))))
 (assert (=> exec_1_2_4 (and (not stmt_2_2_0) (not stmt_2_2_1) (not stmt_2_2_2) (not stmt_2_2_3) (not stmt_2_2_4) stmt_2_2_5)))
@@ -347,7 +347,7 @@
 (assert (=> exec_2_1_3 (and (not stmt_3_1_0) (not stmt_3_1_1) (not stmt_3_1_2) (not stmt_3_1_3) stmt_3_1_4 (not stmt_3_1_5))))
 
 ; thread 1@4: CAS	0
-(assert (=> exec_2_1_4 (= accu_2_1 accu_1_1)))
+(assert (=> exec_2_1_4 (= accu_2_1 (ite (= mem_1_1 (select heap_1 #x0000)) #x0001 #x0000))))
 (assert (=> exec_2_1_4 (= mem_2_1 mem_1_1)))
 (assert (=> exec_2_1_4 (= heap_2 (ite (= mem_1_1 (select heap_1 #x0000)) (store heap_1 #x0000 accu_1_1) heap_1))))
 (assert (=> exec_2_1_4 (and (not stmt_3_1_0) (not stmt_3_1_1) (not stmt_3_1_2) (not stmt_3_1_3) (not stmt_3_1_4) stmt_3_1_5)))
@@ -383,7 +383,7 @@
 (assert (=> exec_2_2_3 (and (not stmt_3_2_0) (not stmt_3_2_1) (not stmt_3_2_2) (not stmt_3_2_3) stmt_3_2_4 (not stmt_3_2_5))))
 
 ; thread 2@4: CAS	0
-(assert (=> exec_2_2_4 (= accu_2_2 accu_1_2)))
+(assert (=> exec_2_2_4 (= accu_2_2 (ite (= mem_1_2 (select heap_1 #x0000)) #x0001 #x0000))))
 (assert (=> exec_2_2_4 (= mem_2_2 mem_1_2)))
 (assert (=> exec_2_2_4 (= heap_2 (ite (= mem_1_2 (select heap_1 #x0000)) (store heap_1 #x0000 accu_1_2) heap_1))))
 (assert (=> exec_2_2_4 (and (not stmt_3_2_0) (not stmt_3_2_1) (not stmt_3_2_2) (not stmt_3_2_3) (not stmt_3_2_4) stmt_3_2_5)))
@@ -527,7 +527,7 @@
 (assert (=> exec_3_1_3 (and (not stmt_4_1_0) (not stmt_4_1_1) (not stmt_4_1_2) (not stmt_4_1_3) stmt_4_1_4 (not stmt_4_1_5))))
 
 ; thread 1@4: CAS	0
-(assert (=> exec_3_1_4 (= accu_3_1 accu_2_1)))
+(assert (=> exec_3_1_4 (= accu_3_1 (ite (= mem_2_1 (select heap_2 #x0000)) #x0001 #x0000))))
 (assert (=> exec_3_1_4 (= mem_3_1 mem_2_1)))
 (assert (=> exec_3_1_4 (= heap_3 (ite (= mem_2_1 (select heap_2 #x0000)) (store heap_2 #x0000 accu_2_1) heap_2))))
 (assert (=> exec_3_1_4 (and (not stmt_4_1_0) (not stmt_4_1_1) (not stmt_4_1_2) (not stmt_4_1_3) (not stmt_4_1_4) stmt_4_1_5)))
@@ -563,7 +563,7 @@
 (assert (=> exec_3_2_3 (and (not stmt_4_2_0) (not stmt_4_2_1) (not stmt_4_2_2) (not stmt_4_2_3) stmt_4_2_4 (not stmt_4_2_5))))
 
 ; thread 2@4: CAS	0
-(assert (=> exec_3_2_4 (= accu_3_2 accu_2_2)))
+(assert (=> exec_3_2_4 (= accu_3_2 (ite (= mem_2_2 (select heap_2 #x0000)) #x0001 #x0000))))
 (assert (=> exec_3_2_4 (= mem_3_2 mem_2_2)))
 (assert (=> exec_3_2_4 (= heap_3 (ite (= mem_2_2 (select heap_2 #x0000)) (store heap_2 #x0000 accu_2_2) heap_2))))
 (assert (=> exec_3_2_4 (and (not stmt_4_2_0) (not stmt_4_2_1) (not stmt_4_2_2) (not stmt_4_2_3) (not stmt_4_2_4) stmt_4_2_5)))
@@ -707,7 +707,7 @@
 (assert (=> exec_4_1_3 (and (not stmt_5_1_0) (not stmt_5_1_1) (not stmt_5_1_2) (not stmt_5_1_3) stmt_5_1_4 (not stmt_5_1_5))))
 
 ; thread 1@4: CAS	0
-(assert (=> exec_4_1_4 (= accu_4_1 accu_3_1)))
+(assert (=> exec_4_1_4 (= accu_4_1 (ite (= mem_3_1 (select heap_3 #x0000)) #x0001 #x0000))))
 (assert (=> exec_4_1_4 (= mem_4_1 mem_3_1)))
 (assert (=> exec_4_1_4 (= heap_4 (ite (= mem_3_1 (select heap_3 #x0000)) (store heap_3 #x0000 accu_3_1) heap_3))))
 (assert (=> exec_4_1_4 (and (not stmt_5_1_0) (not stmt_5_1_1) (not stmt_5_1_2) (not stmt_5_1_3) (not stmt_5_1_4) stmt_5_1_5)))
@@ -743,7 +743,7 @@
 (assert (=> exec_4_2_3 (and (not stmt_5_2_0) (not stmt_5_2_1) (not stmt_5_2_2) (not stmt_5_2_3) stmt_5_2_4 (not stmt_5_2_5))))
 
 ; thread 2@4: CAS	0
-(assert (=> exec_4_2_4 (= accu_4_2 accu_3_2)))
+(assert (=> exec_4_2_4 (= accu_4_2 (ite (= mem_3_2 (select heap_3 #x0000)) #x0001 #x0000))))
 (assert (=> exec_4_2_4 (= mem_4_2 mem_3_2)))
 (assert (=> exec_4_2_4 (= heap_4 (ite (= mem_3_2 (select heap_3 #x0000)) (store heap_3 #x0000 accu_3_2) heap_3))))
 (assert (=> exec_4_2_4 (and (not stmt_5_2_0) (not stmt_5_2_1) (not stmt_5_2_2) (not stmt_5_2_3) (not stmt_5_2_4) stmt_5_2_5)))
@@ -887,7 +887,7 @@
 (assert (=> exec_5_1_3 (and (not stmt_6_1_0) (not stmt_6_1_1) (not stmt_6_1_2) (not stmt_6_1_3) stmt_6_1_4 (not stmt_6_1_5))))
 
 ; thread 1@4: CAS	0
-(assert (=> exec_5_1_4 (= accu_5_1 accu_4_1)))
+(assert (=> exec_5_1_4 (= accu_5_1 (ite (= mem_4_1 (select heap_4 #x0000)) #x0001 #x0000))))
 (assert (=> exec_5_1_4 (= mem_5_1 mem_4_1)))
 (assert (=> exec_5_1_4 (= heap_5 (ite (= mem_4_1 (select heap_4 #x0000)) (store heap_4 #x0000 accu_4_1) heap_4))))
 (assert (=> exec_5_1_4 (and (not stmt_6_1_0) (not stmt_6_1_1) (not stmt_6_1_2) (not stmt_6_1_3) (not stmt_6_1_4) stmt_6_1_5)))
@@ -923,7 +923,7 @@
 (assert (=> exec_5_2_3 (and (not stmt_6_2_0) (not stmt_6_2_1) (not stmt_6_2_2) (not stmt_6_2_3) stmt_6_2_4 (not stmt_6_2_5))))
 
 ; thread 2@4: CAS	0
-(assert (=> exec_5_2_4 (= accu_5_2 accu_4_2)))
+(assert (=> exec_5_2_4 (= accu_5_2 (ite (= mem_4_2 (select heap_4 #x0000)) #x0001 #x0000))))
 (assert (=> exec_5_2_4 (= mem_5_2 mem_4_2)))
 (assert (=> exec_5_2_4 (= heap_5 (ite (= mem_4_2 (select heap_4 #x0000)) (store heap_4 #x0000 accu_4_2) heap_4))))
 (assert (=> exec_5_2_4 (and (not stmt_6_2_0) (not stmt_6_2_1) (not stmt_6_2_2) (not stmt_6_2_3) (not stmt_6_2_4) stmt_6_2_5)))
@@ -1067,7 +1067,7 @@
 (assert (=> exec_6_1_3 (and (not stmt_7_1_0) (not stmt_7_1_1) (not stmt_7_1_2) (not stmt_7_1_3) stmt_7_1_4 (not stmt_7_1_5))))
 
 ; thread 1@4: CAS	0
-(assert (=> exec_6_1_4 (= accu_6_1 accu_5_1)))
+(assert (=> exec_6_1_4 (= accu_6_1 (ite (= mem_5_1 (select heap_5 #x0000)) #x0001 #x0000))))
 (assert (=> exec_6_1_4 (= mem_6_1 mem_5_1)))
 (assert (=> exec_6_1_4 (= heap_6 (ite (= mem_5_1 (select heap_5 #x0000)) (store heap_5 #x0000 accu_5_1) heap_5))))
 (assert (=> exec_6_1_4 (and (not stmt_7_1_0) (not stmt_7_1_1) (not stmt_7_1_2) (not stmt_7_1_3) (not stmt_7_1_4) stmt_7_1_5)))
@@ -1103,7 +1103,7 @@
 (assert (=> exec_6_2_3 (and (not stmt_7_2_0) (not stmt_7_2_1) (not stmt_7_2_2) (not stmt_7_2_3) stmt_7_2_4 (not stmt_7_2_5))))
 
 ; thread 2@4: CAS	0
-(assert (=> exec_6_2_4 (= accu_6_2 accu_5_2)))
+(assert (=> exec_6_2_4 (= accu_6_2 (ite (= mem_5_2 (select heap_5 #x0000)) #x0001 #x0000))))
 (assert (=> exec_6_2_4 (= mem_6_2 mem_5_2)))
 (assert (=> exec_6_2_4 (= heap_6 (ite (= mem_5_2 (select heap_5 #x0000)) (store heap_5 #x0000 accu_5_2) heap_5))))
 (assert (=> exec_6_2_4 (and (not stmt_7_2_0) (not stmt_7_2_1) (not stmt_7_2_2) (not stmt_7_2_3) (not stmt_7_2_4) stmt_7_2_5)))
@@ -1247,7 +1247,7 @@
 (assert (=> exec_7_1_3 (and (not stmt_8_1_0) (not stmt_8_1_1) (not stmt_8_1_2) (not stmt_8_1_3) stmt_8_1_4 (not stmt_8_1_5))))
 
 ; thread 1@4: CAS	0
-(assert (=> exec_7_1_4 (= accu_7_1 accu_6_1)))
+(assert (=> exec_7_1_4 (= accu_7_1 (ite (= mem_6_1 (select heap_6 #x0000)) #x0001 #x0000))))
 (assert (=> exec_7_1_4 (= mem_7_1 mem_6_1)))
 (assert (=> exec_7_1_4 (= heap_7 (ite (= mem_6_1 (select heap_6 #x0000)) (store heap_6 #x0000 accu_6_1) heap_6))))
 (assert (=> exec_7_1_4 (and (not stmt_8_1_0) (not stmt_8_1_1) (not stmt_8_1_2) (not stmt_8_1_3) (not stmt_8_1_4) stmt_8_1_5)))
@@ -1283,7 +1283,7 @@
 (assert (=> exec_7_2_3 (and (not stmt_8_2_0) (not stmt_8_2_1) (not stmt_8_2_2) (not stmt_8_2_3) stmt_8_2_4 (not stmt_8_2_5))))
 
 ; thread 2@4: CAS	0
-(assert (=> exec_7_2_4 (= accu_7_2 accu_6_2)))
+(assert (=> exec_7_2_4 (= accu_7_2 (ite (= mem_6_2 (select heap_6 #x0000)) #x0001 #x0000))))
 (assert (=> exec_7_2_4 (= mem_7_2 mem_6_2)))
 (assert (=> exec_7_2_4 (= heap_7 (ite (= mem_6_2 (select heap_6 #x0000)) (store heap_6 #x0000 accu_6_2) heap_6))))
 (assert (=> exec_7_2_4 (and (not stmt_8_2_0) (not stmt_8_2_1) (not stmt_8_2_2) (not stmt_8_2_3) (not stmt_8_2_4) stmt_8_2_5)))
@@ -1406,7 +1406,7 @@
 (assert (=> exec_8_1_3 (= heap_8 heap_7)))
 
 ; thread 1@4: CAS	0
-(assert (=> exec_8_1_4 (= accu_8_1 accu_7_1)))
+(assert (=> exec_8_1_4 (= accu_8_1 (ite (= mem_7_1 (select heap_7 #x0000)) #x0001 #x0000))))
 (assert (=> exec_8_1_4 (= mem_8_1 mem_7_1)))
 (assert (=> exec_8_1_4 (= heap_8 (ite (= mem_7_1 (select heap_7 #x0000)) (store heap_7 #x0000 accu_7_1) heap_7))))
 
@@ -1436,7 +1436,7 @@
 (assert (=> exec_8_2_3 (= heap_8 heap_7)))
 
 ; thread 2@4: CAS	0
-(assert (=> exec_8_2_4 (= accu_8_2 accu_7_2)))
+(assert (=> exec_8_2_4 (= accu_8_2 (ite (= mem_7_2 (select heap_7 #x0000)) #x0001 #x0000))))
 (assert (=> exec_8_2_4 (= mem_8_2 mem_7_2)))
 (assert (=> exec_8_2_4 (= heap_8 (ite (= mem_7_2 (select heap_7 #x0000)) (store heap_7 #x0000 accu_7_2) heap_7))))
 

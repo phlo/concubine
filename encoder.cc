@@ -666,6 +666,8 @@ void SMTLibEncoderFunctional::add_state_update ()
   /* accumulator */
   declare_accu_vars();
 
+  update_accu = true;
+
   iterate_threads([&] (Program & program) {
     vector<word> & pcs = accu_pcs[thread];
     string expr = accu_var(step - 1, thread);
@@ -682,6 +684,8 @@ void SMTLibEncoderFunctional::add_state_update ()
   });
 
   formula << eol;
+
+  update_accu = false;
 
   /* CAS memory register */
   declare_mem_vars();
@@ -752,7 +756,18 @@ void SMTLibEncoderFunctional::preprocess ()
   /* initialize state update maps */
   iterate_threads([&] (Program & program) {
     for (pc = 0; pc < program.size(); pc++)
-      program[pc]->encode(*this);
+      {
+        const unsigned char attributes = program[pc]->get_attributes();
+
+        if (attributes & Instruction::Attributes::ALTERS_ACCU)
+          accu_pcs[thread].push_back(pc);
+
+        if (attributes & Instruction::Attributes::ALTERS_MEM)
+          mem_pcs[thread].push_back(pc);
+
+        if (attributes & Instruction::Attributes::ALTERS_HEAP)
+          heap_pcs[thread].push_back(pc);
+      }
   });
 }
 
@@ -792,23 +807,15 @@ void SMTLibEncoderFunctional::encode ()
   add_exit_code();
 }
 
-#define ALTERS_HEAP if (!step) { heap_pcs[thread].push_back(pc); return ""; }
-
-#define ALTERS_ACCU if (!step) { accu_pcs[thread].push_back(pc); return ""; }
-
 /* SMTLibEncoderFunctional::encode (Load &) ***********************************/
 string SMTLibEncoderFunctional::encode (Load & l)
 {
-  ALTERS_ACCU;
-
   return load(l);
 }
 
 /* SMTLibEncoderFunctional::encode (Store &) **********************************/
 string SMTLibEncoderFunctional::encode (Store & s)
 {
-  ALTERS_HEAP;
-
   string heap = heap_var(step - 1);
 
   return
@@ -823,40 +830,30 @@ string SMTLibEncoderFunctional::encode (Store & s)
 /* SMTLibEncoderFunctional::encode (Add &) ************************************/
 string SMTLibEncoderFunctional::encode (Add & a)
 {
-  ALTERS_ACCU;
-
   return smtlib::bvadd({accu_var(step - 1, thread), load(a)});
 }
 
 /* SMTLibEncoderFunctional::encode (Addi &) ***********************************/
 string SMTLibEncoderFunctional::encode (Addi & a)
 {
-  ALTERS_ACCU;
-
   return smtlib::bvadd({accu_var(step - 1, thread), smtlib::word2hex(a.arg)});
 }
 
 /* SMTLibEncoderFunctional::encode (Sub &) ************************************/
 string SMTLibEncoderFunctional::encode (Sub & s)
 {
-  ALTERS_ACCU;
-
   return smtlib::bvsub({accu_var(step - 1, thread), load(s)});
 }
 
 /* SMTLibEncoderFunctional::encode (Subi &) ***********************************/
 string SMTLibEncoderFunctional::encode (Subi & s)
 {
-  ALTERS_ACCU;
-
   return smtlib::bvsub({accu_var(step - 1, thread), smtlib::word2hex(s.arg)});
 }
 
 /* SMTLibEncoderFunctional::encode (Cmp &) ************************************/
 string SMTLibEncoderFunctional::encode (Cmp & c)
 {
-  ALTERS_ACCU;
-
   return smtlib::bvsub({accu_var(step - 1, thread), load(c)});
 }
 
@@ -926,36 +923,35 @@ string SMTLibEncoderFunctional::encode (Jnzns & j [[maybe_unused]])
 /* SMTLibEncoderFunctional::encode (Mem &) ************************************/
 string SMTLibEncoderFunctional::encode (Mem & m)
 {
-  if (!step)
-    {
-      accu_pcs[thread].push_back(pc);
-      mem_pcs[thread].push_back(pc);
-      return "";
-    }
-
   return load(m);
 }
 
 /* SMTLibEncoderFunctional::encode (Cas &) ************************************/
 string SMTLibEncoderFunctional::encode (Cas & c)
 {
-  ALTERS_HEAP;
-
   string heap = heap_var(step - 1);
+
   string addr = c.indirect
     ? smtlib::select(heap_var(step - 1), smtlib::word2hex(c.arg))
     : smtlib::word2hex(c.arg);
 
-  return
-    smtlib::ite(
-      smtlib::equality({
-        mem_var(step - 1, thread),
-        smtlib::select(heap, addr)}),
-      smtlib::store(
-        heap,
-        addr,
-        accu_var(step - 1, thread)),
-      heap);
+  string condition =
+    smtlib::equality({
+      mem_var(step - 1, thread),
+      smtlib::select(heap, addr)});
+
+  return update_accu
+    ? smtlib::ite(
+        condition,
+        smtlib::word2hex(1),
+        smtlib::word2hex(0))
+    : smtlib::ite(
+        condition,
+        smtlib::store(
+          heap,
+          addr,
+          accu_var(step - 1, thread)),
+        heap);
 }
 
 /* SMTLibEncoderFunctional::encode (Sync &) ***********************************/
@@ -1377,18 +1373,26 @@ string SMTLibEncoderRelational::encode (Mem & m)
 string SMTLibEncoderRelational::encode (Cas & c)
 {
   string heap = heap_var(step - 1);
+
   string addr = c.indirect
     ? smtlib::select(heap_var(step - 1), smtlib::word2hex(c.arg))
     : smtlib::word2hex(c.arg);
 
+  string condition =
+    smtlib::equality({
+      mem_var(step - 1, thread),
+      smtlib::select(heap, addr)});
+
   return
-    preserve_accu() +
+    assign_accu(
+      smtlib::ite(
+        condition,
+        smtlib::word2hex(1),
+        smtlib::word2hex(0))) +
     preserve_mem() +
     assign_heap(
       smtlib::ite(
-        smtlib::equality({
-          mem_var(step - 1, thread),
-          smtlib::select(heap, addr)}),
+        condition,
         smtlib::store(
           heap,
           addr,

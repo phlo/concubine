@@ -115,8 +115,8 @@
 (declare-fun accu_1_1 () (_ BitVec 16))
 (declare-fun accu_1_2 () (_ BitVec 16))
 
-(assert (= accu_1_1 (ite exec_1_1_2 (select heap_0 #x0000) (ite exec_1_1_3 (bvadd accu_0_1 #x0001) accu_0_1))))
-(assert (= accu_1_2 (ite exec_1_2_2 (select heap_0 #x0000) (ite exec_1_2_3 (bvadd accu_0_2 #x0001) accu_0_2))))
+(assert (= accu_1_1 (ite exec_1_1_2 (select heap_0 #x0000) (ite exec_1_1_3 (bvadd accu_0_1 #x0001) (ite exec_1_1_4 (ite (= mem_0_1 (select heap_0 #x0000)) #x0001 #x0000) accu_0_1)))))
+(assert (= accu_1_2 (ite exec_1_2_2 (select heap_0 #x0000) (ite exec_1_2_3 (bvadd accu_0_2 #x0001) (ite exec_1_2_4 (ite (= mem_0_2 (select heap_0 #x0000)) #x0001 #x0000) accu_0_2)))))
 
 ; mem states - mem_<step>_<thread>
 (declare-fun mem_1_1 () (_ BitVec 16))
@@ -223,8 +223,8 @@
 (declare-fun accu_2_1 () (_ BitVec 16))
 (declare-fun accu_2_2 () (_ BitVec 16))
 
-(assert (= accu_2_1 (ite exec_2_1_2 (select heap_1 #x0000) (ite exec_2_1_3 (bvadd accu_1_1 #x0001) accu_1_1))))
-(assert (= accu_2_2 (ite exec_2_2_2 (select heap_1 #x0000) (ite exec_2_2_3 (bvadd accu_1_2 #x0001) accu_1_2))))
+(assert (= accu_2_1 (ite exec_2_1_2 (select heap_1 #x0000) (ite exec_2_1_3 (bvadd accu_1_1 #x0001) (ite exec_2_1_4 (ite (= mem_1_1 (select heap_1 #x0000)) #x0001 #x0000) accu_1_1)))))
+(assert (= accu_2_2 (ite exec_2_2_2 (select heap_1 #x0000) (ite exec_2_2_3 (bvadd accu_1_2 #x0001) (ite exec_2_2_4 (ite (= mem_1_2 (select heap_1 #x0000)) #x0001 #x0000) accu_1_2)))))
 
 ; mem states - mem_<step>_<thread>
 (declare-fun mem_2_1 () (_ BitVec 16))
@@ -331,8 +331,8 @@
 (declare-fun accu_3_1 () (_ BitVec 16))
 (declare-fun accu_3_2 () (_ BitVec 16))
 
-(assert (= accu_3_1 (ite exec_3_1_2 (select heap_2 #x0000) (ite exec_3_1_3 (bvadd accu_2_1 #x0001) accu_2_1))))
-(assert (= accu_3_2 (ite exec_3_2_2 (select heap_2 #x0000) (ite exec_3_2_3 (bvadd accu_2_2 #x0001) accu_2_2))))
+(assert (= accu_3_1 (ite exec_3_1_2 (select heap_2 #x0000) (ite exec_3_1_3 (bvadd accu_2_1 #x0001) (ite exec_3_1_4 (ite (= mem_2_1 (select heap_2 #x0000)) #x0001 #x0000) accu_2_1)))))
+(assert (= accu_3_2 (ite exec_3_2_2 (select heap_2 #x0000) (ite exec_3_2_3 (bvadd accu_2_2 #x0001) (ite exec_3_2_4 (ite (= mem_2_2 (select heap_2 #x0000)) #x0001 #x0000) accu_2_2)))))
 
 ; mem states - mem_<step>_<thread>
 (declare-fun mem_3_1 () (_ BitVec 16))
@@ -439,8 +439,8 @@
 (declare-fun accu_4_1 () (_ BitVec 16))
 (declare-fun accu_4_2 () (_ BitVec 16))
 
-(assert (= accu_4_1 (ite exec_4_1_2 (select heap_3 #x0000) (ite exec_4_1_3 (bvadd accu_3_1 #x0001) accu_3_1))))
-(assert (= accu_4_2 (ite exec_4_2_2 (select heap_3 #x0000) (ite exec_4_2_3 (bvadd accu_3_2 #x0001) accu_3_2))))
+(assert (= accu_4_1 (ite exec_4_1_2 (select heap_3 #x0000) (ite exec_4_1_3 (bvadd accu_3_1 #x0001) (ite exec_4_1_4 (ite (= mem_3_1 (select heap_3 #x0000)) #x0001 #x0000) accu_3_1)))))
+(assert (= accu_4_2 (ite exec_4_2_2 (select heap_3 #x0000) (ite exec_4_2_3 (bvadd accu_3_2 #x0001) (ite exec_4_2_4 (ite (= mem_3_2 (select heap_3 #x0000)) #x0001 #x0000) accu_3_2)))))
 
 ; mem states - mem_<step>_<thread>
 (declare-fun mem_4_1 () (_ BitVec 16))
@@ -547,8 +547,8 @@
 (declare-fun accu_5_1 () (_ BitVec 16))
 (declare-fun accu_5_2 () (_ BitVec 16))
 
-(assert (= accu_5_1 (ite exec_5_1_2 (select heap_4 #x0000) (ite exec_5_1_3 (bvadd accu_4_1 #x0001) accu_4_1))))
-(assert (= accu_5_2 (ite exec_5_2_2 (select heap_4 #x0000) (ite exec_5_2_3 (bvadd accu_4_2 #x0001) accu_4_2))))
+(assert (= accu_5_1 (ite exec_5_1_2 (select heap_4 #x0000) (ite exec_5_1_3 (bvadd accu_4_1 #x0001) (ite exec_5_1_4 (ite (= mem_4_1 (select heap_4 #x0000)) #x0001 #x0000) accu_4_1)))))
+(assert (= accu_5_2 (ite exec_5_2_2 (select heap_4 #x0000) (ite exec_5_2_3 (bvadd accu_4_2 #x0001) (ite exec_5_2_4 (ite (= mem_4_2 (select heap_4 #x0000)) #x0001 #x0000) accu_4_2)))))
 
 ; mem states - mem_<step>_<thread>
 (declare-fun mem_5_1 () (_ BitVec 16))
@@ -655,8 +655,8 @@
 (declare-fun accu_6_1 () (_ BitVec 16))
 (declare-fun accu_6_2 () (_ BitVec 16))
 
-(assert (= accu_6_1 (ite exec_6_1_2 (select heap_5 #x0000) (ite exec_6_1_3 (bvadd accu_5_1 #x0001) accu_5_1))))
-(assert (= accu_6_2 (ite exec_6_2_2 (select heap_5 #x0000) (ite exec_6_2_3 (bvadd accu_5_2 #x0001) accu_5_2))))
+(assert (= accu_6_1 (ite exec_6_1_2 (select heap_5 #x0000) (ite exec_6_1_3 (bvadd accu_5_1 #x0001) (ite exec_6_1_4 (ite (= mem_5_1 (select heap_5 #x0000)) #x0001 #x0000) accu_5_1)))))
+(assert (= accu_6_2 (ite exec_6_2_2 (select heap_5 #x0000) (ite exec_6_2_3 (bvadd accu_5_2 #x0001) (ite exec_6_2_4 (ite (= mem_5_2 (select heap_5 #x0000)) #x0001 #x0000) accu_5_2)))))
 
 ; mem states - mem_<step>_<thread>
 (declare-fun mem_6_1 () (_ BitVec 16))
@@ -763,8 +763,8 @@
 (declare-fun accu_7_1 () (_ BitVec 16))
 (declare-fun accu_7_2 () (_ BitVec 16))
 
-(assert (= accu_7_1 (ite exec_7_1_2 (select heap_6 #x0000) (ite exec_7_1_3 (bvadd accu_6_1 #x0001) accu_6_1))))
-(assert (= accu_7_2 (ite exec_7_2_2 (select heap_6 #x0000) (ite exec_7_2_3 (bvadd accu_6_2 #x0001) accu_6_2))))
+(assert (= accu_7_1 (ite exec_7_1_2 (select heap_6 #x0000) (ite exec_7_1_3 (bvadd accu_6_1 #x0001) (ite exec_7_1_4 (ite (= mem_6_1 (select heap_6 #x0000)) #x0001 #x0000) accu_6_1)))))
+(assert (= accu_7_2 (ite exec_7_2_2 (select heap_6 #x0000) (ite exec_7_2_3 (bvadd accu_6_2 #x0001) (ite exec_7_2_4 (ite (= mem_6_2 (select heap_6 #x0000)) #x0001 #x0000) accu_6_2)))))
 
 ; mem states - mem_<step>_<thread>
 (declare-fun mem_7_1 () (_ BitVec 16))
@@ -871,8 +871,8 @@
 (declare-fun accu_8_1 () (_ BitVec 16))
 (declare-fun accu_8_2 () (_ BitVec 16))
 
-(assert (= accu_8_1 (ite exec_8_1_2 (select heap_7 #x0000) (ite exec_8_1_3 (bvadd accu_7_1 #x0001) accu_7_1))))
-(assert (= accu_8_2 (ite exec_8_2_2 (select heap_7 #x0000) (ite exec_8_2_3 (bvadd accu_7_2 #x0001) accu_7_2))))
+(assert (= accu_8_1 (ite exec_8_1_2 (select heap_7 #x0000) (ite exec_8_1_3 (bvadd accu_7_1 #x0001) (ite exec_8_1_4 (ite (= mem_7_1 (select heap_7 #x0000)) #x0001 #x0000) accu_7_1)))))
+(assert (= accu_8_2 (ite exec_8_2_2 (select heap_7 #x0000) (ite exec_8_2_3 (bvadd accu_7_2 #x0001) (ite exec_8_2_4 (ite (= mem_7_2 (select heap_7 #x0000)) #x0001 #x0000) accu_7_2)))))
 
 ; mem states - mem_<step>_<thread>
 (declare-fun mem_8_1 () (_ BitVec 16))

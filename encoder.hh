@@ -219,6 +219,9 @@ struct SMTLibEncoderFunctional : public SMTLibEncoder
   /* CAS memory register altering pcs */
   std::unordered_map<word, std::vector<word>> mem_pcs;
 
+  /* flag to distinguish between accu and heap updates when encoding CAS */
+  bool                update_accu;
+
   void                add_statement_activation (void);
   void                add_state_update (void);
   void                add_exit_code (void);
