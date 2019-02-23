@@ -76,33 +76,39 @@ struct Btor2EncoderTest : public ::testing::Test
       reset_encoder(1);
     }
 
-  void add_declerations ()
+  void add_declerations (bool clear_formula)
     {
       encoder->declare_sorts();
       encoder->declare_constants();
-      encoder->formula.str("");
+
+      if (clear_formula)
+        encoder->formula.str("");
     }
 
-  void init_states ()
+  void init_states (bool clear_formula)
     {
       encoder->declare_sorts();
       encoder->declare_constants();
       encoder->add_bound();
       encoder->declare_states();
-      encoder->formula.str("");
+
+      if (clear_formula)
+        encoder->formula.str("");
     }
 
-  void init_thread_scheduling ()
+  void init_thread_scheduling (bool clear_formula)
     {
       encoder->declare_sorts();
       encoder->declare_constants();
       encoder->add_bound();
       encoder->declare_states();
       encoder->add_thread_scheduling();
-      encoder->formula.str("");
+
+      if (clear_formula)
+        encoder->formula.str("");
     }
 
-  void init_synchronization_constraints ()
+  void init_synchronization_constraints (bool clear_formula)
     {
       encoder->declare_sorts();
       encoder->declare_constants();
@@ -110,10 +116,12 @@ struct Btor2EncoderTest : public ::testing::Test
       encoder->declare_states();
       encoder->add_thread_scheduling();
       encoder->add_synchronization_constraints();
-      encoder->formula.str("");
+
+      if (clear_formula)
+        encoder->formula.str("");
     }
 
-  void init_statement_execution ()
+  void init_statement_execution (bool clear_formula)
     {
       encoder->declare_sorts();
       encoder->declare_constants();
@@ -122,10 +130,12 @@ struct Btor2EncoderTest : public ::testing::Test
       encoder->add_thread_scheduling();
       encoder->add_synchronization_constraints();
       encoder->add_statement_execution();
-      encoder->formula.str("");
+
+      if (clear_formula)
+        encoder->formula.str("");
     }
 
-  void init_statement_activation ()
+  void init_statement_activation (bool clear_formula)
     {
       encoder->declare_sorts();
       encoder->declare_constants();
@@ -135,7 +145,9 @@ struct Btor2EncoderTest : public ::testing::Test
       encoder->add_synchronization_constraints();
       encoder->add_statement_execution();
       encoder->add_statement_activation();
-      encoder->formula.str("");
+
+      if (clear_formula)
+        encoder->formula.str("");
     }
 };
 
@@ -243,7 +255,7 @@ TEST_F(Btor2EncoderTest, declare_constants)
 // void add_bound ();
 TEST_F(Btor2EncoderTest, add_bound)
 {
-  add_declerations();
+  add_declerations(true);
 
   encoder->add_bound();
 
@@ -266,7 +278,7 @@ TEST_F(Btor2EncoderTest, add_bound)
   /* verbosity */
   reset_encoder(1);
 
-  add_declerations();
+  add_declerations(true);
 
   verbose = false;
   encoder->add_bound();
@@ -288,7 +300,7 @@ TEST_F(Btor2EncoderTest, declare_states)
 {
   add_dummy_programs(3, 3);
 
-  add_declerations();
+  add_declerations(true);
 
   encoder->declare_states();
 
@@ -353,7 +365,7 @@ TEST_F(Btor2EncoderTest, declare_states)
   /* verbosity */
   reset_encoder(1);
 
-  add_declerations();
+  add_declerations(true);
 
   verbose = false;
   encoder->declare_states();
@@ -407,7 +419,7 @@ TEST_F(Btor2EncoderTest, add_thread_scheduling)
 {
   add_dummy_programs(3, 3);
 
-  init_states();
+  init_states(true);
 
   encoder->add_thread_scheduling();
 
@@ -443,7 +455,7 @@ TEST_F(Btor2EncoderTest, add_thread_scheduling)
   /* verbosity */
   reset_encoder(1);
 
-  init_states();
+  init_states(true);
 
   verbose = false;
   encoder->add_thread_scheduling();
@@ -486,7 +498,7 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
 
   reset_encoder(1);
 
-  init_thread_scheduling();
+  init_thread_scheduling(true);
 
   encoder->add_synchronization_constraints();
 
@@ -545,7 +557,7 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
 
   reset_encoder(1);
 
-  init_thread_scheduling();
+  init_thread_scheduling(true);
 
   encoder->add_synchronization_constraints();
 
@@ -624,7 +636,7 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
 
   reset_encoder(1);
 
-  init_thread_scheduling();
+  init_thread_scheduling(true);
 
   encoder->add_synchronization_constraints();
 
@@ -715,7 +727,7 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
   /* verbosity */
   reset_encoder(1);
 
-  init_thread_scheduling();
+  init_thread_scheduling(true);
 
   verbose = false;
   encoder->add_synchronization_constraints();
@@ -795,7 +807,7 @@ TEST_F(Btor2EncoderTest, add_statement_execution)
 
   reset_encoder(1);
 
-  init_synchronization_constraints();
+  init_synchronization_constraints(true);
 
   encoder->add_statement_execution();
 
@@ -823,7 +835,7 @@ TEST_F(Btor2EncoderTest, add_statement_execution)
   /* verbosity */
   reset_encoder(1);
 
-  init_synchronization_constraints();
+  init_synchronization_constraints(true);
 
   verbose = false;
   encoder->add_statement_execution();
@@ -849,7 +861,7 @@ TEST_F(Btor2EncoderTest, add_statement_activation_basic)
 {
   add_dummy_programs(3, 2);
 
-  init_statement_execution();
+  init_statement_execution(true);
 
   encoder->add_statement_activation();
 
@@ -893,7 +905,7 @@ TEST_F(Btor2EncoderTest, add_statement_activation_basic)
   /* verbosity */
   reset_encoder(1);
 
-  init_statement_execution();
+  init_statement_execution(true);
 
   verbose = false;
   encoder->add_statement_activation();
@@ -943,7 +955,7 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp)
 
   reset_encoder(1);
 
-  init_statement_execution();
+  init_statement_execution(true);
 
   encoder->add_statement_activation();
 
@@ -1035,7 +1047,7 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_conditional)
 
   reset_encoder(3);
 
-  init_statement_execution();
+  init_statement_execution(true);
 
   encoder->add_statement_activation();
 
@@ -1178,7 +1190,7 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_start)
 
   reset_encoder(3);
 
-  init_statement_execution();
+  init_statement_execution(true);
 
   encoder->add_statement_activation();
 
@@ -1322,7 +1334,7 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_twice)
 
   reset_encoder(3);
 
-  init_statement_execution();
+  init_statement_execution(true);
 
   encoder->add_statement_activation();
 
@@ -1487,91 +1499,7 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_twice)
 // void add_state_update ();
 TEST_F(Btor2EncoderTest, add_state_update)
 {
-}
-
-// std::string load(Load &);
-TEST_F(Btor2EncoderTest, load)
-{
-  add_dummy_programs(1, 1);
-
-  init_states();
-
-  Load l = Load(1);
-
-  ASSERT_EQ("23", encoder->load(l));
-  ASSERT_EQ(NIDMap({{1, "23"}}), encoder->nids_load);
-  ASSERT_EQ("23 read 2 14 7\n", encoder->formula.str());
-
-  /* another load of the same memory address */
-  encoder->formula.str("");
-
-  ASSERT_EQ("23", encoder->load(l));
-  ASSERT_EQ(NIDMap({{1, "23"}}), encoder->nids_load);
-  ASSERT_EQ("", encoder->formula.str());
-
-  /* indirect */
-  encoder->formula.str("");
-
-  l.indirect = true;
-
-  ASSERT_EQ("24", encoder->load(l));
-  ASSERT_EQ(NIDMap({{1, "23"}}), encoder->nids_load);
-  ASSERT_EQ(NIDMap({{1, "24"}}), encoder->nids_load_indirect);
-  ASSERT_EQ(
-    "24 read 2 14 23\n",
-    encoder->formula.str());
-
-  /* another load of the same memory address */
-  encoder->formula.str("");
-
-  ASSERT_EQ("24", encoder->load(l));
-  ASSERT_EQ(NIDMap({{1, "23"}}), encoder->nids_load);
-  ASSERT_EQ(NIDMap({{1, "24"}}), encoder->nids_load_indirect);
-  ASSERT_EQ("", encoder->formula.str());
-}
-
-// std::string store(Store &);
-TEST_F(Btor2EncoderTest, store)
-{
-  add_dummy_programs(1, 1);
-
-  init_states();
-
-  Store s = Store(1);
-
-  encoder->thread = 1;
-
-  ASSERT_EQ("23", encoder->store(s));
-  ASSERT_EQ(NIDMap({{1, "23"}}), encoder->nids_store);
-  ASSERT_EQ("23 write 3 14 7 15\n", encoder->formula.str());
-
-  /* another store to the same memory address */
-  encoder->formula.str("");
-
-  ASSERT_EQ("23", encoder->store(s));
-  ASSERT_EQ(NIDMap({{1, "23"}}), encoder->nids_store);
-  ASSERT_EQ("", encoder->formula.str());
-
-  /* indirect */
-  encoder->formula.str("");
-
-  s.indirect = true;
-
-  ASSERT_EQ("25", encoder->store(s));
-  ASSERT_EQ(NIDMap({{1, "24"}}), encoder->nids_load);
-  ASSERT_EQ(NIDMap({{1, "25"}}), encoder->nids_store_indirect);
-  ASSERT_EQ(
-    "24 read 2 14 7\n"
-    "25 write 3 14 24 15\n",
-    encoder->formula.str());
-
-  /* another store to the same memory address */
-  encoder->formula.str("");
-
-  ASSERT_EQ("25", encoder->store(s));
-  ASSERT_EQ(NIDMap({{1, "24"}}), encoder->nids_load);
-  ASSERT_EQ(NIDMap({{1, "25"}}), encoder->nids_store_indirect);
-  ASSERT_EQ("", encoder->formula.str());
+  // TODO
 }
 
 // void preprocess ();
@@ -1584,39 +1512,527 @@ TEST_F(Btor2EncoderTest, preprocess)
     encoder->nids_const);
 }
 
+// std::string load(Load &);
+TEST_F(Btor2EncoderTest, load)
+{
+  add_dummy_programs(1, 1);
+
+  init_statement_activation(true);
+
+  Load l(1);
+
+  ASSERT_EQ("33", encoder->load(l));
+  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ("33 read 2 14 7\n", encoder->formula.str());
+
+  /* another load from the same memory address */
+  encoder->formula.str("");
+
+  ASSERT_EQ("33", encoder->load(l));
+  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ("", encoder->formula.str());
+
+  /* indirect */
+  encoder->formula.str("");
+
+  l.indirect = true;
+
+  ASSERT_EQ("34", encoder->load(l));
+  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "34"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("34 read 2 14 33\n", encoder->formula.str());
+
+  /* another load from the same memory address */
+  encoder->formula.str("");
+
+  ASSERT_EQ("34", encoder->load(l));
+  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "34"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("", encoder->formula.str());
+}
+
+// std::string store(Store &);
+TEST_F(Btor2EncoderTest, store)
+{
+  add_dummy_programs(1, 1);
+
+  init_statement_activation(true);
+
+  Store s(1);
+
+  encoder->thread = 1;
+
+  ASSERT_EQ("33", encoder->store(s));
+  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_store);
+  ASSERT_EQ("33 write 3 14 7 15\n", encoder->formula.str());
+
+  /* another store to the same memory address */
+  encoder->formula.str("");
+
+  ASSERT_EQ("33", encoder->store(s));
+  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_store);
+  ASSERT_EQ("", encoder->formula.str());
+
+  /* indirect */
+  encoder->formula.str("");
+
+  s.indirect = true;
+
+  ASSERT_EQ("35", encoder->store(s));
+  ASSERT_EQ(NIDMap({{1, "34"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_store_indirect);
+  ASSERT_EQ(
+    "34 read 2 14 7\n"
+    "35 write 3 14 34 15\n",
+    encoder->formula.str());
+
+  /* another store to the same memory address */
+  encoder->formula.str("");
+
+  ASSERT_EQ("35", encoder->store(s));
+  ASSERT_EQ(NIDMap({{1, "34"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_store_indirect);
+  ASSERT_EQ("", encoder->formula.str());
+}
+
 // virtual void encode (void);
+TEST_F(Btor2EncoderTest, encode)
+{
+  // TODO
+}
 
 // virtual std::string encode (Load &);
+TEST_F(Btor2EncoderTest, LOAD)
+{
+  Btor2EncoderTest_load_Test();
+}
 
 // virtual std::string encode (Store &);
+TEST_F(Btor2EncoderTest, STORE)
+{
+  Btor2EncoderTest_store_Test();
+}
 
 // virtual std::string encode (Add &);
+TEST_F(Btor2EncoderTest, ADD)
+{
+  add_dummy_programs(1, 1);
+
+  init_statement_activation(true);
+
+  encoder->thread = 1;
+
+  Add a(1);
+
+  ASSERT_EQ("34", encoder->encode(a));
+  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ(
+    "33 read 2 14 7\n"
+    "34 add 2 15 33\n",
+    encoder->formula.str());
+
+  /* another ADD from the same memory address */
+  encoder->formula.str("");
+
+  ASSERT_EQ("35", encoder->encode(a));
+  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ("35 add 2 15 33\n", encoder->formula.str());
+
+  /* indirect */
+  encoder->formula.str("");
+
+  a.indirect = true;
+
+  ASSERT_EQ("37", encoder->encode(a));
+  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "36"}}), encoder->nids_load_indirect);
+  ASSERT_EQ(
+    "36 read 2 14 33\n"
+    "37 add 2 15 36\n",
+    encoder->formula.str());
+
+  /* another ADD from the same memory address */
+  encoder->formula.str("");
+
+  ASSERT_EQ("38", encoder->encode(a));
+  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "36"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("38 add 2 15 36\n", encoder->formula.str());
+}
 
 // virtual std::string encode (Addi &);
+TEST_F(Btor2EncoderTest, ADDI)
+{
+  add_dummy_programs(1, 1);
+
+  init_statement_activation(true);
+
+  encoder->thread = 1;
+
+  Addi a(1);
+
+  ASSERT_EQ("33", encoder->encode(a));
+  ASSERT_EQ("33 add 2 15 7\n", encoder->formula.str());
+
+  /* another ADDI with the same constant */
+  encoder->formula.str("");
+
+  ASSERT_EQ("34", encoder->encode(a));
+  ASSERT_EQ("34 add 2 15 7\n", encoder->formula.str());
+}
 
 // virtual std::string encode (Sub &);
+TEST_F(Btor2EncoderTest, SUB)
+{
+  add_dummy_programs(1, 1);
+
+  init_statement_activation(true);
+
+  encoder->thread = 1;
+
+  Sub s(1);
+
+  ASSERT_EQ("34", encoder->encode(s));
+  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ(
+    "33 read 2 14 7\n"
+    "34 sub 2 15 33\n",
+    encoder->formula.str());
+
+  /* another SUB from the same memory address */
+  encoder->formula.str("");
+
+  ASSERT_EQ("35", encoder->encode(s));
+  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ("35 sub 2 15 33\n", encoder->formula.str());
+
+  /* indirect */
+  encoder->formula.str("");
+
+  s.indirect = true;
+
+  ASSERT_EQ("37", encoder->encode(s));
+  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "36"}}), encoder->nids_load_indirect);
+  ASSERT_EQ(
+    "36 read 2 14 33\n"
+    "37 sub 2 15 36\n",
+    encoder->formula.str());
+
+  /* another SUB from the same memory address */
+  encoder->formula.str("");
+
+  ASSERT_EQ("38", encoder->encode(s));
+  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "36"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("38 sub 2 15 36\n", encoder->formula.str());
+}
 
 // virtual std::string encode (Subi &);
+TEST_F(Btor2EncoderTest, SUBI)
+{
+  add_dummy_programs(1, 1);
+
+  init_statement_activation(true);
+
+  encoder->thread = 1;
+
+  Subi s(1);
+
+  ASSERT_EQ("33", encoder->encode(s));
+  ASSERT_EQ("33 sub 2 15 7\n", encoder->formula.str());
+
+  /* another SUBI with the same constant */
+  encoder->formula.str("");
+
+  ASSERT_EQ("34", encoder->encode(s));
+  ASSERT_EQ("34 sub 2 15 7\n", encoder->formula.str());
+}
 
 // virtual std::string encode (Cmp &);
+TEST_F(Btor2EncoderTest, CMP)
+{
+  add_dummy_programs(1, 1);
+
+  init_statement_activation(true);
+
+  encoder->thread = 1;
+
+  Cmp c(1);
+
+  ASSERT_EQ("34", encoder->encode(c));
+  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ(
+    "33 read 2 14 7\n"
+    "34 sub 2 15 33\n",
+    encoder->formula.str());
+
+  /* another CMP from the same memory address */
+  encoder->formula.str("");
+
+  ASSERT_EQ("35", encoder->encode(c));
+  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ("35 sub 2 15 33\n", encoder->formula.str());
+
+  /* indirect */
+  encoder->formula.str("");
+
+  c.indirect = true;
+
+  ASSERT_EQ("37", encoder->encode(c));
+  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "36"}}), encoder->nids_load_indirect);
+  ASSERT_EQ(
+    "36 read 2 14 33\n"
+    "37 sub 2 15 36\n",
+    encoder->formula.str());
+
+  /* another CMP from the same memory address */
+  encoder->formula.str("");
+
+  ASSERT_EQ("38", encoder->encode(c));
+  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "36"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("38 sub 2 15 36\n", encoder->formula.str());
+}
 
 // virtual std::string encode (Jmp &);
+TEST_F(Btor2EncoderTest, JMP)
+{
+  add_dummy_programs(1, 1);
+
+  init_statement_activation(true);
+
+  encoder->thread = 1;
+
+  Jmp j(1);
+
+  ASSERT_EQ("", encoder->encode(j));
+  ASSERT_EQ("", encoder->formula.str());
+}
 
 // virtual std::string encode (Jz &);
+TEST_F(Btor2EncoderTest, JZ)
+{
+  add_dummy_programs(1, 1);
+
+  init_statement_activation(true);
+
+  encoder->thread = 1;
+
+  Jz j(1);
+
+  ASSERT_EQ("33", encoder->encode(j));
+  ASSERT_EQ("33 eq 1 15 6\n", encoder->formula.str());
+}
 
 // virtual std::string encode (Jnz &);
+TEST_F(Btor2EncoderTest, JNZ)
+{
+  add_dummy_programs(1, 1);
+
+  init_statement_activation(true);
+
+  encoder->thread = 1;
+
+  Jnz j(1);
+
+  ASSERT_EQ("33", encoder->encode(j));
+  ASSERT_EQ("33 ne 1 15 6\n", encoder->formula.str());
+}
 
 // virtual std::string encode (Js &);
+TEST_F(Btor2EncoderTest, JS)
+{
+  add_dummy_programs(1, 1);
+
+  init_statement_activation(true);
+
+  encoder->thread = 1;
+
+  Js j(1);
+
+  ASSERT_EQ("33", encoder->encode(j));
+  ASSERT_EQ("33 slice 1 15 15 15\n", encoder->formula.str());
+}
 
 // virtual std::string encode (Jns &);
+TEST_F(Btor2EncoderTest, JNS)
+{
+  add_dummy_programs(1, 1);
+
+  init_statement_activation(true);
+
+  encoder->thread = 1;
+
+  Jns j(1);
+
+  ASSERT_EQ("34", encoder->encode(j));
+  ASSERT_EQ(
+    "33 slice 1 15 15 15\n"
+    "34 not 1 33\n",
+    encoder->formula.str());
+}
 
 // virtual std::string encode (Jnzns &);
+TEST_F(Btor2EncoderTest, JNZNS)
+{
+  add_dummy_programs(1, 1);
+
+  init_statement_activation(true);
+
+  encoder->thread = 1;
+
+  Jnzns j(1);
+
+  ASSERT_EQ("37", encoder->encode(j));
+  ASSERT_EQ(
+    "34 ne 1 15 6\n"
+    "35 slice 1 15 15 15\n"
+    "36 not 1 35\n"
+    "37 and 1 34 36\n",
+    encoder->formula.str());
+}
 
 // virtual std::string encode (Mem &);
+TEST_F(Btor2EncoderTest, MEM)
+{
+  Btor2EncoderTest_LOAD_Test();
+}
 
 // virtual std::string encode (Cas &);
+TEST_F(Btor2EncoderTest, CAS_accu)
+{
+  add_dummy_programs(1, 1);
+
+  init_statement_activation(true);
+
+  encoder->thread = 1;
+
+  encoder->update_accu = true;
+
+  Cas c(1);
+
+  ASSERT_EQ("35", encoder->encode(c));
+  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ(
+    "33 read 2 14 7\n"
+    "34 eq 1 17 33\n"
+    "35 ite 1 34 7 6\n",
+    encoder->formula.str());
+
+  /* another CAS to the same memory address */
+  encoder->formula.str("");
+
+  ASSERT_EQ("37", encoder->encode(c));
+  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ(
+    "36 eq 1 17 33\n"
+    "37 ite 1 36 7 6\n",
+    encoder->formula.str());
+
+  /* indirect */
+  encoder->formula.str("");
+
+  c.indirect = true;
+
+  ASSERT_EQ("40", encoder->encode(c));
+  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "38"}}), encoder->nids_load_indirect);
+  ASSERT_EQ(
+    "38 read 2 14 33\n"
+    "39 eq 1 17 38\n"
+    "40 ite 1 39 7 6\n",
+    encoder->formula.str());
+
+  /* another CAS to the same memory address */
+  encoder->formula.str("");
+
+  ASSERT_EQ("42", encoder->encode(c));
+  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "38"}}), encoder->nids_load_indirect);
+  ASSERT_EQ(
+    "41 eq 1 17 38\n"
+    "42 ite 1 41 7 6\n",
+    encoder->formula.str());
+}
+
+TEST_F(Btor2EncoderTest, CAS_heap)
+{
+  add_dummy_programs(1, 1);
+
+  init_statement_activation(true);
+
+  encoder->thread = 1;
+
+  encoder->update_accu = false;
+
+  Cas c(1);
+
+  ASSERT_EQ("36", encoder->encode(c));
+  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ(
+    "33 read 2 14 7\n"
+    "34 eq 1 17 33\n"
+    "35 write 3 14 7 15\n"
+    "36 ite 1 34 35 14\n",
+    encoder->formula.str());
+
+  /* another CAS to the same memory address */
+  encoder->formula.str("");
+
+  ASSERT_EQ("38", encoder->encode(c));
+  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ(
+    "37 eq 1 17 33\n"
+    "38 ite 1 37 35 14\n",
+    encoder->formula.str());
+
+  /* indirect */
+  encoder->formula.str("");
+
+  c.indirect = true;
+
+  ASSERT_EQ("42", encoder->encode(c));
+  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "39"}}), encoder->nids_load_indirect);
+  ASSERT_EQ(
+    "39 read 2 14 33\n"
+    "40 eq 1 17 39\n"
+    "41 write 3 14 33 15\n"
+    "42 ite 1 40 41 14\n",
+    encoder->formula.str());
+
+  /* another CAS to the same memory address */
+  encoder->formula.str("");
+
+  ASSERT_EQ("44", encoder->encode(c));
+  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "39"}}), encoder->nids_load_indirect);
+  ASSERT_EQ(
+    "43 eq 1 17 39\n"
+    "44 ite 1 43 41 14\n",
+    encoder->formula.str());
+}
 
 // virtual std::string encode (Sync &);
+TEST_F(Btor2EncoderTest, SYNC)
+{
+  Sync s(1);
+
+  ASSERT_EQ("", encoder->encode(s));
+  ASSERT_EQ("", encoder->formula.str());
+}
 
 // virtual std::string encode (Exit &);
+TEST_F(Btor2EncoderTest, EXIT)
+{
+  add_dummy_programs(1, 1);
 
+  init_statement_activation(true);
+
+  Exit e(1);
+
+  ASSERT_EQ("7", encoder->encode(e));
+  ASSERT_EQ("", encoder->formula.str());
+}

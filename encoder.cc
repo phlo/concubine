@@ -1862,9 +1862,14 @@ void Btor2Encoder::add_statement_activation ()
   });
 }
 
+void Btor2Encoder::add_state_update ()
+{
+  // TODO
+}
+
 void Btor2Encoder::preprocess ()
 {
-  /* collect constants */
+  /* static constants */
   nids_const[0] = "";
   nids_const[bound] = "";
 
@@ -1940,38 +1945,52 @@ string Btor2Encoder::encode (Load & l)
 
 string Btor2Encoder::encode (Store & s)
 {
-  (void) s;
-  return "";
+  return store(s);
 }
 
 string Btor2Encoder::encode (Add & a)
 {
-  (void) a;
-  return "";
+  string nid_add = load(a);
+
+  formula << btor2::add(nid_add = nid(), sid_bv, nids_accu[thread], nid_add);
+
+  return nid_add;
 }
 
 string Btor2Encoder::encode (Addi & a)
 {
-  (void) a;
-  return "";
+  string nid_addi = nids_const[a.arg];
+
+  formula << btor2::add(nid_addi = nid(), sid_bv, nids_accu[thread], nid_addi);
+
+  return nid_addi;
 }
 
 string Btor2Encoder::encode (Sub & s)
 {
-  (void) s;
-  return "";
+  string nid_sub = load(s);
+
+  formula << btor2::sub(nid_sub = nid(), sid_bv, nids_accu[thread], nid_sub);
+
+  return nid_sub;
 }
 
 string Btor2Encoder::encode (Subi & s)
 {
-  (void) s;
-  return "";
+  string nid_subi = nids_const[s.arg];
+
+  formula << btor2::sub(nid_subi = nid(), sid_bv, nids_accu[thread], nid_subi);
+
+  return nid_subi;
 }
 
 string Btor2Encoder::encode (Cmp & c)
 {
-  (void) c;
-  return "";
+  string nid_sub = load(c);
+
+  formula << btor2::sub(nid_sub = nid(), sid_bv, nids_accu[thread], nid_sub);
+
+  return nid_sub;
 }
 
 string Btor2Encoder::encode (Jmp & j [[maybe_unused]])
@@ -1997,22 +2016,47 @@ string Btor2Encoder::encode (Jnz & j [[maybe_unused]])
   return ret;
 }
 
-string Btor2Encoder::encode (Js & j)
+string Btor2Encoder::encode (Js & j [[maybe_unused]])
 {
-  (void) j;
-  return "";
+  string msb = to_string(word_size - 1); // TODO: add as static class var?
+  string ret = nid();
+
+  formula << btor2::slice(ret, sid_bool, nids_accu[thread], msb, msb);
+
+  return ret;
 }
 
-string Btor2Encoder::encode (Jns & j)
+string Btor2Encoder::encode (Jns & j [[maybe_unused]])
 {
-  (void) j;
-  return "";
+  string msb = to_string(word_size - 1); // TODO: add as static class var?
+  string ret = nid();
+
+  formula <<
+    btor2::slice(ret, sid_bool, nids_accu[thread], msb, msb) <<
+    btor2::lnot(ret = nid(), sid_bool, ret);
+
+  return ret;
 }
 
-string Btor2Encoder::encode (Jnzns & j)
+string Btor2Encoder::encode (Jnzns & j [[maybe_unused]])
 {
-  (void) j;
-  return "";
+  string msb = to_string(word_size - 1); // TODO: add as static class var?
+
+  string nid_nz = nid();
+
+  formula <<
+    btor2::ne(nid_nz = nid(), sid_bool, nids_accu[thread], nids_const[0]);
+
+  string nid_nzns = nid();
+
+  formula <<
+    btor2::slice(nid_nzns, sid_bool, nids_accu[thread], msb, msb) <<
+    btor2::lnot(nid_nzns = nid(), sid_bool, nid_nzns);
+
+  formula <<
+    btor2::land(nid_nzns = nid(), sid_bool, nid_nz, nid_nzns);
+
+  return nid_nzns;
 }
 
 string Btor2Encoder::encode (Mem & m)
@@ -2022,18 +2066,41 @@ string Btor2Encoder::encode (Mem & m)
 
 string Btor2Encoder::encode (Cas & c)
 {
-  (void) c;
+  Load l(c.arg);
+
+  l.indirect = c.indirect;
+
+  string nid_cas = load(l);
+
+  formula << btor2::eq(nid_cas = nid(), sid_bool, nids_mem[thread], nid_cas);
+
+  if (update_accu)
+    {
+      formula <<
+        btor2::ite(
+          nid_cas = nid(),
+          sid_bool,
+          nid_cas,
+          nids_const[1],
+          nids_const[0]);
+    }
+  else
+    {
+      string nid_store = store(c);
+
+      formula <<
+        btor2::ite(nid_cas = nid(), sid_bool, nid_cas, nid_store, nid_heap);
+    }
+
+  return nid_cas;
+}
+
+string Btor2Encoder::encode (Sync & s [[maybe_unused]])
+{
   return "";
 }
 
-string Btor2Encoder::encode (Sync & s)
+string Btor2Encoder::encode (Exit & e [[maybe_unused]])
 {
-  (void) s;
-  return "";
-}
-
-string Btor2Encoder::encode (Exit & e)
-{
-  (void) e;
-  return "";
+  return nids_const[e.arg];
 }
