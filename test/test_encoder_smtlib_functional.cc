@@ -652,28 +652,28 @@ TEST_F(SMTLibEncoderFunctionalTest, preprocess)
   add_instruction_set(3);
 
   /* heap altering pcs */
-  ASSERT_EQ(3, encoder->heap_pcs.size());
+  ASSERT_EQ(3, encoder->alters_heap.size());
 
-  vector<word> heap_pcs({1, 14});
+  vector<word> alters_heap({1, 14});
 
-  for (const auto & pcs: encoder->heap_pcs)
-    ASSERT_EQ(heap_pcs, pcs.second);
+  for (const auto & pcs: encoder->alters_heap)
+    ASSERT_EQ(alters_heap, pcs.second);
 
   /* accu altering pcs */
-  ASSERT_EQ(3, encoder->accu_pcs.size());
+  ASSERT_EQ(3, encoder->alters_accu.size());
 
-  vector<word> accu_pcs({0, 2, 3, 4, 5, 6, 13, 14});
+  vector<word> alters_accu({0, 2, 3, 4, 5, 6, 13, 14});
 
-  for (const auto & pcs: encoder->accu_pcs)
-    ASSERT_EQ(accu_pcs, pcs.second);
+  for (const auto & pcs: encoder->alters_accu)
+    ASSERT_EQ(alters_accu, pcs.second);
 
   /* mem altering pcs */
-  ASSERT_EQ(3, encoder->mem_pcs.size());
+  ASSERT_EQ(3, encoder->alters_mem.size());
 
-  vector<word> mem_pcs({13});
+  vector<word> alters_mem({13});
 
-  for (const auto & pcs: encoder->mem_pcs)
-    ASSERT_EQ(mem_pcs, pcs.second);
+  for (const auto & pcs: encoder->alters_mem)
+    ASSERT_EQ(alters_mem, pcs.second);
 }
 
 // virtual void encode (void);

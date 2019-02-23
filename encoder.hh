@@ -56,6 +56,7 @@ struct Encoder
   std::map<word, std::set<word>> exit_pcs;
 
   /* threads containing CAS statements */
+  // TODO: really necessary?
   std::set<word>        cas_threads;
 
   /*****************************************************************************
@@ -210,14 +211,14 @@ struct SMTLibEncoderFunctional : public SMTLibEncoder
   /* constructs an SMTLibEncoderFunctional for the given program and bound */
   SMTLibEncoderFunctional (const ProgramListPtr, unsigned long, bool = true);
 
-  /* heap altering pcs */
-  std::unordered_map<word, std::vector<word>> heap_pcs;
-
   /* accumulator altering pcs */
-  std::unordered_map<word, std::vector<word>> accu_pcs;
+  std::unordered_map<word, std::vector<word>> alters_accu;
 
   /* CAS memory register altering pcs */
-  std::unordered_map<word, std::vector<word>> mem_pcs;
+  std::unordered_map<word, std::vector<word>> alters_mem;
+
+  /* heap altering pcs */
+  std::unordered_map<word, std::vector<word>> alters_heap;
 
   /* flag to distinguish between accu and heap updates when encoding CAS */
   bool                update_accu;
@@ -262,7 +263,7 @@ struct SMTLibEncoderFunctional : public SMTLibEncoder
 typedef std::shared_ptr<SMTLibEncoderFunctional> SMTLibEncoderFunctionalPtr;
 
 /*******************************************************************************
- * SMT-Lib v2.5 Functional Encoder Class
+ * SMT-Lib v2.5 Relational Encoder Class
  ******************************************************************************/
 struct SMTLibEncoderRelational : public SMTLibEncoder
 {
@@ -330,6 +331,15 @@ struct Btor2Encoder : public Encoder
   /* constructs a Btor2Encoder for the given program and bound */
   Btor2Encoder (const ProgramListPtr, unsigned long, bool = true);
 
+  /* accumulator altering pcs */
+  std::unordered_map<word, std::vector<word>> alters_accu;
+
+  /* CAS memory register altering pcs */
+  std::unordered_map<word, std::vector<word>> alters_mem;
+
+  /* heap altering pcs */
+  std::unordered_map<word, std::vector<word>> alters_heap;
+
   /* flag to distinguish between accu and heap updates when encoding CAS */
   bool                        update_accu;
 
@@ -345,7 +355,6 @@ struct Btor2Encoder : public Encoder
                               nid_heap,
 
                               nid_exit;
-
 
   std::map<word, std::string> nids_const,
 

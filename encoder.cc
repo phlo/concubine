@@ -690,10 +690,10 @@ void SMTLibEncoderFunctional::add_state_update ()
   update_accu = true;
 
   iterate_threads([&] (Program & program) {
-    vector<word> & pcs = accu_pcs[thread];
+    vector<word> & pcs = alters_accu[thread];
     string expr = accu_var(step - 1, thread);
 
-    // for (const word & _pc : accu_pcs[thread])
+    // for (const word & _pc : alters_accu[thread])
     for (auto rit = pcs.rbegin(); rit != pcs.rend(); ++rit)
       expr =
         smtlib::ite(
@@ -712,10 +712,10 @@ void SMTLibEncoderFunctional::add_state_update ()
   declare_mem_vars();
 
   iterate_threads([&] (Program & program) {
-    vector<word> & pcs = mem_pcs[thread];
+    vector<word> & pcs = alters_mem[thread];
     string expr = mem_var(step - 1, thread);
 
-    // for (const word & _pc : mem_pcs[thread])
+    // for (const word & _pc : alters_mem[thread])
     for (auto rit = pcs.rbegin(); rit != pcs.rend(); ++rit)
       expr =
         smtlib::ite(
@@ -734,9 +734,9 @@ void SMTLibEncoderFunctional::add_state_update ()
   string expr = heap_var(step - 1);
 
   iterate_threads_reverse([&] (Program & program) {
-    vector<word> & pcs = heap_pcs[thread];
+    vector<word> & pcs = alters_heap[thread];
 
-    // for (const word & _pc : heap_pcs[thread])
+    // for (const word & _pc : alters_heap[thread])
     for (auto rit = pcs.rbegin(); rit != pcs.rend(); ++rit)
       expr =
         smtlib::ite(
@@ -781,13 +781,13 @@ void SMTLibEncoderFunctional::preprocess ()
         const unsigned char attributes = program[pc]->get_attributes();
 
         if (attributes & Instruction::Attributes::ALTERS_ACCU)
-          accu_pcs[thread].push_back(pc);
+          alters_accu[thread].push_back(pc);
 
         if (attributes & Instruction::Attributes::ALTERS_MEM)
-          mem_pcs[thread].push_back(pc);
+          alters_mem[thread].push_back(pc);
 
         if (attributes & Instruction::Attributes::ALTERS_HEAP)
-          heap_pcs[thread].push_back(pc);
+          alters_heap[thread].push_back(pc);
       }
   });
 }
@@ -1873,10 +1873,27 @@ void Btor2Encoder::preprocess ()
   nids_const[0] = "";
   nids_const[bound] = "";
 
-  iterate_threads([&] (Program & p) {
-    for (const auto & op : p)
-      if (UnaryInstructionPtr i = dynamic_pointer_cast<UnaryInstruction>(op))
-        nids_const[i->arg] = "";
+  iterate_threads([&] (Program & program) {
+    for (pc = 0; pc < program.size(); pc++)
+      {
+        const InstructionPtr & op = program[pc];
+
+        /* collect constants */
+        if (UnaryInstructionPtr i = dynamic_pointer_cast<UnaryInstruction>(op))
+          nids_const[i->arg] = "";
+
+        /* initialize state update maps */
+        const unsigned char attributes = op->get_attributes();
+
+        if (attributes & Instruction::Attributes::ALTERS_ACCU)
+          alters_accu[thread].push_back(pc);
+
+        if (attributes & Instruction::Attributes::ALTERS_MEM)
+          alters_mem[thread].push_back(pc);
+
+        if (attributes & Instruction::Attributes::ALTERS_HEAP)
+          alters_heap[thread].push_back(pc);
+      }
   });
 }
 
@@ -1900,7 +1917,7 @@ string Btor2Encoder::load (Load & l)
     : nid_load;
 }
 
-/* NOTE: requires thread to be set */
+/* requires thread to be set */
 string Btor2Encoder::store (Store & s)
 {
   string nid_store = nids_const[s.arg];
