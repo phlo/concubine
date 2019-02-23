@@ -169,25 +169,27 @@ TEST(Btor2Test, justice)
 // inline string sext (string, string, string)
 TEST(Btor2Test, sext)
 {
-  ASSERT_EQ("11 sext 1 2\n", btor2::sext("11", "1", "2"));
-  ASSERT_EQ("12 sext 2 3\n", btor2::sext("12", "2", "3"));
-  ASSERT_EQ("13 sext 3 4 foo\n", btor2::sext("13", "3", "4", "foo"));
+  ASSERT_EQ("11 sext 1 2 3\n", btor2::sext("11", "1", "2", "3"));
+  ASSERT_EQ("12 sext 2 3 4\n", btor2::sext("12", "2", "3", "4"));
+  ASSERT_EQ("13 sext 3 4 5 foo\n", btor2::sext("13", "3", "4", "5", "foo"));
 }
 
 // inline string uext (string, string, string)
 TEST(Btor2Test, uext)
 {
-  ASSERT_EQ("11 uext 1 2\n", btor2::uext("11", "1", "2"));
-  ASSERT_EQ("12 uext 2 3\n", btor2::uext("12", "2", "3"));
-  ASSERT_EQ("13 uext 3 4 foo\n", btor2::uext("13", "3", "4", "foo"));
+  ASSERT_EQ("11 uext 1 2 3\n", btor2::uext("11", "1", "2", "3"));
+  ASSERT_EQ("12 uext 2 3 4\n", btor2::uext("12", "2", "3", "4"));
+  ASSERT_EQ("13 uext 3 4 5 foo\n", btor2::uext("13", "3", "4", "5", "foo"));
 }
 
 // inline string slice (string, string, string, string)
 TEST(Btor2Test, slice)
 {
-  ASSERT_EQ("11 slice 1 3 2\n", btor2::slice("11", "1", "3", "2"));
-  ASSERT_EQ("12 slice 2 4 3\n", btor2::slice("12", "2", "4", "3"));
-  ASSERT_EQ("13 slice 3 5 4 foo\n", btor2::slice("13", "3", "5", "4", "foo"));
+  ASSERT_EQ("11 slice 1 3 2 3\n", btor2::slice("11", "1", "3", "2", "3"));
+  ASSERT_EQ("12 slice 2 4 3 4\n", btor2::slice("12", "2", "4", "3", "4"));
+  ASSERT_EQ(
+    "13 slice 3 5 4 5 foo\n",
+    btor2::slice("13", "3", "5", "4", "5", "foo"));
 }
 
 // inline string lnot (string, string, string)

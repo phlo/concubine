@@ -191,32 +191,37 @@ namespace btor2
   inline std::string sext (
                            std::string nid,
                            std::string sid,
+                           std::string node,
                            std::string width,
                            std::string sym = ""
                           )
     {
-      return line(nid + " sext " + sid + " " + width, sym);
+      return line(nid + " sext " + sid + " " + node + " " + width, sym);
     }
 
   inline std::string uext (
                            std::string nid,
                            std::string sid,
+                           std::string node,
                            std::string width,
                            std::string sym = ""
                           )
     {
-      return line(nid + " uext " + sid + " " + width, sym);
+      return line(nid + " uext " + sid + " " + node + " " + width, sym);
     }
 
   inline std::string slice (
                             std::string nid,
                             std::string sid,
+                            std::string node,
                             std::string upper,
                             std::string lower,
                             std::string sym = ""
                            )
     {
-      return line(nid + " slice " + sid + " " + upper + " " + lower, sym);
+      return
+        line(
+          nid + " slice " + sid + " " + node + " " + upper + " " + lower, sym);
     }
 
   inline std::string lnot (
