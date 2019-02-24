@@ -307,10 +307,11 @@ TEST_F(Btor2EncoderTest, declare_states)
   ASSERT_EQ("10", encoder->nid_heap);
   ASSERT_EQ(NIDMap({{1, "11"}, {2, "13"}, {3, "15"}}), encoder->nids_accu);
   ASSERT_EQ(NIDMap({{1, "17"}, {2, "19"}, {3, "21"}}), encoder->nids_mem);
-  ASSERT_EQ("23", encoder->nid_exit);
-  ASSERT_EQ(vector<string>({"25", "27", "29"}), encoder->nids_stmt[1]);
-  ASSERT_EQ(vector<string>({"31", "33", "35"}), encoder->nids_stmt[2]);
-  ASSERT_EQ(vector<string>({"37", "39", "41"}), encoder->nids_stmt[3]);
+  ASSERT_EQ(vector<string>({"23", "25", "27"}), encoder->nids_stmt[1]);
+  ASSERT_EQ(vector<string>({"29", "31", "33"}), encoder->nids_stmt[2]);
+  ASSERT_EQ(vector<string>({"35", "37", "39"}), encoder->nids_stmt[3]);
+  ASSERT_EQ("41", encoder->nid_exit);
+  ASSERT_EQ("43", encoder->nid_exit_code);
   ASSERT_EQ(
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "; states\n"
@@ -335,31 +336,35 @@ TEST_F(Btor2EncoderTest, declare_states)
     "21 state 2 mem_3\n"
     "22 init 2 21 6\n"
     "\n"
-    "; exit\n"
-    "23 state 1 exit\n"
-    "24 init 1 23 4\n"
-    "\n"
     "; statement activation\n"
-    "25 state 1 stmt_1_0\n"
-    "26 init 1 25 5\n"
-    "27 state 1 stmt_1_1\n"
+    "23 state 1 stmt_1_0\n"
+    "24 init 1 23 5\n"
+    "25 state 1 stmt_1_1\n"
+    "26 init 1 25 4\n"
+    "27 state 1 stmt_1_2\n"
     "28 init 1 27 4\n"
-    "29 state 1 stmt_1_2\n"
-    "30 init 1 29 4\n"
     "\n"
-    "31 state 1 stmt_2_0\n"
-    "32 init 1 31 5\n"
-    "33 state 1 stmt_2_1\n"
+    "29 state 1 stmt_2_0\n"
+    "30 init 1 29 5\n"
+    "31 state 1 stmt_2_1\n"
+    "32 init 1 31 4\n"
+    "33 state 1 stmt_2_2\n"
     "34 init 1 33 4\n"
-    "35 state 1 stmt_2_2\n"
-    "36 init 1 35 4\n"
     "\n"
-    "37 state 1 stmt_3_0\n"
-    "38 init 1 37 5\n"
-    "39 state 1 stmt_3_1\n"
+    "35 state 1 stmt_3_0\n"
+    "36 init 1 35 5\n"
+    "37 state 1 stmt_3_1\n"
+    "38 init 1 37 4\n"
+    "39 state 1 stmt_3_2\n"
     "40 init 1 39 4\n"
-    "41 state 1 stmt_3_2\n"
-    "42 init 1 41 4\n\n",
+    "\n"
+    "; exit flag\n"
+    "41 state 1 exit\n"
+    "42 init 1 41 4\n"
+    "\n"
+    "; exit code\n"
+    "43 state 2 exit_code\n"
+    "44 init 2 43 6\n\n",
     encoder->formula.str());
 
   /* verbosity */
@@ -388,29 +393,32 @@ TEST_F(Btor2EncoderTest, declare_states)
     "21 state 2 mem_3\n"
     "22 init 2 21 6\n"
     "\n"
-    "23 state 1 exit\n"
-    "24 init 1 23 4\n"
-    "\n"
-    "25 state 1 stmt_1_0\n"
-    "26 init 1 25 5\n"
-    "27 state 1 stmt_1_1\n"
+    "23 state 1 stmt_1_0\n"
+    "24 init 1 23 5\n"
+    "25 state 1 stmt_1_1\n"
+    "26 init 1 25 4\n"
+    "27 state 1 stmt_1_2\n"
     "28 init 1 27 4\n"
-    "29 state 1 stmt_1_2\n"
-    "30 init 1 29 4\n"
     "\n"
-    "31 state 1 stmt_2_0\n"
-    "32 init 1 31 5\n"
-    "33 state 1 stmt_2_1\n"
+    "29 state 1 stmt_2_0\n"
+    "30 init 1 29 5\n"
+    "31 state 1 stmt_2_1\n"
+    "32 init 1 31 4\n"
+    "33 state 1 stmt_2_2\n"
     "34 init 1 33 4\n"
-    "35 state 1 stmt_2_2\n"
-    "36 init 1 35 4\n"
     "\n"
-    "37 state 1 stmt_3_0\n"
-    "38 init 1 37 5\n"
-    "39 state 1 stmt_3_1\n"
+    "35 state 1 stmt_3_0\n"
+    "36 init 1 35 5\n"
+    "37 state 1 stmt_3_1\n"
+    "38 init 1 37 4\n"
+    "39 state 1 stmt_3_2\n"
     "40 init 1 39 4\n"
-    "41 state 1 stmt_3_2\n"
-    "42 init 1 41 4\n\n",
+    "\n"
+    "41 state 1 exit\n"
+    "42 init 1 41 4\n"
+    "\n"
+    "43 state 2 exit_code\n"
+    "44 init 2 43 6\n\n",
     encoder->formula.str());
 }
 
@@ -423,33 +431,33 @@ TEST_F(Btor2EncoderTest, add_thread_scheduling)
 
   encoder->add_thread_scheduling();
 
-  ASSERT_EQ(NIDMap({{1, "49"}, {2, "50"}, {3, "51"}}), encoder->nids_thread);
+  ASSERT_EQ(NIDMap({{1, "51"}, {2, "52"}, {3, "53"}}), encoder->nids_thread);
   ASSERT_EQ(
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "; thread scheduling\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "49 input 1 thread_1\n"
-    "50 input 1 thread_2\n"
-    "51 input 1 thread_3\n"
+    "51 input 1 thread_1\n"
+    "52 input 1 thread_2\n"
+    "53 input 1 thread_3\n"
     "\n"
     "; cardinality constraint\n"
-    "52 or 1 49 50\n"
-    "53 or 1 51 52\n"
-    "54 or 1 29 53\n"
-    "55 constraint 54\n"
-    "56 nand 1 49 50\n"
-    "57 nand 1 49 51\n"
-    "58 nand 1 49 29\n"
-    "59 nand 1 50 51\n"
-    "60 nand 1 50 29\n"
-    "61 nand 1 51 29\n"
-    "62 and 1 56 57\n"
-    "63 and 1 58 62\n"
-    "64 and 1 59 63\n"
+    "54 or 1 51 52\n"
+    "55 or 1 53 54\n"
+    "56 or 1 47 55\n"
+    "57 constraint 56\n"
+    "58 nand 1 51 52\n"
+    "59 nand 1 51 53\n"
+    "60 nand 1 51 47\n"
+    "61 nand 1 52 53\n"
+    "62 nand 1 52 47\n"
+    "63 nand 1 53 47\n"
+    "64 and 1 58 59\n"
     "65 and 1 60 64\n"
     "66 and 1 61 65\n"
-    "67 constraint 66\n\n",
+    "67 and 1 62 66\n"
+    "68 and 1 63 67\n"
+    "69 constraint 68\n\n",
     encoder->formula.str());
 
   /* verbosity */
@@ -462,26 +470,26 @@ TEST_F(Btor2EncoderTest, add_thread_scheduling)
   verbose = true;
 
   ASSERT_EQ(
-    "49 input 1 thread_1\n"
-    "50 input 1 thread_2\n"
-    "51 input 1 thread_3\n"
+    "51 input 1 thread_1\n"
+    "52 input 1 thread_2\n"
+    "53 input 1 thread_3\n"
     "\n"
-    "52 or 1 49 50\n"
-    "53 or 1 51 52\n"
-    "54 or 1 29 53\n"
-    "55 constraint 54\n"
-    "56 nand 1 49 50\n"
-    "57 nand 1 49 51\n"
-    "58 nand 1 49 29\n"
-    "59 nand 1 50 51\n"
-    "60 nand 1 50 29\n"
-    "61 nand 1 51 29\n"
-    "62 and 1 56 57\n"
-    "63 and 1 58 62\n"
-    "64 and 1 59 63\n"
+    "54 or 1 51 52\n"
+    "55 or 1 53 54\n"
+    "56 or 1 47 55\n"
+    "57 constraint 56\n"
+    "58 nand 1 51 52\n"
+    "59 nand 1 51 53\n"
+    "60 nand 1 51 47\n"
+    "61 nand 1 52 53\n"
+    "62 nand 1 52 47\n"
+    "63 nand 1 53 47\n"
+    "64 and 1 58 59\n"
     "65 and 1 60 64\n"
     "66 and 1 61 65\n"
-    "67 constraint 66\n\n",
+    "67 and 1 62 66\n"
+    "68 and 1 63 67\n"
+    "69 constraint 68\n\n",
     encoder->formula.str());
 }
 
@@ -502,52 +510,52 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
 
   encoder->add_synchronization_constraints();
 
-  ASSERT_EQ(NIDMap({{1, "65"}, {2, "77"}}), encoder->nids_sync);
+  ASSERT_EQ(NIDMap({{1, "67"}, {2, "79"}}), encoder->nids_sync);
   ASSERT_EQ(
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "; synchronization constraints\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; negated thread activation variables\n"
-    "61 not 1 42 not_thread_1\n"
-    "62 not 1 43 not_thread_2\n"
-    "63 not 1 44 not_thread_3\n"
+    "63 not 1 44 not_thread_1\n"
+    "64 not 1 45 not_thread_2\n"
+    "65 not 1 46 not_thread_3\n"
     "\n"
     "; synchronization condition sync_1\n"
-    "64 and 1 30 34\n"
-    "65 and 1 38 64 sync_1\n"
-    "66 not 1 65 not_sync_1\n"
+    "66 and 1 28 32\n"
+    "67 and 1 36 66 sync_1\n"
+    "68 not 1 67 not_sync_1\n"
     "\n"
     "; disable threads waiting for barrier 1\n"
-    "67 and 1 30 66\n"
-    "68 implies 1 67 61\n"
-    "69 constraint 68 sync_1_block_1\n"
+    "69 and 1 28 68\n"
+    "70 implies 1 69 63\n"
+    "71 constraint 70 sync_1_block_1\n"
     "\n"
-    "70 and 1 34 66\n"
-    "71 implies 1 70 62\n"
-    "72 constraint 71 sync_1_block_2\n"
+    "72 and 1 32 68\n"
+    "73 implies 1 72 64\n"
+    "74 constraint 73 sync_1_block_2\n"
     "\n"
-    "73 and 1 38 66\n"
-    "74 implies 1 73 63\n"
-    "75 constraint 74 sync_1_block_3\n"
+    "75 and 1 36 68\n"
+    "76 implies 1 75 65\n"
+    "77 constraint 76 sync_1_block_3\n"
     "\n"
     "; synchronization condition sync_2\n"
-    "76 and 1 32 36\n"
-    "77 and 1 40 76 sync_2\n"
-    "78 not 1 77 not_sync_2\n"
+    "78 and 1 30 34\n"
+    "79 and 1 38 78 sync_2\n"
+    "80 not 1 79 not_sync_2\n"
     "\n"
     "; disable threads waiting for barrier 2\n"
-    "79 and 1 32 78\n"
-    "80 implies 1 79 61\n"
-    "81 constraint 80 sync_2_block_1\n"
+    "81 and 1 30 80\n"
+    "82 implies 1 81 63\n"
+    "83 constraint 82 sync_2_block_1\n"
     "\n"
-    "82 and 1 36 78\n"
-    "83 implies 1 82 62\n"
-    "84 constraint 83 sync_2_block_2\n"
+    "84 and 1 34 80\n"
+    "85 implies 1 84 64\n"
+    "86 constraint 85 sync_2_block_2\n"
     "\n"
-    "85 and 1 40 78\n"
-    "86 implies 1 85 63\n"
-    "87 constraint 86 sync_2_block_3\n\n",
+    "87 and 1 38 80\n"
+    "88 implies 1 87 65\n"
+    "89 constraint 88 sync_2_block_3\n\n",
     encoder->formula.str());
 
   /* multiple calls to the same barrier */
@@ -562,72 +570,72 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
   encoder->add_synchronization_constraints();
 
   ASSERT_EQ(
-    vector<string>({"30", "32", "34", "36", "38", "40"}),
+    vector<string>({"28", "30", "32", "34", "36", "38"}),
     encoder->nids_stmt[1]);
   ASSERT_EQ(
-    vector<string>({"42", "44", "46", "48", "50", "52"}),
+    vector<string>({"40", "42", "44", "46", "48", "50"}),
     encoder->nids_stmt[2]);
   ASSERT_EQ(
-    vector<string>({"54", "56", "58", "60", "62", "64"}),
+    vector<string>({"52", "54", "56", "58", "60", "62"}),
     encoder->nids_stmt[3]);
-  ASSERT_EQ(NIDMap({{1, "95"}, {2, "113"}}), encoder->nids_sync);
+  ASSERT_EQ(NIDMap({{1, "97"}, {2, "115"}}), encoder->nids_sync);
   ASSERT_EQ(
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "; synchronization constraints\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; negated thread activation variables\n"
-    "85 not 1 66 not_thread_1\n"
-    "86 not 1 67 not_thread_2\n"
-    "87 not 1 68 not_thread_3\n"
+    "87 not 1 68 not_thread_1\n"
+    "88 not 1 69 not_thread_2\n"
+    "89 not 1 70 not_thread_3\n"
     "\n"
     "; synchronization condition sync_1\n"
-    "88 or 1 30 34\n"
-    "89 or 1 38 88 thread_1@sync_1\n"
-    "90 or 1 42 46\n"
-    "91 or 1 50 90 thread_2@sync_1\n"
-    "92 or 1 54 58\n"
-    "93 or 1 62 92 thread_3@sync_1\n"
-    "94 and 1 89 91\n"
-    "95 and 1 93 94 sync_1\n"
-    "96 not 1 95 not_sync_1\n"
+    "90 or 1 28 32\n"
+    "91 or 1 36 90 thread_1@sync_1\n"
+    "92 or 1 40 44\n"
+    "93 or 1 48 92 thread_2@sync_1\n"
+    "94 or 1 52 56\n"
+    "95 or 1 60 94 thread_3@sync_1\n"
+    "96 and 1 91 93\n"
+    "97 and 1 95 96 sync_1\n"
+    "98 not 1 97 not_sync_1\n"
     "\n"
     "; disable threads waiting for barrier 1\n"
-    "97 and 1 89 96\n"
-    "98 implies 1 97 85\n"
-    "99 constraint 98 sync_1_block_1\n"
+    "99 and 1 91 98\n"
+    "100 implies 1 99 87\n"
+    "101 constraint 100 sync_1_block_1\n"
     "\n"
-    "100 and 1 91 96\n"
-    "101 implies 1 100 86\n"
-    "102 constraint 101 sync_1_block_2\n"
+    "102 and 1 93 98\n"
+    "103 implies 1 102 88\n"
+    "104 constraint 103 sync_1_block_2\n"
     "\n"
-    "103 and 1 93 96\n"
-    "104 implies 1 103 87\n"
-    "105 constraint 104 sync_1_block_3\n"
+    "105 and 1 95 98\n"
+    "106 implies 1 105 89\n"
+    "107 constraint 106 sync_1_block_3\n"
     "\n"
     "; synchronization condition sync_2\n"
-    "106 or 1 32 36\n"
-    "107 or 1 40 106 thread_1@sync_2\n"
-    "108 or 1 44 48\n"
-    "109 or 1 52 108 thread_2@sync_2\n"
-    "110 or 1 56 60\n"
-    "111 or 1 64 110 thread_3@sync_2\n"
-    "112 and 1 107 109\n"
-    "113 and 1 111 112 sync_2\n"
-    "114 not 1 113 not_sync_2\n"
+    "108 or 1 30 34\n"
+    "109 or 1 38 108 thread_1@sync_2\n"
+    "110 or 1 42 46\n"
+    "111 or 1 50 110 thread_2@sync_2\n"
+    "112 or 1 54 58\n"
+    "113 or 1 62 112 thread_3@sync_2\n"
+    "114 and 1 109 111\n"
+    "115 and 1 113 114 sync_2\n"
+    "116 not 1 115 not_sync_2\n"
     "\n"
     "; disable threads waiting for barrier 2\n"
-    "115 and 1 107 114\n"
-    "116 implies 1 115 85\n"
-    "117 constraint 116 sync_2_block_1\n"
+    "117 and 1 109 116\n"
+    "118 implies 1 117 87\n"
+    "119 constraint 118 sync_2_block_1\n"
     "\n"
-    "118 and 1 109 114\n"
-    "119 implies 1 118 86\n"
-    "120 constraint 119 sync_2_block_2\n"
+    "120 and 1 111 116\n"
+    "121 implies 1 120 88\n"
+    "122 constraint 121 sync_2_block_2\n"
     "\n"
-    "121 and 1 111 114\n"
-    "122 implies 1 121 87\n"
-    "123 constraint 122 sync_2_block_3\n\n",
+    "123 and 1 113 116\n"
+    "124 implies 1 123 89\n"
+    "125 constraint 124 sync_2_block_3\n\n",
     encoder->formula.str());
 
   /* barrier only for a subset of threads */
@@ -641,87 +649,87 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
   encoder->add_synchronization_constraints();
 
   ASSERT_EQ(
-    vector<string>({"31", "33", "35", "37", "39", "41", "43"}),
+    vector<string>({"29", "31", "33", "35", "37", "39", "41"}),
     encoder->nids_stmt[1]);
   ASSERT_EQ(
-    vector<string>({"45", "47", "49", "51", "53", "55", "57"}),
+    vector<string>({"43", "45", "47", "49", "51", "53", "55"}),
     encoder->nids_stmt[2]);
   ASSERT_EQ(
-    vector<string>({"59", "61", "63", "65", "67", "69"}),
+    vector<string>({"57", "59", "61", "63", "65", "67"}),
     encoder->nids_stmt[3]);
-  ASSERT_EQ(NIDMap({{1, "100"}, {2, "118"}, {3, "131"}}), encoder->nids_sync);
+  ASSERT_EQ(NIDMap({{1, "102"}, {2, "120"}, {3, "133"}}), encoder->nids_sync);
   ASSERT_EQ(
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "; synchronization constraints\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; negated thread activation variables\n"
-    "90 not 1 71 not_thread_1\n"
-    "91 not 1 72 not_thread_2\n"
-    "92 not 1 73 not_thread_3\n"
+    "92 not 1 73 not_thread_1\n"
+    "93 not 1 74 not_thread_2\n"
+    "94 not 1 75 not_thread_3\n"
     "\n"
     "; synchronization condition sync_1\n"
-    "93 or 1 31 35\n"
-    "94 or 1 39 93 thread_1@sync_1\n"
-    "95 or 1 45 49\n"
-    "96 or 1 53 95 thread_2@sync_1\n"
-    "97 or 1 59 63\n"
-    "98 or 1 67 97 thread_3@sync_1\n"
-    "99 and 1 94 96\n"
-    "100 and 1 98 99 sync_1\n"
-    "101 not 1 100 not_sync_1\n"
+    "95 or 1 29 33\n"
+    "96 or 1 37 95 thread_1@sync_1\n"
+    "97 or 1 43 47\n"
+    "98 or 1 51 97 thread_2@sync_1\n"
+    "99 or 1 57 61\n"
+    "100 or 1 65 99 thread_3@sync_1\n"
+    "101 and 1 96 98\n"
+    "102 and 1 100 101 sync_1\n"
+    "103 not 1 102 not_sync_1\n"
     "\n"
     "; disable threads waiting for barrier 1\n"
-    "102 and 1 94 101\n"
-    "103 implies 1 102 90\n"
-    "104 constraint 103 sync_1_block_1\n"
+    "104 and 1 96 103\n"
+    "105 implies 1 104 92\n"
+    "106 constraint 105 sync_1_block_1\n"
     "\n"
-    "105 and 1 96 101\n"
-    "106 implies 1 105 91\n"
-    "107 constraint 106 sync_1_block_2\n"
+    "107 and 1 98 103\n"
+    "108 implies 1 107 93\n"
+    "109 constraint 108 sync_1_block_2\n"
     "\n"
-    "108 and 1 98 101\n"
-    "109 implies 1 108 92\n"
-    "110 constraint 109 sync_1_block_3\n"
+    "110 and 1 100 103\n"
+    "111 implies 1 110 94\n"
+    "112 constraint 111 sync_1_block_3\n"
     "\n"
     "; synchronization condition sync_2\n"
-    "111 or 1 33 37\n"
-    "112 or 1 41 111 thread_1@sync_2\n"
-    "113 or 1 47 51\n"
-    "114 or 1 55 113 thread_2@sync_2\n"
-    "115 or 1 61 65\n"
-    "116 or 1 69 115 thread_3@sync_2\n"
-    "117 and 1 112 114\n"
-    "118 and 1 116 117 sync_2\n"
-    "119 not 1 118 not_sync_2\n"
+    "113 or 1 31 35\n"
+    "114 or 1 39 113 thread_1@sync_2\n"
+    "115 or 1 45 49\n"
+    "116 or 1 53 115 thread_2@sync_2\n"
+    "117 or 1 59 63\n"
+    "118 or 1 67 117 thread_3@sync_2\n"
+    "119 and 1 114 116\n"
+    "120 and 1 118 119 sync_2\n"
+    "121 not 1 120 not_sync_2\n"
     "\n"
     "; disable threads waiting for barrier 2\n"
-    "120 and 1 112 119\n"
-    "121 implies 1 120 90\n"
-    "122 constraint 121 sync_2_block_1\n"
+    "122 and 1 114 121\n"
+    "123 implies 1 122 92\n"
+    "124 constraint 123 sync_2_block_1\n"
     "\n"
-    "123 and 1 114 119\n"
-    "124 implies 1 123 91\n"
-    "125 constraint 124 sync_2_block_2\n"
+    "125 and 1 116 121\n"
+    "126 implies 1 125 93\n"
+    "127 constraint 126 sync_2_block_2\n"
     "\n"
-    "126 and 1 116 119\n"
-    "127 implies 1 126 92\n"
-    "128 constraint 127 sync_2_block_3\n"
+    "128 and 1 118 121\n"
+    "129 implies 1 128 94\n"
+    "130 constraint 129 sync_2_block_3\n"
     "\n"
     "; synchronization condition sync_3\n"
-    "129 or 1 71 72\n"
-    "130 and 1 43 57\n"
-    "131 and 1 129 130 sync_3\n"
-    "132 not 1 131 not_sync_3\n"
+    "131 or 1 73 74\n"
+    "132 and 1 41 55\n"
+    "133 and 1 131 132 sync_3\n"
+    "134 not 1 133 not_sync_3\n"
     "\n"
     "; disable threads waiting for barrier 3\n"
-    "133 and 1 43 132\n"
-    "134 implies 1 133 90\n"
-    "135 constraint 134 sync_3_block_1\n"
+    "135 and 1 41 134\n"
+    "136 implies 1 135 92\n"
+    "137 constraint 136 sync_3_block_1\n"
     "\n"
-    "136 and 1 57 132\n"
-    "137 implies 1 136 91\n"
-    "138 constraint 137 sync_3_block_2\n\n",
+    "138 and 1 55 134\n"
+    "139 implies 1 138 93\n"
+    "140 constraint 139 sync_3_block_2\n\n",
     encoder->formula.str());
 
   /* verbosity */
@@ -734,66 +742,66 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
   verbose = true;
 
   ASSERT_EQ(
-    "90 not 1 71 not_thread_1\n"
-    "91 not 1 72 not_thread_2\n"
-    "92 not 1 73 not_thread_3\n"
+    "92 not 1 73 not_thread_1\n"
+    "93 not 1 74 not_thread_2\n"
+    "94 not 1 75 not_thread_3\n"
     "\n"
-    "93 or 1 31 35\n"
-    "94 or 1 39 93 thread_1@sync_1\n"
-    "95 or 1 45 49\n"
-    "96 or 1 53 95 thread_2@sync_1\n"
-    "97 or 1 59 63\n"
-    "98 or 1 67 97 thread_3@sync_1\n"
-    "99 and 1 94 96\n"
-    "100 and 1 98 99 sync_1\n"
-    "101 not 1 100 not_sync_1\n"
+    "95 or 1 29 33\n"
+    "96 or 1 37 95 thread_1@sync_1\n"
+    "97 or 1 43 47\n"
+    "98 or 1 51 97 thread_2@sync_1\n"
+    "99 or 1 57 61\n"
+    "100 or 1 65 99 thread_3@sync_1\n"
+    "101 and 1 96 98\n"
+    "102 and 1 100 101 sync_1\n"
+    "103 not 1 102 not_sync_1\n"
     "\n"
-    "102 and 1 94 101\n"
-    "103 implies 1 102 90\n"
-    "104 constraint 103 sync_1_block_1\n"
+    "104 and 1 96 103\n"
+    "105 implies 1 104 92\n"
+    "106 constraint 105 sync_1_block_1\n"
     "\n"
-    "105 and 1 96 101\n"
-    "106 implies 1 105 91\n"
-    "107 constraint 106 sync_1_block_2\n"
+    "107 and 1 98 103\n"
+    "108 implies 1 107 93\n"
+    "109 constraint 108 sync_1_block_2\n"
     "\n"
-    "108 and 1 98 101\n"
-    "109 implies 1 108 92\n"
-    "110 constraint 109 sync_1_block_3\n"
+    "110 and 1 100 103\n"
+    "111 implies 1 110 94\n"
+    "112 constraint 111 sync_1_block_3\n"
     "\n"
-    "111 or 1 33 37\n"
-    "112 or 1 41 111 thread_1@sync_2\n"
-    "113 or 1 47 51\n"
-    "114 or 1 55 113 thread_2@sync_2\n"
-    "115 or 1 61 65\n"
-    "116 or 1 69 115 thread_3@sync_2\n"
-    "117 and 1 112 114\n"
-    "118 and 1 116 117 sync_2\n"
-    "119 not 1 118 not_sync_2\n"
+    "113 or 1 31 35\n"
+    "114 or 1 39 113 thread_1@sync_2\n"
+    "115 or 1 45 49\n"
+    "116 or 1 53 115 thread_2@sync_2\n"
+    "117 or 1 59 63\n"
+    "118 or 1 67 117 thread_3@sync_2\n"
+    "119 and 1 114 116\n"
+    "120 and 1 118 119 sync_2\n"
+    "121 not 1 120 not_sync_2\n"
     "\n"
-    "120 and 1 112 119\n"
-    "121 implies 1 120 90\n"
-    "122 constraint 121 sync_2_block_1\n"
+    "122 and 1 114 121\n"
+    "123 implies 1 122 92\n"
+    "124 constraint 123 sync_2_block_1\n"
     "\n"
-    "123 and 1 114 119\n"
-    "124 implies 1 123 91\n"
-    "125 constraint 124 sync_2_block_2\n"
+    "125 and 1 116 121\n"
+    "126 implies 1 125 93\n"
+    "127 constraint 126 sync_2_block_2\n"
     "\n"
-    "126 and 1 116 119\n"
-    "127 implies 1 126 92\n"
-    "128 constraint 127 sync_2_block_3\n"
+    "128 and 1 118 121\n"
+    "129 implies 1 128 94\n"
+    "130 constraint 129 sync_2_block_3\n"
     "\n"
-    "129 or 1 71 72\n"
-    "130 and 1 43 57\n"
-    "131 and 1 129 130 sync_3\n"
-    "132 not 1 131 not_sync_3\n"
+    "131 or 1 73 74\n"
+    "132 and 1 41 55\n"
+    "133 and 1 131 132 sync_3\n"
+    "134 not 1 133 not_sync_3\n"
     "\n"
-    "133 and 1 43 132\n"
-    "134 implies 1 133 90\n"
-    "135 constraint 134 sync_3_block_1\n"
+    "135 and 1 41 134\n"
+    "136 implies 1 135 92\n"
+    "137 constraint 136 sync_3_block_1\n"
     "\n"
-    "136 and 1 57 132\n"
-    "137 implies 1 136 91\n"
-    "138 constraint 137 sync_3_block_2\n\n",
+    "138 and 1 55 134\n"
+    "139 implies 1 138 93\n"
+    "140 constraint 139 sync_3_block_2\n\n",
     encoder->formula.str());
 }
 
@@ -811,25 +819,25 @@ TEST_F(Btor2EncoderTest, add_statement_execution)
 
   encoder->add_statement_execution();
 
-  ASSERT_EQ(vector<string>({"83", "84", "85"}), encoder->nids_exec[1]);
-  ASSERT_EQ(vector<string>({"86", "87", "88"}), encoder->nids_exec[2]);
-  ASSERT_EQ(vector<string>({"89", "90", "91"}), encoder->nids_exec[3]);
+  ASSERT_EQ(vector<string>({"85", "86", "87"}), encoder->nids_exec[1]);
+  ASSERT_EQ(vector<string>({"88", "89", "90"}), encoder->nids_exec[2]);
+  ASSERT_EQ(vector<string>({"91", "92", "93"}), encoder->nids_exec[3]);
   ASSERT_EQ(
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "; statement execution - shorthand for statement & thread activation\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "83 and 1 31 49 exec_1_0\n"
-    "84 and 1 33 49 exec_1_1\n"
-    "85 and 1 35 72 exec_1_2\n"
+    "85 and 1 29 51 exec_1_0\n"
+    "86 and 1 31 51 exec_1_1\n"
+    "87 and 1 33 74 exec_1_2\n"
     "\n"
-    "86 and 1 37 50 exec_2_0\n"
-    "87 and 1 39 50 exec_2_1\n"
-    "88 and 1 41 72 exec_2_2\n"
+    "88 and 1 35 52 exec_2_0\n"
+    "89 and 1 37 52 exec_2_1\n"
+    "90 and 1 39 74 exec_2_2\n"
     "\n"
-    "89 and 1 43 51 exec_3_0\n"
-    "90 and 1 45 51 exec_3_1\n"
-    "91 and 1 47 72 exec_3_2\n\n",
+    "91 and 1 41 53 exec_3_0\n"
+    "92 and 1 43 53 exec_3_1\n"
+    "93 and 1 45 74 exec_3_2\n\n",
     encoder->formula.str());
 
   /* verbosity */
@@ -842,17 +850,17 @@ TEST_F(Btor2EncoderTest, add_statement_execution)
   verbose = true;
 
   ASSERT_EQ(
-    "83 and 1 31 49 exec_1_0\n"
-    "84 and 1 33 49 exec_1_1\n"
-    "85 and 1 35 72 exec_1_2\n"
+    "85 and 1 29 51 exec_1_0\n"
+    "86 and 1 31 51 exec_1_1\n"
+    "87 and 1 33 74 exec_1_2\n"
     "\n"
-    "86 and 1 37 50 exec_2_0\n"
-    "87 and 1 39 50 exec_2_1\n"
-    "88 and 1 41 72 exec_2_2\n"
+    "88 and 1 35 52 exec_2_0\n"
+    "89 and 1 37 52 exec_2_1\n"
+    "90 and 1 39 74 exec_2_2\n"
     "\n"
-    "89 and 1 43 51 exec_3_0\n"
-    "90 and 1 45 51 exec_3_1\n"
-    "91 and 1 47 72 exec_3_2\n\n",
+    "91 and 1 41 53 exec_3_0\n"
+    "92 and 1 43 53 exec_3_1\n"
+    "93 and 1 45 74 exec_3_2\n\n",
     encoder->formula.str());
 }
 
@@ -869,37 +877,37 @@ TEST_F(Btor2EncoderTest, add_statement_activation_basic)
     "; update statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; stmt_1_0\n"
-    "71 not 1 65\n"
-    "72 and 1 31 71\n"
-    "73 next 1 31 72\n"
+    "73 not 1 67\n"
+    "74 and 1 29 73\n"
+    "75 next 1 29 74\n"
     "\n"
     "; stmt_1_1\n"
-    "74 not 1 66\n"
-    "75 and 1 33 74\n"
-    "76 ite 1 31 65 75\n"
-    "77 next 1 33 76\n"
+    "76 not 1 68\n"
+    "77 and 1 31 76\n"
+    "78 ite 1 29 67 77\n"
+    "79 next 1 31 78\n"
     "\n"
     "; stmt_2_0\n"
-    "78 not 1 67\n"
-    "79 and 1 35 78\n"
-    "80 next 1 35 79\n"
+    "80 not 1 69\n"
+    "81 and 1 33 80\n"
+    "82 next 1 33 81\n"
     "\n"
     "; stmt_2_1\n"
-    "81 not 1 68\n"
-    "82 and 1 37 81\n"
-    "83 ite 1 35 67 82\n"
-    "84 next 1 37 83\n"
+    "83 not 1 70\n"
+    "84 and 1 35 83\n"
+    "85 ite 1 33 69 84\n"
+    "86 next 1 35 85\n"
     "\n"
     "; stmt_3_0\n"
-    "85 not 1 69\n"
-    "86 and 1 39 85\n"
-    "87 next 1 39 86\n"
+    "87 not 1 71\n"
+    "88 and 1 37 87\n"
+    "89 next 1 37 88\n"
     "\n"
     "; stmt_3_1\n"
-    "88 not 1 70\n"
-    "89 and 1 41 88\n"
-    "90 ite 1 39 69 89\n"
-    "91 next 1 41 90\n\n",
+    "90 not 1 72\n"
+    "91 and 1 39 90\n"
+    "92 ite 1 37 71 91\n"
+    "93 next 1 39 92\n\n",
     encoder->formula.str());
 
   /* verbosity */
@@ -912,32 +920,32 @@ TEST_F(Btor2EncoderTest, add_statement_activation_basic)
   verbose = true;
 
   ASSERT_EQ(
-    "71 not 1 65\n"
-    "72 and 1 31 71\n"
-    "73 next 1 31 72\n"
+    "73 not 1 67\n"
+    "74 and 1 29 73\n"
+    "75 next 1 29 74\n"
     "\n"
-    "74 not 1 66\n"
-    "75 and 1 33 74\n"
-    "76 ite 1 31 65 75\n"
-    "77 next 1 33 76\n"
+    "76 not 1 68\n"
+    "77 and 1 31 76\n"
+    "78 ite 1 29 67 77\n"
+    "79 next 1 31 78\n"
     "\n"
-    "78 not 1 67\n"
-    "79 and 1 35 78\n"
-    "80 next 1 35 79\n"
+    "80 not 1 69\n"
+    "81 and 1 33 80\n"
+    "82 next 1 33 81\n"
     "\n"
-    "81 not 1 68\n"
-    "82 and 1 37 81\n"
-    "83 ite 1 35 67 82\n"
-    "84 next 1 37 83\n"
+    "83 not 1 70\n"
+    "84 and 1 35 83\n"
+    "85 ite 1 33 69 84\n"
+    "86 next 1 35 85\n"
     "\n"
-    "85 not 1 69\n"
-    "86 and 1 39 85\n"
-    "87 next 1 39 86\n"
+    "87 not 1 71\n"
+    "88 and 1 37 87\n"
+    "89 next 1 37 88\n"
     "\n"
-    "88 not 1 70\n"
-    "89 and 1 41 88\n"
-    "90 ite 1 39 69 89\n"
-    "91 next 1 41 90\n\n",
+    "90 not 1 72\n"
+    "91 and 1 39 90\n"
+    "92 ite 1 37 71 91\n"
+    "93 next 1 39 92\n\n",
     encoder->formula.str());
 }
 
@@ -963,73 +971,73 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp)
     "; update statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; stmt_1_0\n"
-    "87 not 1 75\n"
-    "88 and 1 29 87\n"
-    "89 next 1 29 88\n"
+    "89 not 1 77\n"
+    "90 and 1 27 89\n"
+    "91 next 1 27 90\n"
     "\n"
     "; stmt_1_1\n"
-    "90 not 1 76\n"
-    "91 and 1 31 90\n"
-    "92 ite 1 29 75 91\n"
-    "93 ite 1 33 77 92\n"
-    "94 next 1 31 93\n"
+    "92 not 1 78\n"
+    "93 and 1 29 92\n"
+    "94 ite 1 27 77 93\n"
+    "95 ite 1 31 79 94\n"
+    "96 next 1 29 95\n"
     "\n"
     "; stmt_1_2\n"
-    "95 not 1 77\n"
-    "96 and 1 33 95\n"
-    "97 ite 1 31 76 96\n"
-    "98 next 1 33 97\n"
+    "97 not 1 79\n"
+    "98 and 1 31 97\n"
+    "99 ite 1 29 78 98\n"
+    "100 next 1 31 99\n"
     "\n"
     "; stmt_1_3\n"
-    "99 not 1 78\n"
-    "100 and 1 35 99\n"
-    "101 next 1 35 100\n"
+    "101 not 1 80\n"
+    "102 and 1 33 101\n"
+    "103 next 1 33 102\n"
     "\n"
     "; stmt_2_0\n"
-    "102 not 1 79\n"
-    "103 and 1 37 102\n"
-    "104 next 1 37 103\n"
+    "104 not 1 81\n"
+    "105 and 1 35 104\n"
+    "106 next 1 35 105\n"
     "\n"
     "; stmt_2_1\n"
-    "105 not 1 80\n"
-    "106 and 1 39 105\n"
-    "107 ite 1 37 79 106\n"
-    "108 ite 1 41 81 107\n"
-    "109 next 1 39 108\n"
+    "107 not 1 82\n"
+    "108 and 1 37 107\n"
+    "109 ite 1 35 81 108\n"
+    "110 ite 1 39 83 109\n"
+    "111 next 1 37 110\n"
     "\n"
     "; stmt_2_2\n"
-    "110 not 1 81\n"
-    "111 and 1 41 110\n"
-    "112 ite 1 39 80 111\n"
-    "113 next 1 41 112\n"
+    "112 not 1 83\n"
+    "113 and 1 39 112\n"
+    "114 ite 1 37 82 113\n"
+    "115 next 1 39 114\n"
     "\n"
     "; stmt_2_3\n"
-    "114 not 1 82\n"
-    "115 and 1 43 114\n"
-    "116 next 1 43 115\n"
+    "116 not 1 84\n"
+    "117 and 1 41 116\n"
+    "118 next 1 41 117\n"
     "\n"
     "; stmt_3_0\n"
-    "117 not 1 83\n"
-    "118 and 1 45 117\n"
-    "119 next 1 45 118\n"
+    "119 not 1 85\n"
+    "120 and 1 43 119\n"
+    "121 next 1 43 120\n"
     "\n"
     "; stmt_3_1\n"
-    "120 not 1 84\n"
-    "121 and 1 47 120\n"
-    "122 ite 1 45 83 121\n"
-    "123 ite 1 49 85 122\n"
-    "124 next 1 47 123\n"
+    "122 not 1 86\n"
+    "123 and 1 45 122\n"
+    "124 ite 1 43 85 123\n"
+    "125 ite 1 47 87 124\n"
+    "126 next 1 45 125\n"
     "\n"
     "; stmt_3_2\n"
-    "125 not 1 85\n"
-    "126 and 1 49 125\n"
-    "127 ite 1 47 84 126\n"
-    "128 next 1 49 127\n"
+    "127 not 1 87\n"
+    "128 and 1 47 127\n"
+    "129 ite 1 45 86 128\n"
+    "130 next 1 47 129\n"
     "\n"
     "; stmt_3_3\n"
-    "129 not 1 86\n"
-    "130 and 1 51 129\n"
-    "131 next 1 51 130\n\n",
+    "131 not 1 88\n"
+    "132 and 1 49 131\n"
+    "133 next 1 49 132\n\n",
     encoder->formula.str());
 }
 
@@ -1051,100 +1059,100 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_conditional)
 
   encoder->add_statement_activation();
 
-  ASSERT_EQ(vector<string>({"30", "32", "34", "36"}), encoder->nids_stmt[1]);
-  ASSERT_EQ(vector<string>({"38", "40", "42", "44"}), encoder->nids_stmt[2]);
-  ASSERT_EQ(vector<string>({"46", "48", "50", "52"}), encoder->nids_stmt[3]);
+  ASSERT_EQ(vector<string>({"28", "30", "32", "34"}), encoder->nids_stmt[1]);
+  ASSERT_EQ(vector<string>({"36", "38", "40", "42"}), encoder->nids_stmt[2]);
+  ASSERT_EQ(vector<string>({"44", "46", "48", "50"}), encoder->nids_stmt[3]);
 
-  ASSERT_EQ(vector<string>({"76", "77", "78", "79"}), encoder->nids_exec[1]);
-  ASSERT_EQ(vector<string>({"80", "81", "82", "83"}), encoder->nids_exec[2]);
-  ASSERT_EQ(vector<string>({"84", "85", "86", "87"}), encoder->nids_exec[3]);
+  ASSERT_EQ(vector<string>({"78", "79", "80", "81"}), encoder->nids_exec[1]);
+  ASSERT_EQ(vector<string>({"82", "83", "84", "85"}), encoder->nids_exec[2]);
+  ASSERT_EQ(vector<string>({"86", "87", "88", "89"}), encoder->nids_exec[3]);
 
   ASSERT_EQ(
     "; update statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; stmt_1_0\n"
-    "88 not 1 76\n"
-    "89 and 1 30 88\n"
-    "90 next 1 30 89\n"
+    "90 not 1 78\n"
+    "91 and 1 28 90\n"
+    "92 next 1 28 91\n"
     "\n"
     "; stmt_1_1\n"
-    "91 not 1 77\n"
-    "92 and 1 32 91\n"
-    "93 ite 1 30 76 92\n"
-    "94 ne 1 16 6\n"
-    "95 and 1 78 94\n"
-    "96 ite 1 34 95 93\n"
-    "97 next 1 32 96\n"
+    "93 not 1 79\n"
+    "94 and 1 30 93\n"
+    "95 ite 1 28 78 94\n"
+    "96 ne 1 16 6\n"
+    "97 and 1 80 96\n"
+    "98 ite 1 32 97 95\n"
+    "99 next 1 30 98\n"
     "\n"
     "; stmt_1_2\n"
-    "98 not 1 78\n"
-    "99 and 1 34 98\n"
-    "100 ite 1 32 77 99\n"
-    "101 next 1 34 100\n"
+    "100 not 1 80\n"
+    "101 and 1 32 100\n"
+    "102 ite 1 30 79 101\n"
+    "103 next 1 32 102\n"
     "\n"
     "; stmt_1_3\n"
-    "102 not 1 79\n"
-    "103 and 1 36 102\n"
-    "104 not 1 94\n"
-    "105 and 1 78 104\n"
-    "106 ite 1 34 105 103\n"
-    "107 next 1 36 106\n"
+    "104 not 1 81\n"
+    "105 and 1 34 104\n"
+    "106 not 1 96\n"
+    "107 and 1 80 106\n"
+    "108 ite 1 32 107 105\n"
+    "109 next 1 34 108\n"
     "\n"
     "; stmt_2_0\n"
-    "108 not 1 80\n"
-    "109 and 1 38 108\n"
-    "110 next 1 38 109\n"
+    "110 not 1 82\n"
+    "111 and 1 36 110\n"
+    "112 next 1 36 111\n"
     "\n"
     "; stmt_2_1\n"
-    "111 not 1 81\n"
-    "112 and 1 40 111\n"
-    "113 ite 1 38 80 112\n"
-    "114 ne 1 18 6\n"
-    "115 and 1 82 114\n"
-    "116 ite 1 42 115 113\n"
-    "117 next 1 40 116\n"
+    "113 not 1 83\n"
+    "114 and 1 38 113\n"
+    "115 ite 1 36 82 114\n"
+    "116 ne 1 18 6\n"
+    "117 and 1 84 116\n"
+    "118 ite 1 40 117 115\n"
+    "119 next 1 38 118\n"
     "\n"
     "; stmt_2_2\n"
-    "118 not 1 82\n"
-    "119 and 1 42 118\n"
-    "120 ite 1 40 81 119\n"
-    "121 next 1 42 120\n"
+    "120 not 1 84\n"
+    "121 and 1 40 120\n"
+    "122 ite 1 38 83 121\n"
+    "123 next 1 40 122\n"
     "\n"
     "; stmt_2_3\n"
-    "122 not 1 83\n"
-    "123 and 1 44 122\n"
-    "124 not 1 114\n"
-    "125 and 1 82 124\n"
-    "126 ite 1 42 125 123\n"
-    "127 next 1 44 126\n"
+    "124 not 1 85\n"
+    "125 and 1 42 124\n"
+    "126 not 1 116\n"
+    "127 and 1 84 126\n"
+    "128 ite 1 40 127 125\n"
+    "129 next 1 42 128\n"
     "\n"
     "; stmt_3_0\n"
-    "128 not 1 84\n"
-    "129 and 1 46 128\n"
-    "130 next 1 46 129\n"
+    "130 not 1 86\n"
+    "131 and 1 44 130\n"
+    "132 next 1 44 131\n"
     "\n"
     "; stmt_3_1\n"
-    "131 not 1 85\n"
-    "132 and 1 48 131\n"
-    "133 ite 1 46 84 132\n"
-    "134 ne 1 20 6\n"
-    "135 and 1 86 134\n"
-    "136 ite 1 50 135 133\n"
-    "137 next 1 48 136\n"
+    "133 not 1 87\n"
+    "134 and 1 46 133\n"
+    "135 ite 1 44 86 134\n"
+    "136 ne 1 20 6\n"
+    "137 and 1 88 136\n"
+    "138 ite 1 48 137 135\n"
+    "139 next 1 46 138\n"
     "\n"
     "; stmt_3_2\n"
-    "138 not 1 86\n"
-    "139 and 1 50 138\n"
-    "140 ite 1 48 85 139\n"
-    "141 next 1 50 140\n"
+    "140 not 1 88\n"
+    "141 and 1 48 140\n"
+    "142 ite 1 46 87 141\n"
+    "143 next 1 48 142\n"
     "\n"
     "; stmt_3_3\n"
-    "142 not 1 87\n"
-    "143 and 1 52 142\n"
-    "144 not 1 134\n"
-    "145 and 1 86 144\n"
-    "146 ite 1 50 145 143\n"
-    "147 next 1 52 146\n\n",
+    "144 not 1 89\n"
+    "145 and 1 50 144\n"
+    "146 not 1 136\n"
+    "147 and 1 88 146\n"
+    "148 ite 1 48 147 145\n"
+    "149 next 1 50 148\n\n",
     encoder->formula.str());
 
   /* TODO remove
@@ -1194,100 +1202,100 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_start)
 
   encoder->add_statement_activation();
 
-  ASSERT_EQ(vector<string>({"30", "32", "34", "36"}), encoder->nids_stmt[1]);
-  ASSERT_EQ(vector<string>({"38", "40", "42", "44"}), encoder->nids_stmt[2]);
-  ASSERT_EQ(vector<string>({"46", "48", "50", "52"}), encoder->nids_stmt[3]);
+  ASSERT_EQ(vector<string>({"28", "30", "32", "34"}), encoder->nids_stmt[1]);
+  ASSERT_EQ(vector<string>({"36", "38", "40", "42"}), encoder->nids_stmt[2]);
+  ASSERT_EQ(vector<string>({"44", "46", "48", "50"}), encoder->nids_stmt[3]);
 
-  ASSERT_EQ(vector<string>({"76", "77", "78", "79"}), encoder->nids_exec[1]);
-  ASSERT_EQ(vector<string>({"80", "81", "82", "83"}), encoder->nids_exec[2]);
-  ASSERT_EQ(vector<string>({"84", "85", "86", "87"}), encoder->nids_exec[3]);
+  ASSERT_EQ(vector<string>({"78", "79", "80", "81"}), encoder->nids_exec[1]);
+  ASSERT_EQ(vector<string>({"82", "83", "84", "85"}), encoder->nids_exec[2]);
+  ASSERT_EQ(vector<string>({"86", "87", "88", "89"}), encoder->nids_exec[3]);
 
   ASSERT_EQ(
     "; update statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; stmt_1_0\n"
-    "88 not 1 76\n"
-    "89 and 1 30 88\n"
-    "90 ne 1 16 6\n"
-    "91 and 1 78 90\n"
-    "92 ite 1 34 91 89\n"
-    "93 next 1 30 92\n"
+    "90 not 1 78\n"
+    "91 and 1 28 90\n"
+    "92 ne 1 16 6\n"
+    "93 and 1 80 92\n"
+    "94 ite 1 32 93 91\n"
+    "95 next 1 28 94\n"
     "\n"
     "; stmt_1_1\n"
-    "94 not 1 77\n"
-    "95 and 1 32 94\n"
-    "96 ite 1 30 76 95\n"
-    "97 next 1 32 96\n"
+    "96 not 1 79\n"
+    "97 and 1 30 96\n"
+    "98 ite 1 28 78 97\n"
+    "99 next 1 30 98\n"
     "\n"
     "; stmt_1_2\n"
-    "98 not 1 78\n"
-    "99 and 1 34 98\n"
-    "100 ite 1 32 77 99\n"
-    "101 next 1 34 100\n"
+    "100 not 1 80\n"
+    "101 and 1 32 100\n"
+    "102 ite 1 30 79 101\n"
+    "103 next 1 32 102\n"
     "\n"
     "; stmt_1_3\n"
-    "102 not 1 79\n"
-    "103 and 1 36 102\n"
-    "104 not 1 90\n"
-    "105 and 1 78 104\n"
-    "106 ite 1 34 105 103\n"
-    "107 next 1 36 106\n"
+    "104 not 1 81\n"
+    "105 and 1 34 104\n"
+    "106 not 1 92\n"
+    "107 and 1 80 106\n"
+    "108 ite 1 32 107 105\n"
+    "109 next 1 34 108\n"
     "\n"
     "; stmt_2_0\n"
-    "108 not 1 80\n"
-    "109 and 1 38 108\n"
-    "110 ne 1 18 6\n"
-    "111 and 1 82 110\n"
-    "112 ite 1 42 111 109\n"
-    "113 next 1 38 112\n"
+    "110 not 1 82\n"
+    "111 and 1 36 110\n"
+    "112 ne 1 18 6\n"
+    "113 and 1 84 112\n"
+    "114 ite 1 40 113 111\n"
+    "115 next 1 36 114\n"
     "\n"
     "; stmt_2_1\n"
-    "114 not 1 81\n"
-    "115 and 1 40 114\n"
-    "116 ite 1 38 80 115\n"
-    "117 next 1 40 116\n"
+    "116 not 1 83\n"
+    "117 and 1 38 116\n"
+    "118 ite 1 36 82 117\n"
+    "119 next 1 38 118\n"
     "\n"
     "; stmt_2_2\n"
-    "118 not 1 82\n"
-    "119 and 1 42 118\n"
-    "120 ite 1 40 81 119\n"
-    "121 next 1 42 120\n"
+    "120 not 1 84\n"
+    "121 and 1 40 120\n"
+    "122 ite 1 38 83 121\n"
+    "123 next 1 40 122\n"
     "\n"
     "; stmt_2_3\n"
-    "122 not 1 83\n"
-    "123 and 1 44 122\n"
-    "124 not 1 110\n"
-    "125 and 1 82 124\n"
-    "126 ite 1 42 125 123\n"
-    "127 next 1 44 126\n"
+    "124 not 1 85\n"
+    "125 and 1 42 124\n"
+    "126 not 1 112\n"
+    "127 and 1 84 126\n"
+    "128 ite 1 40 127 125\n"
+    "129 next 1 42 128\n"
     "\n"
     "; stmt_3_0\n"
-    "128 not 1 84\n"
-    "129 and 1 46 128\n"
-    "130 ne 1 20 6\n"
-    "131 and 1 86 130\n"
-    "132 ite 1 50 131 129\n"
-    "133 next 1 46 132\n"
+    "130 not 1 86\n"
+    "131 and 1 44 130\n"
+    "132 ne 1 20 6\n"
+    "133 and 1 88 132\n"
+    "134 ite 1 48 133 131\n"
+    "135 next 1 44 134\n"
     "\n"
     "; stmt_3_1\n"
-    "134 not 1 85\n"
-    "135 and 1 48 134\n"
-    "136 ite 1 46 84 135\n"
-    "137 next 1 48 136\n"
+    "136 not 1 87\n"
+    "137 and 1 46 136\n"
+    "138 ite 1 44 86 137\n"
+    "139 next 1 46 138\n"
     "\n"
     "; stmt_3_2\n"
-    "138 not 1 86\n"
-    "139 and 1 50 138\n"
-    "140 ite 1 48 85 139\n"
-    "141 next 1 50 140\n"
+    "140 not 1 88\n"
+    "141 and 1 48 140\n"
+    "142 ite 1 46 87 141\n"
+    "143 next 1 48 142\n"
     "\n"
     "; stmt_3_3\n"
-    "142 not 1 87\n"
-    "143 and 1 52 142\n"
-    "144 not 1 130\n"
-    "145 and 1 86 144\n"
-    "146 ite 1 50 145 143\n"
-    "147 next 1 52 146\n\n",
+    "144 not 1 89\n"
+    "145 and 1 50 144\n"
+    "146 not 1 132\n"
+    "147 and 1 88 146\n"
+    "148 ite 1 48 147 145\n"
+    "149 next 1 50 148\n\n",
     encoder->formula.str());
 
   /* TODO remove
@@ -1338,133 +1346,133 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_twice)
 
   encoder->add_statement_activation();
 
-  ASSERT_EQ(vector<string>({"30", "32", "34", "36", "38"}), encoder->nids_stmt[1]);
-  ASSERT_EQ(vector<string>({"40", "42", "44", "46", "48"}), encoder->nids_stmt[2]);
-  ASSERT_EQ(vector<string>({"50", "52", "54", "56", "58"}), encoder->nids_stmt[3]);
+  ASSERT_EQ(vector<string>({"28", "30", "32", "34", "36"}), encoder->nids_stmt[1]);
+  ASSERT_EQ(vector<string>({"38", "40", "42", "44", "46"}), encoder->nids_stmt[2]);
+  ASSERT_EQ(vector<string>({"48", "50", "52", "54", "56"}), encoder->nids_stmt[3]);
 
-  ASSERT_EQ(vector<string>({"82", "83", "84", "85", "86"}), encoder->nids_exec[1]);
-  ASSERT_EQ(vector<string>({"87", "88", "89", "90", "91"}), encoder->nids_exec[2]);
-  ASSERT_EQ(vector<string>({"92", "93", "94", "95", "96"}), encoder->nids_exec[3]);
+  ASSERT_EQ(vector<string>({"84", "85", "86", "87", "88"}), encoder->nids_exec[1]);
+  ASSERT_EQ(vector<string>({"89", "90", "91", "92", "93"}), encoder->nids_exec[2]);
+  ASSERT_EQ(vector<string>({"94", "95", "96", "97", "98"}), encoder->nids_exec[3]);
 
   ASSERT_EQ(
     "; update statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; stmt_1_0\n"
-    "97 not 1 82\n"
-    "98 and 1 30 97\n"
-    "99 next 1 30 98\n"
+    "99 not 1 84\n"
+    "100 and 1 28 99\n"
+    "101 next 1 28 100\n"
     "\n"
     "; stmt_1_1\n"
-    "100 not 1 83\n"
-    "101 and 1 32 100\n"
-    "102 ite 1 30 82 101\n"
-    "103 eq 1 16 6\n"
-    "104 and 1 84 103\n"
-    "105 ite 1 34 104 102\n"
-    "106 ne 1 16 6\n"
-    "107 and 1 85 106\n"
-    "108 ite 1 36 107 105\n"
-    "109 next 1 32 108\n"
+    "102 not 1 85\n"
+    "103 and 1 30 102\n"
+    "104 ite 1 28 84 103\n"
+    "105 eq 1 16 6\n"
+    "106 and 1 86 105\n"
+    "107 ite 1 32 106 104\n"
+    "108 ne 1 16 6\n"
+    "109 and 1 87 108\n"
+    "110 ite 1 34 109 107\n"
+    "111 next 1 30 110\n"
     "\n"
     "; stmt_1_2\n"
-    "110 not 1 84\n"
-    "111 and 1 34 110\n"
-    "112 ite 1 32 83 111\n"
-    "113 next 1 34 112\n"
+    "112 not 1 86\n"
+    "113 and 1 32 112\n"
+    "114 ite 1 30 85 113\n"
+    "115 next 1 32 114\n"
     "\n"
     "; stmt_1_3\n"
-    "114 not 1 85\n"
-    "115 and 1 36 114\n"
-    "116 not 1 103\n"
-    "117 and 1 84 116\n"
-    "118 ite 1 34 117 115\n"
-    "119 next 1 36 118\n"
+    "116 not 1 87\n"
+    "117 and 1 34 116\n"
+    "118 not 1 105\n"
+    "119 and 1 86 118\n"
+    "120 ite 1 32 119 117\n"
+    "121 next 1 34 120\n"
     "\n"
     "; stmt_1_4\n"
-    "120 not 1 86\n"
-    "121 and 1 38 120\n"
-    "122 not 1 106\n"
-    "123 and 1 85 122\n"
-    "124 ite 1 36 123 121\n"
-    "125 next 1 38 124\n"
+    "122 not 1 88\n"
+    "123 and 1 36 122\n"
+    "124 not 1 108\n"
+    "125 and 1 87 124\n"
+    "126 ite 1 34 125 123\n"
+    "127 next 1 36 126\n"
     "\n"
     "; stmt_2_0\n"
-    "126 not 1 87\n"
-    "127 and 1 40 126\n"
-    "128 next 1 40 127\n"
+    "128 not 1 89\n"
+    "129 and 1 38 128\n"
+    "130 next 1 38 129\n"
     "\n"
     "; stmt_2_1\n"
-    "129 not 1 88\n"
-    "130 and 1 42 129\n"
-    "131 ite 1 40 87 130\n"
-    "132 eq 1 18 6\n"
-    "133 and 1 89 132\n"
-    "134 ite 1 44 133 131\n"
-    "135 ne 1 18 6\n"
-    "136 and 1 90 135\n"
-    "137 ite 1 46 136 134\n"
-    "138 next 1 42 137\n"
+    "131 not 1 90\n"
+    "132 and 1 40 131\n"
+    "133 ite 1 38 89 132\n"
+    "134 eq 1 18 6\n"
+    "135 and 1 91 134\n"
+    "136 ite 1 42 135 133\n"
+    "137 ne 1 18 6\n"
+    "138 and 1 92 137\n"
+    "139 ite 1 44 138 136\n"
+    "140 next 1 40 139\n"
     "\n"
     "; stmt_2_2\n"
-    "139 not 1 89\n"
-    "140 and 1 44 139\n"
-    "141 ite 1 42 88 140\n"
-    "142 next 1 44 141\n"
+    "141 not 1 91\n"
+    "142 and 1 42 141\n"
+    "143 ite 1 40 90 142\n"
+    "144 next 1 42 143\n"
     "\n"
     "; stmt_2_3\n"
-    "143 not 1 90\n"
-    "144 and 1 46 143\n"
-    "145 not 1 132\n"
-    "146 and 1 89 145\n"
-    "147 ite 1 44 146 144\n"
-    "148 next 1 46 147\n"
+    "145 not 1 92\n"
+    "146 and 1 44 145\n"
+    "147 not 1 134\n"
+    "148 and 1 91 147\n"
+    "149 ite 1 42 148 146\n"
+    "150 next 1 44 149\n"
     "\n"
     "; stmt_2_4\n"
-    "149 not 1 91\n"
-    "150 and 1 48 149\n"
-    "151 not 1 135\n"
-    "152 and 1 90 151\n"
-    "153 ite 1 46 152 150\n"
-    "154 next 1 48 153\n"
+    "151 not 1 93\n"
+    "152 and 1 46 151\n"
+    "153 not 1 137\n"
+    "154 and 1 92 153\n"
+    "155 ite 1 44 154 152\n"
+    "156 next 1 46 155\n"
     "\n"
     "; stmt_3_0\n"
-    "155 not 1 92\n"
-    "156 and 1 50 155\n"
-    "157 next 1 50 156\n"
+    "157 not 1 94\n"
+    "158 and 1 48 157\n"
+    "159 next 1 48 158\n"
     "\n"
     "; stmt_3_1\n"
-    "158 not 1 93\n"
-    "159 and 1 52 158\n"
-    "160 ite 1 50 92 159\n"
-    "161 eq 1 20 6\n"
-    "162 and 1 94 161\n"
-    "163 ite 1 54 162 160\n"
-    "164 ne 1 20 6\n"
-    "165 and 1 95 164\n"
-    "166 ite 1 56 165 163\n"
-    "167 next 1 52 166\n"
+    "160 not 1 95\n"
+    "161 and 1 50 160\n"
+    "162 ite 1 48 94 161\n"
+    "163 eq 1 20 6\n"
+    "164 and 1 96 163\n"
+    "165 ite 1 52 164 162\n"
+    "166 ne 1 20 6\n"
+    "167 and 1 97 166\n"
+    "168 ite 1 54 167 165\n"
+    "169 next 1 50 168\n"
     "\n"
     "; stmt_3_2\n"
-    "168 not 1 94\n"
-    "169 and 1 54 168\n"
-    "170 ite 1 52 93 169\n"
-    "171 next 1 54 170\n"
+    "170 not 1 96\n"
+    "171 and 1 52 170\n"
+    "172 ite 1 50 95 171\n"
+    "173 next 1 52 172\n"
     "\n"
     "; stmt_3_3\n"
-    "172 not 1 95\n"
-    "173 and 1 56 172\n"
-    "174 not 1 161\n"
-    "175 and 1 94 174\n"
-    "176 ite 1 54 175 173\n"
-    "177 next 1 56 176\n"
+    "174 not 1 97\n"
+    "175 and 1 54 174\n"
+    "176 not 1 163\n"
+    "177 and 1 96 176\n"
+    "178 ite 1 52 177 175\n"
+    "179 next 1 54 178\n"
     "\n"
     "; stmt_3_4\n"
-    "178 not 1 96\n"
-    "179 and 1 58 178\n"
-    "180 not 1 164\n"
-    "181 and 1 95 180\n"
-    "182 ite 1 56 181 179\n"
-    "183 next 1 58 182\n\n",
+    "180 not 1 98\n"
+    "181 and 1 56 180\n"
+    "182 not 1 166\n"
+    "183 and 1 97 182\n"
+    "184 ite 1 54 183 181\n"
+    "185 next 1 56 184\n\n",
     encoder->formula.str());
 
   /* TODO remove
@@ -1537,20 +1545,20 @@ TEST_F(Btor2EncoderTest, add_state_update_accu)
 
       ASSERT_EQ(
         "; accu_" + thread_str + "\n"
-        + (thread > 1 ? "" : "507 read 2 14 7\n")
-        + nid_0_ite  + " ite 1 " + encoder->nids_exec[thread][0] + " 507 " + encoder->nids_accu[thread] + " " + thread_str + ":0:LOAD:1\n"
-        + nid_2_add  + " add 2 " + encoder->nids_accu[thread] + " 507\n"
+        + (thread > 1 ? "" : "509 read 2 14 7\n")
+        + nid_0_ite  + " ite 1 " + encoder->nids_exec[thread][0] + " 509 " + encoder->nids_accu[thread] + " " + thread_str + ":0:LOAD:1\n"
+        + nid_2_add  + " add 2 " + encoder->nids_accu[thread] + " 509\n"
         + nid_2_ite  + " ite 1 " + encoder->nids_exec[thread][2] + " " + nid_2_add + " " + nid_0_ite + " " + thread_str + ":2:ADD:1\n"
         + nid_3_addi + " add 2 " + encoder->nids_accu[thread] + " 7\n"
         + nid_3_ite  + " ite 1 " + encoder->nids_exec[thread][3] + " " + nid_3_addi + " " + nid_2_ite + " " + thread_str + ":3:ADDI:1\n"
-        + nid_4_sub  + " sub 2 " + encoder->nids_accu[thread] + " 507\n"
+        + nid_4_sub  + " sub 2 " + encoder->nids_accu[thread] + " 509\n"
         + nid_4_ite  + " ite 1 " + encoder->nids_exec[thread][4] + " " + nid_4_sub + " " + nid_3_ite + " " + thread_str + ":4:SUB:1\n"
         + nid_5_subi + " sub 2 " + encoder->nids_accu[thread] + " 7\n"
         + nid_5_ite  + " ite 1 " + encoder->nids_exec[thread][5] + " " + nid_5_subi + " " + nid_4_ite + " " + thread_str + ":5:SUBI:1\n"
-        + nid_6_cmp  + " sub 2 " + encoder->nids_accu[thread] + " 507\n"
+        + nid_6_cmp  + " sub 2 " + encoder->nids_accu[thread] + " 509\n"
         + nid_6_ite  + " ite 1 " + encoder->nids_exec[thread][6] + " " + nid_6_cmp + " " + nid_5_ite + " " + thread_str + ":6:CMP:1\n"
-        + nid_13_mem + " ite 1 " + encoder->nids_exec[thread][13] + " 507 " + nid_6_ite + " " + thread_str + ":13:MEM:1\n"
-        + nid_14_eq  + " eq 1 "  + encoder->nids_mem[thread] + " 507\n"
+        + nid_13_mem + " ite 1 " + encoder->nids_exec[thread][13] + " 509 " + nid_6_ite + " " + thread_str + ":13:MEM:1\n"
+        + nid_14_eq  + " eq 1 "  + encoder->nids_mem[thread] + " 509\n"
         + nid_14_cas + " ite 1 " + nid_14_eq + " 7 6\n"
         + nid_14_ite + " ite 1 " + encoder->nids_exec[thread][14] + " " + nid_14_cas + " " + nid_13_mem + " " + thread_str + ":14:CAS:1\n"
         + nid_next   + " next 2 " + encoder->nids_accu[thread] + " " + nid_14_ite + "\n\n",
@@ -1584,8 +1592,8 @@ TEST_F(Btor2EncoderTest, add_state_update_mem)
 
       ASSERT_EQ(
         "; mem_" + thread_str + "\n"
-        + (thread > 1 ? "" : "507 read 2 14 7\n")
-        + nid_13_ite + " ite 1 " + encoder->nids_exec[thread][13] + " 507 " + encoder->nids_mem[thread] + " " + thread_str + ":13:MEM:1\n"
+        + (thread > 1 ? "" : "509 read 2 14 7\n")
+        + nid_13_ite + " ite 1 " + encoder->nids_exec[thread][13] + " 509 " + encoder->nids_mem[thread] + " " + thread_str + ":13:MEM:1\n"
         + nid_next +   " next 2 " + encoder->nids_mem[thread] + " " + nid_13_ite + "\n\n",
         encoder->formula.str());
 
@@ -1626,19 +1634,19 @@ TEST_F(Btor2EncoderTest, add_state_update_heap)
 
   ASSERT_EQ(
     "; heap\n"
-    "507 write 3 14 7 15\n"
-    + nid_1_1_ite  + " ite 1 " + encoder->nids_exec[1][1] + " 507 14 1:1:STORE:1\n"
-    "509 read 2 14 7\n"
-    + nid_1_14_eq  + " eq 1 "  + encoder->nids_mem[1] + " 509\n"
-    + nid_1_14_cas + " ite 1 " + nid_1_14_eq + " 507 14\n"
+    "509 write 3 14 7 15\n"
+    + nid_1_1_ite  + " ite 1 " + encoder->nids_exec[1][1] + " 509 14 1:1:STORE:1\n"
+    "511 read 2 14 7\n"
+    + nid_1_14_eq  + " eq 1 "  + encoder->nids_mem[1] + " 511\n"
+    + nid_1_14_cas + " ite 1 " + nid_1_14_eq + " 509 14\n"
     + nid_1_14_ite + " ite 1 " + encoder->nids_exec[1][14] + " " + nid_1_14_cas + " " + nid_1_1_ite + " 1:14:CAS:1\n"
-    + nid_2_1_ite  + " ite 1 " + encoder->nids_exec[2][1] + " 507 " + nid_1_14_ite + " 2:1:STORE:1\n"
-    + nid_2_14_eq  + " eq 1 "  + encoder->nids_mem[2] + " 509\n"
-    + nid_2_14_cas + " ite 1 " + nid_2_14_eq + " 507 14\n"
+    + nid_2_1_ite  + " ite 1 " + encoder->nids_exec[2][1] + " 509 " + nid_1_14_ite + " 2:1:STORE:1\n"
+    + nid_2_14_eq  + " eq 1 "  + encoder->nids_mem[2] + " 511\n"
+    + nid_2_14_cas + " ite 1 " + nid_2_14_eq + " 509 14\n"
     + nid_2_14_ite + " ite 1 " + encoder->nids_exec[2][14] + " " + nid_2_14_cas + " " + nid_2_1_ite + " 2:14:CAS:1\n"
-    + nid_3_1_ite  + " ite 1 " + encoder->nids_exec[3][1] + " 507 " + nid_2_14_ite + " 3:1:STORE:1\n"
-    + nid_3_14_eq  + " eq 1 "  + encoder->nids_mem[3] + " 509\n"
-    + nid_3_14_cas + " ite 1 " + nid_3_14_eq + " 507 14\n"
+    + nid_3_1_ite  + " ite 1 " + encoder->nids_exec[3][1] + " 509 " + nid_2_14_ite + " 3:1:STORE:1\n"
+    + nid_3_14_eq  + " eq 1 "  + encoder->nids_mem[3] + " 511\n"
+    + nid_3_14_cas + " ite 1 " + nid_3_14_eq + " 509 14\n"
     + nid_3_14_ite + " ite 1 " + encoder->nids_exec[3][14] + " " + nid_3_14_cas + " " + nid_3_1_ite + " 3:14:CAS:1\n"
     + nid_next     + " next 2 14 " + nid_3_14_ite + "\n\n",
     encoder->formula.str());
@@ -1657,91 +1665,91 @@ TEST_F(Btor2EncoderTest, add_state_update)
     "; update accu ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; accu_1\n"
-    "507 read 2 14 7\n"
-    "508 ite 1 165 507 15 1:0:LOAD:1\n"
-    "509 add 2 15 507\n"
-    "510 ite 1 167 509 508 1:2:ADD:1\n"
-    "511 add 2 15 7\n"
-    "512 ite 1 168 511 510 1:3:ADDI:1\n"
-    "513 sub 2 15 507\n"
-    "514 ite 1 169 513 512 1:4:SUB:1\n"
-    "515 sub 2 15 7\n"
-    "516 ite 1 170 515 514 1:5:SUBI:1\n"
-    "517 sub 2 15 507\n"
-    "518 ite 1 171 517 516 1:6:CMP:1\n"
-    "519 ite 1 178 507 518 1:13:MEM:1\n"
-    "520 eq 1 21 507\n"
-    "521 ite 1 520 7 6\n"
-    "522 ite 1 179 521 519 1:14:CAS:1\n"
-    "523 next 2 15 522\n"
+    "509 read 2 14 7\n"
+    "510 ite 1 167 509 15 1:0:LOAD:1\n"
+    "511 add 2 15 509\n"
+    "512 ite 1 169 511 510 1:2:ADD:1\n"
+    "513 add 2 15 7\n"
+    "514 ite 1 170 513 512 1:3:ADDI:1\n"
+    "515 sub 2 15 509\n"
+    "516 ite 1 171 515 514 1:4:SUB:1\n"
+    "517 sub 2 15 7\n"
+    "518 ite 1 172 517 516 1:5:SUBI:1\n"
+    "519 sub 2 15 509\n"
+    "520 ite 1 173 519 518 1:6:CMP:1\n"
+    "521 ite 1 180 509 520 1:13:MEM:1\n"
+    "522 eq 1 21 509\n"
+    "523 ite 1 522 7 6\n"
+    "524 ite 1 181 523 521 1:14:CAS:1\n"
+    "525 next 2 15 524\n"
     "\n"
     "; accu_2\n"
-    "524 ite 1 182 507 17 2:0:LOAD:1\n"
-    "525 add 2 17 507\n"
-    "526 ite 1 184 525 524 2:2:ADD:1\n"
-    "527 add 2 17 7\n"
-    "528 ite 1 185 527 526 2:3:ADDI:1\n"
-    "529 sub 2 17 507\n"
-    "530 ite 1 186 529 528 2:4:SUB:1\n"
-    "531 sub 2 17 7\n"
-    "532 ite 1 187 531 530 2:5:SUBI:1\n"
-    "533 sub 2 17 507\n"
-    "534 ite 1 188 533 532 2:6:CMP:1\n"
-    "535 ite 1 195 507 534 2:13:MEM:1\n"
-    "536 eq 1 23 507\n"
-    "537 ite 1 536 7 6\n"
-    "538 ite 1 196 537 535 2:14:CAS:1\n"
-    "539 next 2 17 538\n"
+    "526 ite 1 184 509 17 2:0:LOAD:1\n"
+    "527 add 2 17 509\n"
+    "528 ite 1 186 527 526 2:2:ADD:1\n"
+    "529 add 2 17 7\n"
+    "530 ite 1 187 529 528 2:3:ADDI:1\n"
+    "531 sub 2 17 509\n"
+    "532 ite 1 188 531 530 2:4:SUB:1\n"
+    "533 sub 2 17 7\n"
+    "534 ite 1 189 533 532 2:5:SUBI:1\n"
+    "535 sub 2 17 509\n"
+    "536 ite 1 190 535 534 2:6:CMP:1\n"
+    "537 ite 1 197 509 536 2:13:MEM:1\n"
+    "538 eq 1 23 509\n"
+    "539 ite 1 538 7 6\n"
+    "540 ite 1 198 539 537 2:14:CAS:1\n"
+    "541 next 2 17 540\n"
     "\n"
     "; accu_3\n"
-    "540 ite 1 199 507 19 3:0:LOAD:1\n"
-    "541 add 2 19 507\n"
-    "542 ite 1 201 541 540 3:2:ADD:1\n"
-    "543 add 2 19 7\n"
-    "544 ite 1 202 543 542 3:3:ADDI:1\n"
-    "545 sub 2 19 507\n"
-    "546 ite 1 203 545 544 3:4:SUB:1\n"
-    "547 sub 2 19 7\n"
-    "548 ite 1 204 547 546 3:5:SUBI:1\n"
-    "549 sub 2 19 507\n"
-    "550 ite 1 205 549 548 3:6:CMP:1\n"
-    "551 ite 1 212 507 550 3:13:MEM:1\n"
-    "552 eq 1 25 507\n"
-    "553 ite 1 552 7 6\n"
-    "554 ite 1 213 553 551 3:14:CAS:1\n"
-    "555 next 2 19 554\n"
+    "542 ite 1 201 509 19 3:0:LOAD:1\n"
+    "543 add 2 19 509\n"
+    "544 ite 1 203 543 542 3:2:ADD:1\n"
+    "545 add 2 19 7\n"
+    "546 ite 1 204 545 544 3:3:ADDI:1\n"
+    "547 sub 2 19 509\n"
+    "548 ite 1 205 547 546 3:4:SUB:1\n"
+    "549 sub 2 19 7\n"
+    "550 ite 1 206 549 548 3:5:SUBI:1\n"
+    "551 sub 2 19 509\n"
+    "552 ite 1 207 551 550 3:6:CMP:1\n"
+    "553 ite 1 214 509 552 3:13:MEM:1\n"
+    "554 eq 1 25 509\n"
+    "555 ite 1 554 7 6\n"
+    "556 ite 1 215 555 553 3:14:CAS:1\n"
+    "557 next 2 19 556\n"
     "\n"
     "; update CAS memory register ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; mem_1\n"
-    "556 ite 1 178 507 21 1:13:MEM:1\n"
-    "557 next 2 21 556\n"
+    "558 ite 1 180 509 21 1:13:MEM:1\n"
+    "559 next 2 21 558\n"
     "\n"
     "; mem_2\n"
-    "558 ite 1 195 507 23 2:13:MEM:1\n"
-    "559 next 2 23 558\n"
+    "560 ite 1 197 509 23 2:13:MEM:1\n"
+    "561 next 2 23 560\n"
     "\n"
     "; mem_3\n"
-    "560 ite 1 212 507 25 3:13:MEM:1\n"
-    "561 next 2 25 560\n"
+    "562 ite 1 214 509 25 3:13:MEM:1\n"
+    "563 next 2 25 562\n"
     "\n"
     "; update heap ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; heap\n"
-    "562 write 3 14 7 15\n"
-    "563 ite 1 166 562 14 1:1:STORE:1\n"
-    "564 eq 1 21 507\n"
-    "565 ite 1 564 562 14\n"
-    "566 ite 1 179 565 563 1:14:CAS:1\n"
-    "567 ite 1 183 562 566 2:1:STORE:1\n"
-    "568 eq 1 23 507\n"
-    "569 ite 1 568 562 14\n"
-    "570 ite 1 196 569 567 2:14:CAS:1\n"
-    "571 ite 1 200 562 570 3:1:STORE:1\n"
-    "572 eq 1 25 507\n"
-    "573 ite 1 572 562 14\n"
-    "574 ite 1 213 573 571 3:14:CAS:1\n"
-    "575 next 2 14 574\n\n",
+    "564 write 3 14 7 15\n"
+    "565 ite 1 168 564 14 1:1:STORE:1\n"
+    "566 eq 1 21 509\n"
+    "567 ite 1 566 564 14\n"
+    "568 ite 1 181 567 565 1:14:CAS:1\n"
+    "569 ite 1 185 564 568 2:1:STORE:1\n"
+    "570 eq 1 23 509\n"
+    "571 ite 1 570 564 14\n"
+    "572 ite 1 198 571 569 2:14:CAS:1\n"
+    "573 ite 1 202 564 572 3:1:STORE:1\n"
+    "574 eq 1 25 509\n"
+    "575 ite 1 574 564 14\n"
+    "576 ite 1 215 575 573 3:14:CAS:1\n"
+    "577 next 2 14 576\n\n",
     encoder->formula.str());
 
   /* verbosity */
@@ -1754,81 +1762,81 @@ TEST_F(Btor2EncoderTest, add_state_update)
   verbose = true;
 
   ASSERT_EQ(
-    "507 read 2 14 7\n"
-    "508 ite 1 165 507 15\n"
-    "509 add 2 15 507\n"
-    "510 ite 1 167 509 508\n"
-    "511 add 2 15 7\n"
-    "512 ite 1 168 511 510\n"
-    "513 sub 2 15 507\n"
-    "514 ite 1 169 513 512\n"
-    "515 sub 2 15 7\n"
-    "516 ite 1 170 515 514\n"
-    "517 sub 2 15 507\n"
-    "518 ite 1 171 517 516\n"
-    "519 ite 1 178 507 518\n"
-    "520 eq 1 21 507\n"
-    "521 ite 1 520 7 6\n"
-    "522 ite 1 179 521 519\n"
-    "523 next 2 15 522\n"
+    "509 read 2 14 7\n"
+    "510 ite 1 167 509 15\n"
+    "511 add 2 15 509\n"
+    "512 ite 1 169 511 510\n"
+    "513 add 2 15 7\n"
+    "514 ite 1 170 513 512\n"
+    "515 sub 2 15 509\n"
+    "516 ite 1 171 515 514\n"
+    "517 sub 2 15 7\n"
+    "518 ite 1 172 517 516\n"
+    "519 sub 2 15 509\n"
+    "520 ite 1 173 519 518\n"
+    "521 ite 1 180 509 520\n"
+    "522 eq 1 21 509\n"
+    "523 ite 1 522 7 6\n"
+    "524 ite 1 181 523 521\n"
+    "525 next 2 15 524\n"
     "\n"
-    "524 ite 1 182 507 17\n"
-    "525 add 2 17 507\n"
-    "526 ite 1 184 525 524\n"
-    "527 add 2 17 7\n"
-    "528 ite 1 185 527 526\n"
-    "529 sub 2 17 507\n"
-    "530 ite 1 186 529 528\n"
-    "531 sub 2 17 7\n"
-    "532 ite 1 187 531 530\n"
-    "533 sub 2 17 507\n"
-    "534 ite 1 188 533 532\n"
-    "535 ite 1 195 507 534\n"
-    "536 eq 1 23 507\n"
-    "537 ite 1 536 7 6\n"
-    "538 ite 1 196 537 535\n"
-    "539 next 2 17 538\n"
+    "526 ite 1 184 509 17\n"
+    "527 add 2 17 509\n"
+    "528 ite 1 186 527 526\n"
+    "529 add 2 17 7\n"
+    "530 ite 1 187 529 528\n"
+    "531 sub 2 17 509\n"
+    "532 ite 1 188 531 530\n"
+    "533 sub 2 17 7\n"
+    "534 ite 1 189 533 532\n"
+    "535 sub 2 17 509\n"
+    "536 ite 1 190 535 534\n"
+    "537 ite 1 197 509 536\n"
+    "538 eq 1 23 509\n"
+    "539 ite 1 538 7 6\n"
+    "540 ite 1 198 539 537\n"
+    "541 next 2 17 540\n"
     "\n"
-    "540 ite 1 199 507 19\n"
-    "541 add 2 19 507\n"
-    "542 ite 1 201 541 540\n"
-    "543 add 2 19 7\n"
-    "544 ite 1 202 543 542\n"
-    "545 sub 2 19 507\n"
-    "546 ite 1 203 545 544\n"
-    "547 sub 2 19 7\n"
-    "548 ite 1 204 547 546\n"
-    "549 sub 2 19 507\n"
-    "550 ite 1 205 549 548\n"
-    "551 ite 1 212 507 550\n"
-    "552 eq 1 25 507\n"
-    "553 ite 1 552 7 6\n"
-    "554 ite 1 213 553 551\n"
-    "555 next 2 19 554\n"
+    "542 ite 1 201 509 19\n"
+    "543 add 2 19 509\n"
+    "544 ite 1 203 543 542\n"
+    "545 add 2 19 7\n"
+    "546 ite 1 204 545 544\n"
+    "547 sub 2 19 509\n"
+    "548 ite 1 205 547 546\n"
+    "549 sub 2 19 7\n"
+    "550 ite 1 206 549 548\n"
+    "551 sub 2 19 509\n"
+    "552 ite 1 207 551 550\n"
+    "553 ite 1 214 509 552\n"
+    "554 eq 1 25 509\n"
+    "555 ite 1 554 7 6\n"
+    "556 ite 1 215 555 553\n"
+    "557 next 2 19 556\n"
     "\n"
-    "556 ite 1 178 507 21\n"
-    "557 next 2 21 556\n"
+    "558 ite 1 180 509 21\n"
+    "559 next 2 21 558\n"
     "\n"
-    "558 ite 1 195 507 23\n"
-    "559 next 2 23 558\n"
+    "560 ite 1 197 509 23\n"
+    "561 next 2 23 560\n"
     "\n"
-    "560 ite 1 212 507 25\n"
-    "561 next 2 25 560\n"
+    "562 ite 1 214 509 25\n"
+    "563 next 2 25 562\n"
     "\n"
-    "562 write 3 14 7 15\n"
-    "563 ite 1 166 562 14\n"
-    "564 eq 1 21 507\n"
-    "565 ite 1 564 562 14\n"
-    "566 ite 1 179 565 563\n"
-    "567 ite 1 183 562 566\n"
-    "568 eq 1 23 507\n"
-    "569 ite 1 568 562 14\n"
-    "570 ite 1 196 569 567\n"
-    "571 ite 1 200 562 570\n"
-    "572 eq 1 25 507\n"
-    "573 ite 1 572 562 14\n"
-    "574 ite 1 213 573 571\n"
-    "575 next 2 14 574\n\n",
+    "564 write 3 14 7 15\n"
+    "565 ite 1 168 564 14\n"
+    "566 eq 1 21 509\n"
+    "567 ite 1 566 564 14\n"
+    "568 ite 1 181 567 565\n"
+    "569 ite 1 185 564 568\n"
+    "570 eq 1 23 509\n"
+    "571 ite 1 570 564 14\n"
+    "572 ite 1 198 571 569\n"
+    "573 ite 1 202 564 572\n"
+    "574 eq 1 25 509\n"
+    "575 ite 1 574 564 14\n"
+    "576 ite 1 215 575 573\n"
+    "577 next 2 14 576\n\n",
     encoder->formula.str());
 }
 
@@ -1851,15 +1859,15 @@ TEST_F(Btor2EncoderTest, load)
 
   Load l(1);
 
-  ASSERT_EQ("33", encoder->load(l));
-  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
-  ASSERT_EQ("33 read 2 14 7\n", encoder->formula.str());
+  ASSERT_EQ("35", encoder->load(l));
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_load);
+  ASSERT_EQ("35 read 2 14 7\n", encoder->formula.str());
 
   /* another load from the same memory address */
   encoder->formula.str("");
 
-  ASSERT_EQ("33", encoder->load(l));
-  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ("35", encoder->load(l));
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_load);
   ASSERT_EQ("", encoder->formula.str());
 
   /* indirect */
@@ -1867,17 +1875,17 @@ TEST_F(Btor2EncoderTest, load)
 
   l.indirect = true;
 
-  ASSERT_EQ("34", encoder->load(l));
-  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
-  ASSERT_EQ(NIDMap({{1, "34"}}), encoder->nids_load_indirect);
-  ASSERT_EQ("34 read 2 14 33\n", encoder->formula.str());
+  ASSERT_EQ("36", encoder->load(l));
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "36"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("36 read 2 14 35\n", encoder->formula.str());
 
   /* another load from the same memory address */
   encoder->formula.str("");
 
-  ASSERT_EQ("34", encoder->load(l));
-  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
-  ASSERT_EQ(NIDMap({{1, "34"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("36", encoder->load(l));
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "36"}}), encoder->nids_load_indirect);
   ASSERT_EQ("", encoder->formula.str());
 }
 
@@ -1892,15 +1900,15 @@ TEST_F(Btor2EncoderTest, store)
 
   encoder->thread = 1;
 
-  ASSERT_EQ("33", encoder->store(s));
-  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_store);
-  ASSERT_EQ("33 write 3 14 7 15\n", encoder->formula.str());
+  ASSERT_EQ("35", encoder->store(s));
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_store);
+  ASSERT_EQ("35 write 3 14 7 15\n", encoder->formula.str());
 
   /* another store to the same memory address */
   encoder->formula.str("");
 
-  ASSERT_EQ("33", encoder->store(s));
-  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_store);
+  ASSERT_EQ("35", encoder->store(s));
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_store);
   ASSERT_EQ("", encoder->formula.str());
 
   /* indirect */
@@ -1908,20 +1916,20 @@ TEST_F(Btor2EncoderTest, store)
 
   s.indirect = true;
 
-  ASSERT_EQ("35", encoder->store(s));
-  ASSERT_EQ(NIDMap({{1, "34"}}), encoder->nids_load);
-  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_store_indirect);
+  ASSERT_EQ("37", encoder->store(s));
+  ASSERT_EQ(NIDMap({{1, "36"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "37"}}), encoder->nids_store_indirect);
   ASSERT_EQ(
-    "34 read 2 14 7\n"
-    "35 write 3 14 34 15\n",
+    "36 read 2 14 7\n"
+    "37 write 3 14 36 15\n",
     encoder->formula.str());
 
   /* another store to the same memory address */
   encoder->formula.str("");
 
-  ASSERT_EQ("35", encoder->store(s));
-  ASSERT_EQ(NIDMap({{1, "34"}}), encoder->nids_load);
-  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_store_indirect);
+  ASSERT_EQ("37", encoder->store(s));
+  ASSERT_EQ(NIDMap({{1, "36"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "37"}}), encoder->nids_store_indirect);
   ASSERT_EQ("", encoder->formula.str());
 }
 
@@ -1954,40 +1962,40 @@ TEST_F(Btor2EncoderTest, ADD)
 
   Add a(1);
 
-  ASSERT_EQ("34", encoder->encode(a));
-  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ("36", encoder->encode(a));
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_load);
   ASSERT_EQ(
-    "33 read 2 14 7\n"
-    "34 add 2 15 33\n",
+    "35 read 2 14 7\n"
+    "36 add 2 15 35\n",
     encoder->formula.str());
 
   /* another ADD from the same memory address */
   encoder->formula.str("");
 
-  ASSERT_EQ("35", encoder->encode(a));
-  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
-  ASSERT_EQ("35 add 2 15 33\n", encoder->formula.str());
+  ASSERT_EQ("37", encoder->encode(a));
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_load);
+  ASSERT_EQ("37 add 2 15 35\n", encoder->formula.str());
 
   /* indirect */
   encoder->formula.str("");
 
   a.indirect = true;
 
-  ASSERT_EQ("37", encoder->encode(a));
-  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
-  ASSERT_EQ(NIDMap({{1, "36"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("39", encoder->encode(a));
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "38"}}), encoder->nids_load_indirect);
   ASSERT_EQ(
-    "36 read 2 14 33\n"
-    "37 add 2 15 36\n",
+    "38 read 2 14 35\n"
+    "39 add 2 15 38\n",
     encoder->formula.str());
 
   /* another ADD from the same memory address */
   encoder->formula.str("");
 
-  ASSERT_EQ("38", encoder->encode(a));
-  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
-  ASSERT_EQ(NIDMap({{1, "36"}}), encoder->nids_load_indirect);
-  ASSERT_EQ("38 add 2 15 36\n", encoder->formula.str());
+  ASSERT_EQ("40", encoder->encode(a));
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "38"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("40 add 2 15 38\n", encoder->formula.str());
 }
 
 // virtual std::string encode (Addi &);
@@ -2001,14 +2009,14 @@ TEST_F(Btor2EncoderTest, ADDI)
 
   Addi a(1);
 
-  ASSERT_EQ("33", encoder->encode(a));
-  ASSERT_EQ("33 add 2 15 7\n", encoder->formula.str());
+  ASSERT_EQ("35", encoder->encode(a));
+  ASSERT_EQ("35 add 2 15 7\n", encoder->formula.str());
 
   /* another ADDI with the same constant */
   encoder->formula.str("");
 
-  ASSERT_EQ("34", encoder->encode(a));
-  ASSERT_EQ("34 add 2 15 7\n", encoder->formula.str());
+  ASSERT_EQ("36", encoder->encode(a));
+  ASSERT_EQ("36 add 2 15 7\n", encoder->formula.str());
 }
 
 // virtual std::string encode (Sub &);
@@ -2022,40 +2030,40 @@ TEST_F(Btor2EncoderTest, SUB)
 
   Sub s(1);
 
-  ASSERT_EQ("34", encoder->encode(s));
-  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ("36", encoder->encode(s));
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_load);
   ASSERT_EQ(
-    "33 read 2 14 7\n"
-    "34 sub 2 15 33\n",
+    "35 read 2 14 7\n"
+    "36 sub 2 15 35\n",
     encoder->formula.str());
 
   /* another SUB from the same memory address */
   encoder->formula.str("");
 
-  ASSERT_EQ("35", encoder->encode(s));
-  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
-  ASSERT_EQ("35 sub 2 15 33\n", encoder->formula.str());
+  ASSERT_EQ("37", encoder->encode(s));
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_load);
+  ASSERT_EQ("37 sub 2 15 35\n", encoder->formula.str());
 
   /* indirect */
   encoder->formula.str("");
 
   s.indirect = true;
 
-  ASSERT_EQ("37", encoder->encode(s));
-  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
-  ASSERT_EQ(NIDMap({{1, "36"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("39", encoder->encode(s));
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "38"}}), encoder->nids_load_indirect);
   ASSERT_EQ(
-    "36 read 2 14 33\n"
-    "37 sub 2 15 36\n",
+    "38 read 2 14 35\n"
+    "39 sub 2 15 38\n",
     encoder->formula.str());
 
   /* another SUB from the same memory address */
   encoder->formula.str("");
 
-  ASSERT_EQ("38", encoder->encode(s));
-  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
-  ASSERT_EQ(NIDMap({{1, "36"}}), encoder->nids_load_indirect);
-  ASSERT_EQ("38 sub 2 15 36\n", encoder->formula.str());
+  ASSERT_EQ("40", encoder->encode(s));
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "38"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("40 sub 2 15 38\n", encoder->formula.str());
 }
 
 // virtual std::string encode (Subi &);
@@ -2069,14 +2077,14 @@ TEST_F(Btor2EncoderTest, SUBI)
 
   Subi s(1);
 
-  ASSERT_EQ("33", encoder->encode(s));
-  ASSERT_EQ("33 sub 2 15 7\n", encoder->formula.str());
+  ASSERT_EQ("35", encoder->encode(s));
+  ASSERT_EQ("35 sub 2 15 7\n", encoder->formula.str());
 
   /* another SUBI with the same constant */
   encoder->formula.str("");
 
-  ASSERT_EQ("34", encoder->encode(s));
-  ASSERT_EQ("34 sub 2 15 7\n", encoder->formula.str());
+  ASSERT_EQ("36", encoder->encode(s));
+  ASSERT_EQ("36 sub 2 15 7\n", encoder->formula.str());
 }
 
 // virtual std::string encode (Cmp &);
@@ -2090,40 +2098,40 @@ TEST_F(Btor2EncoderTest, CMP)
 
   Cmp c(1);
 
-  ASSERT_EQ("34", encoder->encode(c));
-  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ("36", encoder->encode(c));
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_load);
   ASSERT_EQ(
-    "33 read 2 14 7\n"
-    "34 sub 2 15 33\n",
+    "35 read 2 14 7\n"
+    "36 sub 2 15 35\n",
     encoder->formula.str());
 
   /* another CMP from the same memory address */
   encoder->formula.str("");
 
-  ASSERT_EQ("35", encoder->encode(c));
-  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
-  ASSERT_EQ("35 sub 2 15 33\n", encoder->formula.str());
+  ASSERT_EQ("37", encoder->encode(c));
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_load);
+  ASSERT_EQ("37 sub 2 15 35\n", encoder->formula.str());
 
   /* indirect */
   encoder->formula.str("");
 
   c.indirect = true;
 
-  ASSERT_EQ("37", encoder->encode(c));
-  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
-  ASSERT_EQ(NIDMap({{1, "36"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("39", encoder->encode(c));
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "38"}}), encoder->nids_load_indirect);
   ASSERT_EQ(
-    "36 read 2 14 33\n"
-    "37 sub 2 15 36\n",
+    "38 read 2 14 35\n"
+    "39 sub 2 15 38\n",
     encoder->formula.str());
 
   /* another CMP from the same memory address */
   encoder->formula.str("");
 
-  ASSERT_EQ("38", encoder->encode(c));
-  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
-  ASSERT_EQ(NIDMap({{1, "36"}}), encoder->nids_load_indirect);
-  ASSERT_EQ("38 sub 2 15 36\n", encoder->formula.str());
+  ASSERT_EQ("40", encoder->encode(c));
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "38"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("40 sub 2 15 38\n", encoder->formula.str());
 }
 
 // virtual std::string encode (Jmp &);
@@ -2152,8 +2160,8 @@ TEST_F(Btor2EncoderTest, JZ)
 
   Jz j(1);
 
-  ASSERT_EQ("33", encoder->encode(j));
-  ASSERT_EQ("33 eq 1 15 6\n", encoder->formula.str());
+  ASSERT_EQ("35", encoder->encode(j));
+  ASSERT_EQ("35 eq 1 15 6\n", encoder->formula.str());
 }
 
 // virtual std::string encode (Jnz &);
@@ -2167,8 +2175,8 @@ TEST_F(Btor2EncoderTest, JNZ)
 
   Jnz j(1);
 
-  ASSERT_EQ("33", encoder->encode(j));
-  ASSERT_EQ("33 ne 1 15 6\n", encoder->formula.str());
+  ASSERT_EQ("35", encoder->encode(j));
+  ASSERT_EQ("35 ne 1 15 6\n", encoder->formula.str());
 }
 
 // virtual std::string encode (Js &);
@@ -2182,8 +2190,8 @@ TEST_F(Btor2EncoderTest, JS)
 
   Js j(1);
 
-  ASSERT_EQ("33", encoder->encode(j));
-  ASSERT_EQ("33 slice 1 15 15 15\n", encoder->formula.str());
+  ASSERT_EQ("35", encoder->encode(j));
+  ASSERT_EQ("35 slice 1 15 15 15\n", encoder->formula.str());
 }
 
 // virtual std::string encode (Jns &);
@@ -2197,10 +2205,10 @@ TEST_F(Btor2EncoderTest, JNS)
 
   Jns j(1);
 
-  ASSERT_EQ("34", encoder->encode(j));
+  ASSERT_EQ("36", encoder->encode(j));
   ASSERT_EQ(
-    "33 slice 1 15 15 15\n"
-    "34 not 1 33\n",
+    "35 slice 1 15 15 15\n"
+    "36 not 1 35\n",
     encoder->formula.str());
 }
 
@@ -2215,12 +2223,12 @@ TEST_F(Btor2EncoderTest, JNZNS)
 
   Jnzns j(1);
 
-  ASSERT_EQ("37", encoder->encode(j));
+  ASSERT_EQ("39", encoder->encode(j));
   ASSERT_EQ(
-    "34 ne 1 15 6\n"
-    "35 slice 1 15 15 15\n"
-    "36 not 1 35\n"
-    "37 and 1 34 36\n",
+    "36 ne 1 15 6\n"
+    "37 slice 1 15 15 15\n"
+    "38 not 1 37\n"
+    "39 and 1 36 38\n",
     encoder->formula.str());
 }
 
@@ -2243,22 +2251,22 @@ TEST_F(Btor2EncoderTest, CAS_accu)
 
   Cas c(1);
 
-  ASSERT_EQ("35", encoder->encode(c));
-  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ("37", encoder->encode(c));
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_load);
   ASSERT_EQ(
-    "33 read 2 14 7\n"
-    "34 eq 1 17 33\n"
-    "35 ite 1 34 7 6\n",
+    "35 read 2 14 7\n"
+    "36 eq 1 17 35\n"
+    "37 ite 1 36 7 6\n",
     encoder->formula.str());
 
   /* another CAS to the same memory address */
   encoder->formula.str("");
 
-  ASSERT_EQ("37", encoder->encode(c));
-  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ("39", encoder->encode(c));
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_load);
   ASSERT_EQ(
-    "36 eq 1 17 33\n"
-    "37 ite 1 36 7 6\n",
+    "38 eq 1 17 35\n"
+    "39 ite 1 38 7 6\n",
     encoder->formula.str());
 
   /* indirect */
@@ -2266,24 +2274,24 @@ TEST_F(Btor2EncoderTest, CAS_accu)
 
   c.indirect = true;
 
-  ASSERT_EQ("40", encoder->encode(c));
-  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
-  ASSERT_EQ(NIDMap({{1, "38"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("42", encoder->encode(c));
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "40"}}), encoder->nids_load_indirect);
   ASSERT_EQ(
-    "38 read 2 14 33\n"
-    "39 eq 1 17 38\n"
-    "40 ite 1 39 7 6\n",
+    "40 read 2 14 35\n"
+    "41 eq 1 17 40\n"
+    "42 ite 1 41 7 6\n",
     encoder->formula.str());
 
   /* another CAS to the same memory address */
   encoder->formula.str("");
 
-  ASSERT_EQ("42", encoder->encode(c));
-  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
-  ASSERT_EQ(NIDMap({{1, "38"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("44", encoder->encode(c));
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "40"}}), encoder->nids_load_indirect);
   ASSERT_EQ(
-    "41 eq 1 17 38\n"
-    "42 ite 1 41 7 6\n",
+    "43 eq 1 17 40\n"
+    "44 ite 1 43 7 6\n",
     encoder->formula.str());
 }
 
@@ -2299,23 +2307,23 @@ TEST_F(Btor2EncoderTest, CAS_heap)
 
   Cas c(1);
 
-  ASSERT_EQ("36", encoder->encode(c));
-  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ("38", encoder->encode(c));
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_load);
   ASSERT_EQ(
-    "33 read 2 14 7\n"
-    "34 eq 1 17 33\n"
-    "35 write 3 14 7 15\n"
-    "36 ite 1 34 35 14\n",
+    "35 read 2 14 7\n"
+    "36 eq 1 17 35\n"
+    "37 write 3 14 7 15\n"
+    "38 ite 1 36 37 14\n",
     encoder->formula.str());
 
   /* another CAS to the same memory address */
   encoder->formula.str("");
 
-  ASSERT_EQ("38", encoder->encode(c));
-  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
+  ASSERT_EQ("40", encoder->encode(c));
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_load);
   ASSERT_EQ(
-    "37 eq 1 17 33\n"
-    "38 ite 1 37 35 14\n",
+    "39 eq 1 17 35\n"
+    "40 ite 1 39 37 14\n",
     encoder->formula.str());
 
   /* indirect */
@@ -2323,25 +2331,25 @@ TEST_F(Btor2EncoderTest, CAS_heap)
 
   c.indirect = true;
 
-  ASSERT_EQ("42", encoder->encode(c));
-  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
-  ASSERT_EQ(NIDMap({{1, "39"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("44", encoder->encode(c));
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "41"}}), encoder->nids_load_indirect);
   ASSERT_EQ(
-    "39 read 2 14 33\n"
-    "40 eq 1 17 39\n"
-    "41 write 3 14 33 15\n"
-    "42 ite 1 40 41 14\n",
+    "41 read 2 14 35\n"
+    "42 eq 1 17 41\n"
+    "43 write 3 14 35 15\n"
+    "44 ite 1 42 43 14\n",
     encoder->formula.str());
 
   /* another CAS to the same memory address */
   encoder->formula.str("");
 
-  ASSERT_EQ("44", encoder->encode(c));
-  ASSERT_EQ(NIDMap({{1, "33"}}), encoder->nids_load);
-  ASSERT_EQ(NIDMap({{1, "39"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("46", encoder->encode(c));
+  ASSERT_EQ(NIDMap({{1, "35"}}), encoder->nids_load);
+  ASSERT_EQ(NIDMap({{1, "41"}}), encoder->nids_load_indirect);
   ASSERT_EQ(
-    "43 eq 1 17 39\n"
-    "44 ite 1 43 41 14\n",
+    "45 eq 1 17 41\n"
+    "46 ite 1 45 43 14\n",
     encoder->formula.str());
 }
 

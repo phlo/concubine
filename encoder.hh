@@ -354,7 +354,8 @@ struct Btor2Encoder : public Encoder
 
                               nid_heap,
 
-                              nid_exit;
+                              nid_exit,
+                              nid_exit_code;
 
   std::map<word, std::string> nids_const,
 

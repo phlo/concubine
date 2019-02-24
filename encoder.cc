@@ -1564,15 +1564,6 @@ void Btor2Encoder::declare_states ()
 
   formula << eol;
 
-  /* exit */
-  if (verbose)
-      formula << btor2::comment("exit") << eol;
-
-  formula <<
-    btor2::state(nid_exit = nid(), sid_bool, "exit") <<
-    btor2::init(nid(), sid_bool, nid_exit, nid_false) <<
-    eol;
-
   /* statement activation */
   if (verbose)
       formula << btor2::comment("statement activation") << eol;
@@ -1592,6 +1583,24 @@ void Btor2Encoder::declare_states ()
 
     formula << eol;
   });
+
+  /* exit flag */
+  if (verbose)
+      formula << btor2::comment("exit flag") << eol;
+
+  formula <<
+    btor2::state(nid_exit = nid(), sid_bool, "exit") <<
+    btor2::init(nid(), sid_bool, nid_exit, nid_false) <<
+    eol;
+
+  /* exit code */
+  if (verbose)
+      formula << btor2::comment("exit code") << eol;
+
+  formula <<
+    btor2::state(nid_exit_code = nid(), sid_bv, "exit_code") <<
+    btor2::init(nid(), sid_bv, nid_exit_code, nids_const[0]) <<
+    eol;
 }
 
 void Btor2Encoder::add_thread_scheduling ()
