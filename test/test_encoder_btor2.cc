@@ -1496,10 +1496,340 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_twice)
   */
 }
 
+// void add_state_update (string, string, unordered_map<word, vector<word>> &);
+TEST_F(Btor2EncoderTest, add_state_update_accu)
+{
+  add_instruction_set(3);
+
+  init_statement_activation(true);
+
+  for (word thread = 1; thread <= encoder->num_threads; thread++)
+    {
+      string thread_str = to_string(thread);
+
+      encoder->thread = thread;
+
+      encoder->update_accu = true;
+
+      encoder->add_state_update(
+        encoder->nids_accu[encoder->thread],
+        "accu_" + thread_str,
+        encoder->alters_accu);
+
+      unsigned long nid = encoder->node;
+
+      string nid_0_ite = to_string(nid - 16);
+      string nid_2_add = to_string(nid - 15);
+      string nid_2_ite = to_string(nid - 14);
+      string nid_3_addi = to_string(nid - 13);
+      string nid_3_ite = to_string(nid - 12);
+      string nid_4_sub = to_string(nid - 11);
+      string nid_4_ite = to_string(nid - 10);
+      string nid_5_subi = to_string(nid - 9);
+      string nid_5_ite = to_string(nid - 8);
+      string nid_6_cmp = to_string(nid - 7);
+      string nid_6_ite = to_string(nid - 6);
+      string nid_13_mem = to_string(nid - 5);
+      string nid_14_eq = to_string(nid - 4);
+      string nid_14_cas = to_string(nid - 3);
+      string nid_14_ite = to_string(nid - 2);
+      string nid_next = to_string(nid - 1);
+
+      ASSERT_EQ(
+        "; accu_" + thread_str + "\n"
+        + (thread > 1 ? "" : "507 read 2 14 7\n")
+        + nid_0_ite  + " ite 1 " + encoder->nids_exec[thread][0] + " 507 " + encoder->nids_accu[thread] + " " + thread_str + ":0:LOAD:1\n"
+        + nid_2_add  + " add 2 " + encoder->nids_accu[thread] + " 507\n"
+        + nid_2_ite  + " ite 1 " + encoder->nids_exec[thread][2] + " " + nid_2_add + " " + nid_0_ite + " " + thread_str + ":2:ADD:1\n"
+        + nid_3_addi + " add 2 " + encoder->nids_accu[thread] + " 7\n"
+        + nid_3_ite  + " ite 1 " + encoder->nids_exec[thread][3] + " " + nid_3_addi + " " + nid_2_ite + " " + thread_str + ":3:ADDI:1\n"
+        + nid_4_sub  + " sub 2 " + encoder->nids_accu[thread] + " 507\n"
+        + nid_4_ite  + " ite 1 " + encoder->nids_exec[thread][4] + " " + nid_4_sub + " " + nid_3_ite + " " + thread_str + ":4:SUB:1\n"
+        + nid_5_subi + " sub 2 " + encoder->nids_accu[thread] + " 7\n"
+        + nid_5_ite  + " ite 1 " + encoder->nids_exec[thread][5] + " " + nid_5_subi + " " + nid_4_ite + " " + thread_str + ":5:SUBI:1\n"
+        + nid_6_cmp  + " sub 2 " + encoder->nids_accu[thread] + " 507\n"
+        + nid_6_ite  + " ite 1 " + encoder->nids_exec[thread][6] + " " + nid_6_cmp + " " + nid_5_ite + " " + thread_str + ":6:CMP:1\n"
+        + nid_13_mem + " ite 1 " + encoder->nids_exec[thread][13] + " 507 " + nid_6_ite + " " + thread_str + ":13:MEM:1\n"
+        + nid_14_eq  + " eq 1 "  + encoder->nids_mem[thread] + " 507\n"
+        + nid_14_cas + " ite 1 " + nid_14_eq + " 7 6\n"
+        + nid_14_ite + " ite 1 " + encoder->nids_exec[thread][14] + " " + nid_14_cas + " " + nid_13_mem + " " + thread_str + ":14:CAS:1\n"
+        + nid_next   + " next 2 " + encoder->nids_accu[thread] + " " + nid_14_ite + "\n\n",
+        encoder->formula.str());
+
+      encoder->formula.str("");
+    }
+}
+
+TEST_F(Btor2EncoderTest, add_state_update_mem)
+{
+  add_instruction_set(3);
+
+  init_statement_activation(true);
+
+  for (word thread = 1; thread <= encoder->num_threads; thread++)
+    {
+      string thread_str = to_string(thread);
+
+      encoder->thread = thread;
+
+      encoder->add_state_update(
+        encoder->nids_mem[encoder->thread],
+        "mem_" + thread_str,
+        encoder->alters_mem);
+
+      unsigned long nid = encoder->node;
+
+      string nid_13_ite = to_string(nid - 2);
+      string nid_next = to_string(nid - 1);
+
+      ASSERT_EQ(
+        "; mem_" + thread_str + "\n"
+        + (thread > 1 ? "" : "507 read 2 14 7\n")
+        + nid_13_ite + " ite 1 " + encoder->nids_exec[thread][13] + " 507 " + encoder->nids_mem[thread] + " " + thread_str + ":13:MEM:1\n"
+        + nid_next +   " next 2 " + encoder->nids_mem[thread] + " " + nid_13_ite + "\n\n",
+        encoder->formula.str());
+
+      encoder->formula.str("");
+    }
+}
+
+TEST_F(Btor2EncoderTest, add_state_update_heap)
+{
+  add_instruction_set(3);
+
+  init_statement_activation(true);
+
+  encoder->thread = 0;
+
+  encoder->update_accu = false;
+
+  encoder->add_state_update(
+    encoder->nid_heap,
+    "heap",
+    encoder->alters_heap);
+
+  unsigned long nid = encoder->node;
+
+  string nid_1_1_ite = to_string(nid - 14);
+  string nid_1_14_eq = to_string(nid - 12);
+  string nid_1_14_cas = to_string(nid - 11);
+  string nid_1_14_ite = to_string(nid - 10);
+  string nid_2_1_ite = to_string(nid - 9);
+  string nid_2_14_eq = to_string(nid - 8);
+  string nid_2_14_cas = to_string(nid - 7);
+  string nid_2_14_ite = to_string(nid - 6);
+  string nid_3_1_ite = to_string(nid - 5);
+  string nid_3_14_eq = to_string(nid - 4);
+  string nid_3_14_cas = to_string(nid - 3);
+  string nid_3_14_ite = to_string(nid - 2);
+  string nid_next = to_string(nid - 1);
+
+  ASSERT_EQ(
+    "; heap\n"
+    "507 write 3 14 7 15\n"
+    + nid_1_1_ite  + " ite 1 " + encoder->nids_exec[1][1] + " 507 14 1:1:STORE:1\n"
+    "509 read 2 14 7\n"
+    + nid_1_14_eq  + " eq 1 "  + encoder->nids_mem[1] + " 509\n"
+    + nid_1_14_cas + " ite 1 " + nid_1_14_eq + " 507 14\n"
+    + nid_1_14_ite + " ite 1 " + encoder->nids_exec[1][14] + " " + nid_1_14_cas + " " + nid_1_1_ite + " 1:14:CAS:1\n"
+    + nid_2_1_ite  + " ite 1 " + encoder->nids_exec[2][1] + " 507 " + nid_1_14_ite + " 2:1:STORE:1\n"
+    + nid_2_14_eq  + " eq 1 "  + encoder->nids_mem[2] + " 509\n"
+    + nid_2_14_cas + " ite 1 " + nid_2_14_eq + " 507 14\n"
+    + nid_2_14_ite + " ite 1 " + encoder->nids_exec[2][14] + " " + nid_2_14_cas + " " + nid_2_1_ite + " 2:14:CAS:1\n"
+    + nid_3_1_ite  + " ite 1 " + encoder->nids_exec[3][1] + " 507 " + nid_2_14_ite + " 3:1:STORE:1\n"
+    + nid_3_14_eq  + " eq 1 "  + encoder->nids_mem[3] + " 509\n"
+    + nid_3_14_cas + " ite 1 " + nid_3_14_eq + " 507 14\n"
+    + nid_3_14_ite + " ite 1 " + encoder->nids_exec[3][14] + " " + nid_3_14_cas + " " + nid_3_1_ite + " 3:14:CAS:1\n"
+    + nid_next     + " next 2 14 " + nid_3_14_ite + "\n\n",
+    encoder->formula.str());
+}
+
 // void add_state_update ();
 TEST_F(Btor2EncoderTest, add_state_update)
 {
-  // TODO
+  add_instruction_set(3);
+
+  init_statement_activation(true);
+
+  encoder->add_state_update();
+
+  ASSERT_EQ(
+    "; update accu ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; accu_1\n"
+    "507 read 2 14 7\n"
+    "508 ite 1 165 507 15 1:0:LOAD:1\n"
+    "509 add 2 15 507\n"
+    "510 ite 1 167 509 508 1:2:ADD:1\n"
+    "511 add 2 15 7\n"
+    "512 ite 1 168 511 510 1:3:ADDI:1\n"
+    "513 sub 2 15 507\n"
+    "514 ite 1 169 513 512 1:4:SUB:1\n"
+    "515 sub 2 15 7\n"
+    "516 ite 1 170 515 514 1:5:SUBI:1\n"
+    "517 sub 2 15 507\n"
+    "518 ite 1 171 517 516 1:6:CMP:1\n"
+    "519 ite 1 178 507 518 1:13:MEM:1\n"
+    "520 eq 1 21 507\n"
+    "521 ite 1 520 7 6\n"
+    "522 ite 1 179 521 519 1:14:CAS:1\n"
+    "523 next 2 15 522\n"
+    "\n"
+    "; accu_2\n"
+    "524 ite 1 182 507 17 2:0:LOAD:1\n"
+    "525 add 2 17 507\n"
+    "526 ite 1 184 525 524 2:2:ADD:1\n"
+    "527 add 2 17 7\n"
+    "528 ite 1 185 527 526 2:3:ADDI:1\n"
+    "529 sub 2 17 507\n"
+    "530 ite 1 186 529 528 2:4:SUB:1\n"
+    "531 sub 2 17 7\n"
+    "532 ite 1 187 531 530 2:5:SUBI:1\n"
+    "533 sub 2 17 507\n"
+    "534 ite 1 188 533 532 2:6:CMP:1\n"
+    "535 ite 1 195 507 534 2:13:MEM:1\n"
+    "536 eq 1 23 507\n"
+    "537 ite 1 536 7 6\n"
+    "538 ite 1 196 537 535 2:14:CAS:1\n"
+    "539 next 2 17 538\n"
+    "\n"
+    "; accu_3\n"
+    "540 ite 1 199 507 19 3:0:LOAD:1\n"
+    "541 add 2 19 507\n"
+    "542 ite 1 201 541 540 3:2:ADD:1\n"
+    "543 add 2 19 7\n"
+    "544 ite 1 202 543 542 3:3:ADDI:1\n"
+    "545 sub 2 19 507\n"
+    "546 ite 1 203 545 544 3:4:SUB:1\n"
+    "547 sub 2 19 7\n"
+    "548 ite 1 204 547 546 3:5:SUBI:1\n"
+    "549 sub 2 19 507\n"
+    "550 ite 1 205 549 548 3:6:CMP:1\n"
+    "551 ite 1 212 507 550 3:13:MEM:1\n"
+    "552 eq 1 25 507\n"
+    "553 ite 1 552 7 6\n"
+    "554 ite 1 213 553 551 3:14:CAS:1\n"
+    "555 next 2 19 554\n"
+    "\n"
+    "; update CAS memory register ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; mem_1\n"
+    "556 ite 1 178 507 21 1:13:MEM:1\n"
+    "557 next 2 21 556\n"
+    "\n"
+    "; mem_2\n"
+    "558 ite 1 195 507 23 2:13:MEM:1\n"
+    "559 next 2 23 558\n"
+    "\n"
+    "; mem_3\n"
+    "560 ite 1 212 507 25 3:13:MEM:1\n"
+    "561 next 2 25 560\n"
+    "\n"
+    "; update heap ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; heap\n"
+    "562 write 3 14 7 15\n"
+    "563 ite 1 166 562 14 1:1:STORE:1\n"
+    "564 eq 1 21 507\n"
+    "565 ite 1 564 562 14\n"
+    "566 ite 1 179 565 563 1:14:CAS:1\n"
+    "567 ite 1 183 562 566 2:1:STORE:1\n"
+    "568 eq 1 23 507\n"
+    "569 ite 1 568 562 14\n"
+    "570 ite 1 196 569 567 2:14:CAS:1\n"
+    "571 ite 1 200 562 570 3:1:STORE:1\n"
+    "572 eq 1 25 507\n"
+    "573 ite 1 572 562 14\n"
+    "574 ite 1 213 573 571 3:14:CAS:1\n"
+    "575 next 2 14 574\n\n",
+    encoder->formula.str());
+
+  /* verbosity */
+  reset_encoder(1);
+
+  init_statement_activation(true);
+
+  verbose = false;
+  encoder->add_state_update();
+  verbose = true;
+
+  ASSERT_EQ(
+    "507 read 2 14 7\n"
+    "508 ite 1 165 507 15\n"
+    "509 add 2 15 507\n"
+    "510 ite 1 167 509 508\n"
+    "511 add 2 15 7\n"
+    "512 ite 1 168 511 510\n"
+    "513 sub 2 15 507\n"
+    "514 ite 1 169 513 512\n"
+    "515 sub 2 15 7\n"
+    "516 ite 1 170 515 514\n"
+    "517 sub 2 15 507\n"
+    "518 ite 1 171 517 516\n"
+    "519 ite 1 178 507 518\n"
+    "520 eq 1 21 507\n"
+    "521 ite 1 520 7 6\n"
+    "522 ite 1 179 521 519\n"
+    "523 next 2 15 522\n"
+    "\n"
+    "524 ite 1 182 507 17\n"
+    "525 add 2 17 507\n"
+    "526 ite 1 184 525 524\n"
+    "527 add 2 17 7\n"
+    "528 ite 1 185 527 526\n"
+    "529 sub 2 17 507\n"
+    "530 ite 1 186 529 528\n"
+    "531 sub 2 17 7\n"
+    "532 ite 1 187 531 530\n"
+    "533 sub 2 17 507\n"
+    "534 ite 1 188 533 532\n"
+    "535 ite 1 195 507 534\n"
+    "536 eq 1 23 507\n"
+    "537 ite 1 536 7 6\n"
+    "538 ite 1 196 537 535\n"
+    "539 next 2 17 538\n"
+    "\n"
+    "540 ite 1 199 507 19\n"
+    "541 add 2 19 507\n"
+    "542 ite 1 201 541 540\n"
+    "543 add 2 19 7\n"
+    "544 ite 1 202 543 542\n"
+    "545 sub 2 19 507\n"
+    "546 ite 1 203 545 544\n"
+    "547 sub 2 19 7\n"
+    "548 ite 1 204 547 546\n"
+    "549 sub 2 19 507\n"
+    "550 ite 1 205 549 548\n"
+    "551 ite 1 212 507 550\n"
+    "552 eq 1 25 507\n"
+    "553 ite 1 552 7 6\n"
+    "554 ite 1 213 553 551\n"
+    "555 next 2 19 554\n"
+    "\n"
+    "556 ite 1 178 507 21\n"
+    "557 next 2 21 556\n"
+    "\n"
+    "558 ite 1 195 507 23\n"
+    "559 next 2 23 558\n"
+    "\n"
+    "560 ite 1 212 507 25\n"
+    "561 next 2 25 560\n"
+    "\n"
+    "562 write 3 14 7 15\n"
+    "563 ite 1 166 562 14\n"
+    "564 eq 1 21 507\n"
+    "565 ite 1 564 562 14\n"
+    "566 ite 1 179 565 563\n"
+    "567 ite 1 183 562 566\n"
+    "568 eq 1 23 507\n"
+    "569 ite 1 568 562 14\n"
+    "570 ite 1 196 569 567\n"
+    "571 ite 1 200 562 570\n"
+    "572 eq 1 25 507\n"
+    "573 ite 1 572 562 14\n"
+    "574 ite 1 213 573 571\n"
+    "575 next 2 14 574\n\n",
+    encoder->formula.str());
 }
 
 // void preprocess ();

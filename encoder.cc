@@ -1862,9 +1862,97 @@ void Btor2Encoder::add_statement_activation ()
   });
 }
 
+void Btor2Encoder::add_state_update (
+                                     string nid_state,
+                                     string sym,
+                                     unordered_map<
+                                       word,
+                                       vector<word>> & alters_state
+                                    )
+{
+  string nid_next = nid_state;
+
+  /* thread == 0 -> global state */
+  bool is_global = !thread;
+
+  /* initialize thread to 1 for global state updates */
+  if (is_global)
+    thread = 1;
+
+  if (verbose)
+    formula << btor2::comment(sym) << eol;
+
+  unordered_map<word, vector<word>>::iterator thread_it;
+  do
+    if ((thread_it = alters_state.find(thread)) != alters_state.end())
+      {
+        /* minimize lookups */
+        vector<word> & pcs = thread_it->second;
+        vector<string> & exec = nids_exec[thread];
+
+        vector<word>::iterator pc_it = pcs.begin();
+        for (pc = *pc_it; pc_it != pcs.end(); ++pc_it, pc = *pc_it)
+          {
+            UnaryInstruction & op =
+              *dynamic_pointer_cast<UnaryInstruction>(
+                programs->at(thread - 1u)->at(pc));
+
+            formula <<
+              btor2::ite(
+                nid_next = nid(),
+                sid_bool,
+                exec[pc],
+                op.encode(*this),
+                nid_next,
+                verbose
+                  ? to_string(thread) +
+                    ":" +
+                    to_string(pc) +
+                    ":" +
+                    op.get_symbol() +
+                    ":" +
+                    to_string(op.arg)
+                  : "");
+          }
+      }
+  while (is_global && thread++ < num_threads);
+
+  formula << btor2::next(nid(), sid_bv, nid_state, nid_next) << eol;
+}
+
 void Btor2Encoder::add_state_update ()
 {
-  // TODO
+  /* update accu states */
+  if (verbose)
+    formula << btor2::comment_subsection("update accu");
+
+  update_accu = true;
+
+  for (thread = 1; thread <= num_threads; thread++)
+    add_state_update(
+      nids_accu[thread],
+      "accu_" + to_string(thread),
+      alters_accu);
+
+  update_accu = false;
+
+  /* update mem states */
+  if (verbose)
+    formula << btor2::comment_subsection("update CAS memory register");
+
+  for (thread = 1; thread <= num_threads; thread++)
+    add_state_update(
+      nids_mem[thread],
+      "mem_" + to_string(thread),
+      alters_mem);
+
+  /* update heap state */
+  if (verbose)
+    formula << btor2::comment_subsection("update heap");
+
+  thread = 0; /* global state update */
+
+  add_state_update(nid_heap, "heap", alters_heap);
 }
 
 void Btor2Encoder::preprocess ()
