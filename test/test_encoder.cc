@@ -251,7 +251,7 @@ TEST_F(EncoderTest, preprocess_exit_pcs)
   reset_encoder(0);
 
   for (const auto & pcs : encoder->exit_pcs)
-    ASSERT_EQ(set<word>({0, 1, 2}), get<1>(pcs));
+    ASSERT_EQ(vector<word>({0, 1, 2}), get<1>(pcs));
 }
 
 TEST_F(EncoderTest, preprocess_cas_threads)
@@ -302,7 +302,7 @@ TEST_F(EncoderTest, preprocess)
       ASSERT_EQ(id == 1 ? set<word>({3}) : set<word>({6}), get<1>(pcs));
 
   for (const auto & pcs : encoder->exit_pcs)
-      ASSERT_EQ(set<word>({5}), get<1>(pcs));
+      ASSERT_EQ(vector<word>({5}), get<1>(pcs));
 
   ASSERT_EQ(set<word>({1, 2, 3}), encoder->cas_threads);
 }

@@ -1510,31 +1510,6 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_twice)
   */
 }
 
-// void Btor2Encoder::add_exit_flag_update ();
-TEST_F(Btor2EncoderTest, add_exit_flag_update)
-{
-  add_instruction_set(3);
-
-  init_statement_activation(true);
-
-  encoder->add_exit_flag_update();
-
-  string nid_or_1 = nid(-4);
-  string nid_or_2 = nid(-3);
-  string nid_or_3 = nid(-2);
-  string nid_next = nid(-1);
-
-  ASSERT_EQ(
-    "; update exit flag ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    + nid_or_1 + " or 1 " + encoder->nid_exit + " " + encoder->nids_exec[1][16] + "\n"
-    + nid_or_2 + " or 1 " + encoder->nids_exec[2][16] + " " + nid_or_1 + "\n"
-    + nid_or_3 + " or 1 " + encoder->nids_exec[3][16] + " " + nid_or_2 + "\n"
-    + nid_next + " next 1 " + encoder->nid_exit + " " + nid_or_3 + "\n"
-    "\n",
-    encoder->formula.str());
-}
-
 // void add_state_update (string, string, unordered_map<word, vector<word>> &);
 TEST_F(Btor2EncoderTest, add_state_update_accu)
 {
@@ -1676,6 +1651,57 @@ TEST_F(Btor2EncoderTest, add_state_update_heap)
     encoder->formula.str());
 }
 
+// void Btor2Encoder::add_exit_flag_update ();
+TEST_F(Btor2EncoderTest, add_exit_flag_update)
+{
+  add_instruction_set(3);
+
+  init_statement_activation(true);
+
+  encoder->add_exit_flag_update();
+
+  string nid_or_1 = nid(-4);
+  string nid_or_2 = nid(-3);
+  string nid_or_3 = nid(-2);
+  string nid_next = nid(-1);
+
+  ASSERT_EQ(
+    "; update exit flag ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    + nid_or_1 + " or 1 " + encoder->nid_exit + " " + encoder->nids_exec[3][16] + "\n"
+    + nid_or_2 + " or 1 " + encoder->nids_exec[1][16] + " " + nid_or_1 + "\n"
+    + nid_or_3 + " or 1 " + encoder->nids_exec[2][16] + " " + nid_or_2 + "\n"
+    + nid_next + " next 1 " + encoder->nid_exit + " " + nid_or_3 + "\n"
+    "\n",
+    encoder->formula.str());
+}
+
+// void Btor2Encoder::add_exit_code_update ();
+TEST_F(Btor2EncoderTest, add_exit_code_update)
+{
+  add_instruction_set(3);
+
+  init_statement_activation(true);
+
+  encoder->add_exit_code_update();
+
+  string nid_one = encoder->nids_const[1];
+  string nid_ite_1 = nid(-4);
+  string nid_ite_2 = nid(-3);
+  string nid_ite_3 = nid(-2);
+  string nid_next = nid(-1);
+
+  ASSERT_EQ(
+    "; update exit code ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    + nid_ite_1 + " ite 1 " + encoder->nids_exec[1][16] + " " + nid_one + " " + encoder->nid_exit_code + " 1:16:EXIT:1\n"
+    + nid_ite_2 + " ite 1 " + encoder->nids_exec[2][16] + " " + nid_one + " " + nid_ite_1 + " 2:16:EXIT:1\n"
+    + nid_ite_3 + " ite 1 " + encoder->nids_exec[3][16] + " " + nid_one + " " + nid_ite_2 + " 3:16:EXIT:1\n"
+    + nid_next + " next 2 " + encoder->nid_exit_code + " " + nid_ite_3 + "\n"
+    "\n",
+    encoder->formula.str());
+}
+
 // void add_state_update ();
 TEST_F(Btor2EncoderTest, add_state_update)
 {
@@ -1776,10 +1802,17 @@ TEST_F(Btor2EncoderTest, add_state_update)
     "\n"
     "; update exit flag ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "578 or 1 129 183\n"
-    "579 or 1 200 578\n"
-    "580 or 1 217 579\n"
+    "578 or 1 129 217\n"
+    "579 or 1 183 578\n"
+    "580 or 1 200 579\n"
     "581 next 1 129 580\n"
+    "\n"
+    "; update exit code ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "582 ite 1 183 7 131 1:16:EXIT:1\n"
+    "583 ite 1 200 7 582 2:16:EXIT:1\n"
+    "584 ite 1 217 7 583 3:16:EXIT:1\n"
+    "585 next 2 131 584\n"
     "\n",
     encoder->formula.str());
 
@@ -1869,10 +1902,15 @@ TEST_F(Btor2EncoderTest, add_state_update)
     "576 ite 1 215 575 573\n"
     "577 next 2 14 576\n"
     "\n"
-    "578 or 1 129 183\n"
-    "579 or 1 200 578\n"
-    "580 or 1 217 579\n"
+    "578 or 1 129 217\n"
+    "579 or 1 183 578\n"
+    "580 or 1 200 579\n"
     "581 next 1 129 580\n"
+    "\n"
+    "582 ite 1 183 7 131\n"
+    "583 ite 1 200 7 582\n"
+    "584 ite 1 217 7 583\n"
+    "585 next 2 131 584\n"
     "\n",
     encoder->formula.str());
 }

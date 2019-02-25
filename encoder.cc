@@ -90,7 +90,7 @@ void Encoder::preprocess ()
 
         /* collect exit calls */
         if (ExitPtr e = dynamic_pointer_cast<Exit>(program[pc]))
-          exit_pcs[thread].insert(pc);
+          exit_pcs[thread].push_back(pc);
       }
   });
 }
@@ -1888,6 +1888,16 @@ void Btor2Encoder::add_exit_flag_update ()
     << eol;
 }
 
+void Btor2Encoder::add_exit_code_update ()
+{
+  if (verbose)
+    formula << btor2::comment_subsection("update exit code");
+
+  thread = 0; /* global state update */
+
+  add_state_update(nid_exit_code, "exit_code", exit_pcs);
+}
+
 void Btor2Encoder::add_state_update (
                                      string nid_state,
                                      string sym,
@@ -1982,6 +1992,9 @@ void Btor2Encoder::add_state_update ()
 
   /* exit flag */
   add_exit_flag_update();
+
+  /* exit code */
+  add_exit_code_update();
 }
 
 void Btor2Encoder::preprocess ()
