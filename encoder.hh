@@ -386,6 +386,7 @@ struct Btor2Encoder : public Encoder
   void                        add_synchronization_constraints (void);
   void                        add_statement_execution (void);
   void                        add_statement_activation (void);
+  void                        add_exit_flag_update (void);
   void                        add_state_update (
                                                 std::string,
                                                 std::string,
@@ -393,7 +394,6 @@ struct Btor2Encoder : public Encoder
                                                   word,
                                                   std::vector<word>> &
                                                );
-
   void                        add_state_update (void);
 
   std::string                 add_load(std::string *);

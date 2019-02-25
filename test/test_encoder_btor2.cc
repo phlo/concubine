@@ -149,6 +149,12 @@ struct Btor2EncoderTest : public ::testing::Test
       if (clear_formula)
         encoder->formula.str("");
     }
+
+  string nid (int offset)
+    {
+      int nid = encoder->node;
+      return to_string(nid + offset);
+    }
 };
 
 // void Btor2Encoder::declare_sorts ();
@@ -1504,6 +1510,31 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_twice)
   */
 }
 
+// void Btor2Encoder::add_exit_flag_update ();
+TEST_F(Btor2EncoderTest, add_exit_flag_update)
+{
+  add_instruction_set(3);
+
+  init_statement_activation(true);
+
+  encoder->add_exit_flag_update();
+
+  string nid_or_1 = nid(-4);
+  string nid_or_2 = nid(-3);
+  string nid_or_3 = nid(-2);
+  string nid_next = nid(-1);
+
+  ASSERT_EQ(
+    "; update exit flag ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    + nid_or_1 + " or 1 " + encoder->nid_exit + " " + encoder->nids_exec[1][16] + "\n"
+    + nid_or_2 + " or 1 " + encoder->nids_exec[2][16] + " " + nid_or_1 + "\n"
+    + nid_or_3 + " or 1 " + encoder->nids_exec[3][16] + " " + nid_or_2 + "\n"
+    + nid_next + " next 1 " + encoder->nid_exit + " " + nid_or_3 + "\n"
+    "\n",
+    encoder->formula.str());
+}
+
 // void add_state_update (string, string, unordered_map<word, vector<word>> &);
 TEST_F(Btor2EncoderTest, add_state_update_accu)
 {
@@ -1524,24 +1555,22 @@ TEST_F(Btor2EncoderTest, add_state_update_accu)
         "accu_" + thread_str,
         encoder->alters_accu);
 
-      unsigned long nid = encoder->node;
-
-      string nid_0_ite = to_string(nid - 16);
-      string nid_2_add = to_string(nid - 15);
-      string nid_2_ite = to_string(nid - 14);
-      string nid_3_addi = to_string(nid - 13);
-      string nid_3_ite = to_string(nid - 12);
-      string nid_4_sub = to_string(nid - 11);
-      string nid_4_ite = to_string(nid - 10);
-      string nid_5_subi = to_string(nid - 9);
-      string nid_5_ite = to_string(nid - 8);
-      string nid_6_cmp = to_string(nid - 7);
-      string nid_6_ite = to_string(nid - 6);
-      string nid_13_mem = to_string(nid - 5);
-      string nid_14_eq = to_string(nid - 4);
-      string nid_14_cas = to_string(nid - 3);
-      string nid_14_ite = to_string(nid - 2);
-      string nid_next = to_string(nid - 1);
+      string nid_0_ite  = nid(-16);
+      string nid_2_add  = nid(-15);
+      string nid_2_ite  = nid(-14);
+      string nid_3_addi = nid(-13);
+      string nid_3_ite  = nid(-12);
+      string nid_4_sub  = nid(-11);
+      string nid_4_ite  = nid(-10);
+      string nid_5_subi = nid(-9);
+      string nid_5_ite  = nid(-8);
+      string nid_6_cmp  = nid(-7);
+      string nid_6_ite  = nid(-6);
+      string nid_13_mem = nid(-5);
+      string nid_14_eq  = nid(-4);
+      string nid_14_cas = nid(-3);
+      string nid_14_ite = nid(-2);
+      string nid_next   = nid(-1);
 
       ASSERT_EQ(
         "; accu_" + thread_str + "\n"
@@ -1585,10 +1614,8 @@ TEST_F(Btor2EncoderTest, add_state_update_mem)
         "mem_" + thread_str,
         encoder->alters_mem);
 
-      unsigned long nid = encoder->node;
-
-      string nid_13_ite = to_string(nid - 2);
-      string nid_next = to_string(nid - 1);
+      string nid_13_ite = nid(-2);
+      string nid_next   = nid(-1);
 
       ASSERT_EQ(
         "; mem_" + thread_str + "\n"
@@ -1616,24 +1643,21 @@ TEST_F(Btor2EncoderTest, add_state_update_heap)
     "heap",
     encoder->alters_heap);
 
-  unsigned long nid = encoder->node;
-
-  string nid_1_1_ite = to_string(nid - 14);
-  string nid_1_14_eq = to_string(nid - 12);
-  string nid_1_14_cas = to_string(nid - 11);
-  string nid_1_14_ite = to_string(nid - 10);
-  string nid_2_1_ite = to_string(nid - 9);
-  string nid_2_14_eq = to_string(nid - 8);
-  string nid_2_14_cas = to_string(nid - 7);
-  string nid_2_14_ite = to_string(nid - 6);
-  string nid_3_1_ite = to_string(nid - 5);
-  string nid_3_14_eq = to_string(nid - 4);
-  string nid_3_14_cas = to_string(nid - 3);
-  string nid_3_14_ite = to_string(nid - 2);
-  string nid_next = to_string(nid - 1);
+  string nid_1_1_ite  = nid(-14);
+  string nid_1_14_eq  = nid(-12);
+  string nid_1_14_cas = nid(-11);
+  string nid_1_14_ite = nid(-10);
+  string nid_2_1_ite  = nid(-9);
+  string nid_2_14_eq  = nid(-8);
+  string nid_2_14_cas = nid(-7);
+  string nid_2_14_ite = nid(-6);
+  string nid_3_1_ite  = nid(-5);
+  string nid_3_14_eq  = nid(-4);
+  string nid_3_14_cas = nid(-3);
+  string nid_3_14_ite = nid(-2);
+  string nid_next     = nid(-1);
 
   ASSERT_EQ(
-    "; heap\n"
     "509 write 3 14 7 15\n"
     + nid_1_1_ite  + " ite 1 " + encoder->nids_exec[1][1] + " 509 14 1:1:STORE:1\n"
     "511 read 2 14 7\n"
@@ -1735,7 +1759,6 @@ TEST_F(Btor2EncoderTest, add_state_update)
     "\n"
     "; update heap ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "; heap\n"
     "564 write 3 14 7 15\n"
     "565 ite 1 168 564 14 1:1:STORE:1\n"
     "566 eq 1 21 509\n"
@@ -1749,7 +1772,15 @@ TEST_F(Btor2EncoderTest, add_state_update)
     "574 eq 1 25 509\n"
     "575 ite 1 574 564 14\n"
     "576 ite 1 215 575 573 3:14:CAS:1\n"
-    "577 next 2 14 576\n\n",
+    "577 next 2 14 576\n"
+    "\n"
+    "; update exit flag ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "578 or 1 129 183\n"
+    "579 or 1 200 578\n"
+    "580 or 1 217 579\n"
+    "581 next 1 129 580\n"
+    "\n",
     encoder->formula.str());
 
   /* verbosity */
@@ -1836,7 +1867,13 @@ TEST_F(Btor2EncoderTest, add_state_update)
     "574 eq 1 25 509\n"
     "575 ite 1 574 564 14\n"
     "576 ite 1 215 575 573\n"
-    "577 next 2 14 576\n\n",
+    "577 next 2 14 576\n"
+    "\n"
+    "578 or 1 129 183\n"
+    "579 or 1 200 578\n"
+    "580 or 1 217 579\n"
+    "581 next 1 129 580\n"
+    "\n",
     encoder->formula.str());
 }
 

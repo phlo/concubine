@@ -1871,6 +1871,23 @@ void Btor2Encoder::add_statement_activation ()
   });
 }
 
+void Btor2Encoder::add_exit_flag_update ()
+{
+  if (verbose)
+    formula << btor2::comment_subsection("update exit flag");
+
+  vector<string> args({nid_exit});
+
+  for (const auto & [t, pcs] : exit_pcs)
+    for (const auto & p : pcs)
+      args.push_back(nids_exec[t][p]);
+
+  formula
+    << btor2::lor(node, sid_bool, args)
+    << btor2::next(nid(), sid_bool, nid_exit, to_string(node - 1))
+    << eol;
+}
+
 void Btor2Encoder::add_state_update (
                                      string nid_state,
                                      string sym,
@@ -1888,7 +1905,7 @@ void Btor2Encoder::add_state_update (
   if (is_global)
     thread = 1;
 
-  if (verbose)
+  if (verbose && !is_global)
     formula << btor2::comment(sym) << eol;
 
   unordered_map<word, vector<word>>::iterator thread_it;
@@ -1962,6 +1979,9 @@ void Btor2Encoder::add_state_update ()
   thread = 0; /* global state update */
 
   add_state_update(nid_heap, "heap", alters_heap);
+
+  /* exit flag */
+  add_exit_flag_update();
 }
 
 void Btor2Encoder::preprocess ()
