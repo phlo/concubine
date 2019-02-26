@@ -18,7 +18,7 @@ void evaluate (string & formula)
 
 struct Btor2EncoderTest : public ::testing::Test
 {
-  const char *      expected;
+  string            expected;
   ProgramList       programs;
   Btor2EncoderPtr   encoder = create_encoder(1);
 
@@ -1511,99 +1511,211 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_twice)
 }
 
 // void add_state_update (string, string, unordered_map<word, vector<word>> &);
-TEST_F(Btor2EncoderTest, add_state_update_accu)
+TEST_F(Btor2EncoderTest, add_state_update_helper)
+{
+  add_dummy_programs(3, 3);
+
+  init_statement_activation(true);
+
+  string state = "0";
+  string sym = "state";
+  unordered_map<word, vector<word>> alters_state({
+    {1, {0, 1, 2}},
+    {2, {0, 1, 2}},
+    {3, {0, 1, 2}}
+  });
+
+  /* thread states */
+  for (encoder->thread = 1; encoder->thread <= 3; encoder->thread++)
+    {
+      encoder->add_state_update(state, sym, alters_state);
+
+      vector<string> & exec = encoder->nids_exec[encoder->thread];
+
+      string thread = to_string(encoder->thread);
+      string accu = encoder->nids_accu[encoder->thread];
+      string arg = encoder->nids_const[encoder->thread];
+
+      string nid_0_addi = nid(-7);
+      string nid_0_ite  = nid(-6);
+      string nid_1_addi = nid(-5);
+      string nid_1_ite  = nid(-4);
+      string nid_2_addi = nid(-3);
+      string nid_2_ite  = nid(-2);
+      string nid_next   = nid(-1);
+
+      ASSERT_EQ(
+        "; " + sym + "\n"
+        + nid_0_addi + " add 2 " + accu + " " + arg + "\n"
+        + nid_0_ite  + " ite 1 " + exec[0] + " " + nid_0_addi + " " + state + " " + thread + ":0:ADDI:" + thread + "\n"
+        + nid_1_addi + " add 2 " + accu + " " + arg + "\n"
+        + nid_1_ite  + " ite 1 " + exec[1] + " " + nid_1_addi + " " + nid_0_ite + " " + thread + ":1:ADDI:" + thread + "\n"
+        + nid_2_addi + " add 2 " + accu + " " + arg + "\n"
+        + nid_2_ite  + " ite 1 " + exec[2] + " " + nid_2_addi + " " + nid_1_ite + " " + thread + ":2:ADDI:" + thread + "\n"
+        + nid_next   + " next 2 " + state + " " + nid_2_ite + "\n\n",
+        encoder->formula.str());
+
+      encoder->formula.str("");
+    }
+
+  /* global state */
+  reset_encoder(1);
+
+  init_statement_activation(true);
+
+  encoder->thread = 0;
+
+  encoder->add_state_update(state, sym, alters_state);
+
+  string nid_1_0_addi = nid(-19);
+  string nid_1_0_ite  = nid(-18);
+  string nid_1_1_addi = nid(-17);
+  string nid_1_1_ite  = nid(-16);
+  string nid_1_2_addi = nid(-15);
+  string nid_1_2_ite  = nid(-14);
+
+  string nid_2_0_addi = nid(-13);
+  string nid_2_0_ite  = nid(-12);
+  string nid_2_1_addi = nid(-11);
+  string nid_2_1_ite  = nid(-10);
+  string nid_2_2_addi = nid(-9);
+  string nid_2_2_ite  = nid(-8);
+
+  string nid_3_0_addi = nid(-7);
+  string nid_3_0_ite  = nid(-6);
+  string nid_3_1_addi = nid(-5);
+  string nid_3_1_ite  = nid(-4);
+  string nid_3_2_addi = nid(-3);
+  string nid_3_2_ite  = nid(-2);
+
+  string nid_next     = nid(-1);
+
+  ASSERT_EQ(
+      nid_1_0_addi + " add 2 " + encoder->nids_accu[1] + " 7\n"
+    + nid_1_0_ite  + " ite 1 " + encoder->nids_exec[1][0] + " " + nid_1_0_addi + " " + state + " 1:0:ADDI:1\n"
+    + nid_1_1_addi + " add 2 " + encoder->nids_accu[1] + " 7\n"
+    + nid_1_1_ite  + " ite 1 " + encoder->nids_exec[1][1] + " " + nid_1_1_addi + " " + nid_1_0_ite + " 1:1:ADDI:1\n"
+    + nid_1_2_addi + " add 2 " + encoder->nids_accu[1] + " 7\n"
+    + nid_1_2_ite  + " ite 1 " + encoder->nids_exec[1][2] + " " + nid_1_2_addi + " " + nid_1_1_ite + " 1:2:ADDI:1\n"
+
+    + nid_2_0_addi + " add 2 " + encoder->nids_accu[2] + " 8\n"
+    + nid_2_0_ite  + " ite 1 " + encoder->nids_exec[2][0] + " " + nid_2_0_addi + " " + nid_1_2_ite + " 2:0:ADDI:2\n"
+    + nid_2_1_addi + " add 2 " + encoder->nids_accu[2] + " 8\n"
+    + nid_2_1_ite  + " ite 1 " + encoder->nids_exec[2][1] + " " + nid_2_1_addi + " " + nid_2_0_ite + " 2:1:ADDI:2\n"
+    + nid_2_2_addi + " add 2 " + encoder->nids_accu[2] + " 8\n"
+    + nid_2_2_ite  + " ite 1 " + encoder->nids_exec[2][2] + " " + nid_2_2_addi + " " + nid_2_1_ite + " 2:2:ADDI:2\n"
+
+    + nid_3_0_addi + " add 2 " + encoder->nids_accu[3] + " 9\n"
+    + nid_3_0_ite  + " ite 1 " + encoder->nids_exec[3][0] + " " + nid_3_0_addi + " " + nid_2_2_ite + " 3:0:ADDI:3\n"
+    + nid_3_1_addi + " add 2 " + encoder->nids_accu[3] + " 9\n"
+    + nid_3_1_ite  + " ite 1 " + encoder->nids_exec[3][1] + " " + nid_3_1_addi + " " + nid_3_0_ite + " 3:1:ADDI:3\n"
+    + nid_3_2_addi + " add 2 " + encoder->nids_accu[3] + " 9\n"
+    + nid_3_2_ite  + " ite 1 " + encoder->nids_exec[3][2] + " " + nid_3_2_addi + " " + nid_3_1_ite + " 3:2:ADDI:3\n"
+
+    + nid_next + " next 2 " + state + " " + nid_3_2_ite + "\n\n",
+    encoder->formula.str());
+}
+
+// void Btor2Encoder::add_accu_update ();
+TEST_F(Btor2EncoderTest, add_accu_update)
 {
   add_instruction_set(3);
 
   init_statement_activation(true);
 
-  for (word thread = 1; thread <= encoder->num_threads; thread++)
+  int offset = encoder->node + 1;
+
+  encoder->add_accu_update();
+
+  offset = static_cast<int>(encoder->node) - offset;
+
+  expected = "; update accu ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n";
+
+  for (encoder->thread = 1; encoder->thread <= 3; encoder->thread++)
     {
-      string thread_str = to_string(thread);
+      vector<string> & exec = encoder->nids_exec[encoder->thread];
 
-      encoder->thread = thread;
+      string thread = to_string(encoder->thread);
+      string accu = encoder->nids_accu[encoder->thread];
 
-      encoder->update_accu = true;
+      string nid_0_ite  = nid(-offset--);
+      string nid_2_add  = nid(-offset--);
+      string nid_2_ite  = nid(-offset--);
+      string nid_3_addi = nid(-offset--);
+      string nid_3_ite  = nid(-offset--);
+      string nid_4_sub  = nid(-offset--);
+      string nid_4_ite  = nid(-offset--);
+      string nid_5_subi = nid(-offset--);
+      string nid_5_ite  = nid(-offset--);
+      string nid_6_cmp  = nid(-offset--);
+      string nid_6_ite  = nid(-offset--);
+      string nid_13_mem = nid(-offset--);
+      string nid_14_eq  = nid(-offset--);
+      string nid_14_cas = nid(-offset--);
+      string nid_14_ite = nid(-offset--);
+      string nid_next   = nid(-offset--);
 
-      encoder->add_state_update(
-        encoder->nids_accu[encoder->thread],
-        "accu_" + thread_str,
-        encoder->alters_accu);
-
-      string nid_0_ite  = nid(-16);
-      string nid_2_add  = nid(-15);
-      string nid_2_ite  = nid(-14);
-      string nid_3_addi = nid(-13);
-      string nid_3_ite  = nid(-12);
-      string nid_4_sub  = nid(-11);
-      string nid_4_ite  = nid(-10);
-      string nid_5_subi = nid(-9);
-      string nid_5_ite  = nid(-8);
-      string nid_6_cmp  = nid(-7);
-      string nid_6_ite  = nid(-6);
-      string nid_13_mem = nid(-5);
-      string nid_14_eq  = nid(-4);
-      string nid_14_cas = nid(-3);
-      string nid_14_ite = nid(-2);
-      string nid_next   = nid(-1);
-
-      ASSERT_EQ(
-        "; accu_" + thread_str + "\n"
-        + (thread > 1 ? "" : "509 read 2 14 7\n")
-        + nid_0_ite  + " ite 1 " + encoder->nids_exec[thread][0] + " 509 " + encoder->nids_accu[thread] + " " + thread_str + ":0:LOAD:1\n"
-        + nid_2_add  + " add 2 " + encoder->nids_accu[thread] + " 509\n"
-        + nid_2_ite  + " ite 1 " + encoder->nids_exec[thread][2] + " " + nid_2_add + " " + nid_0_ite + " " + thread_str + ":2:ADD:1\n"
-        + nid_3_addi + " add 2 " + encoder->nids_accu[thread] + " 7\n"
-        + nid_3_ite  + " ite 1 " + encoder->nids_exec[thread][3] + " " + nid_3_addi + " " + nid_2_ite + " " + thread_str + ":3:ADDI:1\n"
-        + nid_4_sub  + " sub 2 " + encoder->nids_accu[thread] + " 509\n"
-        + nid_4_ite  + " ite 1 " + encoder->nids_exec[thread][4] + " " + nid_4_sub + " " + nid_3_ite + " " + thread_str + ":4:SUB:1\n"
-        + nid_5_subi + " sub 2 " + encoder->nids_accu[thread] + " 7\n"
-        + nid_5_ite  + " ite 1 " + encoder->nids_exec[thread][5] + " " + nid_5_subi + " " + nid_4_ite + " " + thread_str + ":5:SUBI:1\n"
-        + nid_6_cmp  + " sub 2 " + encoder->nids_accu[thread] + " 509\n"
-        + nid_6_ite  + " ite 1 " + encoder->nids_exec[thread][6] + " " + nid_6_cmp + " " + nid_5_ite + " " + thread_str + ":6:CMP:1\n"
-        + nid_13_mem + " ite 1 " + encoder->nids_exec[thread][13] + " 509 " + nid_6_ite + " " + thread_str + ":13:MEM:1\n"
-        + nid_14_eq  + " eq 1 "  + encoder->nids_mem[thread] + " 509\n"
+      expected +=
+        "; accu_" + thread + "\n"
+        + (encoder->thread > 1 ? "" : "509 read 2 14 7\n")
+        + nid_0_ite  + " ite 1 " + exec[0] + " 509 " + accu + " " + thread + ":0:LOAD:1\n"
+        + nid_2_add  + " add 2 " + accu + " 509\n"
+        + nid_2_ite  + " ite 1 " + exec[2] + " " + nid_2_add + " " + nid_0_ite + " " + thread + ":2:ADD:1\n"
+        + nid_3_addi + " add 2 " + accu + " 7\n"
+        + nid_3_ite  + " ite 1 " + exec[3] + " " + nid_3_addi + " " + nid_2_ite + " " + thread + ":3:ADDI:1\n"
+        + nid_4_sub  + " sub 2 " + accu + " 509\n"
+        + nid_4_ite  + " ite 1 " + exec[4] + " " + nid_4_sub + " " + nid_3_ite + " " + thread + ":4:SUB:1\n"
+        + nid_5_subi + " sub 2 " + accu + " 7\n"
+        + nid_5_ite  + " ite 1 " + exec[5] + " " + nid_5_subi + " " + nid_4_ite + " " + thread + ":5:SUBI:1\n"
+        + nid_6_cmp  + " sub 2 " + accu + " 509\n"
+        + nid_6_ite  + " ite 1 " + exec[6] + " " + nid_6_cmp + " " + nid_5_ite + " " + thread + ":6:CMP:1\n"
+        + nid_13_mem + " ite 1 " + exec[13] + " 509 " + nid_6_ite + " " + thread + ":13:MEM:1\n"
+        + nid_14_eq  + " eq 1 "  + encoder->nids_mem[encoder->thread] + " 509\n"
         + nid_14_cas + " ite 1 " + nid_14_eq + " 7 6\n"
-        + nid_14_ite + " ite 1 " + encoder->nids_exec[thread][14] + " " + nid_14_cas + " " + nid_13_mem + " " + thread_str + ":14:CAS:1\n"
-        + nid_next   + " next 2 " + encoder->nids_accu[thread] + " " + nid_14_ite + "\n\n",
-        encoder->formula.str());
-
-      encoder->formula.str("");
+        + nid_14_ite + " ite 1 " + exec[14] + " " + nid_14_cas + " " + nid_13_mem + " " + thread + ":14:CAS:1\n"
+        + nid_next   + " next 2 " + accu + " " + nid_14_ite + "\n\n";
     }
+
+  ASSERT_EQ(expected, encoder->formula.str());
 }
 
-TEST_F(Btor2EncoderTest, add_state_update_mem)
+// void Btor2Encoder::add_mem_update ();
+TEST_F(Btor2EncoderTest, add_mem_update)
 {
   add_instruction_set(3);
 
   init_statement_activation(true);
 
-  for (word thread = 1; thread <= encoder->num_threads; thread++)
+  int offset = encoder->node + 1;
+
+  encoder->add_mem_update();
+
+  offset = static_cast<int>(encoder->node) - offset;
+
+  expected = "; update CAS memory register ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n";
+
+  for (encoder->thread = 1; encoder->thread <= 3; encoder->thread++)
     {
-      string thread_str = to_string(thread);
+      vector<string> & exec = encoder->nids_exec[encoder->thread];
 
-      encoder->thread = thread;
+      string thread = to_string(encoder->thread);
+      string mem = encoder->nids_mem[encoder->thread];
 
-      encoder->add_state_update(
-        encoder->nids_mem[encoder->thread],
-        "mem_" + thread_str,
-        encoder->alters_mem);
+      string nid_13_ite = nid(-offset--);
+      string nid_next = nid(-offset--);
 
-      string nid_13_ite = nid(-2);
-      string nid_next   = nid(-1);
-
-      ASSERT_EQ(
-        "; mem_" + thread_str + "\n"
-        + (thread > 1 ? "" : "509 read 2 14 7\n")
-        + nid_13_ite + " ite 1 " + encoder->nids_exec[thread][13] + " 509 " + encoder->nids_mem[thread] + " " + thread_str + ":13:MEM:1\n"
-        + nid_next +   " next 2 " + encoder->nids_mem[thread] + " " + nid_13_ite + "\n\n",
-        encoder->formula.str());
-
-      encoder->formula.str("");
+      expected +=
+        "; mem_" + thread + "\n"
+        + (encoder->thread > 1 ? "" : "509 read 2 14 7\n")
+        + nid_13_ite + " ite 1 " + exec[13] + " 509 " + mem + " " + thread + ":13:MEM:1\n"
+        + nid_next + " next 2 " + mem + " " + nid_13_ite + "\n\n";
     }
+
+  ASSERT_EQ(expected, encoder->formula.str());
 }
 
-TEST_F(Btor2EncoderTest, add_state_update_heap)
+// void Btor2Encoder::add_heap_update ();
+TEST_F(Btor2EncoderTest, add_heap_update)
 {
   add_instruction_set(3);
 
@@ -1613,40 +1725,45 @@ TEST_F(Btor2EncoderTest, add_state_update_heap)
 
   encoder->update_accu = false;
 
-  encoder->add_state_update(
-    encoder->nid_heap,
-    "heap",
-    encoder->alters_heap);
+  encoder->add_heap_update();
 
   string nid_1_1_ite  = nid(-14);
   string nid_1_14_eq  = nid(-12);
   string nid_1_14_cas = nid(-11);
   string nid_1_14_ite = nid(-10);
+
   string nid_2_1_ite  = nid(-9);
   string nid_2_14_eq  = nid(-8);
   string nid_2_14_cas = nid(-7);
   string nid_2_14_ite = nid(-6);
+
   string nid_3_1_ite  = nid(-5);
   string nid_3_14_eq  = nid(-4);
   string nid_3_14_cas = nid(-3);
   string nid_3_14_ite = nid(-2);
+
   string nid_next     = nid(-1);
 
   ASSERT_EQ(
+    "; update heap ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n"
     "509 write 3 14 7 15\n"
+
     + nid_1_1_ite  + " ite 1 " + encoder->nids_exec[1][1] + " 509 14 1:1:STORE:1\n"
     "511 read 2 14 7\n"
     + nid_1_14_eq  + " eq 1 "  + encoder->nids_mem[1] + " 511\n"
     + nid_1_14_cas + " ite 1 " + nid_1_14_eq + " 509 14\n"
     + nid_1_14_ite + " ite 1 " + encoder->nids_exec[1][14] + " " + nid_1_14_cas + " " + nid_1_1_ite + " 1:14:CAS:1\n"
+
     + nid_2_1_ite  + " ite 1 " + encoder->nids_exec[2][1] + " 509 " + nid_1_14_ite + " 2:1:STORE:1\n"
     + nid_2_14_eq  + " eq 1 "  + encoder->nids_mem[2] + " 511\n"
     + nid_2_14_cas + " ite 1 " + nid_2_14_eq + " 509 14\n"
     + nid_2_14_ite + " ite 1 " + encoder->nids_exec[2][14] + " " + nid_2_14_cas + " " + nid_2_1_ite + " 2:14:CAS:1\n"
+
     + nid_3_1_ite  + " ite 1 " + encoder->nids_exec[3][1] + " 509 " + nid_2_14_ite + " 3:1:STORE:1\n"
     + nid_3_14_eq  + " eq 1 "  + encoder->nids_mem[3] + " 511\n"
     + nid_3_14_cas + " ite 1 " + nid_3_14_eq + " 509 14\n"
     + nid_3_14_ite + " ite 1 " + encoder->nids_exec[3][14] + " " + nid_3_14_cas + " " + nid_3_1_ite + " 3:14:CAS:1\n"
+
     + nid_next     + " next 2 14 " + nid_3_14_ite + "\n\n",
     encoder->formula.str());
 }
