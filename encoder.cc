@@ -1871,33 +1871,6 @@ void Btor2Encoder::add_statement_activation ()
   });
 }
 
-void Btor2Encoder::add_exit_flag_update ()
-{
-  if (verbose)
-    formula << btor2::comment_subsection("update exit flag");
-
-  vector<string> args({nid_exit});
-
-  for (const auto & [t, pcs] : exit_pcs)
-    for (const auto & p : pcs)
-      args.push_back(nids_exec[t][p]);
-
-  formula
-    << btor2::lor(node, sid_bool, args)
-    << btor2::next(nid(), sid_bool, nid_exit, to_string(node - 1))
-    << eol;
-}
-
-void Btor2Encoder::add_exit_code_update ()
-{
-  if (verbose)
-    formula << btor2::comment_subsection("update exit code");
-
-  thread = 0; /* global state update */
-
-  add_state_update(nid_exit_code, "exit_code", exit_pcs);
-}
-
 void Btor2Encoder::add_state_update (
                                      string nid_state,
                                      string sym,
@@ -1956,9 +1929,8 @@ void Btor2Encoder::add_state_update (
   formula << btor2::next(nid(), sid_bv, nid_state, nid_next) << eol;
 }
 
-void Btor2Encoder::add_state_update ()
+void Btor2Encoder::add_accu_update ()
 {
-  /* update accu states */
   if (verbose)
     formula << btor2::comment_subsection("update accu");
 
@@ -1971,8 +1943,10 @@ void Btor2Encoder::add_state_update ()
       alters_accu);
 
   update_accu = false;
+}
 
-  /* update mem states */
+void Btor2Encoder::add_mem_update ()
+{
   if (verbose)
     formula << btor2::comment_subsection("update CAS memory register");
 
@@ -1981,14 +1955,55 @@ void Btor2Encoder::add_state_update ()
       nids_mem[thread],
       "mem_" + to_string(thread),
       alters_mem);
+}
 
-  /* update heap state */
+void Btor2Encoder::add_heap_update ()
+{
   if (verbose)
     formula << btor2::comment_subsection("update heap");
 
   thread = 0; /* global state update */
 
   add_state_update(nid_heap, "heap", alters_heap);
+}
+
+void Btor2Encoder::add_exit_flag_update ()
+{
+  if (verbose)
+    formula << btor2::comment_subsection("update exit flag");
+
+  vector<string> args({nid_exit});
+
+  for (const auto & [t, pcs] : exit_pcs)
+    for (const auto & p : pcs)
+      args.push_back(nids_exec[t][p]);
+
+  formula
+    << btor2::lor(node, sid_bool, args)
+    << btor2::next(nid(), sid_bool, nid_exit, to_string(node - 1))
+    << eol;
+}
+
+void Btor2Encoder::add_exit_code_update ()
+{
+  if (verbose)
+    formula << btor2::comment_subsection("update exit code");
+
+  thread = 0; /* global state update */
+
+  add_state_update(nid_exit_code, "exit_code", exit_pcs);
+}
+
+void Btor2Encoder::add_state_update ()
+{
+  /* update accu states */
+  add_accu_update();
+
+  /* update mem states */
+  add_mem_update();
+
+  /* update heap state */
+  add_heap_update();
 
   /* exit flag */
   add_exit_flag_update();

@@ -395,6 +395,9 @@ struct Btor2Encoder : public Encoder
                                                   word,
                                                   std::vector<word>> &
                                                );
+  void                        add_accu_update (void);
+  void                        add_mem_update (void);
+  void                        add_heap_update (void);
   void                        add_exit_flag_update (void);
   void                        add_exit_code_update (void);
   void                        add_state_update (void);
