@@ -77,16 +77,37 @@ namespace smtlib
       return expr("not", {arg});
     }
 
-  /* logical or ***************************************************************/
-  inline std::string lor (std::vector<std::string> const & args)
-    {
-      return expr("or", args);
-    }
-
   /* logical and **************************************************************/
   inline std::string land (std::vector<std::string> const & args)
     {
-      return expr("and", args);
+      if (args.empty())
+        throw std::runtime_error("no arguments");
+
+      return args.size() < 2
+        ? args.front()
+        : expr("and", args);
+    }
+
+  /* logical or ***************************************************************/
+  inline std::string lor (std::vector<std::string> const & args)
+    {
+      if (args.empty())
+        throw std::runtime_error("no arguments");
+
+      return args.size() < 2
+        ? args.front()
+        : expr("or", args);
+    }
+
+  /* logical xor **************************************************************/
+  inline std::string lxor (std::vector<std::string> const & args)
+    {
+      if (args.empty())
+        throw std::runtime_error("no arguments");
+
+      return args.size() < 2
+        ? args.front()
+        : expr("xor", args);
     }
 
   /* implication **************************************************************/
@@ -98,6 +119,11 @@ namespace smtlib
   /* equality *****************************************************************/
   inline std::string equality (std::vector<std::string> const & args)
     {
+      if (args.empty())
+        throw std::runtime_error("no arguments");
+      else if (args.size() < 2)
+        throw std::runtime_error("single argument");
+
       return expr("=", args);
     }
 
@@ -110,12 +136,22 @@ namespace smtlib
   /* bit-vector add ***********************************************************/
   inline std::string bvadd (std::vector<std::string> const & args)
     {
+      if (args.empty())
+        throw std::runtime_error("no arguments");
+      else if (args.size() < 2)
+        throw std::runtime_error("single argument");
+
       return expr("bvadd", args);
     }
 
   /* bit-vector sub ***********************************************************/
   inline std::string bvsub (std::vector<std::string> const & args)
     {
+      if (args.empty())
+        throw std::runtime_error("no arguments");
+      else if (args.size() < 2)
+        throw std::runtime_error("single argument");
+
       return expr("bvsub", args);
     }
 
@@ -213,6 +249,14 @@ namespace smtlib
   inline std::string
   card_constraint_naive (std::vector<std::string> const & vars)
     {
+      switch (vars.size())
+        {
+        case 0: throw std::runtime_error("no arguments");
+        case 1: return assertion(vars.front()) + eol;
+        case 2: return assertion(lxor(vars)) + eol;
+        default: break;
+        }
+
       std::ostringstream constraint;
       std::vector<std::string>::const_iterator it1, it2;
 
@@ -238,13 +282,21 @@ namespace smtlib
   inline std::string
   card_constraint_sinz (std::vector<std::string> const & vars)
     {
-      unsigned int i;
       size_t n = vars.size();
+
+      switch (n)
+        {
+        case 0: throw std::runtime_error("no arguments");
+        case 1: return assertion(vars.front()) + eol;
+        case 2: return assertion(lxor(vars)) + eol;
+        default: break;
+        }
+
       std::vector<std::string> aux;
       std::ostringstream constraint;
 
       /* n-1 auxiliary variables */
-      for (i = 0; i < n - 1; i++)
+      for (size_t i = 0; i < n - 1; i++)
         {
           aux.push_back(vars[i] + "_aux");
           constraint << declare_var(aux[i], "Bool") << eol;
@@ -260,7 +312,7 @@ namespace smtlib
         << assertion(lor({lnot(vars[n - 1]), lnot(aux[n - 2])}))
         << eol;
 
-      for (i = 1; i < n - 1; i++)
+      for (size_t i = 1; i < n - 1; i++)
         constraint
           << assertion(lor({lnot(vars[i]), aux[i]}))
           << eol

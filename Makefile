@@ -3,7 +3,24 @@ CXX = g++
 #CXX =	clang++
 CFLAGS = -std=c++17 -g -O2
 CXXFLAGS = $(CFLAGS) $(WFLAGS)
-WFLAGS = -pedantic -Wall -Wextra -Wundef -Wformat=2 -Wmissing-include-dirs -Wswitch-default -Wunused -Wuninitialized -Wshadow -Wcast-qual -Wcast-align -Wold-style-cast -Wdisabled-optimization -Wredundant-decls -Wstrict-overflow -Wsign-conversion -Werror
+WFLAGS = -pedantic \
+         -Wall \
+         -Wextra \
+         -Wundef \
+         -Wformat=2 \
+         -Wmissing-include-dirs \
+         -Wswitch-default \
+         -Wunused \
+         -Wuninitialized \
+         -Wshadow \
+         -Wcast-qual \
+         -Wcast-align \
+         -Wold-style-cast \
+         -Wdisabled-optimization \
+         -Wredundant-decls \
+         -Wstrict-overflow \
+         -Wsign-conversion \
+         -Werror
 LDFLAGS =
 
 # source files (excluding main.cc)

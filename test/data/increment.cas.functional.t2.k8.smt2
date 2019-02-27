@@ -63,8 +63,7 @@
 (declare-fun thread_1_1 () Bool)
 (declare-fun thread_1_2 () Bool)
 
-(assert (or thread_1_1 thread_1_2))
-(assert (or (not thread_1_1) (not thread_1_2)))
+(assert (xor thread_1_1 thread_1_2))
 
 ; synchronization constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -171,8 +170,7 @@
 (declare-fun thread_2_1 () Bool)
 (declare-fun thread_2_2 () Bool)
 
-(assert (or thread_2_1 thread_2_2))
-(assert (or (not thread_2_1) (not thread_2_2)))
+(assert (xor thread_2_1 thread_2_2))
 
 ; synchronization constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -279,8 +277,7 @@
 (declare-fun thread_3_1 () Bool)
 (declare-fun thread_3_2 () Bool)
 
-(assert (or thread_3_1 thread_3_2))
-(assert (or (not thread_3_1) (not thread_3_2)))
+(assert (xor thread_3_1 thread_3_2))
 
 ; synchronization constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -387,8 +384,7 @@
 (declare-fun thread_4_1 () Bool)
 (declare-fun thread_4_2 () Bool)
 
-(assert (or thread_4_1 thread_4_2))
-(assert (or (not thread_4_1) (not thread_4_2)))
+(assert (xor thread_4_1 thread_4_2))
 
 ; synchronization constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -495,8 +491,7 @@
 (declare-fun thread_5_1 () Bool)
 (declare-fun thread_5_2 () Bool)
 
-(assert (or thread_5_1 thread_5_2))
-(assert (or (not thread_5_1) (not thread_5_2)))
+(assert (xor thread_5_1 thread_5_2))
 
 ; synchronization constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -603,8 +598,7 @@
 (declare-fun thread_6_1 () Bool)
 (declare-fun thread_6_2 () Bool)
 
-(assert (or thread_6_1 thread_6_2))
-(assert (or (not thread_6_1) (not thread_6_2)))
+(assert (xor thread_6_1 thread_6_2))
 
 ; synchronization constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -711,8 +705,7 @@
 (declare-fun thread_7_1 () Bool)
 (declare-fun thread_7_2 () Bool)
 
-(assert (or thread_7_1 thread_7_2))
-(assert (or (not thread_7_1) (not thread_7_2)))
+(assert (xor thread_7_1 thread_7_2))
 
 ; synchronization constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -819,8 +812,7 @@
 (declare-fun thread_8_1 () Bool)
 (declare-fun thread_8_2 () Bool)
 
-(assert (or thread_8_1 thread_8_2))
-(assert (or (not thread_8_1) (not thread_8_2)))
+(assert (xor thread_8_1 thread_8_2))
 
 ; synchronization constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

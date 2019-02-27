@@ -72,8 +72,7 @@
 (declare-fun thread_1_1 () Bool)
 (declare-fun thread_1_2 () Bool)
 
-(assert (or thread_1_1 thread_1_2))
-(assert (or (not thread_1_1) (not thread_1_2)))
+(assert (xor thread_1_1 thread_1_2))
 
 ; synchronization constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
