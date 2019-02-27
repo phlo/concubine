@@ -59,6 +59,40 @@ struct SMTLibEncoderFunctionalTest : public ::testing::Test
     }
 };
 
+// SMTLibEncoderFunctional::SMTLibEncoderFunctional (
+//                                                   const ProgramListPtr,
+//                                                   unsigned long,
+//                                                   bool
+//                                                  );
+TEST_F(SMTLibEncoderFunctionalTest, constructor)
+{
+  add_instruction_set(3);
+
+  /* heap altering pcs */
+  ASSERT_EQ(3, encoder->alters_heap.size());
+
+  vector<word> alters_heap({1, 14});
+
+  for (const auto & pcs: encoder->alters_heap)
+    ASSERT_EQ(alters_heap, pcs.second);
+
+  /* accu altering pcs */
+  ASSERT_EQ(3, encoder->alters_accu.size());
+
+  vector<word> alters_accu({0, 2, 3, 4, 5, 6, 13, 14});
+
+  for (const auto & pcs: encoder->alters_accu)
+    ASSERT_EQ(alters_accu, pcs.second);
+
+  /* mem altering pcs */
+  ASSERT_EQ(3, encoder->alters_mem.size());
+
+  vector<word> alters_mem({13});
+
+  for (const auto & pcs: encoder->alters_mem)
+    ASSERT_EQ(alters_mem, pcs.second);
+}
+
 // void add_statement_activation (void);
 TEST_F(SMTLibEncoderFunctionalTest, add_statement_activation_basic)
 {
@@ -644,36 +678,6 @@ TEST_F(SMTLibEncoderFunctionalTest, add_exit_code)
                         "#x0000)))))))))))\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
-}
-
-// virtual void preprocess (void);
-TEST_F(SMTLibEncoderFunctionalTest, preprocess)
-{
-  add_instruction_set(3);
-
-  /* heap altering pcs */
-  ASSERT_EQ(3, encoder->alters_heap.size());
-
-  vector<word> alters_heap({1, 14});
-
-  for (const auto & pcs: encoder->alters_heap)
-    ASSERT_EQ(alters_heap, pcs.second);
-
-  /* accu altering pcs */
-  ASSERT_EQ(3, encoder->alters_accu.size());
-
-  vector<word> alters_accu({0, 2, 3, 4, 5, 6, 13, 14});
-
-  for (const auto & pcs: encoder->alters_accu)
-    ASSERT_EQ(alters_accu, pcs.second);
-
-  /* mem altering pcs */
-  ASSERT_EQ(3, encoder->alters_mem.size());
-
-  vector<word> alters_mem({13});
-
-  for (const auto & pcs: encoder->alters_mem)
-    ASSERT_EQ(alters_mem, pcs.second);
 }
 
 // virtual void encode (void);

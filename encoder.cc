@@ -37,7 +37,31 @@ Encoder::Encoder (const ProgramListPtr p, unsigned long b) :
   bound(b),
   use_sinz_constraint(num_threads > 4)
 {
-  preprocess();
+  iterate_threads([&] (Program & program) {
+    for (pc = 0; pc < program.size(); pc++)
+      {
+        /* collect predecessors */
+        if (pc > 0)
+          if (!dynamic_pointer_cast<Exit>(program[pc - 1u]))
+            if (program[pc - 1u]->get_symbol() != "JMP")
+              predecessors[thread][pc].insert(pc - 1u);
+
+        if (JmpPtr j = dynamic_pointer_cast<Jmp>(program[pc]))
+          predecessors[thread][j->arg].insert(pc);
+
+        /* collect CAS statemets */
+        if (CasPtr c = dynamic_pointer_cast<Cas>(program[pc]))
+          cas_threads.insert(thread);
+
+        /* collect sync statemets */
+        if (SyncPtr s = dynamic_pointer_cast<Sync>(program[pc]))
+          sync_pcs[s->arg][thread].insert(pc);
+
+        /* collect exit calls */
+        if (ExitPtr e = dynamic_pointer_cast<Exit>(program[pc]))
+          exit_pcs[thread].push_back(pc);
+      }
+  });
 }
 
 void Encoder::iterate_threads (function<void()> fun)
@@ -64,35 +88,6 @@ void Encoder::iterate_threads_reverse (function<void(Program &)> fun)
       fun(**rit);
       thread--;
     }
-}
-
-void Encoder::preprocess ()
-{
-  iterate_threads([&] (Program & program) {
-    for (pc = 0; pc < program.size(); pc++)
-      {
-        /* collect predecessors */
-        if (pc > 0)
-          if (!dynamic_pointer_cast<Exit>(program[pc - 1u]))
-            if (program[pc - 1u]->get_symbol() != "JMP")
-              predecessors[thread][pc].insert(pc - 1u);
-
-        if (JmpPtr j = dynamic_pointer_cast<Jmp>(program[pc]))
-          predecessors[thread][j->arg].insert(pc);
-
-        /* collect CAS statemets */
-        if (CasPtr c = dynamic_pointer_cast<Cas>(program[pc]))
-          cas_threads.insert(thread);
-
-        /* collect sync statemets */
-        if (SyncPtr s = dynamic_pointer_cast<Sync>(program[pc]))
-          sync_pcs[s->arg][thread].insert(pc);
-
-        /* collect exit calls */
-        if (ExitPtr e = dynamic_pointer_cast<Exit>(program[pc]))
-          exit_pcs[thread].push_back(pc);
-      }
-  });
 }
 
 /* Encoder::print (void) ******************************************************/
@@ -622,7 +617,22 @@ SMTLibEncoderFunctional::SMTLibEncoderFunctional (
                                                   bool e
                                                  ) : SMTLibEncoder(p, b)
 {
-  preprocess();
+  /* initialize state update maps */
+  iterate_threads([&] (Program & program) {
+    for (pc = 0; pc < program.size(); pc++)
+      {
+        const unsigned char attributes = program[pc]->get_attributes();
+
+        if (attributes & Instruction::Attributes::ALTERS_ACCU)
+          alters_accu[thread].push_back(pc);
+
+        if (attributes & Instruction::Attributes::ALTERS_MEM)
+          alters_mem[thread].push_back(pc);
+
+        if (attributes & Instruction::Attributes::ALTERS_HEAP)
+          alters_heap[thread].push_back(pc);
+      }
+  });
 
   if (e) encode();
 }
@@ -770,26 +780,6 @@ void SMTLibEncoderFunctional::add_exit_code ()
     });
 
   formula << assign_var(exit_code_var, exit_code_ite) << eol;
-}
-
-void SMTLibEncoderFunctional::preprocess ()
-{
-  /* initialize state update maps */
-  iterate_threads([&] (Program & program) {
-    for (pc = 0; pc < program.size(); pc++)
-      {
-        const unsigned char attributes = program[pc]->get_attributes();
-
-        if (attributes & Instruction::Attributes::ALTERS_ACCU)
-          alters_accu[thread].push_back(pc);
-
-        if (attributes & Instruction::Attributes::ALTERS_MEM)
-          alters_mem[thread].push_back(pc);
-
-        if (attributes & Instruction::Attributes::ALTERS_HEAP)
-          alters_heap[thread].push_back(pc);
-      }
-  });
 }
 
 /* SMTLibEncoderFunctional::encode (void) *************************************/
@@ -1451,7 +1441,32 @@ Btor2Encoder::Btor2Encoder (
                             bool e
                            ) : Encoder(p, b), node(1)
 {
-  preprocess();
+  /* collect constants */
+  nids_const[0] = "";
+  nids_const[bound] = "";
+
+  iterate_threads([&] (Program & program) {
+    for (pc = 0; pc < program.size(); pc++)
+      {
+        const InstructionPtr & op = program[pc];
+
+        /* collect constants */
+        if (UnaryInstructionPtr i = dynamic_pointer_cast<UnaryInstruction>(op))
+          nids_const[i->arg] = "";
+
+        /* initialize state update maps */
+        const unsigned char attributes = op->get_attributes();
+
+        if (attributes & Instruction::Attributes::ALTERS_ACCU)
+          alters_accu[thread].push_back(pc);
+
+        if (attributes & Instruction::Attributes::ALTERS_MEM)
+          alters_mem[thread].push_back(pc);
+
+        if (attributes & Instruction::Attributes::ALTERS_HEAP)
+          alters_heap[thread].push_back(pc);
+      }
+  });
 
   if (e) encode();
 }
@@ -2010,36 +2025,6 @@ void Btor2Encoder::add_state_update ()
 
   /* exit code */
   add_exit_code_update();
-}
-
-void Btor2Encoder::preprocess ()
-{
-  /* static constants */
-  nids_const[0] = "";
-  nids_const[bound] = "";
-
-  iterate_threads([&] (Program & program) {
-    for (pc = 0; pc < program.size(); pc++)
-      {
-        const InstructionPtr & op = program[pc];
-
-        /* collect constants */
-        if (UnaryInstructionPtr i = dynamic_pointer_cast<UnaryInstruction>(op))
-          nids_const[i->arg] = "";
-
-        /* initialize state update maps */
-        const unsigned char attributes = op->get_attributes();
-
-        if (attributes & Instruction::Attributes::ALTERS_ACCU)
-          alters_accu[thread].push_back(pc);
-
-        if (attributes & Instruction::Attributes::ALTERS_MEM)
-          alters_mem[thread].push_back(pc);
-
-        if (attributes & Instruction::Attributes::ALTERS_HEAP)
-          alters_heap[thread].push_back(pc);
-      }
-  });
 }
 
 string Btor2Encoder::add_load (string * nid_idx)

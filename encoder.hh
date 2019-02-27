@@ -92,9 +92,6 @@ struct Encoder
   virtual std::string encode (Sync &) = 0;
   virtual std::string encode (Exit &) = 0;
 
-  /* initialize internal data structures */
-  virtual void        preprocess (void);
-
   /*****************************************************************************
    * public functions
   *****************************************************************************/
@@ -228,9 +225,6 @@ struct SMTLibEncoderFunctional : public SMTLibEncoder
   void                add_statement_activation (void);
   void                add_state_update (void);
   void                add_exit_code (void);
-
-  /* initialize internal data structures */
-  virtual void        preprocess (void);
 
   /* encodes the whole machine configuration */
   virtual void        encode (void);
@@ -406,8 +400,6 @@ struct Btor2Encoder : public Encoder
 
   std::string                 load(Load &);
   std::string                 store(Store &);
-
-  virtual void                preprocess (void);
 
   /* encodes the whole machine configuration */
   virtual void                encode (void);

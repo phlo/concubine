@@ -157,6 +157,16 @@ struct Btor2EncoderTest : public ::testing::Test
     }
 };
 
+// Btor2Encoder::Btor2Encoder (const ProgramListPtr, unsigned long, bool);
+TEST_F(Btor2EncoderTest, constructor)
+{
+  add_dummy_programs(3, 3);
+
+  ASSERT_EQ(
+    NIDMap({{0, ""}, {1, ""}, {2, ""}, {3, ""}}),
+    encoder->nids_const);
+}
+
 // void Btor2Encoder::declare_sorts ();
 TEST_F(Btor2EncoderTest, declare_sorts)
 {
@@ -2030,16 +2040,6 @@ TEST_F(Btor2EncoderTest, add_state_update)
     "585 next 2 131 584\n"
     "\n",
     encoder->formula.str());
-}
-
-// void preprocess ();
-TEST_F(Btor2EncoderTest, preprocess)
-{
-  add_dummy_programs(3, 3);
-
-  ASSERT_EQ(
-    NIDMap({{0, ""}, {1, ""}, {2, ""}, {3, ""}}),
-    encoder->nids_const);
 }
 
 // std::string load(Load &);
