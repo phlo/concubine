@@ -9,7 +9,7 @@ using namespace std;
 
 /* std::map lookup helper, performing an arbitrary action for missing values */
 template <typename K, typename V, typename F>
-V lookup (map<K, V> & m, K k, F fun)
+V & lookup (map<K, V> & m, K k, F fun)
 {
   /* avoid extra lookups https://stackoverflow.com/a/101980 */
   auto lb = m.lower_bound(k);
@@ -22,9 +22,9 @@ V lookup (map<K, V> & m, K k, F fun)
     {
       typename map<K, V>::value_type val(k, fun());
 
-      m.insert(lb, val);
+      const auto & it = m.insert(lb, val);
 
-      return val.second;
+      return it->second;
     }
 }
 
@@ -1909,6 +1909,7 @@ void Btor2Encoder::add_statement_activation ()
 
 void Btor2Encoder::add_state_update (
                                      string nid_state,
+                                     string sid,
                                      string sym,
                                      unordered_map<
                                        word,
@@ -1945,7 +1946,7 @@ void Btor2Encoder::add_state_update (
             formula <<
               btor2::ite(
                 nid_next = nid(),
-                sid_bool,
+                sid,
                 exec[pc],
                 op.encode(*this),
                 nid_next,
@@ -1954,7 +1955,7 @@ void Btor2Encoder::add_state_update (
       }
   while (is_global && thread++ < num_threads);
 
-  formula << btor2::next(nid(), sid_bv, nid_state, nid_next) << eol;
+  formula << btor2::next(nid(), sid, nid_state, nid_next) << eol;
 }
 
 void Btor2Encoder::add_accu_update ()
@@ -1967,6 +1968,7 @@ void Btor2Encoder::add_accu_update ()
   for (thread = 1; thread <= num_threads; thread++)
     add_state_update(
       nids_accu[thread],
+      sid_bv,
       "accu_" + to_string(thread),
       alters_accu);
 
@@ -1981,6 +1983,7 @@ void Btor2Encoder::add_mem_update ()
   for (thread = 1; thread <= num_threads; thread++)
     add_state_update(
       nids_mem[thread],
+      sid_bv,
       "mem_" + to_string(thread),
       alters_mem);
 }
@@ -1992,7 +1995,7 @@ void Btor2Encoder::add_heap_update ()
 
   thread = 0; /* global state update */
 
-  add_state_update(nid_heap, "heap", alters_heap);
+  add_state_update(nid_heap, sid_heap, "heap", alters_heap);
 }
 
 void Btor2Encoder::add_exit_flag_update ()
@@ -2024,7 +2027,7 @@ void Btor2Encoder::add_exit_code_update ()
 
   thread = 0; /* global state update */
 
-  add_state_update(nid_exit_code, "exit_code", exit_pcs);
+  add_state_update(nid_exit_code, sid_bv, "exit_code", exit_pcs);
 }
 
 void Btor2Encoder::add_state_update ()
@@ -2083,11 +2086,17 @@ string Btor2Encoder::store (Store & s)
         s.arg,
         bind(&Btor2Encoder::add_load, this, &nid_store));
 
-  return
+  map<word, string> & nids_thread_store =
     lookup(
       s.indirect
         ? nids_store_indirect
         : nids_store,
+      thread,
+      [] () { return map<word, string>(); });
+
+  return
+    lookup(
+      nids_thread_store,
       s.arg,
       [&] () {
         formula <<
@@ -2255,7 +2264,7 @@ string Btor2Encoder::encode (Cas & c)
       formula <<
         btor2::ite(
           nid_cas = nid(),
-          sid_bool,
+          sid_bv,
           nid_cas,
           nids_const[1],
           nids_const[0]);
@@ -2265,7 +2274,7 @@ string Btor2Encoder::encode (Cas & c)
       string nid_store = store(c);
 
       formula <<
-        btor2::ite(nid_cas = nid(), sid_bool, nid_cas, nid_store, nid_heap);
+        btor2::ite(nid_cas = nid(), sid_heap, nid_cas, nid_store, nid_heap);
     }
 
   return nid_cas;
