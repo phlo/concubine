@@ -8,6 +8,7 @@
 #include "encoder.hh"
 #include "simulator.hh"
 #include "boolector.hh"
+#include "btormc.hh"
 
 using namespace std;
 
@@ -370,7 +371,8 @@ int solve (char * name, int argc, char ** argv)
         encoder = SMTLibEncoderRelationalPtr(
           new SMTLibEncoderRelational(programs, bound));
       else if (encoder_name == "btor2")
-        throw runtime_error("btor2 encoder not implemented");
+        encoder = Btor2EncoderPtr(
+          new Btor2Encoder(programs, bound));
       else
         {
           print_error("unknown encoder [" + encoder_name + "]");
@@ -379,7 +381,13 @@ int solve (char * name, int argc, char ** argv)
         }
 
       /* create solver */
-      SolverPtr solver = BoolectorPtr(new Boolector()); // TODO: select solver
+      SolverPtr solver;
+
+      // TODO: select solver
+      if (encoder_name == "btor2")
+        solver = BtorMCPtr(new BtorMC());
+      else
+        solver = BoolectorPtr(new Boolector());
 
       /* print program if we're pretending */
       if (pretend)

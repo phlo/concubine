@@ -11,7 +11,7 @@ string BtorMC::build_command ()
 
 string BtorMC::build_formula (Encoder & formula, string & constraints)
 {
-  return formula.str() + eol + (constraints.empty() ? "" : constraints + eol);
+  return formula.str() + (constraints.empty() ? "" : constraints + eol);
 }
 
 SchedulePtr BtorMC::build_schedule ()
