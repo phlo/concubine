@@ -1476,6 +1476,21 @@ string Btor2Encoder::nid ()
   return to_string(node++);
 }
 
+string Btor2Encoder::symbol (word p)
+{
+  UnaryInstruction & op =
+    *dynamic_pointer_cast<UnaryInstruction>(programs->at(thread - 1u)->at(p));
+
+  return
+    to_string(thread) +
+    ":" +
+    to_string(p) +
+    ":" +
+    op.get_symbol() +
+    ":" +
+    to_string(op.arg);
+}
+
 void Btor2Encoder::declare_sorts ()
 {
   if (verbose)
@@ -1876,11 +1891,17 @@ void Btor2Encoder::add_statement_activation ()
                 sid_bool,
                 nids_stmt_thread[prev],
                 nid_prev,
-                nid_next);
+                nid_next,
+                verbose ? symbol(prev) : "");
           }
 
         formula <<
-          btor2::next(nid(), sid_bool, nid_stmt, nid_next) <<
+          btor2::next(
+            nid(),
+            sid_bool,
+            nid_stmt,
+            nid_next,
+            verbose ? symbol(pc) : "") <<
           eol;
       }
   });
@@ -1928,15 +1949,7 @@ void Btor2Encoder::add_state_update (
                 exec[pc],
                 op.encode(*this),
                 nid_next,
-                verbose
-                  ? to_string(thread) +
-                    ":" +
-                    to_string(pc) +
-                    ":" +
-                    op.get_symbol() +
-                    ":" +
-                    to_string(op.arg)
-                  : "");
+                verbose ? symbol(pc) : "");
           }
       }
   while (is_global && thread++ < num_threads);
@@ -2011,6 +2024,12 @@ void Btor2Encoder::add_exit_code_update ()
 
 void Btor2Encoder::add_state_update ()
 {
+  if (verbose)
+    formula << btor2::comment_section("state updates");
+
+  /* update statement activation */
+  add_statement_activation();
+
   /* update accu states */
   add_accu_update();
 
@@ -2081,8 +2100,13 @@ string Btor2Encoder::store (Store & s)
 void Btor2Encoder::encode ()
 {
   declare_sorts();
-
   declare_constants();
+  add_bound();
+  declare_states();
+  add_thread_scheduling();
+  add_synchronization_constraints();
+  add_statement_execution();
+  add_state_update();
 }
 
 string Btor2Encoder::encode (Load & l)

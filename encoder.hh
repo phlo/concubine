@@ -373,6 +373,8 @@ struct Btor2Encoder : public Encoder
 
   std::string                 nid (void);
 
+  std::string                 symbol (word);
+
   void                        declare_sorts (void);
   void                        declare_constants (void);
   void                        declare_states (void);
