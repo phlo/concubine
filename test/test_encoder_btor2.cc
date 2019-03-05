@@ -2990,16 +2990,10 @@ TEST_F(Btor2EncoderTest, encode_sync)
     make_shared<Btor2Encoder>(
       make_shared<ProgramList>(programs), 12);
 
-  ifstream ifs("data/increment.sync.functional.t2.k8.smt2");
+  ifstream ifs("data/increment.sync.t2.k12.btor2");
   expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
 
-  // ASSERT_EQ(expected, encoder->formula.str());
-  ofstream ofs;
-  ofs.open("/tmp/sync.btor2");
-  ofs << encoder->formula.str();
-  ofs.close();
-
-  // ASSERT_EQ("", encoder->formula.str());
+  ASSERT_EQ(expected, encoder->formula.str());
 }
 
 TEST_F(Btor2EncoderTest, encode_cas)
@@ -3016,16 +3010,10 @@ TEST_F(Btor2EncoderTest, encode_cas)
     make_shared<Btor2Encoder>(
       make_shared<ProgramList>(programs), 12);
 
-  ifstream ifs("data/increment.cas.functional.t2.k8.smt2");
+  ifstream ifs("data/increment.cas.t2.k12.btor2");
   expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
 
-  // ASSERT_EQ(expected, encoder->formula.str());
-  ofstream ofs;
-  ofs.open("/tmp/cas.btor2");
-  ofs << encoder->formula.str();
-  ofs.close();
-
-  // ASSERT_EQ("", encoder->formula.str());
+  ASSERT_EQ(expected, encoder->formula.str());
 }
 
 // virtual std::string encode (Load &);
