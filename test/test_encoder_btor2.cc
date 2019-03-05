@@ -1830,6 +1830,22 @@ TEST_F(Btor2EncoderTest, add_exit_flag_update)
     encoder->formula.str());
 }
 
+TEST_F(Btor2EncoderTest, add_exit_flag_update_no_exit)
+{
+  add_dummy_programs(3, 3);
+
+  init_statement_activation(true);
+
+  encoder->add_exit_flag_update();
+
+  ASSERT_EQ(
+    "; update exit flag ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    + nid(-1) + " next 1 " + encoder->nid_exit + " " + encoder->nid_exit + "\n"
+    "\n",
+    encoder->formula.str());
+}
+
 // void Btor2Encoder::add_exit_code_update ();
 TEST_F(Btor2EncoderTest, add_exit_code_update)
 {

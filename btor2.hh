@@ -445,16 +445,19 @@ namespace btor2
                            std::string sym = ""
                           )
     {
-      if (args.size() < 2)
-        throw std::runtime_error(
-          "missing arguments [" + std::to_string(2 - args.size()) + "]");
+      size_t nargs = args.size();
+
+      if (!nargs)
+        throw std::runtime_error("no arguments");
+      else if (nargs < 2)
+        throw std::runtime_error("missing argument");
 
       std::ostringstream os;
       std::string id = std::to_string(nid++);
 
       os << land(id, sid, args[0], args[1]);
 
-      for (size_t i = 2; i < args.size(); i++)
+      for (size_t i = 2; i < nargs; i++)
         os << land(id = std::to_string(nid++), sid, args[i], id);
 
       /* remove trailing space */
@@ -506,16 +509,19 @@ namespace btor2
                            std::string sym = ""
                           )
     {
-      if (args.size() < 2)
-        throw std::runtime_error(
-          "missing arguments [" + std::to_string(2 - args.size()) + "]");
+      size_t nargs = args.size();
+
+      if (!nargs)
+        throw std::runtime_error("no arguments");
+      else if (nargs < 2)
+        throw std::runtime_error("missing argument");
 
       std::ostringstream os;
       std::string id = std::to_string(nid++);
 
       os << lor(id, sid, args[0], args[1]);
 
-      for (size_t i = 2; i < args.size(); i++)
+      for (size_t i = 2; i < nargs; i++)
         os << lor(id = std::to_string(nid++), sid, args[i], id);
 
       /* remove trailing space */

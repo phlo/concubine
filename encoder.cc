@@ -2006,10 +2006,15 @@ void Btor2Encoder::add_exit_flag_update ()
     for (const auto & p : pcs)
       args.push_back(nids_exec[t][p]);
 
-  formula
-    << btor2::lor(node, sid_bool, args)
-    << btor2::next(nid(), sid_bool, nid_exit, to_string(node - 1))
-    << eol;
+  string nid_cond = nid_exit;
+
+  if (args.size() > 1)
+    {
+      formula << btor2::lor(node, sid_bool, args);
+      nid_cond = to_string(node - 1);
+    }
+
+  formula << btor2::next(nid(), sid_bool, nid_exit, nid_cond) << eol;
 }
 
 void Btor2Encoder::add_exit_code_update ()
