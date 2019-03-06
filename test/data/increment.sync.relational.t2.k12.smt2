@@ -1688,6 +1688,26 @@
 (assert (= exec_8_2_5 (and stmt_8_2_5 thread_8_2)))
 (assert (= exec_8_2_6 (and stmt_8_2_6 thread_8_2)))
 
+; statement activation forward declaration ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; statement activation variables - stmt_<step>_<thread>_<pc>
+(declare-fun stmt_9_1_0 () Bool)
+(declare-fun stmt_9_1_1 () Bool)
+(declare-fun stmt_9_1_2 () Bool)
+(declare-fun stmt_9_1_3 () Bool)
+(declare-fun stmt_9_1_4 () Bool)
+(declare-fun stmt_9_1_5 () Bool)
+(declare-fun stmt_9_1_6 () Bool)
+(declare-fun stmt_9_1_7 () Bool)
+
+(declare-fun stmt_9_2_0 () Bool)
+(declare-fun stmt_9_2_1 () Bool)
+(declare-fun stmt_9_2_2 () Bool)
+(declare-fun stmt_9_2_3 () Bool)
+(declare-fun stmt_9_2_4 () Bool)
+(declare-fun stmt_9_2_5 () Bool)
+(declare-fun stmt_9_2_6 () Bool)
+
 ; state update ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; accu states - accu_<step>_<thread>
@@ -1705,36 +1725,43 @@
 (assert (=> exec_8_1_0 (= accu_8_1 accu_7_1)))
 (assert (=> exec_8_1_0 (= mem_8_1 mem_7_1)))
 (assert (=> exec_8_1_0 (= heap_8 (store heap_7 #x0000 accu_7_1))))
+(assert (=> exec_8_1_0 (and (not stmt_9_1_0) stmt_9_1_1 (not stmt_9_1_2) (not stmt_9_1_3) (not stmt_9_1_4) (not stmt_9_1_5) (not stmt_9_1_6) (not stmt_9_1_7))))
 
 ; thread 1@1: SYNC	0
 (assert (=> exec_8_1_1 (= accu_8_1 accu_7_1)))
 (assert (=> exec_8_1_1 (= mem_8_1 mem_7_1)))
 (assert (=> exec_8_1_1 (= heap_8 heap_7)))
+(assert (=> exec_8_1_1 (and (not stmt_9_1_0) (not stmt_9_1_1) stmt_9_1_2 (not stmt_9_1_3) (not stmt_9_1_4) (not stmt_9_1_5) (not stmt_9_1_6) (not stmt_9_1_7))))
 
 ; thread 1@2: LOAD	0
 (assert (=> exec_8_1_2 (= accu_8_1 (select heap_7 #x0000))))
 (assert (=> exec_8_1_2 (= mem_8_1 mem_7_1)))
 (assert (=> exec_8_1_2 (= heap_8 heap_7)))
+(assert (=> exec_8_1_2 (and (not stmt_9_1_0) (not stmt_9_1_1) (not stmt_9_1_2) stmt_9_1_3 (not stmt_9_1_4) (not stmt_9_1_5) (not stmt_9_1_6) (not stmt_9_1_7))))
 
 ; thread 1@3: ADDI	1
 (assert (=> exec_8_1_3 (= accu_8_1 (bvadd accu_7_1 #x0001))))
 (assert (=> exec_8_1_3 (= mem_8_1 mem_7_1)))
 (assert (=> exec_8_1_3 (= heap_8 heap_7)))
+(assert (=> exec_8_1_3 (and (not stmt_9_1_0) (not stmt_9_1_1) (not stmt_9_1_2) (not stmt_9_1_3) stmt_9_1_4 (not stmt_9_1_5) (not stmt_9_1_6) (not stmt_9_1_7))))
 
 ; thread 1@4: STORE	0
 (assert (=> exec_8_1_4 (= accu_8_1 accu_7_1)))
 (assert (=> exec_8_1_4 (= mem_8_1 mem_7_1)))
 (assert (=> exec_8_1_4 (= heap_8 (store heap_7 #x0000 accu_7_1))))
+(assert (=> exec_8_1_4 (and (not stmt_9_1_0) (not stmt_9_1_1) (not stmt_9_1_2) (not stmt_9_1_3) (not stmt_9_1_4) stmt_9_1_5 (not stmt_9_1_6) (not stmt_9_1_7))))
 
 ; thread 1@5: SYNC	1
 (assert (=> exec_8_1_5 (= accu_8_1 accu_7_1)))
 (assert (=> exec_8_1_5 (= mem_8_1 mem_7_1)))
 (assert (=> exec_8_1_5 (= heap_8 heap_7)))
+(assert (=> exec_8_1_5 (and (not stmt_9_1_0) (not stmt_9_1_1) (not stmt_9_1_2) (not stmt_9_1_3) (not stmt_9_1_4) (not stmt_9_1_5) stmt_9_1_6 (not stmt_9_1_7))))
 
 ; thread 1@6: JNZ	1
 (assert (=> exec_8_1_6 (= accu_8_1 accu_7_1)))
 (assert (=> exec_8_1_6 (= mem_8_1 mem_7_1)))
 (assert (=> exec_8_1_6 (= heap_8 heap_7)))
+(assert (=> exec_8_1_6 (ite (not (= accu_8_1 #x0000)) (and (not stmt_9_1_0) stmt_9_1_1 (not stmt_9_1_2) (not stmt_9_1_3) (not stmt_9_1_4) (not stmt_9_1_5) (not stmt_9_1_6) (not stmt_9_1_7)) (and (not stmt_9_1_0) (not stmt_9_1_1) (not stmt_9_1_2) (not stmt_9_1_3) (not stmt_9_1_4) (not stmt_9_1_5) (not stmt_9_1_6) stmt_9_1_7))))
 
 ; thread 1@7: EXIT	1
 (assert (=> exec_8_1_7 (= accu_8_1 accu_7_1)))
@@ -1746,31 +1773,37 @@
 (assert (=> exec_8_2_0 (= accu_8_2 accu_7_2)))
 (assert (=> exec_8_2_0 (= mem_8_2 mem_7_2)))
 (assert (=> exec_8_2_0 (= heap_8 heap_7)))
+(assert (=> exec_8_2_0 (and (not stmt_9_2_0) stmt_9_2_1 (not stmt_9_2_2) (not stmt_9_2_3) (not stmt_9_2_4) (not stmt_9_2_5) (not stmt_9_2_6))))
 
 ; thread 2@1: SYNC	1
 (assert (=> exec_8_2_1 (= accu_8_2 accu_7_2)))
 (assert (=> exec_8_2_1 (= mem_8_2 mem_7_2)))
 (assert (=> exec_8_2_1 (= heap_8 heap_7)))
+(assert (=> exec_8_2_1 (and (not stmt_9_2_0) (not stmt_9_2_1) stmt_9_2_2 (not stmt_9_2_3) (not stmt_9_2_4) (not stmt_9_2_5) (not stmt_9_2_6))))
 
 ; thread 2@2: LOAD	0
 (assert (=> exec_8_2_2 (= accu_8_2 (select heap_7 #x0000))))
 (assert (=> exec_8_2_2 (= mem_8_2 mem_7_2)))
 (assert (=> exec_8_2_2 (= heap_8 heap_7)))
+(assert (=> exec_8_2_2 (and (not stmt_9_2_0) (not stmt_9_2_1) (not stmt_9_2_2) stmt_9_2_3 (not stmt_9_2_4) (not stmt_9_2_5) (not stmt_9_2_6))))
 
 ; thread 2@3: ADDI	1
 (assert (=> exec_8_2_3 (= accu_8_2 (bvadd accu_7_2 #x0001))))
 (assert (=> exec_8_2_3 (= mem_8_2 mem_7_2)))
 (assert (=> exec_8_2_3 (= heap_8 heap_7)))
+(assert (=> exec_8_2_3 (and (not stmt_9_2_0) (not stmt_9_2_1) (not stmt_9_2_2) (not stmt_9_2_3) stmt_9_2_4 (not stmt_9_2_5) (not stmt_9_2_6))))
 
 ; thread 2@4: STORE	0
 (assert (=> exec_8_2_4 (= accu_8_2 accu_7_2)))
 (assert (=> exec_8_2_4 (= mem_8_2 mem_7_2)))
 (assert (=> exec_8_2_4 (= heap_8 (store heap_7 #x0000 accu_7_2))))
+(assert (=> exec_8_2_4 (and (not stmt_9_2_0) (not stmt_9_2_1) (not stmt_9_2_2) (not stmt_9_2_3) (not stmt_9_2_4) stmt_9_2_5 (not stmt_9_2_6))))
 
 ; thread 2@5: JNZ	0
 (assert (=> exec_8_2_5 (= accu_8_2 accu_7_2)))
 (assert (=> exec_8_2_5 (= mem_8_2 mem_7_2)))
 (assert (=> exec_8_2_5 (= heap_8 heap_7)))
+(assert (=> exec_8_2_5 (ite (not (= accu_8_2 #x0000)) (and stmt_9_2_0 (not stmt_9_2_1) (not stmt_9_2_2) (not stmt_9_2_3) (not stmt_9_2_4) (not stmt_9_2_5) (not stmt_9_2_6)) (and (not stmt_9_2_0) (not stmt_9_2_1) (not stmt_9_2_2) (not stmt_9_2_3) (not stmt_9_2_4) (not stmt_9_2_5) stmt_9_2_6))))
 
 ; thread 2@6: EXIT	1
 (assert (=> exec_8_2_6 (= accu_8_2 accu_7_2)))
@@ -1783,11 +1816,870 @@
 (assert (=> (not (or thread_8_1 sync_8_0 sync_8_1)) (= accu_8_1 accu_7_1)))
 (assert (=> (not (or thread_8_1 sync_8_0 sync_8_1)) (= mem_8_1 mem_7_1)))
 
+(assert (=> (not (or thread_8_1 sync_8_0 sync_8_1)) (= stmt_9_1_0 stmt_8_1_0)))
+(assert (=> (not (or thread_8_1 sync_8_0 sync_8_1)) (= stmt_9_1_1 stmt_8_1_1)))
+(assert (=> (not (or thread_8_1 sync_8_0 sync_8_1)) (= stmt_9_1_2 stmt_8_1_2)))
+(assert (=> (not (or thread_8_1 sync_8_0 sync_8_1)) (= stmt_9_1_3 stmt_8_1_3)))
+(assert (=> (not (or thread_8_1 sync_8_0 sync_8_1)) (= stmt_9_1_4 stmt_8_1_4)))
+(assert (=> (not (or thread_8_1 sync_8_0 sync_8_1)) (= stmt_9_1_5 stmt_8_1_5)))
+(assert (=> (not (or thread_8_1 sync_8_0 sync_8_1)) (= stmt_9_1_6 stmt_8_1_6)))
+(assert (=> (not (or thread_8_1 sync_8_0 sync_8_1)) (= stmt_9_1_7 stmt_8_1_7)))
+
 (assert (=> (not (or thread_8_2 sync_8_0 sync_8_1)) (= accu_8_2 accu_7_2)))
 (assert (=> (not (or thread_8_2 sync_8_0 sync_8_1)) (= mem_8_2 mem_7_2)))
+
+(assert (=> (not (or thread_8_2 sync_8_0 sync_8_1)) (= stmt_9_2_0 stmt_8_2_0)))
+(assert (=> (not (or thread_8_2 sync_8_0 sync_8_1)) (= stmt_9_2_1 stmt_8_2_1)))
+(assert (=> (not (or thread_8_2 sync_8_0 sync_8_1)) (= stmt_9_2_2 stmt_8_2_2)))
+(assert (=> (not (or thread_8_2 sync_8_0 sync_8_1)) (= stmt_9_2_3 stmt_8_2_3)))
+(assert (=> (not (or thread_8_2 sync_8_0 sync_8_1)) (= stmt_9_2_4 stmt_8_2_4)))
+(assert (=> (not (or thread_8_2 sync_8_0 sync_8_1)) (= stmt_9_2_5 stmt_8_2_5)))
+(assert (=> (not (or thread_8_2 sync_8_0 sync_8_1)) (= stmt_9_2_6 stmt_8_2_6)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; step 9
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; exit flag ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; exit flag - exit_<step>
+(declare-fun exit_9 () Bool)
+
+(assert (= exit_9 (or exit_8 exec_8_1_7 exec_8_2_6)))
+
+; thread scheduling ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; thread activation variables - thread_<step>_<thread>
+(declare-fun thread_9_1 () Bool)
+(declare-fun thread_9_2 () Bool)
+
+(assert (or thread_9_1 thread_9_2 exit_9))
+(assert (or (not thread_9_1) (not thread_9_2)))
+(assert (or (not thread_9_1) (not exit_9)))
+(assert (or (not thread_9_2) (not exit_9)))
+
+; synchronization constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; sync variables - sync_<step>_<id>
+(declare-fun sync_9_0 () Bool)
+(declare-fun sync_9_1 () Bool)
+
+; all threads synchronized?
+(assert (= sync_9_0 (and stmt_9_1_1 stmt_9_2_0 (or thread_9_1 thread_9_2))))
+(assert (= sync_9_1 (and stmt_9_1_5 stmt_9_2_1 (or thread_9_1 thread_9_2))))
+
+; prevent scheduling of waiting threads
+(assert (=> (and stmt_9_1_1 (not sync_9_0)) (not thread_9_1))) ; barrier 0: thread 1
+(assert (=> (and stmt_9_2_0 (not sync_9_0)) (not thread_9_2))) ; barrier 0: thread 2
+(assert (=> (and stmt_9_1_5 (not sync_9_1)) (not thread_9_1))) ; barrier 1: thread 1
+(assert (=> (and stmt_9_2_1 (not sync_9_1)) (not thread_9_2))) ; barrier 1: thread 2
+
+; statement execution - shorthand for statement & thread activation ;;;;;;;;;;;;
+
+; statement execution variables - exec_<step>_<thread>_<pc>
+(declare-fun exec_9_1_0 () Bool)
+(declare-fun exec_9_1_1 () Bool)
+(declare-fun exec_9_1_2 () Bool)
+(declare-fun exec_9_1_3 () Bool)
+(declare-fun exec_9_1_4 () Bool)
+(declare-fun exec_9_1_5 () Bool)
+(declare-fun exec_9_1_6 () Bool)
+(declare-fun exec_9_1_7 () Bool)
+
+(declare-fun exec_9_2_0 () Bool)
+(declare-fun exec_9_2_1 () Bool)
+(declare-fun exec_9_2_2 () Bool)
+(declare-fun exec_9_2_3 () Bool)
+(declare-fun exec_9_2_4 () Bool)
+(declare-fun exec_9_2_5 () Bool)
+(declare-fun exec_9_2_6 () Bool)
+
+(assert (= exec_9_1_0 (and stmt_9_1_0 thread_9_1)))
+(assert (= exec_9_1_1 (and stmt_9_1_1 sync_9_0)))
+(assert (= exec_9_1_2 (and stmt_9_1_2 thread_9_1)))
+(assert (= exec_9_1_3 (and stmt_9_1_3 thread_9_1)))
+(assert (= exec_9_1_4 (and stmt_9_1_4 thread_9_1)))
+(assert (= exec_9_1_5 (and stmt_9_1_5 sync_9_1)))
+(assert (= exec_9_1_6 (and stmt_9_1_6 thread_9_1)))
+(assert (= exec_9_1_7 (and stmt_9_1_7 thread_9_1)))
+
+(assert (= exec_9_2_0 (and stmt_9_2_0 sync_9_0)))
+(assert (= exec_9_2_1 (and stmt_9_2_1 sync_9_1)))
+(assert (= exec_9_2_2 (and stmt_9_2_2 thread_9_2)))
+(assert (= exec_9_2_3 (and stmt_9_2_3 thread_9_2)))
+(assert (= exec_9_2_4 (and stmt_9_2_4 thread_9_2)))
+(assert (= exec_9_2_5 (and stmt_9_2_5 thread_9_2)))
+(assert (= exec_9_2_6 (and stmt_9_2_6 thread_9_2)))
+
+; statement activation forward declaration ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; statement activation variables - stmt_<step>_<thread>_<pc>
+(declare-fun stmt_10_1_0 () Bool)
+(declare-fun stmt_10_1_1 () Bool)
+(declare-fun stmt_10_1_2 () Bool)
+(declare-fun stmt_10_1_3 () Bool)
+(declare-fun stmt_10_1_4 () Bool)
+(declare-fun stmt_10_1_5 () Bool)
+(declare-fun stmt_10_1_6 () Bool)
+(declare-fun stmt_10_1_7 () Bool)
+
+(declare-fun stmt_10_2_0 () Bool)
+(declare-fun stmt_10_2_1 () Bool)
+(declare-fun stmt_10_2_2 () Bool)
+(declare-fun stmt_10_2_3 () Bool)
+(declare-fun stmt_10_2_4 () Bool)
+(declare-fun stmt_10_2_5 () Bool)
+(declare-fun stmt_10_2_6 () Bool)
+
+; state update ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; accu states - accu_<step>_<thread>
+(declare-fun accu_9_1 () (_ BitVec 16))
+(declare-fun accu_9_2 () (_ BitVec 16))
+
+; mem states - mem_<step>_<thread>
+(declare-fun mem_9_1 () (_ BitVec 16))
+(declare-fun mem_9_2 () (_ BitVec 16))
+
+; heap states - heap_<step>
+(declare-fun heap_9 () (Array (_ BitVec 16) (_ BitVec 16)))
+
+; thread 1@0: STORE	0
+(assert (=> exec_9_1_0 (= accu_9_1 accu_8_1)))
+(assert (=> exec_9_1_0 (= mem_9_1 mem_8_1)))
+(assert (=> exec_9_1_0 (= heap_9 (store heap_8 #x0000 accu_8_1))))
+(assert (=> exec_9_1_0 (and (not stmt_10_1_0) stmt_10_1_1 (not stmt_10_1_2) (not stmt_10_1_3) (not stmt_10_1_4) (not stmt_10_1_5) (not stmt_10_1_6) (not stmt_10_1_7))))
+
+; thread 1@1: SYNC	0
+(assert (=> exec_9_1_1 (= accu_9_1 accu_8_1)))
+(assert (=> exec_9_1_1 (= mem_9_1 mem_8_1)))
+(assert (=> exec_9_1_1 (= heap_9 heap_8)))
+(assert (=> exec_9_1_1 (and (not stmt_10_1_0) (not stmt_10_1_1) stmt_10_1_2 (not stmt_10_1_3) (not stmt_10_1_4) (not stmt_10_1_5) (not stmt_10_1_6) (not stmt_10_1_7))))
+
+; thread 1@2: LOAD	0
+(assert (=> exec_9_1_2 (= accu_9_1 (select heap_8 #x0000))))
+(assert (=> exec_9_1_2 (= mem_9_1 mem_8_1)))
+(assert (=> exec_9_1_2 (= heap_9 heap_8)))
+(assert (=> exec_9_1_2 (and (not stmt_10_1_0) (not stmt_10_1_1) (not stmt_10_1_2) stmt_10_1_3 (not stmt_10_1_4) (not stmt_10_1_5) (not stmt_10_1_6) (not stmt_10_1_7))))
+
+; thread 1@3: ADDI	1
+(assert (=> exec_9_1_3 (= accu_9_1 (bvadd accu_8_1 #x0001))))
+(assert (=> exec_9_1_3 (= mem_9_1 mem_8_1)))
+(assert (=> exec_9_1_3 (= heap_9 heap_8)))
+(assert (=> exec_9_1_3 (and (not stmt_10_1_0) (not stmt_10_1_1) (not stmt_10_1_2) (not stmt_10_1_3) stmt_10_1_4 (not stmt_10_1_5) (not stmt_10_1_6) (not stmt_10_1_7))))
+
+; thread 1@4: STORE	0
+(assert (=> exec_9_1_4 (= accu_9_1 accu_8_1)))
+(assert (=> exec_9_1_4 (= mem_9_1 mem_8_1)))
+(assert (=> exec_9_1_4 (= heap_9 (store heap_8 #x0000 accu_8_1))))
+(assert (=> exec_9_1_4 (and (not stmt_10_1_0) (not stmt_10_1_1) (not stmt_10_1_2) (not stmt_10_1_3) (not stmt_10_1_4) stmt_10_1_5 (not stmt_10_1_6) (not stmt_10_1_7))))
+
+; thread 1@5: SYNC	1
+(assert (=> exec_9_1_5 (= accu_9_1 accu_8_1)))
+(assert (=> exec_9_1_5 (= mem_9_1 mem_8_1)))
+(assert (=> exec_9_1_5 (= heap_9 heap_8)))
+(assert (=> exec_9_1_5 (and (not stmt_10_1_0) (not stmt_10_1_1) (not stmt_10_1_2) (not stmt_10_1_3) (not stmt_10_1_4) (not stmt_10_1_5) stmt_10_1_6 (not stmt_10_1_7))))
+
+; thread 1@6: JNZ	1
+(assert (=> exec_9_1_6 (= accu_9_1 accu_8_1)))
+(assert (=> exec_9_1_6 (= mem_9_1 mem_8_1)))
+(assert (=> exec_9_1_6 (= heap_9 heap_8)))
+(assert (=> exec_9_1_6 (ite (not (= accu_9_1 #x0000)) (and (not stmt_10_1_0) stmt_10_1_1 (not stmt_10_1_2) (not stmt_10_1_3) (not stmt_10_1_4) (not stmt_10_1_5) (not stmt_10_1_6) (not stmt_10_1_7)) (and (not stmt_10_1_0) (not stmt_10_1_1) (not stmt_10_1_2) (not stmt_10_1_3) (not stmt_10_1_4) (not stmt_10_1_5) (not stmt_10_1_6) stmt_10_1_7))))
+
+; thread 1@7: EXIT	1
+(assert (=> exec_9_1_7 (= accu_9_1 accu_8_1)))
+(assert (=> exec_9_1_7 (= mem_9_1 mem_8_1)))
+(assert (=> exec_9_1_7 (= heap_9 heap_8)))
+(assert (=> exec_9_1_7 (= exit_code #x0001)))
+
+; thread 2@0: SYNC	0
+(assert (=> exec_9_2_0 (= accu_9_2 accu_8_2)))
+(assert (=> exec_9_2_0 (= mem_9_2 mem_8_2)))
+(assert (=> exec_9_2_0 (= heap_9 heap_8)))
+(assert (=> exec_9_2_0 (and (not stmt_10_2_0) stmt_10_2_1 (not stmt_10_2_2) (not stmt_10_2_3) (not stmt_10_2_4) (not stmt_10_2_5) (not stmt_10_2_6))))
+
+; thread 2@1: SYNC	1
+(assert (=> exec_9_2_1 (= accu_9_2 accu_8_2)))
+(assert (=> exec_9_2_1 (= mem_9_2 mem_8_2)))
+(assert (=> exec_9_2_1 (= heap_9 heap_8)))
+(assert (=> exec_9_2_1 (and (not stmt_10_2_0) (not stmt_10_2_1) stmt_10_2_2 (not stmt_10_2_3) (not stmt_10_2_4) (not stmt_10_2_5) (not stmt_10_2_6))))
+
+; thread 2@2: LOAD	0
+(assert (=> exec_9_2_2 (= accu_9_2 (select heap_8 #x0000))))
+(assert (=> exec_9_2_2 (= mem_9_2 mem_8_2)))
+(assert (=> exec_9_2_2 (= heap_9 heap_8)))
+(assert (=> exec_9_2_2 (and (not stmt_10_2_0) (not stmt_10_2_1) (not stmt_10_2_2) stmt_10_2_3 (not stmt_10_2_4) (not stmt_10_2_5) (not stmt_10_2_6))))
+
+; thread 2@3: ADDI	1
+(assert (=> exec_9_2_3 (= accu_9_2 (bvadd accu_8_2 #x0001))))
+(assert (=> exec_9_2_3 (= mem_9_2 mem_8_2)))
+(assert (=> exec_9_2_3 (= heap_9 heap_8)))
+(assert (=> exec_9_2_3 (and (not stmt_10_2_0) (not stmt_10_2_1) (not stmt_10_2_2) (not stmt_10_2_3) stmt_10_2_4 (not stmt_10_2_5) (not stmt_10_2_6))))
+
+; thread 2@4: STORE	0
+(assert (=> exec_9_2_4 (= accu_9_2 accu_8_2)))
+(assert (=> exec_9_2_4 (= mem_9_2 mem_8_2)))
+(assert (=> exec_9_2_4 (= heap_9 (store heap_8 #x0000 accu_8_2))))
+(assert (=> exec_9_2_4 (and (not stmt_10_2_0) (not stmt_10_2_1) (not stmt_10_2_2) (not stmt_10_2_3) (not stmt_10_2_4) stmt_10_2_5 (not stmt_10_2_6))))
+
+; thread 2@5: JNZ	0
+(assert (=> exec_9_2_5 (= accu_9_2 accu_8_2)))
+(assert (=> exec_9_2_5 (= mem_9_2 mem_8_2)))
+(assert (=> exec_9_2_5 (= heap_9 heap_8)))
+(assert (=> exec_9_2_5 (ite (not (= accu_9_2 #x0000)) (and stmt_10_2_0 (not stmt_10_2_1) (not stmt_10_2_2) (not stmt_10_2_3) (not stmt_10_2_4) (not stmt_10_2_5) (not stmt_10_2_6)) (and (not stmt_10_2_0) (not stmt_10_2_1) (not stmt_10_2_2) (not stmt_10_2_3) (not stmt_10_2_4) (not stmt_10_2_5) stmt_10_2_6))))
+
+; thread 2@6: EXIT	1
+(assert (=> exec_9_2_6 (= accu_9_2 accu_8_2)))
+(assert (=> exec_9_2_6 (= mem_9_2 mem_8_2)))
+(assert (=> exec_9_2_6 (= heap_9 heap_8)))
+(assert (=> exec_9_2_6 (= exit_code #x0001)))
+
+; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> (not (or thread_9_1 sync_9_0 sync_9_1)) (= accu_9_1 accu_8_1)))
+(assert (=> (not (or thread_9_1 sync_9_0 sync_9_1)) (= mem_9_1 mem_8_1)))
+
+(assert (=> (not (or thread_9_1 sync_9_0 sync_9_1)) (= stmt_10_1_0 stmt_9_1_0)))
+(assert (=> (not (or thread_9_1 sync_9_0 sync_9_1)) (= stmt_10_1_1 stmt_9_1_1)))
+(assert (=> (not (or thread_9_1 sync_9_0 sync_9_1)) (= stmt_10_1_2 stmt_9_1_2)))
+(assert (=> (not (or thread_9_1 sync_9_0 sync_9_1)) (= stmt_10_1_3 stmt_9_1_3)))
+(assert (=> (not (or thread_9_1 sync_9_0 sync_9_1)) (= stmt_10_1_4 stmt_9_1_4)))
+(assert (=> (not (or thread_9_1 sync_9_0 sync_9_1)) (= stmt_10_1_5 stmt_9_1_5)))
+(assert (=> (not (or thread_9_1 sync_9_0 sync_9_1)) (= stmt_10_1_6 stmt_9_1_6)))
+(assert (=> (not (or thread_9_1 sync_9_0 sync_9_1)) (= stmt_10_1_7 stmt_9_1_7)))
+
+(assert (=> (not (or thread_9_2 sync_9_0 sync_9_1)) (= accu_9_2 accu_8_2)))
+(assert (=> (not (or thread_9_2 sync_9_0 sync_9_1)) (= mem_9_2 mem_8_2)))
+
+(assert (=> (not (or thread_9_2 sync_9_0 sync_9_1)) (= stmt_10_2_0 stmt_9_2_0)))
+(assert (=> (not (or thread_9_2 sync_9_0 sync_9_1)) (= stmt_10_2_1 stmt_9_2_1)))
+(assert (=> (not (or thread_9_2 sync_9_0 sync_9_1)) (= stmt_10_2_2 stmt_9_2_2)))
+(assert (=> (not (or thread_9_2 sync_9_0 sync_9_1)) (= stmt_10_2_3 stmt_9_2_3)))
+(assert (=> (not (or thread_9_2 sync_9_0 sync_9_1)) (= stmt_10_2_4 stmt_9_2_4)))
+(assert (=> (not (or thread_9_2 sync_9_0 sync_9_1)) (= stmt_10_2_5 stmt_9_2_5)))
+(assert (=> (not (or thread_9_2 sync_9_0 sync_9_1)) (= stmt_10_2_6 stmt_9_2_6)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; step 10
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; exit flag ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; exit flag - exit_<step>
+(declare-fun exit_10 () Bool)
+
+(assert (= exit_10 (or exit_9 exec_9_1_7 exec_9_2_6)))
+
+; thread scheduling ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; thread activation variables - thread_<step>_<thread>
+(declare-fun thread_10_1 () Bool)
+(declare-fun thread_10_2 () Bool)
+
+(assert (or thread_10_1 thread_10_2 exit_10))
+(assert (or (not thread_10_1) (not thread_10_2)))
+(assert (or (not thread_10_1) (not exit_10)))
+(assert (or (not thread_10_2) (not exit_10)))
+
+; synchronization constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; sync variables - sync_<step>_<id>
+(declare-fun sync_10_0 () Bool)
+(declare-fun sync_10_1 () Bool)
+
+; all threads synchronized?
+(assert (= sync_10_0 (and stmt_10_1_1 stmt_10_2_0 (or thread_10_1 thread_10_2))))
+(assert (= sync_10_1 (and stmt_10_1_5 stmt_10_2_1 (or thread_10_1 thread_10_2))))
+
+; prevent scheduling of waiting threads
+(assert (=> (and stmt_10_1_1 (not sync_10_0)) (not thread_10_1))) ; barrier 0: thread 1
+(assert (=> (and stmt_10_2_0 (not sync_10_0)) (not thread_10_2))) ; barrier 0: thread 2
+(assert (=> (and stmt_10_1_5 (not sync_10_1)) (not thread_10_1))) ; barrier 1: thread 1
+(assert (=> (and stmt_10_2_1 (not sync_10_1)) (not thread_10_2))) ; barrier 1: thread 2
+
+; statement execution - shorthand for statement & thread activation ;;;;;;;;;;;;
+
+; statement execution variables - exec_<step>_<thread>_<pc>
+(declare-fun exec_10_1_0 () Bool)
+(declare-fun exec_10_1_1 () Bool)
+(declare-fun exec_10_1_2 () Bool)
+(declare-fun exec_10_1_3 () Bool)
+(declare-fun exec_10_1_4 () Bool)
+(declare-fun exec_10_1_5 () Bool)
+(declare-fun exec_10_1_6 () Bool)
+(declare-fun exec_10_1_7 () Bool)
+
+(declare-fun exec_10_2_0 () Bool)
+(declare-fun exec_10_2_1 () Bool)
+(declare-fun exec_10_2_2 () Bool)
+(declare-fun exec_10_2_3 () Bool)
+(declare-fun exec_10_2_4 () Bool)
+(declare-fun exec_10_2_5 () Bool)
+(declare-fun exec_10_2_6 () Bool)
+
+(assert (= exec_10_1_0 (and stmt_10_1_0 thread_10_1)))
+(assert (= exec_10_1_1 (and stmt_10_1_1 sync_10_0)))
+(assert (= exec_10_1_2 (and stmt_10_1_2 thread_10_1)))
+(assert (= exec_10_1_3 (and stmt_10_1_3 thread_10_1)))
+(assert (= exec_10_1_4 (and stmt_10_1_4 thread_10_1)))
+(assert (= exec_10_1_5 (and stmt_10_1_5 sync_10_1)))
+(assert (= exec_10_1_6 (and stmt_10_1_6 thread_10_1)))
+(assert (= exec_10_1_7 (and stmt_10_1_7 thread_10_1)))
+
+(assert (= exec_10_2_0 (and stmt_10_2_0 sync_10_0)))
+(assert (= exec_10_2_1 (and stmt_10_2_1 sync_10_1)))
+(assert (= exec_10_2_2 (and stmt_10_2_2 thread_10_2)))
+(assert (= exec_10_2_3 (and stmt_10_2_3 thread_10_2)))
+(assert (= exec_10_2_4 (and stmt_10_2_4 thread_10_2)))
+(assert (= exec_10_2_5 (and stmt_10_2_5 thread_10_2)))
+(assert (= exec_10_2_6 (and stmt_10_2_6 thread_10_2)))
+
+; statement activation forward declaration ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; statement activation variables - stmt_<step>_<thread>_<pc>
+(declare-fun stmt_11_1_0 () Bool)
+(declare-fun stmt_11_1_1 () Bool)
+(declare-fun stmt_11_1_2 () Bool)
+(declare-fun stmt_11_1_3 () Bool)
+(declare-fun stmt_11_1_4 () Bool)
+(declare-fun stmt_11_1_5 () Bool)
+(declare-fun stmt_11_1_6 () Bool)
+(declare-fun stmt_11_1_7 () Bool)
+
+(declare-fun stmt_11_2_0 () Bool)
+(declare-fun stmt_11_2_1 () Bool)
+(declare-fun stmt_11_2_2 () Bool)
+(declare-fun stmt_11_2_3 () Bool)
+(declare-fun stmt_11_2_4 () Bool)
+(declare-fun stmt_11_2_5 () Bool)
+(declare-fun stmt_11_2_6 () Bool)
+
+; state update ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; accu states - accu_<step>_<thread>
+(declare-fun accu_10_1 () (_ BitVec 16))
+(declare-fun accu_10_2 () (_ BitVec 16))
+
+; mem states - mem_<step>_<thread>
+(declare-fun mem_10_1 () (_ BitVec 16))
+(declare-fun mem_10_2 () (_ BitVec 16))
+
+; heap states - heap_<step>
+(declare-fun heap_10 () (Array (_ BitVec 16) (_ BitVec 16)))
+
+; thread 1@0: STORE	0
+(assert (=> exec_10_1_0 (= accu_10_1 accu_9_1)))
+(assert (=> exec_10_1_0 (= mem_10_1 mem_9_1)))
+(assert (=> exec_10_1_0 (= heap_10 (store heap_9 #x0000 accu_9_1))))
+(assert (=> exec_10_1_0 (and (not stmt_11_1_0) stmt_11_1_1 (not stmt_11_1_2) (not stmt_11_1_3) (not stmt_11_1_4) (not stmt_11_1_5) (not stmt_11_1_6) (not stmt_11_1_7))))
+
+; thread 1@1: SYNC	0
+(assert (=> exec_10_1_1 (= accu_10_1 accu_9_1)))
+(assert (=> exec_10_1_1 (= mem_10_1 mem_9_1)))
+(assert (=> exec_10_1_1 (= heap_10 heap_9)))
+(assert (=> exec_10_1_1 (and (not stmt_11_1_0) (not stmt_11_1_1) stmt_11_1_2 (not stmt_11_1_3) (not stmt_11_1_4) (not stmt_11_1_5) (not stmt_11_1_6) (not stmt_11_1_7))))
+
+; thread 1@2: LOAD	0
+(assert (=> exec_10_1_2 (= accu_10_1 (select heap_9 #x0000))))
+(assert (=> exec_10_1_2 (= mem_10_1 mem_9_1)))
+(assert (=> exec_10_1_2 (= heap_10 heap_9)))
+(assert (=> exec_10_1_2 (and (not stmt_11_1_0) (not stmt_11_1_1) (not stmt_11_1_2) stmt_11_1_3 (not stmt_11_1_4) (not stmt_11_1_5) (not stmt_11_1_6) (not stmt_11_1_7))))
+
+; thread 1@3: ADDI	1
+(assert (=> exec_10_1_3 (= accu_10_1 (bvadd accu_9_1 #x0001))))
+(assert (=> exec_10_1_3 (= mem_10_1 mem_9_1)))
+(assert (=> exec_10_1_3 (= heap_10 heap_9)))
+(assert (=> exec_10_1_3 (and (not stmt_11_1_0) (not stmt_11_1_1) (not stmt_11_1_2) (not stmt_11_1_3) stmt_11_1_4 (not stmt_11_1_5) (not stmt_11_1_6) (not stmt_11_1_7))))
+
+; thread 1@4: STORE	0
+(assert (=> exec_10_1_4 (= accu_10_1 accu_9_1)))
+(assert (=> exec_10_1_4 (= mem_10_1 mem_9_1)))
+(assert (=> exec_10_1_4 (= heap_10 (store heap_9 #x0000 accu_9_1))))
+(assert (=> exec_10_1_4 (and (not stmt_11_1_0) (not stmt_11_1_1) (not stmt_11_1_2) (not stmt_11_1_3) (not stmt_11_1_4) stmt_11_1_5 (not stmt_11_1_6) (not stmt_11_1_7))))
+
+; thread 1@5: SYNC	1
+(assert (=> exec_10_1_5 (= accu_10_1 accu_9_1)))
+(assert (=> exec_10_1_5 (= mem_10_1 mem_9_1)))
+(assert (=> exec_10_1_5 (= heap_10 heap_9)))
+(assert (=> exec_10_1_5 (and (not stmt_11_1_0) (not stmt_11_1_1) (not stmt_11_1_2) (not stmt_11_1_3) (not stmt_11_1_4) (not stmt_11_1_5) stmt_11_1_6 (not stmt_11_1_7))))
+
+; thread 1@6: JNZ	1
+(assert (=> exec_10_1_6 (= accu_10_1 accu_9_1)))
+(assert (=> exec_10_1_6 (= mem_10_1 mem_9_1)))
+(assert (=> exec_10_1_6 (= heap_10 heap_9)))
+(assert (=> exec_10_1_6 (ite (not (= accu_10_1 #x0000)) (and (not stmt_11_1_0) stmt_11_1_1 (not stmt_11_1_2) (not stmt_11_1_3) (not stmt_11_1_4) (not stmt_11_1_5) (not stmt_11_1_6) (not stmt_11_1_7)) (and (not stmt_11_1_0) (not stmt_11_1_1) (not stmt_11_1_2) (not stmt_11_1_3) (not stmt_11_1_4) (not stmt_11_1_5) (not stmt_11_1_6) stmt_11_1_7))))
+
+; thread 1@7: EXIT	1
+(assert (=> exec_10_1_7 (= accu_10_1 accu_9_1)))
+(assert (=> exec_10_1_7 (= mem_10_1 mem_9_1)))
+(assert (=> exec_10_1_7 (= heap_10 heap_9)))
+(assert (=> exec_10_1_7 (= exit_code #x0001)))
+
+; thread 2@0: SYNC	0
+(assert (=> exec_10_2_0 (= accu_10_2 accu_9_2)))
+(assert (=> exec_10_2_0 (= mem_10_2 mem_9_2)))
+(assert (=> exec_10_2_0 (= heap_10 heap_9)))
+(assert (=> exec_10_2_0 (and (not stmt_11_2_0) stmt_11_2_1 (not stmt_11_2_2) (not stmt_11_2_3) (not stmt_11_2_4) (not stmt_11_2_5) (not stmt_11_2_6))))
+
+; thread 2@1: SYNC	1
+(assert (=> exec_10_2_1 (= accu_10_2 accu_9_2)))
+(assert (=> exec_10_2_1 (= mem_10_2 mem_9_2)))
+(assert (=> exec_10_2_1 (= heap_10 heap_9)))
+(assert (=> exec_10_2_1 (and (not stmt_11_2_0) (not stmt_11_2_1) stmt_11_2_2 (not stmt_11_2_3) (not stmt_11_2_4) (not stmt_11_2_5) (not stmt_11_2_6))))
+
+; thread 2@2: LOAD	0
+(assert (=> exec_10_2_2 (= accu_10_2 (select heap_9 #x0000))))
+(assert (=> exec_10_2_2 (= mem_10_2 mem_9_2)))
+(assert (=> exec_10_2_2 (= heap_10 heap_9)))
+(assert (=> exec_10_2_2 (and (not stmt_11_2_0) (not stmt_11_2_1) (not stmt_11_2_2) stmt_11_2_3 (not stmt_11_2_4) (not stmt_11_2_5) (not stmt_11_2_6))))
+
+; thread 2@3: ADDI	1
+(assert (=> exec_10_2_3 (= accu_10_2 (bvadd accu_9_2 #x0001))))
+(assert (=> exec_10_2_3 (= mem_10_2 mem_9_2)))
+(assert (=> exec_10_2_3 (= heap_10 heap_9)))
+(assert (=> exec_10_2_3 (and (not stmt_11_2_0) (not stmt_11_2_1) (not stmt_11_2_2) (not stmt_11_2_3) stmt_11_2_4 (not stmt_11_2_5) (not stmt_11_2_6))))
+
+; thread 2@4: STORE	0
+(assert (=> exec_10_2_4 (= accu_10_2 accu_9_2)))
+(assert (=> exec_10_2_4 (= mem_10_2 mem_9_2)))
+(assert (=> exec_10_2_4 (= heap_10 (store heap_9 #x0000 accu_9_2))))
+(assert (=> exec_10_2_4 (and (not stmt_11_2_0) (not stmt_11_2_1) (not stmt_11_2_2) (not stmt_11_2_3) (not stmt_11_2_4) stmt_11_2_5 (not stmt_11_2_6))))
+
+; thread 2@5: JNZ	0
+(assert (=> exec_10_2_5 (= accu_10_2 accu_9_2)))
+(assert (=> exec_10_2_5 (= mem_10_2 mem_9_2)))
+(assert (=> exec_10_2_5 (= heap_10 heap_9)))
+(assert (=> exec_10_2_5 (ite (not (= accu_10_2 #x0000)) (and stmt_11_2_0 (not stmt_11_2_1) (not stmt_11_2_2) (not stmt_11_2_3) (not stmt_11_2_4) (not stmt_11_2_5) (not stmt_11_2_6)) (and (not stmt_11_2_0) (not stmt_11_2_1) (not stmt_11_2_2) (not stmt_11_2_3) (not stmt_11_2_4) (not stmt_11_2_5) stmt_11_2_6))))
+
+; thread 2@6: EXIT	1
+(assert (=> exec_10_2_6 (= accu_10_2 accu_9_2)))
+(assert (=> exec_10_2_6 (= mem_10_2 mem_9_2)))
+(assert (=> exec_10_2_6 (= heap_10 heap_9)))
+(assert (=> exec_10_2_6 (= exit_code #x0001)))
+
+; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> (not (or thread_10_1 sync_10_0 sync_10_1)) (= accu_10_1 accu_9_1)))
+(assert (=> (not (or thread_10_1 sync_10_0 sync_10_1)) (= mem_10_1 mem_9_1)))
+
+(assert (=> (not (or thread_10_1 sync_10_0 sync_10_1)) (= stmt_11_1_0 stmt_10_1_0)))
+(assert (=> (not (or thread_10_1 sync_10_0 sync_10_1)) (= stmt_11_1_1 stmt_10_1_1)))
+(assert (=> (not (or thread_10_1 sync_10_0 sync_10_1)) (= stmt_11_1_2 stmt_10_1_2)))
+(assert (=> (not (or thread_10_1 sync_10_0 sync_10_1)) (= stmt_11_1_3 stmt_10_1_3)))
+(assert (=> (not (or thread_10_1 sync_10_0 sync_10_1)) (= stmt_11_1_4 stmt_10_1_4)))
+(assert (=> (not (or thread_10_1 sync_10_0 sync_10_1)) (= stmt_11_1_5 stmt_10_1_5)))
+(assert (=> (not (or thread_10_1 sync_10_0 sync_10_1)) (= stmt_11_1_6 stmt_10_1_6)))
+(assert (=> (not (or thread_10_1 sync_10_0 sync_10_1)) (= stmt_11_1_7 stmt_10_1_7)))
+
+(assert (=> (not (or thread_10_2 sync_10_0 sync_10_1)) (= accu_10_2 accu_9_2)))
+(assert (=> (not (or thread_10_2 sync_10_0 sync_10_1)) (= mem_10_2 mem_9_2)))
+
+(assert (=> (not (or thread_10_2 sync_10_0 sync_10_1)) (= stmt_11_2_0 stmt_10_2_0)))
+(assert (=> (not (or thread_10_2 sync_10_0 sync_10_1)) (= stmt_11_2_1 stmt_10_2_1)))
+(assert (=> (not (or thread_10_2 sync_10_0 sync_10_1)) (= stmt_11_2_2 stmt_10_2_2)))
+(assert (=> (not (or thread_10_2 sync_10_0 sync_10_1)) (= stmt_11_2_3 stmt_10_2_3)))
+(assert (=> (not (or thread_10_2 sync_10_0 sync_10_1)) (= stmt_11_2_4 stmt_10_2_4)))
+(assert (=> (not (or thread_10_2 sync_10_0 sync_10_1)) (= stmt_11_2_5 stmt_10_2_5)))
+(assert (=> (not (or thread_10_2 sync_10_0 sync_10_1)) (= stmt_11_2_6 stmt_10_2_6)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; step 11
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; exit flag ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; exit flag - exit_<step>
+(declare-fun exit_11 () Bool)
+
+(assert (= exit_11 (or exit_10 exec_10_1_7 exec_10_2_6)))
+
+; thread scheduling ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; thread activation variables - thread_<step>_<thread>
+(declare-fun thread_11_1 () Bool)
+(declare-fun thread_11_2 () Bool)
+
+(assert (or thread_11_1 thread_11_2 exit_11))
+(assert (or (not thread_11_1) (not thread_11_2)))
+(assert (or (not thread_11_1) (not exit_11)))
+(assert (or (not thread_11_2) (not exit_11)))
+
+; synchronization constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; sync variables - sync_<step>_<id>
+(declare-fun sync_11_0 () Bool)
+(declare-fun sync_11_1 () Bool)
+
+; all threads synchronized?
+(assert (= sync_11_0 (and stmt_11_1_1 stmt_11_2_0 (or thread_11_1 thread_11_2))))
+(assert (= sync_11_1 (and stmt_11_1_5 stmt_11_2_1 (or thread_11_1 thread_11_2))))
+
+; prevent scheduling of waiting threads
+(assert (=> (and stmt_11_1_1 (not sync_11_0)) (not thread_11_1))) ; barrier 0: thread 1
+(assert (=> (and stmt_11_2_0 (not sync_11_0)) (not thread_11_2))) ; barrier 0: thread 2
+(assert (=> (and stmt_11_1_5 (not sync_11_1)) (not thread_11_1))) ; barrier 1: thread 1
+(assert (=> (and stmt_11_2_1 (not sync_11_1)) (not thread_11_2))) ; barrier 1: thread 2
+
+; statement execution - shorthand for statement & thread activation ;;;;;;;;;;;;
+
+; statement execution variables - exec_<step>_<thread>_<pc>
+(declare-fun exec_11_1_0 () Bool)
+(declare-fun exec_11_1_1 () Bool)
+(declare-fun exec_11_1_2 () Bool)
+(declare-fun exec_11_1_3 () Bool)
+(declare-fun exec_11_1_4 () Bool)
+(declare-fun exec_11_1_5 () Bool)
+(declare-fun exec_11_1_6 () Bool)
+(declare-fun exec_11_1_7 () Bool)
+
+(declare-fun exec_11_2_0 () Bool)
+(declare-fun exec_11_2_1 () Bool)
+(declare-fun exec_11_2_2 () Bool)
+(declare-fun exec_11_2_3 () Bool)
+(declare-fun exec_11_2_4 () Bool)
+(declare-fun exec_11_2_5 () Bool)
+(declare-fun exec_11_2_6 () Bool)
+
+(assert (= exec_11_1_0 (and stmt_11_1_0 thread_11_1)))
+(assert (= exec_11_1_1 (and stmt_11_1_1 sync_11_0)))
+(assert (= exec_11_1_2 (and stmt_11_1_2 thread_11_1)))
+(assert (= exec_11_1_3 (and stmt_11_1_3 thread_11_1)))
+(assert (= exec_11_1_4 (and stmt_11_1_4 thread_11_1)))
+(assert (= exec_11_1_5 (and stmt_11_1_5 sync_11_1)))
+(assert (= exec_11_1_6 (and stmt_11_1_6 thread_11_1)))
+(assert (= exec_11_1_7 (and stmt_11_1_7 thread_11_1)))
+
+(assert (= exec_11_2_0 (and stmt_11_2_0 sync_11_0)))
+(assert (= exec_11_2_1 (and stmt_11_2_1 sync_11_1)))
+(assert (= exec_11_2_2 (and stmt_11_2_2 thread_11_2)))
+(assert (= exec_11_2_3 (and stmt_11_2_3 thread_11_2)))
+(assert (= exec_11_2_4 (and stmt_11_2_4 thread_11_2)))
+(assert (= exec_11_2_5 (and stmt_11_2_5 thread_11_2)))
+(assert (= exec_11_2_6 (and stmt_11_2_6 thread_11_2)))
+
+; statement activation forward declaration ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; statement activation variables - stmt_<step>_<thread>_<pc>
+(declare-fun stmt_12_1_0 () Bool)
+(declare-fun stmt_12_1_1 () Bool)
+(declare-fun stmt_12_1_2 () Bool)
+(declare-fun stmt_12_1_3 () Bool)
+(declare-fun stmt_12_1_4 () Bool)
+(declare-fun stmt_12_1_5 () Bool)
+(declare-fun stmt_12_1_6 () Bool)
+(declare-fun stmt_12_1_7 () Bool)
+
+(declare-fun stmt_12_2_0 () Bool)
+(declare-fun stmt_12_2_1 () Bool)
+(declare-fun stmt_12_2_2 () Bool)
+(declare-fun stmt_12_2_3 () Bool)
+(declare-fun stmt_12_2_4 () Bool)
+(declare-fun stmt_12_2_5 () Bool)
+(declare-fun stmt_12_2_6 () Bool)
+
+; state update ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; accu states - accu_<step>_<thread>
+(declare-fun accu_11_1 () (_ BitVec 16))
+(declare-fun accu_11_2 () (_ BitVec 16))
+
+; mem states - mem_<step>_<thread>
+(declare-fun mem_11_1 () (_ BitVec 16))
+(declare-fun mem_11_2 () (_ BitVec 16))
+
+; heap states - heap_<step>
+(declare-fun heap_11 () (Array (_ BitVec 16) (_ BitVec 16)))
+
+; thread 1@0: STORE	0
+(assert (=> exec_11_1_0 (= accu_11_1 accu_10_1)))
+(assert (=> exec_11_1_0 (= mem_11_1 mem_10_1)))
+(assert (=> exec_11_1_0 (= heap_11 (store heap_10 #x0000 accu_10_1))))
+(assert (=> exec_11_1_0 (and (not stmt_12_1_0) stmt_12_1_1 (not stmt_12_1_2) (not stmt_12_1_3) (not stmt_12_1_4) (not stmt_12_1_5) (not stmt_12_1_6) (not stmt_12_1_7))))
+
+; thread 1@1: SYNC	0
+(assert (=> exec_11_1_1 (= accu_11_1 accu_10_1)))
+(assert (=> exec_11_1_1 (= mem_11_1 mem_10_1)))
+(assert (=> exec_11_1_1 (= heap_11 heap_10)))
+(assert (=> exec_11_1_1 (and (not stmt_12_1_0) (not stmt_12_1_1) stmt_12_1_2 (not stmt_12_1_3) (not stmt_12_1_4) (not stmt_12_1_5) (not stmt_12_1_6) (not stmt_12_1_7))))
+
+; thread 1@2: LOAD	0
+(assert (=> exec_11_1_2 (= accu_11_1 (select heap_10 #x0000))))
+(assert (=> exec_11_1_2 (= mem_11_1 mem_10_1)))
+(assert (=> exec_11_1_2 (= heap_11 heap_10)))
+(assert (=> exec_11_1_2 (and (not stmt_12_1_0) (not stmt_12_1_1) (not stmt_12_1_2) stmt_12_1_3 (not stmt_12_1_4) (not stmt_12_1_5) (not stmt_12_1_6) (not stmt_12_1_7))))
+
+; thread 1@3: ADDI	1
+(assert (=> exec_11_1_3 (= accu_11_1 (bvadd accu_10_1 #x0001))))
+(assert (=> exec_11_1_3 (= mem_11_1 mem_10_1)))
+(assert (=> exec_11_1_3 (= heap_11 heap_10)))
+(assert (=> exec_11_1_3 (and (not stmt_12_1_0) (not stmt_12_1_1) (not stmt_12_1_2) (not stmt_12_1_3) stmt_12_1_4 (not stmt_12_1_5) (not stmt_12_1_6) (not stmt_12_1_7))))
+
+; thread 1@4: STORE	0
+(assert (=> exec_11_1_4 (= accu_11_1 accu_10_1)))
+(assert (=> exec_11_1_4 (= mem_11_1 mem_10_1)))
+(assert (=> exec_11_1_4 (= heap_11 (store heap_10 #x0000 accu_10_1))))
+(assert (=> exec_11_1_4 (and (not stmt_12_1_0) (not stmt_12_1_1) (not stmt_12_1_2) (not stmt_12_1_3) (not stmt_12_1_4) stmt_12_1_5 (not stmt_12_1_6) (not stmt_12_1_7))))
+
+; thread 1@5: SYNC	1
+(assert (=> exec_11_1_5 (= accu_11_1 accu_10_1)))
+(assert (=> exec_11_1_5 (= mem_11_1 mem_10_1)))
+(assert (=> exec_11_1_5 (= heap_11 heap_10)))
+(assert (=> exec_11_1_5 (and (not stmt_12_1_0) (not stmt_12_1_1) (not stmt_12_1_2) (not stmt_12_1_3) (not stmt_12_1_4) (not stmt_12_1_5) stmt_12_1_6 (not stmt_12_1_7))))
+
+; thread 1@6: JNZ	1
+(assert (=> exec_11_1_6 (= accu_11_1 accu_10_1)))
+(assert (=> exec_11_1_6 (= mem_11_1 mem_10_1)))
+(assert (=> exec_11_1_6 (= heap_11 heap_10)))
+(assert (=> exec_11_1_6 (ite (not (= accu_11_1 #x0000)) (and (not stmt_12_1_0) stmt_12_1_1 (not stmt_12_1_2) (not stmt_12_1_3) (not stmt_12_1_4) (not stmt_12_1_5) (not stmt_12_1_6) (not stmt_12_1_7)) (and (not stmt_12_1_0) (not stmt_12_1_1) (not stmt_12_1_2) (not stmt_12_1_3) (not stmt_12_1_4) (not stmt_12_1_5) (not stmt_12_1_6) stmt_12_1_7))))
+
+; thread 1@7: EXIT	1
+(assert (=> exec_11_1_7 (= accu_11_1 accu_10_1)))
+(assert (=> exec_11_1_7 (= mem_11_1 mem_10_1)))
+(assert (=> exec_11_1_7 (= heap_11 heap_10)))
+(assert (=> exec_11_1_7 (= exit_code #x0001)))
+
+; thread 2@0: SYNC	0
+(assert (=> exec_11_2_0 (= accu_11_2 accu_10_2)))
+(assert (=> exec_11_2_0 (= mem_11_2 mem_10_2)))
+(assert (=> exec_11_2_0 (= heap_11 heap_10)))
+(assert (=> exec_11_2_0 (and (not stmt_12_2_0) stmt_12_2_1 (not stmt_12_2_2) (not stmt_12_2_3) (not stmt_12_2_4) (not stmt_12_2_5) (not stmt_12_2_6))))
+
+; thread 2@1: SYNC	1
+(assert (=> exec_11_2_1 (= accu_11_2 accu_10_2)))
+(assert (=> exec_11_2_1 (= mem_11_2 mem_10_2)))
+(assert (=> exec_11_2_1 (= heap_11 heap_10)))
+(assert (=> exec_11_2_1 (and (not stmt_12_2_0) (not stmt_12_2_1) stmt_12_2_2 (not stmt_12_2_3) (not stmt_12_2_4) (not stmt_12_2_5) (not stmt_12_2_6))))
+
+; thread 2@2: LOAD	0
+(assert (=> exec_11_2_2 (= accu_11_2 (select heap_10 #x0000))))
+(assert (=> exec_11_2_2 (= mem_11_2 mem_10_2)))
+(assert (=> exec_11_2_2 (= heap_11 heap_10)))
+(assert (=> exec_11_2_2 (and (not stmt_12_2_0) (not stmt_12_2_1) (not stmt_12_2_2) stmt_12_2_3 (not stmt_12_2_4) (not stmt_12_2_5) (not stmt_12_2_6))))
+
+; thread 2@3: ADDI	1
+(assert (=> exec_11_2_3 (= accu_11_2 (bvadd accu_10_2 #x0001))))
+(assert (=> exec_11_2_3 (= mem_11_2 mem_10_2)))
+(assert (=> exec_11_2_3 (= heap_11 heap_10)))
+(assert (=> exec_11_2_3 (and (not stmt_12_2_0) (not stmt_12_2_1) (not stmt_12_2_2) (not stmt_12_2_3) stmt_12_2_4 (not stmt_12_2_5) (not stmt_12_2_6))))
+
+; thread 2@4: STORE	0
+(assert (=> exec_11_2_4 (= accu_11_2 accu_10_2)))
+(assert (=> exec_11_2_4 (= mem_11_2 mem_10_2)))
+(assert (=> exec_11_2_4 (= heap_11 (store heap_10 #x0000 accu_10_2))))
+(assert (=> exec_11_2_4 (and (not stmt_12_2_0) (not stmt_12_2_1) (not stmt_12_2_2) (not stmt_12_2_3) (not stmt_12_2_4) stmt_12_2_5 (not stmt_12_2_6))))
+
+; thread 2@5: JNZ	0
+(assert (=> exec_11_2_5 (= accu_11_2 accu_10_2)))
+(assert (=> exec_11_2_5 (= mem_11_2 mem_10_2)))
+(assert (=> exec_11_2_5 (= heap_11 heap_10)))
+(assert (=> exec_11_2_5 (ite (not (= accu_11_2 #x0000)) (and stmt_12_2_0 (not stmt_12_2_1) (not stmt_12_2_2) (not stmt_12_2_3) (not stmt_12_2_4) (not stmt_12_2_5) (not stmt_12_2_6)) (and (not stmt_12_2_0) (not stmt_12_2_1) (not stmt_12_2_2) (not stmt_12_2_3) (not stmt_12_2_4) (not stmt_12_2_5) stmt_12_2_6))))
+
+; thread 2@6: EXIT	1
+(assert (=> exec_11_2_6 (= accu_11_2 accu_10_2)))
+(assert (=> exec_11_2_6 (= mem_11_2 mem_10_2)))
+(assert (=> exec_11_2_6 (= heap_11 heap_10)))
+(assert (=> exec_11_2_6 (= exit_code #x0001)))
+
+; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> (not (or thread_11_1 sync_11_0 sync_11_1)) (= accu_11_1 accu_10_1)))
+(assert (=> (not (or thread_11_1 sync_11_0 sync_11_1)) (= mem_11_1 mem_10_1)))
+
+(assert (=> (not (or thread_11_1 sync_11_0 sync_11_1)) (= stmt_12_1_0 stmt_11_1_0)))
+(assert (=> (not (or thread_11_1 sync_11_0 sync_11_1)) (= stmt_12_1_1 stmt_11_1_1)))
+(assert (=> (not (or thread_11_1 sync_11_0 sync_11_1)) (= stmt_12_1_2 stmt_11_1_2)))
+(assert (=> (not (or thread_11_1 sync_11_0 sync_11_1)) (= stmt_12_1_3 stmt_11_1_3)))
+(assert (=> (not (or thread_11_1 sync_11_0 sync_11_1)) (= stmt_12_1_4 stmt_11_1_4)))
+(assert (=> (not (or thread_11_1 sync_11_0 sync_11_1)) (= stmt_12_1_5 stmt_11_1_5)))
+(assert (=> (not (or thread_11_1 sync_11_0 sync_11_1)) (= stmt_12_1_6 stmt_11_1_6)))
+(assert (=> (not (or thread_11_1 sync_11_0 sync_11_1)) (= stmt_12_1_7 stmt_11_1_7)))
+
+(assert (=> (not (or thread_11_2 sync_11_0 sync_11_1)) (= accu_11_2 accu_10_2)))
+(assert (=> (not (or thread_11_2 sync_11_0 sync_11_1)) (= mem_11_2 mem_10_2)))
+
+(assert (=> (not (or thread_11_2 sync_11_0 sync_11_1)) (= stmt_12_2_0 stmt_11_2_0)))
+(assert (=> (not (or thread_11_2 sync_11_0 sync_11_1)) (= stmt_12_2_1 stmt_11_2_1)))
+(assert (=> (not (or thread_11_2 sync_11_0 sync_11_1)) (= stmt_12_2_2 stmt_11_2_2)))
+(assert (=> (not (or thread_11_2 sync_11_0 sync_11_1)) (= stmt_12_2_3 stmt_11_2_3)))
+(assert (=> (not (or thread_11_2 sync_11_0 sync_11_1)) (= stmt_12_2_4 stmt_11_2_4)))
+(assert (=> (not (or thread_11_2 sync_11_0 sync_11_1)) (= stmt_12_2_5 stmt_11_2_5)))
+(assert (=> (not (or thread_11_2 sync_11_0 sync_11_1)) (= stmt_12_2_6 stmt_11_2_6)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; step 12
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; exit flag ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; exit flag - exit_<step>
+(declare-fun exit_12 () Bool)
+
+(assert (= exit_12 (or exit_11 exec_11_1_7 exec_11_2_6)))
+
+; thread scheduling ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; thread activation variables - thread_<step>_<thread>
+(declare-fun thread_12_1 () Bool)
+(declare-fun thread_12_2 () Bool)
+
+(assert (or thread_12_1 thread_12_2 exit_12))
+(assert (or (not thread_12_1) (not thread_12_2)))
+(assert (or (not thread_12_1) (not exit_12)))
+(assert (or (not thread_12_2) (not exit_12)))
+
+; synchronization constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; sync variables - sync_<step>_<id>
+(declare-fun sync_12_0 () Bool)
+(declare-fun sync_12_1 () Bool)
+
+; all threads synchronized?
+(assert (= sync_12_0 (and stmt_12_1_1 stmt_12_2_0 (or thread_12_1 thread_12_2))))
+(assert (= sync_12_1 (and stmt_12_1_5 stmt_12_2_1 (or thread_12_1 thread_12_2))))
+
+; prevent scheduling of waiting threads
+(assert (=> (and stmt_12_1_1 (not sync_12_0)) (not thread_12_1))) ; barrier 0: thread 1
+(assert (=> (and stmt_12_2_0 (not sync_12_0)) (not thread_12_2))) ; barrier 0: thread 2
+(assert (=> (and stmt_12_1_5 (not sync_12_1)) (not thread_12_1))) ; barrier 1: thread 1
+(assert (=> (and stmt_12_2_1 (not sync_12_1)) (not thread_12_2))) ; barrier 1: thread 2
+
+; statement execution - shorthand for statement & thread activation ;;;;;;;;;;;;
+
+; statement execution variables - exec_<step>_<thread>_<pc>
+(declare-fun exec_12_1_0 () Bool)
+(declare-fun exec_12_1_1 () Bool)
+(declare-fun exec_12_1_2 () Bool)
+(declare-fun exec_12_1_3 () Bool)
+(declare-fun exec_12_1_4 () Bool)
+(declare-fun exec_12_1_5 () Bool)
+(declare-fun exec_12_1_6 () Bool)
+(declare-fun exec_12_1_7 () Bool)
+
+(declare-fun exec_12_2_0 () Bool)
+(declare-fun exec_12_2_1 () Bool)
+(declare-fun exec_12_2_2 () Bool)
+(declare-fun exec_12_2_3 () Bool)
+(declare-fun exec_12_2_4 () Bool)
+(declare-fun exec_12_2_5 () Bool)
+(declare-fun exec_12_2_6 () Bool)
+
+(assert (= exec_12_1_0 (and stmt_12_1_0 thread_12_1)))
+(assert (= exec_12_1_1 (and stmt_12_1_1 sync_12_0)))
+(assert (= exec_12_1_2 (and stmt_12_1_2 thread_12_1)))
+(assert (= exec_12_1_3 (and stmt_12_1_3 thread_12_1)))
+(assert (= exec_12_1_4 (and stmt_12_1_4 thread_12_1)))
+(assert (= exec_12_1_5 (and stmt_12_1_5 sync_12_1)))
+(assert (= exec_12_1_6 (and stmt_12_1_6 thread_12_1)))
+(assert (= exec_12_1_7 (and stmt_12_1_7 thread_12_1)))
+
+(assert (= exec_12_2_0 (and stmt_12_2_0 sync_12_0)))
+(assert (= exec_12_2_1 (and stmt_12_2_1 sync_12_1)))
+(assert (= exec_12_2_2 (and stmt_12_2_2 thread_12_2)))
+(assert (= exec_12_2_3 (and stmt_12_2_3 thread_12_2)))
+(assert (= exec_12_2_4 (and stmt_12_2_4 thread_12_2)))
+(assert (= exec_12_2_5 (and stmt_12_2_5 thread_12_2)))
+(assert (= exec_12_2_6 (and stmt_12_2_6 thread_12_2)))
+
+; state update ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; accu states - accu_<step>_<thread>
+(declare-fun accu_12_1 () (_ BitVec 16))
+(declare-fun accu_12_2 () (_ BitVec 16))
+
+; mem states - mem_<step>_<thread>
+(declare-fun mem_12_1 () (_ BitVec 16))
+(declare-fun mem_12_2 () (_ BitVec 16))
+
+; heap states - heap_<step>
+(declare-fun heap_12 () (Array (_ BitVec 16) (_ BitVec 16)))
+
+; thread 1@0: STORE	0
+(assert (=> exec_12_1_0 (= accu_12_1 accu_11_1)))
+(assert (=> exec_12_1_0 (= mem_12_1 mem_11_1)))
+(assert (=> exec_12_1_0 (= heap_12 (store heap_11 #x0000 accu_11_1))))
+
+; thread 1@1: SYNC	0
+(assert (=> exec_12_1_1 (= accu_12_1 accu_11_1)))
+(assert (=> exec_12_1_1 (= mem_12_1 mem_11_1)))
+(assert (=> exec_12_1_1 (= heap_12 heap_11)))
+
+; thread 1@2: LOAD	0
+(assert (=> exec_12_1_2 (= accu_12_1 (select heap_11 #x0000))))
+(assert (=> exec_12_1_2 (= mem_12_1 mem_11_1)))
+(assert (=> exec_12_1_2 (= heap_12 heap_11)))
+
+; thread 1@3: ADDI	1
+(assert (=> exec_12_1_3 (= accu_12_1 (bvadd accu_11_1 #x0001))))
+(assert (=> exec_12_1_3 (= mem_12_1 mem_11_1)))
+(assert (=> exec_12_1_3 (= heap_12 heap_11)))
+
+; thread 1@4: STORE	0
+(assert (=> exec_12_1_4 (= accu_12_1 accu_11_1)))
+(assert (=> exec_12_1_4 (= mem_12_1 mem_11_1)))
+(assert (=> exec_12_1_4 (= heap_12 (store heap_11 #x0000 accu_11_1))))
+
+; thread 1@5: SYNC	1
+(assert (=> exec_12_1_5 (= accu_12_1 accu_11_1)))
+(assert (=> exec_12_1_5 (= mem_12_1 mem_11_1)))
+(assert (=> exec_12_1_5 (= heap_12 heap_11)))
+
+; thread 1@6: JNZ	1
+(assert (=> exec_12_1_6 (= accu_12_1 accu_11_1)))
+(assert (=> exec_12_1_6 (= mem_12_1 mem_11_1)))
+(assert (=> exec_12_1_6 (= heap_12 heap_11)))
+
+; thread 1@7: EXIT	1
+(assert (=> exec_12_1_7 (= accu_12_1 accu_11_1)))
+(assert (=> exec_12_1_7 (= mem_12_1 mem_11_1)))
+(assert (=> exec_12_1_7 (= heap_12 heap_11)))
+(assert (=> exec_12_1_7 (= exit_code #x0001)))
+
+; thread 2@0: SYNC	0
+(assert (=> exec_12_2_0 (= accu_12_2 accu_11_2)))
+(assert (=> exec_12_2_0 (= mem_12_2 mem_11_2)))
+(assert (=> exec_12_2_0 (= heap_12 heap_11)))
+
+; thread 2@1: SYNC	1
+(assert (=> exec_12_2_1 (= accu_12_2 accu_11_2)))
+(assert (=> exec_12_2_1 (= mem_12_2 mem_11_2)))
+(assert (=> exec_12_2_1 (= heap_12 heap_11)))
+
+; thread 2@2: LOAD	0
+(assert (=> exec_12_2_2 (= accu_12_2 (select heap_11 #x0000))))
+(assert (=> exec_12_2_2 (= mem_12_2 mem_11_2)))
+(assert (=> exec_12_2_2 (= heap_12 heap_11)))
+
+; thread 2@3: ADDI	1
+(assert (=> exec_12_2_3 (= accu_12_2 (bvadd accu_11_2 #x0001))))
+(assert (=> exec_12_2_3 (= mem_12_2 mem_11_2)))
+(assert (=> exec_12_2_3 (= heap_12 heap_11)))
+
+; thread 2@4: STORE	0
+(assert (=> exec_12_2_4 (= accu_12_2 accu_11_2)))
+(assert (=> exec_12_2_4 (= mem_12_2 mem_11_2)))
+(assert (=> exec_12_2_4 (= heap_12 (store heap_11 #x0000 accu_11_2))))
+
+; thread 2@5: JNZ	0
+(assert (=> exec_12_2_5 (= accu_12_2 accu_11_2)))
+(assert (=> exec_12_2_5 (= mem_12_2 mem_11_2)))
+(assert (=> exec_12_2_5 (= heap_12 heap_11)))
+
+; thread 2@6: EXIT	1
+(assert (=> exec_12_2_6 (= accu_12_2 accu_11_2)))
+(assert (=> exec_12_2_6 (= mem_12_2 mem_11_2)))
+(assert (=> exec_12_2_6 (= heap_12 heap_11)))
+(assert (=> exec_12_2_6 (= exit_code #x0001)))
+
+; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> (not (or thread_12_1 sync_12_0 sync_12_1)) (= accu_12_1 accu_11_1)))
+(assert (=> (not (or thread_12_1 sync_12_0 sync_12_1)) (= mem_12_1 mem_11_1)))
+
+(assert (=> (not (or thread_12_2 sync_12_0 sync_12_1)) (= accu_12_2 accu_11_2)))
+(assert (=> (not (or thread_12_2 sync_12_0 sync_12_1)) (= mem_12_2 mem_11_2)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; exit code
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (=> (not exit_8) (= exit_code #x0000)))
+(assert (=> (not exit_12) (= exit_code #x0000)))

@@ -806,9 +806,9 @@ TEST_F(SMTLibEncoderRelationalTest, encode_sync)
 
   encoder =
     make_shared<SMTLibEncoderRelational>(
-      make_shared<ProgramList>(programs), 8);
+      make_shared<ProgramList>(programs), 12);
 
-  ifstream ifs("data/increment.sync.relational.t2.k8.smt2");
+  ifstream ifs("data/increment.sync.relational.t2.k12.smt2");
   expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
 
   ASSERT_EQ(expected, encoder->formula.str());
@@ -826,9 +826,9 @@ TEST_F(SMTLibEncoderRelationalTest, encode_cas)
 
   encoder =
     make_shared<SMTLibEncoderRelational>(
-      make_shared<ProgramList>(programs), 8);
+      make_shared<ProgramList>(programs), 12);
 
-  ifstream ifs("data/increment.cas.relational.t2.k8.smt2");
+  ifstream ifs("data/increment.cas.relational.t2.k12.smt2");
   expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
 
   ASSERT_EQ(expected, encoder->formula.str());

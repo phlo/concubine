@@ -693,9 +693,9 @@ TEST_F(SMTLibEncoderFunctionalTest, encode_sync)
 
   encoder =
     make_shared<SMTLibEncoderFunctional>(
-      make_shared<ProgramList>(programs), 8);
+      make_shared<ProgramList>(programs), 12);
 
-  ifstream ifs("data/increment.sync.functional.t2.k8.smt2");
+  ifstream ifs("data/increment.sync.functional.t2.k12.smt2");
   expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
 
   ASSERT_EQ(expected, encoder->formula.str());
@@ -713,9 +713,9 @@ TEST_F(SMTLibEncoderFunctionalTest, encode_cas)
 
   encoder =
     make_shared<SMTLibEncoderFunctional>(
-      make_shared<ProgramList>(programs), 8);
+      make_shared<ProgramList>(programs), 12);
 
-  ifstream ifs("data/increment.cas.functional.t2.k8.smt2");
+  ifstream ifs("data/increment.cas.functional.t2.k12.smt2");
   expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
 
   ASSERT_EQ(expected, encoder->formula.str());
