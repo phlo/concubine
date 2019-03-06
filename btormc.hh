@@ -5,6 +5,10 @@
 
 struct BtorMC : public Solver
 {
+  BtorMC (unsigned long);
+
+  const unsigned long bound;
+
   virtual std::string build_command (void);
 
   virtual std::string build_formula (Encoder &, std::string &);

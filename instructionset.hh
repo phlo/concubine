@@ -48,6 +48,7 @@ struct Instruction
       Cas
     };
 
+  /* Instruction Attributes */
   struct Attributes
     {
       static const unsigned char ALTERS_HEAP;

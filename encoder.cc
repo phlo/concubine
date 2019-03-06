@@ -1139,7 +1139,7 @@ void SMTLibEncoderRelational::add_state_preservation ()
       if (threads.find(thread) != threads.end())
         args.push_back(sync_var(step, id));
 
-    // TODO add condition helper variable wait_<step>_<thread>?
+    /* waiting condition */
     string condition = smtlib::lnot(smtlib::lor(args));
 
     /* preserver accu */

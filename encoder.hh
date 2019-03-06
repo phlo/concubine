@@ -342,6 +342,7 @@ struct Btor2Encoder : public Encoder
   /* flag to distinguish between accu and heap updates when encoding CAS */
   bool                        update_accu;
 
+  /* next node id */
   unsigned long               node;
 
   std::string                 sid_bool,

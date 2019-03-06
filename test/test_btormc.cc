@@ -9,8 +9,13 @@ using namespace std;
 
 struct BtorMCTest : public ::testing::Test
 {
-  BtorMC btormc;
+  BtorMC btormc = BtorMC(1);
 };
+
+TEST_F(BtorMCTest, constructor)
+{
+  ASSERT_EQ(1, btormc.bound);
+}
 
 TEST_F(BtorMCTest, sat)
 {

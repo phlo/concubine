@@ -734,7 +734,7 @@ TEST(Btor2Test, cardinality_exactly_one_naive)
 
 TEST(Btor2Test, cardinality_exactly_one_naive_verify)
 {
-  BtorMC btormc;
+  BtorMC btormc(1);
 
   string formula =
     btor2::declare_sort("1", "1") +
@@ -859,7 +859,7 @@ TEST(Btor2Test, cardinality_exactly_one_sinz)
 
 TEST(Btor2Test, cardinality_exactly_one_sinz_verify)
 {
-  BtorMC btormc;
+  BtorMC btormc(1);
 
   string formula =
     btor2::declare_sort("1", "1") +

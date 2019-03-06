@@ -4,9 +4,11 @@
 
 using namespace std;
 
+BtorMC::BtorMC(unsigned long b) : bound(b) {}
+
 string BtorMC::build_command ()
 {
-  return "btormc --trace-gen-full";
+  return "btormc --trace-gen-full -kmax " + to_string(bound);
 }
 
 string BtorMC::build_formula (Encoder & formula, string & constraints)

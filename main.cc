@@ -385,7 +385,7 @@ int solve (char * name, int argc, char ** argv)
 
       // TODO: select solver
       if (encoder_name == "btor2")
-        solver = BtorMCPtr(new BtorMC());
+        solver = BtorMCPtr(new BtorMC(bound));
       else
         solver = BoolectorPtr(new Boolector());
 

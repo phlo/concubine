@@ -14,7 +14,7 @@ typedef map<word, map<word, string>> Word2Word2NIDMap;
 #include "btormc.hh"
 void evaluate (string & formula)
 {
-  BtorMC btormc;
+  BtorMC btormc(20);
   cout << "running btormc..." << eol;
   btormc.sat(formula);
 }
