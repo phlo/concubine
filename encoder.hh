@@ -324,6 +324,9 @@ typedef std::shared_ptr<SMTLibEncoderRelational> SMTLibEncoderRelationalPtr;
  ******************************************************************************/
 struct Btor2Encoder : public Encoder
 {
+  /* most significant bit */
+  static std::string          msb;
+
   /* constructs a Btor2Encoder for the given program and bound */
   Btor2Encoder (const ProgramListPtr, unsigned long, bool = true);
 

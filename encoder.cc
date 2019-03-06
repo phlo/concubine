@@ -1435,6 +1435,8 @@ string SMTLibEncoderRelational::encode (Exit & e)
 /*******************************************************************************
  * Btor2 Encoder Class
  ******************************************************************************/
+string Btor2Encoder::msb = to_string(word_size - 1);
+
 Btor2Encoder::Btor2Encoder (
                             const ProgramListPtr p,
                             unsigned long b,
@@ -1669,6 +1671,7 @@ void Btor2Encoder::add_thread_scheduling ()
 
 void Btor2Encoder::add_synchronization_constraints ()
 {
+  /* skip if there is no call to SYNC */
   if (sync_pcs.empty())
     return;
 
@@ -2213,7 +2216,6 @@ string Btor2Encoder::encode (Jnz & j [[maybe_unused]])
 
 string Btor2Encoder::encode (Js & j [[maybe_unused]])
 {
-  string msb = to_string(word_size - 1); // TODO: add as static class var?
   string ret = nid();
 
   formula << btor2::slice(ret, sid_bool, nids_accu[thread], msb, msb);
@@ -2223,7 +2225,6 @@ string Btor2Encoder::encode (Js & j [[maybe_unused]])
 
 string Btor2Encoder::encode (Jns & j [[maybe_unused]])
 {
-  string msb = to_string(word_size - 1); // TODO: add as static class var?
   string ret = nid();
 
   formula <<
@@ -2235,8 +2236,6 @@ string Btor2Encoder::encode (Jns & j [[maybe_unused]])
 
 string Btor2Encoder::encode (Jnzns & j [[maybe_unused]])
 {
-  string msb = to_string(word_size - 1); // TODO: add as static class var?
-
   string nid_nz = nid();
 
   formula <<
