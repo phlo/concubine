@@ -842,6 +842,49 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
     encoder->formula.str());
 }
 
+TEST_F(Btor2EncoderTest, add_synchronization_constraints_single_thread)
+{
+  programs.push_back(shared_ptr<Program>(new Program()));
+  programs.back()->add(Instruction::Set::create("SYNC", 1));
+
+  reset_encoder(1);
+
+  init_thread_scheduling(true);
+
+  encoder->add_synchronization_constraints();
+
+  ASSERT_EQ(Word2NIDMap({{1, encoder->nids_stmt[1][0]}}), encoder->nids_sync);
+  ASSERT_EQ(
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; synchronization constraints\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; negated thread activation variables\n"
+    "30 not 1 25 not_thread_1\n"
+    "\n"
+    "; synchronization condition sync_1\n"
+    "31 not 1 19 not_sync_1\n"
+    "\n"
+    "; disable threads waiting for barrier 1\n"
+    "32 and 1 19 31\n"
+    "33 implies 1 32 30\n"
+    "34 constraint 33 sync_1_block_1\n"
+    "\n",
+    encoder->formula.str());
+}
+
+TEST_F(Btor2EncoderTest, add_synchronization_constraints_no_sync)
+{
+  add_dummy_programs(3, 1);
+
+  init_thread_scheduling(true);
+
+  encoder->add_synchronization_constraints();
+
+  ASSERT_TRUE(encoder->nids_sync.empty());
+  ASSERT_EQ("", encoder->formula.str());
+}
+
 // void add_statement_execution ();
 TEST_F(Btor2EncoderTest, add_statement_execution)
 {
@@ -916,37 +959,37 @@ TEST_F(Btor2EncoderTest, add_statement_activation_basic)
     "; update statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; stmt_1_0\n"
-    "73 not 1 67\n"
-    "74 and 1 29 73\n"
-    "75 next 1 29 74 1:0:ADDI:1\n"
+    "70 not 1 64\n"
+    "71 and 1 29 70\n"
+    "72 next 1 29 71 1:0:ADDI:1\n"
     "\n"
     "; stmt_1_1\n"
-    "76 not 1 68\n"
-    "77 and 1 31 76\n"
-    "78 ite 1 29 67 77 1:0:ADDI:1\n"
-    "79 next 1 31 78 1:1:ADDI:1\n"
+    "73 not 1 65\n"
+    "74 and 1 31 73\n"
+    "75 ite 1 29 64 74 1:0:ADDI:1\n"
+    "76 next 1 31 75 1:1:ADDI:1\n"
     "\n"
     "; stmt_2_0\n"
-    "80 not 1 69\n"
-    "81 and 1 33 80\n"
-    "82 next 1 33 81 2:0:ADDI:2\n"
+    "77 not 1 66\n"
+    "78 and 1 33 77\n"
+    "79 next 1 33 78 2:0:ADDI:2\n"
     "\n"
     "; stmt_2_1\n"
-    "83 not 1 70\n"
-    "84 and 1 35 83\n"
-    "85 ite 1 33 69 84 2:0:ADDI:2\n"
-    "86 next 1 35 85 2:1:ADDI:2\n"
+    "80 not 1 67\n"
+    "81 and 1 35 80\n"
+    "82 ite 1 33 66 81 2:0:ADDI:2\n"
+    "83 next 1 35 82 2:1:ADDI:2\n"
     "\n"
     "; stmt_3_0\n"
-    "87 not 1 71\n"
-    "88 and 1 37 87\n"
-    "89 next 1 37 88 3:0:ADDI:3\n"
+    "84 not 1 68\n"
+    "85 and 1 37 84\n"
+    "86 next 1 37 85 3:0:ADDI:3\n"
     "\n"
     "; stmt_3_1\n"
-    "90 not 1 72\n"
-    "91 and 1 39 90\n"
-    "92 ite 1 37 71 91 3:0:ADDI:3\n"
-    "93 next 1 39 92 3:1:ADDI:3\n"
+    "87 not 1 69\n"
+    "88 and 1 39 87\n"
+    "89 ite 1 37 68 88 3:0:ADDI:3\n"
+    "90 next 1 39 89 3:1:ADDI:3\n"
     "\n",
     encoder->formula.str());
 
@@ -960,32 +1003,32 @@ TEST_F(Btor2EncoderTest, add_statement_activation_basic)
   verbose = true;
 
   ASSERT_EQ(
-    "73 not 1 67\n"
-    "74 and 1 29 73\n"
-    "75 next 1 29 74\n"
+    "70 not 1 64\n"
+    "71 and 1 29 70\n"
+    "72 next 1 29 71\n"
     "\n"
-    "76 not 1 68\n"
-    "77 and 1 31 76\n"
-    "78 ite 1 29 67 77\n"
-    "79 next 1 31 78\n"
+    "73 not 1 65\n"
+    "74 and 1 31 73\n"
+    "75 ite 1 29 64 74\n"
+    "76 next 1 31 75\n"
     "\n"
-    "80 not 1 69\n"
-    "81 and 1 33 80\n"
-    "82 next 1 33 81\n"
+    "77 not 1 66\n"
+    "78 and 1 33 77\n"
+    "79 next 1 33 78\n"
     "\n"
-    "83 not 1 70\n"
-    "84 and 1 35 83\n"
-    "85 ite 1 33 69 84\n"
-    "86 next 1 35 85\n"
+    "80 not 1 67\n"
+    "81 and 1 35 80\n"
+    "82 ite 1 33 66 81\n"
+    "83 next 1 35 82\n"
     "\n"
-    "87 not 1 71\n"
-    "88 and 1 37 87\n"
-    "89 next 1 37 88\n"
+    "84 not 1 68\n"
+    "85 and 1 37 84\n"
+    "86 next 1 37 85\n"
     "\n"
-    "90 not 1 72\n"
-    "91 and 1 39 90\n"
-    "92 ite 1 37 71 91\n"
-    "93 next 1 39 92\n"
+    "87 not 1 69\n"
+    "88 and 1 39 87\n"
+    "89 ite 1 37 68 88\n"
+    "90 next 1 39 89\n"
     "\n",
     encoder->formula.str());
 }
@@ -1012,73 +1055,73 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp)
     "; update statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; stmt_1_0\n"
-    "89 not 1 77\n"
-    "90 and 1 27 89\n"
-    "91 next 1 27 90 1:0:ADDI:1\n"
+    "86 not 1 74\n"
+    "87 and 1 27 86\n"
+    "88 next 1 27 87 1:0:ADDI:1\n"
     "\n"
     "; stmt_1_1\n"
-    "92 not 1 78\n"
-    "93 and 1 29 92\n"
-    "94 ite 1 27 77 93 1:0:ADDI:1\n"
-    "95 ite 1 31 79 94 1:2:JMP:1\n"
-    "96 next 1 29 95 1:1:STORE:1\n"
+    "89 not 1 75\n"
+    "90 and 1 29 89\n"
+    "91 ite 1 27 74 90 1:0:ADDI:1\n"
+    "92 ite 1 31 76 91 1:2:JMP:1\n"
+    "93 next 1 29 92 1:1:STORE:1\n"
     "\n"
     "; stmt_1_2\n"
-    "97 not 1 79\n"
-    "98 and 1 31 97\n"
-    "99 ite 1 29 78 98 1:1:STORE:1\n"
-    "100 next 1 31 99 1:2:JMP:1\n"
+    "94 not 1 76\n"
+    "95 and 1 31 94\n"
+    "96 ite 1 29 75 95 1:1:STORE:1\n"
+    "97 next 1 31 96 1:2:JMP:1\n"
     "\n"
     "; stmt_1_3\n"
-    "101 not 1 80\n"
-    "102 and 1 33 101\n"
-    "103 next 1 33 102 1:3:EXIT:1\n"
+    "98 not 1 77\n"
+    "99 and 1 33 98\n"
+    "100 next 1 33 99 1:3:EXIT:1\n"
     "\n"
     "; stmt_2_0\n"
-    "104 not 1 81\n"
-    "105 and 1 35 104\n"
-    "106 next 1 35 105 2:0:ADDI:1\n"
+    "101 not 1 78\n"
+    "102 and 1 35 101\n"
+    "103 next 1 35 102 2:0:ADDI:1\n"
     "\n"
     "; stmt_2_1\n"
-    "107 not 1 82\n"
-    "108 and 1 37 107\n"
-    "109 ite 1 35 81 108 2:0:ADDI:1\n"
-    "110 ite 1 39 83 109 2:2:JMP:1\n"
-    "111 next 1 37 110 2:1:STORE:1\n"
+    "104 not 1 79\n"
+    "105 and 1 37 104\n"
+    "106 ite 1 35 78 105 2:0:ADDI:1\n"
+    "107 ite 1 39 80 106 2:2:JMP:1\n"
+    "108 next 1 37 107 2:1:STORE:1\n"
     "\n"
     "; stmt_2_2\n"
-    "112 not 1 83\n"
-    "113 and 1 39 112\n"
-    "114 ite 1 37 82 113 2:1:STORE:1\n"
-    "115 next 1 39 114 2:2:JMP:1\n"
+    "109 not 1 80\n"
+    "110 and 1 39 109\n"
+    "111 ite 1 37 79 110 2:1:STORE:1\n"
+    "112 next 1 39 111 2:2:JMP:1\n"
     "\n"
     "; stmt_2_3\n"
-    "116 not 1 84\n"
-    "117 and 1 41 116\n"
-    "118 next 1 41 117 2:3:EXIT:1\n"
+    "113 not 1 81\n"
+    "114 and 1 41 113\n"
+    "115 next 1 41 114 2:3:EXIT:1\n"
     "\n"
     "; stmt_3_0\n"
-    "119 not 1 85\n"
-    "120 and 1 43 119\n"
-    "121 next 1 43 120 3:0:ADDI:1\n"
+    "116 not 1 82\n"
+    "117 and 1 43 116\n"
+    "118 next 1 43 117 3:0:ADDI:1\n"
     "\n"
     "; stmt_3_1\n"
-    "122 not 1 86\n"
-    "123 and 1 45 122\n"
-    "124 ite 1 43 85 123 3:0:ADDI:1\n"
-    "125 ite 1 47 87 124 3:2:JMP:1\n"
-    "126 next 1 45 125 3:1:STORE:1\n"
+    "119 not 1 83\n"
+    "120 and 1 45 119\n"
+    "121 ite 1 43 82 120 3:0:ADDI:1\n"
+    "122 ite 1 47 84 121 3:2:JMP:1\n"
+    "123 next 1 45 122 3:1:STORE:1\n"
     "\n"
     "; stmt_3_2\n"
-    "127 not 1 87\n"
-    "128 and 1 47 127\n"
-    "129 ite 1 45 86 128 3:1:STORE:1\n"
-    "130 next 1 47 129 3:2:JMP:1\n"
+    "124 not 1 84\n"
+    "125 and 1 47 124\n"
+    "126 ite 1 45 83 125 3:1:STORE:1\n"
+    "127 next 1 47 126 3:2:JMP:1\n"
     "\n"
     "; stmt_3_3\n"
-    "131 not 1 88\n"
-    "132 and 1 49 131\n"
-    "133 next 1 49 132 3:3:EXIT:1\n"
+    "128 not 1 85\n"
+    "129 and 1 49 128\n"
+    "130 next 1 49 129 3:3:EXIT:1\n"
     "\n",
     encoder->formula.str());
 }
@@ -1105,96 +1148,96 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_conditional)
   ASSERT_EQ(vector<string>({"36", "38", "40", "42"}), encoder->nids_stmt[2]);
   ASSERT_EQ(vector<string>({"44", "46", "48", "50"}), encoder->nids_stmt[3]);
 
-  ASSERT_EQ(vector<string>({"78", "79", "80", "81"}), encoder->nids_exec[1]);
-  ASSERT_EQ(vector<string>({"82", "83", "84", "85"}), encoder->nids_exec[2]);
-  ASSERT_EQ(vector<string>({"86", "87", "88", "89"}), encoder->nids_exec[3]);
+  ASSERT_EQ(vector<string>({"75", "76", "77", "78"}), encoder->nids_exec[1]);
+  ASSERT_EQ(vector<string>({"79", "80", "81", "82"}), encoder->nids_exec[2]);
+  ASSERT_EQ(vector<string>({"83", "84", "85", "86"}), encoder->nids_exec[3]);
 
   ASSERT_EQ(
     "; update statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; stmt_1_0\n"
-    "90 not 1 78\n"
-    "91 and 1 28 90\n"
-    "92 next 1 28 91 1:0:ADDI:1\n"
+    "87 not 1 75\n"
+    "88 and 1 28 87\n"
+    "89 next 1 28 88 1:0:ADDI:1\n"
     "\n"
     "; stmt_1_1\n"
-    "93 not 1 79\n"
-    "94 and 1 30 93\n"
-    "95 ite 1 28 78 94 1:0:ADDI:1\n"
-    "96 ne 1 16 6\n"
-    "97 and 1 80 96\n"
-    "98 ite 1 32 97 95 1:2:JNZ:1\n"
-    "99 next 1 30 98 1:1:STORE:1\n"
+    "90 not 1 76\n"
+    "91 and 1 30 90\n"
+    "92 ite 1 28 75 91 1:0:ADDI:1\n"
+    "93 ne 1 16 6\n"
+    "94 and 1 77 93\n"
+    "95 ite 1 32 94 92 1:2:JNZ:1\n"
+    "96 next 1 30 95 1:1:STORE:1\n"
     "\n"
     "; stmt_1_2\n"
-    "100 not 1 80\n"
-    "101 and 1 32 100\n"
-    "102 ite 1 30 79 101 1:1:STORE:1\n"
-    "103 next 1 32 102 1:2:JNZ:1\n"
+    "97 not 1 77\n"
+    "98 and 1 32 97\n"
+    "99 ite 1 30 76 98 1:1:STORE:1\n"
+    "100 next 1 32 99 1:2:JNZ:1\n"
     "\n"
     "; stmt_1_3\n"
-    "104 not 1 81\n"
-    "105 and 1 34 104\n"
-    "106 not 1 96\n"
-    "107 and 1 80 106\n"
-    "108 ite 1 32 107 105 1:2:JNZ:1\n"
-    "109 next 1 34 108 1:3:EXIT:1\n"
+    "101 not 1 78\n"
+    "102 and 1 34 101\n"
+    "103 not 1 93\n"
+    "104 and 1 77 103\n"
+    "105 ite 1 32 104 102 1:2:JNZ:1\n"
+    "106 next 1 34 105 1:3:EXIT:1\n"
     "\n"
     "; stmt_2_0\n"
-    "110 not 1 82\n"
-    "111 and 1 36 110\n"
-    "112 next 1 36 111 2:0:ADDI:1\n"
+    "107 not 1 79\n"
+    "108 and 1 36 107\n"
+    "109 next 1 36 108 2:0:ADDI:1\n"
     "\n"
     "; stmt_2_1\n"
-    "113 not 1 83\n"
-    "114 and 1 38 113\n"
-    "115 ite 1 36 82 114 2:0:ADDI:1\n"
-    "116 ne 1 18 6\n"
-    "117 and 1 84 116\n"
-    "118 ite 1 40 117 115 2:2:JNZ:1\n"
-    "119 next 1 38 118 2:1:STORE:1\n"
+    "110 not 1 80\n"
+    "111 and 1 38 110\n"
+    "112 ite 1 36 79 111 2:0:ADDI:1\n"
+    "113 ne 1 18 6\n"
+    "114 and 1 81 113\n"
+    "115 ite 1 40 114 112 2:2:JNZ:1\n"
+    "116 next 1 38 115 2:1:STORE:1\n"
     "\n"
     "; stmt_2_2\n"
-    "120 not 1 84\n"
-    "121 and 1 40 120\n"
-    "122 ite 1 38 83 121 2:1:STORE:1\n"
-    "123 next 1 40 122 2:2:JNZ:1\n"
+    "117 not 1 81\n"
+    "118 and 1 40 117\n"
+    "119 ite 1 38 80 118 2:1:STORE:1\n"
+    "120 next 1 40 119 2:2:JNZ:1\n"
     "\n"
     "; stmt_2_3\n"
-    "124 not 1 85\n"
-    "125 and 1 42 124\n"
-    "126 not 1 116\n"
-    "127 and 1 84 126\n"
-    "128 ite 1 40 127 125 2:2:JNZ:1\n"
-    "129 next 1 42 128 2:3:EXIT:1\n"
+    "121 not 1 82\n"
+    "122 and 1 42 121\n"
+    "123 not 1 113\n"
+    "124 and 1 81 123\n"
+    "125 ite 1 40 124 122 2:2:JNZ:1\n"
+    "126 next 1 42 125 2:3:EXIT:1\n"
     "\n"
     "; stmt_3_0\n"
-    "130 not 1 86\n"
-    "131 and 1 44 130\n"
-    "132 next 1 44 131 3:0:ADDI:1\n"
+    "127 not 1 83\n"
+    "128 and 1 44 127\n"
+    "129 next 1 44 128 3:0:ADDI:1\n"
     "\n"
     "; stmt_3_1\n"
-    "133 not 1 87\n"
-    "134 and 1 46 133\n"
-    "135 ite 1 44 86 134 3:0:ADDI:1\n"
-    "136 ne 1 20 6\n"
-    "137 and 1 88 136\n"
-    "138 ite 1 48 137 135 3:2:JNZ:1\n"
-    "139 next 1 46 138 3:1:STORE:1\n"
+    "130 not 1 84\n"
+    "131 and 1 46 130\n"
+    "132 ite 1 44 83 131 3:0:ADDI:1\n"
+    "133 ne 1 20 6\n"
+    "134 and 1 85 133\n"
+    "135 ite 1 48 134 132 3:2:JNZ:1\n"
+    "136 next 1 46 135 3:1:STORE:1\n"
     "\n"
     "; stmt_3_2\n"
-    "140 not 1 88\n"
-    "141 and 1 48 140\n"
-    "142 ite 1 46 87 141 3:1:STORE:1\n"
-    "143 next 1 48 142 3:2:JNZ:1\n"
+    "137 not 1 85\n"
+    "138 and 1 48 137\n"
+    "139 ite 1 46 84 138 3:1:STORE:1\n"
+    "140 next 1 48 139 3:2:JNZ:1\n"
     "\n"
     "; stmt_3_3\n"
-    "144 not 1 89\n"
-    "145 and 1 50 144\n"
-    "146 not 1 136\n"
-    "147 and 1 88 146\n"
-    "148 ite 1 48 147 145 3:2:JNZ:1\n"
-    "149 next 1 50 148 3:3:EXIT:1\n"
+    "141 not 1 86\n"
+    "142 and 1 50 141\n"
+    "143 not 1 133\n"
+    "144 and 1 85 143\n"
+    "145 ite 1 48 144 142 3:2:JNZ:1\n"
+    "146 next 1 50 145 3:3:EXIT:1\n"
     "\n",
     encoder->formula.str());
 
@@ -1249,96 +1292,96 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_start)
   ASSERT_EQ(vector<string>({"36", "38", "40", "42"}), encoder->nids_stmt[2]);
   ASSERT_EQ(vector<string>({"44", "46", "48", "50"}), encoder->nids_stmt[3]);
 
-  ASSERT_EQ(vector<string>({"78", "79", "80", "81"}), encoder->nids_exec[1]);
-  ASSERT_EQ(vector<string>({"82", "83", "84", "85"}), encoder->nids_exec[2]);
-  ASSERT_EQ(vector<string>({"86", "87", "88", "89"}), encoder->nids_exec[3]);
+  ASSERT_EQ(vector<string>({"75", "76", "77", "78"}), encoder->nids_exec[1]);
+  ASSERT_EQ(vector<string>({"79", "80", "81", "82"}), encoder->nids_exec[2]);
+  ASSERT_EQ(vector<string>({"83", "84", "85", "86"}), encoder->nids_exec[3]);
 
   ASSERT_EQ(
     "; update statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; stmt_1_0\n"
-    "90 not 1 78\n"
-    "91 and 1 28 90\n"
-    "92 ne 1 16 6\n"
-    "93 and 1 80 92\n"
-    "94 ite 1 32 93 91 1:2:JNZ:0\n"
-    "95 next 1 28 94 1:0:ADDI:1\n"
+    "87 not 1 75\n"
+    "88 and 1 28 87\n"
+    "89 ne 1 16 6\n"
+    "90 and 1 77 89\n"
+    "91 ite 1 32 90 88 1:2:JNZ:0\n"
+    "92 next 1 28 91 1:0:ADDI:1\n"
     "\n"
     "; stmt_1_1\n"
-    "96 not 1 79\n"
-    "97 and 1 30 96\n"
-    "98 ite 1 28 78 97 1:0:ADDI:1\n"
-    "99 next 1 30 98 1:1:STORE:1\n"
+    "93 not 1 76\n"
+    "94 and 1 30 93\n"
+    "95 ite 1 28 75 94 1:0:ADDI:1\n"
+    "96 next 1 30 95 1:1:STORE:1\n"
     "\n"
     "; stmt_1_2\n"
-    "100 not 1 80\n"
-    "101 and 1 32 100\n"
-    "102 ite 1 30 79 101 1:1:STORE:1\n"
-    "103 next 1 32 102 1:2:JNZ:0\n"
+    "97 not 1 77\n"
+    "98 and 1 32 97\n"
+    "99 ite 1 30 76 98 1:1:STORE:1\n"
+    "100 next 1 32 99 1:2:JNZ:0\n"
     "\n"
     "; stmt_1_3\n"
-    "104 not 1 81\n"
-    "105 and 1 34 104\n"
-    "106 not 1 92\n"
-    "107 and 1 80 106\n"
-    "108 ite 1 32 107 105 1:2:JNZ:0\n"
-    "109 next 1 34 108 1:3:EXIT:1\n"
+    "101 not 1 78\n"
+    "102 and 1 34 101\n"
+    "103 not 1 89\n"
+    "104 and 1 77 103\n"
+    "105 ite 1 32 104 102 1:2:JNZ:0\n"
+    "106 next 1 34 105 1:3:EXIT:1\n"
     "\n"
     "; stmt_2_0\n"
-    "110 not 1 82\n"
-    "111 and 1 36 110\n"
-    "112 ne 1 18 6\n"
-    "113 and 1 84 112\n"
-    "114 ite 1 40 113 111 2:2:JNZ:0\n"
-    "115 next 1 36 114 2:0:ADDI:1\n"
+    "107 not 1 79\n"
+    "108 and 1 36 107\n"
+    "109 ne 1 18 6\n"
+    "110 and 1 81 109\n"
+    "111 ite 1 40 110 108 2:2:JNZ:0\n"
+    "112 next 1 36 111 2:0:ADDI:1\n"
     "\n"
     "; stmt_2_1\n"
-    "116 not 1 83\n"
-    "117 and 1 38 116\n"
-    "118 ite 1 36 82 117 2:0:ADDI:1\n"
-    "119 next 1 38 118 2:1:STORE:1\n"
+    "113 not 1 80\n"
+    "114 and 1 38 113\n"
+    "115 ite 1 36 79 114 2:0:ADDI:1\n"
+    "116 next 1 38 115 2:1:STORE:1\n"
     "\n"
     "; stmt_2_2\n"
-    "120 not 1 84\n"
-    "121 and 1 40 120\n"
-    "122 ite 1 38 83 121 2:1:STORE:1\n"
-    "123 next 1 40 122 2:2:JNZ:0\n"
+    "117 not 1 81\n"
+    "118 and 1 40 117\n"
+    "119 ite 1 38 80 118 2:1:STORE:1\n"
+    "120 next 1 40 119 2:2:JNZ:0\n"
     "\n"
     "; stmt_2_3\n"
-    "124 not 1 85\n"
-    "125 and 1 42 124\n"
-    "126 not 1 112\n"
-    "127 and 1 84 126\n"
-    "128 ite 1 40 127 125 2:2:JNZ:0\n"
-    "129 next 1 42 128 2:3:EXIT:1\n"
+    "121 not 1 82\n"
+    "122 and 1 42 121\n"
+    "123 not 1 109\n"
+    "124 and 1 81 123\n"
+    "125 ite 1 40 124 122 2:2:JNZ:0\n"
+    "126 next 1 42 125 2:3:EXIT:1\n"
     "\n"
     "; stmt_3_0\n"
-    "130 not 1 86\n"
-    "131 and 1 44 130\n"
-    "132 ne 1 20 6\n"
-    "133 and 1 88 132\n"
-    "134 ite 1 48 133 131 3:2:JNZ:0\n"
-    "135 next 1 44 134 3:0:ADDI:1\n"
+    "127 not 1 83\n"
+    "128 and 1 44 127\n"
+    "129 ne 1 20 6\n"
+    "130 and 1 85 129\n"
+    "131 ite 1 48 130 128 3:2:JNZ:0\n"
+    "132 next 1 44 131 3:0:ADDI:1\n"
     "\n"
     "; stmt_3_1\n"
-    "136 not 1 87\n"
-    "137 and 1 46 136\n"
-    "138 ite 1 44 86 137 3:0:ADDI:1\n"
-    "139 next 1 46 138 3:1:STORE:1\n"
+    "133 not 1 84\n"
+    "134 and 1 46 133\n"
+    "135 ite 1 44 83 134 3:0:ADDI:1\n"
+    "136 next 1 46 135 3:1:STORE:1\n"
     "\n"
     "; stmt_3_2\n"
-    "140 not 1 88\n"
-    "141 and 1 48 140\n"
-    "142 ite 1 46 87 141 3:1:STORE:1\n"
-    "143 next 1 48 142 3:2:JNZ:0\n"
+    "137 not 1 85\n"
+    "138 and 1 48 137\n"
+    "139 ite 1 46 84 138 3:1:STORE:1\n"
+    "140 next 1 48 139 3:2:JNZ:0\n"
     "\n"
     "; stmt_3_3\n"
-    "144 not 1 89\n"
-    "145 and 1 50 144\n"
-    "146 not 1 132\n"
-    "147 and 1 88 146\n"
-    "148 ite 1 48 147 145 3:2:JNZ:0\n"
-    "149 next 1 50 148 3:3:EXIT:1\n"
+    "141 not 1 86\n"
+    "142 and 1 50 141\n"
+    "143 not 1 129\n"
+    "144 and 1 85 143\n"
+    "145 ite 1 48 144 142 3:2:JNZ:0\n"
+    "146 next 1 50 145 3:3:EXIT:1\n"
     "\n",
     encoder->formula.str());
 
@@ -1394,129 +1437,129 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_twice)
   ASSERT_EQ(vector<string>({"38", "40", "42", "44", "46"}), encoder->nids_stmt[2]);
   ASSERT_EQ(vector<string>({"48", "50", "52", "54", "56"}), encoder->nids_stmt[3]);
 
-  ASSERT_EQ(vector<string>({"84", "85", "86", "87", "88"}), encoder->nids_exec[1]);
-  ASSERT_EQ(vector<string>({"89", "90", "91", "92", "93"}), encoder->nids_exec[2]);
-  ASSERT_EQ(vector<string>({"94", "95", "96", "97", "98"}), encoder->nids_exec[3]);
+  ASSERT_EQ(vector<string>({"81", "82", "83", "84", "85"}), encoder->nids_exec[1]);
+  ASSERT_EQ(vector<string>({"86", "87", "88", "89", "90"}), encoder->nids_exec[2]);
+  ASSERT_EQ(vector<string>({"91", "92", "93", "94", "95"}), encoder->nids_exec[3]);
 
   ASSERT_EQ(
     "; update statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; stmt_1_0\n"
-    "99 not 1 84\n"
-    "100 and 1 28 99\n"
-    "101 next 1 28 100 1:0:ADDI:1\n"
+    "96 not 1 81\n"
+    "97 and 1 28 96\n"
+    "98 next 1 28 97 1:0:ADDI:1\n"
     "\n"
     "; stmt_1_1\n"
-    "102 not 1 85\n"
-    "103 and 1 30 102\n"
-    "104 ite 1 28 84 103 1:0:ADDI:1\n"
-    "105 eq 1 16 6\n"
-    "106 and 1 86 105\n"
-    "107 ite 1 32 106 104 1:2:JZ:1\n"
-    "108 ne 1 16 6\n"
-    "109 and 1 87 108\n"
-    "110 ite 1 34 109 107 1:3:JNZ:1\n"
-    "111 next 1 30 110 1:1:STORE:1\n"
+    "99 not 1 82\n"
+    "100 and 1 30 99\n"
+    "101 ite 1 28 81 100 1:0:ADDI:1\n"
+    "102 eq 1 16 6\n"
+    "103 and 1 83 102\n"
+    "104 ite 1 32 103 101 1:2:JZ:1\n"
+    "105 ne 1 16 6\n"
+    "106 and 1 84 105\n"
+    "107 ite 1 34 106 104 1:3:JNZ:1\n"
+    "108 next 1 30 107 1:1:STORE:1\n"
     "\n"
     "; stmt_1_2\n"
-    "112 not 1 86\n"
-    "113 and 1 32 112\n"
-    "114 ite 1 30 85 113 1:1:STORE:1\n"
-    "115 next 1 32 114 1:2:JZ:1\n"
+    "109 not 1 83\n"
+    "110 and 1 32 109\n"
+    "111 ite 1 30 82 110 1:1:STORE:1\n"
+    "112 next 1 32 111 1:2:JZ:1\n"
     "\n"
     "; stmt_1_3\n"
-    "116 not 1 87\n"
-    "117 and 1 34 116\n"
-    "118 not 1 105\n"
-    "119 and 1 86 118\n"
-    "120 ite 1 32 119 117 1:2:JZ:1\n"
-    "121 next 1 34 120 1:3:JNZ:1\n"
+    "113 not 1 84\n"
+    "114 and 1 34 113\n"
+    "115 not 1 102\n"
+    "116 and 1 83 115\n"
+    "117 ite 1 32 116 114 1:2:JZ:1\n"
+    "118 next 1 34 117 1:3:JNZ:1\n"
     "\n"
     "; stmt_1_4\n"
-    "122 not 1 88\n"
-    "123 and 1 36 122\n"
-    "124 not 1 108\n"
-    "125 and 1 87 124\n"
-    "126 ite 1 34 125 123 1:3:JNZ:1\n"
-    "127 next 1 36 126 1:4:EXIT:1\n"
+    "119 not 1 85\n"
+    "120 and 1 36 119\n"
+    "121 not 1 105\n"
+    "122 and 1 84 121\n"
+    "123 ite 1 34 122 120 1:3:JNZ:1\n"
+    "124 next 1 36 123 1:4:EXIT:1\n"
     "\n"
     "; stmt_2_0\n"
-    "128 not 1 89\n"
-    "129 and 1 38 128\n"
-    "130 next 1 38 129 2:0:ADDI:1\n"
+    "125 not 1 86\n"
+    "126 and 1 38 125\n"
+    "127 next 1 38 126 2:0:ADDI:1\n"
     "\n"
     "; stmt_2_1\n"
-    "131 not 1 90\n"
-    "132 and 1 40 131\n"
-    "133 ite 1 38 89 132 2:0:ADDI:1\n"
-    "134 eq 1 18 6\n"
-    "135 and 1 91 134\n"
-    "136 ite 1 42 135 133 2:2:JZ:1\n"
-    "137 ne 1 18 6\n"
-    "138 and 1 92 137\n"
-    "139 ite 1 44 138 136 2:3:JNZ:1\n"
-    "140 next 1 40 139 2:1:STORE:1\n"
+    "128 not 1 87\n"
+    "129 and 1 40 128\n"
+    "130 ite 1 38 86 129 2:0:ADDI:1\n"
+    "131 eq 1 18 6\n"
+    "132 and 1 88 131\n"
+    "133 ite 1 42 132 130 2:2:JZ:1\n"
+    "134 ne 1 18 6\n"
+    "135 and 1 89 134\n"
+    "136 ite 1 44 135 133 2:3:JNZ:1\n"
+    "137 next 1 40 136 2:1:STORE:1\n"
     "\n"
     "; stmt_2_2\n"
-    "141 not 1 91\n"
-    "142 and 1 42 141\n"
-    "143 ite 1 40 90 142 2:1:STORE:1\n"
-    "144 next 1 42 143 2:2:JZ:1\n"
+    "138 not 1 88\n"
+    "139 and 1 42 138\n"
+    "140 ite 1 40 87 139 2:1:STORE:1\n"
+    "141 next 1 42 140 2:2:JZ:1\n"
     "\n"
     "; stmt_2_3\n"
-    "145 not 1 92\n"
-    "146 and 1 44 145\n"
-    "147 not 1 134\n"
-    "148 and 1 91 147\n"
-    "149 ite 1 42 148 146 2:2:JZ:1\n"
-    "150 next 1 44 149 2:3:JNZ:1\n"
+    "142 not 1 89\n"
+    "143 and 1 44 142\n"
+    "144 not 1 131\n"
+    "145 and 1 88 144\n"
+    "146 ite 1 42 145 143 2:2:JZ:1\n"
+    "147 next 1 44 146 2:3:JNZ:1\n"
     "\n"
     "; stmt_2_4\n"
-    "151 not 1 93\n"
-    "152 and 1 46 151\n"
-    "153 not 1 137\n"
-    "154 and 1 92 153\n"
-    "155 ite 1 44 154 152 2:3:JNZ:1\n"
-    "156 next 1 46 155 2:4:EXIT:1\n"
+    "148 not 1 90\n"
+    "149 and 1 46 148\n"
+    "150 not 1 134\n"
+    "151 and 1 89 150\n"
+    "152 ite 1 44 151 149 2:3:JNZ:1\n"
+    "153 next 1 46 152 2:4:EXIT:1\n"
     "\n"
     "; stmt_3_0\n"
-    "157 not 1 94\n"
-    "158 and 1 48 157\n"
-    "159 next 1 48 158 3:0:ADDI:1\n"
+    "154 not 1 91\n"
+    "155 and 1 48 154\n"
+    "156 next 1 48 155 3:0:ADDI:1\n"
     "\n"
     "; stmt_3_1\n"
-    "160 not 1 95\n"
-    "161 and 1 50 160\n"
-    "162 ite 1 48 94 161 3:0:ADDI:1\n"
-    "163 eq 1 20 6\n"
-    "164 and 1 96 163\n"
-    "165 ite 1 52 164 162 3:2:JZ:1\n"
-    "166 ne 1 20 6\n"
-    "167 and 1 97 166\n"
-    "168 ite 1 54 167 165 3:3:JNZ:1\n"
-    "169 next 1 50 168 3:1:STORE:1\n"
+    "157 not 1 92\n"
+    "158 and 1 50 157\n"
+    "159 ite 1 48 91 158 3:0:ADDI:1\n"
+    "160 eq 1 20 6\n"
+    "161 and 1 93 160\n"
+    "162 ite 1 52 161 159 3:2:JZ:1\n"
+    "163 ne 1 20 6\n"
+    "164 and 1 94 163\n"
+    "165 ite 1 54 164 162 3:3:JNZ:1\n"
+    "166 next 1 50 165 3:1:STORE:1\n"
     "\n"
     "; stmt_3_2\n"
-    "170 not 1 96\n"
-    "171 and 1 52 170\n"
-    "172 ite 1 50 95 171 3:1:STORE:1\n"
-    "173 next 1 52 172 3:2:JZ:1\n"
+    "167 not 1 93\n"
+    "168 and 1 52 167\n"
+    "169 ite 1 50 92 168 3:1:STORE:1\n"
+    "170 next 1 52 169 3:2:JZ:1\n"
     "\n"
     "; stmt_3_3\n"
-    "174 not 1 97\n"
-    "175 and 1 54 174\n"
-    "176 not 1 163\n"
-    "177 and 1 96 176\n"
-    "178 ite 1 52 177 175 3:2:JZ:1\n"
-    "179 next 1 54 178 3:3:JNZ:1\n"
+    "171 not 1 94\n"
+    "172 and 1 54 171\n"
+    "173 not 1 160\n"
+    "174 and 1 93 173\n"
+    "175 ite 1 52 174 172 3:2:JZ:1\n"
+    "176 next 1 54 175 3:3:JNZ:1\n"
     "\n"
     "; stmt_3_4\n"
-    "180 not 1 98\n"
-    "181 and 1 56 180\n"
-    "182 not 1 166\n"
-    "183 and 1 97 182\n"
-    "184 ite 1 54 183 181 3:3:JNZ:1\n"
-    "185 next 1 56 184 3:4:EXIT:1\n"
+    "177 not 1 95\n"
+    "178 and 1 56 177\n"
+    "179 not 1 163\n"
+    "180 and 1 94 179\n"
+    "181 ite 1 54 180 178 3:3:JNZ:1\n"
+    "182 next 1 56 181 3:4:EXIT:1\n"
     "\n",
     encoder->formula.str());
 
@@ -2847,15 +2890,15 @@ TEST_F(Btor2EncoderTest, load)
 
   Load l(1);
 
-  ASSERT_EQ("35", encoder->load(l));
-  ASSERT_EQ(Word2NIDMap({{1, "35"}}), encoder->nids_load);
-  ASSERT_EQ("35 read 2 14 7\n", encoder->formula.str());
+  ASSERT_EQ("34", encoder->load(l));
+  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
+  ASSERT_EQ("34 read 2 14 7\n", encoder->formula.str());
 
   /* another load from the same memory address */
   encoder->formula.str("");
 
-  ASSERT_EQ("35", encoder->load(l));
-  ASSERT_EQ(Word2NIDMap({{1, "35"}}), encoder->nids_load);
+  ASSERT_EQ("34", encoder->load(l));
+  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
   ASSERT_EQ("", encoder->formula.str());
 
   /* indirect */
@@ -2863,17 +2906,17 @@ TEST_F(Btor2EncoderTest, load)
 
   l.indirect = true;
 
-  ASSERT_EQ("36", encoder->load(l));
-  ASSERT_EQ(Word2NIDMap({{1, "35"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "36"}}), encoder->nids_load_indirect);
-  ASSERT_EQ("36 read 2 14 35\n", encoder->formula.str());
+  ASSERT_EQ("35", encoder->load(l));
+  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
+  ASSERT_EQ(Word2NIDMap({{1, "35"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("35 read 2 14 34\n", encoder->formula.str());
 
   /* another load from the same memory address */
   encoder->formula.str("");
 
-  ASSERT_EQ("36", encoder->load(l));
-  ASSERT_EQ(Word2NIDMap({{1, "35"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "36"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("35", encoder->load(l));
+  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
+  ASSERT_EQ(Word2NIDMap({{1, "35"}}), encoder->nids_load_indirect);
   ASSERT_EQ("", encoder->formula.str());
 }
 
@@ -2887,39 +2930,39 @@ TEST_F(Btor2EncoderTest, store)
   Store s(1);
 
   encoder->thread = 1;
-  ASSERT_EQ("53", encoder->store(s));
-  ASSERT_EQ(Word2Word2NIDMap({{1, {{1, "53"}}}}), encoder->nids_store);
-  ASSERT_EQ("53 write 3 15 7 16\n", encoder->formula.str());
+  ASSERT_EQ("51", encoder->store(s));
+  ASSERT_EQ(Word2Word2NIDMap({{1, {{1, "51"}}}}), encoder->nids_store);
+  ASSERT_EQ("51 write 3 15 7 16\n", encoder->formula.str());
 
   encoder->formula.str("");
 
   encoder->thread = 2;
-  ASSERT_EQ("54", encoder->store(s));
+  ASSERT_EQ("52", encoder->store(s));
   ASSERT_EQ(
     Word2Word2NIDMap({
-      {1, {{1, "53"}}},
-      {2, {{1, "54"}}}}),
+      {1, {{1, "51"}}},
+      {2, {{1, "52"}}}}),
     encoder->nids_store);
-  ASSERT_EQ("54 write 3 15 7 18\n", encoder->formula.str());
+  ASSERT_EQ("52 write 3 15 7 18\n", encoder->formula.str());
 
   /* another store to the same memory address */
   encoder->formula.str("");
 
   encoder->thread = 1;
-  ASSERT_EQ("53", encoder->store(s));
+  ASSERT_EQ("51", encoder->store(s));
   ASSERT_EQ(
     Word2Word2NIDMap({
-      {1, {{1, "53"}}},
-      {2, {{1, "54"}}}}),
+      {1, {{1, "51"}}},
+      {2, {{1, "52"}}}}),
     encoder->nids_store);
   ASSERT_EQ("", encoder->formula.str());
 
   encoder->thread = 2;
-  ASSERT_EQ("54", encoder->store(s));
+  ASSERT_EQ("52", encoder->store(s));
   ASSERT_EQ(
     Word2Word2NIDMap({
-      {1, {{1, "53"}}},
-      {2, {{1, "54"}}}}),
+      {1, {{1, "51"}}},
+      {2, {{1, "52"}}}}),
     encoder->nids_store);
   ASSERT_EQ("", encoder->formula.str());
 
@@ -2929,48 +2972,48 @@ TEST_F(Btor2EncoderTest, store)
   s.indirect = true;
 
   encoder->thread = 1;
-  ASSERT_EQ("56", encoder->store(s));
-  ASSERT_EQ(Word2NIDMap({{1, "55"}}), encoder->nids_load);
-  ASSERT_EQ(Word2Word2NIDMap({{1, {{1, "56"}}}}), encoder->nids_store_indirect);
+  ASSERT_EQ("54", encoder->store(s));
+  ASSERT_EQ(Word2NIDMap({{1, "53"}}), encoder->nids_load);
+  ASSERT_EQ(Word2Word2NIDMap({{1, {{1, "54"}}}}), encoder->nids_store_indirect);
   ASSERT_EQ(
-    "55 read 2 15 7\n"
-    "56 write 3 15 55 16\n",
+    "53 read 2 15 7\n"
+    "54 write 3 15 53 16\n",
     encoder->formula.str());
 
   encoder->formula.str("");
 
   encoder->thread = 2;
-  ASSERT_EQ("57", encoder->store(s));
-  ASSERT_EQ(Word2NIDMap({{1, "55"}}), encoder->nids_load);
+  ASSERT_EQ("55", encoder->store(s));
+  ASSERT_EQ(Word2NIDMap({{1, "53"}}), encoder->nids_load);
   ASSERT_EQ(
     Word2Word2NIDMap({
-      {1, {{1, "56"}}},
-      {2, {{1, "57"}}}}),
+      {1, {{1, "54"}}},
+      {2, {{1, "55"}}}}),
     encoder->nids_store_indirect);
   ASSERT_EQ(
-    "57 write 3 15 55 18\n",
+    "55 write 3 15 53 18\n",
     encoder->formula.str());
 
   /* another store to the same memory address */
   encoder->formula.str("");
 
   encoder->thread = 1;
-  ASSERT_EQ("56", encoder->store(s));
-  ASSERT_EQ(Word2NIDMap({{1, "55"}}), encoder->nids_load);
+  ASSERT_EQ("54", encoder->store(s));
+  ASSERT_EQ(Word2NIDMap({{1, "53"}}), encoder->nids_load);
   ASSERT_EQ(
     Word2Word2NIDMap({
-      {1, {{1, "56"}}},
-      {2, {{1, "57"}}}}),
+      {1, {{1, "54"}}},
+      {2, {{1, "55"}}}}),
     encoder->nids_store_indirect);
   ASSERT_EQ("", encoder->formula.str());
 
   encoder->thread = 2;
-  ASSERT_EQ("57", encoder->store(s));
-  ASSERT_EQ(Word2NIDMap({{1, "55"}}), encoder->nids_load);
+  ASSERT_EQ("55", encoder->store(s));
+  ASSERT_EQ(Word2NIDMap({{1, "53"}}), encoder->nids_load);
   ASSERT_EQ(
     Word2Word2NIDMap({
-      {1, {{1, "56"}}},
-      {2, {{1, "57"}}}}),
+      {1, {{1, "54"}}},
+      {2, {{1, "55"}}}}),
     encoder->nids_store_indirect);
   ASSERT_EQ("", encoder->formula.str());
 }
@@ -3039,40 +3082,40 @@ TEST_F(Btor2EncoderTest, ADD)
 
   Add a(1);
 
-  ASSERT_EQ("36", encoder->encode(a));
-  ASSERT_EQ(Word2NIDMap({{1, "35"}}), encoder->nids_load);
+  ASSERT_EQ("35", encoder->encode(a));
+  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
   ASSERT_EQ(
-    "35 read 2 14 7\n"
-    "36 add 2 15 35\n",
+    "34 read 2 14 7\n"
+    "35 add 2 15 34\n",
     encoder->formula.str());
 
   /* another ADD from the same memory address */
   encoder->formula.str("");
 
-  ASSERT_EQ("37", encoder->encode(a));
-  ASSERT_EQ(Word2NIDMap({{1, "35"}}), encoder->nids_load);
-  ASSERT_EQ("37 add 2 15 35\n", encoder->formula.str());
+  ASSERT_EQ("36", encoder->encode(a));
+  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
+  ASSERT_EQ("36 add 2 15 34\n", encoder->formula.str());
 
   /* indirect */
   encoder->formula.str("");
 
   a.indirect = true;
 
-  ASSERT_EQ("39", encoder->encode(a));
-  ASSERT_EQ(Word2NIDMap({{1, "35"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "38"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("38", encoder->encode(a));
+  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
+  ASSERT_EQ(Word2NIDMap({{1, "37"}}), encoder->nids_load_indirect);
   ASSERT_EQ(
-    "38 read 2 14 35\n"
-    "39 add 2 15 38\n",
+    "37 read 2 14 34\n"
+    "38 add 2 15 37\n",
     encoder->formula.str());
 
   /* another ADD from the same memory address */
   encoder->formula.str("");
 
-  ASSERT_EQ("40", encoder->encode(a));
-  ASSERT_EQ(Word2NIDMap({{1, "35"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "38"}}), encoder->nids_load_indirect);
-  ASSERT_EQ("40 add 2 15 38\n", encoder->formula.str());
+  ASSERT_EQ("39", encoder->encode(a));
+  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
+  ASSERT_EQ(Word2NIDMap({{1, "37"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("39 add 2 15 37\n", encoder->formula.str());
 }
 
 // virtual std::string encode (Addi &);
@@ -3086,14 +3129,14 @@ TEST_F(Btor2EncoderTest, ADDI)
 
   Addi a(1);
 
-  ASSERT_EQ("35", encoder->encode(a));
-  ASSERT_EQ("35 add 2 15 7\n", encoder->formula.str());
+  ASSERT_EQ("34", encoder->encode(a));
+  ASSERT_EQ("34 add 2 15 7\n", encoder->formula.str());
 
   /* another ADDI with the same constant */
   encoder->formula.str("");
 
-  ASSERT_EQ("36", encoder->encode(a));
-  ASSERT_EQ("36 add 2 15 7\n", encoder->formula.str());
+  ASSERT_EQ("35", encoder->encode(a));
+  ASSERT_EQ("35 add 2 15 7\n", encoder->formula.str());
 }
 
 // virtual std::string encode (Sub &);
@@ -3107,40 +3150,40 @@ TEST_F(Btor2EncoderTest, SUB)
 
   Sub s(1);
 
-  ASSERT_EQ("36", encoder->encode(s));
-  ASSERT_EQ(Word2NIDMap({{1, "35"}}), encoder->nids_load);
+  ASSERT_EQ("35", encoder->encode(s));
+  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
   ASSERT_EQ(
-    "35 read 2 14 7\n"
-    "36 sub 2 15 35\n",
+    "34 read 2 14 7\n"
+    "35 sub 2 15 34\n",
     encoder->formula.str());
 
   /* another SUB from the same memory address */
   encoder->formula.str("");
 
-  ASSERT_EQ("37", encoder->encode(s));
-  ASSERT_EQ(Word2NIDMap({{1, "35"}}), encoder->nids_load);
-  ASSERT_EQ("37 sub 2 15 35\n", encoder->formula.str());
+  ASSERT_EQ("36", encoder->encode(s));
+  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
+  ASSERT_EQ("36 sub 2 15 34\n", encoder->formula.str());
 
   /* indirect */
   encoder->formula.str("");
 
   s.indirect = true;
 
-  ASSERT_EQ("39", encoder->encode(s));
-  ASSERT_EQ(Word2NIDMap({{1, "35"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "38"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("38", encoder->encode(s));
+  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
+  ASSERT_EQ(Word2NIDMap({{1, "37"}}), encoder->nids_load_indirect);
   ASSERT_EQ(
-    "38 read 2 14 35\n"
-    "39 sub 2 15 38\n",
+    "37 read 2 14 34\n"
+    "38 sub 2 15 37\n",
     encoder->formula.str());
 
   /* another SUB from the same memory address */
   encoder->formula.str("");
 
-  ASSERT_EQ("40", encoder->encode(s));
-  ASSERT_EQ(Word2NIDMap({{1, "35"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "38"}}), encoder->nids_load_indirect);
-  ASSERT_EQ("40 sub 2 15 38\n", encoder->formula.str());
+  ASSERT_EQ("39", encoder->encode(s));
+  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
+  ASSERT_EQ(Word2NIDMap({{1, "37"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("39 sub 2 15 37\n", encoder->formula.str());
 }
 
 // virtual std::string encode (Subi &);
@@ -3154,14 +3197,14 @@ TEST_F(Btor2EncoderTest, SUBI)
 
   Subi s(1);
 
-  ASSERT_EQ("35", encoder->encode(s));
-  ASSERT_EQ("35 sub 2 15 7\n", encoder->formula.str());
+  ASSERT_EQ("34", encoder->encode(s));
+  ASSERT_EQ("34 sub 2 15 7\n", encoder->formula.str());
 
   /* another SUBI with the same constant */
   encoder->formula.str("");
 
-  ASSERT_EQ("36", encoder->encode(s));
-  ASSERT_EQ("36 sub 2 15 7\n", encoder->formula.str());
+  ASSERT_EQ("35", encoder->encode(s));
+  ASSERT_EQ("35 sub 2 15 7\n", encoder->formula.str());
 }
 
 // virtual std::string encode (Cmp &);
@@ -3175,40 +3218,40 @@ TEST_F(Btor2EncoderTest, CMP)
 
   Cmp c(1);
 
-  ASSERT_EQ("36", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "35"}}), encoder->nids_load);
+  ASSERT_EQ("35", encoder->encode(c));
+  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
   ASSERT_EQ(
-    "35 read 2 14 7\n"
-    "36 sub 2 15 35\n",
+    "34 read 2 14 7\n"
+    "35 sub 2 15 34\n",
     encoder->formula.str());
 
   /* another CMP from the same memory address */
   encoder->formula.str("");
 
-  ASSERT_EQ("37", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "35"}}), encoder->nids_load);
-  ASSERT_EQ("37 sub 2 15 35\n", encoder->formula.str());
+  ASSERT_EQ("36", encoder->encode(c));
+  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
+  ASSERT_EQ("36 sub 2 15 34\n", encoder->formula.str());
 
   /* indirect */
   encoder->formula.str("");
 
   c.indirect = true;
 
-  ASSERT_EQ("39", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "35"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "38"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("38", encoder->encode(c));
+  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
+  ASSERT_EQ(Word2NIDMap({{1, "37"}}), encoder->nids_load_indirect);
   ASSERT_EQ(
-    "38 read 2 14 35\n"
-    "39 sub 2 15 38\n",
+    "37 read 2 14 34\n"
+    "38 sub 2 15 37\n",
     encoder->formula.str());
 
   /* another CMP from the same memory address */
   encoder->formula.str("");
 
-  ASSERT_EQ("40", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "35"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "38"}}), encoder->nids_load_indirect);
-  ASSERT_EQ("40 sub 2 15 38\n", encoder->formula.str());
+  ASSERT_EQ("39", encoder->encode(c));
+  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
+  ASSERT_EQ(Word2NIDMap({{1, "37"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("39 sub 2 15 37\n", encoder->formula.str());
 }
 
 // virtual std::string encode (Jmp &);
@@ -3237,8 +3280,8 @@ TEST_F(Btor2EncoderTest, JZ)
 
   Jz j(1);
 
-  ASSERT_EQ("35", encoder->encode(j));
-  ASSERT_EQ("35 eq 1 15 6\n", encoder->formula.str());
+  ASSERT_EQ("34", encoder->encode(j));
+  ASSERT_EQ("34 eq 1 15 6\n", encoder->formula.str());
 }
 
 // virtual std::string encode (Jnz &);
@@ -3252,8 +3295,8 @@ TEST_F(Btor2EncoderTest, JNZ)
 
   Jnz j(1);
 
-  ASSERT_EQ("35", encoder->encode(j));
-  ASSERT_EQ("35 ne 1 15 6\n", encoder->formula.str());
+  ASSERT_EQ("34", encoder->encode(j));
+  ASSERT_EQ("34 ne 1 15 6\n", encoder->formula.str());
 }
 
 // virtual std::string encode (Js &);
@@ -3267,8 +3310,8 @@ TEST_F(Btor2EncoderTest, JS)
 
   Js j(1);
 
-  ASSERT_EQ("35", encoder->encode(j));
-  ASSERT_EQ("35 slice 1 15 15 15\n", encoder->formula.str());
+  ASSERT_EQ("34", encoder->encode(j));
+  ASSERT_EQ("34 slice 1 15 15 15\n", encoder->formula.str());
 }
 
 // virtual std::string encode (Jns &);
@@ -3282,10 +3325,10 @@ TEST_F(Btor2EncoderTest, JNS)
 
   Jns j(1);
 
-  ASSERT_EQ("36", encoder->encode(j));
+  ASSERT_EQ("35", encoder->encode(j));
   ASSERT_EQ(
-    "35 slice 1 15 15 15\n"
-    "36 not 1 35\n",
+    "34 slice 1 15 15 15\n"
+    "35 not 1 34\n",
     encoder->formula.str());
 }
 
@@ -3300,12 +3343,12 @@ TEST_F(Btor2EncoderTest, JNZNS)
 
   Jnzns j(1);
 
-  ASSERT_EQ("39", encoder->encode(j));
+  ASSERT_EQ("38", encoder->encode(j));
   ASSERT_EQ(
-    "36 ne 1 15 6\n"
-    "37 slice 1 15 15 15\n"
-    "38 not 1 37\n"
-    "39 and 1 36 38\n",
+    "35 ne 1 15 6\n"
+    "36 slice 1 15 15 15\n"
+    "37 not 1 36\n"
+    "38 and 1 35 37\n",
     encoder->formula.str());
 }
 
@@ -3327,43 +3370,43 @@ TEST_F(Btor2EncoderTest, CAS_accu)
   Cas c(1);
 
   encoder->thread = 1;
-  ASSERT_EQ("55", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "53"}}), encoder->nids_load);
+  ASSERT_EQ("53", encoder->encode(c));
+  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
   ASSERT_EQ(
-    "53 read 2 15 7\n"
-    "54 eq 1 20 53\n"
-    "55 ite 2 54 7 6\n",
+    "51 read 2 15 7\n"
+    "52 eq 1 20 51\n"
+    "53 ite 2 52 7 6\n",
     encoder->formula.str());
 
   encoder->formula.str("");
 
   encoder->thread = 2;
-  ASSERT_EQ("57", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "53"}}), encoder->nids_load);
+  ASSERT_EQ("55", encoder->encode(c));
+  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
   ASSERT_EQ(
-    "56 eq 1 22 53\n"
-    "57 ite 2 56 7 6\n",
+    "54 eq 1 22 51\n"
+    "55 ite 2 54 7 6\n",
     encoder->formula.str());
 
   /* another CAS to the same memory address */
   encoder->formula.str("");
 
   encoder->thread = 1;
-  ASSERT_EQ("59", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "53"}}), encoder->nids_load);
+  ASSERT_EQ("57", encoder->encode(c));
+  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
   ASSERT_EQ(
-    "58 eq 1 20 53\n"
-    "59 ite 2 58 7 6\n",
+    "56 eq 1 20 51\n"
+    "57 ite 2 56 7 6\n",
     encoder->formula.str());
 
   encoder->formula.str("");
 
   encoder->thread = 2;
-  ASSERT_EQ("61", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "53"}}), encoder->nids_load);
+  ASSERT_EQ("59", encoder->encode(c));
+  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
   ASSERT_EQ(
-    "60 eq 1 22 53\n"
-    "61 ite 2 60 7 6\n",
+    "58 eq 1 22 51\n"
+    "59 ite 2 58 7 6\n",
     encoder->formula.str());
 
   /* indirect */
@@ -3372,47 +3415,47 @@ TEST_F(Btor2EncoderTest, CAS_accu)
   c.indirect = true;
 
   encoder->thread = 1;
-  ASSERT_EQ("64", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "53"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "62"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("62", encoder->encode(c));
+  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
+  ASSERT_EQ(Word2NIDMap({{1, "60"}}), encoder->nids_load_indirect);
   ASSERT_EQ(
-    "62 read 2 15 53\n"
-    "63 eq 1 20 62\n"
-    "64 ite 2 63 7 6\n",
+    "60 read 2 15 51\n"
+    "61 eq 1 20 60\n"
+    "62 ite 2 61 7 6\n",
     encoder->formula.str());
 
   encoder->formula.str("");
 
   encoder->thread = 2;
-  ASSERT_EQ("66", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "53"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "62"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("64", encoder->encode(c));
+  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
+  ASSERT_EQ(Word2NIDMap({{1, "60"}}), encoder->nids_load_indirect);
   ASSERT_EQ(
-    "65 eq 1 22 62\n"
-    "66 ite 2 65 7 6\n",
+    "63 eq 1 22 60\n"
+    "64 ite 2 63 7 6\n",
     encoder->formula.str());
 
   /* another CAS to the same memory address */
   encoder->formula.str("");
 
   encoder->thread = 1;
-  ASSERT_EQ("68", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "53"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "62"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("66", encoder->encode(c));
+  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
+  ASSERT_EQ(Word2NIDMap({{1, "60"}}), encoder->nids_load_indirect);
   ASSERT_EQ(
-    "67 eq 1 20 62\n"
-    "68 ite 2 67 7 6\n",
+    "65 eq 1 20 60\n"
+    "66 ite 2 65 7 6\n",
     encoder->formula.str());
 
   encoder->formula.str("");
 
   encoder->thread = 2;
-  ASSERT_EQ("70", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "53"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "62"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("68", encoder->encode(c));
+  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
+  ASSERT_EQ(Word2NIDMap({{1, "60"}}), encoder->nids_load_indirect);
   ASSERT_EQ(
-    "69 eq 1 22 62\n"
-    "70 ite 2 69 7 6\n",
+    "67 eq 1 22 60\n"
+    "68 ite 2 67 7 6\n",
     encoder->formula.str());
 }
 
@@ -3427,61 +3470,61 @@ TEST_F(Btor2EncoderTest, CAS_heap)
   Cas c(1);
 
   encoder->thread = 1;
-  ASSERT_EQ("56", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "53"}}), encoder->nids_load);
-  ASSERT_EQ(Word2Word2NIDMap({{1, {{1, "55"}}}}), encoder->nids_store);
+  ASSERT_EQ("54", encoder->encode(c));
+  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
+  ASSERT_EQ(Word2Word2NIDMap({{1, {{1, "53"}}}}), encoder->nids_store);
   ASSERT_EQ(
-    "53 read 2 15 7\n"
-    "54 eq 1 20 53\n"
-    "55 write 3 15 7 16\n"
-    "56 ite 3 54 55 15\n",
+    "51 read 2 15 7\n"
+    "52 eq 1 20 51\n"
+    "53 write 3 15 7 16\n"
+    "54 ite 3 52 53 15\n",
     encoder->formula.str());
 
   encoder->formula.str("");
 
   encoder->thread = 2;
-  ASSERT_EQ("59", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "53"}}), encoder->nids_load);
+  ASSERT_EQ("57", encoder->encode(c));
+  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
   ASSERT_EQ(
     Word2Word2NIDMap({
-      {1, {{1, "55"}}},
-      {2, {{1, "58"}}}}),
+      {1, {{1, "53"}}},
+      {2, {{1, "56"}}}}),
     encoder->nids_store);
   ASSERT_EQ(
-    "57 eq 1 22 53\n"
-    "58 write 3 15 7 18\n"
-    "59 ite 3 57 58 15\n",
+    "55 eq 1 22 51\n"
+    "56 write 3 15 7 18\n"
+    "57 ite 3 55 56 15\n",
     encoder->formula.str());
 
   /* another CAS to the same memory address */
   encoder->formula.str("");
 
   encoder->thread = 1;
-  ASSERT_EQ("61", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "53"}}), encoder->nids_load);
+  ASSERT_EQ("59", encoder->encode(c));
+  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
   ASSERT_EQ(
     Word2Word2NIDMap({
-      {1, {{1, "55"}}},
-      {2, {{1, "58"}}}}),
+      {1, {{1, "53"}}},
+      {2, {{1, "56"}}}}),
     encoder->nids_store);
   ASSERT_EQ(
-    "60 eq 1 20 53\n"
-    "61 ite 3 60 55 15\n",
+    "58 eq 1 20 51\n"
+    "59 ite 3 58 53 15\n",
     encoder->formula.str());
 
   encoder->formula.str("");
 
   encoder->thread = 2;
-  ASSERT_EQ("63", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "53"}}), encoder->nids_load);
+  ASSERT_EQ("61", encoder->encode(c));
+  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
   ASSERT_EQ(
     Word2Word2NIDMap({
-      {1, {{1, "55"}}},
-      {2, {{1, "58"}}}}),
+      {1, {{1, "53"}}},
+      {2, {{1, "56"}}}}),
     encoder->nids_store);
   ASSERT_EQ(
-    "62 eq 1 22 53\n"
-    "63 ite 3 62 58 15\n",
+    "60 eq 1 22 51\n"
+    "61 ite 3 60 56 15\n",
     encoder->formula.str());
 
   /* indirect */
@@ -3490,85 +3533,85 @@ TEST_F(Btor2EncoderTest, CAS_heap)
   c.indirect = true;
 
   encoder->thread = 1;
-  ASSERT_EQ("67", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "53"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "64"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("65", encoder->encode(c));
+  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
+  ASSERT_EQ(Word2NIDMap({{1, "62"}}), encoder->nids_load_indirect);
   ASSERT_EQ(
     Word2Word2NIDMap({
-      {1, {{1, "55"}}},
-      {2, {{1, "58"}}}}),
+      {1, {{1, "53"}}},
+      {2, {{1, "56"}}}}),
     encoder->nids_store);
-  ASSERT_EQ(Word2Word2NIDMap({{1, {{1, "66"}}}}), encoder->nids_store_indirect);
+  ASSERT_EQ(Word2Word2NIDMap({{1, {{1, "64"}}}}), encoder->nids_store_indirect);
   ASSERT_EQ(
-    "64 read 2 15 53\n"
-    "65 eq 1 20 64\n"
-    "66 write 3 15 53 16\n"
-    "67 ite 3 65 66 15\n",
+    "62 read 2 15 51\n"
+    "63 eq 1 20 62\n"
+    "64 write 3 15 51 16\n"
+    "65 ite 3 63 64 15\n",
     encoder->formula.str());
 
   encoder->formula.str("");
 
   encoder->thread = 2;
-  ASSERT_EQ("70", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "53"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "64"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("68", encoder->encode(c));
+  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
+  ASSERT_EQ(Word2NIDMap({{1, "62"}}), encoder->nids_load_indirect);
   ASSERT_EQ(
     Word2Word2NIDMap({
-      {1, {{1, "55"}}},
-      {2, {{1, "58"}}}}),
+      {1, {{1, "53"}}},
+      {2, {{1, "56"}}}}),
     encoder->nids_store);
   ASSERT_EQ(
     Word2Word2NIDMap({
-      {1, {{1, "66"}}},
-      {2, {{1, "69"}}}}),
+      {1, {{1, "64"}}},
+      {2, {{1, "67"}}}}),
     encoder->nids_store_indirect);
   ASSERT_EQ(
-    "68 eq 1 22 64\n"
-    "69 write 3 15 53 18\n"
-    "70 ite 3 68 69 15\n",
+    "66 eq 1 22 62\n"
+    "67 write 3 15 51 18\n"
+    "68 ite 3 66 67 15\n",
     encoder->formula.str());
 
   /* another CAS to the same memory address */
   encoder->formula.str("");
 
   encoder->thread = 1;
-  ASSERT_EQ("72", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "53"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "64"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("70", encoder->encode(c));
+  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
+  ASSERT_EQ(Word2NIDMap({{1, "62"}}), encoder->nids_load_indirect);
   ASSERT_EQ(
     Word2Word2NIDMap({
-      {1, {{1, "55"}}},
-      {2, {{1, "58"}}}}),
+      {1, {{1, "53"}}},
+      {2, {{1, "56"}}}}),
     encoder->nids_store);
   ASSERT_EQ(
     Word2Word2NIDMap({
-      {1, {{1, "66"}}},
-      {2, {{1, "69"}}}}),
+      {1, {{1, "64"}}},
+      {2, {{1, "67"}}}}),
     encoder->nids_store_indirect);
   ASSERT_EQ(
-    "71 eq 1 20 64\n"
-    "72 ite 3 71 66 15\n",
+    "69 eq 1 20 62\n"
+    "70 ite 3 69 64 15\n",
     encoder->formula.str());
 
   encoder->formula.str("");
 
   encoder->thread = 2;
-  ASSERT_EQ("74", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "53"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "64"}}), encoder->nids_load_indirect);
+  ASSERT_EQ("72", encoder->encode(c));
+  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
+  ASSERT_EQ(Word2NIDMap({{1, "62"}}), encoder->nids_load_indirect);
   ASSERT_EQ(
     Word2Word2NIDMap({
-      {1, {{1, "55"}}},
-      {2, {{1, "58"}}}}),
+      {1, {{1, "53"}}},
+      {2, {{1, "56"}}}}),
     encoder->nids_store);
   ASSERT_EQ(
     Word2Word2NIDMap({
-      {1, {{1, "66"}}},
-      {2, {{1, "69"}}}}),
+      {1, {{1, "64"}}},
+      {2, {{1, "67"}}}}),
     encoder->nids_store_indirect);
   ASSERT_EQ(
-    "73 eq 1 22 64\n"
-    "74 ite 3 73 69 15\n",
+    "71 eq 1 22 62\n"
+    "72 ite 3 71 67 15\n",
     encoder->formula.str());
 }
 

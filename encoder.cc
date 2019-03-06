@@ -1669,6 +1669,9 @@ void Btor2Encoder::add_thread_scheduling ()
 
 void Btor2Encoder::add_synchronization_constraints ()
 {
+  if (sync_pcs.empty())
+    return;
+
   if (verbose)
     formula << btor2::comment_section("synchronization constraints");
 
@@ -1740,10 +1743,17 @@ void Btor2Encoder::add_synchronization_constraints ()
         }
 
       /* add synchronization condition sync_<id> */
-      formula
-        << btor2::land(node, sid_bool, conditions, "sync_" + to_string(id));
+      if (conditions.size() > 1)
+        {
+          formula <<
+            btor2::land(node, sid_bool, conditions, "sync_" + to_string(id));
 
-      nids_sync[id] = to_string(node - 1);
+          nids_sync[id] = to_string(node - 1);
+        }
+      else
+        {
+          nids_sync[id] = conditions.front();
+        }
 
       /* add negated synchronization condition */
       formula <<
