@@ -261,13 +261,13 @@ TEST_F(MainTest, replay_illegal_bound)
 /* solve_pretend_functional_cas ***********************************************/
 TEST_F(MainTest, solve_pretend_functional_cas)
 {
-  string args         = " solve -v -p 8 ";
+  string args         = " solve -v -p 12 ";
   string program_file = "data/increment.cas.asm";
 
   string cmd = executable + args + program_file + " " + program_file;
 
   /* read expected smt formula from file */
-  ifstream ffs("data/increment.cas.functional.t2.k8.smt2");
+  ifstream ffs("data/increment.cas.functional.t2.k12.smt2");
   string expected(( istreambuf_iterator<char>(ffs) ),
                     istreambuf_iterator<char>());
 
