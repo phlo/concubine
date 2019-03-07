@@ -252,28 +252,34 @@
 
 ; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (=> (not (or thread_1_1 sync_1_0 sync_1_1)) (= accu_1_1 accu_0_1)))
-(assert (=> (not (or thread_1_1 sync_1_0 sync_1_1)) (= mem_1_1 mem_0_1)))
+(declare-fun wait_1_1 () Bool)
+(assert (= wait_1_1 (not (or thread_1_1 sync_1_0 sync_1_1))))
 
-(assert (=> (not (or thread_1_1 sync_1_0 sync_1_1)) (= stmt_2_1_0 stmt_1_1_0)))
-(assert (=> (not (or thread_1_1 sync_1_0 sync_1_1)) (= stmt_2_1_1 stmt_1_1_1)))
-(assert (=> (not (or thread_1_1 sync_1_0 sync_1_1)) (= stmt_2_1_2 stmt_1_1_2)))
-(assert (=> (not (or thread_1_1 sync_1_0 sync_1_1)) (= stmt_2_1_3 stmt_1_1_3)))
-(assert (=> (not (or thread_1_1 sync_1_0 sync_1_1)) (= stmt_2_1_4 stmt_1_1_4)))
-(assert (=> (not (or thread_1_1 sync_1_0 sync_1_1)) (= stmt_2_1_5 stmt_1_1_5)))
-(assert (=> (not (or thread_1_1 sync_1_0 sync_1_1)) (= stmt_2_1_6 stmt_1_1_6)))
-(assert (=> (not (or thread_1_1 sync_1_0 sync_1_1)) (= stmt_2_1_7 stmt_1_1_7)))
+(assert (=> wait_1_1 (= accu_1_1 accu_0_1)))
+(assert (=> wait_1_1 (= mem_1_1 mem_0_1)))
 
-(assert (=> (not (or thread_1_2 sync_1_0 sync_1_1)) (= accu_1_2 accu_0_2)))
-(assert (=> (not (or thread_1_2 sync_1_0 sync_1_1)) (= mem_1_2 mem_0_2)))
+(assert (=> wait_1_1 (= stmt_2_1_0 stmt_1_1_0)))
+(assert (=> wait_1_1 (= stmt_2_1_1 stmt_1_1_1)))
+(assert (=> wait_1_1 (= stmt_2_1_2 stmt_1_1_2)))
+(assert (=> wait_1_1 (= stmt_2_1_3 stmt_1_1_3)))
+(assert (=> wait_1_1 (= stmt_2_1_4 stmt_1_1_4)))
+(assert (=> wait_1_1 (= stmt_2_1_5 stmt_1_1_5)))
+(assert (=> wait_1_1 (= stmt_2_1_6 stmt_1_1_6)))
+(assert (=> wait_1_1 (= stmt_2_1_7 stmt_1_1_7)))
 
-(assert (=> (not (or thread_1_2 sync_1_0 sync_1_1)) (= stmt_2_2_0 stmt_1_2_0)))
-(assert (=> (not (or thread_1_2 sync_1_0 sync_1_1)) (= stmt_2_2_1 stmt_1_2_1)))
-(assert (=> (not (or thread_1_2 sync_1_0 sync_1_1)) (= stmt_2_2_2 stmt_1_2_2)))
-(assert (=> (not (or thread_1_2 sync_1_0 sync_1_1)) (= stmt_2_2_3 stmt_1_2_3)))
-(assert (=> (not (or thread_1_2 sync_1_0 sync_1_1)) (= stmt_2_2_4 stmt_1_2_4)))
-(assert (=> (not (or thread_1_2 sync_1_0 sync_1_1)) (= stmt_2_2_5 stmt_1_2_5)))
-(assert (=> (not (or thread_1_2 sync_1_0 sync_1_1)) (= stmt_2_2_6 stmt_1_2_6)))
+(declare-fun wait_1_2 () Bool)
+(assert (= wait_1_2 (not (or thread_1_2 sync_1_0 sync_1_1))))
+
+(assert (=> wait_1_2 (= accu_1_2 accu_0_2)))
+(assert (=> wait_1_2 (= mem_1_2 mem_0_2)))
+
+(assert (=> wait_1_2 (= stmt_2_2_0 stmt_1_2_0)))
+(assert (=> wait_1_2 (= stmt_2_2_1 stmt_1_2_1)))
+(assert (=> wait_1_2 (= stmt_2_2_2 stmt_1_2_2)))
+(assert (=> wait_1_2 (= stmt_2_2_3 stmt_1_2_3)))
+(assert (=> wait_1_2 (= stmt_2_2_4 stmt_1_2_4)))
+(assert (=> wait_1_2 (= stmt_2_2_5 stmt_1_2_5)))
+(assert (=> wait_1_2 (= stmt_2_2_6 stmt_1_2_6)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 2
@@ -475,28 +481,34 @@
 
 ; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (=> (not (or thread_2_1 sync_2_0 sync_2_1)) (= accu_2_1 accu_1_1)))
-(assert (=> (not (or thread_2_1 sync_2_0 sync_2_1)) (= mem_2_1 mem_1_1)))
+(declare-fun wait_2_1 () Bool)
+(assert (= wait_2_1 (not (or thread_2_1 sync_2_0 sync_2_1))))
 
-(assert (=> (not (or thread_2_1 sync_2_0 sync_2_1)) (= stmt_3_1_0 stmt_2_1_0)))
-(assert (=> (not (or thread_2_1 sync_2_0 sync_2_1)) (= stmt_3_1_1 stmt_2_1_1)))
-(assert (=> (not (or thread_2_1 sync_2_0 sync_2_1)) (= stmt_3_1_2 stmt_2_1_2)))
-(assert (=> (not (or thread_2_1 sync_2_0 sync_2_1)) (= stmt_3_1_3 stmt_2_1_3)))
-(assert (=> (not (or thread_2_1 sync_2_0 sync_2_1)) (= stmt_3_1_4 stmt_2_1_4)))
-(assert (=> (not (or thread_2_1 sync_2_0 sync_2_1)) (= stmt_3_1_5 stmt_2_1_5)))
-(assert (=> (not (or thread_2_1 sync_2_0 sync_2_1)) (= stmt_3_1_6 stmt_2_1_6)))
-(assert (=> (not (or thread_2_1 sync_2_0 sync_2_1)) (= stmt_3_1_7 stmt_2_1_7)))
+(assert (=> wait_2_1 (= accu_2_1 accu_1_1)))
+(assert (=> wait_2_1 (= mem_2_1 mem_1_1)))
 
-(assert (=> (not (or thread_2_2 sync_2_0 sync_2_1)) (= accu_2_2 accu_1_2)))
-(assert (=> (not (or thread_2_2 sync_2_0 sync_2_1)) (= mem_2_2 mem_1_2)))
+(assert (=> wait_2_1 (= stmt_3_1_0 stmt_2_1_0)))
+(assert (=> wait_2_1 (= stmt_3_1_1 stmt_2_1_1)))
+(assert (=> wait_2_1 (= stmt_3_1_2 stmt_2_1_2)))
+(assert (=> wait_2_1 (= stmt_3_1_3 stmt_2_1_3)))
+(assert (=> wait_2_1 (= stmt_3_1_4 stmt_2_1_4)))
+(assert (=> wait_2_1 (= stmt_3_1_5 stmt_2_1_5)))
+(assert (=> wait_2_1 (= stmt_3_1_6 stmt_2_1_6)))
+(assert (=> wait_2_1 (= stmt_3_1_7 stmt_2_1_7)))
 
-(assert (=> (not (or thread_2_2 sync_2_0 sync_2_1)) (= stmt_3_2_0 stmt_2_2_0)))
-(assert (=> (not (or thread_2_2 sync_2_0 sync_2_1)) (= stmt_3_2_1 stmt_2_2_1)))
-(assert (=> (not (or thread_2_2 sync_2_0 sync_2_1)) (= stmt_3_2_2 stmt_2_2_2)))
-(assert (=> (not (or thread_2_2 sync_2_0 sync_2_1)) (= stmt_3_2_3 stmt_2_2_3)))
-(assert (=> (not (or thread_2_2 sync_2_0 sync_2_1)) (= stmt_3_2_4 stmt_2_2_4)))
-(assert (=> (not (or thread_2_2 sync_2_0 sync_2_1)) (= stmt_3_2_5 stmt_2_2_5)))
-(assert (=> (not (or thread_2_2 sync_2_0 sync_2_1)) (= stmt_3_2_6 stmt_2_2_6)))
+(declare-fun wait_2_2 () Bool)
+(assert (= wait_2_2 (not (or thread_2_2 sync_2_0 sync_2_1))))
+
+(assert (=> wait_2_2 (= accu_2_2 accu_1_2)))
+(assert (=> wait_2_2 (= mem_2_2 mem_1_2)))
+
+(assert (=> wait_2_2 (= stmt_3_2_0 stmt_2_2_0)))
+(assert (=> wait_2_2 (= stmt_3_2_1 stmt_2_2_1)))
+(assert (=> wait_2_2 (= stmt_3_2_2 stmt_2_2_2)))
+(assert (=> wait_2_2 (= stmt_3_2_3 stmt_2_2_3)))
+(assert (=> wait_2_2 (= stmt_3_2_4 stmt_2_2_4)))
+(assert (=> wait_2_2 (= stmt_3_2_5 stmt_2_2_5)))
+(assert (=> wait_2_2 (= stmt_3_2_6 stmt_2_2_6)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 3
@@ -698,28 +710,34 @@
 
 ; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (=> (not (or thread_3_1 sync_3_0 sync_3_1)) (= accu_3_1 accu_2_1)))
-(assert (=> (not (or thread_3_1 sync_3_0 sync_3_1)) (= mem_3_1 mem_2_1)))
+(declare-fun wait_3_1 () Bool)
+(assert (= wait_3_1 (not (or thread_3_1 sync_3_0 sync_3_1))))
 
-(assert (=> (not (or thread_3_1 sync_3_0 sync_3_1)) (= stmt_4_1_0 stmt_3_1_0)))
-(assert (=> (not (or thread_3_1 sync_3_0 sync_3_1)) (= stmt_4_1_1 stmt_3_1_1)))
-(assert (=> (not (or thread_3_1 sync_3_0 sync_3_1)) (= stmt_4_1_2 stmt_3_1_2)))
-(assert (=> (not (or thread_3_1 sync_3_0 sync_3_1)) (= stmt_4_1_3 stmt_3_1_3)))
-(assert (=> (not (or thread_3_1 sync_3_0 sync_3_1)) (= stmt_4_1_4 stmt_3_1_4)))
-(assert (=> (not (or thread_3_1 sync_3_0 sync_3_1)) (= stmt_4_1_5 stmt_3_1_5)))
-(assert (=> (not (or thread_3_1 sync_3_0 sync_3_1)) (= stmt_4_1_6 stmt_3_1_6)))
-(assert (=> (not (or thread_3_1 sync_3_0 sync_3_1)) (= stmt_4_1_7 stmt_3_1_7)))
+(assert (=> wait_3_1 (= accu_3_1 accu_2_1)))
+(assert (=> wait_3_1 (= mem_3_1 mem_2_1)))
 
-(assert (=> (not (or thread_3_2 sync_3_0 sync_3_1)) (= accu_3_2 accu_2_2)))
-(assert (=> (not (or thread_3_2 sync_3_0 sync_3_1)) (= mem_3_2 mem_2_2)))
+(assert (=> wait_3_1 (= stmt_4_1_0 stmt_3_1_0)))
+(assert (=> wait_3_1 (= stmt_4_1_1 stmt_3_1_1)))
+(assert (=> wait_3_1 (= stmt_4_1_2 stmt_3_1_2)))
+(assert (=> wait_3_1 (= stmt_4_1_3 stmt_3_1_3)))
+(assert (=> wait_3_1 (= stmt_4_1_4 stmt_3_1_4)))
+(assert (=> wait_3_1 (= stmt_4_1_5 stmt_3_1_5)))
+(assert (=> wait_3_1 (= stmt_4_1_6 stmt_3_1_6)))
+(assert (=> wait_3_1 (= stmt_4_1_7 stmt_3_1_7)))
 
-(assert (=> (not (or thread_3_2 sync_3_0 sync_3_1)) (= stmt_4_2_0 stmt_3_2_0)))
-(assert (=> (not (or thread_3_2 sync_3_0 sync_3_1)) (= stmt_4_2_1 stmt_3_2_1)))
-(assert (=> (not (or thread_3_2 sync_3_0 sync_3_1)) (= stmt_4_2_2 stmt_3_2_2)))
-(assert (=> (not (or thread_3_2 sync_3_0 sync_3_1)) (= stmt_4_2_3 stmt_3_2_3)))
-(assert (=> (not (or thread_3_2 sync_3_0 sync_3_1)) (= stmt_4_2_4 stmt_3_2_4)))
-(assert (=> (not (or thread_3_2 sync_3_0 sync_3_1)) (= stmt_4_2_5 stmt_3_2_5)))
-(assert (=> (not (or thread_3_2 sync_3_0 sync_3_1)) (= stmt_4_2_6 stmt_3_2_6)))
+(declare-fun wait_3_2 () Bool)
+(assert (= wait_3_2 (not (or thread_3_2 sync_3_0 sync_3_1))))
+
+(assert (=> wait_3_2 (= accu_3_2 accu_2_2)))
+(assert (=> wait_3_2 (= mem_3_2 mem_2_2)))
+
+(assert (=> wait_3_2 (= stmt_4_2_0 stmt_3_2_0)))
+(assert (=> wait_3_2 (= stmt_4_2_1 stmt_3_2_1)))
+(assert (=> wait_3_2 (= stmt_4_2_2 stmt_3_2_2)))
+(assert (=> wait_3_2 (= stmt_4_2_3 stmt_3_2_3)))
+(assert (=> wait_3_2 (= stmt_4_2_4 stmt_3_2_4)))
+(assert (=> wait_3_2 (= stmt_4_2_5 stmt_3_2_5)))
+(assert (=> wait_3_2 (= stmt_4_2_6 stmt_3_2_6)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 4
@@ -921,28 +939,34 @@
 
 ; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (=> (not (or thread_4_1 sync_4_0 sync_4_1)) (= accu_4_1 accu_3_1)))
-(assert (=> (not (or thread_4_1 sync_4_0 sync_4_1)) (= mem_4_1 mem_3_1)))
+(declare-fun wait_4_1 () Bool)
+(assert (= wait_4_1 (not (or thread_4_1 sync_4_0 sync_4_1))))
 
-(assert (=> (not (or thread_4_1 sync_4_0 sync_4_1)) (= stmt_5_1_0 stmt_4_1_0)))
-(assert (=> (not (or thread_4_1 sync_4_0 sync_4_1)) (= stmt_5_1_1 stmt_4_1_1)))
-(assert (=> (not (or thread_4_1 sync_4_0 sync_4_1)) (= stmt_5_1_2 stmt_4_1_2)))
-(assert (=> (not (or thread_4_1 sync_4_0 sync_4_1)) (= stmt_5_1_3 stmt_4_1_3)))
-(assert (=> (not (or thread_4_1 sync_4_0 sync_4_1)) (= stmt_5_1_4 stmt_4_1_4)))
-(assert (=> (not (or thread_4_1 sync_4_0 sync_4_1)) (= stmt_5_1_5 stmt_4_1_5)))
-(assert (=> (not (or thread_4_1 sync_4_0 sync_4_1)) (= stmt_5_1_6 stmt_4_1_6)))
-(assert (=> (not (or thread_4_1 sync_4_0 sync_4_1)) (= stmt_5_1_7 stmt_4_1_7)))
+(assert (=> wait_4_1 (= accu_4_1 accu_3_1)))
+(assert (=> wait_4_1 (= mem_4_1 mem_3_1)))
 
-(assert (=> (not (or thread_4_2 sync_4_0 sync_4_1)) (= accu_4_2 accu_3_2)))
-(assert (=> (not (or thread_4_2 sync_4_0 sync_4_1)) (= mem_4_2 mem_3_2)))
+(assert (=> wait_4_1 (= stmt_5_1_0 stmt_4_1_0)))
+(assert (=> wait_4_1 (= stmt_5_1_1 stmt_4_1_1)))
+(assert (=> wait_4_1 (= stmt_5_1_2 stmt_4_1_2)))
+(assert (=> wait_4_1 (= stmt_5_1_3 stmt_4_1_3)))
+(assert (=> wait_4_1 (= stmt_5_1_4 stmt_4_1_4)))
+(assert (=> wait_4_1 (= stmt_5_1_5 stmt_4_1_5)))
+(assert (=> wait_4_1 (= stmt_5_1_6 stmt_4_1_6)))
+(assert (=> wait_4_1 (= stmt_5_1_7 stmt_4_1_7)))
 
-(assert (=> (not (or thread_4_2 sync_4_0 sync_4_1)) (= stmt_5_2_0 stmt_4_2_0)))
-(assert (=> (not (or thread_4_2 sync_4_0 sync_4_1)) (= stmt_5_2_1 stmt_4_2_1)))
-(assert (=> (not (or thread_4_2 sync_4_0 sync_4_1)) (= stmt_5_2_2 stmt_4_2_2)))
-(assert (=> (not (or thread_4_2 sync_4_0 sync_4_1)) (= stmt_5_2_3 stmt_4_2_3)))
-(assert (=> (not (or thread_4_2 sync_4_0 sync_4_1)) (= stmt_5_2_4 stmt_4_2_4)))
-(assert (=> (not (or thread_4_2 sync_4_0 sync_4_1)) (= stmt_5_2_5 stmt_4_2_5)))
-(assert (=> (not (or thread_4_2 sync_4_0 sync_4_1)) (= stmt_5_2_6 stmt_4_2_6)))
+(declare-fun wait_4_2 () Bool)
+(assert (= wait_4_2 (not (or thread_4_2 sync_4_0 sync_4_1))))
+
+(assert (=> wait_4_2 (= accu_4_2 accu_3_2)))
+(assert (=> wait_4_2 (= mem_4_2 mem_3_2)))
+
+(assert (=> wait_4_2 (= stmt_5_2_0 stmt_4_2_0)))
+(assert (=> wait_4_2 (= stmt_5_2_1 stmt_4_2_1)))
+(assert (=> wait_4_2 (= stmt_5_2_2 stmt_4_2_2)))
+(assert (=> wait_4_2 (= stmt_5_2_3 stmt_4_2_3)))
+(assert (=> wait_4_2 (= stmt_5_2_4 stmt_4_2_4)))
+(assert (=> wait_4_2 (= stmt_5_2_5 stmt_4_2_5)))
+(assert (=> wait_4_2 (= stmt_5_2_6 stmt_4_2_6)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 5
@@ -1144,28 +1168,34 @@
 
 ; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (=> (not (or thread_5_1 sync_5_0 sync_5_1)) (= accu_5_1 accu_4_1)))
-(assert (=> (not (or thread_5_1 sync_5_0 sync_5_1)) (= mem_5_1 mem_4_1)))
+(declare-fun wait_5_1 () Bool)
+(assert (= wait_5_1 (not (or thread_5_1 sync_5_0 sync_5_1))))
 
-(assert (=> (not (or thread_5_1 sync_5_0 sync_5_1)) (= stmt_6_1_0 stmt_5_1_0)))
-(assert (=> (not (or thread_5_1 sync_5_0 sync_5_1)) (= stmt_6_1_1 stmt_5_1_1)))
-(assert (=> (not (or thread_5_1 sync_5_0 sync_5_1)) (= stmt_6_1_2 stmt_5_1_2)))
-(assert (=> (not (or thread_5_1 sync_5_0 sync_5_1)) (= stmt_6_1_3 stmt_5_1_3)))
-(assert (=> (not (or thread_5_1 sync_5_0 sync_5_1)) (= stmt_6_1_4 stmt_5_1_4)))
-(assert (=> (not (or thread_5_1 sync_5_0 sync_5_1)) (= stmt_6_1_5 stmt_5_1_5)))
-(assert (=> (not (or thread_5_1 sync_5_0 sync_5_1)) (= stmt_6_1_6 stmt_5_1_6)))
-(assert (=> (not (or thread_5_1 sync_5_0 sync_5_1)) (= stmt_6_1_7 stmt_5_1_7)))
+(assert (=> wait_5_1 (= accu_5_1 accu_4_1)))
+(assert (=> wait_5_1 (= mem_5_1 mem_4_1)))
 
-(assert (=> (not (or thread_5_2 sync_5_0 sync_5_1)) (= accu_5_2 accu_4_2)))
-(assert (=> (not (or thread_5_2 sync_5_0 sync_5_1)) (= mem_5_2 mem_4_2)))
+(assert (=> wait_5_1 (= stmt_6_1_0 stmt_5_1_0)))
+(assert (=> wait_5_1 (= stmt_6_1_1 stmt_5_1_1)))
+(assert (=> wait_5_1 (= stmt_6_1_2 stmt_5_1_2)))
+(assert (=> wait_5_1 (= stmt_6_1_3 stmt_5_1_3)))
+(assert (=> wait_5_1 (= stmt_6_1_4 stmt_5_1_4)))
+(assert (=> wait_5_1 (= stmt_6_1_5 stmt_5_1_5)))
+(assert (=> wait_5_1 (= stmt_6_1_6 stmt_5_1_6)))
+(assert (=> wait_5_1 (= stmt_6_1_7 stmt_5_1_7)))
 
-(assert (=> (not (or thread_5_2 sync_5_0 sync_5_1)) (= stmt_6_2_0 stmt_5_2_0)))
-(assert (=> (not (or thread_5_2 sync_5_0 sync_5_1)) (= stmt_6_2_1 stmt_5_2_1)))
-(assert (=> (not (or thread_5_2 sync_5_0 sync_5_1)) (= stmt_6_2_2 stmt_5_2_2)))
-(assert (=> (not (or thread_5_2 sync_5_0 sync_5_1)) (= stmt_6_2_3 stmt_5_2_3)))
-(assert (=> (not (or thread_5_2 sync_5_0 sync_5_1)) (= stmt_6_2_4 stmt_5_2_4)))
-(assert (=> (not (or thread_5_2 sync_5_0 sync_5_1)) (= stmt_6_2_5 stmt_5_2_5)))
-(assert (=> (not (or thread_5_2 sync_5_0 sync_5_1)) (= stmt_6_2_6 stmt_5_2_6)))
+(declare-fun wait_5_2 () Bool)
+(assert (= wait_5_2 (not (or thread_5_2 sync_5_0 sync_5_1))))
+
+(assert (=> wait_5_2 (= accu_5_2 accu_4_2)))
+(assert (=> wait_5_2 (= mem_5_2 mem_4_2)))
+
+(assert (=> wait_5_2 (= stmt_6_2_0 stmt_5_2_0)))
+(assert (=> wait_5_2 (= stmt_6_2_1 stmt_5_2_1)))
+(assert (=> wait_5_2 (= stmt_6_2_2 stmt_5_2_2)))
+(assert (=> wait_5_2 (= stmt_6_2_3 stmt_5_2_3)))
+(assert (=> wait_5_2 (= stmt_6_2_4 stmt_5_2_4)))
+(assert (=> wait_5_2 (= stmt_6_2_5 stmt_5_2_5)))
+(assert (=> wait_5_2 (= stmt_6_2_6 stmt_5_2_6)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 6
@@ -1367,28 +1397,34 @@
 
 ; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (=> (not (or thread_6_1 sync_6_0 sync_6_1)) (= accu_6_1 accu_5_1)))
-(assert (=> (not (or thread_6_1 sync_6_0 sync_6_1)) (= mem_6_1 mem_5_1)))
+(declare-fun wait_6_1 () Bool)
+(assert (= wait_6_1 (not (or thread_6_1 sync_6_0 sync_6_1))))
 
-(assert (=> (not (or thread_6_1 sync_6_0 sync_6_1)) (= stmt_7_1_0 stmt_6_1_0)))
-(assert (=> (not (or thread_6_1 sync_6_0 sync_6_1)) (= stmt_7_1_1 stmt_6_1_1)))
-(assert (=> (not (or thread_6_1 sync_6_0 sync_6_1)) (= stmt_7_1_2 stmt_6_1_2)))
-(assert (=> (not (or thread_6_1 sync_6_0 sync_6_1)) (= stmt_7_1_3 stmt_6_1_3)))
-(assert (=> (not (or thread_6_1 sync_6_0 sync_6_1)) (= stmt_7_1_4 stmt_6_1_4)))
-(assert (=> (not (or thread_6_1 sync_6_0 sync_6_1)) (= stmt_7_1_5 stmt_6_1_5)))
-(assert (=> (not (or thread_6_1 sync_6_0 sync_6_1)) (= stmt_7_1_6 stmt_6_1_6)))
-(assert (=> (not (or thread_6_1 sync_6_0 sync_6_1)) (= stmt_7_1_7 stmt_6_1_7)))
+(assert (=> wait_6_1 (= accu_6_1 accu_5_1)))
+(assert (=> wait_6_1 (= mem_6_1 mem_5_1)))
 
-(assert (=> (not (or thread_6_2 sync_6_0 sync_6_1)) (= accu_6_2 accu_5_2)))
-(assert (=> (not (or thread_6_2 sync_6_0 sync_6_1)) (= mem_6_2 mem_5_2)))
+(assert (=> wait_6_1 (= stmt_7_1_0 stmt_6_1_0)))
+(assert (=> wait_6_1 (= stmt_7_1_1 stmt_6_1_1)))
+(assert (=> wait_6_1 (= stmt_7_1_2 stmt_6_1_2)))
+(assert (=> wait_6_1 (= stmt_7_1_3 stmt_6_1_3)))
+(assert (=> wait_6_1 (= stmt_7_1_4 stmt_6_1_4)))
+(assert (=> wait_6_1 (= stmt_7_1_5 stmt_6_1_5)))
+(assert (=> wait_6_1 (= stmt_7_1_6 stmt_6_1_6)))
+(assert (=> wait_6_1 (= stmt_7_1_7 stmt_6_1_7)))
 
-(assert (=> (not (or thread_6_2 sync_6_0 sync_6_1)) (= stmt_7_2_0 stmt_6_2_0)))
-(assert (=> (not (or thread_6_2 sync_6_0 sync_6_1)) (= stmt_7_2_1 stmt_6_2_1)))
-(assert (=> (not (or thread_6_2 sync_6_0 sync_6_1)) (= stmt_7_2_2 stmt_6_2_2)))
-(assert (=> (not (or thread_6_2 sync_6_0 sync_6_1)) (= stmt_7_2_3 stmt_6_2_3)))
-(assert (=> (not (or thread_6_2 sync_6_0 sync_6_1)) (= stmt_7_2_4 stmt_6_2_4)))
-(assert (=> (not (or thread_6_2 sync_6_0 sync_6_1)) (= stmt_7_2_5 stmt_6_2_5)))
-(assert (=> (not (or thread_6_2 sync_6_0 sync_6_1)) (= stmt_7_2_6 stmt_6_2_6)))
+(declare-fun wait_6_2 () Bool)
+(assert (= wait_6_2 (not (or thread_6_2 sync_6_0 sync_6_1))))
+
+(assert (=> wait_6_2 (= accu_6_2 accu_5_2)))
+(assert (=> wait_6_2 (= mem_6_2 mem_5_2)))
+
+(assert (=> wait_6_2 (= stmt_7_2_0 stmt_6_2_0)))
+(assert (=> wait_6_2 (= stmt_7_2_1 stmt_6_2_1)))
+(assert (=> wait_6_2 (= stmt_7_2_2 stmt_6_2_2)))
+(assert (=> wait_6_2 (= stmt_7_2_3 stmt_6_2_3)))
+(assert (=> wait_6_2 (= stmt_7_2_4 stmt_6_2_4)))
+(assert (=> wait_6_2 (= stmt_7_2_5 stmt_6_2_5)))
+(assert (=> wait_6_2 (= stmt_7_2_6 stmt_6_2_6)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 7
@@ -1590,28 +1626,34 @@
 
 ; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (=> (not (or thread_7_1 sync_7_0 sync_7_1)) (= accu_7_1 accu_6_1)))
-(assert (=> (not (or thread_7_1 sync_7_0 sync_7_1)) (= mem_7_1 mem_6_1)))
+(declare-fun wait_7_1 () Bool)
+(assert (= wait_7_1 (not (or thread_7_1 sync_7_0 sync_7_1))))
 
-(assert (=> (not (or thread_7_1 sync_7_0 sync_7_1)) (= stmt_8_1_0 stmt_7_1_0)))
-(assert (=> (not (or thread_7_1 sync_7_0 sync_7_1)) (= stmt_8_1_1 stmt_7_1_1)))
-(assert (=> (not (or thread_7_1 sync_7_0 sync_7_1)) (= stmt_8_1_2 stmt_7_1_2)))
-(assert (=> (not (or thread_7_1 sync_7_0 sync_7_1)) (= stmt_8_1_3 stmt_7_1_3)))
-(assert (=> (not (or thread_7_1 sync_7_0 sync_7_1)) (= stmt_8_1_4 stmt_7_1_4)))
-(assert (=> (not (or thread_7_1 sync_7_0 sync_7_1)) (= stmt_8_1_5 stmt_7_1_5)))
-(assert (=> (not (or thread_7_1 sync_7_0 sync_7_1)) (= stmt_8_1_6 stmt_7_1_6)))
-(assert (=> (not (or thread_7_1 sync_7_0 sync_7_1)) (= stmt_8_1_7 stmt_7_1_7)))
+(assert (=> wait_7_1 (= accu_7_1 accu_6_1)))
+(assert (=> wait_7_1 (= mem_7_1 mem_6_1)))
 
-(assert (=> (not (or thread_7_2 sync_7_0 sync_7_1)) (= accu_7_2 accu_6_2)))
-(assert (=> (not (or thread_7_2 sync_7_0 sync_7_1)) (= mem_7_2 mem_6_2)))
+(assert (=> wait_7_1 (= stmt_8_1_0 stmt_7_1_0)))
+(assert (=> wait_7_1 (= stmt_8_1_1 stmt_7_1_1)))
+(assert (=> wait_7_1 (= stmt_8_1_2 stmt_7_1_2)))
+(assert (=> wait_7_1 (= stmt_8_1_3 stmt_7_1_3)))
+(assert (=> wait_7_1 (= stmt_8_1_4 stmt_7_1_4)))
+(assert (=> wait_7_1 (= stmt_8_1_5 stmt_7_1_5)))
+(assert (=> wait_7_1 (= stmt_8_1_6 stmt_7_1_6)))
+(assert (=> wait_7_1 (= stmt_8_1_7 stmt_7_1_7)))
 
-(assert (=> (not (or thread_7_2 sync_7_0 sync_7_1)) (= stmt_8_2_0 stmt_7_2_0)))
-(assert (=> (not (or thread_7_2 sync_7_0 sync_7_1)) (= stmt_8_2_1 stmt_7_2_1)))
-(assert (=> (not (or thread_7_2 sync_7_0 sync_7_1)) (= stmt_8_2_2 stmt_7_2_2)))
-(assert (=> (not (or thread_7_2 sync_7_0 sync_7_1)) (= stmt_8_2_3 stmt_7_2_3)))
-(assert (=> (not (or thread_7_2 sync_7_0 sync_7_1)) (= stmt_8_2_4 stmt_7_2_4)))
-(assert (=> (not (or thread_7_2 sync_7_0 sync_7_1)) (= stmt_8_2_5 stmt_7_2_5)))
-(assert (=> (not (or thread_7_2 sync_7_0 sync_7_1)) (= stmt_8_2_6 stmt_7_2_6)))
+(declare-fun wait_7_2 () Bool)
+(assert (= wait_7_2 (not (or thread_7_2 sync_7_0 sync_7_1))))
+
+(assert (=> wait_7_2 (= accu_7_2 accu_6_2)))
+(assert (=> wait_7_2 (= mem_7_2 mem_6_2)))
+
+(assert (=> wait_7_2 (= stmt_8_2_0 stmt_7_2_0)))
+(assert (=> wait_7_2 (= stmt_8_2_1 stmt_7_2_1)))
+(assert (=> wait_7_2 (= stmt_8_2_2 stmt_7_2_2)))
+(assert (=> wait_7_2 (= stmt_8_2_3 stmt_7_2_3)))
+(assert (=> wait_7_2 (= stmt_8_2_4 stmt_7_2_4)))
+(assert (=> wait_7_2 (= stmt_8_2_5 stmt_7_2_5)))
+(assert (=> wait_7_2 (= stmt_8_2_6 stmt_7_2_6)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 8
@@ -1813,28 +1855,34 @@
 
 ; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (=> (not (or thread_8_1 sync_8_0 sync_8_1)) (= accu_8_1 accu_7_1)))
-(assert (=> (not (or thread_8_1 sync_8_0 sync_8_1)) (= mem_8_1 mem_7_1)))
+(declare-fun wait_8_1 () Bool)
+(assert (= wait_8_1 (not (or thread_8_1 sync_8_0 sync_8_1))))
 
-(assert (=> (not (or thread_8_1 sync_8_0 sync_8_1)) (= stmt_9_1_0 stmt_8_1_0)))
-(assert (=> (not (or thread_8_1 sync_8_0 sync_8_1)) (= stmt_9_1_1 stmt_8_1_1)))
-(assert (=> (not (or thread_8_1 sync_8_0 sync_8_1)) (= stmt_9_1_2 stmt_8_1_2)))
-(assert (=> (not (or thread_8_1 sync_8_0 sync_8_1)) (= stmt_9_1_3 stmt_8_1_3)))
-(assert (=> (not (or thread_8_1 sync_8_0 sync_8_1)) (= stmt_9_1_4 stmt_8_1_4)))
-(assert (=> (not (or thread_8_1 sync_8_0 sync_8_1)) (= stmt_9_1_5 stmt_8_1_5)))
-(assert (=> (not (or thread_8_1 sync_8_0 sync_8_1)) (= stmt_9_1_6 stmt_8_1_6)))
-(assert (=> (not (or thread_8_1 sync_8_0 sync_8_1)) (= stmt_9_1_7 stmt_8_1_7)))
+(assert (=> wait_8_1 (= accu_8_1 accu_7_1)))
+(assert (=> wait_8_1 (= mem_8_1 mem_7_1)))
 
-(assert (=> (not (or thread_8_2 sync_8_0 sync_8_1)) (= accu_8_2 accu_7_2)))
-(assert (=> (not (or thread_8_2 sync_8_0 sync_8_1)) (= mem_8_2 mem_7_2)))
+(assert (=> wait_8_1 (= stmt_9_1_0 stmt_8_1_0)))
+(assert (=> wait_8_1 (= stmt_9_1_1 stmt_8_1_1)))
+(assert (=> wait_8_1 (= stmt_9_1_2 stmt_8_1_2)))
+(assert (=> wait_8_1 (= stmt_9_1_3 stmt_8_1_3)))
+(assert (=> wait_8_1 (= stmt_9_1_4 stmt_8_1_4)))
+(assert (=> wait_8_1 (= stmt_9_1_5 stmt_8_1_5)))
+(assert (=> wait_8_1 (= stmt_9_1_6 stmt_8_1_6)))
+(assert (=> wait_8_1 (= stmt_9_1_7 stmt_8_1_7)))
 
-(assert (=> (not (or thread_8_2 sync_8_0 sync_8_1)) (= stmt_9_2_0 stmt_8_2_0)))
-(assert (=> (not (or thread_8_2 sync_8_0 sync_8_1)) (= stmt_9_2_1 stmt_8_2_1)))
-(assert (=> (not (or thread_8_2 sync_8_0 sync_8_1)) (= stmt_9_2_2 stmt_8_2_2)))
-(assert (=> (not (or thread_8_2 sync_8_0 sync_8_1)) (= stmt_9_2_3 stmt_8_2_3)))
-(assert (=> (not (or thread_8_2 sync_8_0 sync_8_1)) (= stmt_9_2_4 stmt_8_2_4)))
-(assert (=> (not (or thread_8_2 sync_8_0 sync_8_1)) (= stmt_9_2_5 stmt_8_2_5)))
-(assert (=> (not (or thread_8_2 sync_8_0 sync_8_1)) (= stmt_9_2_6 stmt_8_2_6)))
+(declare-fun wait_8_2 () Bool)
+(assert (= wait_8_2 (not (or thread_8_2 sync_8_0 sync_8_1))))
+
+(assert (=> wait_8_2 (= accu_8_2 accu_7_2)))
+(assert (=> wait_8_2 (= mem_8_2 mem_7_2)))
+
+(assert (=> wait_8_2 (= stmt_9_2_0 stmt_8_2_0)))
+(assert (=> wait_8_2 (= stmt_9_2_1 stmt_8_2_1)))
+(assert (=> wait_8_2 (= stmt_9_2_2 stmt_8_2_2)))
+(assert (=> wait_8_2 (= stmt_9_2_3 stmt_8_2_3)))
+(assert (=> wait_8_2 (= stmt_9_2_4 stmt_8_2_4)))
+(assert (=> wait_8_2 (= stmt_9_2_5 stmt_8_2_5)))
+(assert (=> wait_8_2 (= stmt_9_2_6 stmt_8_2_6)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 9
@@ -2036,28 +2084,34 @@
 
 ; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (=> (not (or thread_9_1 sync_9_0 sync_9_1)) (= accu_9_1 accu_8_1)))
-(assert (=> (not (or thread_9_1 sync_9_0 sync_9_1)) (= mem_9_1 mem_8_1)))
+(declare-fun wait_9_1 () Bool)
+(assert (= wait_9_1 (not (or thread_9_1 sync_9_0 sync_9_1))))
 
-(assert (=> (not (or thread_9_1 sync_9_0 sync_9_1)) (= stmt_10_1_0 stmt_9_1_0)))
-(assert (=> (not (or thread_9_1 sync_9_0 sync_9_1)) (= stmt_10_1_1 stmt_9_1_1)))
-(assert (=> (not (or thread_9_1 sync_9_0 sync_9_1)) (= stmt_10_1_2 stmt_9_1_2)))
-(assert (=> (not (or thread_9_1 sync_9_0 sync_9_1)) (= stmt_10_1_3 stmt_9_1_3)))
-(assert (=> (not (or thread_9_1 sync_9_0 sync_9_1)) (= stmt_10_1_4 stmt_9_1_4)))
-(assert (=> (not (or thread_9_1 sync_9_0 sync_9_1)) (= stmt_10_1_5 stmt_9_1_5)))
-(assert (=> (not (or thread_9_1 sync_9_0 sync_9_1)) (= stmt_10_1_6 stmt_9_1_6)))
-(assert (=> (not (or thread_9_1 sync_9_0 sync_9_1)) (= stmt_10_1_7 stmt_9_1_7)))
+(assert (=> wait_9_1 (= accu_9_1 accu_8_1)))
+(assert (=> wait_9_1 (= mem_9_1 mem_8_1)))
 
-(assert (=> (not (or thread_9_2 sync_9_0 sync_9_1)) (= accu_9_2 accu_8_2)))
-(assert (=> (not (or thread_9_2 sync_9_0 sync_9_1)) (= mem_9_2 mem_8_2)))
+(assert (=> wait_9_1 (= stmt_10_1_0 stmt_9_1_0)))
+(assert (=> wait_9_1 (= stmt_10_1_1 stmt_9_1_1)))
+(assert (=> wait_9_1 (= stmt_10_1_2 stmt_9_1_2)))
+(assert (=> wait_9_1 (= stmt_10_1_3 stmt_9_1_3)))
+(assert (=> wait_9_1 (= stmt_10_1_4 stmt_9_1_4)))
+(assert (=> wait_9_1 (= stmt_10_1_5 stmt_9_1_5)))
+(assert (=> wait_9_1 (= stmt_10_1_6 stmt_9_1_6)))
+(assert (=> wait_9_1 (= stmt_10_1_7 stmt_9_1_7)))
 
-(assert (=> (not (or thread_9_2 sync_9_0 sync_9_1)) (= stmt_10_2_0 stmt_9_2_0)))
-(assert (=> (not (or thread_9_2 sync_9_0 sync_9_1)) (= stmt_10_2_1 stmt_9_2_1)))
-(assert (=> (not (or thread_9_2 sync_9_0 sync_9_1)) (= stmt_10_2_2 stmt_9_2_2)))
-(assert (=> (not (or thread_9_2 sync_9_0 sync_9_1)) (= stmt_10_2_3 stmt_9_2_3)))
-(assert (=> (not (or thread_9_2 sync_9_0 sync_9_1)) (= stmt_10_2_4 stmt_9_2_4)))
-(assert (=> (not (or thread_9_2 sync_9_0 sync_9_1)) (= stmt_10_2_5 stmt_9_2_5)))
-(assert (=> (not (or thread_9_2 sync_9_0 sync_9_1)) (= stmt_10_2_6 stmt_9_2_6)))
+(declare-fun wait_9_2 () Bool)
+(assert (= wait_9_2 (not (or thread_9_2 sync_9_0 sync_9_1))))
+
+(assert (=> wait_9_2 (= accu_9_2 accu_8_2)))
+(assert (=> wait_9_2 (= mem_9_2 mem_8_2)))
+
+(assert (=> wait_9_2 (= stmt_10_2_0 stmt_9_2_0)))
+(assert (=> wait_9_2 (= stmt_10_2_1 stmt_9_2_1)))
+(assert (=> wait_9_2 (= stmt_10_2_2 stmt_9_2_2)))
+(assert (=> wait_9_2 (= stmt_10_2_3 stmt_9_2_3)))
+(assert (=> wait_9_2 (= stmt_10_2_4 stmt_9_2_4)))
+(assert (=> wait_9_2 (= stmt_10_2_5 stmt_9_2_5)))
+(assert (=> wait_9_2 (= stmt_10_2_6 stmt_9_2_6)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 10
@@ -2259,28 +2313,34 @@
 
 ; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (=> (not (or thread_10_1 sync_10_0 sync_10_1)) (= accu_10_1 accu_9_1)))
-(assert (=> (not (or thread_10_1 sync_10_0 sync_10_1)) (= mem_10_1 mem_9_1)))
+(declare-fun wait_10_1 () Bool)
+(assert (= wait_10_1 (not (or thread_10_1 sync_10_0 sync_10_1))))
 
-(assert (=> (not (or thread_10_1 sync_10_0 sync_10_1)) (= stmt_11_1_0 stmt_10_1_0)))
-(assert (=> (not (or thread_10_1 sync_10_0 sync_10_1)) (= stmt_11_1_1 stmt_10_1_1)))
-(assert (=> (not (or thread_10_1 sync_10_0 sync_10_1)) (= stmt_11_1_2 stmt_10_1_2)))
-(assert (=> (not (or thread_10_1 sync_10_0 sync_10_1)) (= stmt_11_1_3 stmt_10_1_3)))
-(assert (=> (not (or thread_10_1 sync_10_0 sync_10_1)) (= stmt_11_1_4 stmt_10_1_4)))
-(assert (=> (not (or thread_10_1 sync_10_0 sync_10_1)) (= stmt_11_1_5 stmt_10_1_5)))
-(assert (=> (not (or thread_10_1 sync_10_0 sync_10_1)) (= stmt_11_1_6 stmt_10_1_6)))
-(assert (=> (not (or thread_10_1 sync_10_0 sync_10_1)) (= stmt_11_1_7 stmt_10_1_7)))
+(assert (=> wait_10_1 (= accu_10_1 accu_9_1)))
+(assert (=> wait_10_1 (= mem_10_1 mem_9_1)))
 
-(assert (=> (not (or thread_10_2 sync_10_0 sync_10_1)) (= accu_10_2 accu_9_2)))
-(assert (=> (not (or thread_10_2 sync_10_0 sync_10_1)) (= mem_10_2 mem_9_2)))
+(assert (=> wait_10_1 (= stmt_11_1_0 stmt_10_1_0)))
+(assert (=> wait_10_1 (= stmt_11_1_1 stmt_10_1_1)))
+(assert (=> wait_10_1 (= stmt_11_1_2 stmt_10_1_2)))
+(assert (=> wait_10_1 (= stmt_11_1_3 stmt_10_1_3)))
+(assert (=> wait_10_1 (= stmt_11_1_4 stmt_10_1_4)))
+(assert (=> wait_10_1 (= stmt_11_1_5 stmt_10_1_5)))
+(assert (=> wait_10_1 (= stmt_11_1_6 stmt_10_1_6)))
+(assert (=> wait_10_1 (= stmt_11_1_7 stmt_10_1_7)))
 
-(assert (=> (not (or thread_10_2 sync_10_0 sync_10_1)) (= stmt_11_2_0 stmt_10_2_0)))
-(assert (=> (not (or thread_10_2 sync_10_0 sync_10_1)) (= stmt_11_2_1 stmt_10_2_1)))
-(assert (=> (not (or thread_10_2 sync_10_0 sync_10_1)) (= stmt_11_2_2 stmt_10_2_2)))
-(assert (=> (not (or thread_10_2 sync_10_0 sync_10_1)) (= stmt_11_2_3 stmt_10_2_3)))
-(assert (=> (not (or thread_10_2 sync_10_0 sync_10_1)) (= stmt_11_2_4 stmt_10_2_4)))
-(assert (=> (not (or thread_10_2 sync_10_0 sync_10_1)) (= stmt_11_2_5 stmt_10_2_5)))
-(assert (=> (not (or thread_10_2 sync_10_0 sync_10_1)) (= stmt_11_2_6 stmt_10_2_6)))
+(declare-fun wait_10_2 () Bool)
+(assert (= wait_10_2 (not (or thread_10_2 sync_10_0 sync_10_1))))
+
+(assert (=> wait_10_2 (= accu_10_2 accu_9_2)))
+(assert (=> wait_10_2 (= mem_10_2 mem_9_2)))
+
+(assert (=> wait_10_2 (= stmt_11_2_0 stmt_10_2_0)))
+(assert (=> wait_10_2 (= stmt_11_2_1 stmt_10_2_1)))
+(assert (=> wait_10_2 (= stmt_11_2_2 stmt_10_2_2)))
+(assert (=> wait_10_2 (= stmt_11_2_3 stmt_10_2_3)))
+(assert (=> wait_10_2 (= stmt_11_2_4 stmt_10_2_4)))
+(assert (=> wait_10_2 (= stmt_11_2_5 stmt_10_2_5)))
+(assert (=> wait_10_2 (= stmt_11_2_6 stmt_10_2_6)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 11
@@ -2482,28 +2542,34 @@
 
 ; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (=> (not (or thread_11_1 sync_11_0 sync_11_1)) (= accu_11_1 accu_10_1)))
-(assert (=> (not (or thread_11_1 sync_11_0 sync_11_1)) (= mem_11_1 mem_10_1)))
+(declare-fun wait_11_1 () Bool)
+(assert (= wait_11_1 (not (or thread_11_1 sync_11_0 sync_11_1))))
 
-(assert (=> (not (or thread_11_1 sync_11_0 sync_11_1)) (= stmt_12_1_0 stmt_11_1_0)))
-(assert (=> (not (or thread_11_1 sync_11_0 sync_11_1)) (= stmt_12_1_1 stmt_11_1_1)))
-(assert (=> (not (or thread_11_1 sync_11_0 sync_11_1)) (= stmt_12_1_2 stmt_11_1_2)))
-(assert (=> (not (or thread_11_1 sync_11_0 sync_11_1)) (= stmt_12_1_3 stmt_11_1_3)))
-(assert (=> (not (or thread_11_1 sync_11_0 sync_11_1)) (= stmt_12_1_4 stmt_11_1_4)))
-(assert (=> (not (or thread_11_1 sync_11_0 sync_11_1)) (= stmt_12_1_5 stmt_11_1_5)))
-(assert (=> (not (or thread_11_1 sync_11_0 sync_11_1)) (= stmt_12_1_6 stmt_11_1_6)))
-(assert (=> (not (or thread_11_1 sync_11_0 sync_11_1)) (= stmt_12_1_7 stmt_11_1_7)))
+(assert (=> wait_11_1 (= accu_11_1 accu_10_1)))
+(assert (=> wait_11_1 (= mem_11_1 mem_10_1)))
 
-(assert (=> (not (or thread_11_2 sync_11_0 sync_11_1)) (= accu_11_2 accu_10_2)))
-(assert (=> (not (or thread_11_2 sync_11_0 sync_11_1)) (= mem_11_2 mem_10_2)))
+(assert (=> wait_11_1 (= stmt_12_1_0 stmt_11_1_0)))
+(assert (=> wait_11_1 (= stmt_12_1_1 stmt_11_1_1)))
+(assert (=> wait_11_1 (= stmt_12_1_2 stmt_11_1_2)))
+(assert (=> wait_11_1 (= stmt_12_1_3 stmt_11_1_3)))
+(assert (=> wait_11_1 (= stmt_12_1_4 stmt_11_1_4)))
+(assert (=> wait_11_1 (= stmt_12_1_5 stmt_11_1_5)))
+(assert (=> wait_11_1 (= stmt_12_1_6 stmt_11_1_6)))
+(assert (=> wait_11_1 (= stmt_12_1_7 stmt_11_1_7)))
 
-(assert (=> (not (or thread_11_2 sync_11_0 sync_11_1)) (= stmt_12_2_0 stmt_11_2_0)))
-(assert (=> (not (or thread_11_2 sync_11_0 sync_11_1)) (= stmt_12_2_1 stmt_11_2_1)))
-(assert (=> (not (or thread_11_2 sync_11_0 sync_11_1)) (= stmt_12_2_2 stmt_11_2_2)))
-(assert (=> (not (or thread_11_2 sync_11_0 sync_11_1)) (= stmt_12_2_3 stmt_11_2_3)))
-(assert (=> (not (or thread_11_2 sync_11_0 sync_11_1)) (= stmt_12_2_4 stmt_11_2_4)))
-(assert (=> (not (or thread_11_2 sync_11_0 sync_11_1)) (= stmt_12_2_5 stmt_11_2_5)))
-(assert (=> (not (or thread_11_2 sync_11_0 sync_11_1)) (= stmt_12_2_6 stmt_11_2_6)))
+(declare-fun wait_11_2 () Bool)
+(assert (= wait_11_2 (not (or thread_11_2 sync_11_0 sync_11_1))))
+
+(assert (=> wait_11_2 (= accu_11_2 accu_10_2)))
+(assert (=> wait_11_2 (= mem_11_2 mem_10_2)))
+
+(assert (=> wait_11_2 (= stmt_12_2_0 stmt_11_2_0)))
+(assert (=> wait_11_2 (= stmt_12_2_1 stmt_11_2_1)))
+(assert (=> wait_11_2 (= stmt_12_2_2 stmt_11_2_2)))
+(assert (=> wait_11_2 (= stmt_12_2_3 stmt_11_2_3)))
+(assert (=> wait_11_2 (= stmt_12_2_4 stmt_11_2_4)))
+(assert (=> wait_11_2 (= stmt_12_2_5 stmt_11_2_5)))
+(assert (=> wait_11_2 (= stmt_12_2_6 stmt_11_2_6)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 12
@@ -2672,11 +2738,17 @@
 
 ; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (=> (not (or thread_12_1 sync_12_0 sync_12_1)) (= accu_12_1 accu_11_1)))
-(assert (=> (not (or thread_12_1 sync_12_0 sync_12_1)) (= mem_12_1 mem_11_1)))
+(declare-fun wait_12_1 () Bool)
+(assert (= wait_12_1 (not (or thread_12_1 sync_12_0 sync_12_1))))
 
-(assert (=> (not (or thread_12_2 sync_12_0 sync_12_1)) (= accu_12_2 accu_11_2)))
-(assert (=> (not (or thread_12_2 sync_12_0 sync_12_1)) (= mem_12_2 mem_11_2)))
+(assert (=> wait_12_1 (= accu_12_1 accu_11_1)))
+(assert (=> wait_12_1 (= mem_12_1 mem_11_1)))
+
+(declare-fun wait_12_2 () Bool)
+(assert (= wait_12_2 (not (or thread_12_2 sync_12_0 sync_12_1))))
+
+(assert (=> wait_12_2 (= accu_12_2 accu_11_2)))
+(assert (=> wait_12_2 (= mem_12_2 mem_11_2)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; exit code

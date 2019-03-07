@@ -1142,16 +1142,24 @@ void SMTLibEncoderRelational::add_state_preservation ()
     /* waiting condition */
     string condition = smtlib::lnot(smtlib::lor(args));
 
+    /* define waiting variable */
+    string wait = "wait_" + to_string(step) + "_" + to_string(thread);
+
+    formula
+      << smtlib::declare_bool_var(wait) << eol
+      << assign_var(wait, condition) << eol
+      << eol;
+
     /* preserver accu */
     formula <<
       imply(
-        condition,
+        wait,
         smtlib::equality({accu_var(), accu_var(step - 1, thread)}));
 
     /* preserve CAS memory register */
     formula <<
       imply(
-        condition,
+        wait,
         smtlib::equality({mem_var(), mem_var(step - 1, thread)}));
 
     /* preserver statement activation */
@@ -1162,7 +1170,7 @@ void SMTLibEncoderRelational::add_state_preservation ()
         for (pc = 0; pc < program.size(); pc++)
           formula <<
             imply(
-              condition,
+              wait,
               smtlib::equality({stmt_var(step + 1, thread, pc), stmt_var()}));
       }
 
