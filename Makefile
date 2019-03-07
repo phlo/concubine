@@ -40,7 +40,7 @@ SRC = boolector.cc \
 OBJ = $(subst .cc,.o,$(SRC))
 
 # executable name
-MAIN = psimsmt
+MAIN = concubine
 
 # run tests
 .PHONY: test

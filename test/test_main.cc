@@ -14,7 +14,7 @@ struct MainTest : public ::testing::Test
   Shell shell;
 
   /* executable file name */
-  string executable = "../psimsmt";
+  string executable = "../concubine";
 };
 
 /* illegal_commands ***********************************************************/
