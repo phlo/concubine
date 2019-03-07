@@ -5,10 +5,13 @@
 #include <stdexcept>
 
 #include "parser.hh"
+
 #include "encoder.hh"
 #include "simulator.hh"
+
 #include "boolector.hh"
 #include "btormc.hh"
+#include "z3.hh"
 
 using namespace std;
 
@@ -280,6 +283,9 @@ int solve (char * name, int argc, char ** argv)
       /* encoder name */
       string encoder_name = "smtlib-functional";
 
+      /* solver name */
+      string solver_name = "boolector";
+
       /* parse flags */
       do
         if (!strcmp(argv[i], "-c"))
@@ -316,7 +322,14 @@ int solve (char * name, int argc, char ** argv)
           }
         else if (!strcmp(argv[i], "-s"))
           {
-            throw runtime_error("solver selection not implemented");
+            if (++i >= argc)
+              {
+                print_error("missing solver");
+                print_usage_solve(name);
+                return -1;
+              }
+
+            solver_name = argv[i];
           }
         else if (!strcmp(argv[i], "-v"))
           {
@@ -380,14 +393,21 @@ int solve (char * name, int argc, char ** argv)
           return -1;
         }
 
-      /* create solver */
+      /* select solver */
       SolverPtr solver;
 
-      // TODO: select solver
       if (encoder_name == "btor2")
         solver = BtorMCPtr(new BtorMC(bound));
-      else
+      else if (solver_name == "boolector")
         solver = BoolectorPtr(new Boolector());
+      else if (solver_name == "z3")
+        solver = Z3Ptr(new Z3());
+      else
+        {
+          print_error("unknown solver [" + solver_name + "]");
+          print_usage_solve(name);
+          return -1;
+        }
 
       /* print program if we're pretending */
       if (pretend)

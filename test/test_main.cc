@@ -379,6 +379,14 @@ TEST_F(MainTest, solve_illegal_args)
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
+
+  /* unknown solver */
+  expected = "error: unknown solver [FOO]\n";
+
+  actual = shell.run(executable + "-s FOO 1 " + program);
+
+  ASSERT_EQ(255, shell.last_exit_code());
+  ASSERT_EQ(expected, actual.substr(0, expected.length()));
 }
 
 /* solve_file_not_found *******************************************************/

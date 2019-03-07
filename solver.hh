@@ -37,4 +37,14 @@ struct Solver
 
 typedef std::shared_ptr<Solver> SolverPtr;
 
+/* base class for solvers using SMT-Lib as input */
+struct SMTLibSolver : public Solver
+{
+  virtual std::string build_command (void) = 0;
+
+  virtual std::string build_formula (Encoder &, std::string &);
+
+  virtual SchedulePtr build_schedule (void) = 0;
+};
+
 #endif

@@ -4,6 +4,7 @@
 
 #include "encoder.hh"
 #include "shell.hh"
+#include "smtlib.hh"
 
 using namespace std;
 
@@ -36,4 +37,13 @@ SchedulePtr Solver::solve (Encoder & formula, string & constraints)
   cout << std_out;
 
   return build_schedule();
+}
+
+string SMTLibSolver::build_formula (Encoder & formula, string & constraints)
+{
+  return
+    formula.str() + eol +
+    (constraints.empty() ? "" : constraints + eol) +
+    smtlib::check_sat() + eol +
+    smtlib::exit() + eol;
 }

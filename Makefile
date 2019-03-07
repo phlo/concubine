@@ -34,7 +34,8 @@ SRC = boolector.cc \
       shell.cc \
       simulator.cc \
       solver.cc \
-      thread.cc
+      thread.cc \
+      z3.cc
 
 # object files
 OBJ = $(subst .cc,.o,$(SRC))

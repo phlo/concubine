@@ -3,11 +3,9 @@
 
 #include "solver.hh"
 
-struct Boolector : public Solver
+struct Boolector : public SMTLibSolver
 {
   virtual std::string build_command (void);
-
-  virtual std::string build_formula (Encoder &, std::string &);
 
   virtual SchedulePtr build_schedule (void);
 };
