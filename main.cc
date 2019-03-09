@@ -1,8 +1,9 @@
-#include <deque>
-#include <string>
 #include <cstring>
+#include <deque>
+#include <fstream>
 #include <iostream>
 #include <stdexcept>
+#include <string>
 
 #include "parser.hh"
 
@@ -173,7 +174,7 @@ int simulate (char * name, int argc, char ** argv)
         {
           try
             {
-              threads.push_back(make_shared<Program>(arg));
+              threads.push_back(ProgramPtr(create_from_file<Program>(arg)));
             }
           catch (const exception & e)
             {
@@ -201,15 +202,8 @@ int simulate (char * name, int argc, char ** argv)
 /* replay *********************************************************************/
 int replay (char * name, int argc, char ** argv)
 {
-  if (argc < 1)
-    {
-      print_error("no schedule given");
-      print_usage_replay(name);
-      return -1;
-    }
-
-  unsigned int      bound = 0;
-  string            path2schedule;
+  unsigned int  bound = 0;
+  string        path2schedule;
 
   for (int i = 0; i < argc; i++)
     {
@@ -243,15 +237,22 @@ int replay (char * name, int argc, char ** argv)
         }
     }
 
+  if (path2schedule.empty())
+    {
+      print_error("no schedule given");
+      print_usage_replay(name);
+      return -1;
+    }
+
   try
     {
       /* create and parse schedule */
-      Schedule schedule(path2schedule);
+      SchedulePtr schedule(create_from_file<Schedule>(path2schedule));
 
       /* run given schedule */
-      Simulator simulator(schedule.seed, bound);
+      Simulator simulator(schedule->seed, bound);
 
-      return simulator.replay(schedule);
+      return simulator.replay(*schedule);
     }
   catch (const exception & e)
     {
@@ -372,7 +373,7 @@ int solve (char * name, int argc, char ** argv)
 
       /* parse programs */
       while (i < argc)
-        programs->push_back(ProgramPtr(new Program(argv[i++])));
+        programs->push_back(ProgramPtr(create_from_file<Program>(argv[i++])));
 
       /* encode program */
       EncoderPtr encoder;

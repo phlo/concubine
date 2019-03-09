@@ -28,7 +28,6 @@ SRC = boolector.cc \
       btormc.cc \
       encoder.cc \
       instructionset.cc \
-      parser.cc \
       program.cc \
       schedule.cc \
       shell.cc \

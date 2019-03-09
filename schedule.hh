@@ -3,8 +3,8 @@
 
 #include <string>
 
-#include "thread.hh"
 #include "program.hh"
+#include "thread.hh"
 
 /*******************************************************************************
  * Schedule
@@ -15,7 +15,7 @@ struct Schedule : public std::deque<ThreadID>
   Schedule (void);
 
   /* construct from file */
-  Schedule (std::string);
+  Schedule (std::istream &, std::string &);
 
   /* path to schedule file */
   std::string           path;

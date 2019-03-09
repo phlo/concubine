@@ -4,24 +4,23 @@
 #include <string>
 #include <fstream>
 
-/*******************************************************************************
- * Parser
- ******************************************************************************/
-template <typename Result>
-struct Parser
+/* file parsing helper ********************************************************/
+template <typename T>
+T * create_from_file (std::string path)
 {
-  Parser (std::string &);
+  T * result;
 
-  bool            skip;
-  std::string     path;
-  std::ifstream   file;
-  Result *        result;
+  std::ifstream file(path);
 
-  void            skip_line (void);
+  if (file.is_open())
+    {
+      result = new T(file, path);
+      file.close();
+    }
+  else
+    throw std::runtime_error(path + " not found");
 
-  void            parse (void);
-
-  void            parse (Result *);
-};
+  return result;
+}
 
 #endif

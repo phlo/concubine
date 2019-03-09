@@ -7,6 +7,7 @@
 
 #include "simulator.hh"
 
+#include "parser.hh"
 #include "program.hh"
 #include "schedule.hh"
 #include "streamredirecter.hh"
@@ -521,14 +522,17 @@ TEST_F(SimulatorTest, simulate_increment_sync)
   string schedule(( istreambuf_iterator<char>(schedule_file) ),
                     istreambuf_iterator<char>());
 
-  Program increment_0("data/increment.sync.thread.0.asm");
-  Program increment_n("data/increment.sync.thread.n.asm");
+  ProgramPtr
+    increment_0(
+      create_from_file<Program>("data/increment.sync.thread.0.asm")),
+    increment_n(
+      create_from_file<Program>("data/increment.sync.thread.n.asm"));
 
   simulator.seed  = 0;
   simulator.bound = 16;
 
-  simulator.create_thread(increment_0);
-  simulator.create_thread(increment_n);
+  simulator.create_thread(*increment_0);
+  simulator.create_thread(*increment_n);
 
   /* redirect stdout */
   ostringstream ss;
@@ -553,13 +557,13 @@ TEST_F(SimulatorTest, simulate_increment_cas)
   string schedule(( istreambuf_iterator<char>(schedule_file) ),
                     istreambuf_iterator<char>());
 
-  Program increment("data/increment.cas.asm");
+  ProgramPtr increment(create_from_file<Program>("data/increment.cas.asm"));
 
   simulator.seed  = 0;
   simulator.bound = 16;
 
-  simulator.create_thread(increment);
-  simulator.create_thread(increment);
+  simulator.create_thread(*increment);
+  simulator.create_thread(*increment);
 
   /* redirect stdout */
   ostringstream ss;
@@ -585,8 +589,10 @@ TEST_F(SimulatorTest, replay_increment_sync)
   ifstream sfs(schedule_file);
   string schedule_str((istreambuf_iterator<char>(sfs)),
                       istreambuf_iterator<char>());
+  sfs.clear();
+  sfs.seekg(0, std::ios::beg);
 
-  Schedule schedule(schedule_file);
+  Schedule schedule(sfs, schedule_file);
 
   /* redirect stdout */
   ostringstream ss;
@@ -619,8 +625,10 @@ TEST_F(SimulatorTest, replay_increment_cas)
   ifstream sfs(schedule_file);
   string schedule_str((istreambuf_iterator<char>(sfs)),
                       istreambuf_iterator<char>());
+  sfs.clear();
+  sfs.seekg(0, std::ios::beg);
 
-  Schedule schedule(schedule_file);
+  Schedule schedule(sfs, schedule_file);
 
   /* redirect stdout */
   ostringstream ss;

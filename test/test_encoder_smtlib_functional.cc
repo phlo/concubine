@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include "encoder.hh"
+#include "parser.hh"
 
 using namespace std;
 
@@ -685,11 +686,11 @@ TEST_F(SMTLibEncoderFunctionalTest, encode_sync)
 {
   /* concurrent increment using SYNC */
   programs.push_back(
-    shared_ptr<Program>(
-      new Program("data/increment.sync.thread.0.asm")));
+    ProgramPtr(
+      create_from_file<Program>("data/increment.sync.thread.0.asm")));
   programs.push_back(
-    shared_ptr<Program>(
-      new Program("data/increment.sync.thread.n.asm")));
+    ProgramPtr(
+      create_from_file<Program>("data/increment.sync.thread.n.asm")));
 
   encoder =
     make_shared<SMTLibEncoderFunctional>(
@@ -705,11 +706,11 @@ TEST_F(SMTLibEncoderFunctionalTest, encode_cas)
 {
   /* concurrent increment using CAS */
   programs.push_back(
-    shared_ptr<Program>(
-      new Program("data/increment.cas.asm")));
+    ProgramPtr(
+      create_from_file<Program>("data/increment.cas.asm")));
   programs.push_back(
-    shared_ptr<Program>(
-      new Program("data/increment.cas.asm")));
+    ProgramPtr(
+      create_from_file<Program>("data/increment.cas.asm")));
 
   encoder =
     make_shared<SMTLibEncoderFunctional>(

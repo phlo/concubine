@@ -1,6 +1,7 @@
 #ifndef PROGRAM_HH_
 #define PROGRAM_HH_
 
+#include <istream>
 #include <deque>
 #include <unordered_set>
 
@@ -15,7 +16,7 @@ struct Program : public std::deque<InstructionPtr>
   Program (void);
 
   /* construct from file */
-  Program (std::string);
+  Program (std::istream &, std::string &);
 
   /* path to program file */
   std::string                             path;
