@@ -5,8 +5,6 @@
 #include <iostream>
 #include <algorithm>
 
-#include "schedule.hh"
-
 using namespace std;
 
 /* erases a given element from a <deque> container ****************************/
@@ -19,28 +17,43 @@ inline void erase (deque<T> & lst, T & val)
 /*******************************************************************************
  * Simulator
  ******************************************************************************/
-Simulator::Simulator (unsigned long s, unsigned long b) :
+Simulator::Simulator () : schedule(new Schedule()) {}
+
+Simulator::Simulator (ProgramList & p, unsigned long s, unsigned long b) :
   seed(s),
   bound(b),
-  active(),
-  threads(),
-  memory({{0}}), // initialize with zeros ffs ..
-  threads_per_sync_id(),
-  waiting_per_sync_id()
-{}
+  // active(),
+  // threads(),
+  // memory(), // initialize with zeros ffs ..
+  schedule(new Schedule(p, s, b))
+  // threads_per_sync_id(),
+  // waiting_per_sync_id()
+{
+  for (const ProgramPtr program : p)
+    create_thread(*program);
+}
+
+Simulator::Simulator (SchedulePtr s, unsigned long b) :
+  seed(s->seed),
+  bound(b ? b : s->bound),
+  schedule(s)
+{
+  for (const ProgramPtr & program : *s->programs)
+    create_thread(*program);
+}
 
 /* Simulator::create_thread (Program &) ***************************************/
 ThreadID Simulator::create_thread (Program & program)
 {
   /* determine thread id */
-  ThreadID id = threads.size();
+  ThreadID id = threads.size() + 1;
 
   /* add thread to queue */
   threads.push_back(ThreadPtr(new Thread(*this, id, program)));
 
   /* add to sync id list */
   for (word i : program.sync_ids)
-    threads_per_sync_id[i].push_back(threads[id]);
+    threads_per_sync_id[i].push_back(threads.back());
 
   return id;
 }
@@ -70,7 +83,7 @@ void Simulator::check_and_resume_waiting (word sync_id)
 }
 
 /* Simulator::run (Scheduler *) ***********************************************/
-int Simulator::run (function<ThreadPtr(void)> scheduler)
+SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
 {
   /* print schedule header */
   for (auto t : threads)
@@ -85,14 +98,19 @@ int Simulator::run (function<ThreadPtr(void)> scheduler)
   activate_threads(threads);
 
   bool done = active.empty();
-  unsigned long steps = 0;
-  while (!done && (steps++ < bound || !bound))
+  for (unsigned long step = 1; !done && (step <= bound || !bound); step++)
     {
       ThreadPtr thread = scheduler();
 
       assert(thread->state == Thread::State::RUNNING);
 
       thread->execute();
+
+      /* append new state to schedule */
+      // schedule->accus[thread->id][step] = thread->accu;
+      // schedule->mems[thread->id][step] = thread->mem;
+      // schedule->pcs[thread->id][step] = thread->pc;
+      // schedule->heap[step] = memory;
 
       /* handle state transitions */
       switch (thread->state)
@@ -142,7 +160,11 @@ int Simulator::run (function<ThreadPtr(void)> scheduler)
             }
 
         /* exiting - return exit code */
-        case Thread::State::EXITING: return static_cast<int>(thread->accu);
+        case Thread::State::EXITING:
+            {
+              schedule->exit = static_cast<int>(thread->accu);
+              return schedule;
+            }
 
         default:
           cout << "warning: illegal thread state transition " <<
@@ -152,11 +174,11 @@ int Simulator::run (function<ThreadPtr(void)> scheduler)
         }
     }
 
-  return 0;
+  return schedule;
 }
 
 /* Simulator::simulate (void) *************************************************/
-int Simulator::simulate ()
+SchedulePtr Simulator::simulate ()
 {
   /* Mersenne Twister pseudo-random number generator */
   mt19937_64 random(seed);
@@ -170,23 +192,19 @@ int Simulator::simulate ()
   return run(scheduler);
 }
 
-/* Simulator::replay (Schedule &) *********************************************/
-int Simulator::replay (Schedule & schedule)
+/* Simulator::replay (void) ***************************************************/
+SchedulePtr Simulator::replay (void)
 {
   /* set bound */
-  bound = schedule.size();
-
-  /* create threads */
-  for (ProgramPtr p : schedule.programs)
-    create_thread(*p);
+  bound = schedule->size();
 
   /* index variable for iterating the Schedule */
   unsigned long step = 0;
 
   /* replay scheduler */
-  function<ThreadPtr(void)> scheduler = [this, &schedule, &step]
+  function<ThreadPtr(void)> scheduler = [this, &step]
     {
-      return this->threads[schedule[step++]];
+      return threads[schedule->at(step++) - 1];
     };
 
   return run(scheduler);

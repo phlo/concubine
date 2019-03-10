@@ -30,11 +30,11 @@ TEST_F(ScheduleTest, add_thread)
 TEST_F(ScheduleTest, add_program)
 {
   schedule->add(0, ProgramPtr(create_from_file<Program>("data/increment.asm")));
-  ASSERT_EQ(1, schedule->programs.size());
+  ASSERT_EQ(1, schedule->programs->size());
 
   schedule->add(2, ProgramPtr(create_from_file<Program>("data/increment.asm")));
-  ASSERT_EQ(3, schedule->programs.size());
-  ASSERT_EQ(nullptr, schedule->programs[1]);
+  ASSERT_EQ(3, schedule->programs->size());
+  ASSERT_EQ(nullptr, schedule->programs->at(1));
 }
 
 /* parse **********************************************************************/
@@ -44,7 +44,7 @@ TEST_F(ScheduleTest, parse)
     SchedulePtr(create_from_file<Schedule>("data/increment.invalid.schedule"));
 
   ASSERT_EQ(0, schedule->seed);
-  ASSERT_EQ(3, schedule->programs.size());
+  ASSERT_EQ(3, schedule->programs->size());
   ASSERT_EQ(13, schedule->size());
 }
 

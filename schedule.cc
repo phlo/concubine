@@ -5,10 +5,26 @@
 using namespace std;
 
 /* default constructor ********************************************************/
-Schedule::Schedule () {}
+Schedule::Schedule () :
+  path(""),
+  bound(0),
+  seed(0),
+  programs(new ProgramList()),
+  exit(0)
+{}
+
+Schedule::Schedule (ProgramList & p, unsigned long s, unsigned long b) :
+  path(""),
+  bound(b),
+  seed(s),
+  programs(make_shared<ProgramList>(p)),
+  exit(0)
+{}
 
 /* construct from file ********************************************************/
-Schedule::Schedule(istream & file, string & name) : path(name)
+Schedule::Schedule(istream & file, string & name) :
+  path(name),
+  programs(new ProgramList())
 {
   string token;
 
@@ -62,12 +78,12 @@ Schedule::Schedule(istream & file, string & name) : path(name)
 
           file >> token;
 
-          add(tid, ProgramPtr(create_from_file<Program>(token)));
+          programs->at(tid - 1) = ProgramPtr(create_from_file<Program>(token));
         }
     }
 
   /* check header */
-  if (programs.empty())
+  if (programs->empty())
     throw runtime_error("missing threads");
 
   /* parse body */
@@ -91,7 +107,7 @@ Schedule::Schedule(istream & file, string & name) : path(name)
           throw runtime_error("illegal thread id [" + token + "]");
         }
 
-      if (tid >= programs.size() || programs[tid] == nullptr)
+      if (tid >= programs->size() || programs->at(tid) == nullptr)
           throw runtime_error("unknown thread id");
 
       add(tid);
@@ -99,16 +115,16 @@ Schedule::Schedule(istream & file, string & name) : path(name)
       /* ignore rest of the line (in case of verbose output) */
       getline(file, token);
     }
+
+  /* set bound */
+  bound = size();
+}
+
+/* Schedule::add (ThreadID, ProgramPtr) ***************************************/
+void Schedule::add (ThreadID tid, ProgramPtr program)
+{
+  programs->at(tid) = program;
 }
 
 /* Schedule::add (ThreadID) ***************************************************/
 void Schedule::add (ThreadID tid) { push_back(tid); }
-
-/* Schedule::add (ProgramPtr) *************************************************/
-void Schedule::add (ThreadID tid, ProgramPtr program)
-{
-  if (programs.size() < tid + 1)
-    programs.resize(tid + 1);
-
-  programs[tid] = program;
-}

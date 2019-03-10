@@ -7,17 +7,21 @@
 
 #include "common.hh"
 #include "thread.hh"
-
-/* forward declarations */
-struct Schedule;
+#include "schedule.hh"
 
 /*******************************************************************************
  * Simulator
  ******************************************************************************/
 struct Simulator
 {
-  /* constructs a new simulator with given seed and bound */
-  Simulator (unsigned long seed = 0, unsigned long bound = 0);
+  /* default constructor (testing only) */
+  Simulator (void);
+
+  /* constructs a new simulator for simulation */
+  Simulator (ProgramList &, unsigned long seed = 0, unsigned long bound = 0);
+
+  /* constructs a new simulator for replaying a given schedule */
+  Simulator (SchedulePtr, unsigned long bound = 0);
 
   /*****************************************************************************
    * variables
@@ -36,7 +40,10 @@ struct Simulator
   ThreadList                            threads;
 
   /* main memory (heap) */
-  std::array<word, word_max>            memory;
+  std::unordered_map<word, word>        memory;
+
+  /* generated schedule */
+  SchedulePtr                           schedule;
 
   /* number of threads containing calls to a specific sync barrier (id) */
   std::unordered_map<word, ThreadList>  threads_per_sync_id;
@@ -55,7 +62,7 @@ struct Simulator
   void                                  check_and_resume_waiting (word);
 
   /* run the simulator, using the specified scheduler */
-  int                                   run (std::function<ThreadPtr(void)>);
+  SchedulePtr                           run (std::function<ThreadPtr(void)>);
 
   /*****************************************************************************
    * public functions
@@ -65,10 +72,10 @@ struct Simulator
   ThreadID                              create_thread (Program &);
 
   /* runs the simulator using a random schedule */
-  int                                   simulate (void);
+  SchedulePtr                           simulate (void);
 
   /* replay the given schedule (schedule must match simulator configuration) */
-  int                                   replay (Schedule &);
+  SchedulePtr                           replay (void);
 };
 
 #endif

@@ -59,6 +59,7 @@ TEST_F(SimulatorTest, create_thread)
 
   simulator.create_thread(program);
 
+  ASSERT_EQ(1, simulator.threads.back()->id);
   ASSERT_TRUE(simulator.active.empty());
   ASSERT_EQ(1, simulator.threads.size());
   ASSERT_TRUE(simulator.threads_per_sync_id.empty());
@@ -68,6 +69,7 @@ TEST_F(SimulatorTest, create_thread)
 
   simulator.create_thread(program);
 
+  ASSERT_EQ(2, simulator.threads.back()->id);
   ASSERT_TRUE(simulator.active.empty());
   ASSERT_EQ(2, simulator.threads.size());
   ASSERT_EQ(1, simulator.threads_per_sync_id[1].size());
@@ -136,7 +138,7 @@ TEST_F(SimulatorTest, run_simple)
     };
 
   /* run it */
-  ASSERT_EQ(0, simulator.run(scheduler));
+  ASSERT_EQ(0, simulator.run(scheduler)->exit);
 
   EXPECT_EQ(Thread::State::STOPPED, simulator.threads[0]->state);
   EXPECT_EQ(Thread::State::STOPPED, simulator.threads[1]->state);
@@ -230,7 +232,7 @@ TEST_F(SimulatorTest, run_add_sync_exit)
     };
 
   /* run it */
-  ASSERT_EQ(1, simulator.run(scheduler));
+  ASSERT_EQ(1, simulator.run(scheduler)->exit);
 
   cout.clear();
 }
@@ -459,7 +461,7 @@ TEST_F(SimulatorTest, run_race_condition)
     };
 
   /* run it */
-  ASSERT_EQ(1, simulator.run(scheduler));
+  ASSERT_EQ(1, simulator.run(scheduler)->exit);
 
   cout.clear();
 }
@@ -509,7 +511,7 @@ TEST_F(SimulatorTest, run_zero_bound)
     };
 
   /* run it */
-  ASSERT_EQ(0, simulator.run(scheduler));
+  ASSERT_EQ(0, simulator.run(scheduler)->exit);
 
   cout.clear();
 }
@@ -541,7 +543,7 @@ TEST_F(SimulatorTest, simulate_increment_sync)
   redirecter.start();
 
   /* run it */
-  ASSERT_EQ(0, simulator.simulate());
+  ASSERT_EQ(0, simulator.simulate()->exit);
 
   redirecter.stop();
 
@@ -572,7 +574,7 @@ TEST_F(SimulatorTest, simulate_increment_cas)
   redirecter.start();
 
   /* run it */
-  ASSERT_EQ(0, simulator.simulate());
+  ASSERT_EQ(0, simulator.simulate()->exit);
 
   redirecter.stop();
 
@@ -601,7 +603,9 @@ TEST_F(SimulatorTest, replay_increment_sync)
   redirecter.start();
 
   /* replay */
-  ASSERT_EQ(0, simulator.replay(schedule));
+  simulator = Simulator(SchedulePtr(&schedule));
+
+  ASSERT_EQ(0, simulator.replay()->exit);
 
   ASSERT_EQ(2, simulator.memory[0]);
 
@@ -637,7 +641,9 @@ TEST_F(SimulatorTest, replay_increment_cas)
   redirecter.start();
 
   /* replay */
-  ASSERT_EQ(0, simulator.replay(schedule));
+  simulator = Simulator(SchedulePtr(&schedule));
+
+  ASSERT_EQ(0, simulator.replay()->exit);
 
   ASSERT_EQ(2, simulator.memory[0]);
 
