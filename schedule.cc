@@ -1,5 +1,7 @@
 #include "schedule.hh"
 
+#include <sstream>
+
 #include "parser.hh"
 
 using namespace std;
@@ -9,7 +11,6 @@ Schedule::Schedule () :
   path(""),
   bound(0),
   seed(0),
-  programs(new ProgramList()),
   exit(0)
 {}
 
@@ -17,37 +18,35 @@ Schedule::Schedule (ProgramList & p, unsigned long s, unsigned long b) :
   path(""),
   bound(b),
   seed(s),
-  programs(make_shared<ProgramList>(p)),
+  programs(p),
   exit(0)
 {}
 
 /* construct from file ********************************************************/
-Schedule::Schedule(istream & file, string & name) :
-  path(name),
-  programs(new ProgramList())
+Schedule::Schedule(istream & file, string & name) : path(name)
 {
   string token;
 
   bool found_seed = false;
 
-  /* parse header */
-  while (file && !found_seed)
-    {
-      if (file.peek() == '#')
-        {
-          getline(file, token);
-          continue;
-        }
+  unsigned long line_num = 1;
 
-      file >> token;
+  /* parse header */
+  for (string line_buf; !found_seed && getline(file, line_buf); line_num++)
+    {
+      istringstream line(line_buf);
+
+      /* skip comments */
+      if (line >> token && token.front() == '#')
+        continue;
 
       /* parse seed */
       if (token == "seed")
         {
-          if (file >> token && token != "=")
-            throw runtime_error("'=' expected");
+          if (line >> token && token != "=")
+            parser_error(path, line_num, "'=' expected");
 
-          file >> token;
+          line >> token;
 
           try
             {
@@ -56,7 +55,7 @@ Schedule::Schedule(istream & file, string & name) :
             }
           catch (const exception & e)
             {
-              throw runtime_error("illegal seed [" + token + "]");
+              parser_error(path, line_num, "illegal seed [" + token + "]");
             }
         }
       /* parse header */
@@ -70,30 +69,39 @@ Schedule::Schedule(istream & file, string & name) :
             }
           catch (const exception & e)
             {
-              throw runtime_error("illegal thread id [" + token + "]");
+              parser_error(path, line_num, "illegal thread id [" + token + "]");
             }
 
-          if (file >> token && token != "=")
-            throw runtime_error("'=' expected");
+          if (programs.empty() && tid)
+            parser_error(path, line_num, "thread id must start from zero");
 
-          file >> token;
+          if (tid != programs.size())
+            parser_error(
+              path,
+              line_num,
+              "expected thread id " + to_string(programs.size()));
 
-          programs->at(tid - 1) = ProgramPtr(create_from_file<Program>(token));
+          if (line >> token && token != "=")
+            parser_error(path, line_num, "'=' expected");
+
+          line >> token;
+
+          programs.push_back(ProgramPtr(create_from_file<Program>(token)));
         }
     }
 
   /* check header */
-  if (programs->empty())
-    throw runtime_error("missing threads");
+  if (programs.empty())
+    parser_error(path, line_num, "missing threads");
 
   /* parse body */
-  while (file && file >> token)
+  for (string line_buf; getline(file, line_buf); line_num++)
     {
-      if (token[0] == '#')
-        {
-          getline(file, token);
-          continue;
-        }
+      istringstream line(line_buf);
+
+      /* skip comments */
+      if (line >> token && token.front() == '#')
+        continue;
 
       /* try to parse thread id */
       ThreadID tid;
@@ -104,27 +112,16 @@ Schedule::Schedule(istream & file, string & name) :
         }
       catch (const exception & e)
         {
-          throw runtime_error("illegal thread id [" + token + "]");
+          parser_error(path, line_num, "illegal thread id [" + token + "]");
         }
 
-      if (tid >= programs->size() || programs->at(tid) == nullptr)
-          throw runtime_error("unknown thread id");
+      if (tid >= programs.size() || programs[tid] == nullptr)
+          parser_error(path, line_num, "unknown thread id [" + token + "]");
 
-      add(tid);
-
-      /* ignore rest of the line (in case of verbose output) */
-      getline(file, token);
+      /* append thread id */
+      push_back(tid);
     }
 
   /* set bound */
   bound = size();
 }
-
-/* Schedule::add (ThreadID, ProgramPtr) ***************************************/
-void Schedule::add (ThreadID tid, ProgramPtr program)
-{
-  programs->at(tid) = program;
-}
-
-/* Schedule::add (ThreadID) ***************************************************/
-void Schedule::add (ThreadID tid) { push_back(tid); }

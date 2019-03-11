@@ -1,20 +1,20 @@
+0 = data/increment.cas.asm
 1 = data/increment.cas.asm
-2 = data/increment.cas.asm
 seed = 0
 # tid	pc	cmd	arg	accu
+0	0	STORE	0	0
 1	0	STORE	0	0
-2	0	STORE	0	0
-2	1	SYNC	0	0
 1	1	SYNC	0	0
+0	1	SYNC	0	0
+0	LOOP	MEM	0	0
+0	3	ADDI	1	1
 1	LOOP	MEM	0	0
+0	4	CAS	0	1
+0	5	JMP	LOOP	1
 1	3	ADDI	1	1
-2	LOOP	MEM	0	0
-1	4	CAS	0	1
-1	5	JMP	LOOP	1
-2	3	ADDI	1	1
-2	4	CAS	0	0
-1	LOOP	MEM	0	1
-1	3	ADDI	1	2
-1	4	CAS	0	1
-1	5	JMP	LOOP	1
-2	5	JMP	LOOP	0
+1	4	CAS	0	0
+0	LOOP	MEM	0	1
+0	3	ADDI	1	2
+0	4	CAS	0	1
+0	5	JMP	LOOP	1
+1	5	JMP	LOOP	0

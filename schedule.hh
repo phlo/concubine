@@ -32,7 +32,7 @@ struct Schedule : public std::deque<ThreadID>
   unsigned long         seed;
 
   /* programs used to generate the schedule */
-  ProgramListPtr        programs;
+  ProgramList           programs;
 
   /* exit code */
   word                  exit;
@@ -49,14 +49,6 @@ struct Schedule : public std::deque<ThreadID>
     std::unordered_map<
       word,
       word>>            heap;
-
-  /* add a program */
-  void                  add (ThreadID, ProgramPtr);
-
-  /* append a thread id to be scheduled next */
-  void                  add (ThreadID);
-
-  void                  add (ThreadID, word, word, word, std::string);
 };
 
 /*******************************************************************************
