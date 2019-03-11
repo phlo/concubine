@@ -2,6 +2,8 @@
 
 #include <sstream>
 
+#include "parser.hh"
+
 using namespace std;
 
 /* default constructor ********************************************************/
@@ -11,7 +13,10 @@ Program::Program() {}
 Program::Program(istream & file, string & name) : path(name)
 {
   string token;
+
   InstructionPtr i;
+
+  unsigned long line_num = 1;
 
   /* maps label occurrences to the according pc */
   unordered_map<string, word> label_def;
@@ -19,14 +24,18 @@ Program::Program(istream & file, string & name) : path(name)
   /* list of jump instructions at pc referencing a certain label */
   deque<tuple<string, word, string>> label_ref;
 
-  while (file && file >> token)
+  for (string line_buf; getline(file, line_buf); line_num++)
     {
-      /* comment block started? */
-      if (token.front() == '#')
-        {
-          getline(file, token);
-          continue;
-        }
+      /* skip empty lines */
+      if (line_buf.empty())
+        continue;
+
+      istringstream line(line_buf);
+
+      /* skip comments */
+      if (line >> token && token.front() == '#')
+        continue;
+
       /* found label? */
       else if (token.back() == ':')
         {
@@ -38,7 +47,7 @@ Program::Program(istream & file, string & name) : path(name)
           labels[pc] = label;
 
           /* read labelled command */
-          file >> token;
+          line >> token;
         }
 
       /* parse instruction */
@@ -54,7 +63,7 @@ Program::Program(istream & file, string & name) : path(name)
               word arg;
 
               /* try to parse the argument */
-              if (file >> arg)
+              if (line >> arg)
                 {
                   i = Instruction::Set::create(token, arg);
                 }
@@ -62,23 +71,25 @@ Program::Program(istream & file, string & name) : path(name)
               else
                 {
                   /* clear failbit - recover ifstream */
-                  file.clear();
+                  line.clear();
 
                   /* discard leading whitespaces for later use of peek */
-                  file >> ws;
+                  line >> ws;
 
                   /* arg is an indirect memory address */
-                  if (file.peek() == '[')
+                  if (line.peek() == '[')
                     {
                       /* parse enclosed address */
                       string tmp;
-                      file >> tmp;
+                      line >> tmp;
 
                       istringstream addr(tmp.substr(1, tmp.size() - 2));
 
                       /* check if address is a number */
                       if (!(addr >> arg))
-                        throw runtime_error(
+                        parser_error(
+                          path,
+                          line_num,
                           "indirect addressing does not support labels");
 
                       i = Instruction::Set::create(token, arg);
@@ -87,9 +98,10 @@ Program::Program(istream & file, string & name) : path(name)
                       if (auto m = dynamic_pointer_cast<MemoryInstruction>(i))
                         m->indirect = true;
                       else
-                        throw runtime_error(
-                          token +
-                          " does not support indirect addressing");
+                        parser_error(
+                          path,
+                          line_num,
+                          token + " does not support indirect addressing");
                     }
                   /* arg is a label */
                   else
@@ -103,7 +115,7 @@ Program::Program(istream & file, string & name) : path(name)
                         {
                           /* get the label */
                           string label;
-                          file >> label;
+                          line >> label;
 
                           /* get the program counter */
                           word pc = size();
@@ -113,15 +125,16 @@ Program::Program(istream & file, string & name) : path(name)
                         }
                       /* error: not a jump instruction */
                       else
-                        throw runtime_error(
-                          token +
-                          " does not support labels");
+                        parser_error(
+                          path,
+                          line_num,
+                          token + " does not support labels");
                     }
                 }
               break;
             }
         default: /* unrecognized token */
-          throw runtime_error("'" + token + "'" + " unknown token");
+          parser_error(path, line_num, "'" + token + "'" + " unknown token");
         }
 
       add(i);

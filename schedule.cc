@@ -34,6 +34,10 @@ Schedule::Schedule(istream & file, string & name) : path(name)
   /* parse header */
   for (string line_buf; !found_seed && getline(file, line_buf); line_num++)
     {
+      /* skip empty lines */
+      if (line_buf.empty())
+        continue;
+
       istringstream line(line_buf);
 
       /* skip comments */
@@ -86,7 +90,17 @@ Schedule::Schedule(istream & file, string & name) : path(name)
 
           line >> token;
 
-          programs.push_back(ProgramPtr(create_from_file<Program>(token)));
+          try
+            {
+              programs.push_back(ProgramPtr(create_from_file<Program>(token)));
+            }
+          catch (const exception & e)
+            {
+              parser_error(
+                path,
+                line_num,
+                e.what());
+            }
         }
     }
 
@@ -97,6 +111,10 @@ Schedule::Schedule(istream & file, string & name) : path(name)
   /* parse body */
   for (string line_buf; getline(file, line_buf); line_num++)
     {
+      /* skip empty lines */
+      if (line_buf.empty())
+        continue;
+
       istringstream line(line_buf);
 
       /* skip comments */

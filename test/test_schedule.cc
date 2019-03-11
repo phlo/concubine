@@ -2,7 +2,6 @@
 
 #include "parser.hh"
 #include "schedule.hh"
-#include "streamredirecter.hh"
 
 using namespace std;
 
@@ -11,6 +10,10 @@ using namespace std;
 *******************************************************************************/
 struct ScheduleTest : public ::testing::Test
 {
+  string dummy_file = "dummy.schedule";
+
+  string program = "data/increment.cas.asm";
+
   SchedulePtr schedule = SchedulePtr(new Schedule());
 };
 
@@ -22,9 +25,12 @@ TEST_F(ScheduleTest, parse)
       create_from_file<Schedule>("data/increment.cas.t2.k16.schedule"));
 
   ASSERT_EQ(0, schedule->seed);
-  ASSERT_EQ(2, schedule->programs.size());
-  ASSERT_EQ(16, schedule->size());
 
+  ASSERT_EQ(2, schedule->programs.size());
+  ASSERT_EQ(program, schedule->programs[0]->path);
+  ASSERT_EQ(program, schedule->programs[1]->path);
+
+  ASSERT_EQ(16, schedule->size());
   ASSERT_EQ(0, schedule->at(0));
   ASSERT_EQ(1, schedule->at(1));
   ASSERT_EQ(1, schedule->at(2));
@@ -43,12 +49,31 @@ TEST_F(ScheduleTest, parse)
   ASSERT_EQ(1, schedule->at(15));
 }
 
+/* parse_empty_line ***********************************************************/
+TEST_F(ScheduleTest, parse_empty_line)
+{
+  istringstream inbuf(
+    "0 = " + program + "\n"
+    "\n"
+    "seed = 0\n"
+    "\n"
+    "0\n");
+
+  schedule = SchedulePtr(new Schedule(inbuf, dummy_file));
+
+  ASSERT_EQ(0, schedule->seed);
+  ASSERT_EQ(1, schedule->programs.size());
+  ASSERT_EQ(program, schedule->programs[0]->path);
+  ASSERT_EQ(0, schedule->at(0));
+}
+
 /* parse_file_not_found *******************************************************/
 TEST_F(ScheduleTest, parse_file_not_found)
 {
   try
     {
       schedule = SchedulePtr(create_from_file<Schedule>("file_not_found"));
+      FAIL() << "should throw an exception";
     }
   catch (const exception & e)
     {
@@ -59,20 +84,19 @@ TEST_F(ScheduleTest, parse_file_not_found)
 /* parse_illegal_schedule *****************************************************/
 TEST_F(ScheduleTest, parse_illegal_schedule)
 {
-  string dummy_file = "data/test.schedule";
-
   istringstream inbuf;
 
   /* no seed */
   inbuf.str(
-    "0 = data/increment.checker.asm\n"
-    "1 = data/increment.asm\n"
+    "0 = " + program + "\n"
+    "1 = " + program + "\n"
     "0\n"
     "1\n");
 
   try
     {
       schedule = SchedulePtr(new Schedule(inbuf, dummy_file));
+      FAIL() << "should throw an exception";
     }
   catch (const exception & e)
     {
@@ -88,21 +112,58 @@ TEST_F(ScheduleTest, parse_illegal_schedule)
   try
     {
       schedule = SchedulePtr(new Schedule(inbuf, dummy_file));
+      FAIL() << "should throw an exception";
     }
   catch (const exception & e)
     {
       ASSERT_EQ(dummy_file + ":2: missing threads", e.what());
     }
 
-  /* illegal initial thread id (must start with 0) */
+  /* program not found */
   inbuf.str(
-    "1 = data/increment.asm\n"
+    "0 = program.asm\n"
+    "seed = 0\n"
+    "0\n"
+    "1\n");
+
+  try
+    {
+      schedule = SchedulePtr(new Schedule(inbuf, dummy_file));
+      FAIL() << "should throw an exception";
+    }
+  catch (const exception & e)
+    {
+      ASSERT_EQ(dummy_file + ":1: program.asm not found", e.what());
+    }
+
+  /* missing thread id */
+  inbuf.str(
+    program + "\n"
     "seed = 0\n"
     "1\n");
 
   try
     {
       schedule = SchedulePtr(new Schedule(inbuf, dummy_file));
+      FAIL() << "should throw an exception";
+    }
+  catch (const exception & e)
+    {
+      ASSERT_EQ(
+        dummy_file + ":1: illegal thread id [" + program + "]",
+        e.what());
+    }
+
+  /* illegal initial thread id (must start with 0) */
+  inbuf.str(
+    "1 = " + program + "\n"
+    "seed = 0\n"
+    "1\n");
+
+  try
+    {
+      schedule = SchedulePtr(new Schedule(inbuf, dummy_file));
+      FAIL() << "should throw an exception";
     }
   catch (const exception & e)
     {
@@ -111,14 +172,15 @@ TEST_F(ScheduleTest, parse_illegal_schedule)
 
   /* illegal thread id (missing 1) */
   inbuf.str(
-    "0 = data/increment.asm\n"
-    "2 = data/increment.asm\n"
+    "0 = " + program + "\n"
+    "2 = " + program + "\n"
     "seed = 0\n"
     "0\n");
 
   try
     {
       schedule = SchedulePtr(new Schedule(inbuf, dummy_file));
+      FAIL() << "should throw an exception";
     }
   catch (const exception & e)
     {
@@ -134,6 +196,7 @@ TEST_F(ScheduleTest, parse_illegal_schedule)
   try
     {
       schedule = SchedulePtr(new Schedule(inbuf, dummy_file));
+      FAIL() << "should throw an exception";
     }
   catch (const exception & e)
     {
@@ -149,6 +212,7 @@ TEST_F(ScheduleTest, parse_illegal_schedule)
   try
     {
       schedule = SchedulePtr(new Schedule(inbuf, dummy_file));
+      FAIL() << "should throw an exception";
     }
   catch (const exception & e)
     {
@@ -164,6 +228,7 @@ TEST_F(ScheduleTest, parse_illegal_schedule)
   try
     {
       schedule = SchedulePtr(new Schedule(inbuf, dummy_file));
+      FAIL() << "should throw an exception";
     }
   catch (const exception & e)
     {
@@ -179,6 +244,7 @@ TEST_F(ScheduleTest, parse_illegal_schedule)
   try
     {
       schedule = SchedulePtr(new Schedule(inbuf, dummy_file));
+      FAIL() << "should throw an exception";
     }
   catch (const exception & e)
     {

@@ -1,10 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <cstdio>
-
 #include "parser.hh"
 #include "program.hh"
-#include "streamredirecter.hh"
 
 using namespace std;
 
@@ -13,6 +10,8 @@ using namespace std;
 *******************************************************************************/
 struct ProgramTest : public ::testing::Test
 {
+  string dummy_file = "dummy.asm";
+
   ProgramPtr program = ProgramPtr(new Program());
 };
 
@@ -61,6 +60,22 @@ TEST_F(ProgramTest, parse)
   ASSERT_EQ("4\tCMP\t[1]",    program->print(true, 4));
 }
 
+/* parse_empty_line ***********************************************************/
+TEST_F(ProgramTest, parse_empty_line)
+{
+  istringstream inbuf(
+    "ADDI 1\n"
+    "\n"
+    "EXIT 1\n");
+
+  program = ProgramPtr(new Program(inbuf, dummy_file));
+
+  ASSERT_EQ(2, program->size());
+
+  ASSERT_EQ("0\tADDI\t1",  program->print(true, 0));
+  ASSERT_EQ("1\tEXIT\t1",   program->print(true, 1));
+}
+
 /* parse_file_not_found *******************************************************/
 TEST_F(ProgramTest, parse_file_not_found)
 {
@@ -69,6 +84,7 @@ TEST_F(ProgramTest, parse_file_not_found)
   try
     {
       program = ProgramPtr(create_from_file<Program>(file));
+      ASSERT_TRUE(false);
     }
   catch (const exception & e)
     {
@@ -79,53 +95,61 @@ TEST_F(ProgramTest, parse_file_not_found)
 /* parse_illegal_instruction **************************************************/
 TEST_F(ProgramTest, parse_illegal_instruction)
 {
-  string dummy_file = "data/fibonacci.asm";
+  istringstream inbuf;
 
   /* illegal instruction */
-  istringstream inbuf("NOP");
+  inbuf.str("NOP\n");
 
   try
     {
       program = ProgramPtr(new Program(inbuf, dummy_file));
+      FAIL() << "should throw an exception";
     }
   catch (const exception & e)
     {
-      ASSERT_STREQ("'NOP' unknown token", e.what());
+      ASSERT_EQ(dummy_file + ":1: 'NOP' unknown token", e.what());
     }
 
   /* illegal instruction argument (label) */
-  inbuf.str("ADD nothing");
+  inbuf.str("ADD nothing\n");
 
   try
     {
       program = ProgramPtr(new Program(inbuf, dummy_file));
+      FAIL() << "should throw an exception";
     }
   catch (const exception & e)
     {
-      ASSERT_STREQ("ADD does not support labels", e.what());
+      ASSERT_EQ(dummy_file + ":1: ADD does not support labels", e.what());
     }
 
   /* illegal instruction argument (indirect addressing) */
-  inbuf.str("SYNC [0]");
+  inbuf.str("SYNC [0]\n");
 
   try
     {
       program = ProgramPtr(new Program(inbuf, dummy_file));
+      FAIL() << "should throw an exception";
     }
   catch (const exception & e)
     {
-      ASSERT_STREQ("SYNC does not support indirect addressing", e.what());
+      ASSERT_EQ(
+        dummy_file + ":1: SYNC does not support indirect addressing",
+        e.what());
     }
 
   /* illegal instruction argument (label in indirect address) */
-  inbuf.str("STORE [me]");
+  inbuf.str("STORE [me]\n");
 
   try
     {
       program = ProgramPtr(new Program(inbuf, dummy_file));
+      FAIL() << "should throw an exception";
     }
   catch (const exception & e)
     {
-      ASSERT_STREQ("indirect addressing does not support labels", e.what());
+      ASSERT_EQ(
+        dummy_file + ":1: indirect addressing does not support labels",
+        e.what());
     }
 }
