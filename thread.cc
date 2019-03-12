@@ -6,7 +6,7 @@
 using namespace std;
 
 /* constructor ****************************************************************/
-Thread::Thread (Simulator & s, unsigned int i, Program & p) :
+Thread::Thread (Simulator & s, unsigned int i, ProgramPtr p) :
   id(i),
   pc(0),
   mem(0),
@@ -35,7 +35,7 @@ void Thread::store (word addr, word val, bool indirect)
 /* Thread::execute (void) *****************************************************/
 void Thread::execute ()
 {
-  if (pc >= program.size())
+  if (pc >= program->size())
     throw runtime_error("illegal pc [" + to_string(pc) + "]");
 
   /* print thread id */
@@ -47,11 +47,11 @@ void Thread::execute ()
       cout << "\t";
 
       /* print instruction details */
-      cout << program.print(true, pc);
+      cout << program->print(true, pc);
     }
 
   /* execute instruction */
-  program[pc]->execute(*this);
+  program->at(pc)->execute(*this);
 
   /* print accu */
   if (verbose)
@@ -60,6 +60,6 @@ void Thread::execute ()
   cout << endl;
 
   /* set state to STOPPED if it was the last command in the program */
-  if (pc >= program.size())
+  if (pc >= program->size())
     state = Thread::State::STOPPED;
 }

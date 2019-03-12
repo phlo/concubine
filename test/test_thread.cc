@@ -10,11 +10,9 @@ using namespace std;
 *******************************************************************************/
 struct ThreadTest : public ::testing::Test
 {
-  Program         program;
-  Thread          thread;
+  ProgramPtr      program = ProgramPtr(new Program());
   Simulator       simulator;
-
-  ThreadTest () : thread(simulator, 0, program) {};
+  Thread          thread = Thread(simulator, 0, program);
 };
 
 /* Load ***********************************************************************/
@@ -59,7 +57,7 @@ TEST_F(ThreadTest, execute)
   ASSERT_EQ(0, thread.accu);
   ASSERT_EQ(Thread::State::INITIAL, thread.state);
 
-  program.add(Instruction::Set::create("ADDI", 1));
+  program->add(Instruction::Set::create("ADDI", 1));
 
   thread.execute();
 
@@ -67,7 +65,7 @@ TEST_F(ThreadTest, execute)
   ASSERT_EQ(1, thread.accu);
 
   /* fail - pc > program => STOPPED */
-  ASSERT_EQ(1, program.size());
+  ASSERT_EQ(1, program->size());
   ASSERT_EQ(Thread::State::STOPPED, thread.state);
 
   try

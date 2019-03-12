@@ -69,7 +69,7 @@ struct Simulator
    ****************************************************************************/
 
   /* creates a thread using the given program, thread id == number of threads*/
-  ThreadID                              create_thread (Program &);
+  ThreadID                              create_thread (ProgramPtr);
 
   /* runs the simulator using a random schedule */
   SchedulePtr                           simulate (void);

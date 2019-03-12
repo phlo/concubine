@@ -36,7 +36,11 @@ run: $(TEST_RUN)
 	# ./$(TEST_RUN) --gtest_filter=SMTLibEncoderFunctional*
 	# ./$(TEST_RUN) --gtest_filter=SMTLibEncoderRelational*
 	# ./$(TEST_RUN) --gtest_filter=Btor2*
-	./$(TEST_RUN)
+	./$(TEST_RUN) --gtest_filter=SimulatorTest.replay_*
+	# ./$(TEST_RUN) --gtest_filter=Experimental.*
+	# ./$(TEST_RUN) --gtest_filter=ProgramTest.*
+	# ./$(TEST_RUN) --gtest_filter=ScheduleTest.*
+	# ./$(TEST_RUN)
 
 # build executable containing all test cases
 $(TEST_RUN): $(GTEST_LIB) $(OBJ) $(TEST_OBJ)

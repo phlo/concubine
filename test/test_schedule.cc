@@ -24,6 +24,8 @@ TEST_F(ScheduleTest, parse)
     SchedulePtr(
       create_from_file<Schedule>("data/increment.cas.t2.k16.schedule"));
 
+  ASSERT_EQ(16, schedule->bound);
+
   ASSERT_EQ(0, schedule->seed);
 
   ASSERT_EQ(2, schedule->programs.size());

@@ -3,7 +3,6 @@
 #include <random>
 #include <cassert>
 #include <iostream>
-#include <algorithm>
 
 using namespace std;
 
@@ -24,35 +23,34 @@ Simulator::Simulator (ProgramList & p, unsigned long s, unsigned long b) :
   bound(b),
   // active(),
   // threads(),
-  // memory(), // initialize with zeros ffs ..
   schedule(new Schedule(p, s, b))
   // threads_per_sync_id(),
   // waiting_per_sync_id()
 {
-  for (const ProgramPtr program : p)
-    create_thread(*program);
+  for (const ProgramPtr & program : p)
+    create_thread(program);
 }
 
 Simulator::Simulator (SchedulePtr s, unsigned long b) :
   seed(s->seed),
-  bound(b ? b : s->bound),
+  bound(b && b < s->bound ? b : s->bound),
   schedule(s)
 {
-  for (const ProgramPtr & program : *s->programs)
-    create_thread(*program);
+  for (const ProgramPtr & program : s->programs)
+    create_thread(program);
 }
 
 /* Simulator::create_thread (Program &) ***************************************/
-ThreadID Simulator::create_thread (Program & program)
+ThreadID Simulator::create_thread (ProgramPtr program)
 {
   /* determine thread id */
-  ThreadID id = threads.size() + 1;
+  ThreadID id = threads.size();
 
   /* add thread to queue */
   threads.push_back(ThreadPtr(new Thread(*this, id, program)));
 
   /* add to sync id list */
-  for (word i : program.sync_ids)
+  for (word i : program->sync_ids)
     threads_per_sync_id[i].push_back(threads.back());
 
   return id;
@@ -87,7 +85,7 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
 {
   /* print schedule header */
   for (auto t : threads)
-    cout << t->id << " = " << t->program.path << endl;
+    cout << t->id << " = " << t->program->path << endl;
   cout << "seed = " << seed << endl;
   cout << "# tid";
   if (verbose)
@@ -105,6 +103,11 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
       assert(thread->state == Thread::State::RUNNING);
 
       thread->execute();
+
+      // cout << "thread " << thread->id << endl;
+      // cout << "  accu = " << thread->accu << endl;
+      // cout << "  mem  = " << thread->mem << endl;
+      // cout << "  heap = " << memory.size() << endl;
 
       /* append new state to schedule */
       // schedule->accus[thread->id][step] = thread->accu;
@@ -140,7 +143,7 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
               erase(active, thread);
 
               /* take care if last instruction was a SYNC (bypasses WAITING) */
-              if (dynamic_pointer_cast<Sync>(thread->program.back()))
+              if (dynamic_pointer_cast<Sync>(thread->program->back()))
                   {
                     /* remove from list of threads waiting for this barrier */
                     erase(threads_per_sync_id[thread->sync], thread);
@@ -204,7 +207,7 @@ SchedulePtr Simulator::replay (void)
   /* replay scheduler */
   function<ThreadPtr(void)> scheduler = [this, &step]
     {
-      return threads[schedule->at(step++) - 1];
+      return threads[schedule->at(step++)];
     };
 
   return run(scheduler);

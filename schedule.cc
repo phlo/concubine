@@ -23,7 +23,7 @@ Schedule::Schedule (ProgramList & p, unsigned long s, unsigned long b) :
 {}
 
 /* construct from file ********************************************************/
-Schedule::Schedule(istream & file, string & name) : path(name)
+Schedule::Schedule(istream & file, string & name) : path(name), exit(0)
 {
   string token;
 

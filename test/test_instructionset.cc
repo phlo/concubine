@@ -10,12 +10,10 @@ using namespace std;
 *******************************************************************************/
 struct InstructionSetTest : public ::testing::Test
 {
-  Program         program;
-  Thread          thread;
-  Simulator       simulator;
   InstructionPtr  instruction;
-
-  InstructionSetTest () : thread(simulator, 0, program) {};
+  ProgramPtr      program;
+  Simulator       simulator;
+  Thread          thread = Thread(simulator, 0, program);
 };
 
 /* Instruction::Set::create (Factory) *****************************************/
