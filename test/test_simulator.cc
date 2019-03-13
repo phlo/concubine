@@ -8,8 +8,6 @@
 #include "simulator.hh"
 
 #include "parser.hh"
-#include "program.hh"
-#include "schedule.hh"
 #include "streamredirecter.hh"
 
 using namespace std;
@@ -19,9 +17,9 @@ using namespace std;
 *******************************************************************************/
 struct SimulatorTest : public ::testing::Test
 {
-  Program   program;
-
-  Simulator simulator;
+  Program     program;
+  SchedulePtr schedule;
+  Simulator   simulator;
 };
 
 /* activate_threads ***********************************************************/
@@ -134,10 +132,27 @@ TEST_F(SimulatorTest, run_simple)
     };
 
   /* run it */
-  ASSERT_EQ(0, simulator.run(scheduler)->exit);
+  schedule = simulator.run(scheduler);
+
+  EXPECT_EQ(2, step);
 
   EXPECT_EQ(Thread::State::STOPPED, simulator.threads[0]->state);
   EXPECT_EQ(Thread::State::STOPPED, simulator.threads[1]->state);
+
+  /* check Schedule */
+  ASSERT_EQ(0, schedule->exit);
+
+  unordered_map<word, vector<word>> pcs({{0, {1, 1}}, {1, {0, 1}}});
+  ASSERT_EQ(pcs, schedule->pcs);
+
+  unordered_map<word, vector<word>> accus({{0, {1, 1}}, {1, {0, 1}}});
+  ASSERT_EQ(accus, schedule->accus);
+
+  unordered_map<word, vector<word>> mems({{0, {0, 0}}, {1, {0, 0}}});
+  ASSERT_EQ(mems, schedule->mems);
+
+  vector<unordered_map<word, word>> heap({{}, {}});
+  ASSERT_EQ(heap, schedule->heaps);
 
   cout.clear();
 }
@@ -226,7 +241,33 @@ TEST_F(SimulatorTest, run_add_sync_exit)
     };
 
   /* run it */
-  ASSERT_EQ(1, simulator.run(scheduler)->exit);
+  schedule = simulator.run(scheduler);
+
+  EXPECT_EQ(step, 5);
+
+  EXPECT_EQ(Thread::State::EXITING, simulator.threads[0]->state);
+  EXPECT_EQ(Thread::State::RUNNING, simulator.threads[1]->state);
+
+  /* check Schedule */
+  ASSERT_EQ(1, schedule->exit);
+
+  unordered_map<word, vector<word>> pcs({
+    {0, {1, 1, 2, 2, 2}},
+    {1, {0, 1, 1, 2, 2}}});
+  ASSERT_EQ(pcs, schedule->pcs);
+
+  unordered_map<word, vector<word>> accus({
+    {0, {1, 1, 1, 1, 1}},
+    {1, {0, 1, 1, 1, 1}}});
+  ASSERT_EQ(accus, schedule->accus);
+
+  unordered_map<word, vector<word>> mems({
+    {0, {0, 0, 0, 0, 0}},
+    {1, {0, 0, 0, 0, 0}}});
+  ASSERT_EQ(mems, schedule->mems);
+
+  vector<unordered_map<word, word>> heap({{}, {}, {}, {}, {}});
+  ASSERT_EQ(heap, schedule->heaps);
 
   cout.clear();
 }
@@ -453,7 +494,50 @@ TEST_F(SimulatorTest, run_race_condition)
     };
 
   /* run it */
-  ASSERT_EQ(1, simulator.run(scheduler)->exit);
+  schedule = simulator.run(scheduler);
+
+  EXPECT_EQ(13, step);
+
+  EXPECT_EQ(Thread::State::EXITING, simulator.threads[0]->state);
+  EXPECT_EQ(Thread::State::STOPPED, simulator.threads[1]->state);
+  EXPECT_EQ(Thread::State::STOPPED, simulator.threads[2]->state);
+
+  /* check Schedule */
+  ASSERT_EQ(1, schedule->exit);
+
+  unordered_map<word, vector<word>> pcs({
+    {0, {1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 4, 4}},
+    {1, {0, 1, 1, 2, 2, 3, 3, 4, 4, 4, 4, 4, 4}},
+    {2, {0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 4, 4, 4}}});
+  ASSERT_EQ(pcs, schedule->pcs);
+
+  unordered_map<word, vector<word>> accus({
+    {0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 65535, 65535, 1}},
+    {1, {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}},
+    {2, {0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1}}});
+  ASSERT_EQ(accus, schedule->accus);
+
+  unordered_map<word, vector<word>> mems({
+    {0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
+    {1, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
+    {2, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}});
+  ASSERT_EQ(mems, schedule->mems);
+
+  vector<unordered_map<word, word>> heap({
+    {{1, 0}},
+    {{1, 0}},
+    {{1, 0}},
+    {{1, 0}},
+    {{1, 0}},
+    {{1, 1}},
+    {{1, 1}},
+    {{1, 1}},
+    {{1, 1}},
+    {{1, 1}},
+    {{1, 1}},
+    {{1, 1}},
+    {{1, 1}}});
+  ASSERT_EQ(heap, schedule->heaps);
 
   cout.clear();
 }
@@ -511,7 +595,7 @@ TEST_F(SimulatorTest, simulate_increment_sync)
 {
   /* read expected schedule from file */
   ifstream schedule_file("data/increment.sync.t2.k16.schedule");
-  string schedule(( istreambuf_iterator<char>(schedule_file) ),
+  string expected(( istreambuf_iterator<char>(schedule_file) ),
                     istreambuf_iterator<char>());
 
   ProgramPtr
@@ -533,7 +617,7 @@ TEST_F(SimulatorTest, simulate_increment_sync)
   redirecter.stop();
 
   /* compare output */
-  ASSERT_EQ(schedule, ss.str());
+  ASSERT_EQ(expected, ss.str());
 }
 
 /* simulate_increment_cas *****************************************************/
@@ -541,7 +625,7 @@ TEST_F(SimulatorTest, simulate_increment_cas)
 {
   /* read expected schedule from file */
   ifstream schedule_file("data/increment.cas.t2.k16.schedule");
-  string schedule(( istreambuf_iterator<char>(schedule_file) ),
+  string expected(( istreambuf_iterator<char>(schedule_file) ),
                     istreambuf_iterator<char>());
 
   ProgramPtr increment(create_from_file<Program>("data/increment.cas.asm"));
@@ -561,7 +645,7 @@ TEST_F(SimulatorTest, simulate_increment_cas)
   redirecter.stop();
 
   /* compare output */
-  ASSERT_EQ(schedule, ss.str());
+  ASSERT_EQ(expected, ss.str());
 }
 
 /* replay_increment_sync ******************************************************/
@@ -571,12 +655,12 @@ TEST_F(SimulatorTest, replay_increment_sync)
 
   /* read expected schedule from file */
   ifstream sfs(schedule_file);
-  string schedule_str((istreambuf_iterator<char>(sfs)),
+  string expected((istreambuf_iterator<char>(sfs)),
                       istreambuf_iterator<char>());
   sfs.clear();
   sfs.seekg(0, std::ios::beg);
 
-  SchedulePtr schedule(new Schedule(sfs, schedule_file));
+  schedule = make_shared<Schedule>(sfs, schedule_file);
 
   /* redirect stdout */
   ostringstream ss;
@@ -601,7 +685,7 @@ TEST_F(SimulatorTest, replay_increment_sync)
   redirecter.stop();
 
   /* compare output */
-  ASSERT_EQ(schedule_str, ss.str());
+  ASSERT_EQ(expected, ss.str());
 }
 
 /* replay_increment_cas *******************************************************/
@@ -611,12 +695,12 @@ TEST_F(SimulatorTest, replay_increment_cas)
 
   /* read expected schedule from file */
   ifstream sfs(schedule_file);
-  string schedule_str((istreambuf_iterator<char>(sfs)),
+  string expected((istreambuf_iterator<char>(sfs)),
                       istreambuf_iterator<char>());
   sfs.clear();
   sfs.seekg(0, std::ios::beg);
 
-  SchedulePtr schedule(new Schedule(sfs, schedule_file));
+  schedule = make_shared<Schedule>(sfs, schedule_file);
 
   /* redirect stdout */
   ostringstream ss;
@@ -640,5 +724,5 @@ TEST_F(SimulatorTest, replay_increment_cas)
   redirecter.stop();
 
   /* compare output */
-  ASSERT_EQ(schedule_str, ss.str());
+  ASSERT_EQ(expected, ss.str());
 }

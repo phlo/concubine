@@ -89,18 +89,15 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
 
       assert(thread->state == Thread::State::RUNNING);
 
+      /* execute thread */
       thread->execute();
 
-      // cout << "thread " << thread->id << endl;
-      // cout << "  accu = " << thread->accu << endl;
-      // cout << "  mem  = " << thread->mem << endl;
-      // cout << "  heap = " << memory.size() << endl;
+      /* append thread states to schedule */
+      for (const ThreadPtr & t : threads)
+        schedule->add(t->id, t->pc, t->accu, t->mem);
 
-      /* append new state to schedule */
-      // schedule->accus[thread->id][step] = thread->accu;
-      // schedule->mems[thread->id][step] = thread->mem;
-      // schedule->pcs[thread->id][step] = thread->pc;
-      // schedule->heap[step] = memory;
+      /* append heap state to schedule */
+      schedule->add(memory);
 
       /* handle state transitions */
       switch (thread->state)

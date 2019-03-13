@@ -40,15 +40,26 @@ struct Schedule : public std::deque<ThreadID>
   /* thread state maps */
   std::unordered_map<
     word,
-    std::vector<word>>  accus,
-                        mems,
-                        pcs;
+    std::vector<word>>  pcs,
+                        accus,
+                        mems;
 
   /* heap states */
   std::vector<
     std::unordered_map<
       word,
-      word>>            heap;
+      word>>            heaps;
+
+  /* add thread state */
+  void                  add (
+                             const unsigned long tid,
+                             const word pc,
+                             const word accu,
+                             const word mem
+                            );
+
+  /* add heap state */
+  void                  add (const std::unordered_map<word, word> & heap);
 };
 
 /*******************************************************************************

@@ -150,3 +150,25 @@ Schedule::Schedule(istream & file, string & name) :
   /* set bound */
   bound = size();
 }
+
+void Schedule::add (
+                    const unsigned long tid,
+                    const word pc,
+                    const word accu,
+                    const word mem
+                   )
+{
+  /* append thread id */
+  push_back(tid);
+
+  /* append thread state */
+  pcs[tid].push_back(pc);
+  accus[tid].push_back(accu);
+  mems[tid].push_back(mem);
+}
+
+void Schedule::add (const unordered_map<word, word> & heap)
+{
+  /* append heap state */
+  heaps.push_back(heap);
+}
