@@ -39,8 +39,8 @@ struct Simulator
   /* list of all threads */
   ThreadList                            threads;
 
-  /* main memory (heap) */
-  std::unordered_map<word, word>        memory;
+  /* main memory */
+  std::unordered_map<word, word>        heap;
 
   /* number of threads containing calls to a specific sync barrier (id) */
   std::unordered_map<word, ThreadList>  threads_per_sync_id;

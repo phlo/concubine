@@ -97,7 +97,7 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
         schedule->add(t->id, t->pc, t->accu, t->mem);
 
       /* append heap state to schedule */
-      schedule->add(memory);
+      schedule->add(heap);
 
       /* handle state transitions */
       switch (thread->state)
@@ -167,8 +167,10 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
 /* Simulator::simulate (unsigned long, unsigned long) *************************/
 SchedulePtr Simulator::simulate (unsigned long _bound, unsigned long _seed)
 {
-  /* set bound and seed */
+  /* set bound */
   bound = _bound;
+
+  /* set seed */
   seed = _seed;
 
   /* Mersenne Twister pseudo-random number generator */
@@ -189,8 +191,10 @@ SchedulePtr Simulator::replay (Schedule & _schedule, unsigned long _bound)
   /* check programs */
   // TODO
 
-  /* set bound and seed */
+  /* set bound */
   bound = _bound && _bound < _schedule.bound ? _bound : _schedule.bound;
+
+  /* set seed */
   seed = _schedule.seed;
 
   /* index variable for iterating the Schedule */

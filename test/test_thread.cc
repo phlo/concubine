@@ -19,13 +19,13 @@ struct ThreadTest : public ::testing::Test
 TEST_F(ThreadTest, load)
 {
   /* load direct */
-  simulator.memory[0] = 1;
+  simulator.heap[0] = 1;
 
-  ASSERT_EQ(1, simulator.memory[0]);
+  ASSERT_EQ(1, simulator.heap[0]);
   ASSERT_EQ(1, thread.load(0, false));
 
   /* load indirect */
-  ASSERT_EQ(0, simulator.memory[1]);
+  ASSERT_EQ(0, simulator.heap[1]);
   ASSERT_EQ(1, thread.load(1, true));
 }
 
@@ -33,18 +33,18 @@ TEST_F(ThreadTest, load)
 TEST_F(ThreadTest, store)
 {
   /* store direct */
-  ASSERT_EQ(0, simulator.memory[0]);
+  ASSERT_EQ(0, simulator.heap[0]);
 
   thread.store(0, 1, false);
 
-  ASSERT_EQ(1, simulator.memory[0]);
+  ASSERT_EQ(1, simulator.heap[0]);
 
   /* store indirect */
-  ASSERT_EQ(0, simulator.memory[1]);
+  ASSERT_EQ(0, simulator.heap[1]);
 
   thread.store(1, 0, true);
 
-  ASSERT_EQ(0, simulator.memory[0]);
+  ASSERT_EQ(0, simulator.heap[0]);
 }
 
 /* Execute ********************************************************************/

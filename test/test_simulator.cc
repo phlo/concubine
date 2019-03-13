@@ -308,7 +308,7 @@ TEST_F(SimulatorTest, run_race_condition)
         {
         case 0: /* initial = t0 [SYNC 1] */
             {
-              EXPECT_EQ(0, simulator.memory[1]);
+              EXPECT_EQ(0, simulator.heap[1]);
 
               EXPECT_EQ(0, simulator.threads[0]->pc);
               EXPECT_EQ(0, simulator.threads[0]->accu);
@@ -389,7 +389,7 @@ TEST_F(SimulatorTest, run_race_condition)
               EXPECT_EQ(2, simulator.threads[2]->pc);
               EXPECT_EQ(1, simulator.threads[2]->accu);
 
-              EXPECT_EQ(1, simulator.memory[1]);
+              EXPECT_EQ(1, simulator.heap[1]);
 
               return simulator.threads[2];
             }
@@ -402,7 +402,7 @@ TEST_F(SimulatorTest, run_race_condition)
               EXPECT_EQ(3, simulator.threads[2]->pc);
               EXPECT_EQ(1, simulator.threads[2]->accu);
 
-              EXPECT_EQ(1, simulator.memory[1]);
+              EXPECT_EQ(1, simulator.heap[1]);
 
               return simulator.threads[1];
             }
@@ -693,8 +693,8 @@ TEST_F(SimulatorTest, replay_increment_sync)
 
   ASSERT_EQ(0, sim.replay(*schedule)->exit);
 
-  ASSERT_EQ(1, sim.memory.size());
-  ASSERT_EQ(2, sim.memory[0]);
+  ASSERT_EQ(1, sim.heap.size());
+  ASSERT_EQ(2, sim.heap[0]);
 
   ASSERT_EQ(1, sim.threads[0]->accu);
   ASSERT_EQ(0, sim.threads[0]->mem);
@@ -733,7 +733,7 @@ TEST_F(SimulatorTest, replay_increment_cas)
 
   ASSERT_EQ(0, sim.replay(*schedule)->exit);
 
-  ASSERT_EQ(2, sim.memory[0]);
+  ASSERT_EQ(2, sim.heap[0]);
 
   ASSERT_EQ(1, sim.threads[0]->accu);
   ASSERT_EQ(1, sim.threads[0]->mem);

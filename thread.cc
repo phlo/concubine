@@ -22,14 +22,14 @@ word Thread::load (word addr, bool indirect)
 {
   return
     indirect
-      ? simulator.memory[simulator.memory[addr]]
-      : simulator.memory[addr];
+      ? simulator.heap[simulator.heap[addr]]
+      : simulator.heap[addr];
 }
 
 /* Thread::store (word, word) *************************************************/
 void Thread::store (word addr, word val, bool indirect)
 {
-  simulator.memory[indirect ? simulator.memory[addr] : addr] = val;
+  simulator.heap[indirect ? simulator.heap[addr] : addr] = val;
 }
 
 /* Thread::execute (void) *****************************************************/
