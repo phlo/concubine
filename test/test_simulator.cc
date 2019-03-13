@@ -585,7 +585,26 @@ TEST_F(SimulatorTest, run_zero_bound)
     };
 
   /* run it */
-  ASSERT_EQ(0, simulator.run(scheduler)->exit);
+  schedule = simulator.run(scheduler);
+
+  EXPECT_EQ(step, 3);
+
+  EXPECT_EQ(Thread::State::RUNNING, simulator.threads[0]->state);
+
+  /* check Schedule */
+  ASSERT_EQ(0, schedule->exit);
+
+  unordered_map<word, vector<word>> pcs({{0, {0, 0, 0}}});
+  ASSERT_EQ(pcs, schedule->pcs);
+
+  unordered_map<word, vector<word>> accus({{0, {0, 0, 0}}});
+  ASSERT_EQ(accus, schedule->accus);
+
+  unordered_map<word, vector<word>> mems({{0, {0, 0, 0}}});
+  ASSERT_EQ(mems, schedule->mems);
+
+  vector<unordered_map<word, word>> heap({{}, {}, {}});
+  ASSERT_EQ(heap, schedule->heaps);
 
   cout.clear();
 }
@@ -595,8 +614,8 @@ TEST_F(SimulatorTest, simulate_increment_sync)
 {
   /* read expected schedule from file */
   ifstream schedule_file("data/increment.sync.t2.k16.schedule");
-  string expected(( istreambuf_iterator<char>(schedule_file) ),
-                    istreambuf_iterator<char>());
+  string expected((istreambuf_iterator<char>(schedule_file)),
+                   istreambuf_iterator<char>());
 
   ProgramPtr
     increment_0(create_from_file<Program>("data/increment.sync.thread.0.asm")),
@@ -625,8 +644,8 @@ TEST_F(SimulatorTest, simulate_increment_cas)
 {
   /* read expected schedule from file */
   ifstream schedule_file("data/increment.cas.t2.k16.schedule");
-  string expected(( istreambuf_iterator<char>(schedule_file) ),
-                    istreambuf_iterator<char>());
+  string expected((istreambuf_iterator<char>(schedule_file)),
+                   istreambuf_iterator<char>());
 
   ProgramPtr increment(create_from_file<Program>("data/increment.cas.asm"));
 
@@ -656,7 +675,7 @@ TEST_F(SimulatorTest, replay_increment_sync)
   /* read expected schedule from file */
   ifstream sfs(schedule_file);
   string expected((istreambuf_iterator<char>(sfs)),
-                      istreambuf_iterator<char>());
+                   istreambuf_iterator<char>());
   sfs.clear();
   sfs.seekg(0, std::ios::beg);
 
@@ -696,7 +715,7 @@ TEST_F(SimulatorTest, replay_increment_cas)
   /* read expected schedule from file */
   ifstream sfs(schedule_file);
   string expected((istreambuf_iterator<char>(sfs)),
-                      istreambuf_iterator<char>());
+                   istreambuf_iterator<char>());
   sfs.clear();
   sfs.seekg(0, std::ios::beg);
 
