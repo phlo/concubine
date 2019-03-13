@@ -20,9 +20,7 @@ struct ScheduleTest : public ::testing::Test
 /* parse **********************************************************************/
 TEST_F(ScheduleTest, parse)
 {
-  schedule =
-    SchedulePtr(
-      create_from_file<Schedule>("data/increment.cas.t2.k16.schedule"));
+  schedule = create_from_file<Schedule>("data/increment.cas.t2.k16.schedule");
 
   ASSERT_EQ(16, schedule->bound);
 
@@ -74,7 +72,7 @@ TEST_F(ScheduleTest, parse_file_not_found)
 {
   try
     {
-      schedule = SchedulePtr(create_from_file<Schedule>("file_not_found"));
+      schedule = create_from_file<Schedule>("file_not_found");
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)

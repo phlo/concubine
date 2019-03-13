@@ -99,7 +99,7 @@ Schedule::Schedule(istream & file, string & name) :
 
           try
             {
-              programs->push_back(ProgramPtr(create_from_file<Program>(token)));
+              programs->push_back(create_from_file<Program>(token));
             }
           catch (const exception & e)
             {

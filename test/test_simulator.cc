@@ -515,10 +515,8 @@ TEST_F(SimulatorTest, simulate_increment_sync)
                     istreambuf_iterator<char>());
 
   ProgramPtr
-    increment_0(
-      create_from_file<Program>("data/increment.sync.thread.0.asm")),
-    increment_n(
-      create_from_file<Program>("data/increment.sync.thread.n.asm"));
+    increment_0(create_from_file<Program>("data/increment.sync.thread.0.asm")),
+    increment_n(create_from_file<Program>("data/increment.sync.thread.n.asm"));
 
   simulator.create_thread(*increment_0);
   simulator.create_thread(*increment_n);

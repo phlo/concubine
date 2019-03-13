@@ -31,7 +31,7 @@ TEST_F(ProgramTest, add)
 /* parse **********************************************************************/
 TEST_F(ProgramTest, parse)
 {
-  program = ProgramPtr(create_from_file<Program>("data/increment.cas.asm"));
+  program = create_from_file<Program>("data/increment.cas.asm");
 
   ASSERT_EQ(6, program->size());
   ASSERT_EQ(1, program->sync_ids.size());
@@ -46,8 +46,7 @@ TEST_F(ProgramTest, parse)
   ASSERT_EQ("5\tJMP\tLOOP", program->print(true, 5));
 
   /* indirect addressing */
-  program =
-    ProgramPtr(create_from_file<Program>("data/indirect.addressing.asm"));
+  program = create_from_file<Program>("data/indirect.addressing.asm");
 
   ASSERT_EQ(5, program->size());
   ASSERT_EQ(0, program->sync_ids.size());
@@ -83,7 +82,7 @@ TEST_F(ProgramTest, parse_file_not_found)
 
   try
     {
-      program = ProgramPtr(create_from_file<Program>(file));
+      program = create_from_file<Program>(file);
       ASSERT_TRUE(false);
     }
   catch (const exception & e)

@@ -826,11 +826,9 @@ TEST_F(SMTLibEncoderRelationalTest, encode_sync)
 {
   /* concurrent increment using SYNC */
   programs.push_back(
-    ProgramPtr(
-      create_from_file<Program>("data/increment.sync.thread.0.asm")));
+    create_from_file<Program>("data/increment.sync.thread.0.asm"));
   programs.push_back(
-    ProgramPtr(
-      create_from_file<Program>("data/increment.sync.thread.n.asm")));
+    create_from_file<Program>("data/increment.sync.thread.n.asm"));
 
   encoder =
     make_shared<SMTLibEncoderRelational>(
@@ -845,12 +843,8 @@ TEST_F(SMTLibEncoderRelationalTest, encode_sync)
 TEST_F(SMTLibEncoderRelationalTest, encode_cas)
 {
   /* concurrent increment using CAS */
-  programs.push_back(
-    ProgramPtr(
-      create_from_file<Program>("data/increment.cas.asm")));
-  programs.push_back(
-    ProgramPtr(
-      create_from_file<Program>("data/increment.cas.asm")));
+  programs.push_back(create_from_file<Program>("data/increment.cas.asm"));
+  programs.push_back(create_from_file<Program>("data/increment.cas.asm"));
 
   encoder =
     make_shared<SMTLibEncoderRelational>(

@@ -1,8 +1,9 @@
 #ifndef PARSER_HH_
 #define PARSER_HH_
 
-#include <string>
 #include <fstream>
+#include <memory>
+#include <string>
 
 /* error reporting helper *****************************************************/
 inline
@@ -13,15 +14,15 @@ void parser_error (std::string & file, unsigned long line, std::string && msg)
 
 /* file parsing helper ********************************************************/
 template <typename T>
-T * create_from_file (std::string path)
+std::shared_ptr<T> create_from_file (std::string path)
 {
-  T * result;
+  std::shared_ptr<T> result;
 
   std::ifstream file(path);
 
   if (file.is_open())
     {
-      result = new T(file, path);
+      result.reset(new T(file, path));
       file.close();
     }
   else

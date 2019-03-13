@@ -174,7 +174,7 @@ int simulate (char * name, int argc, char ** argv)
         {
           try
             {
-              programs->push_back(ProgramPtr(create_from_file<Program>(arg)));
+              programs->push_back(create_from_file<Program>(arg));
             }
           catch (const exception & e)
             {
@@ -371,7 +371,7 @@ int solve (char * name, int argc, char ** argv)
 
       /* parse programs */
       while (i < argc)
-        programs->push_back(ProgramPtr(create_from_file<Program>(argv[i++])));
+        programs->push_back(create_from_file<Program>(argv[i++]));
 
       /* encode program */
       EncoderPtr encoder;
