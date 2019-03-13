@@ -17,7 +17,7 @@ struct Schedule : public std::deque<ThreadID>
   Schedule (void);
 
   /* construct from simulator/solver */
-  Schedule (ProgramList &, unsigned long, unsigned long);
+  Schedule (ProgramListPtr, unsigned long, unsigned long);
 
   /* construct from file */
   Schedule (std::istream &, std::string &);
@@ -25,14 +25,14 @@ struct Schedule : public std::deque<ThreadID>
   /* path to schedule file */
   std::string           path;
 
-  /* bound used */
+  /* bound used == size() */
   unsigned long         bound;
 
   /* seed used to produce that particular schedule */
   unsigned long         seed;
 
   /* programs used to generate the schedule */
-  ProgramList           programs;
+  ProgramListPtr        programs;
 
   /* exit code */
   word                  exit;

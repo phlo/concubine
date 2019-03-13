@@ -16,32 +16,17 @@ inline void erase (deque<T> & lst, T & val)
 /*******************************************************************************
  * Simulator
  ******************************************************************************/
-Simulator::Simulator () : schedule(new Schedule()) {}
+Simulator::Simulator () : bound(0) {}
 
-Simulator::Simulator (ProgramList & p, unsigned long s, unsigned long b) :
-  seed(s),
-  bound(b),
-  // active(),
-  // threads(),
-  schedule(new Schedule(p, s, b))
-  // threads_per_sync_id(),
-  // waiting_per_sync_id()
+Simulator::Simulator (ProgramListPtr _programs) :
+  programs(_programs)
 {
-  for (const ProgramPtr & program : p)
-    create_thread(program);
-}
-
-Simulator::Simulator (SchedulePtr s, unsigned long b) :
-  seed(s->seed),
-  bound(b && b < s->bound ? b : s->bound),
-  schedule(s)
-{
-  for (const ProgramPtr & program : s->programs)
-    create_thread(program);
+  for (const ProgramPtr & program : *_programs)
+    create_thread(*program);
 }
 
 /* Simulator::create_thread (Program &) ***************************************/
-ThreadID Simulator::create_thread (ProgramPtr program)
+ThreadID Simulator::create_thread (Program & program)
 {
   /* determine thread id */
   ThreadID id = threads.size();
@@ -50,7 +35,7 @@ ThreadID Simulator::create_thread (ProgramPtr program)
   threads.push_back(ThreadPtr(new Thread(*this, id, program)));
 
   /* add to sync id list */
-  for (word i : program->sync_ids)
+  for (word i : program.sync_ids)
     threads_per_sync_id[i].push_back(threads.back());
 
   return id;
@@ -83,9 +68,11 @@ void Simulator::check_and_resume_waiting (word sync_id)
 /* Simulator::run (Scheduler *) ***********************************************/
 SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
 {
+  SchedulePtr schedule = SchedulePtr(new Schedule(programs, bound, seed));
+
   /* print schedule header */
   for (auto t : threads)
-    cout << t->id << " = " << t->program->path << endl;
+    cout << t->id << " = " << t->program.path << endl;
   cout << "seed = " << seed << endl;
   cout << "# tid";
   if (verbose)
@@ -143,7 +130,7 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
               erase(active, thread);
 
               /* take care if last instruction was a SYNC (bypasses WAITING) */
-              if (dynamic_pointer_cast<Sync>(thread->program->back()))
+              if (dynamic_pointer_cast<Sync>(thread->program.back()))
                   {
                     /* remove from list of threads waiting for this barrier */
                     erase(threads_per_sync_id[thread->sync], thread);
@@ -180,9 +167,13 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
   return schedule;
 }
 
-/* Simulator::simulate (void) *************************************************/
-SchedulePtr Simulator::simulate ()
+/* Simulator::simulate (unsigned long, unsigned long) *************************/
+SchedulePtr Simulator::simulate (unsigned long _bound, unsigned long _seed)
 {
+  /* set bound and seed */
+  bound = _bound;
+  seed = _seed;
+
   /* Mersenne Twister pseudo-random number generator */
   mt19937_64 random(seed);
 
@@ -195,19 +186,23 @@ SchedulePtr Simulator::simulate ()
   return run(scheduler);
 }
 
-/* Simulator::replay (void) ***************************************************/
-SchedulePtr Simulator::replay (void)
+/* Simulator::replay (Schedule &, unsigned long) ******************************/
+SchedulePtr Simulator::replay (Schedule & _schedule, unsigned long _bound)
 {
-  /* set bound */
-  bound = schedule->size();
+  /* check programs */
+  // TODO
+
+  /* set bound and seed */
+  bound = _bound && _bound < _schedule.bound ? _bound : _schedule.bound;
+  seed = _schedule.seed;
 
   /* index variable for iterating the Schedule */
   unsigned long step = 0;
 
   /* replay scheduler */
-  function<ThreadPtr(void)> scheduler = [this, &step]
+  function<ThreadPtr(void)> scheduler = [this, &_schedule, &step]
     {
-      return threads[schedule->at(step++)];
+      return threads[_schedule.at(step++)];
     };
 
   return run(scheduler);

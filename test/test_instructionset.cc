@@ -11,7 +11,7 @@ using namespace std;
 struct InstructionSetTest : public ::testing::Test
 {
   InstructionPtr  instruction;
-  ProgramPtr      program;
+  Program         program;
   Simulator       simulator;
   Thread          thread = Thread(simulator, 0, program);
 };

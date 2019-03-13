@@ -28,9 +28,9 @@ TEST_F(ScheduleTest, parse)
 
   ASSERT_EQ(0, schedule->seed);
 
-  ASSERT_EQ(2, schedule->programs.size());
-  ASSERT_EQ(program, schedule->programs[0]->path);
-  ASSERT_EQ(program, schedule->programs[1]->path);
+  ASSERT_EQ(2, schedule->programs->size());
+  ASSERT_EQ(program, schedule->programs->at(0)->path);
+  ASSERT_EQ(program, schedule->programs->at(1)->path);
 
   ASSERT_EQ(16, schedule->size());
   ASSERT_EQ(0, schedule->at(0));
@@ -64,8 +64,8 @@ TEST_F(ScheduleTest, parse_empty_line)
   schedule = SchedulePtr(new Schedule(inbuf, dummy_file));
 
   ASSERT_EQ(0, schedule->seed);
-  ASSERT_EQ(1, schedule->programs.size());
-  ASSERT_EQ(program, schedule->programs[0]->path);
+  ASSERT_EQ(1, schedule->programs->size());
+  ASSERT_EQ(program, schedule->programs->at(0)->path);
   ASSERT_EQ(0, schedule->at(0));
 }
 

@@ -30,7 +30,7 @@ struct Thread
     EXITING   // exit called
   };
 
-  Thread (Simulator &, unsigned int, ProgramPtr);
+  Thread (Simulator &, unsigned int, Program &);
 
   ThreadID      id;         // thread id
   word          pc;         // program counter
@@ -39,7 +39,7 @@ struct Thread
   word          sync;       // current (or previous) barrier's id
   State         state;      // thread state
   Simulator &   simulator;  // reference to the simulator owning the thread
-  ProgramPtr    program;    // pointer to the program being executed
+  Program &     program;    // pointer to the program being executed
 
   word          load (word, bool);
   void          store (word, word, bool);

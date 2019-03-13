@@ -19,7 +19,7 @@ using namespace std;
 *******************************************************************************/
 struct SimulatorTest : public ::testing::Test
 {
-  ProgramPtr program = ProgramPtr(new Program());
+  Program   program;
 
   Simulator simulator;
 };
@@ -30,7 +30,7 @@ TEST_F(SimulatorTest, activate_threads)
   ASSERT_TRUE(simulator.active.empty());
   ASSERT_TRUE(simulator.threads.empty());
 
-  program->add(Instruction::Set::create("ADDI", 1));
+  program.add(Instruction::Set::create("ADDI", 1));
 
   simulator.create_thread(program);
 
@@ -53,7 +53,7 @@ TEST_F(SimulatorTest, create_thread)
   ASSERT_TRUE(simulator.threads_per_sync_id.empty());
   ASSERT_TRUE(simulator.waiting_per_sync_id.empty());
 
-  program->add(Instruction::Set::create("ADDI", 1));
+  program.add(Instruction::Set::create("ADDI", 1));
 
   simulator.create_thread(program);
 
@@ -63,7 +63,7 @@ TEST_F(SimulatorTest, create_thread)
   ASSERT_TRUE(simulator.threads_per_sync_id.empty());
   ASSERT_TRUE(simulator.waiting_per_sync_id.empty());
 
-  program->add(Instruction::Set::create("SYNC", 1));
+  program.add(Instruction::Set::create("SYNC", 1));
 
   simulator.create_thread(program);
 
@@ -83,7 +83,7 @@ TEST_F(SimulatorTest, run_simple)
 {
   cout.setstate(ios_base::failbit);
 
-  program->add(Instruction::Set::create("ADDI", 1));
+  program.add(Instruction::Set::create("ADDI", 1));
 
   simulator.create_thread(program);
   simulator.create_thread(program);
@@ -147,9 +147,9 @@ TEST_F(SimulatorTest, run_add_sync_exit)
 {
   cout.setstate(ios_base::failbit);
 
-  program->add(Instruction::Set::create("ADDI", 1));
-  program->add(Instruction::Set::create("SYNC", 1));
-  program->add(Instruction::Set::create("EXIT", 1));
+  program.add(Instruction::Set::create("ADDI", 1));
+  program.add(Instruction::Set::create("SYNC", 1));
+  program.add(Instruction::Set::create("EXIT", 1));
 
   simulator.create_thread(program);
   simulator.create_thread(program);
@@ -236,19 +236,19 @@ TEST_F(SimulatorTest, run_race_condition)
 {
   cout.setstate(ios_base::failbit);
 
-  program->add(Instruction::Set::create("LOAD", 1));
-  program->add(Instruction::Set::create("ADDI", 1));
-  program->add(Instruction::Set::create("STORE", 1));
-  program->add(Instruction::Set::create("SYNC", 1));
+  program.add(Instruction::Set::create("LOAD", 1));
+  program.add(Instruction::Set::create("ADDI", 1));
+  program.add(Instruction::Set::create("STORE", 1));
+  program.add(Instruction::Set::create("SYNC", 1));
 
-  ProgramPtr checker(new Program());
+  Program checker;
 
-  checker->add(Instruction::Set::create("SYNC", 1));
-  checker->add(Instruction::Set::create("LOAD", 1));
-  checker->add(Instruction::Set::create("SUBI", 2));
-  checker->add(Instruction::Set::create("JZ", 5));
-  checker->add(Instruction::Set::create("EXIT", 1));
-  checker->add(Instruction::Set::create("EXIT", 0));
+  checker.add(Instruction::Set::create("SYNC", 1));
+  checker.add(Instruction::Set::create("LOAD", 1));
+  checker.add(Instruction::Set::create("SUBI", 2));
+  checker.add(Instruction::Set::create("JZ", 5));
+  checker.add(Instruction::Set::create("EXIT", 1));
+  checker.add(Instruction::Set::create("EXIT", 0));
 
   simulator.create_thread(checker);
   simulator.create_thread(program);
@@ -463,7 +463,7 @@ TEST_F(SimulatorTest, run_zero_bound)
 {
   cout.setstate(ios_base::failbit);
 
-  program->add(Instruction::Set::create("JMP", 0));
+  program.add(Instruction::Set::create("JMP", 0));
 
   simulator.create_thread(program);
 
@@ -520,11 +520,8 @@ TEST_F(SimulatorTest, simulate_increment_sync)
     increment_n(
       create_from_file<Program>("data/increment.sync.thread.n.asm"));
 
-  simulator.seed  = 0;
-  simulator.bound = 16;
-
-  simulator.create_thread(increment_0);
-  simulator.create_thread(increment_n);
+  simulator.create_thread(*increment_0);
+  simulator.create_thread(*increment_n);
 
   /* redirect stdout */
   ostringstream ss;
@@ -533,7 +530,7 @@ TEST_F(SimulatorTest, simulate_increment_sync)
   redirecter.start();
 
   /* run it */
-  ASSERT_EQ(0, simulator.simulate()->exit);
+  ASSERT_EQ(0, simulator.simulate(16)->exit);
 
   redirecter.stop();
 
@@ -551,11 +548,8 @@ TEST_F(SimulatorTest, simulate_increment_cas)
 
   ProgramPtr increment(create_from_file<Program>("data/increment.cas.asm"));
 
-  simulator.seed  = 0;
-  simulator.bound = 16;
-
-  simulator.create_thread(increment);
-  simulator.create_thread(increment);
+  simulator.create_thread(*increment);
+  simulator.create_thread(*increment);
 
   /* redirect stdout */
   ostringstream ss;
@@ -564,7 +558,7 @@ TEST_F(SimulatorTest, simulate_increment_cas)
   redirecter.start();
 
   /* run it */
-  ASSERT_EQ(0, simulator.simulate()->exit);
+  ASSERT_EQ(0, simulator.simulate(16)->exit);
 
   redirecter.stop();
 
@@ -593,17 +587,18 @@ TEST_F(SimulatorTest, replay_increment_sync)
   redirecter.start();
 
   /* replay */
-  simulator = Simulator(schedule);
+  // NOTE: resetting this->simulator results in a failed test case!?
+  Simulator sim = Simulator(schedule->programs);
 
-  ASSERT_EQ(0, simulator.replay()->exit);
+  ASSERT_EQ(0, sim.replay(*schedule)->exit);
 
-  ASSERT_EQ(1, simulator.memory.size());
-  ASSERT_EQ(2, simulator.memory[0]);
+  ASSERT_EQ(1, sim.memory.size());
+  ASSERT_EQ(2, sim.memory[0]);
 
-  ASSERT_EQ(1, simulator.threads[0]->accu);
-  ASSERT_EQ(0, simulator.threads[0]->mem);
-  ASSERT_EQ(2, simulator.threads[1]->accu);
-  ASSERT_EQ(0, simulator.threads[1]->mem);
+  ASSERT_EQ(1, sim.threads[0]->accu);
+  ASSERT_EQ(0, sim.threads[0]->mem);
+  ASSERT_EQ(2, sim.threads[1]->accu);
+  ASSERT_EQ(0, sim.threads[1]->mem);
 
   redirecter.stop();
 
@@ -632,16 +627,17 @@ TEST_F(SimulatorTest, replay_increment_cas)
   redirecter.start();
 
   /* replay */
-  simulator = Simulator(schedule);
+  // NOTE: resetting this->simulator results in a failed test case!?
+  Simulator sim = Simulator(schedule->programs);
 
-  ASSERT_EQ(0, simulator.replay()->exit);
+  ASSERT_EQ(0, sim.replay(*schedule)->exit);
 
-  ASSERT_EQ(2, simulator.memory[0]);
+  ASSERT_EQ(2, sim.memory[0]);
 
-  ASSERT_EQ(1, simulator.threads[0]->accu);
-  ASSERT_EQ(1, simulator.threads[0]->mem);
-  ASSERT_EQ(0, simulator.threads[1]->accu);
-  ASSERT_EQ(0, simulator.threads[1]->mem);
+  ASSERT_EQ(1, sim.threads[0]->accu);
+  ASSERT_EQ(1, sim.threads[0]->mem);
+  ASSERT_EQ(0, sim.threads[1]->accu);
+  ASSERT_EQ(0, sim.threads[1]->mem);
 
   redirecter.stop();
 

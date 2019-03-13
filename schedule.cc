@@ -9,21 +9,28 @@ using namespace std;
 /* default constructor ********************************************************/
 Schedule::Schedule () :
   path(""),
-  bound(0),
   seed(0),
   exit(0)
 {}
 
-Schedule::Schedule (ProgramList & p, unsigned long s, unsigned long b) :
+Schedule::Schedule (
+                    ProgramListPtr _programs,
+                    unsigned long _bound,
+                    unsigned long _seed
+                   ) :
+  deque<ThreadID>(_bound),
   path(""),
-  bound(b),
-  seed(s),
-  programs(p),
+  bound(_bound),
+  seed(_seed),
+  programs(_programs),
   exit(0)
 {}
 
 /* construct from file ********************************************************/
-Schedule::Schedule(istream & file, string & name) : path(name), exit(0)
+Schedule::Schedule(istream & file, string & name) :
+  path(name),
+  programs(new ProgramList()),
+  exit(0)
 {
   string token;
 
@@ -76,14 +83,14 @@ Schedule::Schedule(istream & file, string & name) : path(name), exit(0)
               parser_error(path, line_num, "illegal thread id [" + token + "]");
             }
 
-          if (programs.empty() && tid)
+          if (programs->empty() && tid)
             parser_error(path, line_num, "thread id must start from zero");
 
-          if (tid != programs.size())
+          if (tid != programs->size())
             parser_error(
               path,
               line_num,
-              "expected thread id " + to_string(programs.size()));
+              "expected thread id " + to_string(programs->size()));
 
           if (line >> token && token != "=")
             parser_error(path, line_num, "'=' expected");
@@ -92,7 +99,7 @@ Schedule::Schedule(istream & file, string & name) : path(name), exit(0)
 
           try
             {
-              programs.push_back(ProgramPtr(create_from_file<Program>(token)));
+              programs->push_back(ProgramPtr(create_from_file<Program>(token)));
             }
           catch (const exception & e)
             {
@@ -105,7 +112,7 @@ Schedule::Schedule(istream & file, string & name) : path(name), exit(0)
     }
 
   /* check header */
-  if (programs.empty())
+  if (programs->empty())
     parser_error(path, line_num, "missing threads");
 
   /* parse body */
@@ -133,7 +140,7 @@ Schedule::Schedule(istream & file, string & name) : path(name), exit(0)
           parser_error(path, line_num, "illegal thread id [" + token + "]");
         }
 
-      if (tid >= programs.size() || programs[tid] == nullptr)
+      if (tid >= programs->size() || programs->at(tid) == nullptr)
           parser_error(path, line_num, "unknown thread id [" + token + "]");
 
       /* append thread id */

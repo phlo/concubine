@@ -124,7 +124,7 @@ int simulate (char * name, int argc, char ** argv)
 {
   unsigned int      seed = time(NULL);
   unsigned int      bound = 0;
-  ProgramList       programs;
+  ProgramListPtr    programs(new ProgramList());
 
   for (int i = 0; i < argc; i++)
     {
@@ -174,7 +174,7 @@ int simulate (char * name, int argc, char ** argv)
         {
           try
             {
-              programs.push_back(ProgramPtr(create_from_file<Program>(arg)));
+              programs->push_back(ProgramPtr(create_from_file<Program>(arg)));
             }
           catch (const exception & e)
             {
@@ -184,7 +184,7 @@ int simulate (char * name, int argc, char ** argv)
         }
     }
 
-  if (programs.empty())
+  if (programs->empty())
     {
       print_error("got nothing to run");
       print_usage_simulate(name);
@@ -192,9 +192,9 @@ int simulate (char * name, int argc, char ** argv)
     }
 
   /* run program with given seed */
-  Simulator simulator(programs, seed, bound);
+  Simulator simulator(programs);
 
-  return simulator.simulate()->exit;
+  return simulator.simulate(bound, seed)->exit;
 }
 
 /* replay *********************************************************************/
@@ -248,9 +248,9 @@ int replay (char * name, int argc, char ** argv)
       SchedulePtr schedule(create_from_file<Schedule>(path2schedule));
 
       /* run given schedule */
-      Simulator simulator(schedule, bound);
+      Simulator simulator(schedule->programs);
 
-      return simulator.replay()->exit;
+      return simulator.replay(*schedule, bound)->exit;
     }
   catch (const exception & e)
     {

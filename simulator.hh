@@ -18,20 +18,20 @@ struct Simulator
   Simulator (void);
 
   /* constructs a new simulator for simulation */
-  Simulator (ProgramList &, unsigned long seed = 0, unsigned long bound = 0);
-
-  /* constructs a new simulator for replaying a given schedule */
-  Simulator (SchedulePtr, unsigned long bound = 0);
+  Simulator (ProgramListPtr);
 
   /*****************************************************************************
    * variables
    ****************************************************************************/
 
-  /* thread scheduling */
-  unsigned long                         seed;
+  /* list of programs */
+  ProgramListPtr                        programs;
 
   /* bounded execution */
   unsigned long                         bound;
+
+  /* seed used for thread scheduling */
+  unsigned long                         seed;
 
   /* list of active threads */
   ThreadList                            active;
@@ -41,9 +41,6 @@ struct Simulator
 
   /* main memory (heap) */
   std::unordered_map<word, word>        memory;
-
-  /* generated schedule */
-  SchedulePtr                           schedule;
 
   /* number of threads containing calls to a specific sync barrier (id) */
   std::unordered_map<word, ThreadList>  threads_per_sync_id;
@@ -64,18 +61,24 @@ struct Simulator
   /* run the simulator, using the specified scheduler */
   SchedulePtr                           run (std::function<ThreadPtr(void)>);
 
+  /* creates a thread using the given program, thread id == number of threads*/
+  ThreadID                              create_thread (Program &);
+
   /*****************************************************************************
    * public functions
    ****************************************************************************/
 
-  /* creates a thread using the given program, thread id == number of threads*/
-  ThreadID                              create_thread (ProgramPtr);
-
   /* runs the simulator using a random schedule */
-  SchedulePtr                           simulate (void);
+  SchedulePtr                           simulate (
+                                                  unsigned long bound = 0,
+                                                  unsigned long seed = 0
+                                                 );
 
   /* replay the given schedule (schedule must match simulator configuration) */
-  SchedulePtr                           replay (void);
+  SchedulePtr                           replay (
+                                                Schedule &,
+                                                unsigned long bound = 0
+                                               );
 };
 
 #endif
