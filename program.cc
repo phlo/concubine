@@ -212,3 +212,22 @@ string Program::print (bool include_pc, word pc)
 
   return ss.str();
 }
+
+/* operator == (const Program &, const Program &) *****************************/
+bool operator == (const Program & a, const Program & b)
+{
+  if (a.size() != b.size())
+    return false;
+
+  for (size_t i = 0; i < a.size(); i++)
+    if (*a[i] != *b[i])
+      return false;
+
+  return true;
+}
+
+/* operator != (const Program &, const Program &) *****************************/
+bool operator != (const Program & a, const Program & b)
+{
+  return !(a == b);
+}

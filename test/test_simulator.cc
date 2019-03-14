@@ -747,7 +747,6 @@ TEST_F(SimulatorTest, replay_increment_cas)
 }
 
 /* replay_programs_differ *****************************************************/
-// TODO
 TEST_F(SimulatorTest, replay_programs_differ)
 {
   Simulator _simulator;
@@ -793,8 +792,6 @@ TEST_F(SimulatorTest, replay_programs_differ)
   _simulator = Simulator(programs_simulator);
   _schedule = Schedule(programs_schedule, 1, 1);
 
-  cout << p1->path << eol << p2->path << eol;
-
   try
     {
       schedule = _simulator.replay(_schedule);
@@ -821,7 +818,15 @@ TEST_F(SimulatorTest, replay_programs_differ)
 
   _schedule.push_back(0);
 
+  /* redirect stdout */
+  ostringstream ss;
+  StreamRedirecter redirecter(cout, ss);
+
+  redirecter.start();
+
   schedule = _simulator.replay(_schedule);
+
+  redirecter.stop();
 
   ASSERT_EQ(0, schedule->exit);
 }

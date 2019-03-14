@@ -152,3 +152,34 @@ TEST_F(ProgramTest, parse_illegal_instruction)
         e.what());
     }
 }
+
+/* operator_equals ************************************************************/
+TEST_F(ProgramTest, operator_equals)
+{
+  Program p1, p2;
+
+  p1.path = "program_1.asm";
+  p1.add(Instruction::Set::create("LOAD", 1));
+  p1.add(Instruction::Set::create("ADDI", 1));
+
+  p2.path = "program_1.asm";
+  p2.add(Instruction::Set::create("LOAD", 1));
+  p2.add(Instruction::Set::create("ADDI", 1));
+
+  ASSERT_TRUE(p1 == p2);
+
+  /* same programs, different paths */
+  p2.path = "program_2.asm";
+
+  ASSERT_TRUE(p1 == p2);
+
+  /* different size */
+  p1.add(Instruction::Set::create("STORE", 1));
+
+  ASSERT_TRUE(p1 != p2);
+
+  /* different instructions */
+  p2.add(Instruction::Set::create("JNZ", 0));
+
+  ASSERT_TRUE(p1 != p2);
+}

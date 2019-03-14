@@ -38,6 +38,12 @@ struct Program : public std::deque<InstructionPtr>
 };
 
 /*******************************************************************************
+ * Operators
+ ******************************************************************************/
+bool operator == (const Program &, const Program &);
+bool operator != (const Program &, const Program &);
+
+/*******************************************************************************
  * ProgramPtr
  ******************************************************************************/
 typedef std::shared_ptr<Program>          ProgramPtr;
