@@ -189,7 +189,23 @@ SchedulePtr Simulator::simulate (unsigned long _bound, unsigned long _seed)
 SchedulePtr Simulator::replay (Schedule & _schedule, unsigned long _bound)
 {
   /* check programs */
-  // TODO
+  if (programs->size() != _schedule.programs->size())
+    throw runtime_error(
+      "number of programs differ [" +
+      to_string(programs->size()) +
+      ", " +
+      to_string(_schedule.programs->size()) +
+      "]");
+
+  for (size_t i = 0; i < programs->size(); i++)
+    if (*programs->at(i) != *_schedule.programs->at(i))
+      throw runtime_error(
+        "program #" +
+        to_string(i) +
+        " differs: " +
+        programs->at(i)->path +
+        " != " +
+        _schedule.programs->at(i)->path);
 
   /* set bound */
   bound = _bound && _bound < _schedule.bound ? _bound : _schedule.bound;

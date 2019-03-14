@@ -745,3 +745,83 @@ TEST_F(SimulatorTest, replay_increment_cas)
   /* compare output */
   ASSERT_EQ(expected, ss.str());
 }
+
+/* replay_programs_differ *****************************************************/
+// TODO
+TEST_F(SimulatorTest, replay_programs_differ)
+{
+  Simulator _simulator;
+
+  Schedule _schedule;
+
+  ProgramPtr
+    p1 = make_shared<Program>(),
+    p2 = make_shared<Program>();
+
+  p1->path = "program_1.asm";
+  p2->path = "program_2.asm";
+
+  ProgramListPtr
+    programs_simulator = make_shared<ProgramList>(),
+    programs_schedule = make_shared<ProgramList>();
+
+  /* number of programs differ */
+  programs_simulator->push_back(p1);
+  programs_simulator->push_back(p2);
+  programs_schedule->push_back(p2);
+
+  _simulator = Simulator(programs_simulator);
+  _schedule = Schedule(programs_schedule, 1, 1);
+
+  try
+    {
+      schedule = _simulator.replay(_schedule);
+      FAIL() << "should throw an exception";
+    }
+  catch (const exception & e)
+    {
+      ASSERT_STREQ("number of programs differ [2, 1]", e.what());
+    }
+
+  /* programs differ */
+  programs_simulator->clear();
+  programs_simulator->push_back(p1);
+
+  p1->add(Instruction::Set::create("ADDI", 1));
+  p2->add(Instruction::Set::create("SUBI", 1));
+
+  _simulator = Simulator(programs_simulator);
+  _schedule = Schedule(programs_schedule, 1, 1);
+
+  cout << p1->path << eol << p2->path << eol;
+
+  try
+    {
+      schedule = _simulator.replay(_schedule);
+      FAIL() << "should throw an exception";
+    }
+  catch (const exception & e)
+    {
+      ASSERT_STREQ(
+        "program #0 differs: program_1.asm != program_2.asm",
+        e.what());
+    }
+
+  /* equal programs, different pointer */
+  p2 = make_shared<Program>();
+  p2->path = p1->path;
+
+  p2->add(Instruction::Set::create("ADDI", 1));
+
+  programs_schedule->clear();
+  programs_schedule->push_back(p2);
+
+  _simulator = Simulator(programs_simulator);
+  _schedule = Schedule(programs_schedule, 1, 1);
+
+  _schedule.push_back(0);
+
+  schedule = _simulator.replay(_schedule);
+
+  ASSERT_EQ(0, schedule->exit);
+}
