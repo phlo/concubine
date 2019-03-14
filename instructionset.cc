@@ -102,6 +102,34 @@ Instruction::Type MemoryInstruction::get_type () const
 }
 
 /*******************************************************************************
+ * Operators
+ ******************************************************************************/
+bool operator == (const Instruction & a, const Instruction & b)
+{
+  if (a.get_opcode() != b.get_opcode())
+    return false;
+
+  typedef const MemoryInstruction * memory_ptr;
+
+  if (memory_ptr _a = dynamic_cast<memory_ptr>(&a))
+    if (memory_ptr _b = dynamic_cast<memory_ptr>(&b))
+      return _a->arg == _b->arg && _a->indirect == _b->indirect;
+
+  typedef const UnaryInstruction * unary_ptr;
+
+  if (unary_ptr _a = dynamic_cast<unary_ptr>(&a))
+    if (unary_ptr _b = dynamic_cast<unary_ptr>(&b))
+      return _a->arg == _b->arg;
+
+  throw runtime_error("operator == failed");
+}
+
+bool operator != (const Instruction & a, const Instruction & b)
+{
+  return !(a == b);
+}
+
+/*******************************************************************************
  * Machine Instructions
  *
  * use preprocessor to simplify definition of instructions

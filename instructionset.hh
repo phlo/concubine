@@ -123,7 +123,7 @@ typedef std::shared_ptr<UnaryInstruction> UnaryInstructionPtr;
  ******************************************************************************/
 struct MemoryInstruction : public UnaryInstruction
 {
-  bool indirect; // TODO const?
+  bool indirect;
 
   MemoryInstruction (const word, const bool = false);
 
@@ -136,6 +136,12 @@ struct MemoryInstruction : public UnaryInstruction
 };
 
 typedef std::shared_ptr<MemoryInstruction> MemoryInstructionPtr;
+
+/*******************************************************************************
+ * Operators
+ ******************************************************************************/
+bool operator == (const Instruction &, const Instruction &);
+bool operator != (const Instruction &, const Instruction &);
 
 /*******************************************************************************
  * Instructions

@@ -67,6 +67,40 @@ TEST_F(InstructionSetTest, contains)
   ASSERT_EQ(Instruction::Type::UNARY,   Instruction::Set::contains("EXIT"));
 }
 
+/* operators ******************************************************************/
+TEST_F(InstructionSetTest, operator_equals)
+{
+  /* UnaryInstruction */
+  ASSERT_EQ(
+    *Instruction::Set::create("ADDI", 1),
+    *Instruction::Set::create("ADDI", 1));
+
+  ASSERT_NE(
+    *Instruction::Set::create("ADDI", 1),
+    *Instruction::Set::create("ADDI", 2));
+
+  ASSERT_NE(
+    *Instruction::Set::create("ADDI", 1),
+    *Instruction::Set::create("SUBI", 1));
+
+  /* MemoryInstruction */
+  ASSERT_EQ(
+    *Instruction::Set::create("STORE", 1),
+    *Instruction::Set::create("STORE", 1));
+
+  ASSERT_NE(
+    *Instruction::Set::create("STORE", 1),
+    *Instruction::Set::create("STORE", 2));
+
+  ASSERT_NE(
+    *Instruction::Set::create("STORE", 1, true),
+    *Instruction::Set::create("STORE", 1, false));
+
+  ASSERT_NE(
+    *Instruction::Set::create("STORE", 1),
+    *Instruction::Set::create("LOAD", 1));
+}
+
 /* LOAD ***********************************************************************/
 TEST_F(InstructionSetTest, LOAD)
 {
