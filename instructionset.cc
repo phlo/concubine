@@ -11,9 +11,9 @@ using namespace std;
 /*******************************************************************************
  * Instruction::Attributes
  ******************************************************************************/
-const unsigned char Instruction::Attributes::ALTERS_HEAP  = 1 << 0;
-const unsigned char Instruction::Attributes::ALTERS_ACCU  = 1 << 1;
-const unsigned char Instruction::Attributes::ALTERS_MEM   = 1 << 2;
+const unsigned char Instruction::Attributes::ALTERS_HEAP = 1 << 0;
+const unsigned char Instruction::Attributes::ALTERS_ACCU = 1 << 1;
+const unsigned char Instruction::Attributes::ALTERS_MEM  = 1 << 2;
 
 /*******************************************************************************
  * Instruction::Set
@@ -24,10 +24,16 @@ unordered_map<string, Instruction *(*)()>
 unordered_map<string, Instruction *(*)(const word)>
   Instruction::Set::unary_factory;
 
+unordered_map<string, Instruction *(*)(const word, const bool)>
+  Instruction::Set::memory_factory;
+
 Instruction::Type Instruction::Set::contains (string name)
 {
   if (nullary_factory.find(name) != nullary_factory.end())
     return Type::NULLARY;
+
+  if (memory_factory.find(name) != memory_factory.end())
+    return Type::MEMORY;
 
   if (unary_factory.find(name) != unary_factory.end())
     return Type::UNARY;
@@ -51,36 +57,49 @@ InstructionPtr Instruction::Set::create (string name, const word arg)
   return InstructionPtr(unary_factory[name](arg));
 }
 
+InstructionPtr Instruction::Set::create (
+                                         string name,
+                                         const word arg,
+                                         const bool indirect
+                                        )
+{
+  if (!contains(name))
+    throw runtime_error("Instruction '" + name + "' unknown");
+
+  return InstructionPtr(memory_factory[name](arg, indirect));
+}
 
 /*******************************************************************************
  * Instruction
  ******************************************************************************/
 
-Instruction::Type Instruction::get_type ()
+Instruction::Type Instruction::get_type () const
 {
   return Instruction::Type::NULLARY;
 }
-
 
 /*******************************************************************************
  * UnaryInstruction
  ******************************************************************************/
 UnaryInstruction::UnaryInstruction (const word a) : arg(a) {}
 
-Instruction::Type UnaryInstruction::get_type ()
+Instruction::Type UnaryInstruction::get_type () const
 {
   return Instruction::Type::UNARY;
 }
 
-
 /*******************************************************************************
  * MemoryInstruction
  ******************************************************************************/
-MemoryInstruction::MemoryInstruction (const word a) :
+MemoryInstruction::MemoryInstruction (const word a, const bool i) :
   UnaryInstruction(a),
-  indirect(false)
+  indirect(i)
 {}
 
+Instruction::Type MemoryInstruction::get_type () const
+{
+  return Instruction::Type::MEMORY;
+}
 
 /*******************************************************************************
  * Machine Instructions
@@ -88,12 +107,16 @@ MemoryInstruction::MemoryInstruction (const word a) :
  * use preprocessor to simplify definition of instructions
  * NOTE: 'execute' defined outside!
  ******************************************************************************/
-#define DEFINE_COMMON_INSTRUCTION_MEMBERS(classname, attr)                     \
-  const unsigned char classname::attributes = attr;                            \
-  Instruction::OPCode classname::get_opcode () { return OPCode::classname; }   \
-  const string& classname::get_symbol () { return classname::symbol; }         \
-  unsigned char classname::get_attributes () { return classname::attributes; } \
-  string classname::encode (Encoder & formula) { return formula.encode(*this); }
+#define DEFINE_COMMON_INSTRUCTION_MEMBERS(classname, attr)  \
+  const unsigned char classname::attributes = attr;         \
+  Instruction::OPCode classname::get_opcode () const        \
+    { return OPCode::classname; }                           \
+  const string& classname::get_symbol () const              \
+    { return classname::symbol; }                           \
+  unsigned char classname::get_attributes () const          \
+    { return classname::attributes; }                       \
+  string classname::encode (Encoder & formula)              \
+    { return formula.encode(*this); }
 
 #define DEFINE_INSTRUCTION_NULLARY(classname, identifier, attributes) \
   DEFINE_COMMON_INSTRUCTION_MEMBERS (classname, attributes)           \
@@ -106,19 +129,37 @@ MemoryInstruction::MemoryInstruction (const word a) :
     return sym;                                                       \
   }(identifier);                                                      \
 
-#define DEFINE_INSTRUCTION_UNARY(classname, identifier, attributes)         \
-  DEFINE_COMMON_INSTRUCTION_MEMBERS(classname, attributes)                  \
-  const string  classname::symbol = [](string sym)->const string            \
-  {                                                                         \
-    Instruction::Set::unary_factory[sym] = [](const word a)->Instruction *  \
-      {                                                                     \
-        return new classname(a);                                            \
-      };                                                                    \
-    return sym;                                                             \
-  }(identifier);                                                            \
+#define DEFINE_INSTRUCTION_UNARY(classname, identifier, attributes)   \
+  DEFINE_COMMON_INSTRUCTION_MEMBERS(classname, attributes)            \
+  const string  classname::symbol = [](string sym)->const string      \
+  {                                                                   \
+    Instruction::Set::unary_factory[sym] =                            \
+      [](const word a)->Instruction *                                 \
+      {                                                               \
+        return new classname(a);                                      \
+      };                                                              \
+    return sym;                                                       \
+  }(identifier);                                                      \
+
+#define DEFINE_INSTRUCTION_MEMORY(classname, identifier, attributes)  \
+  DEFINE_COMMON_INSTRUCTION_MEMBERS(classname, attributes)            \
+  const string  classname::symbol = [](string sym)->const string      \
+  {                                                                   \
+    Instruction::Set::unary_factory[sym] =                            \
+      [](const word a)->Instruction *                                 \
+      {                                                               \
+        return new classname(a);                                      \
+      };                                                              \
+    Instruction::Set::memory_factory[sym] =                           \
+      [](const word a, const bool i)->Instruction *                   \
+      {                                                               \
+        return new classname(a, i);                                   \
+      };                                                              \
+    return sym;                                                       \
+  }(identifier);                                                      \
 
 /* LOAD ***********************************************************************/
-DEFINE_INSTRUCTION_UNARY(Load, "LOAD", Attributes::ALTERS_ACCU)
+DEFINE_INSTRUCTION_MEMORY(Load, "LOAD", Attributes::ALTERS_ACCU)
 void Load::execute (Thread & thread)
 {
   thread.pc++;
@@ -126,7 +167,7 @@ void Load::execute (Thread & thread)
 }
 
 /* STORE **********************************************************************/
-DEFINE_INSTRUCTION_UNARY(Store, "STORE", Attributes::ALTERS_HEAP)
+DEFINE_INSTRUCTION_MEMORY(Store, "STORE", Attributes::ALTERS_HEAP)
 void Store::execute (Thread & thread)
 {
   thread.pc++;
@@ -134,7 +175,7 @@ void Store::execute (Thread & thread)
 }
 
 /* ADD ************************************************************************/
-DEFINE_INSTRUCTION_UNARY(Add, "ADD", Attributes::ALTERS_ACCU)
+DEFINE_INSTRUCTION_MEMORY(Add, "ADD", Attributes::ALTERS_ACCU)
 void Add::execute (Thread & thread)
 {
   thread.pc++;
@@ -150,7 +191,7 @@ void Addi::execute (Thread & thread)
 }
 
 /* SUB ************************************************************************/
-DEFINE_INSTRUCTION_UNARY(Sub, "SUB", Attributes::ALTERS_ACCU)
+DEFINE_INSTRUCTION_MEMORY(Sub, "SUB", Attributes::ALTERS_ACCU)
 void Sub::execute (Thread & thread)
 {
   thread.pc++;
@@ -166,7 +207,7 @@ void Subi::execute (Thread & thread)
 }
 
 /* CMP ************************************************************************/
-DEFINE_INSTRUCTION_UNARY(Cmp, "CMP", Attributes::ALTERS_ACCU)
+DEFINE_INSTRUCTION_MEMORY(Cmp, "CMP", Attributes::ALTERS_ACCU)
 void Cmp::execute (Thread & thread)
 {
   thread.pc++;
@@ -234,7 +275,7 @@ void Jnzns::execute (Thread & thread)
 }
 
 /* MEM ************************************************************************/
-DEFINE_INSTRUCTION_UNARY(
+DEFINE_INSTRUCTION_MEMORY(
   Mem,
   "MEM",
   Attributes::ALTERS_ACCU | Attributes::ALTERS_MEM)
@@ -245,7 +286,7 @@ void Mem::execute (Thread & thread)
 }
 
 /* CAS ************************************************************************/
-DEFINE_INSTRUCTION_UNARY(
+DEFINE_INSTRUCTION_MEMORY(
   Cas,
   "CAS",
   Attributes::ALTERS_ACCU | Attributes::ALTERS_HEAP)

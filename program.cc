@@ -59,6 +59,7 @@ Program::Program(istream & file, string & name) : path(name)
               break;
             }
         case Instruction::Type::UNARY:
+        case Instruction::Type::MEMORY:
             {
               word arg;
 

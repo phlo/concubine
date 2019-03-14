@@ -30,19 +30,41 @@ TEST_F(InstructionSetTest, Factory)
   instruction = Instruction::Set::create("LOAD", static_cast<word>(-1));
 
   ASSERT_EQ("LOAD", instruction->get_symbol());
-  ASSERT_EQ(Instruction::Type::UNARY, instruction->get_type());
+  ASSERT_EQ(Instruction::Type::MEMORY, instruction->get_type());
   ASSERT_EQ(word_max, dynamic_pointer_cast<UnaryInstruction>(instruction)->arg);
 
   /* arg overflow */
   instruction = Instruction::Set::create("LOAD", word(word_max + 1));
 
   ASSERT_EQ("LOAD", instruction->get_symbol());
-  ASSERT_EQ(Instruction::Type::UNARY, instruction->get_type());
+  ASSERT_EQ(Instruction::Type::MEMORY, instruction->get_type());
   ASSERT_EQ(0, dynamic_pointer_cast<UnaryInstruction>(instruction)->arg);
 
   /* unknown instruction */
   try { instruction = Instruction::Set::create("NOP"); } catch (...) {}
   try { instruction = Instruction::Set::create("NOP", 0); } catch (...) {}
+}
+
+/* InstructionSet::contains (std::string) *************************************/
+TEST_F(InstructionSetTest, contains)
+{
+  ASSERT_EQ(Instruction::Type::MEMORY,  Instruction::Set::contains("LOAD"));
+  ASSERT_EQ(Instruction::Type::MEMORY,  Instruction::Set::contains("STORE"));
+  ASSERT_EQ(Instruction::Type::MEMORY,  Instruction::Set::contains("ADD"));
+  ASSERT_EQ(Instruction::Type::UNARY,   Instruction::Set::contains("ADDI"));
+  ASSERT_EQ(Instruction::Type::MEMORY,  Instruction::Set::contains("SUB"));
+  ASSERT_EQ(Instruction::Type::UNARY,   Instruction::Set::contains("SUBI"));
+  ASSERT_EQ(Instruction::Type::MEMORY,  Instruction::Set::contains("CMP"));
+  ASSERT_EQ(Instruction::Type::UNARY,   Instruction::Set::contains("JMP"));
+  ASSERT_EQ(Instruction::Type::UNARY,   Instruction::Set::contains("JZ"));
+  ASSERT_EQ(Instruction::Type::UNARY,   Instruction::Set::contains("JNZ"));
+  ASSERT_EQ(Instruction::Type::UNARY,   Instruction::Set::contains("JS"));
+  ASSERT_EQ(Instruction::Type::UNARY,   Instruction::Set::contains("JNS"));
+  ASSERT_EQ(Instruction::Type::UNARY,   Instruction::Set::contains("JNZNS"));
+  ASSERT_EQ(Instruction::Type::MEMORY,  Instruction::Set::contains("MEM"));
+  ASSERT_EQ(Instruction::Type::MEMORY,  Instruction::Set::contains("CAS"));
+  ASSERT_EQ(Instruction::Type::UNARY,   Instruction::Set::contains("SYNC"));
+  ASSERT_EQ(Instruction::Type::UNARY,   Instruction::Set::contains("EXIT"));
 }
 
 /* LOAD ***********************************************************************/

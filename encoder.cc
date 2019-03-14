@@ -2268,9 +2268,7 @@ string Btor2Encoder::encode (Mem & m)
 
 string Btor2Encoder::encode (Cas & c)
 {
-  Load l(c.arg);
-
-  l.indirect = c.indirect;
+  Load l(c.arg, c.indirect);
 
   string nid_cas = load(l);
 
