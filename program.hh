@@ -28,7 +28,7 @@ struct Program : public std::deque<InstructionPtr>
   std::unordered_map<word, std::string>   labels;
 
   /* appends instruction to the program */
-  void                                    add (InstructionPtr);
+  void                                    push_back (InstructionPtr);
 
   /* print whole program */
   std::string                             print (bool);

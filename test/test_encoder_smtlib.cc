@@ -31,7 +31,7 @@ struct SMTLibEncoderTest : public ::testing::Test
         {
           programs.push_back(shared_ptr<Program>(new Program()));
           for (size_t j = 0; j < size; j++)
-            programs[i]->add(op);
+            programs[i]->push_back(op);
         }
 
       encoder = create_encoder(0);
@@ -528,7 +528,7 @@ TEST_F(SMTLibEncoderTest, declare_cas_vars)
   ASSERT_EQ("", encoder->formula.str());
 
   /* single CAS in thread 1 */
-  programs[0]->add(Instruction::Set::create("CAS", 0));
+  programs[0]->push_back(Instruction::Set::create("CAS", 0));
 
   reset_encoder(0, 1);
 
@@ -542,7 +542,7 @@ TEST_F(SMTLibEncoderTest, declare_cas_vars)
 
   /* 1 CAS per thread */
   for (const auto & p : programs)
-      p->add(Instruction::Set::create("CAS", 0));
+      p->push_back(Instruction::Set::create("CAS", 0));
 
   reset_encoder(0, 1);
 
@@ -593,7 +593,7 @@ TEST_F(SMTLibEncoderTest, declare_sync_vars)
 
   /* 3 different sync ids */
   for (const auto & p : programs)
-    p->add(Instruction::Set::create("SYNC", sync_id++));
+    p->push_back(Instruction::Set::create("SYNC", sync_id++));
 
   reset_encoder(0, 1);
 
@@ -609,7 +609,7 @@ TEST_F(SMTLibEncoderTest, declare_sync_vars)
 
   /* same sync ids */
   for (const auto & p : programs)
-    p->add(Instruction::Set::create("SYNC", sync_id));
+    p->push_back(Instruction::Set::create("SYNC", sync_id));
 
   reset_encoder(0, 1);
 
@@ -839,7 +839,7 @@ TEST_F(SMTLibEncoderTest, add_exit_flag)
     {
       programs.push_back(shared_ptr<Program>(new Program()));
 
-      programs[i]->add(Instruction::Set::create("EXIT", i));
+      programs[i]->push_back(Instruction::Set::create("EXIT", i));
     }
 
   reset_encoder(10, 1);
@@ -900,7 +900,7 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_naive)
     {
       programs.push_back(shared_ptr<Program>(new Program()));
 
-      programs[i]->add(Instruction::Set::create("ADDI", 1));
+      programs[i]->push_back(Instruction::Set::create("ADDI", 1));
     }
 
   reset_encoder(1, 1);
@@ -924,7 +924,7 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_naive)
 
   /* EXIT call - step 1 */
   for (const auto & p : programs)
-    p->add(Instruction::Set::create("EXIT", 1));
+    p->push_back(Instruction::Set::create("EXIT", 1));
 
   reset_encoder(1, 1);
 
@@ -994,7 +994,7 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_sinz)
     {
       programs.push_back(shared_ptr<Program>(new Program()));
 
-      programs[i]->add(Instruction::Set::create("ADDI", 1));
+      programs[i]->push_back(Instruction::Set::create("ADDI", 1));
     }
 
   reset_encoder(1, 1);
@@ -1038,7 +1038,7 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_sinz)
 
   /* EXIT call - step 1 */
   for (const auto & p : programs)
-    p->add(Instruction::Set::create("EXIT", 1));
+    p->push_back(Instruction::Set::create("EXIT", 1));
 
   reset_encoder(1, 1);
 
@@ -1131,7 +1131,7 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
   for (size_t i = 0; i < 3; i++)
     {
       programs.push_back(shared_ptr<Program>(new Program()));
-      programs[i]->add(Instruction::Set::create("SYNC", 1));
+      programs[i]->push_back(Instruction::Set::create("SYNC", 1));
     }
 
   reset_encoder(0, 1);
@@ -1156,7 +1156,7 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
 
   /* two different barriers */
   for (const auto & p : programs)
-    p->add(Instruction::Set::create("SYNC", 2));
+    p->push_back(Instruction::Set::create("SYNC", 2));
 
   reset_encoder(0, 1);
 
@@ -1185,7 +1185,7 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
 
   /* two identical barriers */
   for (const auto & p : programs)
-    p->add(Instruction::Set::create("SYNC", 1));
+    p->push_back(Instruction::Set::create("SYNC", 1));
 
   reset_encoder(0, 1);
 
@@ -1277,7 +1277,7 @@ TEST_F(SMTLibEncoderTest, add_statement_execution)
 
   /* last statement is a sync barrier */
   for (const auto & p : programs)
-    p->add(Instruction::Set::create("SYNC", 1));
+    p->push_back(Instruction::Set::create("SYNC", 1));
 
   reset_encoder(0, 1);
 

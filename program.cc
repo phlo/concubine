@@ -138,7 +138,7 @@ Program::Program(istream & file, string & name) : path(name)
           parser_error(path, line_num, "'" + token + "'" + " unknown token");
         }
 
-      add(i);
+      push_back(i);
     }
 
   /* replace labelled dummy instructions */
@@ -156,10 +156,10 @@ Program::Program(istream & file, string & name) : path(name)
     }
 }
 
-/* Program::add (InstructionPtr) **********************************************/
-void Program::add (InstructionPtr i)
+/* Program::push_back (InstructionPtr) ****************************************/
+void Program::push_back (InstructionPtr i)
 {
-  push_back(i);
+  deque<InstructionPtr>::push_back(i);
 
   /* collect sync barrier ids */
   if (SyncPtr s = dynamic_pointer_cast<Sync>(i))

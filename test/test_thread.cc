@@ -57,7 +57,7 @@ TEST_F(ThreadTest, execute)
   ASSERT_EQ(0, thread.accu);
   ASSERT_EQ(Thread::State::INITIAL, thread.state);
 
-  program.add(Instruction::Set::create("ADDI", 1));
+  program.push_back(Instruction::Set::create("ADDI", 1));
 
   thread.execute();
 

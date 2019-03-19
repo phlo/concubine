@@ -31,7 +31,7 @@ struct EncoderTest : public ::testing::Test
         {
           programs.push_back(shared_ptr<Program>(new Program()));
           for (size_t j = 0; j < size; j++)
-            programs[i]->add(op);
+            programs[i]->push_back(op);
         }
 
       encoder = create_encoder(0);
@@ -45,13 +45,13 @@ TEST_F(EncoderTest, constructor)
     {
       programs.push_back(shared_ptr<Program>(new Program()));
 
-      programs[i]->add(Instruction::Set::create("CAS", 1));   // 0
-      programs[i]->add(Instruction::Set::create("ADDI", 1));  // 1
-      programs[i]->add(Instruction::Set::create("JNS", 1));   // 2
-      programs[i]->add(Instruction::Set::create("SYNC", 1));  // 3
-      programs[i]->add(Instruction::Set::create("JMP", 6));   // 4
-      programs[i]->add(Instruction::Set::create("EXIT", 1));  // 5
-      programs[i]->add(Instruction::Set::create("SYNC", 2));  // 6
+      programs[i]->push_back(Instruction::Set::create("CAS", 1));   // 0
+      programs[i]->push_back(Instruction::Set::create("ADDI", 1));  // 1
+      programs[i]->push_back(Instruction::Set::create("JNS", 1));   // 2
+      programs[i]->push_back(Instruction::Set::create("SYNC", 1));  // 3
+      programs[i]->push_back(Instruction::Set::create("JMP", 6));   // 4
+      programs[i]->push_back(Instruction::Set::create("EXIT", 1));  // 5
+      programs[i]->push_back(Instruction::Set::create("SYNC", 2));  // 6
     }
 
   reset_encoder(0);
@@ -84,9 +84,9 @@ TEST_F(EncoderTest, constructor_predecessors)
     {
       programs.push_back(shared_ptr<Program>(new Program()));
 
-      programs[i]->add(Instruction::Set::create("ADDI", 1));
-      programs[i]->add(Instruction::Set::create("ADDI", 1));
-      programs[i]->add(Instruction::Set::create("ADDI", 1));
+      programs[i]->push_back(Instruction::Set::create("ADDI", 1));
+      programs[i]->push_back(Instruction::Set::create("ADDI", 1));
+      programs[i]->push_back(Instruction::Set::create("ADDI", 1));
     }
 
   reset_encoder(0);
@@ -106,9 +106,9 @@ TEST_F(EncoderTest, constructor_predecessors_jump)
     {
       programs.push_back(shared_ptr<Program>(new Program()));
 
-      programs[i]->add(Instruction::Set::create("ADDI", 1));
-      programs[i]->add(Instruction::Set::create("ADDI", 1));
-      programs[i]->add(Instruction::Set::create("JNZ", 1));
+      programs[i]->push_back(Instruction::Set::create("ADDI", 1));
+      programs[i]->push_back(Instruction::Set::create("ADDI", 1));
+      programs[i]->push_back(Instruction::Set::create("JNZ", 1));
     }
 
   reset_encoder(0);
@@ -123,7 +123,7 @@ TEST_F(EncoderTest, constructor_predecessors_jump)
 
   /* jump to initial statement */
   for (const auto & p : programs)
-    p->add(Instruction::Set::create("JNZNS", 0));
+    p->push_back(Instruction::Set::create("JNZNS", 0));
 
   reset_encoder(0);
 
@@ -143,8 +143,8 @@ TEST_F(EncoderTest, constructor_predecessors_exit)
     {
       programs.push_back(shared_ptr<Program>(new Program()));
 
-      programs[i]->add(Instruction::Set::create("EXIT", 1));
-      programs[i]->add(Instruction::Set::create("ADDI", 1));
+      programs[i]->push_back(Instruction::Set::create("EXIT", 1));
+      programs[i]->push_back(Instruction::Set::create("ADDI", 1));
     }
 
   reset_encoder(0);
@@ -158,9 +158,9 @@ TEST_F(EncoderTest, constructor_predecessors_extra)
     {
       programs.push_back(shared_ptr<Program>(new Program()));
 
-      programs[i]->add(Instruction::Set::create("ADDI", 1));
-      programs[i]->add(Instruction::Set::create("ADDI", 1));
-      programs[i]->add(Instruction::Set::create("ADDI", 1));
+      programs[i]->push_back(Instruction::Set::create("ADDI", 1));
+      programs[i]->push_back(Instruction::Set::create("ADDI", 1));
+      programs[i]->push_back(Instruction::Set::create("ADDI", 1));
     }
 
   reset_encoder(0);
@@ -175,7 +175,7 @@ TEST_F(EncoderTest, constructor_predecessors_extra)
 
   /* jump */
   for (const auto & p : programs)
-    p->add(Instruction::Set::create("JMP", 1));
+    p->push_back(Instruction::Set::create("JMP", 1));
 
   reset_encoder(0);
 
@@ -190,7 +190,7 @@ TEST_F(EncoderTest, constructor_predecessors_extra)
 
   /* jump to initial statement */
   for (const auto & p : programs)
-    p->add(Instruction::Set::create("JNZNS", 0));
+    p->push_back(Instruction::Set::create("JNZNS", 0));
 
   reset_encoder(0);
 
@@ -228,9 +228,9 @@ TEST_F(EncoderTest, constructor_sync_pcs)
     {
       programs.push_back(shared_ptr<Program>(new Program()));
 
-      programs[i]->add(Instruction::Set::create("SYNC", 1));
-      programs[i]->add(Instruction::Set::create("SYNC", 2));
-      programs[i]->add(Instruction::Set::create("SYNC", 3));
+      programs[i]->push_back(Instruction::Set::create("SYNC", 1));
+      programs[i]->push_back(Instruction::Set::create("SYNC", 2));
+      programs[i]->push_back(Instruction::Set::create("SYNC", 3));
     }
 
   reset_encoder(0);
@@ -246,9 +246,9 @@ TEST_F(EncoderTest, constructor_exit_pcs)
     {
       programs.push_back(shared_ptr<Program>(new Program()));
 
-      programs[i]->add(Instruction::Set::create("EXIT", 1));
-      programs[i]->add(Instruction::Set::create("EXIT", 2));
-      programs[i]->add(Instruction::Set::create("EXIT", 3));
+      programs[i]->push_back(Instruction::Set::create("EXIT", 1));
+      programs[i]->push_back(Instruction::Set::create("EXIT", 2));
+      programs[i]->push_back(Instruction::Set::create("EXIT", 3));
     }
 
   reset_encoder(0);
@@ -263,7 +263,7 @@ TEST_F(EncoderTest, constructor_cas_threads)
     {
       programs.push_back(shared_ptr<Program>(new Program()));
 
-      programs[i]->add(Instruction::Set::create("CAS", 1));
+      programs[i]->push_back(Instruction::Set::create("CAS", 1));
     }
 
   reset_encoder(0);

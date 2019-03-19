@@ -40,9 +40,9 @@ struct SMTLibEncoderRelationalTest : public ::testing::Test
         {
           programs.push_back(ProgramPtr(new Program()));
 
-          programs[i]->add(Instruction::Set::create("LOAD", 1));
-          programs[i]->add(Instruction::Set::create("ADDI", 1));
-          programs[i]->add(Instruction::Set::create("STORE", 1));
+          programs[i]->push_back(Instruction::Set::create("LOAD", 1));
+          programs[i]->push_back(Instruction::Set::create("ADDI", 1));
+          programs[i]->push_back(Instruction::Set::create("STORE", 1));
         }
 
       reset_encoder(2, 1);
@@ -54,23 +54,23 @@ struct SMTLibEncoderRelationalTest : public ::testing::Test
         {
           programs.push_back(shared_ptr<Program>(new Program()));
 
-          programs[i]->add(Instruction::Set::create("LOAD", 1));  // 0
-          programs[i]->add(Instruction::Set::create("STORE", 1)); // 1
-          programs[i]->add(Instruction::Set::create("ADD", 1));   // 2
-          programs[i]->add(Instruction::Set::create("ADDI", 1));  // 3
-          programs[i]->add(Instruction::Set::create("SUB", 1));   // 4
-          programs[i]->add(Instruction::Set::create("SUBI", 1));  // 5
-          programs[i]->add(Instruction::Set::create("CMP", 1));   // 6
-          programs[i]->add(Instruction::Set::create("JMP", 1));   // 7
-          programs[i]->add(Instruction::Set::create("JZ", 1));    // 8
-          programs[i]->add(Instruction::Set::create("JNZ", 1));   // 9
-          programs[i]->add(Instruction::Set::create("JS", 1));    // 10
-          programs[i]->add(Instruction::Set::create("JNS", 1));   // 11
-          programs[i]->add(Instruction::Set::create("JNZNS", 1)); // 12
-          programs[i]->add(Instruction::Set::create("MEM", 1));   // 13
-          programs[i]->add(Instruction::Set::create("CAS", 1));   // 14
-          programs[i]->add(Instruction::Set::create("SYNC", 1));  // 15
-          programs[i]->add(Instruction::Set::create("EXIT", 1));  // 16
+          programs[i]->push_back(Instruction::Set::create("LOAD", 1));  // 0
+          programs[i]->push_back(Instruction::Set::create("STORE", 1)); // 1
+          programs[i]->push_back(Instruction::Set::create("ADD", 1));   // 2
+          programs[i]->push_back(Instruction::Set::create("ADDI", 1));  // 3
+          programs[i]->push_back(Instruction::Set::create("SUB", 1));   // 4
+          programs[i]->push_back(Instruction::Set::create("SUBI", 1));  // 5
+          programs[i]->push_back(Instruction::Set::create("CMP", 1));   // 6
+          programs[i]->push_back(Instruction::Set::create("JMP", 1));   // 7
+          programs[i]->push_back(Instruction::Set::create("JZ", 1));    // 8
+          programs[i]->push_back(Instruction::Set::create("JNZ", 1));   // 9
+          programs[i]->push_back(Instruction::Set::create("JS", 1));    // 10
+          programs[i]->push_back(Instruction::Set::create("JNS", 1));   // 11
+          programs[i]->push_back(Instruction::Set::create("JNZNS", 1)); // 12
+          programs[i]->push_back(Instruction::Set::create("MEM", 1));   // 13
+          programs[i]->push_back(Instruction::Set::create("CAS", 1));   // 14
+          programs[i]->push_back(Instruction::Set::create("SYNC", 1));  // 15
+          programs[i]->push_back(Instruction::Set::create("EXIT", 1));  // 16
         }
 
       reset_encoder(2, 1);
@@ -273,7 +273,7 @@ TEST_F(SMTLibEncoderRelationalTest, add_exit_code)
 
   /* step == bound */
   for (const auto & program : programs)
-    program->add(Instruction::Set::create("EXIT", 1));
+    program->push_back(Instruction::Set::create("EXIT", 1));
 
   reset_encoder(3, 3);
 
