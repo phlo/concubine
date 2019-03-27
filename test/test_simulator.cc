@@ -142,17 +142,26 @@ TEST_F(SimulatorTest, run_simple)
   /* check Schedule */
   ASSERT_EQ(0, schedule->exit);
 
-  unordered_map<word, vector<word>> pcs({{0, {1, 1}}, {1, {0, 1}}});
-  ASSERT_EQ(pcs, schedule->pcs);
+  // unordered_map<word, vector<word>> pcs({{0, {1, 1}}, {1, {0, 1}}});
+  vector<vector<pair<unsigned long, word>>> pcs({
+    {{1, 1}, {2, 1}},
+    {{1, 0}, {2, 1}}});
+  ASSERT_EQ(pcs, schedule->pc_updates);
 
-  unordered_map<word, vector<word>> accus({{0, {1, 1}}, {1, {0, 1}}});
-  ASSERT_EQ(accus, schedule->accus);
+  // unordered_map<word, vector<word>> accus({{0, {1, 1}}, {1, {0, 1}}});
+  vector<vector<pair<unsigned long, word>>> accus({
+    {{1, 1}, {2, 1}},
+    {{1, 0}, {2, 1}}});
+  ASSERT_EQ(accus, schedule->accu_updates);
 
-  unordered_map<word, vector<word>> mems({{0, {0, 0}}, {1, {0, 0}}});
-  ASSERT_EQ(mems, schedule->mems);
+  // unordered_map<word, vector<word>> mems({{0, {0, 0}}, {1, {0, 0}}});
+  vector<vector<pair<unsigned long, word>>> mems({
+    {{1, 0}, {2, 0}},
+    {{1, 0}, {2, 0}}});
+  ASSERT_EQ(mems, schedule->mem_updates);
 
-  vector<unordered_map<word, word>> heap({{}, {}});
-  ASSERT_EQ(heap, schedule->heaps);
+  // vector<unordered_map<word, word>> heap({{}, {}});
+  ASSERT_TRUE(schedule->heap_updates.empty());
 
   cout.clear();
 }
@@ -251,23 +260,32 @@ TEST_F(SimulatorTest, run_add_sync_exit)
   /* check Schedule */
   ASSERT_EQ(1, schedule->exit);
 
-  unordered_map<word, vector<word>> pcs({
-    {0, {1, 1, 2, 2, 2}},
-    {1, {0, 1, 1, 2, 2}}});
-  ASSERT_EQ(pcs, schedule->pcs);
+  // unordered_map<word, vector<word>> pcs({
+    // {0, {1, 1, 2, 2, 2}},
+    // {1, {0, 1, 1, 2, 2}}});
+  vector<vector<pair<unsigned long, word>>> pcs({
+    {{1, 1}, {2, 1}, {3, 2}, {4, 2}, {5, 2}},
+    {{1, 0}, {2, 1}, {3, 1}, {4, 2}, {5, 2}}});
+  ASSERT_EQ(pcs, schedule->pc_updates);
 
-  unordered_map<word, vector<word>> accus({
-    {0, {1, 1, 1, 1, 1}},
-    {1, {0, 1, 1, 1, 1}}});
-  ASSERT_EQ(accus, schedule->accus);
+  // unordered_map<word, vector<word>> accus({
+    // {0, {1, 1, 1, 1, 1}},
+    // {1, {0, 1, 1, 1, 1}}});
+  vector<vector<pair<unsigned long, word>>> accus({
+    {{1, 1}, {2, 1}, {3, 1}, {4, 1}, {5, 1}},
+    {{1, 0}, {2, 1}, {3, 1}, {4, 1}, {5, 1}}});
+  ASSERT_EQ(accus, schedule->accu_updates);
 
-  unordered_map<word, vector<word>> mems({
-    {0, {0, 0, 0, 0, 0}},
-    {1, {0, 0, 0, 0, 0}}});
-  ASSERT_EQ(mems, schedule->mems);
+  // unordered_map<word, vector<word>> mems({
+    // {0, {0, 0, 0, 0, 0}},
+    // {1, {0, 0, 0, 0, 0}}});
+  vector<vector<pair<unsigned long, word>>> mems({
+    {{1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}},
+    {{1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}}});
+  ASSERT_EQ(mems, schedule->mem_updates);
 
-  vector<unordered_map<word, word>> heap({{}, {}, {}, {}, {}});
-  ASSERT_EQ(heap, schedule->heaps);
+  // vector<unordered_map<word, word>> heap({{}, {}, {}, {}, {}});
+  ASSERT_TRUE(schedule->heap_updates.empty());
 
   cout.clear();
 }
@@ -505,23 +523,35 @@ TEST_F(SimulatorTest, run_race_condition)
   /* check Schedule */
   ASSERT_EQ(1, schedule->exit);
 
-  unordered_map<word, vector<word>> pcs({
-    {0, {1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 4, 4}},
-    {1, {0, 1, 1, 2, 2, 3, 3, 4, 4, 4, 4, 4, 4}},
-    {2, {0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 4, 4, 4}}});
-  ASSERT_EQ(pcs, schedule->pcs);
+  // unordered_map<word, vector<word>> pcs({
+    // {0, {1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 4, 4}},
+    // {1, {0, 1, 1, 2, 2, 3, 3, 4, 4, 4, 4, 4, 4}},
+    // {2, {0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 4, 4, 4}}});
+  vector<vector<pair<unsigned long, word>>> pcs({
+    {{1, 1}, {10, 2}, {11, 3}, {12, 4}},
+    {{2, 1}, {4, 2}, {6, 3}, {8, 4}},
+    {{3, 1}, {5, 2}, {7, 3}, {9, 4}}});
+  ASSERT_EQ(pcs, schedule->pc_updates);
 
-  unordered_map<word, vector<word>> accus({
-    {0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 65535, 65535, 1}},
-    {1, {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}},
-    {2, {0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1}}});
-  ASSERT_EQ(accus, schedule->accus);
+  // unordered_map<word, vector<word>> accus({
+    // {0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 65535, 65535, 1}},
+    // {1, {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}},
+    // {2, {0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1}}});
+  vector<vector<pair<unsigned long, word>>> accus({
+    {{10, 1}, {11, 65535}, {13, 1}},
+    {{4, 1}},
+    {{5, 1}}});
+  ASSERT_EQ(accus, schedule->accu_updates);
 
-  unordered_map<word, vector<word>> mems({
-    {0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
-    {1, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
-    {2, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}});
-  ASSERT_EQ(mems, schedule->mems);
+  // unordered_map<word, vector<word>> mems({
+    // {0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
+    // {1, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
+    // {2, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}});
+  vector<vector<pair<unsigned long, word>>> mems({
+    {},
+    {},
+    {}});
+  ASSERT_EQ(mems, schedule->mem_updates);
 
   vector<unordered_map<word, word>> heap({
     {{1, 0}},
@@ -537,7 +567,9 @@ TEST_F(SimulatorTest, run_race_condition)
     {{1, 1}},
     {{1, 1}},
     {{1, 1}}});
-  ASSERT_EQ(heap, schedule->heaps);
+  unordered_map<word, vector<pair<unsigned long, word>>> heap_updates({
+    {1, {{1, 0}, {6, 1}}}});
+  ASSERT_EQ(heap_updates, schedule->heap_updates);
 
   cout.clear();
 }
@@ -594,17 +626,29 @@ TEST_F(SimulatorTest, run_zero_bound)
   /* check Schedule */
   ASSERT_EQ(0, schedule->exit);
 
-  unordered_map<word, vector<word>> pcs({{0, {0, 0, 0}}});
-  ASSERT_EQ(pcs, schedule->pcs);
+  // unordered_map<word, vector<word>> pcs({{0, {0, 0, 0}}});
+  vector<vector<pair<unsigned long, word>>> pc_updates({
+    {},
+    {},
+    {}});
+  ASSERT_EQ(pc_updates, schedule->pc_updates);
 
-  unordered_map<word, vector<word>> accus({{0, {0, 0, 0}}});
-  ASSERT_EQ(accus, schedule->accus);
+  // unordered_map<word, vector<word>> accus({{0, {0, 0, 0}}});
+  vector<vector<pair<unsigned long, word>>> accu_updates({
+    {},
+    {},
+    {}});
+  ASSERT_EQ(accu_updates, schedule->accu_updates);
 
-  unordered_map<word, vector<word>> mems({{0, {0, 0, 0}}});
-  ASSERT_EQ(mems, schedule->mems);
+  // unordered_map<word, vector<word>> mems({{0, {0, 0, 0}}});
+  vector<vector<pair<unsigned long, word>>> mem_updates({
+    {},
+    {},
+    {}});
+  ASSERT_EQ(mem_updates, schedule->mem_updates);
 
-  vector<unordered_map<word, word>> heap({{}, {}, {}});
-  ASSERT_EQ(heap, schedule->heaps);
+  // vector<unordered_map<word, word>> heap({{}, {}, {}});
+  ASSERT_TRUE(schedule->heap_updates.empty());
 
   cout.clear();
 }
@@ -770,7 +814,7 @@ TEST_F(SimulatorTest, replay_programs_differ)
   programs_schedule->push_back(p2);
 
   _simulator = Simulator(programs_simulator);
-  _schedule = Schedule(programs_schedule, 1, 1);
+  _schedule = Schedule(programs_schedule, 1);
 
   try
     {
@@ -790,7 +834,7 @@ TEST_F(SimulatorTest, replay_programs_differ)
   p2->push_back(Instruction::Set::create("SUBI", 1));
 
   _simulator = Simulator(programs_simulator);
-  _schedule = Schedule(programs_schedule, 1, 1);
+  _schedule = Schedule(programs_schedule, 1);
 
   try
     {
@@ -814,9 +858,9 @@ TEST_F(SimulatorTest, replay_programs_differ)
   programs_schedule->push_back(p2);
 
   _simulator = Simulator(programs_simulator);
-  _schedule = Schedule(programs_schedule, 1, 1);
+  _schedule = Schedule(programs_schedule, 1);
 
-  _schedule.push_back(0);
+  _schedule.push_back(1, 0, 0, 1, 0);
 
   /* redirect stdout */
   ostringstream ss;

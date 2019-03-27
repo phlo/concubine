@@ -101,7 +101,10 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
       /* append heap state to schedule (ignore failed CAS) */
       if (StorePtr s = dynamic_pointer_cast<Store>(thread->program[pc]))
         if (s->get_opcode() == Instruction::OPCode::Store || thread->accu)
-          schedule->push_back(step, make_pair(s->arg, thread->accu));
+          schedule->push_back(
+            step,
+            s->indirect ? heap[s->arg] : s->arg,
+            thread->accu);
 
       /* handle state transitions */
       switch (thread->state)

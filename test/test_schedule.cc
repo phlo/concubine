@@ -22,31 +22,30 @@ TEST_F(ScheduleTest, parse)
 {
   schedule = create_from_file<Schedule>("data/increment.cas.t2.k16.schedule");
 
-  ASSERT_EQ(16, schedule->bound);
+  ASSERT_EQ(schedule->path, "data/increment.cas.t2.k16.schedule");
 
-  ASSERT_EQ(0, schedule->seed);
+  ASSERT_EQ(16, schedule->bound);
 
   ASSERT_EQ(2, schedule->programs->size());
   ASSERT_EQ(program, schedule->programs->at(0)->path);
   ASSERT_EQ(program, schedule->programs->at(1)->path);
 
-  ASSERT_EQ(16, schedule->size());
-  ASSERT_EQ(0, schedule->at(0));
-  ASSERT_EQ(1, schedule->at(1));
-  ASSERT_EQ(1, schedule->at(2));
-  ASSERT_EQ(0, schedule->at(3));
-  ASSERT_EQ(0, schedule->at(4));
-  ASSERT_EQ(0, schedule->at(5));
-  ASSERT_EQ(1, schedule->at(6));
-  ASSERT_EQ(0, schedule->at(7));
-  ASSERT_EQ(0, schedule->at(8));
-  ASSERT_EQ(1, schedule->at(9));
-  ASSERT_EQ(1, schedule->at(10));
-  ASSERT_EQ(0, schedule->at(11));
-  ASSERT_EQ(0, schedule->at(12));
-  ASSERT_EQ(0, schedule->at(13));
-  ASSERT_EQ(0, schedule->at(14));
-  ASSERT_EQ(1, schedule->at(15));
+  ASSERT_EQ(0, schedule->threads.at(0));
+  ASSERT_EQ(1, schedule->threads.at(1));
+  ASSERT_EQ(1, schedule->threads.at(2));
+  ASSERT_EQ(0, schedule->threads.at(3));
+  ASSERT_EQ(0, schedule->threads.at(4));
+  ASSERT_EQ(0, schedule->threads.at(5));
+  ASSERT_EQ(1, schedule->threads.at(6));
+  ASSERT_EQ(0, schedule->threads.at(7));
+  ASSERT_EQ(0, schedule->threads.at(8));
+  ASSERT_EQ(1, schedule->threads.at(9));
+  ASSERT_EQ(1, schedule->threads.at(10));
+  ASSERT_EQ(0, schedule->threads.at(11));
+  ASSERT_EQ(0, schedule->threads.at(12));
+  ASSERT_EQ(0, schedule->threads.at(13));
+  ASSERT_EQ(0, schedule->threads.at(14));
+  ASSERT_EQ(1, schedule->threads.at(15));
 }
 
 /* parse_empty_line ***********************************************************/
@@ -61,10 +60,9 @@ TEST_F(ScheduleTest, parse_empty_line)
 
   schedule = SchedulePtr(new Schedule(inbuf, dummy_file));
 
-  ASSERT_EQ(0, schedule->seed);
   ASSERT_EQ(1, schedule->programs->size());
   ASSERT_EQ(program, schedule->programs->at(0)->path);
-  ASSERT_EQ(0, schedule->at(0));
+  ASSERT_EQ(0, schedule->threads.at(0));
 }
 
 /* parse_file_not_found *******************************************************/
