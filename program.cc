@@ -18,11 +18,8 @@ Program::Program(istream & file, string & name) : path(name)
 
   unsigned long line_num = 1;
 
-  /* maps label occurrences to the according pc */
-  unordered_map<string, word> label_def;
-
   /* list of jump instructions at pc referencing a certain label */
-  deque<tuple<string, word, string>> label_ref;
+  deque<tuple<string, word, const string *>> labelled_jumps;
 
   for (string line_buf; getline(file, line_buf); line_num++)
     {
@@ -40,22 +37,26 @@ Program::Program(istream & file, string & name) : path(name)
       else if (token.back() == ':')
         {
           word pc = size();
-          string label = token.substr(0, token.size() - 1);
+
+          const string * label =
+            &*labels.insert(token.substr(0, token.size() - 1)).first;
 
           /* store label and the pc it was defined */
-          label_def[label] = pc;
-          labels[pc] = label;
+          label_to_pc[label] = pc;
+          pc_to_label[pc] = label;
 
           /* read labelled command */
           line >> token;
         }
 
+      string cmd = token;
+
       /* parse instruction */
-      switch (Instruction::Set::contains(token))
+      switch (Instruction::Set::contains(cmd))
         {
         case Instruction::Type::NULLARY:
             {
-              i = Instruction::Set::create(token);
+              i = Instruction::Set::create(cmd);
               break;
             }
         case Instruction::Type::UNARY:
@@ -66,7 +67,7 @@ Program::Program(istream & file, string & name) : path(name)
               /* try to parse the argument */
               if (line >> arg)
                 {
-                  i = Instruction::Set::create(token, arg);
+                  i = Instruction::Set::create(cmd, arg);
                 }
               /* label or indirect addressing */
               else
@@ -81,10 +82,9 @@ Program::Program(istream & file, string & name) : path(name)
                   if (line.peek() == '[')
                     {
                       /* parse enclosed address */
-                      string tmp;
-                      line >> tmp;
+                      line >> token;
 
-                      istringstream addr(tmp.substr(1, tmp.size() - 2));
+                      istringstream addr(token.substr(1, token.size() - 2));
 
                       /* check if address is a number */
                       if (!(addr >> arg))
@@ -93,7 +93,7 @@ Program::Program(istream & file, string & name) : path(name)
                           line_num,
                           "indirect addressing does not support labels");
 
-                      i = Instruction::Set::create(token, arg);
+                      i = Instruction::Set::create(cmd, arg);
 
                       /* check if the instruction supports indirect addresses */
                       if (auto m = dynamic_pointer_cast<MemoryInstruction>(i))
@@ -102,57 +102,69 @@ Program::Program(istream & file, string & name) : path(name)
                         parser_error(
                           path,
                           line_num,
-                          token + " does not support indirect addressing");
+                          cmd + " does not support indirect addressing");
                     }
                   /* arg is a label */
                   else
                     {
                       /* create dummy Instruction which will be replaced by the
                          actual one when all labels are known */
-                      i = Instruction::Set::create(token, word_max);
+                      i = Instruction::Set::create(cmd, word_max);
 
                       /* check if the instruction supports labels (is a jmp) */
                       if (dynamic_pointer_cast<Jmp>(i))
                         {
                           /* get the label */
-                          string label;
-                          line >> label;
+                          line >> token;
 
                           /* get the program counter */
                           word pc = size();
 
                           /* add tuple to the list of labelled jumps */
-                          label_ref.push_back(make_tuple(token, pc, label));
+                          labelled_jumps.push_back(
+                            make_tuple(
+                              cmd,
+                              pc,
+                              &*labels.insert(token).first));
                         }
                       /* error: not a jump instruction */
                       else
                         parser_error(
                           path,
                           line_num,
-                          token + " does not support labels");
+                          cmd + " does not support labels");
                     }
                 }
               break;
             }
         default: /* unrecognized token */
-          parser_error(path, line_num, "'" + token + "'" + " unknown token");
+          parser_error(
+            path,
+            line_num,
+            "'" + cmd + "'" + " unknown instruction");
         }
 
       push_back(i);
     }
 
   /* replace labelled dummy instructions */
-  for (const auto & [cmd, pc, label] : label_ref)
+  for (const auto & [cmd, pc, label] : labelled_jumps)
     {
       /* check if label exists */
-      // NOTE: throws exception on invalid idx
-      word arg = label_def.at(label);
+      try
+        {
+          word arg = label_to_pc.at(label);
 
-      /* create the actual instruction */
-      i = Instruction::Set::create(cmd, arg);
+          /* create the actual instruction */
+          i = Instruction::Set::create(cmd, arg);
 
-      /* replace the dummy */
-      at(pc) = i;
+          /* replace the dummy */
+          at(pc) = i;
+        }
+      catch (...)
+        {
+          parser_error(path, pc, "unknown label [" + *label + "]");
+        }
     }
 }
 
@@ -182,10 +194,11 @@ string Program::print (bool include_pc, word pc)
 {
   ostringstream ss;
 
-  /* check if instruction can be referenced by a label */
-  if (labels.find(pc) != labels.end())
+  /* check if instruction is referenced by a label */
+  auto label_it = pc_to_label.find(pc);
+  if (label_it != pc_to_label.end())
     {
-      ss << labels[pc];
+      ss << *label_it->second;
 
       if (include_pc)
         ss << "\t";
@@ -202,8 +215,9 @@ string Program::print (bool include_pc, word pc)
   /* print unary instruction's argument */
   if (UnaryInstructionPtr u = dynamic_pointer_cast<UnaryInstruction>(cmd))
     {
-      if (dynamic_pointer_cast<Jmp>(cmd) && labels.find(u->arg) != labels.end())
-        ss << labels[u->arg];
+      label_it = pc_to_label.find(u->arg);
+      if (dynamic_pointer_cast<Jmp>(cmd) && label_it != pc_to_label.end())
+        ss << *label_it->second;
       else if (auto m = dynamic_pointer_cast<MemoryInstruction>(u))
         ss << (m->indirect ? "[" : "") << m->arg << (m->indirect ? "]" : "");
       else

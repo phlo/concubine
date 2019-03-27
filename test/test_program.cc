@@ -36,7 +36,10 @@ TEST_F(ProgramTest, parse)
   ASSERT_EQ(6, program->size());
   ASSERT_EQ(1, program->sync_ids.size());
   ASSERT_EQ(1, program->labels.size());
-  ASSERT_EQ("LOOP", program->labels[2]);
+  ASSERT_EQ(1, program->pc_to_label.size());
+  ASSERT_EQ("LOOP", *program->pc_to_label[2]);
+  ASSERT_EQ(1, program->label_to_pc.size());
+  ASSERT_EQ(2, program->label_to_pc[program->pc_to_label[2]]);
 
   ASSERT_EQ("0\tSTORE\t0",  program->print(true, 0));
   ASSERT_EQ("1\tSYNC\t0",   program->print(true, 1));
@@ -106,7 +109,7 @@ TEST_F(ProgramTest, parse_illegal_instruction)
     }
   catch (const exception & e)
     {
-      ASSERT_EQ(dummy_file + ":1: 'NOP' unknown token", e.what());
+      ASSERT_EQ(dummy_file + ":1: 'NOP' unknown instruction", e.what());
     }
 
   /* illegal instruction argument (label) */
@@ -150,6 +153,43 @@ TEST_F(ProgramTest, parse_illegal_instruction)
       ASSERT_EQ(
         dummy_file + ":1: indirect addressing does not support labels",
         e.what());
+    }
+}
+
+/* parse_missing_label ********************************************************/
+TEST_F(ProgramTest, parse_missing_label)
+{
+  istringstream inbuf;
+
+  /* missing label */
+  inbuf.str(
+    "ADDI 1\n"
+    "JMP LABEL\n");
+
+  try
+    {
+      program = ProgramPtr(new Program(inbuf, dummy_file));
+      FAIL() << "should throw an exception";
+    }
+  catch (const exception & e)
+    {
+      ASSERT_EQ(dummy_file + ":1: unknown label [LABEL]", e.what());
+      inbuf.clear(); // eof - program fully parsed!
+    }
+
+  /* misspelled label */
+  inbuf.str(
+    "LABEL: ADDI 1\n"
+    "JMP LABERL\n");
+
+  try
+    {
+      program = ProgramPtr(new Program(inbuf, dummy_file));
+      FAIL() << "should throw an exception";
+    }
+  catch (const exception & e)
+    {
+      ASSERT_EQ(dummy_file + ":1: unknown label [LABERL]", e.what());
     }
 }
 

@@ -30,19 +30,31 @@ TEST_MAIN := main_gtest.cc
 # executable name
 TEST_RUN := run_all_tests
 
-# run all tests
+# gtest filter
+GTEST_FILTER = --gtest_filter=
+
+# GTEST_FILTER += "*"
+# GTEST_FILTER += SMTLibEncoderFunctional*
+# GTEST_FILTER += SMTLibEncoderRelational*
+# GTEST_FILTER += Btor2*
+# GTEST_FILTER += SimulatorTest.*
+# GTEST_FILTER += MainTest.*
+# GTEST_FILTER += Experimental.*
+GTEST_FILTER += ProgramTest.*
+GTEST_FILTER += ScheduleTest.*
+GTEST_FILTER += InstructionSetTest.*
+
+GTEST_FILTER := $(shell echo ${GTEST_FILTER} | sed -e 's/ /:/g')
+
+# run tests
 .PHONY: run
 run: $(TEST_RUN)
-	# ./$(TEST_RUN) --gtest_filter=SMTLibEncoderFunctional*
-	# ./$(TEST_RUN) --gtest_filter=SMTLibEncoderRelational*
-	# ./$(TEST_RUN) --gtest_filter=Btor2*
-	# ./$(TEST_RUN) --gtest_filter=SimulatorTest.*
-	# ./$(TEST_RUN) --gtest_filter=MainTest.*
-	# ./$(TEST_RUN) --gtest_filter=Experimental.*
-	# ./$(TEST_RUN) --gtest_filter=ProgramTest.*
-	./$(TEST_RUN) --gtest_filter=ScheduleTest.*
-	# ./$(TEST_RUN) --gtest_filter=InstructionSetTest.*
-	# ./$(TEST_RUN)
+	./$(TEST_RUN) $(GTEST_FILTER)
+
+# debug tests
+.PHONY: debug
+debug: $(TEST_RUN)
+	gdb --args run_all_tests $(GTEST_FILTER)
 
 # build executable containing all test cases
 $(TEST_RUN): $(GTEST_LIB) $(OBJ) $(TEST_OBJ)

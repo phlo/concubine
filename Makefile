@@ -47,6 +47,11 @@ MAIN = concubine
 test: build
 	$(MAKE) -C test
 
+# debug
+.PHONY: debug
+debug: build
+	$(MAKE) -C test debug
+
 # build executable
 .PHONY: build
 build: $(MAIN)

@@ -25,7 +25,17 @@ struct Program : public std::deque<InstructionPtr>
   std::unordered_set<word>                sync_ids;
 
   /* maps program counters to the label referencing it */
-  std::unordered_map<word, std::string>   labels;
+  std::unordered_map<
+    word,
+    const std::string *>                  pc_to_label;
+
+  /* maps labels to the corresponding program counter */
+  std::unordered_map<
+    const std::string *,
+    word>                                 label_to_pc;
+
+  /* jump labels */
+  std::unordered_set<std::string>         labels;
 
   /* appends instruction to the program */
   void                                    push_back (InstructionPtr);
