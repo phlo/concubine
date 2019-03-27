@@ -251,3 +251,11 @@ TEST_F(ScheduleTest, parse_illegal_schedule)
       ASSERT_EQ(dummy_file + ":3: illegal thread id [wrong]", e.what());
     }
 }
+
+// std::string print (void)
+TEST_F(ScheduleTest, print)
+{
+  schedule = create_from_file<Schedule>("data/increment.cas.t2.k16.schedule");
+
+  ASSERT_EQ("", schedule->print());
+}

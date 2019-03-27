@@ -40,9 +40,9 @@ run: $(TEST_RUN)
 	# ./$(TEST_RUN) --gtest_filter=MainTest.*
 	# ./$(TEST_RUN) --gtest_filter=Experimental.*
 	# ./$(TEST_RUN) --gtest_filter=ProgramTest.*
-	# ./$(TEST_RUN) --gtest_filter=ScheduleTest.*
+	./$(TEST_RUN) --gtest_filter=ScheduleTest.*
 	# ./$(TEST_RUN) --gtest_filter=InstructionSetTest.*
-	./$(TEST_RUN)
+	# ./$(TEST_RUN)
 
 # build executable containing all test cases
 $(TEST_RUN): $(GTEST_LIB) $(OBJ) $(TEST_OBJ)

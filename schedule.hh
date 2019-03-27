@@ -11,13 +11,13 @@
 /*******************************************************************************
  * Schedule
  ******************************************************************************/
-struct Schedule : public std::deque<ThreadID>
+struct Schedule
 {
   /* default constructor (for testing) */
   Schedule (void);
 
   /* construct from simulator/solver */
-  Schedule (ProgramListPtr, unsigned long, unsigned long);
+  Schedule (ProgramListPtr, unsigned long);
 
   /* construct from file */
   Schedule (std::istream &, std::string &);
@@ -28,38 +28,59 @@ struct Schedule : public std::deque<ThreadID>
   /* bound used == size() */
   unsigned long         bound;
 
-  /* seed used to produce that particular schedule */
-  unsigned long         seed;
-
   /* programs used to generate the schedule */
   ProgramListPtr        programs;
 
   /* exit code */
   word                  exit;
 
-  /* thread state maps */
+  /* scheduled threads per step */
+  std::vector<word>     threads;
+
+  /* thread states */
+  std::vector<
+    std::vector<
+      std::pair<
+        unsigned long,
+        word>>>         pc_updates,
+                        accu_updates,
+                        mem_updates;
+
+  /* heap state updates (idx -> [(step, val), ...]) */
   std::unordered_map<
     word,
-    std::vector<word>>  pcs,
-                        accus,
-                        mems;
+    std::vector<
+      std::pair<
+        unsigned long,
+        word>>>         heap_updates;
 
-  /* heap states */
-  std::vector<
-    std::unordered_map<
-      word,
-      word>>            heaps;
+  void                  push_back (
+                                   const unsigned long step,
+                                   const unsigned long tid,
+                                   const word pc,
+                                   const word accu,
+                                   const word mem
+                                  );
+
+  void                  push_back (
+                                   const unsigned long step,
+                                   const word idx,
+                                   const word val
+                                  );
 
   /* add thread state */
-  void                  add (
-                             const unsigned long tid,
-                             const word pc,
-                             const word accu,
-                             const word mem
-                            );
+  // void                  add (
+                             // const unsigned long tid,
+                             // const word pc,
+                             // const word accu,
+                             // const word mem
+                            // );
 
   /* add heap state */
-  void                  add (const std::unordered_map<word, word> & heap);
+  // void                  add (const std::unordered_map<word, word> & heap);
+
+  /* print schedule */
+  std::string           print (void);
 };
 
 /*******************************************************************************

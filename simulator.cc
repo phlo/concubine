@@ -68,7 +68,7 @@ void Simulator::check_and_resume_waiting (word sync_id)
 /* Simulator::run (Scheduler *) ***********************************************/
 SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
 {
-  SchedulePtr schedule = SchedulePtr(new Schedule(programs, bound, seed));
+  SchedulePtr schedule = SchedulePtr(new Schedule(programs, bound));
 
   /* print schedule header */
   for (auto t : threads)
@@ -89,15 +89,19 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
 
       assert(thread->state == Thread::State::RUNNING);
 
+      /* store current pc */
+      word pc = thread->pc;
+
       /* execute thread */
       thread->execute();
 
-      /* append thread states to schedule */
-      for (const ThreadPtr & t : threads)
-        schedule->add(t->id, t->pc, t->accu, t->mem);
+      /* append thread state to schedule */
+      schedule->push_back(step, thread->id, pc, thread->accu, thread->mem);
 
-      /* append heap state to schedule */
-      schedule->add(heap);
+      /* append heap state to schedule (ignore failed CAS) */
+      if (StorePtr s = dynamic_pointer_cast<Store>(thread->program[pc]))
+        if (s->get_opcode() == Instruction::OPCode::Store || thread->accu)
+          schedule->push_back(step, make_pair(s->arg, thread->accu));
 
       /* handle state transitions */
       switch (thread->state)
@@ -210,16 +214,13 @@ SchedulePtr Simulator::replay (Schedule & _schedule, unsigned long _bound)
   /* set bound */
   bound = _bound && _bound < _schedule.bound ? _bound : _schedule.bound;
 
-  /* set seed */
-  seed = _schedule.seed;
-
   /* index variable for iterating the Schedule */
   unsigned long step = 0;
 
   /* replay scheduler */
   function<ThreadPtr(void)> scheduler = [this, &_schedule, &step]
     {
-      return threads[_schedule.at(step++)];
+      return threads[_schedule.threads.at(step++)];
     };
 
   return run(scheduler);
