@@ -40,6 +40,12 @@ struct Program : public std::deque<InstructionPtr>
   /* appends instruction to the program */
   void                                    push_back (InstructionPtr);
 
+  /* get pc corresponding to the given label */
+  word                                    get_pc (const std::string label);
+
+  /* get label corresponding to the given pc */
+  std::string                             get_label (const word);
+
   /* print whole program */
   std::string                             print (bool);
 

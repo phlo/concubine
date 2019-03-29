@@ -178,6 +178,28 @@ void Program::push_back (InstructionPtr i)
     sync_ids.insert(s->arg);
 }
 
+/* Program::get_pc (const string label) ***************************************/
+word Program::get_pc (const string label)
+{
+  const auto it = labels.find(label);
+
+  if (it == labels.end())
+    throw runtime_error("unknown label [" + label + "]");
+
+  return label_to_pc[&*it];
+}
+
+/* Program::get_label (const word) ********************************************/
+string Program::get_label (const word pc)
+{
+  const auto it = pc_to_label.find(pc);
+
+  if (it == pc_to_label.end())
+    throw runtime_error("illegal program counter [" + to_string(pc) + "]");
+
+  return *it->second;
+}
+
 /* Program::print (bool) ******************************************************/
 string Program::print (bool include_pc)
 {

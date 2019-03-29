@@ -10,7 +10,7 @@ using namespace std;
 *******************************************************************************/
 struct ProgramTest : public ::testing::Test
 {
-  string dummy_file = "dummy.asm";
+  string path = "dummy.asm";
 
   ProgramPtr program = ProgramPtr(new Program());
 };
@@ -70,7 +70,7 @@ TEST_F(ProgramTest, parse_empty_line)
     "\n"
     "EXIT 1\n");
 
-  program = ProgramPtr(new Program(inbuf, dummy_file));
+  program = ProgramPtr(new Program(inbuf, path));
 
   ASSERT_EQ(2, program->size());
 
@@ -104,12 +104,12 @@ TEST_F(ProgramTest, parse_illegal_instruction)
 
   try
     {
-      program = ProgramPtr(new Program(inbuf, dummy_file));
+      program = ProgramPtr(new Program(inbuf, path));
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
     {
-      ASSERT_EQ(dummy_file + ":1: 'NOP' unknown instruction", e.what());
+      ASSERT_EQ(path + ":1: 'NOP' unknown instruction", e.what());
     }
 
   /* illegal instruction argument (label) */
@@ -117,12 +117,12 @@ TEST_F(ProgramTest, parse_illegal_instruction)
 
   try
     {
-      program = ProgramPtr(new Program(inbuf, dummy_file));
+      program = ProgramPtr(new Program(inbuf, path));
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
     {
-      ASSERT_EQ(dummy_file + ":1: ADD does not support labels", e.what());
+      ASSERT_EQ(path + ":1: ADD does not support labels", e.what());
     }
 
   /* illegal instruction argument (indirect addressing) */
@@ -130,13 +130,13 @@ TEST_F(ProgramTest, parse_illegal_instruction)
 
   try
     {
-      program = ProgramPtr(new Program(inbuf, dummy_file));
+      program = ProgramPtr(new Program(inbuf, path));
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
     {
       ASSERT_EQ(
-        dummy_file + ":1: SYNC does not support indirect addressing",
+        path + ":1: SYNC does not support indirect addressing",
         e.what());
     }
 
@@ -145,13 +145,13 @@ TEST_F(ProgramTest, parse_illegal_instruction)
 
   try
     {
-      program = ProgramPtr(new Program(inbuf, dummy_file));
+      program = ProgramPtr(new Program(inbuf, path));
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
     {
       ASSERT_EQ(
-        dummy_file + ":1: indirect addressing does not support labels",
+        path + ":1: indirect addressing does not support labels",
         e.what());
     }
 }
@@ -168,12 +168,12 @@ TEST_F(ProgramTest, parse_missing_label)
 
   try
     {
-      program = ProgramPtr(new Program(inbuf, dummy_file));
+      program = ProgramPtr(new Program(inbuf, path));
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
     {
-      ASSERT_EQ(dummy_file + ":1: unknown label [LABEL]", e.what());
+      ASSERT_EQ(path + ":1: unknown label [LABEL]", e.what());
       inbuf.clear(); // eof - program fully parsed!
     }
 
@@ -184,12 +184,60 @@ TEST_F(ProgramTest, parse_missing_label)
 
   try
     {
-      program = ProgramPtr(new Program(inbuf, dummy_file));
+      program = ProgramPtr(new Program(inbuf, path));
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
     {
-      ASSERT_EQ(dummy_file + ":1: unknown label [LABERL]", e.what());
+      ASSERT_EQ(path + ":1: unknown label [LABERL]", e.what());
+    }
+}
+
+/* get_pc *********************************************************************/
+TEST_F(ProgramTest, get_pc)
+{
+  istringstream inbuf(
+    "LABEL: ADDI 1\n"
+    "JMP LABEL\n");
+
+  program = ProgramPtr(new Program(inbuf, path));
+
+  ASSERT_EQ(0, program->get_pc("LABEL"));
+
+  /* unknown label */
+  try
+    {
+      program->get_pc("UNKNOWN");
+      FAIL() << "should throw an exception";
+    }
+  catch (const exception & e)
+    {
+      ASSERT_STREQ("unknown label [UNKNOWN]", e.what());
+    }
+}
+
+/* get_label ******************************************************************/
+TEST_F(ProgramTest, get_label)
+{
+  istringstream inbuf(
+    "LABEL: ADDI 1\n"
+    "JMP LABEL\n");
+
+  program = ProgramPtr(new Program(inbuf, path));
+
+  ASSERT_EQ("LABEL", program->get_label(0));
+
+  /* illegal pc */
+  try
+    {
+      program->get_label(word_max);
+      FAIL() << "should throw an exception";
+    }
+  catch (const exception & e)
+    {
+      ASSERT_EQ(
+        "illegal program counter [" + to_string(word_max) + "]",
+        e.what());
     }
 }
 
