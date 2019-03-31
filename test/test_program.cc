@@ -236,7 +236,7 @@ TEST_F(ProgramTest, get_label)
   catch (const exception & e)
     {
       ASSERT_EQ(
-        "illegal program counter [" + to_string(word_max) + "]",
+        "no label for program counter [" + to_string(word_max) + "]",
         e.what());
     }
 }

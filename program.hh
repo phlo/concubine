@@ -19,38 +19,38 @@ struct Program : public std::deque<InstructionPtr>
   Program (std::istream &, std::string &);
 
   /* path to program file */
-  std::string                             path;
+  std::string                     path;
 
   /* sync barriers */
-  std::unordered_set<word>                sync_ids;
+  std::unordered_set<word>        sync_ids;
 
   /* maps program counters to the label referencing it */
   std::unordered_map<
     word,
-    const std::string *>                  pc_to_label;
+    const std::string *>          pc_to_label;
 
   /* maps labels to the corresponding program counter */
   std::unordered_map<
     const std::string *,
-    word>                                 label_to_pc;
+    word>                         label_to_pc;
 
   /* jump labels */
-  std::unordered_set<std::string>         labels;
+  std::unordered_set<std::string> labels;
 
   /* appends instruction to the program */
-  void                                    push_back (InstructionPtr);
+  void                            push_back (InstructionPtr);
 
   /* get pc corresponding to the given label */
-  word                                    get_pc (const std::string label);
+  word                            get_pc (const std::string label) const;
 
   /* get label corresponding to the given pc */
-  std::string                             get_label (const word);
+  std::string                     get_label (const word) const;
 
   /* print whole program */
-  std::string                             print (bool);
+  std::string                     print (bool) const;
 
   /* print instruction at pc */
-  std::string                             print (bool, word);
+  std::string                     print (bool, word) const;
 };
 
 /*******************************************************************************
@@ -62,16 +62,16 @@ bool operator != (const Program &, const Program &);
 /*******************************************************************************
  * ProgramPtr
  ******************************************************************************/
-typedef std::shared_ptr<Program>          ProgramPtr;
+typedef std::shared_ptr<Program> ProgramPtr;
 
 /*******************************************************************************
  * ProgramList
  ******************************************************************************/
-typedef std::deque<ProgramPtr>            ProgramList;
+typedef std::deque<ProgramPtr> ProgramList;
 
 /*******************************************************************************
  * ProgramListPtr
  ******************************************************************************/
-typedef std::shared_ptr<ProgramList>      ProgramListPtr;
+typedef std::shared_ptr<ProgramList> ProgramListPtr;
 
 #endif

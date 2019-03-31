@@ -178,30 +178,30 @@ void Program::push_back (InstructionPtr i)
     sync_ids.insert(s->arg);
 }
 
-/* Program::get_pc (const string label) ***************************************/
-word Program::get_pc (const string label)
+/* Program::get_pc (const string label) const *********************************/
+word Program::get_pc (const string label) const
 {
   const auto it = labels.find(label);
 
   if (it == labels.end())
     throw runtime_error("unknown label [" + label + "]");
 
-  return label_to_pc[&*it];
+  return label_to_pc.at(&*it);
 }
 
-/* Program::get_label (const word) ********************************************/
-string Program::get_label (const word pc)
+/* Program::get_label (const word) const **************************************/
+string Program::get_label (const word pc) const
 {
   const auto it = pc_to_label.find(pc);
 
   if (it == pc_to_label.end())
-    throw runtime_error("illegal program counter [" + to_string(pc) + "]");
+    throw runtime_error("no label for program counter [" + to_string(pc) + "]");
 
   return *it->second;
 }
 
-/* Program::print (bool) ******************************************************/
-string Program::print (bool include_pc)
+/* Program::print (bool) const ************************************************/
+string Program::print (bool include_pc) const
 {
   ostringstream ss;
 
@@ -211,8 +211,8 @@ string Program::print (bool include_pc)
   return ss.str();
 }
 
-/* Program::print (bool, word) ************************************************/
-string Program::print (bool include_pc, word pc)
+/* Program::print (bool, word) const ******************************************/
+string Program::print (bool include_pc, word pc) const
 {
   ostringstream ss;
 
