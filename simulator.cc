@@ -68,7 +68,7 @@ void Simulator::check_and_resume_waiting (word sync_id)
 /* Simulator::run (Scheduler *) ***********************************************/
 SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
 {
-  SchedulePtr schedule = SchedulePtr(new Schedule(programs, bound));
+  SchedulePtr schedule = SchedulePtr(new Schedule(programs));
 
   /* print schedule header */
   for (auto t : threads)
@@ -83,7 +83,8 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
   activate_threads(threads);
 
   bool done = active.empty();
-  for (unsigned long step = 1; !done && (step <= bound || !bound); step++)
+  unsigned long & step = schedule->bound = 1;
+  for (; !done && (step <= bound || !bound); step++)
     {
       ThreadPtr thread = scheduler();
 
@@ -156,8 +157,9 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
         /* exiting - return exit code */
         case Thread::State::EXITING:
             {
+              done = true;
               schedule->exit = static_cast<int>(thread->accu);
-              return schedule;
+              break;
             }
 
         default:
@@ -223,7 +225,7 @@ SchedulePtr Simulator::replay (Schedule & _schedule, unsigned long _bound)
   /* replay scheduler */
   function<ThreadPtr(void)> scheduler = [this, &_schedule, &step]
     {
-      return threads[_schedule.threads.at(step++)];
+      return threads[_schedule.at(step++)];
     };
 
   return run(scheduler);

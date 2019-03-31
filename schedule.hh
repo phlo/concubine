@@ -11,13 +11,13 @@
 /*******************************************************************************
  * Schedule
  ******************************************************************************/
-struct Schedule
+struct Schedule : public std::vector<word>
 {
   /* default constructor (for testing) */
   Schedule (void);
 
   /* construct from simulator/solver */
-  Schedule (ProgramListPtr, unsigned long);
+  Schedule (ProgramListPtr);
 
   /* construct from file */
   Schedule (std::istream &, std::string &);
@@ -33,9 +33,6 @@ struct Schedule
 
   /* exit code */
   word                  exit;
-
-  /* scheduled threads per step */
-  std::vector<word>     threads;
 
   /* thread states */
   std::vector<
@@ -54,6 +51,10 @@ struct Schedule
         unsigned long,
         word>>>         heap_updates;
 
+  /* initialize thread state update lists */
+  void                  init_state_update_lists (void);
+
+  /* append thread state update */
   void                  push_back (
                                    const unsigned long step,
                                    const unsigned long tid,
@@ -62,6 +63,7 @@ struct Schedule
                                    const word mem
                                   );
 
+  /* append heap state update */
   void                  push_back (
                                    const unsigned long step,
                                    const word idx,

@@ -814,7 +814,7 @@ TEST_F(SimulatorTest, replay_programs_differ)
   programs_schedule->push_back(p2);
 
   _simulator = Simulator(programs_simulator);
-  _schedule = Schedule(programs_schedule, 1);
+  _schedule = Schedule(programs_schedule);
 
   try
     {
@@ -834,7 +834,7 @@ TEST_F(SimulatorTest, replay_programs_differ)
   p2->push_back(Instruction::Set::create("SUBI", 1));
 
   _simulator = Simulator(programs_simulator);
-  _schedule = Schedule(programs_schedule, 1);
+  _schedule = Schedule(programs_schedule);
 
   try
     {
@@ -858,7 +858,7 @@ TEST_F(SimulatorTest, replay_programs_differ)
   programs_schedule->push_back(p2);
 
   _simulator = Simulator(programs_simulator);
-  _schedule = Schedule(programs_schedule, 1);
+  _schedule = Schedule(programs_schedule);
 
   _schedule.push_back(1, 0, 0, 1, 0);
 

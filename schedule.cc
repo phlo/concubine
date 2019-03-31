@@ -8,29 +8,31 @@ using namespace std;
 
 /* default constructor ********************************************************/
 Schedule::Schedule () :
+  vector<word>(),
   path(""),
   bound(0),
-  programs(),
+  programs(new ProgramList()),
   exit(0),
-  threads(),
   pc_updates(),
   accu_updates(),
   mem_updates(),
   heap_updates()
 {}
 
-Schedule::Schedule (
-                    ProgramListPtr _programs,
-                    unsigned long _bound
-                   ) :
+Schedule::Schedule (ProgramListPtr _programs) :
+  vector<word>(),
   path(""),
-  bound(_bound),
+  bound(0),
   programs(_programs),
   exit(0)
-{}
+{
+  /* initialize thread state update lists */
+  init_state_update_lists();
+}
 
 /* construct from file ********************************************************/
 Schedule::Schedule(istream & file, string & name) :
+  vector<word>(),
   path(name),
   programs(new ProgramList()),
   exit(0)
@@ -73,16 +75,13 @@ Schedule::Schedule(istream & file, string & name) :
   if (programs->empty())
     parser_error(path, line_num, "missing threads");
 
-  /* initialize thread state update vectors */
-  size_t num_threads = programs->size();
-  pc_updates.resize(num_threads);
-  accu_updates.resize(num_threads);
-  mem_updates.resize(num_threads);
+  /* initialize thread state update lists */
+  init_state_update_lists();
 
   /* parse body */
   line_num++;
-  unsigned long step = 0;
-  for (string line_buf; getline(file, line_buf); line_num++, step++)
+  unsigned long step = 1;
+  for (string line_buf; getline(file, line_buf); line_num++)
     {
       string cmd, heap;
       word tid, pc, arg, accu, mem;
@@ -106,44 +105,85 @@ Schedule::Schedule(istream & file, string & name) :
         }
 
       if (tid >= programs->size())
-          parser_error(path, line_num, "unknown thread id [" + token + "]");
+          parser_error(
+            path,
+            line_num,
+            "unknown thread id [" + to_string(tid) + "]");
 
       /* parse pc */
       if (!(line >> pc))
         {
-          // TODO labels
           line.clear();
-          line >> token;
+
+          if (!(line >> token))
+            parser_error(path, line_num, "missing program counter");
+
+          try
+            {
+              pc = programs->at(tid)->get_pc(token);
+            }
+          catch (...)
+            {
+              parser_error(path, line_num, "unknown label [" + token + "]");
+            }
+        }
+
+      if (pc >= programs->at(tid)->size())
           parser_error(
             path,
             line_num,
-            "illegal program counter [" + token + "]");
-        }
+            "illegal program counter [" + to_string(pc) + "]");
 
       /* parse instruction symbol */
       if (!(line >> cmd))
         {
           line.clear();
-          line >> token;
-          parser_error(path, line_num, "illegal instruction [" + token + "]");
+
+          if (!(line >> token))
+            parser_error(path, line_num, "missing instruction symbol");
+
+          parser_error(path, line_num, "unable to parse instruction symbol");
         }
+
+      if (!Instruction::Set::contains(cmd))
+        parser_error(path, line_num, "unknown instruction [" + cmd + "]");
 
       /* parse instruction argument */
       if (!(line >> arg))
         {
           line.clear();
-          line >> token;
-          parser_error(
-            path,
-            line_num,
-            "illegal instruction argument [" + token + "]");
+
+          if (!(line >> token))
+            parser_error(path, line_num, "missing instruction argument");
+
+          if (!dynamic_pointer_cast<Jmp>(programs->at(tid)->at(pc)))
+              parser_error(
+                path,
+                line_num,
+                programs->at(tid)->at(pc)->get_symbol() +
+                " does not support labels");
+
+          try
+            {
+              arg = programs->at(tid)->get_pc(token);
+            }
+          catch (...)
+            {
+              parser_error(
+                path,
+                line_num,
+                "unknown label [" + token + "]");
+            }
         }
 
       /* parse accu */
       if (!(line >> accu))
         {
           line.clear();
-          line >> token;
+
+          if (!(line >> token))
+            parser_error(path, line_num, "missing accumulator register value");
+
           parser_error(
             path,
             line_num,
@@ -154,23 +194,23 @@ Schedule::Schedule(istream & file, string & name) :
       if (!(line >> mem))
         {
           line.clear();
-          line >> token;
+
+          if (!(line >> token))
+            parser_error(path, line_num, "missing CAS memory register value");
+
           parser_error(
             path,
             line_num,
             "illegal CAS memory register value [" + token + "]");
         }
 
-      // if (!(line >> tid >> pc >> cmd >> arg >> accu >> mem >> heap))
-        // parser_error(path, line_num, "illegal record");
-
+      /* append thread state update */
       push_back(step, tid, pc, accu, mem);
 
-      if (!(line >> heap))
-        parser_error(path, line_num, "illegal heap cell");
+      if (!(line >> token))
+        parser_error(path, line_num, "missing heap update");
 
-      cout << "heap = " << heap << eol;
-      heap = heap.substr(1, heap.size() - 2);
+      heap = token.substr(1, token.size() - 2);
       if (!heap.empty())
         try
           {
@@ -184,15 +224,37 @@ Schedule::Schedule(istream & file, string & name) :
           }
         catch (const exception & e)
           {
-            parser_error(path, line_num, "illegal thread id [" + token + "]");
+            parser_error(path, line_num, "illegal heap update [" + token + "]");
           }
 
-      /* append thread state update */
-      push_back(step, tid, pc, accu, mem);
+      step++;
     }
 
   /* set bound */
-  bound = threads.size();
+  bound = size();
+
+  if (!bound)
+    parser_error(path, line_num, "empty schedule");
+}
+
+void Schedule::init_state_update_lists ()
+{
+  size_t num_threads = programs->size();
+
+  /* append pc states */
+  pc_updates.resize(num_threads);
+  for (auto & updates : pc_updates)
+    updates.push_back(make_pair(0, 0));
+
+  /* append accu states */
+  accu_updates.resize(num_threads);
+  for (auto & updates : accu_updates)
+    updates.push_back(make_pair(0, 0));
+
+  /* append mem states */
+  mem_updates.resize(num_threads);
+  for (auto & updates : mem_updates)
+    updates.push_back(make_pair(0, 0));
 }
 
 void Schedule::push_back (
@@ -203,23 +265,26 @@ void Schedule::push_back (
                           const word mem
                          )
 {
+  if (step != size() + 1)
+    throw runtime_error("illegal step [" + to_string(step) + "]");
+
   /* append thread id */
-  threads.push_back(tid);
+  vector<word>::push_back(tid);
+
+  /* append pc state update */
+  vector<pair<unsigned long, word>> * updates = &pc_updates[tid];
+  if (updates->back().second != pc)
+    updates->push_back(make_pair(step, pc));
 
   /* append accu state update */
-  auto & updates = pc_updates[tid];
-  if (updates.empty() || updates.back().second != pc)
-    updates.push_back(make_pair(step, pc));
-
-  /* append accu state update */
-  updates = accu_updates[tid];
-  if (updates.empty() || updates.back().second != accu)
-    updates.push_back(make_pair(step, accu));
+  updates = &accu_updates[tid];
+  if (updates->back().second != accu)
+    updates->push_back(make_pair(step, accu));
 
   /* append mem state update */
-  updates = mem_updates[tid];
-  if (updates.empty() || updates.back().second != mem)
-    updates.push_back(make_pair(step, mem));
+  updates = &mem_updates[tid];
+  if (updates->back().second != mem)
+    updates->push_back(make_pair(step, mem));
 }
 
 void Schedule::push_back (
@@ -241,76 +306,110 @@ std::string Schedule::print ()
   for (const ProgramPtr & program : *programs)
     ss << program->path << eol;
 
+  /* separator */
+  ss << '.' << eol;
+
   /* column headers */
   ss << "# tid\tpc\tcmd\targ\taccu\tmem\theap" << eol;
 
   unsigned long num_threads = programs->size();
 
   /* initialize thread state update iterators */
-  vector<vector<pair<unsigned long, word>>::const_iterator> pcs;
+  typedef vector<pair<unsigned long, word>>::const_iterator update_it_t;
+
+  vector<pair<update_it_t, update_it_t>> pcs;
   pcs.reserve(num_threads);
   for (const auto & v : pc_updates)
-    pcs.push_back(v.begin());
+    pcs.push_back(make_pair(v.begin(), v.end()));
 
-  vector<vector<pair<unsigned long, word>>::const_iterator> accus;
+  vector<pair<update_it_t, const update_it_t>> accus;
   accus.reserve(num_threads);
   for (const auto & v : accu_updates)
-    accus.push_back(v.begin());
+    accus.push_back(make_pair(v.begin(), v.end()));
 
-  vector<vector<pair<unsigned long, word>>::const_iterator> mems;
+  vector<pair<update_it_t, const update_it_t>> mems;
   mems.reserve(num_threads);
   for (const auto & v : mem_updates)
-    mems.push_back(v.begin());
+    mems.push_back(make_pair(v.begin(), v.end()));
 
   /* references to the heap update iterators of a given index */
-  unordered_map<word, vector<pair<unsigned long, word>>::const_iterator> heaps;
+  unordered_map<word, pair<update_it_t, update_it_t>> heaps;
   heaps.reserve(heap_updates.size());
   for (const auto & [idx, updates] : heap_updates)
-    heaps[idx] = updates.begin();
+    heaps[idx] = make_pair(updates.begin(), updates.cend());
 
   /* print schedule data */
-  for (size_t step = 0; step < bound; step++)
+  for (size_t step = 1; step <= bound; step++)
     {
       char sep = '\t';
 
-      unsigned long tid = threads[step];
+      unsigned long tid = at(step - 1);
 
       /* references to thread state update iterators */
-      auto & pc = pcs[tid];
-      auto & accu = accus[tid];
-      auto & mem = mems[tid];
+      auto & pc_it = pcs[tid];
+      auto & accu_it = accus[tid];
+      auto & mem_it = mems[tid];
 
-      /* instruction pointer */
-      auto cmd =
-        dynamic_pointer_cast<UnaryInstruction>(
-          programs->at(tid)->at(pc->second));
+      /* reference to program */
+      const Program & program = *programs->at(tid);
+
+      // cout << "# step = " << step << " #################################" << eol;
+      // cout << "thread = " << tid << eol;
 
       /* thread id */
       ss << tid << sep;
 
       /* program counter */
-      ss << pc->second << sep;
+      auto next_pc_it = pc_it.first + 1;
+      if (next_pc_it != pc_it.second && next_pc_it->first <= step)
+        pc_it.first = next_pc_it;
 
-      if (pc->first == step)
-        pc++;
+      string pc = to_string(pc_it.first->second);
+      try { pc = program.get_label(pc_it.first->second); } catch (...) {}
+
+      ss << pc << sep;
+
+      // cout << "pc->first == " << pc_it.first->first << eol;
+      // if (pc_it.first->first == step)
+        // cout << "advancing pc iterator" << eol;
+
+      /* instruction pointer */
+      const auto cmd =
+        dynamic_pointer_cast<UnaryInstruction>(
+          program.at(pc_it.first->second));
 
       /* instruction symbol */
       ss << cmd->get_symbol() << sep;
 
       /* instruction argument */
-      ss << cmd->arg << sep;
+      string arg = to_string(cmd->arg);
+
+      if (dynamic_pointer_cast<Jmp>(cmd))
+        try { arg = program.get_label(cmd->arg); } catch (...) {}
+
+      ss << arg << sep;
 
       /* accumulator */
-      ss << accu->second << sep;
+      auto next_accu_it = accu_it.first + 1;
+      if (next_accu_it != accu_it.second && next_accu_it->first <= step)
+        accu_it.first = next_accu_it;
 
-      if (accu->first == step)
-        accu++;
+      ss << accu_it.first->second << sep;
+
+      // cout << "accu->first == " << accu_it.first->first << eol;
+      // if (accu_it.first->first == step)
+        // cout << "advancing accu iterator" << eol;
 
       /* CAS memory register */
-      ss << mem->second << sep;
+      auto next_mem_it = mem_it.first + 1;
+      if (next_mem_it != mem_it.second && next_mem_it->first <= step)
+        mem_it.first = next_mem_it;
 
-      if (mem->first == step)
-        mem++;
+      ss << mem_it.first->second << sep;
+
+      // cout << "mem->first == " << mem_it.first->first << eol;
+      // if (mem_it.first->first == step)
+        // cout << "advancing mem iterator" << eol;
 
       /* heap state update */
       ss << "{";
@@ -319,12 +418,12 @@ std::string Schedule::print ()
           word idx = s->indirect ? heap_updates[s->arg].back().second : s->arg;
 
           /* reference to the heap update iterator for the current index */
-          auto & heap = heaps[idx];
+          auto & heap_it = heaps[idx];
 
-          if (heap->first == step)
+          if (heap_it.first->first == step)
             {
-              ss << "(" << idx << "," << heap->second << ")";
-              heap++;
+              ss << "(" << idx << "," << heap_it.first->second << ")";
+              heap_it.first++;
             }
         }
       ss << "}" << eol;
