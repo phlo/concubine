@@ -83,7 +83,59 @@ struct Schedule : public std::vector<word>
 
   /* print schedule */
   std::string           print (void);
+
+  /*
+  struct iterator
+    {
+      struct step_t
+        {
+          word thread;
+          word pc;
+          word accu;
+          word mem;
+          std::optional<std::pair<word, word>> heap;
+        };
+
+      typedef std::ptrdiff_t            difference_type; // size_t ?
+      typedef step_t                    value_type;
+      typedef step_t *                  pointer;
+      typedef step_t &                  reference;
+      typedef std::forward_iterator_tag iterator_category;
+
+      Schedule * schedule;
+
+      unsigned long step;
+
+      step_t state;
+
+      iterator (Schedule * _schedule, unsigned long _step = 0) :
+        schedule(_schedule),
+        step(_step)
+      {};
+
+      iterator &  operator ++ () {num = TO >= FROM ? num + 1: num - 1; return *this;}
+      iterator    operator ++ (int) {iterator retval = *this; ++(*this); return retval;}
+
+      bool        operator == (iterator other)
+        {
+          return schedule == other.schedule && step == other.step;
+        }
+      bool        operator != (iterator other)
+        {
+          return !(*this == other);
+        }
+
+      reference   operator * () const {return num;}
+      pointer     operator -> () { return ptr_; }
+    };
+    */
 };
+
+/*******************************************************************************
+ * Operators
+ ******************************************************************************/
+bool operator == (const Schedule &, const Schedule &);
+bool operator != (const Schedule &, const Schedule &);
 
 /*******************************************************************************
  * SchedulePtr

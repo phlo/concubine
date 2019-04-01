@@ -431,3 +431,37 @@ std::string Schedule::print ()
 
   return ss.str();
 }
+
+/* operator == (const Schedule &, const Schedule &) ***************************/
+bool operator == (const Schedule & a, const Schedule & b)
+{
+  if (a.bound != b.bound)
+    return false;
+
+  if (a.exit != b.exit)
+    return false;
+
+  if (a.programs->size() != b.programs->size())
+    return false;
+
+  for (size_t i = 0; i < a.programs->size(); i++)
+    if (*a.programs->at(i) != *b.programs->at(i))
+      return false;
+
+  typedef const vector<word> * pointer;
+
+  if (*dynamic_cast<pointer>(&a) != *dynamic_cast<pointer>(&b))
+    return false;
+
+  return
+    a.pc_updates == b.pc_updates &&
+    a.accu_updates == b.accu_updates &&
+    a.mem_updates == b.mem_updates &&
+    a.heap_updates == b.heap_updates;
+}
+
+/* operator != (const Schedule &, const Schedule &) ***************************/
+bool operator != (const Schedule & a, const Schedule & b)
+{
+  return !(a == b);
+}

@@ -648,3 +648,95 @@ TEST_F(ScheduleTest, print)
 
   ASSERT_EQ(expected, schedule->print());
 }
+
+// bool operator == (const Schedule &, const Schedule &)
+// bool operator != (const Schedule &, const Schedule &)
+TEST_F(ScheduleTest, operator_equals)
+{
+  ProgramListPtr p1(new ProgramList());
+  ProgramListPtr p2(new ProgramList());
+
+  p1->push_back(ProgramPtr(new Program()));
+  p1->push_back(ProgramPtr(new Program()));
+
+  p2->push_back(ProgramPtr(new Program()));
+  p2->push_back(ProgramPtr(new Program()));
+
+  p1->at(0)->path = "program_1.asm";
+  p1->at(0)->push_back(Instruction::Set::create("STORE", 1));
+  p1->at(0)->push_back(Instruction::Set::create("ADDI", 1));
+
+  p1->at(1)->path = "program_2.asm";
+  p1->at(1)->push_back(Instruction::Set::create("STORE", 1));
+  p1->at(1)->push_back(Instruction::Set::create("ADDI", 1));
+
+  p2->at(0)->path = "program_1.asm";
+  p2->at(0)->push_back(Instruction::Set::create("STORE", 1));
+  p2->at(0)->push_back(Instruction::Set::create("ADDI", 1));
+
+  p2->at(1)->path = "program_2.asm";
+  p2->at(1)->push_back(Instruction::Set::create("STORE", 1));
+  p2->at(1)->push_back(Instruction::Set::create("ADDI", 1));
+
+  Schedule s1(p1);
+  Schedule s2(p2);
+
+  /* empty schedule */
+  ASSERT_TRUE(s1 == s2);
+
+  /* non-empty schedule */
+  s1.push_back(1, 0, 0, 0, 0);
+  s1.push_back(1, 1, 0);
+  s1.push_back(2, 1, 0, 0, 0);
+  s1.push_back(3, 0, 1, 1, 0);
+  s1.push_back(4, 1, 1, 1, 0);
+
+  s2.push_back(1, 0, 0, 0, 0);
+  s2.push_back(1, 1, 0);
+  s2.push_back(2, 1, 0, 0, 0);
+  s2.push_back(3, 0, 1, 1, 0);
+  s2.push_back(4, 1, 1, 1, 0);
+
+  ASSERT_TRUE(s1 == s2);
+
+  /* exit codes differ */
+  s2.exit = 1;
+
+  ASSERT_TRUE(s1 != s2);
+
+  s2.exit = 0;
+
+  ASSERT_TRUE(s1 == s2);
+
+  /* traces differ */
+  Schedule s3 = s2;
+
+  s3.push_back(5, 0, 2, 1, 0);
+  s3.push_back(5, 1, 1);
+
+  ASSERT_TRUE(s1 != s3);
+
+  /* programs differ */
+  p2->at(1)->push_back(Instruction::Set::create("STORE", 1));
+
+  ASSERT_TRUE(s1 != s2);
+
+  p1->at(1)->push_back(Instruction::Set::create("STORE", 1));
+
+  ASSERT_TRUE(s1 == s2);
+
+  /* list of programs differ */
+  p2->push_back(ProgramPtr(new Program()));
+
+  ASSERT_TRUE(s1 != s2);
+
+  p1->push_back(ProgramPtr(new Program()));
+
+  ASSERT_TRUE(s1 == s2);
+
+  /* compare files */
+  SchedulePtr sp1 = create_from_file<Schedule>(schedule_path);
+  SchedulePtr sp2 = create_from_file<Schedule>(schedule_path);
+
+  ASSERT_TRUE(*sp1 == *sp2);
+}
