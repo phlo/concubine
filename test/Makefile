@@ -40,7 +40,7 @@ GTEST_FILTER = --gtest_filter=
 # GTEST_FILTER += SimulatorTest.*
 # GTEST_FILTER += MainTest.*
 # GTEST_FILTER += Experimental.*
-GTEST_FILTER += ProgramTest.*
+# GTEST_FILTER += ProgramTest.*
 GTEST_FILTER += ScheduleTest.*
 # GTEST_FILTER += InstructionSetTest.*
 

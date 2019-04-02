@@ -649,6 +649,18 @@ TEST_F(ScheduleTest, print)
   ASSERT_EQ(expected, schedule->print());
 }
 
+// Schedule::iterator
+TEST_F(ScheduleTest, iterator)
+{
+  schedule = create_from_file<Schedule>(schedule_path);
+
+  for (Schedule::iterator it = schedule->begin(); it != schedule->end(); ++it)
+    {
+      // TODO
+      cout << it->thread << eol;
+    }
+}
+
 // bool operator == (const Schedule &, const Schedule &)
 // bool operator != (const Schedule &, const Schedule &)
 TEST_F(ScheduleTest, operator_equals)

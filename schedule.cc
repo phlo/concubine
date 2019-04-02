@@ -432,6 +432,18 @@ std::string Schedule::print ()
   return ss.str();
 }
 
+/* Schedule::begin (void) *****************************************************/
+Schedule::iterator Schedule::begin ()
+{
+  return iterator(this);
+}
+
+/* Schedule::end (void) *******************************************************/
+Schedule::iterator Schedule::end ()
+{
+  return iterator(this, bound + 1);
+}
+
 /* operator == (const Schedule &, const Schedule &) ***************************/
 bool operator == (const Schedule & a, const Schedule & b)
 {
