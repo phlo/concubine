@@ -444,6 +444,132 @@ Schedule::iterator Schedule::end ()
   return iterator(this, bound + 1);
 }
 
+/* Schedule::iterator (Schedule *, unsigned long) *****************************/
+Schedule::iterator::iterator (Schedule * _schedule, unsigned long _step) :
+  schedule(_schedule),
+  step(_step)
+{
+  if (step > schedule->bound)
+    return;
+
+  size_t num_threads = schedule->programs->size();
+
+  /* initialize state update iterators */
+  cur_pc.reserve(num_threads);
+  for (const auto & updates : schedule->pc_updates)
+    cur_pc.push_back(make_pair(updates.begin(), updates.end()));
+
+  cur_accu.reserve(num_threads);
+  for (const auto & updates : schedule->accu_updates)
+    cur_accu.push_back(make_pair(updates.begin(), updates.end()));
+
+  cur_mem.reserve(num_threads);
+  for (const auto & updates : schedule->mem_updates)
+    cur_mem.push_back(make_pair(updates.begin(), updates.end()));
+
+  cur_heap.reserve(schedule->heap_updates.size());
+  for (const auto & [idx, updates] : schedule->heap_updates)
+    cur_heap[idx] = make_pair(updates.begin(), updates.cend());
+
+  /* advance to first step */
+  advance();
+}
+
+/* Schedule::iterator::get_thread_state (void) ********************************/
+word Schedule::iterator::get_thread_state (update_pair_t & state)
+{
+  update_it_t next = state.first + 1;
+
+  while (next != state.second && next->first <= step)
+    state.first = next++;
+
+  return state.first->second;
+}
+
+/* Schedule::iterator::get_heap_state (void) **********************************/
+optional<pair<word, word>> Schedule::iterator::get_heap_state ()
+{
+  std::cout
+    << "thread = " << update.thread << eol
+    << "pc     = " << update.pc << eol
+    << "size   = " << schedule->programs->at(update.thread)->size() << eol;
+
+  if (
+      StorePtr store =
+        dynamic_pointer_cast<Store>(
+          schedule->programs->at(update.thread)->at(update.pc))
+     )
+    {
+      word idx =
+        store->indirect
+          ? schedule->heap_updates[store->arg].back().second
+          : store->arg;
+
+      update_pair_t & heap = cur_heap[idx];
+
+      if (heap.first->first == step)
+        return make_optional(make_pair(idx, heap.first++->second));
+    }
+
+  return {};
+}
+
+/* Schedule::iterator::advance (void) *****************************************/
+void Schedule::iterator::advance ()
+{
+  if (step > schedule->bound)
+    return;
+
+  cout << "step   = " << step << eol;
+
+  word tid = schedule->at(step++);
+
+  update.thread = tid;
+  update.pc   = get_thread_state(cur_pc[tid]);
+  update.accu = get_thread_state(cur_accu[tid]);
+  update.mem  = get_thread_state(cur_mem[tid]);
+  update.heap = get_heap_state();
+}
+
+/* Schedule::iterator::operator ++ (void) - prefix ****************************/
+Schedule::iterator & Schedule::iterator::operator ++ ()
+{
+  advance();
+  return *this;
+}
+
+/* Schedule::iterator::operator ++ (int) - postfix ****************************/
+Schedule::iterator Schedule::iterator::operator ++ (int)
+{
+  iterator retval = *this;
+  ++(*this);
+  return retval;
+}
+
+/* Schedule::iterator::operator == (const Schedule::iterator &) ***************/
+bool Schedule::iterator::operator == (const iterator & other)
+{
+  return schedule == other.schedule && step == other.step;
+}
+
+/* Schedule::iterator::operator != (const Schedule::iterator &) ***************/
+bool Schedule::iterator::operator != (const iterator & other)
+{
+  return !(*this == other);
+}
+
+/* Schedule::iterator::operator * (void) **************************************/
+Schedule::iterator::reference Schedule::iterator::operator * () const
+{
+  return update;
+}
+
+/* Schedule::iterator::operator -> (void) *************************************/
+Schedule::iterator::pointer Schedule::iterator::operator -> () const
+{
+  return &update;
+}
+
 /* operator == (const Schedule &, const Schedule &) ***************************/
 bool operator == (const Schedule & a, const Schedule & b)
 {
