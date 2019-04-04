@@ -8,19 +8,13 @@ using namespace std;
 
 /* default constructor ********************************************************/
 Schedule::Schedule () :
-  vector<word>(),
   path(""),
   bound(0),
   programs(new ProgramList()),
-  exit(0),
-  pc_updates(),
-  accu_updates(),
-  mem_updates(),
-  heap_updates()
+  exit(0)
 {}
 
 Schedule::Schedule (ProgramListPtr _programs) :
-  vector<word>(),
   path(""),
   bound(0),
   programs(_programs),
@@ -32,7 +26,6 @@ Schedule::Schedule (ProgramListPtr _programs) :
 
 /* construct from file ********************************************************/
 Schedule::Schedule(istream & file, string & name) :
-  vector<word>(),
   path(name),
   programs(new ProgramList()),
   exit(0)
@@ -231,7 +224,7 @@ Schedule::Schedule(istream & file, string & name) :
     }
 
   /* set bound */
-  bound = size();
+  bound = scheduled.size();
 
   if (!bound)
     parser_error(path, line_num, "empty schedule");
@@ -265,11 +258,11 @@ void Schedule::push_back (
                           const word mem
                          )
 {
-  if (step != size() + 1)
+  if (step != scheduled.size() + 1)
     throw runtime_error("illegal step [" + to_string(step) + "]");
 
   /* append thread id */
-  vector<word>::push_back(tid);
+  scheduled.push_back(tid);
 
   /* append pc state update */
   vector<pair<unsigned long, word>> * updates = &pc_updates[tid];
@@ -302,6 +295,8 @@ std::string Schedule::print ()
 {
   ostringstream ss;
 
+  const char sep = '\t';
+
   /* schedule metadata */
   for (const ProgramPtr & program : *programs)
     ss << program->path << eol;
@@ -312,124 +307,64 @@ std::string Schedule::print ()
   /* column headers */
   ss << "# tid\tpc\tcmd\targ\taccu\tmem\theap" << eol;
 
-  unsigned long num_threads = programs->size();
-
-  /* initialize thread state update iterators */
-  typedef vector<pair<unsigned long, word>>::const_iterator update_it_t;
-
-  vector<pair<update_it_t, update_it_t>> pcs;
-  pcs.reserve(num_threads);
-  for (const auto & v : pc_updates)
-    pcs.push_back(make_pair(v.begin(), v.end()));
-
-  vector<pair<update_it_t, const update_it_t>> accus;
-  accus.reserve(num_threads);
-  for (const auto & v : accu_updates)
-    accus.push_back(make_pair(v.begin(), v.end()));
-
-  vector<pair<update_it_t, const update_it_t>> mems;
-  mems.reserve(num_threads);
-  for (const auto & v : mem_updates)
-    mems.push_back(make_pair(v.begin(), v.end()));
-
-  /* references to the heap update iterators of a given index */
-  unordered_map<word, pair<update_it_t, update_it_t>> heaps;
-  heaps.reserve(heap_updates.size());
-  for (const auto & [idx, updates] : heap_updates)
-    heaps[idx] = make_pair(updates.begin(), updates.cend());
-
-  /* print schedule data */
-  for (size_t step = 1; step <= bound; step++)
+  for (iterator step = begin(); step != end(); ++step)
     {
-      char sep = '\t';
-
-      unsigned long tid = at(step - 1);
-
-      /* references to thread state update iterators */
-      auto & pc_it = pcs[tid];
-      auto & accu_it = accus[tid];
-      auto & mem_it = mems[tid];
-
       /* reference to program */
-      const Program & program = *programs->at(tid);
+      const Program & program = *programs->at(step->pc);
 
-      // cout << "# step = " << step << " #################################" << eol;
-      // cout << "thread = " << tid << eol;
+      /* reference to the current instruction */
+      UnaryInstructionPtr cmd =
+        dynamic_pointer_cast<UnaryInstruction>(
+          program.at(step->pc));
 
       /* thread id */
-      ss << tid << sep;
+      ss << step->thread << sep;
 
       /* program counter */
-      auto next_pc_it = pc_it.first + 1;
-      if (next_pc_it != pc_it.second && next_pc_it->first <= step)
-        pc_it.first = next_pc_it;
-
-      string pc = to_string(pc_it.first->second);
-      try { pc = program.get_label(pc_it.first->second); } catch (...) {}
-
-      ss << pc << sep;
-
-      // cout << "pc->first == " << pc_it.first->first << eol;
-      // if (pc_it.first->first == step)
-        // cout << "advancing pc iterator" << eol;
-
-      /* instruction pointer */
-      const auto cmd =
-        dynamic_pointer_cast<UnaryInstruction>(
-          program.at(pc_it.first->second));
+      try
+        {
+          ss << program.get_label(step->pc) << sep;
+        }
+      catch (...)
+        {
+          ss << step->pc << sep;
+        }
 
       /* instruction symbol */
       ss << cmd->get_symbol() << sep;
 
       /* instruction argument */
-      string arg = to_string(cmd->arg);
-
-      if (dynamic_pointer_cast<Jmp>(cmd))
-        try { arg = program.get_label(cmd->arg); } catch (...) {}
-
-      ss << arg << sep;
-
-      /* accumulator */
-      auto next_accu_it = accu_it.first + 1;
-      if (next_accu_it != accu_it.second && next_accu_it->first <= step)
-        accu_it.first = next_accu_it;
-
-      ss << accu_it.first->second << sep;
-
-      // cout << "accu->first == " << accu_it.first->first << eol;
-      // if (accu_it.first->first == step)
-        // cout << "advancing accu iterator" << eol;
-
-      /* CAS memory register */
-      auto next_mem_it = mem_it.first + 1;
-      if (next_mem_it != mem_it.second && next_mem_it->first <= step)
-        mem_it.first = next_mem_it;
-
-      ss << mem_it.first->second << sep;
-
-      // cout << "mem->first == " << mem_it.first->first << eol;
-      // if (mem_it.first->first == step)
-        // cout << "advancing mem iterator" << eol;
-
-      /* heap state update */
-      ss << "{";
-      if (StorePtr s = dynamic_pointer_cast<Store>(cmd))
+      try
         {
-          word idx = s->indirect ? heap_updates[s->arg].back().second : s->arg;
-
-          /* reference to the heap update iterator for the current index */
-          auto & heap_it = heaps[idx];
-
-          if (heap_it.first->first == step)
-            {
-              ss << "(" << idx << "," << heap_it.first->second << ")";
-              heap_it.first++;
-            }
+          if (dynamic_pointer_cast<Jmp>(cmd))
+            ss << program.get_label(cmd->arg) << sep;
+          else
+            throw runtime_error("");
         }
-      ss << "}" << eol;
+      catch (...)
+        {
+          ss << cmd->arg << sep;
+        }
+
+      /* accumulator / CAS memory register */
+      ss << step->accu << sep << step->mem << sep;
+
+      /* heap update */
+      ss << '{';
+
+      if (step->heap)
+        ss << step->heap->first + ',' + step->heap->second;
+
+      ss << '}' << eol;
     }
 
   return ss.str();
+}
+
+/* Schedule::at (unsigned long) ***********************************************/
+word Schedule::at (unsigned long step)
+{
+  return scheduled.at(step);
 }
 
 /* Schedule::begin (void) *****************************************************/
@@ -453,6 +388,9 @@ Schedule::iterator::iterator (Schedule * _schedule, unsigned long _step) :
     return;
 
   size_t num_threads = schedule->programs->size();
+
+  /* initialize scheduled thread id iterator */
+  cur_thread = schedule->scheduled.begin();
 
   /* initialize state update iterators */
   cur_pc.reserve(num_threads);
@@ -489,11 +427,6 @@ word Schedule::iterator::get_thread_state (update_pair_t & state)
 /* Schedule::iterator::get_heap_state (void) **********************************/
 optional<pair<word, word>> Schedule::iterator::get_heap_state ()
 {
-  std::cout
-    << "thread = " << update.thread << eol
-    << "pc     = " << update.pc << eol
-    << "size   = " << schedule->programs->at(update.thread)->size() << eol;
-
   if (
       StorePtr store =
         dynamic_pointer_cast<Store>(
@@ -520,9 +453,7 @@ void Schedule::iterator::advance ()
   if (step > schedule->bound)
     return;
 
-  cout << "step   = " << step << eol;
-
-  word tid = schedule->at(step++);
+  word tid = *cur_thread++;
 
   update.thread = tid;
   update.pc   = get_thread_state(cur_pc[tid]);
@@ -535,6 +466,7 @@ void Schedule::iterator::advance ()
 Schedule::iterator & Schedule::iterator::operator ++ ()
 {
   advance();
+  step++;
   return *this;
 }
 
@@ -586,9 +518,7 @@ bool operator == (const Schedule & a, const Schedule & b)
     if (*a.programs->at(i) != *b.programs->at(i))
       return false;
 
-  typedef const vector<word> * pointer;
-
-  if (*dynamic_cast<pointer>(&a) != *dynamic_cast<pointer>(&b))
+  if (a.scheduled != b.scheduled)
     return false;
 
   return

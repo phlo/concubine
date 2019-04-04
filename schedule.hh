@@ -11,7 +11,7 @@
 /*******************************************************************************
  * Schedule
  ******************************************************************************/
-struct Schedule : public std::vector<word>
+struct Schedule
 {
   /* default constructor (for testing) */
   Schedule (void);
@@ -33,6 +33,9 @@ struct Schedule : public std::vector<word>
 
   /* exit code */
   word                  exit;
+
+  /* thread sequence */
+  std::vector<word>     scheduled;
 
   /* thread states */
   std::vector<
@@ -104,6 +107,12 @@ struct Schedule : public std::vector<word>
       step_t        update;
 
       typedef
+        std::vector<word>::const_iterator
+        thread_it_t;
+
+      thread_it_t     cur_thread;
+
+      typedef
         std::vector<std::pair<unsigned long, word>>::const_iterator
         update_it_t;
 
@@ -115,13 +124,13 @@ struct Schedule : public std::vector<word>
         std::vector<update_pair_t>
         thread_state_t;
 
-      typedef
-        std::unordered_map<word, update_pair_t>
-        heap_state_t;
-
       thread_state_t  cur_pc,
                       cur_accu,
                       cur_mem;
+
+      typedef
+        std::unordered_map<word, update_pair_t>
+        heap_state_t;
 
       heap_state_t    cur_heap;
 
@@ -144,7 +153,7 @@ struct Schedule : public std::vector<word>
       typedef const step_t &            reference;
       typedef std::forward_iterator_tag iterator_category;
 
-      iterator (Schedule * _schedule, unsigned long _step = 0);
+      iterator (Schedule * _schedule, unsigned long _step = 1);
 
       iterator &  operator ++ (void);
       iterator    operator ++ (int);
@@ -158,6 +167,9 @@ struct Schedule : public std::vector<word>
 
   iterator begin (void);
   iterator end (void);
+
+  /* return thread id scheduled at the given step */
+  word at (unsigned long);
 };
 
 /*******************************************************************************

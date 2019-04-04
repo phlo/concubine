@@ -32,7 +32,7 @@ TEST_F(ScheduleTest, parse)
 
   ASSERT_EQ(
     vector<word>({0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1}),
-    *schedule);
+    schedule->scheduled);
 
   typedef vector<pair<unsigned long, word>> thread_updates_t;
 
@@ -557,7 +557,7 @@ TEST_F(ScheduleTest, push_back_thread_state)
   schedule->push_back(9,  0, 5, 2, 2);
   schedule->push_back(10, 1, 5, 2, 2);
 
-  ASSERT_EQ(vector<word>({0, 1, 0, 1, 0, 1, 0, 1, 0, 1}), *schedule);
+  ASSERT_EQ(vector<word>({0, 1, 0, 1, 0, 1, 0, 1, 0, 1}), schedule->scheduled);
 
   typedef vector<pair<unsigned long, word>> updates_t;
 
@@ -625,7 +625,7 @@ TEST_F(ScheduleTest, push_back_heap_state)
   schedule->push_back(5, 0, 2);
   schedule->push_back(6, 1, 2);
 
-  ASSERT_TRUE(schedule->empty());
+  ASSERT_TRUE(schedule->scheduled.empty());
 
   typedef unordered_map<word, vector<pair<unsigned long, word>>> updates_t;
 
