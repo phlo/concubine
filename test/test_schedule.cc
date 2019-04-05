@@ -38,7 +38,7 @@ TEST_F(ScheduleTest, parse)
 
   ASSERT_EQ(
     thread_updates_t({
-      {0, 0},
+      {1, 0},
       {4, 1},
       {5, 2},
       {6, 3},
@@ -51,7 +51,7 @@ TEST_F(ScheduleTest, parse)
     schedule->pc_updates[0]);
   ASSERT_EQ(
     thread_updates_t({
-      {0, 0},
+      {2, 0},
       {3, 1},
       {7, 2},
       {10, 3},
@@ -61,20 +61,20 @@ TEST_F(ScheduleTest, parse)
 
   ASSERT_EQ(
     thread_updates_t({
-      {0, 0},
+      {1, 0},
       {6, 1},
       {13, 2},
       {14, 1}}),
     schedule->accu_updates[0]);
   ASSERT_EQ(
     thread_updates_t({
-      {0, 0},
+      {2, 0},
       {10, 1},
       {11, 0}}),
     schedule->accu_updates[1]);
 
-  ASSERT_EQ(thread_updates_t({{0, 0}, {12, 1}}), schedule->mem_updates[0]);
-  ASSERT_EQ(thread_updates_t({{0, 0}}), schedule->mem_updates[1]);
+  ASSERT_EQ(thread_updates_t({{1, 0}, {12, 1}}), schedule->mem_updates[0]);
+  ASSERT_EQ(thread_updates_t({{2, 0}}), schedule->mem_updates[1]);
 
   typedef unordered_map<word, vector<pair<unsigned long, word>>> heap_updates_t;
 
@@ -546,91 +546,46 @@ TEST_F(ScheduleTest, push_back_thread_state)
 
   schedule = SchedulePtr(new Schedule(programs));
 
-  schedule->push_back(1,  0, 1, 0, 0);
-  schedule->push_back(2,  1, 1, 0, 0);
-  schedule->push_back(3,  0, 2, 1, 0);
-  schedule->push_back(4,  1, 2, 1, 0);
-  schedule->push_back(5,  0, 3, 1, 1);
-  schedule->push_back(6,  1, 3, 1, 1);
-  schedule->push_back(7,  0, 4, 2, 1);
-  schedule->push_back(8,  1, 4, 2, 1);
-  schedule->push_back(9,  0, 5, 2, 2);
-  schedule->push_back(10, 1, 5, 2, 2);
+  schedule->push_back(0, 0, 0, 0, make_pair(0, 0));
+  schedule->push_back(1, 0, 0, 0, make_pair(0, 0));
+  schedule->push_back(0, 1, 1, 0, make_pair(1, 0));
+  schedule->push_back(1, 1, 1, 0, make_pair(1, 0));
+  schedule->push_back(0, 2, 1, 1, make_pair(0, 1));
+  schedule->push_back(1, 2, 1, 1, make_pair(0, 1));
+  schedule->push_back(0, 3, 2, 1, make_pair(1, 1));
+  schedule->push_back(1, 3, 2, 1, make_pair(1, 1));
+  schedule->push_back(0, 4, 2, 2, make_pair(0, 0));
+  schedule->push_back(1, 4, 2, 2, make_pair(0, 0));
 
   ASSERT_EQ(vector<word>({0, 1, 0, 1, 0, 1, 0, 1, 0, 1}), schedule->scheduled);
 
-  typedef vector<pair<unsigned long, word>> updates_t;
+  typedef vector<pair<unsigned long, word>> thread_updates_t;
 
   ASSERT_EQ(
-    updates_t({{0, 0}, {1, 1}, {3, 2}, {5, 3}, {7, 4}, {9, 5}}),
+    thread_updates_t({{1, 0}, {3, 1}, {5, 2}, {7, 3}, {9, 4}}),
     schedule->pc_updates[0]);
   ASSERT_EQ(
-    updates_t({{0, 0}, {2, 1}, {4, 2}, {6, 3}, {8, 4}, {10, 5}}),
+    thread_updates_t({{2, 0}, {4, 1}, {6, 2}, {8, 3}, {10, 4}}),
     schedule->pc_updates[1]);
 
   ASSERT_EQ(
-    updates_t({{0, 0}, {3, 1}, {7, 2}}),
+    thread_updates_t({{1, 0}, {3, 1}, {7, 2}}),
     schedule->accu_updates[0]);
   ASSERT_EQ(
-    updates_t({{0, 0}, {4, 1}, {8, 2}}),
+    thread_updates_t({{2, 0}, {4, 1}, {8, 2}}),
     schedule->accu_updates[1]);
 
   ASSERT_EQ(
-    updates_t({{0, 0}, {5, 1}, {9, 2}}),
+    thread_updates_t({{1, 0}, {5, 1}, {9, 2}}),
     schedule->mem_updates[0]);
   ASSERT_EQ(
-    updates_t({{0, 0}, {6, 1}, {10, 2}}),
+    thread_updates_t({{2, 0}, {6, 1}, {10, 2}}),
     schedule->mem_updates[1]);
 
-  /* illegal steps */
-  try
-    {
-      schedule->push_back(1, 0, 0, 0, 0);
-      FAIL() << "should throw an exception";
-    }
-  catch (const exception & e)
-    {
-      ASSERT_STREQ("illegal step [1]", e.what());
-    }
-
-  try
-    {
-      schedule->push_back(word_max, 0, 0, 0, 0);
-      FAIL() << "should throw an exception";
-    }
-  catch (const exception & e)
-    {
-      ASSERT_EQ("illegal step [" + to_string(word_max) + "]", e.what());
-    }
-}
-
-// void Schedule::push_back (
-//                           const unsigned long step,
-//                           const word idx,
-//                           const word val
-//                          );
-TEST_F(ScheduleTest, push_back_heap_state)
-{
-  ProgramListPtr programs = ProgramListPtr(new ProgramList());
-
-  programs->push_back(ProgramPtr());
-  programs->push_back(ProgramPtr());
-
-  schedule = SchedulePtr(new Schedule(programs));
-
-  schedule->push_back(1, 0, 1);
-  schedule->push_back(2, 1, 1);
-  schedule->push_back(3, 0, 2);
-  schedule->push_back(4, 1, 2);
-  schedule->push_back(5, 0, 2);
-  schedule->push_back(6, 1, 2);
-
-  ASSERT_TRUE(schedule->scheduled.empty());
-
-  typedef unordered_map<word, vector<pair<unsigned long, word>>> updates_t;
+  typedef unordered_map<word, vector<pair<unsigned long, word>>> heap_updates_t;
 
   ASSERT_EQ(
-    updates_t({{0, {{1, 1}, {3, 2}}}, {1, {{2, 1}, {4, 2}}}}),
+    heap_updates_t({{0, {{1, 0}, {5, 1}, {9, 0}}}, {1, {{3, 0}, {7, 1}}}}),
     schedule->heap_updates);
 }
 
@@ -654,10 +609,22 @@ TEST_F(ScheduleTest, iterator)
 {
   schedule = create_from_file<Schedule>(schedule_path);
 
-  for (Schedule::iterator it = schedule->begin(); it != schedule->end(); ++it)
+  const char sep = '\t';
+
+  unsigned step = 1;
+  for (auto it = schedule->begin(), end = schedule->end(); it != end; ++it)
     {
       // TODO
-      cout << it->thread << eol;
+      cout
+        << step++ << ": " << sep
+        << it->thread << sep
+        << it->pc << sep
+        << it->accu << sep
+        << it->mem << sep
+        << "{" << (it->heap
+          ? "(" + to_string(it->heap->first) + "," + to_string(it->heap->second) + ")"
+          : "")
+        << "}" << eol;
     }
 }
 
@@ -697,17 +664,15 @@ TEST_F(ScheduleTest, operator_equals)
   ASSERT_TRUE(s1 == s2);
 
   /* non-empty schedule */
-  s1.push_back(1, 0, 0, 0, 0);
-  s1.push_back(1, 1, 0);
-  s1.push_back(2, 1, 0, 0, 0);
-  s1.push_back(3, 0, 1, 1, 0);
-  s1.push_back(4, 1, 1, 1, 0);
+  s1.push_back(0, 0, 0, 0, make_pair(1, 0));
+  s1.push_back(1, 0, 0, 0, {});
+  s1.push_back(0, 1, 1, 0, {});
+  s1.push_back(1, 1, 1, 0, {});
 
-  s2.push_back(1, 0, 0, 0, 0);
-  s2.push_back(1, 1, 0);
-  s2.push_back(2, 1, 0, 0, 0);
-  s2.push_back(3, 0, 1, 1, 0);
-  s2.push_back(4, 1, 1, 1, 0);
+  s2.push_back(0, 0, 0, 0, make_pair(1, 0));
+  s2.push_back(1, 0, 0, 0, {});
+  s2.push_back(0, 1, 1, 0, {});
+  s2.push_back(1, 1, 1, 0, {});
 
   ASSERT_TRUE(s1 == s2);
 
@@ -723,8 +688,7 @@ TEST_F(ScheduleTest, operator_equals)
   /* traces differ */
   Schedule s3 = s2;
 
-  s3.push_back(5, 0, 2, 1, 0);
-  s3.push_back(5, 1, 1);
+  s3.push_back(0, 2, 1, 0, make_pair(1, 1));
 
   ASSERT_TRUE(s1 != s3);
 

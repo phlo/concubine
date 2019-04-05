@@ -860,7 +860,7 @@ TEST_F(SimulatorTest, replay_programs_differ)
   _simulator = Simulator(programs_simulator);
   _schedule = Schedule(programs_schedule);
 
-  _schedule.push_back(1, 0, 0, 1, 0);
+  _schedule.push_back(0, 0, 1, 0, {});
 
   /* redirect stdout */
   ostringstream ss;

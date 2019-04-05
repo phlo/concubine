@@ -57,32 +57,14 @@ struct Schedule
   /* initialize thread state update lists */
   void                  init_state_update_lists (void);
 
-  /* append thread state update */
+  /* append state update */
   void                  push_back (
-                                   const unsigned long step,
-                                   const unsigned long tid,
-                                   const word pc,
-                                   const word accu,
-                                   const word mem
+                                   const unsigned long,
+                                   const word,
+                                   const word,
+                                   const word,
+                                   const std::optional<std::pair<word, word>>
                                   );
-
-  /* append heap state update */
-  void                  push_back (
-                                   const unsigned long step,
-                                   const word idx,
-                                   const word val
-                                  );
-
-  /* add thread state */
-  // void                  add (
-                             // const unsigned long tid,
-                             // const word pc,
-                             // const word accu,
-                             // const word mem
-                            // );
-
-  /* add heap state */
-  // void                  add (const std::unordered_map<word, word> & heap);
 
   /* print schedule */
   std::string           print (void);

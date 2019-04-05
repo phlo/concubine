@@ -73,10 +73,9 @@ Schedule::Schedule(istream & file, string & name) :
 
   /* parse body */
   line_num++;
-  unsigned long step = 1;
   for (string line_buf; getline(file, line_buf); line_num++)
     {
-      string cmd, heap;
+      string cmd;
       word tid, pc, arg, accu, mem;
 
       /* skip empty lines */
@@ -197,30 +196,32 @@ Schedule::Schedule(istream & file, string & name) :
             "illegal CAS memory register value [" + token + "]");
         }
 
-      /* append thread state update */
-      push_back(step, tid, pc, accu, mem);
-
+      /* parse heap cell */
       if (!(line >> token))
         parser_error(path, line_num, "missing heap update");
 
-      heap = token.substr(1, token.size() - 2);
-      if (!heap.empty())
+      optional<pair<word, word>> heap;
+
+      string cell = token.substr(1, token.size() - 2);
+
+      if (!cell.empty())
         try
           {
-            heap = heap.substr(1, heap.size() - 2);
-            size_t split = heap.find(',');
-            word idx = stoul(heap.substr(0, split));
-            word val = stoul(heap.substr(split + 1));
+            cell = cell.substr(1, cell.size() - 2);
+            size_t split = cell.find(',');
+            word idx = stoul(cell.substr(0, split));
+            word val = stoul(cell.substr(split + 1));
 
-            /* append heap state update */
-            push_back(step, idx, val);
+            /* heap cell update */
+            heap = make_pair(idx, val);
           }
         catch (const exception & e)
           {
             parser_error(path, line_num, "illegal heap update [" + token + "]");
           }
 
-      step++;
+      /* append state update */
+      push_back(tid, pc, accu, mem, heap);
     }
 
   /* set bound */
@@ -236,59 +237,49 @@ void Schedule::init_state_update_lists ()
 
   /* append pc states */
   pc_updates.resize(num_threads);
-  for (auto & updates : pc_updates)
-    updates.push_back(make_pair(0, 0));
 
   /* append accu states */
   accu_updates.resize(num_threads);
-  for (auto & updates : accu_updates)
-    updates.push_back(make_pair(0, 0));
 
   /* append mem states */
   mem_updates.resize(num_threads);
-  for (auto & updates : mem_updates)
-    updates.push_back(make_pair(0, 0));
 }
 
 void Schedule::push_back (
-                          const unsigned long step,
                           const unsigned long tid,
                           const word pc,
                           const word accu,
-                          const word mem
+                          const word mem,
+                          const optional<pair<word, word>> heap
                          )
 {
-  if (step != scheduled.size() + 1)
-    throw runtime_error("illegal step [" + to_string(step) + "]");
-
   /* append thread id */
   scheduled.push_back(tid);
 
+  unsigned long step = scheduled.size();
+
   /* append pc state update */
   vector<pair<unsigned long, word>> * updates = &pc_updates[tid];
-  if (updates->back().second != pc)
+  if (updates->empty() || updates->back().second != pc)
     updates->push_back(make_pair(step, pc));
 
   /* append accu state update */
   updates = &accu_updates[tid];
-  if (updates->back().second != accu)
+  if (updates->empty() || updates->back().second != accu)
     updates->push_back(make_pair(step, accu));
 
   /* append mem state update */
   updates = &mem_updates[tid];
-  if (updates->back().second != mem)
+  if (updates->empty() || updates->back().second != mem)
     updates->push_back(make_pair(step, mem));
-}
 
-void Schedule::push_back (
-                          const unsigned long step,
-                          const word idx,
-                          const word val
-                         )
-{
-  auto & updates = heap_updates[idx];
-  if (updates.empty() || updates.back().second != val)
-    updates.push_back(make_pair(step, val));
+  /* append heap state update */
+  if (heap)
+    {
+      updates = &heap_updates[heap->first];
+      if (updates->empty() || updates->back().second != heap->second)
+        updates->push_back(make_pair(step, heap->second));
+    }
 }
 
 std::string Schedule::print ()
