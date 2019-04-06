@@ -69,7 +69,7 @@ struct Schedule
   /* print schedule */
   std::string           print (void);
 
-  struct step_t
+  struct update_t
     {
       word thread;
       word pc;
@@ -86,13 +86,7 @@ struct Schedule
 
       unsigned long step;
 
-      step_t        update;
-
-      typedef
-        std::vector<word>::const_iterator
-        thread_it_t;
-
-      thread_it_t     cur_thread;
+      update_t      update;
 
       typedef
         std::vector<std::pair<unsigned long, word>>::const_iterator
@@ -125,14 +119,14 @@ struct Schedule
           word,
           word>>      get_heap_state (void);
 
-      /* advance step */
-      void            advance (void);
+      /* assign state update */
+      void            assign (void);
 
     public:
       typedef std::ptrdiff_t            difference_type; // size_t ?
-      typedef step_t                    value_type;
-      typedef const step_t *            pointer;
-      typedef const step_t &            reference;
+      typedef update_t                  value_type;
+      typedef const update_t *          pointer;
+      typedef const update_t &          reference;
       typedef std::forward_iterator_tag iterator_category;
 
       iterator (Schedule * _schedule, unsigned long _step = 1);
@@ -140,8 +134,8 @@ struct Schedule
       iterator &  operator ++ (void);
       iterator    operator ++ (int);
 
-      bool        operator == (const iterator &);
-      bool        operator != (const iterator &);
+      bool        operator == (const iterator &) const;
+      bool        operator != (const iterator &) const;
 
       reference   operator * () const;
       pointer     operator -> () const;

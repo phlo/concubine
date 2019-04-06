@@ -531,13 +531,13 @@ TEST_F(ScheduleTest, parse_missing_heap)
 }
 
 // void Schedule::push_back (
-//                           const unsigned long step,
 //                           const unsigned long tid,
 //                           const word pc,
 //                           const word accu,
-//                           const word mem
+//                           const word mem,
+//                           const optional<pair<word, word>> heap
 //                          )
-TEST_F(ScheduleTest, push_back_thread_state)
+TEST_F(ScheduleTest, push_back)
 {
   ProgramListPtr programs = ProgramListPtr(new ProgramList());
 
@@ -594,8 +594,6 @@ TEST_F(ScheduleTest, print)
 {
   schedule = create_from_file<Schedule>(schedule_path);
 
-  // cout << schedule->print() << eol;
-
   ifstream ifs(schedule_path);
   string expected(
     (istreambuf_iterator<char>(ifs)),
@@ -609,23 +607,41 @@ TEST_F(ScheduleTest, iterator)
 {
   schedule = create_from_file<Schedule>(schedule_path);
 
-  const char sep = '\t';
+  word tid[]  = {0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1};
+  word pc[]   = {0, 0, 1, 1, 2, 3, 2, 4, 5, 3, 4, 2, 3, 4, 5, 5};
+  word accu[] = {0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 2, 1, 1, 0};
+  word mem[]  = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0};
 
-  unsigned step = 1;
-  for (auto it = schedule->begin(), end = schedule->end(); it != end; ++it)
+  Schedule::iterator it = schedule->begin(), end = schedule->end();
+
+  for (unsigned long i = 0; it != end; i++, ++it)
     {
-      // TODO
-      cout
-        << step++ << ": " << sep
-        << it->thread << sep
-        << it->pc << sep
-        << it->accu << sep
-        << it->mem << sep
-        << "{" << (it->heap
-          ? "(" + to_string(it->heap->first) + "," + to_string(it->heap->second) + ")"
-          : "")
-        << "}" << eol;
+      ASSERT_EQ(tid[i], it->thread);
+      ASSERT_EQ(pc[i], it->pc);
+      ASSERT_EQ(accu[i], it->accu);
+      ASSERT_EQ(mem[i], it->mem);
+
+      if (i == 0)
+        {
+          ASSERT_EQ(0, it->heap->first);
+          ASSERT_EQ(0, it->heap->second);
+        }
+      else if (i == 7)
+        {
+          ASSERT_EQ(0, it->heap->first);
+          ASSERT_EQ(1, it->heap->second);
+        }
+      else if (i == 13)
+        {
+          ASSERT_EQ(0, it->heap->first);
+          ASSERT_EQ(2, it->heap->second);
+        }
+      else
+        ASSERT_FALSE(it->heap);
     }
+
+  ASSERT_EQ(it++, end);
+  ASSERT_EQ(it, end);
 }
 
 // bool operator == (const Schedule &, const Schedule &)

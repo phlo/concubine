@@ -298,53 +298,52 @@ std::string Schedule::print ()
   /* column headers */
   ss << "# tid\tpc\tcmd\targ\taccu\tmem\theap" << eol;
 
-  for (iterator step = begin(); step != end(); ++step)
+  for (const auto & step : *this)
     {
       /* reference to program */
-      const Program & program = *programs->at(step->pc);
+      const Program & program = *programs->at(step.thread);
 
       /* reference to the current instruction */
-      UnaryInstructionPtr cmd =
+      const UnaryInstructionPtr cmd =
         dynamic_pointer_cast<UnaryInstruction>(
-          program.at(step->pc));
+          program.at(step.pc));
 
       /* thread id */
-      ss << step->thread << sep;
+      ss << step.thread << sep;
 
       /* program counter */
       try
         {
-          ss << program.get_label(step->pc) << sep;
+          ss << program.get_label(step.pc) << sep;
         }
       catch (...)
         {
-          ss << step->pc << sep;
+          ss << step.pc << sep;
         }
 
       /* instruction symbol */
       ss << cmd->get_symbol() << sep;
 
       /* instruction argument */
+      string arg(to_string(cmd->arg));
+
       try
         {
           if (dynamic_pointer_cast<Jmp>(cmd))
-            ss << program.get_label(cmd->arg) << sep;
-          else
-            throw runtime_error("");
+            arg = program.get_label(cmd->arg);
         }
-      catch (...)
-        {
-          ss << cmd->arg << sep;
-        }
+      catch (...) {}
+
+      ss << arg << sep;
 
       /* accumulator / CAS memory register */
-      ss << step->accu << sep << step->mem << sep;
+      ss << step.accu << sep << step.mem << sep;
 
       /* heap update */
       ss << '{';
 
-      if (step->heap)
-        ss << step->heap->first + ',' + step->heap->second;
+      if (step.heap)
+        ss << '(' << step.heap->first << ',' << step.heap->second << ')';
 
       ss << '}' << eol;
     }
@@ -380,9 +379,6 @@ Schedule::iterator::iterator (Schedule * _schedule, unsigned long _step) :
 
   size_t num_threads = schedule->programs->size();
 
-  /* initialize scheduled thread id iterator */
-  cur_thread = schedule->scheduled.begin();
-
   /* initialize state update iterators */
   cur_pc.reserve(num_threads);
   for (const auto & updates : schedule->pc_updates)
@@ -400,8 +396,8 @@ Schedule::iterator::iterator (Schedule * _schedule, unsigned long _step) :
   for (const auto & [idx, updates] : schedule->heap_updates)
     cur_heap[idx] = make_pair(updates.begin(), updates.cend());
 
-  /* advance to first step */
-  advance();
+  /* assign update members */
+  assign();
 }
 
 /* Schedule::iterator::get_thread_state (void) ********************************/
@@ -438,26 +434,24 @@ optional<pair<word, word>> Schedule::iterator::get_heap_state ()
   return {};
 }
 
-/* Schedule::iterator::advance (void) *****************************************/
-void Schedule::iterator::advance ()
+/* Schedule::iterator::assign (void) ******************************************/
+void Schedule::iterator::assign ()
 {
-  if (step > schedule->bound)
-    return;
-
-  word tid = *cur_thread++;
-
-  update.thread = tid;
-  update.pc   = get_thread_state(cur_pc[tid]);
-  update.accu = get_thread_state(cur_accu[tid]);
-  update.mem  = get_thread_state(cur_mem[tid]);
+  update.thread = schedule->at(step - 1);
+  update.pc   = get_thread_state(cur_pc[update.thread]);
+  update.accu = get_thread_state(cur_accu[update.thread]);
+  update.mem  = get_thread_state(cur_mem[update.thread]);
   update.heap = get_heap_state();
 }
 
 /* Schedule::iterator::operator ++ (void) - prefix ****************************/
 Schedule::iterator & Schedule::iterator::operator ++ ()
 {
-  advance();
-  step++;
+  /* prevent increments beyond end() */
+  if (step <= schedule->bound)
+    if (++step <= schedule->bound)
+      assign();
+
   return *this;
 }
 
@@ -470,13 +464,13 @@ Schedule::iterator Schedule::iterator::operator ++ (int)
 }
 
 /* Schedule::iterator::operator == (const Schedule::iterator &) ***************/
-bool Schedule::iterator::operator == (const iterator & other)
+bool Schedule::iterator::operator == (const iterator & other) const
 {
   return schedule == other.schedule && step == other.step;
 }
 
 /* Schedule::iterator::operator != (const Schedule::iterator &) ***************/
-bool Schedule::iterator::operator != (const iterator & other)
+bool Schedule::iterator::operator != (const iterator & other) const
 {
   return !(*this == other);
 }
