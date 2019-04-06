@@ -194,7 +194,12 @@ int simulate (char * name, int argc, char ** argv)
   /* run program with given seed */
   Simulator simulator(programs);
 
-  return simulator.simulate(bound, seed)->exit;
+  SchedulePtr schedule = simulator.simulate(bound, seed);
+
+  /* print the result */
+  cout << schedule->print();
+
+  return schedule->exit;
 }
 
 /* replay *********************************************************************/
@@ -250,7 +255,12 @@ int replay (char * name, int argc, char ** argv)
       /* run given schedule */
       Simulator simulator(schedule->programs);
 
-      return simulator.replay(*schedule, bound)->exit;
+      schedule = simulator.replay(*schedule, bound);
+
+      /* print the result */
+      cout << schedule->print();
+
+      return schedule->exit;
     }
   catch (const exception & e)
     {

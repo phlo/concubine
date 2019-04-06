@@ -27,6 +27,7 @@ Schedule::Schedule (ProgramListPtr _programs) :
 /* construct from file ********************************************************/
 Schedule::Schedule(istream & file, string & name) :
   path(name),
+  bound(0),
   programs(new ProgramList()),
   exit(0)
 {
@@ -244,9 +245,6 @@ Schedule::Schedule(istream & file, string & name) :
       push_back(tid, pc, accu, mem, heap);
     }
 
-  /* set bound */
-  bound = scheduled.size();
-
   if (!bound)
     parser_error(path, line_num, "empty schedule");
 }
@@ -263,6 +261,11 @@ void Schedule::init_state_update_lists ()
 
   /* append mem states */
   mem_updates.resize(num_threads);
+}
+
+size_t Schedule::size ()
+{
+  return bound;
 }
 
 void Schedule::push_back (
@@ -300,8 +303,30 @@ void Schedule::push_back (
       if (updates->empty() || updates->back().second != heap->second)
         updates->push_back(make_pair(step, heap->second));
     }
+
+  /* raise bound */
+  bound++;
 }
 
+/* Schedule::at (unsigned long) ***********************************************/
+word Schedule::at (unsigned long step)
+{
+  return scheduled.at(step);
+}
+
+/* Schedule::begin (void) *****************************************************/
+Schedule::iterator Schedule::begin ()
+{
+  return iterator(this);
+}
+
+/* Schedule::end (void) *******************************************************/
+Schedule::iterator Schedule::end ()
+{
+  return iterator(this, bound + 1);
+}
+
+/* Schedule::print (void) *****************************************************/
 std::string Schedule::print ()
 {
   ostringstream ss;
@@ -374,24 +399,6 @@ std::string Schedule::print ()
     }
 
   return ss.str();
-}
-
-/* Schedule::at (unsigned long) ***********************************************/
-word Schedule::at (unsigned long step)
-{
-  return scheduled.at(step);
-}
-
-/* Schedule::begin (void) *****************************************************/
-Schedule::iterator Schedule::begin ()
-{
-  return iterator(this);
-}
-
-/* Schedule::end (void) *******************************************************/
-Schedule::iterator Schedule::end ()
-{
-  return iterator(this, bound + 1);
 }
 
 /* Schedule::iterator (Schedule *, unsigned long) *****************************/

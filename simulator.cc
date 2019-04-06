@@ -2,7 +2,6 @@
 
 #include <random>
 #include <cassert>
-#include <iostream>
 
 using namespace std;
 
@@ -68,23 +67,14 @@ void Simulator::check_and_resume_waiting (word sync_id)
 /* Simulator::run (Scheduler *) ***********************************************/
 SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
 {
-  SchedulePtr schedule = SchedulePtr(new Schedule(programs));
-
-  /* print schedule header */
-  for (auto t : threads)
-    cout << t->id << " = " << t->program.path << endl;
-  cout << "seed = " << seed << endl;
-  cout << "# tid";
-  if (verbose)
-    cout << "\tpc\tcmd\targ\taccu";
-  cout << endl;
+  SchedulePtr schedule = make_shared<Schedule>(programs);
 
   assert(active.empty());
+
   activate_threads(threads);
 
   bool done = active.empty();
-  unsigned long & step = schedule->bound = 1;
-  for (; !done && (step <= bound || !bound); step++)
+  for (unsigned long step = 1; !done && (step <= bound || !bound); step++)
     {
       ThreadPtr thread = scheduler();
 
@@ -93,15 +83,28 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
       /* store current pc */
       word pc = thread->pc;
 
+      /* pointer to an eventual store instruction */
+      StorePtr store = dynamic_pointer_cast<Store>(thread->program[pc]);
+
+      /* optional heap update */
+      optional<pair<word, word>> heap_cell;
+
+      /* mind indirect stores: save address in case it is overwritten */
+      if (store)
+        heap_cell =
+          make_pair(store->indirect ? heap[store->arg] : store->arg, 0);
+
       /* execute thread */
       thread->execute();
 
-      /* get optional heap update (ignore failed CAS) */
-      optional<pair<word, word>> heap_cell;
-
-      if (StorePtr s = dynamic_pointer_cast<Store>(thread->program[pc]))
-        if (s->get_opcode() == Instruction::OPCode::Store || thread->accu)
-          heap_cell = make_pair(s->arg, thread->accu);
+      /* get heap update (ignore failed CAS) */
+      if (store)
+        {
+          if (store->get_opcode() == Instruction::OPCode::Store || thread->accu)
+            heap_cell->second = heap[heap_cell->first];
+          else /* CAS failed */
+            heap_cell = {};
+        }
 
       /* append state update to schedule */
       schedule->push_back(thread->id, pc, thread->accu, thread->mem, heap_cell);
@@ -162,10 +165,10 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
             }
 
         default:
-          cout << "warning: illegal thread state transition " <<
-            static_cast<int>(Thread::State::RUNNING) << " -> " <<
-            static_cast<int>(thread->state) << endl;
-          assert(0);
+          throw runtime_error(
+            "illegal thread state transition " +
+            to_string(Thread::State::RUNNING) + " -> " +
+            to_string(thread->state));
         }
     }
 
@@ -194,37 +197,37 @@ SchedulePtr Simulator::simulate (unsigned long _bound, unsigned long _seed)
 }
 
 /* Simulator::replay (Schedule &, unsigned long) ******************************/
-SchedulePtr Simulator::replay (Schedule & _schedule, unsigned long _bound)
+SchedulePtr Simulator::replay (Schedule & schedule, unsigned long _bound)
 {
   /* check programs */
-  if (programs->size() != _schedule.programs->size())
+  if (programs->size() != schedule.programs->size())
     throw runtime_error(
       "number of programs differ [" +
       to_string(programs->size()) +
       ", " +
-      to_string(_schedule.programs->size()) +
+      to_string(schedule.programs->size()) +
       "]");
 
   for (size_t i = 0; i < programs->size(); i++)
-    if (*programs->at(i) != *_schedule.programs->at(i))
+    if (*programs->at(i) != *schedule.programs->at(i))
       throw runtime_error(
         "program #" +
         to_string(i) +
         " differs: " +
         programs->at(i)->path +
         " != " +
-        _schedule.programs->at(i)->path);
+        schedule.programs->at(i)->path);
 
   /* set bound */
-  bound = _bound && _bound < _schedule.bound ? _bound : _schedule.bound;
+  bound = _bound && _bound < schedule.bound ? _bound : schedule.bound;
 
   /* index variable for iterating the Schedule */
   unsigned long step = 0;
 
   /* replay scheduler */
-  function<ThreadPtr(void)> scheduler = [this, &_schedule, &step]
+  function<ThreadPtr(void)> scheduler = [this, &schedule, &step]
     {
-      return threads[_schedule.at(step++)];
+      return threads[schedule.at(step++)];
     };
 
   return run(scheduler);

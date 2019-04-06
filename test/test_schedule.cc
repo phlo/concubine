@@ -34,10 +34,8 @@ TEST_F(ScheduleTest, parse)
     vector<word>({0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1}),
     schedule->scheduled);
 
-  typedef vector<pair<unsigned long, word>> thread_updates_t;
-
   ASSERT_EQ(
-    thread_updates_t({
+    Schedule::update_list_t({
       {1, 0},
       {4, 1},
       {5, 2},
@@ -50,7 +48,7 @@ TEST_F(ScheduleTest, parse)
       {15, 5}}),
     schedule->pc_updates[0]);
   ASSERT_EQ(
-    thread_updates_t({
+    Schedule::update_list_t({
       {2, 0},
       {3, 1},
       {7, 2},
@@ -60,26 +58,31 @@ TEST_F(ScheduleTest, parse)
     schedule->pc_updates[1]);
 
   ASSERT_EQ(
-    thread_updates_t({
+    Schedule::update_list_t({
       {1, 0},
       {6, 1},
       {13, 2},
       {14, 1}}),
     schedule->accu_updates[0]);
   ASSERT_EQ(
-    thread_updates_t({
+    Schedule::update_list_t({
       {2, 0},
       {10, 1},
       {11, 0}}),
     schedule->accu_updates[1]);
 
-  ASSERT_EQ(thread_updates_t({{1, 0}, {12, 1}}), schedule->mem_updates[0]);
-  ASSERT_EQ(thread_updates_t({{2, 0}}), schedule->mem_updates[1]);
-
-  typedef unordered_map<word, vector<pair<unsigned long, word>>> heap_updates_t;
+  ASSERT_EQ(
+    Schedule::update_list_t({
+      {1, 0},
+      {12, 1}}),
+    schedule->mem_updates[0]);
+  ASSERT_EQ(
+    Schedule::update_list_t({
+      {2, 0}}),
+    schedule->mem_updates[1]);
 
   ASSERT_EQ(
-    heap_updates_t({{0, {{1, 0}, {8, 1}, {14, 2}}}}),
+    Schedule::heap_updates_t({{0, {{1, 0}, {8, 1}, {14, 2}}}}),
     schedule->heap_updates);
 }
 
@@ -557,35 +560,35 @@ TEST_F(ScheduleTest, push_back)
   schedule->push_back(0, 4, 2, 2, make_pair(0, 0));
   schedule->push_back(1, 4, 2, 2, make_pair(0, 0));
 
-  ASSERT_EQ(vector<word>({0, 1, 0, 1, 0, 1, 0, 1, 0, 1}), schedule->scheduled);
-
-  typedef vector<pair<unsigned long, word>> thread_updates_t;
+  ASSERT_EQ(
+    Schedule::thread_list_t({0, 1, 0, 1, 0, 1, 0, 1, 0, 1}),
+    schedule->scheduled);
 
   ASSERT_EQ(
-    thread_updates_t({{1, 0}, {3, 1}, {5, 2}, {7, 3}, {9, 4}}),
+    Schedule::update_list_t({{1, 0}, {3, 1}, {5, 2}, {7, 3}, {9, 4}}),
     schedule->pc_updates[0]);
   ASSERT_EQ(
-    thread_updates_t({{2, 0}, {4, 1}, {6, 2}, {8, 3}, {10, 4}}),
+    Schedule::update_list_t({{2, 0}, {4, 1}, {6, 2}, {8, 3}, {10, 4}}),
     schedule->pc_updates[1]);
 
   ASSERT_EQ(
-    thread_updates_t({{1, 0}, {3, 1}, {7, 2}}),
+    Schedule::update_list_t({{1, 0}, {3, 1}, {7, 2}}),
     schedule->accu_updates[0]);
   ASSERT_EQ(
-    thread_updates_t({{2, 0}, {4, 1}, {8, 2}}),
+    Schedule::update_list_t({{2, 0}, {4, 1}, {8, 2}}),
     schedule->accu_updates[1]);
 
   ASSERT_EQ(
-    thread_updates_t({{1, 0}, {5, 1}, {9, 2}}),
+    Schedule::update_list_t({{1, 0}, {5, 1}, {9, 2}}),
     schedule->mem_updates[0]);
   ASSERT_EQ(
-    thread_updates_t({{2, 0}, {6, 1}, {10, 2}}),
+    Schedule::update_list_t({{2, 0}, {6, 1}, {10, 2}}),
     schedule->mem_updates[1]);
 
-  typedef unordered_map<word, vector<pair<unsigned long, word>>> heap_updates_t;
-
   ASSERT_EQ(
-    heap_updates_t({{0, {{1, 0}, {5, 1}, {9, 0}}}, {1, {{3, 0}, {7, 1}}}}),
+    Schedule::heap_updates_t({
+      {0, {{1, 0}, {5, 1}, {9, 0}}},
+      {1, {{3, 0}, {7, 1}}}}),
     schedule->heap_updates);
 }
 

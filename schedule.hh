@@ -114,8 +114,8 @@ struct Schedule
   /* initialize thread state update lists */
   void              init_state_update_lists (void);
 
-  /* return thread id scheduled at the given step */
-  word              at (unsigned long);
+  /* return schedule size (bound) */
+  size_t            size (void);
 
   /* append state update */
   void              push_back (
@@ -125,6 +125,9 @@ struct Schedule
                                const word,
                                const heap_cell_t
                               );
+
+  /* return thread id scheduled at the given step */
+  word              at (unsigned long);
 
   /* return an iterator to the beginning */
   iterator          begin (void);

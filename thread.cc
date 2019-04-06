@@ -38,26 +38,8 @@ void Thread::execute ()
   if (pc >= program.size())
     throw runtime_error("illegal pc [" + to_string(pc) + "]");
 
-  /* print thread id */
-  cout << id;
-
-  /* verbose enabled */
-  if (verbose)
-    {
-      cout << "\t";
-
-      /* print instruction details */
-      cout << program.print(true, pc);
-    }
-
   /* execute instruction */
   program.at(pc)->execute(*this);
-
-  /* print accu */
-  if (verbose)
-    cout << "\t" << accu;
-
-  cout << endl;
 
   /* set state to STOPPED if it was the last command in the program */
   if (pc >= program.size())
