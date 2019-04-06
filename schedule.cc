@@ -279,7 +279,7 @@ void Schedule::push_back (
   unsigned long step = scheduled.size();
 
   /* append pc state update */
-  vector<pair<unsigned long, word>> * updates = &pc_updates[tid];
+  update_list_t * updates = &pc_updates[tid];
   if (updates->empty() || updates->back().second != pc)
     updates->push_back(make_pair(step, pc));
 
@@ -405,28 +405,28 @@ Schedule::iterator::iterator (Schedule * _schedule, unsigned long _step) :
   size_t num_threads = schedule->programs->size();
 
   /* initialize state update iterators */
-  cur_pc.reserve(num_threads);
+  pc.reserve(num_threads);
   for (const auto & updates : schedule->pc_updates)
-    cur_pc.push_back(make_pair(updates.begin(), updates.end()));
+    pc.push_back(make_pair(updates.begin(), updates.end()));
 
-  cur_accu.reserve(num_threads);
+  accu.reserve(num_threads);
   for (const auto & updates : schedule->accu_updates)
-    cur_accu.push_back(make_pair(updates.begin(), updates.end()));
+    accu.push_back(make_pair(updates.begin(), updates.end()));
 
-  cur_mem.reserve(num_threads);
+  mem.reserve(num_threads);
   for (const auto & updates : schedule->mem_updates)
-    cur_mem.push_back(make_pair(updates.begin(), updates.end()));
+    mem.push_back(make_pair(updates.begin(), updates.end()));
 
-  cur_heap.reserve(schedule->heap_updates.size());
+  heap.reserve(schedule->heap_updates.size());
   for (const auto & [idx, updates] : schedule->heap_updates)
-    cur_heap[idx] = make_pair(updates.begin(), updates.cend());
+    heap[idx] = make_pair(updates.begin(), updates.cend());
 
   /* assign update members */
   assign();
 }
 
-/* Schedule::iterator::get_thread_state (void) ********************************/
-word Schedule::iterator::get_thread_state (update_pair_t & state)
+/* Schedule::iterator::next_thread_state (void) *******************************/
+word Schedule::iterator::next_thread_state (update_it_pair_t & state)
 {
   update_it_t next = state.first + 1;
 
@@ -436,8 +436,8 @@ word Schedule::iterator::get_thread_state (update_pair_t & state)
   return state.first->second;
 }
 
-/* Schedule::iterator::get_heap_state (void) **********************************/
-optional<pair<word, word>> Schedule::iterator::get_heap_state ()
+/* Schedule::iterator::next_heap_state (void) *********************************/
+Schedule::heap_cell_t Schedule::iterator::next_heap_state ()
 {
   if (
       StorePtr store =
@@ -450,10 +450,10 @@ optional<pair<word, word>> Schedule::iterator::get_heap_state ()
           ? schedule->heap_updates[store->arg].back().second
           : store->arg;
 
-      update_pair_t & heap = cur_heap[idx];
+      update_it_pair_t & cell = heap[idx];
 
-      if (heap.first->first == step)
-        return make_optional(make_pair(idx, heap.first++->second));
+      if (cell.first->first == step)
+        return make_optional(make_pair(idx, cell.first++->second));
     }
 
   return {};
@@ -463,10 +463,10 @@ optional<pair<word, word>> Schedule::iterator::get_heap_state ()
 void Schedule::iterator::assign ()
 {
   update.thread = schedule->at(step - 1);
-  update.pc   = get_thread_state(cur_pc[update.thread]);
-  update.accu = get_thread_state(cur_accu[update.thread]);
-  update.mem  = get_thread_state(cur_mem[update.thread]);
-  update.heap = get_heap_state();
+  update.pc     = next_thread_state(pc[update.thread]);
+  update.accu   = next_thread_state(accu[update.thread]);
+  update.mem    = next_thread_state(mem[update.thread]);
+  update.heap   = next_heap_state();
 }
 
 /* Schedule::iterator::operator ++ (void) - prefix ****************************/
