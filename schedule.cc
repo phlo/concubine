@@ -75,7 +75,7 @@ Schedule::Schedule(istream & file, string & name) :
   line_num++;
   for (string line_buf; getline(file, line_buf); line_num++)
     {
-      string cmd;
+      string symbol;
       word tid, pc, arg, accu, mem;
 
       /* skip empty lines */
@@ -102,6 +102,8 @@ Schedule::Schedule(istream & file, string & name) :
             line_num,
             "unknown thread id [" + to_string(tid) + "]");
 
+      const Program & program = *programs->at(tid);
+
       /* parse pc */
       if (!(line >> pc))
         {
@@ -112,7 +114,7 @@ Schedule::Schedule(istream & file, string & name) :
 
           try
             {
-              pc = programs->at(tid)->get_pc(token);
+              pc = program.get_pc(token);
             }
           catch (...)
             {
@@ -120,14 +122,14 @@ Schedule::Schedule(istream & file, string & name) :
             }
         }
 
-      if (pc >= programs->at(tid)->size())
+      if (pc >= program.size())
           parser_error(
             path,
             line_num,
             "illegal program counter [" + to_string(pc) + "]");
 
       /* parse instruction symbol */
-      if (!(line >> cmd))
+      if (!(line >> symbol))
         {
           line.clear();
 
@@ -137,8 +139,8 @@ Schedule::Schedule(istream & file, string & name) :
           parser_error(path, line_num, "unable to parse instruction symbol");
         }
 
-      if (!Instruction::Set::contains(cmd))
-        parser_error(path, line_num, "unknown instruction [" + cmd + "]");
+      if (!Instruction::Set::contains(symbol))
+        parser_error(path, line_num, "unknown instruction [" + symbol + "]");
 
       /* parse instruction argument */
       if (!(line >> arg))
@@ -148,24 +150,42 @@ Schedule::Schedule(istream & file, string & name) :
           if (!(line >> token))
             parser_error(path, line_num, "missing instruction argument");
 
-          if (!dynamic_pointer_cast<Jmp>(programs->at(tid)->at(pc)))
-              parser_error(
-                path,
-                line_num,
-                programs->at(tid)->at(pc)->get_symbol() +
-                " does not support labels");
+          const InstructionPtr cmd = program.at(pc);
 
-          try
+          /* arg is an indirect memory address */
+          if (token.front() == '[')
             {
-              arg = programs->at(tid)->get_pc(token);
+              if (dynamic_pointer_cast<MemoryInstruction>(cmd))
+                {
+                  istringstream addr(token.substr(1, token.size() - 2));
+
+                  /* check if address is a number */
+                  if (!(addr >> arg))
+                    parser_error(
+                      path,
+                      line_num,
+                      "indirect addressing does not support labels");
+                }
+              else
+                parser_error(
+                  path,
+                  line_num,
+                  symbol + " does not support indirect addressing");
             }
-          catch (...)
+          /* arg is a label */
+          else if (dynamic_pointer_cast<Jmp>(cmd))
             {
-              parser_error(
-                path,
-                line_num,
-                "unknown label [" + token + "]");
+              try
+                {
+                  arg = program.get_pc(token);
+                }
+              catch (...)
+                {
+                  parser_error(path, line_num, "unknown label [" + token + "]");
+                }
             }
+          else
+            parser_error(path, line_num, symbol + " does not support labels");
         }
 
       /* parse accu */
@@ -303,7 +323,7 @@ std::string Schedule::print ()
       /* reference to program */
       const Program & program = *programs->at(step.thread);
 
-      /* reference to the current instruction */
+      /* reference to current instruction */
       const UnaryInstructionPtr cmd =
         dynamic_pointer_cast<UnaryInstruction>(
           program.at(step.pc));
@@ -327,12 +347,17 @@ std::string Schedule::print ()
       /* instruction argument */
       string arg(to_string(cmd->arg));
 
-      try
+      if (auto m = dynamic_pointer_cast<MemoryInstruction>(cmd))
         {
-          if (dynamic_pointer_cast<Jmp>(cmd))
-            arg = program.get_label(cmd->arg);
+          if (m->indirect)
+            arg = '[' + arg + ']';
         }
-      catch (...) {}
+      else if (dynamic_pointer_cast<Jmp>(cmd))
+        try
+          {
+            arg = program.get_label(cmd->arg);
+          }
+        catch (...) {}
 
       ss << arg << sep;
 

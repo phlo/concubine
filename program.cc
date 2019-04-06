@@ -14,7 +14,7 @@ Program::Program(istream & file, string & name) : path(name)
 {
   string token;
 
-  InstructionPtr i;
+  InstructionPtr cmd;
 
   unsigned long line_num = 1;
 
@@ -49,14 +49,14 @@ Program::Program(istream & file, string & name) : path(name)
           line >> token;
         }
 
-      string cmd = token;
+      string symbol = token;
 
       /* parse instruction */
-      switch (Instruction::Set::contains(cmd))
+      switch (Instruction::Set::contains(symbol))
         {
         case Instruction::Type::NULLARY:
             {
-              i = Instruction::Set::create(cmd);
+              cmd = Instruction::Set::create(symbol);
               break;
             }
         case Instruction::Type::UNARY:
@@ -67,7 +67,7 @@ Program::Program(istream & file, string & name) : path(name)
               /* try to parse the argument */
               if (line >> arg)
                 {
-                  i = Instruction::Set::create(cmd, arg);
+                  cmd = Instruction::Set::create(symbol, arg);
                 }
               /* label or indirect addressing */
               else
@@ -93,26 +93,26 @@ Program::Program(istream & file, string & name) : path(name)
                           line_num,
                           "indirect addressing does not support labels");
 
-                      i = Instruction::Set::create(cmd, arg);
+                      cmd = Instruction::Set::create(symbol, arg);
 
                       /* check if the instruction supports indirect addresses */
-                      if (auto m = dynamic_pointer_cast<MemoryInstruction>(i))
+                      if (auto m = dynamic_pointer_cast<MemoryInstruction>(cmd))
                         m->indirect = true;
                       else
                         parser_error(
                           path,
                           line_num,
-                          cmd + " does not support indirect addressing");
+                          symbol + " does not support indirect addressing");
                     }
                   /* arg is a label */
                   else
                     {
                       /* create dummy Instruction which will be replaced by the
                          actual one when all labels are known */
-                      i = Instruction::Set::create(cmd, word_max);
+                      cmd = Instruction::Set::create(symbol, word_max);
 
                       /* check if the instruction supports labels (is a jmp) */
-                      if (dynamic_pointer_cast<Jmp>(i))
+                      if (dynamic_pointer_cast<Jmp>(cmd))
                         {
                           /* get the label */
                           line >> token;
@@ -123,7 +123,7 @@ Program::Program(istream & file, string & name) : path(name)
                           /* add tuple to the list of labelled jumps */
                           labelled_jumps.push_back(
                             make_tuple(
-                              cmd,
+                              symbol,
                               pc,
                               &*labels.insert(token).first));
                         }
@@ -132,7 +132,7 @@ Program::Program(istream & file, string & name) : path(name)
                         parser_error(
                           path,
                           line_num,
-                          cmd + " does not support labels");
+                          symbol + " does not support labels");
                     }
                 }
               break;
@@ -141,25 +141,20 @@ Program::Program(istream & file, string & name) : path(name)
           parser_error(
             path,
             line_num,
-            "'" + cmd + "'" + " unknown instruction");
+            "'" + symbol + "'" + " unknown instruction");
         }
 
-      push_back(i);
+      push_back(cmd);
     }
 
   /* replace labelled dummy instructions */
-  for (const auto & [cmd, pc, label] : labelled_jumps)
+  for (const auto & [sym, pc, label] : labelled_jumps)
     {
       /* check if label exists */
       try
         {
-          word arg = label_to_pc.at(label);
-
-          /* create the actual instruction */
-          i = Instruction::Set::create(cmd, arg);
-
-          /* replace the dummy */
-          at(pc) = i;
+          /* create actual instruction and replace dummy */
+          at(pc) = Instruction::Set::create(sym, label_to_pc.at(label));
         }
       catch (...)
         {

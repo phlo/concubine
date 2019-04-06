@@ -51,15 +51,16 @@ TEST_F(ProgramTest, parse)
   /* indirect addressing */
   program = create_from_file<Program>("data/indirect.addressing.asm");
 
-  ASSERT_EQ(5, program->size());
+  ASSERT_EQ(6, program->size());
   ASSERT_EQ(0, program->sync_ids.size());
   ASSERT_EQ(0, program->labels.size());
 
-  ASSERT_EQ("0\tADDI\t1",     program->print(true, 0));
-  ASSERT_EQ("1\tSTORE\t[1]",  program->print(true, 1));
-  ASSERT_EQ("2\tLOAD\t1",     program->print(true, 2));
-  ASSERT_EQ("3\tADD\t[1]",    program->print(true, 3));
-  ASSERT_EQ("4\tCMP\t[1]",    program->print(true, 4));
+  ASSERT_EQ("0\tSTORE\t1",    program->print(true, 0));
+  ASSERT_EQ("1\tADDI\t1",     program->print(true, 1));
+  ASSERT_EQ("2\tSTORE\t[1]",  program->print(true, 2));
+  ASSERT_EQ("3\tLOAD\t[0]",   program->print(true, 3));
+  ASSERT_EQ("4\tADD\t[1]",    program->print(true, 4));
+  ASSERT_EQ("5\tCMP\t[1]",    program->print(true, 5));
 }
 
 /* parse_empty_line ***********************************************************/

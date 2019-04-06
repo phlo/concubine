@@ -602,6 +602,20 @@ TEST_F(ScheduleTest, print)
   ASSERT_EQ(expected, schedule->print());
 }
 
+TEST_F(ScheduleTest, print_indirect_addressing)
+{
+  schedule_path = "data/indirect.addressing.schedule";
+
+  schedule = create_from_file<Schedule>(schedule_path);
+
+  ifstream ifs(schedule_path);
+  string expected(
+    (istreambuf_iterator<char>(ifs)),
+    istreambuf_iterator<char>());
+
+  ASSERT_EQ(expected, schedule->print());
+}
+
 // Schedule::iterator
 TEST_F(ScheduleTest, iterator)
 {
@@ -640,8 +654,9 @@ TEST_F(ScheduleTest, iterator)
         ASSERT_FALSE(it->heap);
     }
 
+  /* end() remains end() */
   ASSERT_EQ(it++, end);
-  ASSERT_EQ(it, end);
+  ASSERT_EQ(++it, end);
 }
 
 // bool operator == (const Schedule &, const Schedule &)
