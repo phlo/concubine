@@ -74,7 +74,8 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
   activate_threads(threads);
 
   bool done = active.empty();
-  for (unsigned long step = 1; !done && (step <= bound || !bound); step++)
+
+  while (!done && (!bound || schedule->bound < bound))
     {
       ThreadPtr thread = scheduler();
 
