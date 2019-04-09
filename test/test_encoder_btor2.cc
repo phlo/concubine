@@ -1,7 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <fstream>
-
 #include "encoder.hh"
 #include "parser.hh"
 

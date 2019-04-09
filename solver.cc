@@ -1,7 +1,5 @@
 #include "solver.hh"
 
-#include <iostream>
-
 #include "encoder.hh"
 #include "shell.hh"
 #include "smtlib.hh"
@@ -11,12 +9,11 @@ using namespace std;
 bool Solver::sat (string & input)
 {
   Shell shell;
+  string sat;
 
   std_out = shell.run(build_command(), input);
 
-  cout << std_out;
-
-  return !std_out.compare(0, 3, "sat");
+  return (std_out >> sat) && sat == "sat";
 }
 
 void Solver::print (Encoder & formula, string & constraints)
@@ -34,7 +31,7 @@ SchedulePtr Solver::solve (Encoder & formula, string & constraints)
 
   exit_code = shell.last_exit_code();
 
-  cout << std_out;
+  cout << std_out.str();
 
   return build_schedule();
 }

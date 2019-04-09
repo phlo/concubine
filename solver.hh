@@ -1,8 +1,8 @@
 #ifndef SOLVER_HH_
 #define SOLVER_HH_
 
-#include <string>
 #include <memory>
+#include <sstream>
 
 #include "schedule.hh"
 
@@ -11,7 +11,7 @@ struct Encoder;
 struct Solver
 {
   /* the solver's stdout */
-  std::string         std_out;
+  std::stringstream   std_out;
 
   /* the solver's exit code */
   int                 exit_code;

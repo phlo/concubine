@@ -1,7 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <sstream>
-
 #include "boolector.hh"
 #include "parser.hh"
 #include "streamredirecter.hh"
@@ -26,7 +24,7 @@ TEST_F(BoolectorTest, sat)
 
   redirecter.stop();
 
-  ASSERT_EQ("sat\n", boolector.std_out);
+  ASSERT_EQ("sat\n", boolector.std_out.str());
 }
 
 TEST_F(BoolectorTest, unsat)
@@ -42,7 +40,7 @@ TEST_F(BoolectorTest, unsat)
 
   redirecter.stop();
 
-  ASSERT_EQ("unsat\n", boolector.std_out);
+  ASSERT_EQ("unsat\n", boolector.std_out.str());
 }
 
 TEST_F(BoolectorTest, DISABLED_build_schedule)
@@ -58,6 +56,6 @@ TEST_F(BoolectorTest, DISABLED_build_schedule)
 
   redirecter.stop();
 
-  ASSERT_EQ("unsat\n", boolector.std_out);
+  ASSERT_EQ("unsat\n", boolector.std_out.str());
 
 }

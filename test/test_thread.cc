@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "simulator.hh"
 #include "program.hh"
+#include "simulator.hh"
 
 using namespace std;
 

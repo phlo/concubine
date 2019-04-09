@@ -2,8 +2,8 @@
 
 #include <sstream>
 
-#include "z3.hh"
 #include "streamredirecter.hh"
+#include "z3.hh"
 
 using namespace std;
 
@@ -25,7 +25,7 @@ TEST_F(Z3Test, sat)
 
   redirecter.stop();
 
-  ASSERT_EQ("sat\n\"\"\n", z3.std_out);
+  ASSERT_EQ("sat\n\"\"\n", z3.std_out.str());
 }
 
 TEST_F(Z3Test, unsat)
@@ -41,5 +41,5 @@ TEST_F(Z3Test, unsat)
 
   redirecter.stop();
 
-  ASSERT_EQ("unsat\n", z3.std_out);
+  ASSERT_EQ("unsat\n", z3.std_out.str());
 }

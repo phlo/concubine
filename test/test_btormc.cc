@@ -1,7 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <sstream>
-
 #include "btormc.hh"
 #include "streamredirecter.hh"
 
@@ -40,7 +38,7 @@ TEST_F(BtorMCTest, sat)
     "0 1 x#0\n"
     "@0\n"
     ".\n",
-    btormc.std_out);
+    btormc.std_out.str());
 }
 
 TEST_F(BtorMCTest, unsat)
@@ -58,5 +56,5 @@ TEST_F(BtorMCTest, unsat)
 
   redirecter.stop();
 
-  ASSERT_EQ("", btormc.std_out);
+  ASSERT_EQ("", btormc.std_out.str());
 }

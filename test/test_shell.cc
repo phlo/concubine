@@ -30,7 +30,7 @@ TEST_F(ShellTest, ouput)
 {
   string expected = "hello shell";
 
-  string actual = shell.run("echo -n " + expected);
+  string actual = shell.run("echo -n " + expected).str();
 
   ASSERT_EQ(0, shell.last_exit_code());
   ASSERT_EQ(expected, actual);
@@ -41,7 +41,7 @@ TEST_F(ShellTest, input_output)
 {
   string expected = "hello shell";
 
-  string actual = shell.run("cat", expected);
+  string actual = shell.run("cat", expected).str();
 
   ASSERT_EQ(0, shell.last_exit_code());
   ASSERT_EQ(expected, actual);
@@ -53,7 +53,7 @@ TEST_F(ShellTest, pipe_in_pipe)
   string input = "3\n2\n4\n5\n1\n3\n2\n4\n5\n1\n";
   string expected = "1\n2\n3\n4\n5\n";
 
-  string actual = shell.run("sort | uniq", input);
+  string actual = shell.run("sort | uniq", input).str();
 
   ASSERT_EQ(0, shell.last_exit_code());
   ASSERT_EQ(expected, actual);
@@ -63,16 +63,16 @@ TEST_F(ShellTest, pipe_in_pipe)
 TEST_F(ShellTest, abuse)
 {
   string expected = "bash: unknown: command not found\n";
-  string actual = shell.run("unknown");
+  string actual = shell.run("unknown").str();
 
   ASSERT_EQ(127, shell.last_exit_code());
   ASSERT_EQ(expected, actual);
 
-  actual = shell.run("");
+  actual = shell.run("").str();
   ASSERT_EQ("", actual);
 
   string input;
-  actual= shell.run("echo ", input);
+  actual= shell.run("echo ", input).str();
   ASSERT_EQ(0, shell.last_exit_code());
   ASSERT_EQ("\n", actual);
 }

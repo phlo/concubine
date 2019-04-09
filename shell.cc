@@ -1,9 +1,7 @@
 #include "shell.hh"
 
-#include <cstdio>
-#include <cerrno>
 #include <cstring>
-#include <stdexcept>
+#include <sstream>
 
 #include <unistd.h>
 #include <sys/wait.h>
@@ -22,7 +20,7 @@ inline string sys_error () { return "[" + string(strerror(errno)) + "]"; }
 int Shell::last_exit_code () { return exit_code; }
 
 /* Shell::run (string) ********************************************************/
-string Shell::run (string cmd)
+stringstream Shell::run (string cmd)
 {
   string input = "";
 
@@ -30,10 +28,10 @@ string Shell::run (string cmd)
 }
 
 /* Shell::run (string, string &) **********************************************/
-string Shell::run (string cmd, string & input)
+stringstream Shell::run (string cmd, string & input)
 {
   /* stdout read from cmd */
-  string output = "";
+  stringstream output;
 
   /* stdin pipe file descriptors */
   int std_in[2];
@@ -105,7 +103,7 @@ string Shell::run (string cmd, string & input)
       while ((num_read = read(std_out[PIPE_READ], buffer, BUFFER_SIZE - 1)) > 0)
         {
           buffer[num_read] = '\0';
-          output += buffer;
+          output << buffer;
         }
 
       /* close remaining file descriptors */

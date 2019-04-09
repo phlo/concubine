@@ -1,7 +1,5 @@
 #include "boolector.hh"
 
-#include <sstream>
-
 using namespace std;
 
 string Boolector::build_command ()
@@ -12,12 +10,10 @@ string Boolector::build_command ()
 SchedulePtr Boolector::build_schedule ()
 {
   // TODO
-  if (std_out.empty())
+  if (!std_out.rdbuf()->in_avail())
     throw runtime_error("missing model");
 
   SchedulePtr schedule;
-
-  istringstream model(std_out);
 
   return schedule;
 }

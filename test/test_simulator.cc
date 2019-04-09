@@ -1,8 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "simulator.hh"
-
 #include "parser.hh"
+#include "simulator.hh"
 
 using namespace std;
 

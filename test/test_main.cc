@@ -22,20 +22,20 @@ TEST_F(MainTest, illegal_commands)
 {
   string cmd = executable;
 
-  string actual = shell.run(cmd + " WRONG");
+  string actual = shell.run(cmd + " WRONG").str();
 
   ASSERT_EQ(255, shell.last_exit_code());
 
   string expected = "error: no command given";
 
-  actual = shell.run(cmd + " help");
+  actual = shell.run(cmd + " help").str();
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
 
   expected = "error: unknown command WRONG";
 
-  actual = shell.run(cmd + " help WRONG");
+  actual = shell.run(cmd + " help WRONG").str();
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
@@ -56,7 +56,7 @@ TEST_F(MainTest, simulate_increment_sync)
   string cmd =
     executable + args + increment_0 + " " + increment_n;
 
-  string actual = shell.run(cmd);
+  string actual = shell.run(cmd).str();
 
   ASSERT_EQ(0, shell.last_exit_code());
   ASSERT_EQ(expected, actual);
@@ -76,7 +76,7 @@ TEST_F(MainTest, simulate_increment_cas)
   string cmd =
     executable + args + increment + " " + increment;
 
-  string actual = shell.run(cmd);
+  string actual = shell.run(cmd).str();
 
   ASSERT_EQ(0, shell.last_exit_code());
   ASSERT_EQ(expected, actual);
@@ -89,26 +89,26 @@ TEST_F(MainTest, simulate_missing_args)
 
   string expected = "error: got nothing to run\n";
 
-  string actual = shell.run(executable + args);
+  string actual = shell.run(executable + args).str();
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
 
-  actual = shell.run(executable + args + " -v");
+  actual = shell.run(executable + args + " -v").str();
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
 
   expected = "error: missing seed\n";
 
-  actual = shell.run(executable + args + " -s");
+  actual = shell.run(executable + args + " -s").str();
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
 
   expected = "error: missing bound\n";
 
-  actual = shell.run(executable + args + " -k");
+  actual = shell.run(executable + args + " -k").str();
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
@@ -123,7 +123,7 @@ TEST_F(MainTest, simulate_file_not_found)
 
   string cmd = executable + args + program_file;
 
-  string actual = shell.run(cmd);
+  string actual = shell.run(cmd).str();
 
   string expected = "error: " + program_file + " not found\n";
 
@@ -138,7 +138,7 @@ TEST_F(MainTest, simulate_illegal_seed)
 
   string cmd = executable + args + "none.asm";
 
-  string actual = shell.run(cmd);
+  string actual = shell.run(cmd).str();
 
   string expected = "error: illegal seed [WRONG]\n";
 
@@ -153,7 +153,7 @@ TEST_F(MainTest, simulate_illegal_bound)
 
   string cmd = executable + args + "none.asm";
 
-  string actual = shell.run(cmd);
+  string actual = shell.run(cmd).str();
 
   string expected = "error: illegal bound [WRONG]\n";
 
@@ -175,7 +175,7 @@ TEST_F(MainTest, replay_increment_sync)
 
   string cmd = executable + args + schedule_file;
 
-  string actual = shell.run(cmd);
+  string actual = shell.run(cmd).str();
 
   ASSERT_EQ(0, shell.last_exit_code());
   ASSERT_EQ(expected, actual);
@@ -195,7 +195,7 @@ TEST_F(MainTest, replay_increment_cas)
 
   string cmd = executable + args + schedule_file;
 
-  string actual = shell.run(cmd);
+  string actual = shell.run(cmd).str();
 
   ASSERT_EQ(0, shell.last_exit_code());
   ASSERT_EQ(expected, actual);
@@ -208,19 +208,19 @@ TEST_F(MainTest, replay_missing_args)
 
   string expected = "error: no schedule given\n";
 
-  string actual = shell.run(executable + args);
+  string actual = shell.run(executable + args).str();
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
 
-  actual = shell.run(executable + args + " -v");
+  actual = shell.run(executable + args + " -v").str();
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
 
   expected = "error: missing bound\n";
 
-  actual = shell.run(executable + args + " -k");
+  actual = shell.run(executable + args + " -k").str();
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
@@ -235,7 +235,7 @@ TEST_F(MainTest, replay_file_not_found)
 
   string cmd = executable + args + program_file;
 
-  string actual = shell.run(cmd);
+  string actual = shell.run(cmd).str();
 
   string expected = "error: " + program_file + " not found\n";
 
@@ -250,7 +250,7 @@ TEST_F(MainTest, replay_illegal_bound)
 
   string cmd = executable + args + "none.asm";
 
-  string actual = shell.run(cmd);
+  string actual = shell.run(cmd).str();
 
   string expected = "error: illegal bound [WRONG]\n";
 
@@ -273,7 +273,7 @@ TEST_F(MainTest, solve_pretend_functional_cas)
 
   expected += "\n(check-sat)\n(exit)\n";
 
-  string actual = shell.run(cmd);
+  string actual = shell.run(cmd).str();
 
   EXPECT_EQ(0, shell.last_exit_code());
   ASSERT_EQ(expected, actual);
@@ -289,7 +289,7 @@ TEST_F(MainTest, solve_cas)
 
   string expected = "sat";
 
-  string actual = shell.run(cmd);
+  string actual = shell.run(cmd).str();
 
   ASSERT_EQ(0, shell.last_exit_code());
   ASSERT_EQ("sat", actual.substr(0, 3));
@@ -304,7 +304,7 @@ TEST_F(MainTest, solve_illegal_args)
   /* no arguments */
   string expected = "error: too few arguments\n";
 
-  string actual = shell.run(executable);
+  string actual = shell.run(executable).str();
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
@@ -312,7 +312,7 @@ TEST_F(MainTest, solve_illegal_args)
   /* unknown option */
   expected = "error: unknown option [-foo]\n";
 
-  actual = shell.run(executable + "-foo 1 " + program);
+  actual = shell.run(executable + "-foo 1 " + program).str();
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
@@ -320,7 +320,7 @@ TEST_F(MainTest, solve_illegal_args)
   /* missing bound */
   expected = "error: illegal bound [" + program + "]\n";
 
-  actual = shell.run(executable + program + " " + program);
+  actual = shell.run(executable + program + " " + program).str();
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
@@ -328,7 +328,7 @@ TEST_F(MainTest, solve_illegal_args)
   /* illegal bound (string) */
   expected = "error: illegal bound [WRONG]\n";
 
-  actual = shell.run(executable + "WRONG " + program);
+  actual = shell.run(executable + "WRONG " + program).str();
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
@@ -336,7 +336,7 @@ TEST_F(MainTest, solve_illegal_args)
   /* illegal bound (0) */
   expected = "error: illegal bound [0]\n";
 
-  actual = shell.run(executable + "0 " + program);
+  actual = shell.run(executable + "0 " + program).str();
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
@@ -344,14 +344,14 @@ TEST_F(MainTest, solve_illegal_args)
   /* constraint file missing */
   expected = "error: 1 not found\n";
 
-  actual = shell.run(executable + "-c 1 " + program);
+  actual = shell.run(executable + "-c 1 " + program).str();
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
 
   expected = "error: missing constraints file\n";
 
-  actual = shell.run(executable + "-v -c");
+  actual = shell.run(executable + "-v -c").str();
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
@@ -359,7 +359,7 @@ TEST_F(MainTest, solve_illegal_args)
   /* constraint file not found */
   expected = "error: FILE not found\n";
 
-  actual = shell.run(executable + "-c FILE 1 " + program);
+  actual = shell.run(executable + "-c FILE 1 " + program).str();
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
@@ -367,7 +367,7 @@ TEST_F(MainTest, solve_illegal_args)
   /* encoder missing */
   expected = "error: missing encoder\n";
 
-  actual = shell.run(executable + "-v -e");
+  actual = shell.run(executable + "-v -e").str();
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
@@ -375,7 +375,7 @@ TEST_F(MainTest, solve_illegal_args)
   /* unknown encoder */
   expected = "error: unknown encoder [FOO]\n";
 
-  actual = shell.run(executable + "-e FOO 1 " + program);
+  actual = shell.run(executable + "-e FOO 1 " + program).str();
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
@@ -383,7 +383,7 @@ TEST_F(MainTest, solve_illegal_args)
   /* unknown solver */
   expected = "error: unknown solver [FOO]\n";
 
-  actual = shell.run(executable + "-s FOO 1 " + program);
+  actual = shell.run(executable + "-s FOO 1 " + program).str();
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
@@ -397,12 +397,12 @@ TEST_F(MainTest, solve_file_not_found)
 
   string expected = "error: file_not_found not found\n";
 
-  string actual = shell.run(cmd + "file_not_found");
+  string actual = shell.run(cmd + "file_not_found").str();
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual);
 
-  actual = shell.run(cmd + "data/increment.cas.asm file_not_found");
+  actual = shell.run(cmd + "data/increment.cas.asm file_not_found").str();
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual);

@@ -2,7 +2,6 @@
 #define SHELL_HH_
 
 #include <memory>
-#include <string>
 
 /*******************************************************************************
  * Shell
@@ -18,10 +17,10 @@ public:
   int last_exit_code (void);
 
   /* runs shell command and returns it's output */
-  std::string run (std::string);
+  std::stringstream run (std::string);
 
   /* pipes input into shell command and returns it's output */
-  std::string run (std::string, std::string &);
+  std::stringstream run (std::string, std::string &);
 };
 
 /*******************************************************************************

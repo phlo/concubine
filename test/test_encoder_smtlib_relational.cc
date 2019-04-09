@@ -1,9 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <fstream>
-
-#include "parser.hh"
 #include "encoder.hh"
+#include "parser.hh"
 #include "smtlib.hh"
 
 using namespace std;
