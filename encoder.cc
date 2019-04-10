@@ -66,13 +66,13 @@ Encoder::Encoder (const ProgramListPtr p, unsigned long b) :
 
 void Encoder::iterate_threads (function<void()> fun)
 {
-  for (thread = 1; thread <= num_threads; thread++)
+  for (thread = 0; thread < num_threads; thread++)
     fun();
 }
 
 void Encoder::iterate_threads (function<void(Program &)> fun)
 {
-  thread = 1;
+  thread = 0;
   for (const ProgramPtr p_ptr : *programs)
     {
       fun(*p_ptr);
@@ -82,7 +82,7 @@ void Encoder::iterate_threads (function<void(Program &)> fun)
 
 void Encoder::iterate_threads_reverse (function<void(Program &)> fun)
 {
-  thread = num_threads;
+  thread = num_threads - 1;
   for (auto rit = programs->rbegin(); rit != programs->rend(); ++rit)
     {
       fun(**rit);
@@ -1037,7 +1037,7 @@ string SMTLibEncoderRelational::stmt_activation (word target)
 {
   vector<string> args;
 
-  for (word cur = 0; cur < programs->at(thread - 1u)->size(); cur++)
+  for (word cur = 0; cur < programs->at(thread)->size(); cur++)
     args.push_back(
       cur == target
         ? stmt_var(step + 1, thread, target)
@@ -1489,7 +1489,7 @@ string Btor2Encoder::nid ()
 string Btor2Encoder::symbol (word p)
 {
   UnaryInstruction & op =
-    *dynamic_pointer_cast<UnaryInstruction>(programs->at(thread - 1u)->at(p));
+    *dynamic_pointer_cast<UnaryInstruction>(programs->at(thread)->at(p));
 
   return
     to_string(thread) +
@@ -1934,19 +1934,17 @@ void Btor2Encoder::add_state_update (
                                      string sym,
                                      unordered_map<
                                        word,
-                                       vector<word>> & alters_state
+                                       vector<word>> & alters_state,
+                                     const bool global
                                     )
 {
   string nid_next = nid_state;
 
-  /* thread == 0 -> global state */
-  bool is_global = !thread;
+  /* initialize thread for global state updates */
+  if (global)
+    thread = 0;
 
-  /* initialize thread to 1 for global state updates */
-  if (is_global)
-    thread = 1;
-
-  if (verbose && !is_global)
+  if (verbose && !global)
     formula << btor2::comment(sym) << eol;
 
   unordered_map<word, vector<word>>::iterator thread_it;
@@ -1962,7 +1960,7 @@ void Btor2Encoder::add_state_update (
           {
             UnaryInstruction & op =
               *dynamic_pointer_cast<UnaryInstruction>(
-                programs->at(thread - 1u)->at(pc));
+                programs->at(thread)->at(pc));
 
             formula <<
               btor2::ite(
@@ -1974,7 +1972,7 @@ void Btor2Encoder::add_state_update (
                 verbose ? symbol(pc) : "");
           }
       }
-  while (is_global && thread++ < num_threads);
+  while (global && thread++ < num_threads);
 
   formula << btor2::next(nid(), sid, nid_state, nid_next) << eol;
 }
@@ -1986,12 +1984,13 @@ void Btor2Encoder::add_accu_update ()
 
   update_accu = true;
 
-  for (thread = 1; thread <= num_threads; thread++)
+  iterate_threads([&] {
     add_state_update(
       nids_accu[thread],
       sid_bv,
       "accu_" + to_string(thread),
       alters_accu);
+  });
 
   update_accu = false;
 }
@@ -2001,12 +2000,13 @@ void Btor2Encoder::add_mem_update ()
   if (verbose)
     formula << btor2::comment_subsection("update CAS memory register");
 
-  for (thread = 1; thread <= num_threads; thread++)
+  iterate_threads([&] {
     add_state_update(
       nids_mem[thread],
       sid_bv,
       "mem_" + to_string(thread),
       alters_mem);
+  });
 }
 
 void Btor2Encoder::add_heap_update ()
@@ -2014,9 +2014,7 @@ void Btor2Encoder::add_heap_update ()
   if (verbose)
     formula << btor2::comment_subsection("update heap");
 
-  thread = 0; /* global state update */
-
-  add_state_update(nid_heap, sid_heap, "heap", alters_heap);
+  add_state_update(nid_heap, sid_heap, "heap", alters_heap, true);
 }
 
 void Btor2Encoder::add_exit_flag_update ()
@@ -2046,9 +2044,7 @@ void Btor2Encoder::add_exit_code_update ()
   if (verbose)
     formula << btor2::comment_subsection("update exit code");
 
-  thread = 0; /* global state update */
-
-  add_state_update(nid_exit_code, sid_bv, "exit-code", exit_pcs);
+  add_state_update(nid_exit_code, sid_bv, "exit-code", exit_pcs, true);
 }
 
 void Btor2Encoder::add_state_update ()

@@ -399,7 +399,8 @@ struct Btor2Encoder : public Encoder
                                                 std::string,
                                                 std::unordered_map<
                                                   word,
-                                                  std::vector<word>> &
+                                                  std::vector<word>> &,
+                                                const bool = false
                                                );
   void                        add_accu_update (void);
   void                        add_mem_update (void);

@@ -34,8 +34,10 @@ TEST_RUN := run_all_tests
 GTEST_FILTER = --gtest_filter=
 
 GTEST_FILTER += "*"
+# GTEST_FILTER += *Encoder*
 # GTEST_FILTER += SMTLibEncoderFunctional*
 # GTEST_FILTER += SMTLibEncoderRelational*
+# GTEST_FILTER += Btor2Encoder*
 # GTEST_FILTER += Btor2*
 # GTEST_FILTER += SimulatorTest.*
 # GTEST_FILTER += MainTest.*
@@ -43,6 +45,7 @@ GTEST_FILTER += "*"
 # GTEST_FILTER += ProgramTest.*
 # GTEST_FILTER += ScheduleTest.*
 # GTEST_FILTER += InstructionSetTest.*
+# GTEST_FILTER += BoolectorTest.*
 
 GTEST_FILTER := $(shell echo ${GTEST_FILTER} | sed -e 's/ /:/g')
 

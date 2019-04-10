@@ -111,23 +111,23 @@ TEST_F(SMTLibEncoderFunctionalTest, add_statement_activation_basic)
     "; statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
+    "(declare-fun stmt_2_0_0 () Bool)\n"
+    "(declare-fun stmt_2_0_1 () Bool)\n"
+    "\n"
     "(declare-fun stmt_2_1_0 () Bool)\n"
     "(declare-fun stmt_2_1_1 () Bool)\n"
     "\n"
     "(declare-fun stmt_2_2_0 () Bool)\n"
     "(declare-fun stmt_2_2_1 () Bool)\n"
     "\n"
-    "(declare-fun stmt_2_3_0 () Bool)\n"
-    "(declare-fun stmt_2_3_1 () Bool)\n"
+    "(assert (= stmt_2_0_0 (and stmt_1_0_0 (not exec_1_0_0))))\n"
+    "(assert (= stmt_2_0_1 (ite stmt_1_0_0 exec_1_0_0 (and stmt_1_0_1 (not exec_1_0_1)))))\n"
     "\n"
     "(assert (= stmt_2_1_0 (and stmt_1_1_0 (not exec_1_1_0))))\n"
     "(assert (= stmt_2_1_1 (ite stmt_1_1_0 exec_1_1_0 (and stmt_1_1_1 (not exec_1_1_1)))))\n"
     "\n"
     "(assert (= stmt_2_2_0 (and stmt_1_2_0 (not exec_1_2_0))))\n"
-    "(assert (= stmt_2_2_1 (ite stmt_1_2_0 exec_1_2_0 (and stmt_1_2_1 (not exec_1_2_1)))))\n"
-    "\n"
-    "(assert (= stmt_2_3_0 (and stmt_1_3_0 (not exec_1_3_0))))\n"
-    "(assert (= stmt_2_3_1 (ite stmt_1_3_0 exec_1_3_0 (and stmt_1_3_1 (not exec_1_3_1)))))\n\n";
+    "(assert (= stmt_2_2_1 (ite stmt_1_2_0 exec_1_2_0 (and stmt_1_2_1 (not exec_1_2_1)))))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -139,23 +139,23 @@ TEST_F(SMTLibEncoderFunctionalTest, add_statement_activation_basic)
   verbose = true;
 
   expected =
+    "(declare-fun stmt_2_0_0 () Bool)\n"
+    "(declare-fun stmt_2_0_1 () Bool)\n"
+    "\n"
     "(declare-fun stmt_2_1_0 () Bool)\n"
     "(declare-fun stmt_2_1_1 () Bool)\n"
     "\n"
     "(declare-fun stmt_2_2_0 () Bool)\n"
     "(declare-fun stmt_2_2_1 () Bool)\n"
     "\n"
-    "(declare-fun stmt_2_3_0 () Bool)\n"
-    "(declare-fun stmt_2_3_1 () Bool)\n"
+    "(assert (= stmt_2_0_0 (and stmt_1_0_0 (not exec_1_0_0))))\n"
+    "(assert (= stmt_2_0_1 (ite stmt_1_0_0 exec_1_0_0 (and stmt_1_0_1 (not exec_1_0_1)))))\n"
     "\n"
     "(assert (= stmt_2_1_0 (and stmt_1_1_0 (not exec_1_1_0))))\n"
     "(assert (= stmt_2_1_1 (ite stmt_1_1_0 exec_1_1_0 (and stmt_1_1_1 (not exec_1_1_1)))))\n"
     "\n"
     "(assert (= stmt_2_2_0 (and stmt_1_2_0 (not exec_1_2_0))))\n"
-    "(assert (= stmt_2_2_1 (ite stmt_1_2_0 exec_1_2_0 (and stmt_1_2_1 (not exec_1_2_1)))))\n"
-    "\n"
-    "(assert (= stmt_2_3_0 (and stmt_1_3_0 (not exec_1_3_0))))\n"
-    "(assert (= stmt_2_3_1 (ite stmt_1_3_0 exec_1_3_0 (and stmt_1_3_1 (not exec_1_3_1)))))\n\n";
+    "(assert (= stmt_2_2_1 (ite stmt_1_2_0 exec_1_2_0 (and stmt_1_2_1 (not exec_1_2_1)))))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 }
@@ -179,6 +179,10 @@ TEST_F(SMTLibEncoderFunctionalTest, add_statement_activation_jmp)
     "; statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
+    "(declare-fun stmt_2_0_0 () Bool)\n"
+    "(declare-fun stmt_2_0_1 () Bool)\n"
+    "(declare-fun stmt_2_0_2 () Bool)\n"
+    "\n"
     "(declare-fun stmt_2_1_0 () Bool)\n"
     "(declare-fun stmt_2_1_1 () Bool)\n"
     "(declare-fun stmt_2_1_2 () Bool)\n"
@@ -187,9 +191,9 @@ TEST_F(SMTLibEncoderFunctionalTest, add_statement_activation_jmp)
     "(declare-fun stmt_2_2_1 () Bool)\n"
     "(declare-fun stmt_2_2_2 () Bool)\n"
     "\n"
-    "(declare-fun stmt_2_3_0 () Bool)\n"
-    "(declare-fun stmt_2_3_1 () Bool)\n"
-    "(declare-fun stmt_2_3_2 () Bool)\n"
+    "(assert (= stmt_2_0_0 (and stmt_1_0_0 (not exec_1_0_0))))\n"
+    "(assert (= stmt_2_0_1 (ite stmt_1_0_2 exec_1_0_2 (ite stmt_1_0_0 exec_1_0_0 (and stmt_1_0_1 (not exec_1_0_1))))))\n"
+    "(assert (= stmt_2_0_2 (ite stmt_1_0_1 exec_1_0_1 (and stmt_1_0_2 (not exec_1_0_2)))))\n"
     "\n"
     "(assert (= stmt_2_1_0 (and stmt_1_1_0 (not exec_1_1_0))))\n"
     "(assert (= stmt_2_1_1 (ite stmt_1_1_2 exec_1_1_2 (ite stmt_1_1_0 exec_1_1_0 (and stmt_1_1_1 (not exec_1_1_1))))))\n"
@@ -197,11 +201,7 @@ TEST_F(SMTLibEncoderFunctionalTest, add_statement_activation_jmp)
     "\n"
     "(assert (= stmt_2_2_0 (and stmt_1_2_0 (not exec_1_2_0))))\n"
     "(assert (= stmt_2_2_1 (ite stmt_1_2_2 exec_1_2_2 (ite stmt_1_2_0 exec_1_2_0 (and stmt_1_2_1 (not exec_1_2_1))))))\n"
-    "(assert (= stmt_2_2_2 (ite stmt_1_2_1 exec_1_2_1 (and stmt_1_2_2 (not exec_1_2_2)))))\n"
-    "\n"
-    "(assert (= stmt_2_3_0 (and stmt_1_3_0 (not exec_1_3_0))))\n"
-    "(assert (= stmt_2_3_1 (ite stmt_1_3_2 exec_1_3_2 (ite stmt_1_3_0 exec_1_3_0 (and stmt_1_3_1 (not exec_1_3_1))))))\n"
-    "(assert (= stmt_2_3_2 (ite stmt_1_3_1 exec_1_3_1 (and stmt_1_3_2 (not exec_1_3_2)))))\n\n";
+    "(assert (= stmt_2_2_2 (ite stmt_1_2_1 exec_1_2_1 (and stmt_1_2_2 (not exec_1_2_2)))))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 }
@@ -226,6 +226,11 @@ TEST_F(SMTLibEncoderFunctionalTest, add_statement_activation_jmp_conditional)
     "; statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
+    "(declare-fun stmt_2_0_0 () Bool)\n"
+    "(declare-fun stmt_2_0_1 () Bool)\n"
+    "(declare-fun stmt_2_0_2 () Bool)\n"
+    "(declare-fun stmt_2_0_3 () Bool)\n"
+    "\n"
     "(declare-fun stmt_2_1_0 () Bool)\n"
     "(declare-fun stmt_2_1_1 () Bool)\n"
     "(declare-fun stmt_2_1_2 () Bool)\n"
@@ -236,10 +241,10 @@ TEST_F(SMTLibEncoderFunctionalTest, add_statement_activation_jmp_conditional)
     "(declare-fun stmt_2_2_2 () Bool)\n"
     "(declare-fun stmt_2_2_3 () Bool)\n"
     "\n"
-    "(declare-fun stmt_2_3_0 () Bool)\n"
-    "(declare-fun stmt_2_3_1 () Bool)\n"
-    "(declare-fun stmt_2_3_2 () Bool)\n"
-    "(declare-fun stmt_2_3_3 () Bool)\n"
+    "(assert (= stmt_2_0_0 (and stmt_1_0_0 (not exec_1_0_0))))\n"
+    "(assert (= stmt_2_0_1 (ite stmt_1_0_2 (and exec_1_0_2 (not (= accu_1_0 #x0000))) (ite stmt_1_0_0 exec_1_0_0 (and stmt_1_0_1 (not exec_1_0_1))))))\n"
+    "(assert (= stmt_2_0_2 (ite stmt_1_0_1 exec_1_0_1 (and stmt_1_0_2 (not exec_1_0_2)))))\n"
+    "(assert (= stmt_2_0_3 (ite stmt_1_0_2 (and exec_1_0_2 (not (not (= accu_1_0 #x0000)))) (and stmt_1_0_3 (not exec_1_0_3)))))\n"
     "\n"
     "(assert (= stmt_2_1_0 (and stmt_1_1_0 (not exec_1_1_0))))\n"
     "(assert (= stmt_2_1_1 (ite stmt_1_1_2 (and exec_1_1_2 (not (= accu_1_1 #x0000))) (ite stmt_1_1_0 exec_1_1_0 (and stmt_1_1_1 (not exec_1_1_1))))))\n"
@@ -249,12 +254,7 @@ TEST_F(SMTLibEncoderFunctionalTest, add_statement_activation_jmp_conditional)
     "(assert (= stmt_2_2_0 (and stmt_1_2_0 (not exec_1_2_0))))\n"
     "(assert (= stmt_2_2_1 (ite stmt_1_2_2 (and exec_1_2_2 (not (= accu_1_2 #x0000))) (ite stmt_1_2_0 exec_1_2_0 (and stmt_1_2_1 (not exec_1_2_1))))))\n"
     "(assert (= stmt_2_2_2 (ite stmt_1_2_1 exec_1_2_1 (and stmt_1_2_2 (not exec_1_2_2)))))\n"
-    "(assert (= stmt_2_2_3 (ite stmt_1_2_2 (and exec_1_2_2 (not (not (= accu_1_2 #x0000)))) (and stmt_1_2_3 (not exec_1_2_3)))))\n"
-    "\n"
-    "(assert (= stmt_2_3_0 (and stmt_1_3_0 (not exec_1_3_0))))\n"
-    "(assert (= stmt_2_3_1 (ite stmt_1_3_2 (and exec_1_3_2 (not (= accu_1_3 #x0000))) (ite stmt_1_3_0 exec_1_3_0 (and stmt_1_3_1 (not exec_1_3_1))))))\n"
-    "(assert (= stmt_2_3_2 (ite stmt_1_3_1 exec_1_3_1 (and stmt_1_3_2 (not exec_1_3_2)))))\n"
-    "(assert (= stmt_2_3_3 (ite stmt_1_3_2 (and exec_1_3_2 (not (not (= accu_1_3 #x0000)))) (and stmt_1_3_3 (not exec_1_3_3)))))\n\n";
+    "(assert (= stmt_2_2_3 (ite stmt_1_2_2 (and exec_1_2_2 (not (not (= accu_1_2 #x0000)))) (and stmt_1_2_3 (not exec_1_2_3)))))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 }
@@ -279,6 +279,11 @@ TEST_F(SMTLibEncoderFunctionalTest, add_statement_activation_jmp_start)
     "; statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
+    "(declare-fun stmt_2_0_0 () Bool)\n"
+    "(declare-fun stmt_2_0_1 () Bool)\n"
+    "(declare-fun stmt_2_0_2 () Bool)\n"
+    "(declare-fun stmt_2_0_3 () Bool)\n"
+    "\n"
     "(declare-fun stmt_2_1_0 () Bool)\n"
     "(declare-fun stmt_2_1_1 () Bool)\n"
     "(declare-fun stmt_2_1_2 () Bool)\n"
@@ -289,10 +294,10 @@ TEST_F(SMTLibEncoderFunctionalTest, add_statement_activation_jmp_start)
     "(declare-fun stmt_2_2_2 () Bool)\n"
     "(declare-fun stmt_2_2_3 () Bool)\n"
     "\n"
-    "(declare-fun stmt_2_3_0 () Bool)\n"
-    "(declare-fun stmt_2_3_1 () Bool)\n"
-    "(declare-fun stmt_2_3_2 () Bool)\n"
-    "(declare-fun stmt_2_3_3 () Bool)\n"
+    "(assert (= stmt_2_0_0 (ite stmt_1_0_2 (and exec_1_0_2 (not (= accu_1_0 #x0000))) (and stmt_1_0_0 (not exec_1_0_0)))))\n"
+    "(assert (= stmt_2_0_1 (ite stmt_1_0_0 exec_1_0_0 (and stmt_1_0_1 (not exec_1_0_1)))))\n"
+    "(assert (= stmt_2_0_2 (ite stmt_1_0_1 exec_1_0_1 (and stmt_1_0_2 (not exec_1_0_2)))))\n"
+    "(assert (= stmt_2_0_3 (ite stmt_1_0_2 (and exec_1_0_2 (not (not (= accu_1_0 #x0000)))) (and stmt_1_0_3 (not exec_1_0_3)))))\n"
     "\n"
     "(assert (= stmt_2_1_0 (ite stmt_1_1_2 (and exec_1_1_2 (not (= accu_1_1 #x0000))) (and stmt_1_1_0 (not exec_1_1_0)))))\n"
     "(assert (= stmt_2_1_1 (ite stmt_1_1_0 exec_1_1_0 (and stmt_1_1_1 (not exec_1_1_1)))))\n"
@@ -302,12 +307,7 @@ TEST_F(SMTLibEncoderFunctionalTest, add_statement_activation_jmp_start)
     "(assert (= stmt_2_2_0 (ite stmt_1_2_2 (and exec_1_2_2 (not (= accu_1_2 #x0000))) (and stmt_1_2_0 (not exec_1_2_0)))))\n"
     "(assert (= stmt_2_2_1 (ite stmt_1_2_0 exec_1_2_0 (and stmt_1_2_1 (not exec_1_2_1)))))\n"
     "(assert (= stmt_2_2_2 (ite stmt_1_2_1 exec_1_2_1 (and stmt_1_2_2 (not exec_1_2_2)))))\n"
-    "(assert (= stmt_2_2_3 (ite stmt_1_2_2 (and exec_1_2_2 (not (not (= accu_1_2 #x0000)))) (and stmt_1_2_3 (not exec_1_2_3)))))\n"
-    "\n"
-    "(assert (= stmt_2_3_0 (ite stmt_1_3_2 (and exec_1_3_2 (not (= accu_1_3 #x0000))) (and stmt_1_3_0 (not exec_1_3_0)))))\n"
-    "(assert (= stmt_2_3_1 (ite stmt_1_3_0 exec_1_3_0 (and stmt_1_3_1 (not exec_1_3_1)))))\n"
-    "(assert (= stmt_2_3_2 (ite stmt_1_3_1 exec_1_3_1 (and stmt_1_3_2 (not exec_1_3_2)))))\n"
-    "(assert (= stmt_2_3_3 (ite stmt_1_3_2 (and exec_1_3_2 (not (not (= accu_1_3 #x0000)))) (and stmt_1_3_3 (not exec_1_3_3)))))\n\n";
+    "(assert (= stmt_2_2_3 (ite stmt_1_2_2 (and exec_1_2_2 (not (not (= accu_1_2 #x0000)))) (and stmt_1_2_3 (not exec_1_2_3)))))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 }
@@ -333,6 +333,12 @@ TEST_F(SMTLibEncoderFunctionalTest, add_statement_activation_jmp_twice)
     "; statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
+    "(declare-fun stmt_2_0_0 () Bool)\n"
+    "(declare-fun stmt_2_0_1 () Bool)\n"
+    "(declare-fun stmt_2_0_2 () Bool)\n"
+    "(declare-fun stmt_2_0_3 () Bool)\n"
+    "(declare-fun stmt_2_0_4 () Bool)\n"
+    "\n"
     "(declare-fun stmt_2_1_0 () Bool)\n"
     "(declare-fun stmt_2_1_1 () Bool)\n"
     "(declare-fun stmt_2_1_2 () Bool)\n"
@@ -345,11 +351,11 @@ TEST_F(SMTLibEncoderFunctionalTest, add_statement_activation_jmp_twice)
     "(declare-fun stmt_2_2_3 () Bool)\n"
     "(declare-fun stmt_2_2_4 () Bool)\n"
     "\n"
-    "(declare-fun stmt_2_3_0 () Bool)\n"
-    "(declare-fun stmt_2_3_1 () Bool)\n"
-    "(declare-fun stmt_2_3_2 () Bool)\n"
-    "(declare-fun stmt_2_3_3 () Bool)\n"
-    "(declare-fun stmt_2_3_4 () Bool)\n"
+    "(assert (= stmt_2_0_0 (and stmt_1_0_0 (not exec_1_0_0))))\n"
+    "(assert (= stmt_2_0_1 (ite stmt_1_0_3 (and exec_1_0_3 (not (= accu_1_0 #x0000))) (ite stmt_1_0_2 (and exec_1_0_2 (= accu_1_0 #x0000)) (ite stmt_1_0_0 exec_1_0_0 (and stmt_1_0_1 (not exec_1_0_1)))))))\n"
+    "(assert (= stmt_2_0_2 (ite stmt_1_0_1 exec_1_0_1 (and stmt_1_0_2 (not exec_1_0_2)))))\n"
+    "(assert (= stmt_2_0_3 (ite stmt_1_0_2 (and exec_1_0_2 (not (= accu_1_0 #x0000))) (and stmt_1_0_3 (not exec_1_0_3)))))\n"
+    "(assert (= stmt_2_0_4 (ite stmt_1_0_3 (and exec_1_0_3 (not (not (= accu_1_0 #x0000)))) (and stmt_1_0_4 (not exec_1_0_4)))))\n"
     "\n"
     "(assert (= stmt_2_1_0 (and stmt_1_1_0 (not exec_1_1_0))))\n"
     "(assert (= stmt_2_1_1 (ite stmt_1_1_3 (and exec_1_1_3 (not (= accu_1_1 #x0000))) (ite stmt_1_1_2 (and exec_1_1_2 (= accu_1_1 #x0000)) (ite stmt_1_1_0 exec_1_1_0 (and stmt_1_1_1 (not exec_1_1_1)))))))\n"
@@ -361,13 +367,7 @@ TEST_F(SMTLibEncoderFunctionalTest, add_statement_activation_jmp_twice)
     "(assert (= stmt_2_2_1 (ite stmt_1_2_3 (and exec_1_2_3 (not (= accu_1_2 #x0000))) (ite stmt_1_2_2 (and exec_1_2_2 (= accu_1_2 #x0000)) (ite stmt_1_2_0 exec_1_2_0 (and stmt_1_2_1 (not exec_1_2_1)))))))\n"
     "(assert (= stmt_2_2_2 (ite stmt_1_2_1 exec_1_2_1 (and stmt_1_2_2 (not exec_1_2_2)))))\n"
     "(assert (= stmt_2_2_3 (ite stmt_1_2_2 (and exec_1_2_2 (not (= accu_1_2 #x0000))) (and stmt_1_2_3 (not exec_1_2_3)))))\n"
-    "(assert (= stmt_2_2_4 (ite stmt_1_2_3 (and exec_1_2_3 (not (not (= accu_1_2 #x0000)))) (and stmt_1_2_4 (not exec_1_2_4)))))\n"
-    "\n"
-    "(assert (= stmt_2_3_0 (and stmt_1_3_0 (not exec_1_3_0))))\n"
-    "(assert (= stmt_2_3_1 (ite stmt_1_3_3 (and exec_1_3_3 (not (= accu_1_3 #x0000))) (ite stmt_1_3_2 (and exec_1_3_2 (= accu_1_3 #x0000)) (ite stmt_1_3_0 exec_1_3_0 (and stmt_1_3_1 (not exec_1_3_1)))))))\n"
-    "(assert (= stmt_2_3_2 (ite stmt_1_3_1 exec_1_3_1 (and stmt_1_3_2 (not exec_1_3_2)))))\n"
-    "(assert (= stmt_2_3_3 (ite stmt_1_3_2 (and exec_1_3_2 (not (= accu_1_3 #x0000))) (and stmt_1_3_3 (not exec_1_3_3)))))\n"
-    "(assert (= stmt_2_3_4 (ite stmt_1_3_3 (and exec_1_3_3 (not (not (= accu_1_3 #x0000)))) (and stmt_1_3_4 (not exec_1_3_4)))))\n\n";
+    "(assert (= stmt_2_2_4 (ite stmt_1_2_3 (and exec_1_2_3 (not (not (= accu_1_2 #x0000)))) (and stmt_1_2_4 (not exec_1_2_4)))))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 }
@@ -383,10 +383,28 @@ TEST_F(SMTLibEncoderFunctionalTest, add_state_update)
     "; state update ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; accu states - accu_<step>_<thread>\n"
+    "(declare-fun accu_1_0 () (_ BitVec 16))\n"
     "(declare-fun accu_1_1 () (_ BitVec 16))\n"
     "(declare-fun accu_1_2 () (_ BitVec 16))\n"
-    "(declare-fun accu_1_3 () (_ BitVec 16))\n"
     "\n"
+    "(assert (= accu_1_0 "
+      "(ite exec_1_0_0 "
+        "(select heap_0 #x0001) "
+        "(ite exec_1_0_2 "
+          "(bvadd accu_0_0 (select heap_0 #x0001)) "
+          "(ite exec_1_0_3 "
+            "(bvadd accu_0_0 #x0001) "
+            "(ite exec_1_0_4 "
+              "(bvsub accu_0_0 (select heap_0 #x0001)) "
+              "(ite exec_1_0_5 "
+                "(bvsub accu_0_0 #x0001) "
+                "(ite exec_1_0_6 "
+                  "(bvsub accu_0_0 (select heap_0 #x0001)) "
+                  "(ite exec_1_0_13 "
+                    "(select heap_0 #x0001) "
+                    "(ite exec_1_0_14 "
+                      "(ite (= mem_0_0 (select heap_0 #x0001)) #x0001 #x0000) "
+                      "accu_0_0))))))))))\n"
     "(assert (= accu_1_1 "
       "(ite exec_1_1_0 "
         "(select heap_0 #x0001) "
@@ -423,58 +441,40 @@ TEST_F(SMTLibEncoderFunctionalTest, add_state_update)
                     "(ite exec_1_2_14 "
                       "(ite (= mem_0_2 (select heap_0 #x0001)) #x0001 #x0000) "
                       "accu_0_2))))))))))\n"
-    "(assert (= accu_1_3 "
-      "(ite exec_1_3_0 "
-        "(select heap_0 #x0001) "
-        "(ite exec_1_3_2 "
-          "(bvadd accu_0_3 (select heap_0 #x0001)) "
-          "(ite exec_1_3_3 "
-            "(bvadd accu_0_3 #x0001) "
-            "(ite exec_1_3_4 "
-              "(bvsub accu_0_3 (select heap_0 #x0001)) "
-              "(ite exec_1_3_5 "
-                "(bvsub accu_0_3 #x0001) "
-                "(ite exec_1_3_6 "
-                  "(bvsub accu_0_3 (select heap_0 #x0001)) "
-                  "(ite exec_1_3_13 "
-                    "(select heap_0 #x0001) "
-                    "(ite exec_1_3_14 "
-                      "(ite (= mem_0_3 (select heap_0 #x0001)) #x0001 #x0000) "
-                      "accu_0_3))))))))))\n"
     "\n"
     "; mem states - mem_<step>_<thread>\n"
+    "(declare-fun mem_1_0 () (_ BitVec 16))\n"
     "(declare-fun mem_1_1 () (_ BitVec 16))\n"
     "(declare-fun mem_1_2 () (_ BitVec 16))\n"
-    "(declare-fun mem_1_3 () (_ BitVec 16))\n"
     "\n"
+    "(assert (= mem_1_0 "
+      "(ite exec_1_0_13 (select heap_0 #x0001) mem_0_0)))\n"
     "(assert (= mem_1_1 "
       "(ite exec_1_1_13 (select heap_0 #x0001) mem_0_1)))\n"
     "(assert (= mem_1_2 "
       "(ite exec_1_2_13 (select heap_0 #x0001) mem_0_2)))\n"
-    "(assert (= mem_1_3 "
-      "(ite exec_1_3_13 (select heap_0 #x0001) mem_0_3)))\n"
     "\n"
     "; heap states - heap_<step>\n"
     "(declare-fun heap_1 () (Array (_ BitVec 16) (_ BitVec 16)))\n"
     "\n"
     "(assert (= heap_1 "
-      "(ite exec_1_1_1 "
-        "(store heap_0 #x0001 accu_0_1) "
-        "(ite exec_1_1_14 "
-          "(ite (= mem_0_1 (select heap_0 #x0001)) "
-            "(store heap_0 #x0001 accu_0_1) "
+      "(ite exec_1_0_1 "
+        "(store heap_0 #x0001 accu_0_0) "
+        "(ite exec_1_0_14 "
+          "(ite (= mem_0_0 (select heap_0 #x0001)) "
+            "(store heap_0 #x0001 accu_0_0) "
             "heap_0) "
-          "(ite exec_1_2_1 "
-            "(store heap_0 #x0001 accu_0_2) "
-            "(ite exec_1_2_14 "
-              "(ite (= mem_0_2 (select heap_0 #x0001)) "
-                "(store heap_0 #x0001 accu_0_2) "
+          "(ite exec_1_1_1 "
+            "(store heap_0 #x0001 accu_0_1) "
+            "(ite exec_1_1_14 "
+              "(ite (= mem_0_1 (select heap_0 #x0001)) "
+                "(store heap_0 #x0001 accu_0_1) "
                 "heap_0) "
-              "(ite exec_1_3_1 "
-                "(store heap_0 #x0001 accu_0_3) "
-                "(ite exec_1_3_14 "
-                  "(ite (= mem_0_3 (select heap_0 #x0001)) "
-                    "(store heap_0 #x0001 accu_0_3) "
+              "(ite exec_1_2_1 "
+                "(store heap_0 #x0001 accu_0_2) "
+                "(ite exec_1_2_14 "
+                  "(ite (= mem_0_2 (select heap_0 #x0001)) "
+                    "(store heap_0 #x0001 accu_0_2) "
                     "heap_0) "
                   "heap_0))))))))\n\n";
 
@@ -499,22 +499,22 @@ TEST_F(SMTLibEncoderFunctionalTest, add_state_update)
     "; state update ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; accu states - accu_<step>_<thread>\n"
+    "(declare-fun accu_1_0 () (_ BitVec 16))\n"
     "(declare-fun accu_1_1 () (_ BitVec 16))\n"
     "(declare-fun accu_1_2 () (_ BitVec 16))\n"
-    "(declare-fun accu_1_3 () (_ BitVec 16))\n"
     "\n"
+    "(assert (= accu_1_0 accu_0_0))\n"
     "(assert (= accu_1_1 accu_0_1))\n"
     "(assert (= accu_1_2 accu_0_2))\n"
-    "(assert (= accu_1_3 accu_0_3))\n"
     "\n"
     "; mem states - mem_<step>_<thread>\n"
+    "(declare-fun mem_1_0 () (_ BitVec 16))\n"
     "(declare-fun mem_1_1 () (_ BitVec 16))\n"
     "(declare-fun mem_1_2 () (_ BitVec 16))\n"
-    "(declare-fun mem_1_3 () (_ BitVec 16))\n"
     "\n"
+    "(assert (= mem_1_0 mem_0_0))\n"
     "(assert (= mem_1_1 mem_0_1))\n"
     "(assert (= mem_1_2 mem_0_2))\n"
-    "(assert (= mem_1_3 mem_0_3))\n"
     "\n"
     "; heap states - heap_<step>\n"
     "(declare-fun heap_1 () (Array (_ BitVec 16) (_ BitVec 16)))\n"
@@ -531,21 +531,21 @@ TEST_F(SMTLibEncoderFunctionalTest, add_state_update)
   verbose = true;
 
   expected =
+    "(declare-fun accu_1_0 () (_ BitVec 16))\n"
     "(declare-fun accu_1_1 () (_ BitVec 16))\n"
     "(declare-fun accu_1_2 () (_ BitVec 16))\n"
-    "(declare-fun accu_1_3 () (_ BitVec 16))\n"
     "\n"
+    "(assert (= accu_1_0 accu_0_0))\n"
     "(assert (= accu_1_1 accu_0_1))\n"
     "(assert (= accu_1_2 accu_0_2))\n"
-    "(assert (= accu_1_3 accu_0_3))\n"
     "\n"
+    "(declare-fun mem_1_0 () (_ BitVec 16))\n"
     "(declare-fun mem_1_1 () (_ BitVec 16))\n"
     "(declare-fun mem_1_2 () (_ BitVec 16))\n"
-    "(declare-fun mem_1_3 () (_ BitVec 16))\n"
     "\n"
+    "(assert (= mem_1_0 mem_0_0))\n"
     "(assert (= mem_1_1 mem_0_1))\n"
     "(assert (= mem_1_2 mem_0_2))\n"
-    "(assert (= mem_1_3 mem_0_3))\n"
     "\n"
     "(declare-fun heap_1 () (Array (_ BitVec 16) (_ BitVec 16)))\n"
     "\n"
@@ -600,11 +600,11 @@ TEST_F(SMTLibEncoderFunctionalTest, add_exit_code)
     "(declare-fun exit-code () (_ BitVec 16))\n"
     "\n"
     "(assert (= exit-code "
-      "(ite exec_1_1_0 "
+      "(ite exec_1_0_0 "
         "#x0000 "
-        "(ite exec_1_2_0 "
+        "(ite exec_1_1_0 "
           "#x0001 "
-          "(ite exec_1_3_0 "
+          "(ite exec_1_2_0 "
             "#x0002 "
             "#x0000)))))\n";
 
@@ -623,23 +623,23 @@ TEST_F(SMTLibEncoderFunctionalTest, add_exit_code)
     "(declare-fun exit-code () (_ BitVec 16))\n"
     "\n"
     "(assert (= exit-code "
-      "(ite exec_1_1_0 "
+      "(ite exec_1_0_0 "
         "#x0000 "
-        "(ite exec_1_2_0 "
+        "(ite exec_1_1_0 "
           "#x0001 "
-          "(ite exec_1_3_0 "
+          "(ite exec_1_2_0 "
             "#x0002 "
-            "(ite exec_2_1_0 "
+            "(ite exec_2_0_0 "
               "#x0000 "
-              "(ite exec_2_2_0 "
+              "(ite exec_2_1_0 "
                 "#x0001 "
-                "(ite exec_2_3_0 "
+                "(ite exec_2_2_0 "
                   "#x0002 "
-                  "(ite exec_3_1_0 "
+                  "(ite exec_3_0_0 "
                     "#x0000 "
-                    "(ite exec_3_2_0 "
+                    "(ite exec_3_1_0 "
                       "#x0001 "
-                      "(ite exec_3_3_0 "
+                      "(ite exec_3_2_0 "
                         "#x0002 "
                         "#x0000)))))))))))\n";
 
@@ -656,23 +656,23 @@ TEST_F(SMTLibEncoderFunctionalTest, add_exit_code)
     "(declare-fun exit-code () (_ BitVec 16))\n"
     "\n"
     "(assert (= exit-code "
-      "(ite exec_1_1_0 "
+      "(ite exec_1_0_0 "
         "#x0000 "
-        "(ite exec_1_2_0 "
+        "(ite exec_1_1_0 "
           "#x0001 "
-          "(ite exec_1_3_0 "
+          "(ite exec_1_2_0 "
             "#x0002 "
-            "(ite exec_2_1_0 "
+            "(ite exec_2_0_0 "
               "#x0000 "
-              "(ite exec_2_2_0 "
+              "(ite exec_2_1_0 "
                 "#x0001 "
-                "(ite exec_2_3_0 "
+                "(ite exec_2_2_0 "
                   "#x0002 "
-                  "(ite exec_3_1_0 "
+                  "(ite exec_3_0_0 "
                     "#x0000 "
-                    "(ite exec_3_2_0 "
+                    "(ite exec_3_1_0 "
                       "#x0001 "
-                      "(ite exec_3_3_0 "
+                      "(ite exec_3_2_0 "
                         "#x0002 "
                         "#x0000)))))))))))\n";
 
@@ -737,14 +737,14 @@ TEST_F(SMTLibEncoderFunctionalTest, STORE)
   Store store = Store(1);
 
   ASSERT_EQ(
-    "(store heap_0 #x0001 accu_0_1)",
+    "(store heap_0 #x0001 accu_0_0)",
     encoder->encode(store));
 
   /* indirect */
   store.indirect = true;
 
   ASSERT_EQ(
-    "(store heap_0 (select heap_0 #x0001) accu_0_1)",
+    "(store heap_0 (select heap_0 #x0001) accu_0_0)",
     encoder->encode(store));
 }
 
@@ -754,14 +754,14 @@ TEST_F(SMTLibEncoderFunctionalTest, ADD)
   Add add = Add(1);
 
   ASSERT_EQ(
-    "(bvadd accu_0_1 (select heap_0 #x0001))",
+    "(bvadd accu_0_0 (select heap_0 #x0001))",
     encoder->encode(add));
 
   /* indirect */
   add.indirect = true;
 
   ASSERT_EQ(
-    "(bvadd accu_0_1 (select heap_0 (select heap_0 #x0001)))",
+    "(bvadd accu_0_0 (select heap_0 (select heap_0 #x0001)))",
     encoder->encode(add));
 }
 
@@ -771,7 +771,7 @@ TEST_F(SMTLibEncoderFunctionalTest, ADDI)
   Addi addi = Addi(1);
 
   ASSERT_EQ(
-    "(bvadd accu_0_1 #x0001)",
+    "(bvadd accu_0_0 #x0001)",
     encoder->encode(addi));
 }
 
@@ -781,14 +781,14 @@ TEST_F(SMTLibEncoderFunctionalTest, SUB)
   Sub sub = Sub(1);
 
   ASSERT_EQ(
-    "(bvsub accu_0_1 (select heap_0 #x0001))",
+    "(bvsub accu_0_0 (select heap_0 #x0001))",
     encoder->encode(sub));
 
   /* indirect */
   sub.indirect = true;
 
   ASSERT_EQ(
-    "(bvsub accu_0_1 (select heap_0 (select heap_0 #x0001)))",
+    "(bvsub accu_0_0 (select heap_0 (select heap_0 #x0001)))",
     encoder->encode(sub));
 }
 
@@ -798,7 +798,7 @@ TEST_F(SMTLibEncoderFunctionalTest, SUBI)
   Subi subi = Subi(1);
 
   ASSERT_EQ(
-    "(bvsub accu_0_1 #x0001)",
+    "(bvsub accu_0_0 #x0001)",
     encoder->encode(subi));
 }
 
@@ -808,14 +808,14 @@ TEST_F(SMTLibEncoderFunctionalTest, CMP)
   Cmp cmp = Cmp(1);
 
   ASSERT_EQ(
-    "(bvsub accu_0_1 (select heap_0 #x0001))",
+    "(bvsub accu_0_0 (select heap_0 #x0001))",
     encoder->encode(cmp));
 
   /* indirect */
   cmp.indirect = true;
 
   ASSERT_EQ(
-    "(bvsub accu_0_1 (select heap_0 (select heap_0 #x0001)))",
+    "(bvsub accu_0_0 (select heap_0 (select heap_0 #x0001)))",
     encoder->encode(cmp));
 }
 
@@ -833,7 +833,7 @@ TEST_F(SMTLibEncoderFunctionalTest, JZ)
   Jz jz = Jz(1);
 
   ASSERT_EQ(
-    "(= accu_0_1 #x0000)",
+    "(= accu_0_0 #x0000)",
     encoder->encode(jz));
 }
 
@@ -843,7 +843,7 @@ TEST_F(SMTLibEncoderFunctionalTest, JNZ)
   Jnz jnz = Jnz(1);
 
   ASSERT_EQ(
-    "(not (= accu_0_1 #x0000))",
+    "(not (= accu_0_0 #x0000))",
     encoder->encode(jnz));
 }
 
@@ -858,7 +858,7 @@ TEST_F(SMTLibEncoderFunctionalTest, JS)
       " " +
       to_string(word_size - 1) +
       ") " +
-      "accu_0_1))",
+      "accu_0_0))",
     encoder->encode(js));
 }
 
@@ -873,7 +873,7 @@ TEST_F(SMTLibEncoderFunctionalTest, JNS)
       " " +
       to_string(word_size - 1) +
       ") " +
-      "accu_0_1))",
+      "accu_0_0))",
     encoder->encode(jns));
 }
 
@@ -883,11 +883,11 @@ TEST_F(SMTLibEncoderFunctionalTest, JNZNS)
   Jnzns jnzns = Jnzns(1);
 
   ASSERT_EQ(
-    "(and (not (= accu_0_1 #x0000)) (= #b0 ((_ extract " +
+    "(and (not (= accu_0_0 #x0000)) (= #b0 ((_ extract " +
       to_string(word_size - 1) +
       " " +
       to_string(word_size - 1) +
-      ") accu_0_1)))",
+      ") accu_0_0)))",
     encoder->encode(jnzns));
 }
 
@@ -917,7 +917,7 @@ TEST_F(SMTLibEncoderFunctionalTest, CAS)
 
   ASSERT_EQ(
     "(ite "
-      "(= mem_0_1 (select heap_0 #x0001)) "
+      "(= mem_0_0 (select heap_0 #x0001)) "
       "#x0001 "
       "#x0000)",
     encoder->encode(cas));
@@ -926,8 +926,8 @@ TEST_F(SMTLibEncoderFunctionalTest, CAS)
 
   ASSERT_EQ(
     "(ite "
-      "(= mem_0_1 (select heap_0 #x0001)) "
-      "(store heap_0 #x0001 accu_0_1) "
+      "(= mem_0_0 (select heap_0 #x0001)) "
+      "(store heap_0 #x0001 accu_0_0) "
       "heap_0)",
     encoder->encode(cas));
 
@@ -938,7 +938,7 @@ TEST_F(SMTLibEncoderFunctionalTest, CAS)
 
   ASSERT_EQ(
     "(ite "
-      "(= mem_0_1 (select heap_0 (select heap_0 #x0001))) "
+      "(= mem_0_0 (select heap_0 (select heap_0 #x0001))) "
       "#x0001 "
       "#x0000)",
     encoder->encode(cas));
@@ -947,8 +947,8 @@ TEST_F(SMTLibEncoderFunctionalTest, CAS)
 
   ASSERT_EQ(
     "(ite "
-      "(= mem_0_1 (select heap_0 (select heap_0 #x0001))) "
-      "(store heap_0 (select heap_0 #x0001) accu_0_1) "
+      "(= mem_0_0 (select heap_0 (select heap_0 #x0001))) "
+      "(store heap_0 (select heap_0 #x0001) accu_0_0) "
       "heap_0)",
     encoder->encode(cas));
 }

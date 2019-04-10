@@ -253,9 +253,9 @@ TEST_F(SMTLibEncoderTest, declare_accu_vars)
 
   expected =
     "; accu states - accu_<step>_<thread>\n"
+    "(declare-fun accu_0_0 () (_ BitVec 16))\n"
     "(declare-fun accu_0_1 () (_ BitVec 16))\n"
-    "(declare-fun accu_0_2 () (_ BitVec 16))\n"
-    "(declare-fun accu_0_3 () (_ BitVec 16))\n\n";
+    "(declare-fun accu_0_2 () (_ BitVec 16))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -266,9 +266,9 @@ TEST_F(SMTLibEncoderTest, declare_accu_vars)
 
   expected =
     "; accu states - accu_<step>_<thread>\n"
+    "(declare-fun accu_1_0 () (_ BitVec 16))\n"
     "(declare-fun accu_1_1 () (_ BitVec 16))\n"
-    "(declare-fun accu_1_2 () (_ BitVec 16))\n"
-    "(declare-fun accu_1_3 () (_ BitVec 16))\n\n";
+    "(declare-fun accu_1_2 () (_ BitVec 16))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -280,9 +280,9 @@ TEST_F(SMTLibEncoderTest, declare_accu_vars)
   verbose = true;
 
   expected =
+    "(declare-fun accu_0_0 () (_ BitVec 16))\n"
     "(declare-fun accu_0_1 () (_ BitVec 16))\n"
-    "(declare-fun accu_0_2 () (_ BitVec 16))\n"
-    "(declare-fun accu_0_3 () (_ BitVec 16))\n\n";
+    "(declare-fun accu_0_2 () (_ BitVec 16))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 }
@@ -297,9 +297,9 @@ TEST_F(SMTLibEncoderTest, declare_mem_vars)
 
   expected =
     "; mem states - mem_<step>_<thread>\n"
+    "(declare-fun mem_0_0 () (_ BitVec 16))\n"
     "(declare-fun mem_0_1 () (_ BitVec 16))\n"
-    "(declare-fun mem_0_2 () (_ BitVec 16))\n"
-    "(declare-fun mem_0_3 () (_ BitVec 16))\n\n";
+    "(declare-fun mem_0_2 () (_ BitVec 16))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -310,9 +310,9 @@ TEST_F(SMTLibEncoderTest, declare_mem_vars)
 
   expected =
     "; mem states - mem_<step>_<thread>\n"
+    "(declare-fun mem_1_0 () (_ BitVec 16))\n"
     "(declare-fun mem_1_1 () (_ BitVec 16))\n"
-    "(declare-fun mem_1_2 () (_ BitVec 16))\n"
-    "(declare-fun mem_1_3 () (_ BitVec 16))\n\n";
+    "(declare-fun mem_1_2 () (_ BitVec 16))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -324,9 +324,9 @@ TEST_F(SMTLibEncoderTest, declare_mem_vars)
   verbose = true;
 
   expected =
+    "(declare-fun mem_0_0 () (_ BitVec 16))\n"
     "(declare-fun mem_0_1 () (_ BitVec 16))\n"
-    "(declare-fun mem_0_2 () (_ BitVec 16))\n"
-    "(declare-fun mem_0_3 () (_ BitVec 16))\n\n";
+    "(declare-fun mem_0_2 () (_ BitVec 16))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 }
@@ -343,17 +343,17 @@ TEST_F(SMTLibEncoderTest, declare_stmt_vars)
 
   expected =
     "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
+    "(declare-fun stmt_1_0_0 () Bool)\n"
+    "(declare-fun stmt_1_0_1 () Bool)\n"
+    "(declare-fun stmt_1_0_2 () Bool)\n"
+    "\n"
     "(declare-fun stmt_1_1_0 () Bool)\n"
     "(declare-fun stmt_1_1_1 () Bool)\n"
     "(declare-fun stmt_1_1_2 () Bool)\n"
     "\n"
     "(declare-fun stmt_1_2_0 () Bool)\n"
     "(declare-fun stmt_1_2_1 () Bool)\n"
-    "(declare-fun stmt_1_2_2 () Bool)\n"
-    "\n"
-    "(declare-fun stmt_1_3_0 () Bool)\n"
-    "(declare-fun stmt_1_3_1 () Bool)\n"
-    "(declare-fun stmt_1_3_2 () Bool)\n\n";
+    "(declare-fun stmt_1_2_2 () Bool)\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -364,17 +364,17 @@ TEST_F(SMTLibEncoderTest, declare_stmt_vars)
 
   expected =
     "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
+    "(declare-fun stmt_2_0_0 () Bool)\n"
+    "(declare-fun stmt_2_0_1 () Bool)\n"
+    "(declare-fun stmt_2_0_2 () Bool)\n"
+    "\n"
     "(declare-fun stmt_2_1_0 () Bool)\n"
     "(declare-fun stmt_2_1_1 () Bool)\n"
     "(declare-fun stmt_2_1_2 () Bool)\n"
     "\n"
     "(declare-fun stmt_2_2_0 () Bool)\n"
     "(declare-fun stmt_2_2_1 () Bool)\n"
-    "(declare-fun stmt_2_2_2 () Bool)\n"
-    "\n"
-    "(declare-fun stmt_2_3_0 () Bool)\n"
-    "(declare-fun stmt_2_3_1 () Bool)\n"
-    "(declare-fun stmt_2_3_2 () Bool)\n\n";
+    "(declare-fun stmt_2_2_2 () Bool)\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -386,17 +386,17 @@ TEST_F(SMTLibEncoderTest, declare_stmt_vars)
   verbose = true;
 
   expected =
+    "(declare-fun stmt_1_0_0 () Bool)\n"
+    "(declare-fun stmt_1_0_1 () Bool)\n"
+    "(declare-fun stmt_1_0_2 () Bool)\n"
+    "\n"
     "(declare-fun stmt_1_1_0 () Bool)\n"
     "(declare-fun stmt_1_1_1 () Bool)\n"
     "(declare-fun stmt_1_1_2 () Bool)\n"
     "\n"
     "(declare-fun stmt_1_2_0 () Bool)\n"
     "(declare-fun stmt_1_2_1 () Bool)\n"
-    "(declare-fun stmt_1_2_2 () Bool)\n"
-    "\n"
-    "(declare-fun stmt_1_3_0 () Bool)\n"
-    "(declare-fun stmt_1_3_1 () Bool)\n"
-    "(declare-fun stmt_1_3_2 () Bool)\n\n";
+    "(declare-fun stmt_1_2_2 () Bool)\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 }
@@ -413,9 +413,9 @@ TEST_F(SMTLibEncoderTest, declare_thread_vars)
 
   expected =
     "; thread activation variables - thread_<step>_<thread>\n"
+    "(declare-fun thread_1_0 () Bool)\n"
     "(declare-fun thread_1_1 () Bool)\n"
-    "(declare-fun thread_1_2 () Bool)\n"
-    "(declare-fun thread_1_3 () Bool)\n";
+    "(declare-fun thread_1_2 () Bool)\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -426,9 +426,9 @@ TEST_F(SMTLibEncoderTest, declare_thread_vars)
 
   expected =
     "; thread activation variables - thread_<step>_<thread>\n"
+    "(declare-fun thread_2_0 () Bool)\n"
     "(declare-fun thread_2_1 () Bool)\n"
-    "(declare-fun thread_2_2 () Bool)\n"
-    "(declare-fun thread_2_3 () Bool)\n";
+    "(declare-fun thread_2_2 () Bool)\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -440,9 +440,9 @@ TEST_F(SMTLibEncoderTest, declare_thread_vars)
   verbose = true;
 
   expected =
+    "(declare-fun thread_1_0 () Bool)\n"
     "(declare-fun thread_1_1 () Bool)\n"
-    "(declare-fun thread_1_2 () Bool)\n"
-    "(declare-fun thread_1_3 () Bool)\n";
+    "(declare-fun thread_1_2 () Bool)\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 }
@@ -459,17 +459,17 @@ TEST_F(SMTLibEncoderTest, declare_exec_vars)
 
   expected =
     "; statement execution variables - exec_<step>_<thread>_<pc>\n"
+    "(declare-fun exec_1_0_0 () Bool)\n"
+    "(declare-fun exec_1_0_1 () Bool)\n"
+    "(declare-fun exec_1_0_2 () Bool)\n"
+    "\n"
     "(declare-fun exec_1_1_0 () Bool)\n"
     "(declare-fun exec_1_1_1 () Bool)\n"
     "(declare-fun exec_1_1_2 () Bool)\n"
     "\n"
     "(declare-fun exec_1_2_0 () Bool)\n"
     "(declare-fun exec_1_2_1 () Bool)\n"
-    "(declare-fun exec_1_2_2 () Bool)\n"
-    "\n"
-    "(declare-fun exec_1_3_0 () Bool)\n"
-    "(declare-fun exec_1_3_1 () Bool)\n"
-    "(declare-fun exec_1_3_2 () Bool)\n\n";
+    "(declare-fun exec_1_2_2 () Bool)\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -480,17 +480,17 @@ TEST_F(SMTLibEncoderTest, declare_exec_vars)
 
   expected =
     "; statement execution variables - exec_<step>_<thread>_<pc>\n"
+    "(declare-fun exec_2_0_0 () Bool)\n"
+    "(declare-fun exec_2_0_1 () Bool)\n"
+    "(declare-fun exec_2_0_2 () Bool)\n"
+    "\n"
     "(declare-fun exec_2_1_0 () Bool)\n"
     "(declare-fun exec_2_1_1 () Bool)\n"
     "(declare-fun exec_2_1_2 () Bool)\n"
     "\n"
     "(declare-fun exec_2_2_0 () Bool)\n"
     "(declare-fun exec_2_2_1 () Bool)\n"
-    "(declare-fun exec_2_2_2 () Bool)\n"
-    "\n"
-    "(declare-fun exec_2_3_0 () Bool)\n"
-    "(declare-fun exec_2_3_1 () Bool)\n"
-    "(declare-fun exec_2_3_2 () Bool)\n\n";
+    "(declare-fun exec_2_2_2 () Bool)\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -502,17 +502,17 @@ TEST_F(SMTLibEncoderTest, declare_exec_vars)
   verbose = true;
 
   expected =
+    "(declare-fun exec_1_0_0 () Bool)\n"
+    "(declare-fun exec_1_0_1 () Bool)\n"
+    "(declare-fun exec_1_0_2 () Bool)\n"
+    "\n"
     "(declare-fun exec_1_1_0 () Bool)\n"
     "(declare-fun exec_1_1_1 () Bool)\n"
     "(declare-fun exec_1_1_2 () Bool)\n"
     "\n"
     "(declare-fun exec_1_2_0 () Bool)\n"
     "(declare-fun exec_1_2_1 () Bool)\n"
-    "(declare-fun exec_1_2_2 () Bool)\n"
-    "\n"
-    "(declare-fun exec_1_3_0 () Bool)\n"
-    "(declare-fun exec_1_3_1 () Bool)\n"
-    "(declare-fun exec_1_3_2 () Bool)\n\n";
+    "(declare-fun exec_1_2_2 () Bool)\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 }
@@ -536,7 +536,7 @@ TEST_F(SMTLibEncoderTest, declare_cas_vars)
 
   expected =
     "; CAS condition - cas_<step>_<thread>\n"
-    "(declare-fun cas_1_1 () Bool)\n\n";
+    "(declare-fun cas_1_0 () Bool)\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -550,9 +550,9 @@ TEST_F(SMTLibEncoderTest, declare_cas_vars)
 
   expected =
     "; CAS condition - cas_<step>_<thread>\n"
+    "(declare-fun cas_1_0 () Bool)\n"
     "(declare-fun cas_1_1 () Bool)\n"
-    "(declare-fun cas_1_2 () Bool)\n"
-    "(declare-fun cas_1_3 () Bool)\n\n";
+    "(declare-fun cas_1_2 () Bool)\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -563,9 +563,9 @@ TEST_F(SMTLibEncoderTest, declare_cas_vars)
 
   expected =
     "; CAS condition - cas_<step>_<thread>\n"
+    "(declare-fun cas_2_0 () Bool)\n"
     "(declare-fun cas_2_1 () Bool)\n"
-    "(declare-fun cas_2_2 () Bool)\n"
-    "(declare-fun cas_2_3 () Bool)\n\n";
+    "(declare-fun cas_2_2 () Bool)\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -577,9 +577,9 @@ TEST_F(SMTLibEncoderTest, declare_cas_vars)
   verbose = true;
 
   expected =
+    "(declare-fun cas_1_0 () Bool)\n"
     "(declare-fun cas_1_1 () Bool)\n"
-    "(declare-fun cas_1_2 () Bool)\n"
-    "(declare-fun cas_1_3 () Bool)\n\n";
+    "(declare-fun cas_1_2 () Bool)\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 }
@@ -723,22 +723,22 @@ TEST_F(SMTLibEncoderTest, add_initial_state)
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; accu states - accu_<step>_<thread>\n"
+    "(declare-fun accu_0_0 () (_ BitVec 16))\n"
     "(declare-fun accu_0_1 () (_ BitVec 16))\n"
     "(declare-fun accu_0_2 () (_ BitVec 16))\n"
-    "(declare-fun accu_0_3 () (_ BitVec 16))\n"
     "\n"
+    "(assert (= accu_0_0 #x0000))\n"
     "(assert (= accu_0_1 #x0000))\n"
     "(assert (= accu_0_2 #x0000))\n"
-    "(assert (= accu_0_3 #x0000))\n"
     "\n"
     "; mem states - mem_<step>_<thread>\n"
+    "(declare-fun mem_0_0 () (_ BitVec 16))\n"
     "(declare-fun mem_0_1 () (_ BitVec 16))\n"
     "(declare-fun mem_0_2 () (_ BitVec 16))\n"
-    "(declare-fun mem_0_3 () (_ BitVec 16))\n"
     "\n"
+    "(assert (= mem_0_0 #x0000))\n"
     "(assert (= mem_0_1 #x0000))\n"
     "(assert (= mem_0_2 #x0000))\n"
-    "(assert (= mem_0_3 #x0000))\n"
     "\n"
     "; heap states - heap_<step>\n"
     "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n\n";
@@ -753,21 +753,21 @@ TEST_F(SMTLibEncoderTest, add_initial_state)
   verbose = true;
 
   expected =
+    "(declare-fun accu_0_0 () (_ BitVec 16))\n"
     "(declare-fun accu_0_1 () (_ BitVec 16))\n"
     "(declare-fun accu_0_2 () (_ BitVec 16))\n"
-    "(declare-fun accu_0_3 () (_ BitVec 16))\n"
     "\n"
+    "(assert (= accu_0_0 #x0000))\n"
     "(assert (= accu_0_1 #x0000))\n"
     "(assert (= accu_0_2 #x0000))\n"
-    "(assert (= accu_0_3 #x0000))\n"
     "\n"
+    "(declare-fun mem_0_0 () (_ BitVec 16))\n"
     "(declare-fun mem_0_1 () (_ BitVec 16))\n"
     "(declare-fun mem_0_2 () (_ BitVec 16))\n"
-    "(declare-fun mem_0_3 () (_ BitVec 16))\n"
     "\n"
+    "(assert (= mem_0_0 #x0000))\n"
     "(assert (= mem_0_1 #x0000))\n"
     "(assert (= mem_0_2 #x0000))\n"
-    "(assert (= mem_0_3 #x0000))\n"
     "\n"
     "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n\n";
 
@@ -785,17 +785,17 @@ TEST_F(SMTLibEncoderTest, add_initial_statement_activation)
 
   expected =
     "; initial statement activation\n"
+    "(assert stmt_1_0_0)\n"
+    "(assert (not stmt_1_0_1))\n"
+    "(assert (not stmt_1_0_2))\n"
+    "\n"
     "(assert stmt_1_1_0)\n"
     "(assert (not stmt_1_1_1))\n"
     "(assert (not stmt_1_1_2))\n"
     "\n"
     "(assert stmt_1_2_0)\n"
     "(assert (not stmt_1_2_1))\n"
-    "(assert (not stmt_1_2_2))\n"
-    "\n"
-    "(assert stmt_1_3_0)\n"
-    "(assert (not stmt_1_3_1))\n"
-    "(assert (not stmt_1_3_2))\n\n";
+    "(assert (not stmt_1_2_2))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -807,17 +807,17 @@ TEST_F(SMTLibEncoderTest, add_initial_statement_activation)
   verbose = true;
 
   expected =
+    "(assert stmt_1_0_0)\n"
+    "(assert (not stmt_1_0_1))\n"
+    "(assert (not stmt_1_0_2))\n"
+    "\n"
     "(assert stmt_1_1_0)\n"
     "(assert (not stmt_1_1_1))\n"
     "(assert (not stmt_1_1_2))\n"
     "\n"
     "(assert stmt_1_2_0)\n"
     "(assert (not stmt_1_2_1))\n"
-    "(assert (not stmt_1_2_2))\n"
-    "\n"
-    "(assert stmt_1_3_0)\n"
-    "(assert (not stmt_1_3_1))\n"
-    "(assert (not stmt_1_3_2))\n\n";
+    "(assert (not stmt_1_2_2))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 }
@@ -859,7 +859,7 @@ TEST_F(SMTLibEncoderTest, add_exit_flag)
     "; exit flag - exit_<step>\n"
     "(declare-fun exit_2 () Bool)\n"
     "\n"
-    "(assert (= exit_2 (or exec_1_1_0 exec_1_2_0 exec_1_3_0)))\n\n";
+    "(assert (= exit_2 (or exec_1_0_0 exec_1_1_0 exec_1_2_0)))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -874,7 +874,7 @@ TEST_F(SMTLibEncoderTest, add_exit_flag)
     "; exit flag - exit_<step>\n"
     "(declare-fun exit_3 () Bool)\n"
     "\n"
-    "(assert (= exit_3 (or exit_2 exec_2_1_0 exec_2_2_0 exec_2_3_0)))\n\n";
+    "(assert (= exit_3 (or exit_2 exec_2_0_0 exec_2_1_0 exec_2_2_0)))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -888,7 +888,7 @@ TEST_F(SMTLibEncoderTest, add_exit_flag)
   expected =
     "(declare-fun exit_3 () Bool)\n"
     "\n"
-    "(assert (= exit_3 (or exit_2 exec_2_1_0 exec_2_2_0 exec_2_3_0)))\n\n";
+    "(assert (= exit_3 (or exit_2 exec_2_0_0 exec_2_1_0 exec_2_2_0)))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 }
@@ -911,14 +911,14 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_naive)
     "; thread scheduling ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; thread activation variables - thread_<step>_<thread>\n"
+    "(declare-fun thread_1_0 () Bool)\n"
     "(declare-fun thread_1_1 () Bool)\n"
     "(declare-fun thread_1_2 () Bool)\n"
-    "(declare-fun thread_1_3 () Bool)\n"
     "\n"
-    "(assert (or thread_1_1 thread_1_2 thread_1_3))\n"
-    "(assert (or (not thread_1_1) (not thread_1_2)))\n"
-    "(assert (or (not thread_1_1) (not thread_1_3)))\n"
-    "(assert (or (not thread_1_2) (not thread_1_3)))\n\n";
+    "(assert (or thread_1_0 thread_1_1 thread_1_2))\n"
+    "(assert (or (not thread_1_0) (not thread_1_1)))\n"
+    "(assert (or (not thread_1_0) (not thread_1_2)))\n"
+    "(assert (or (not thread_1_1) (not thread_1_2)))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -934,14 +934,14 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_naive)
     "; thread scheduling ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; thread activation variables - thread_<step>_<thread>\n"
+    "(declare-fun thread_1_0 () Bool)\n"
     "(declare-fun thread_1_1 () Bool)\n"
     "(declare-fun thread_1_2 () Bool)\n"
-    "(declare-fun thread_1_3 () Bool)\n"
     "\n"
-    "(assert (or thread_1_1 thread_1_2 thread_1_3))\n"
-    "(assert (or (not thread_1_1) (not thread_1_2)))\n"
-    "(assert (or (not thread_1_1) (not thread_1_3)))\n"
-    "(assert (or (not thread_1_2) (not thread_1_3)))\n\n";
+    "(assert (or thread_1_0 thread_1_1 thread_1_2))\n"
+    "(assert (or (not thread_1_0) (not thread_1_1)))\n"
+    "(assert (or (not thread_1_0) (not thread_1_2)))\n"
+    "(assert (or (not thread_1_1) (not thread_1_2)))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -954,17 +954,17 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_naive)
     "; thread scheduling ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; thread activation variables - thread_<step>_<thread>\n"
+    "(declare-fun thread_2_0 () Bool)\n"
     "(declare-fun thread_2_1 () Bool)\n"
     "(declare-fun thread_2_2 () Bool)\n"
-    "(declare-fun thread_2_3 () Bool)\n"
     "\n"
-    "(assert (or thread_2_1 thread_2_2 thread_2_3 exit_2))\n"
+    "(assert (or thread_2_0 thread_2_1 thread_2_2 exit_2))\n"
+    "(assert (or (not thread_2_0) (not thread_2_1)))\n"
+    "(assert (or (not thread_2_0) (not thread_2_2)))\n"
+    "(assert (or (not thread_2_0) (not exit_2)))\n"
     "(assert (or (not thread_2_1) (not thread_2_2)))\n"
-    "(assert (or (not thread_2_1) (not thread_2_3)))\n"
     "(assert (or (not thread_2_1) (not exit_2)))\n"
-    "(assert (or (not thread_2_2) (not thread_2_3)))\n"
-    "(assert (or (not thread_2_2) (not exit_2)))\n"
-    "(assert (or (not thread_2_3) (not exit_2)))\n\n";
+    "(assert (or (not thread_2_2) (not exit_2)))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -976,14 +976,14 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_naive)
   verbose = true;
 
   expected =
+    "(declare-fun thread_1_0 () Bool)\n"
     "(declare-fun thread_1_1 () Bool)\n"
     "(declare-fun thread_1_2 () Bool)\n"
-    "(declare-fun thread_1_3 () Bool)\n"
     "\n"
-    "(assert (or thread_1_1 thread_1_2 thread_1_3))\n"
-    "(assert (or (not thread_1_1) (not thread_1_2)))\n"
-    "(assert (or (not thread_1_1) (not thread_1_3)))\n"
-    "(assert (or (not thread_1_2) (not thread_1_3)))\n\n";
+    "(assert (or thread_1_0 thread_1_1 thread_1_2))\n"
+    "(assert (or (not thread_1_0) (not thread_1_1)))\n"
+    "(assert (or (not thread_1_0) (not thread_1_2)))\n"
+    "(assert (or (not thread_1_1) (not thread_1_2)))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 }
@@ -1005,22 +1005,25 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_sinz)
     "; thread scheduling ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; thread activation variables - thread_<step>_<thread>\n"
+    "(declare-fun thread_1_0 () Bool)\n"
     "(declare-fun thread_1_1 () Bool)\n"
     "(declare-fun thread_1_2 () Bool)\n"
     "(declare-fun thread_1_3 () Bool)\n"
     "(declare-fun thread_1_4 () Bool)\n"
     "(declare-fun thread_1_5 () Bool)\n"
-    "(declare-fun thread_1_6 () Bool)\n"
     "\n"
+    "(declare-fun thread_1_0_aux () Bool)\n"
     "(declare-fun thread_1_1_aux () Bool)\n"
     "(declare-fun thread_1_2_aux () Bool)\n"
     "(declare-fun thread_1_3_aux () Bool)\n"
     "(declare-fun thread_1_4_aux () Bool)\n"
-    "(declare-fun thread_1_5_aux () Bool)\n"
     "\n"
-    "(assert (or thread_1_1 thread_1_2 thread_1_3 thread_1_4 thread_1_5 thread_1_6))\n"
+    "(assert (or thread_1_0 thread_1_1 thread_1_2 thread_1_3 thread_1_4 thread_1_5))\n"
+    "(assert (or (not thread_1_0) thread_1_0_aux))\n"
+    "(assert (or (not thread_1_5) (not thread_1_4_aux)))\n"
     "(assert (or (not thread_1_1) thread_1_1_aux))\n"
-    "(assert (or (not thread_1_6) (not thread_1_5_aux)))\n"
+    "(assert (or (not thread_1_0_aux) thread_1_1_aux))\n"
+    "(assert (or (not thread_1_1) (not thread_1_0_aux)))\n"
     "(assert (or (not thread_1_2) thread_1_2_aux))\n"
     "(assert (or (not thread_1_1_aux) thread_1_2_aux))\n"
     "(assert (or (not thread_1_2) (not thread_1_1_aux)))\n"
@@ -1029,10 +1032,7 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_sinz)
     "(assert (or (not thread_1_3) (not thread_1_2_aux)))\n"
     "(assert (or (not thread_1_4) thread_1_4_aux))\n"
     "(assert (or (not thread_1_3_aux) thread_1_4_aux))\n"
-    "(assert (or (not thread_1_4) (not thread_1_3_aux)))\n"
-    "(assert (or (not thread_1_5) thread_1_5_aux))\n"
-    "(assert (or (not thread_1_4_aux) thread_1_5_aux))\n"
-    "(assert (or (not thread_1_5) (not thread_1_4_aux)))\n\n";
+    "(assert (or (not thread_1_4) (not thread_1_3_aux)))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -1048,22 +1048,25 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_sinz)
     "; thread scheduling ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; thread activation variables - thread_<step>_<thread>\n"
+    "(declare-fun thread_1_0 () Bool)\n"
     "(declare-fun thread_1_1 () Bool)\n"
     "(declare-fun thread_1_2 () Bool)\n"
     "(declare-fun thread_1_3 () Bool)\n"
     "(declare-fun thread_1_4 () Bool)\n"
     "(declare-fun thread_1_5 () Bool)\n"
-    "(declare-fun thread_1_6 () Bool)\n"
     "\n"
+    "(declare-fun thread_1_0_aux () Bool)\n"
     "(declare-fun thread_1_1_aux () Bool)\n"
     "(declare-fun thread_1_2_aux () Bool)\n"
     "(declare-fun thread_1_3_aux () Bool)\n"
     "(declare-fun thread_1_4_aux () Bool)\n"
-    "(declare-fun thread_1_5_aux () Bool)\n"
     "\n"
-    "(assert (or thread_1_1 thread_1_2 thread_1_3 thread_1_4 thread_1_5 thread_1_6))\n"
+    "(assert (or thread_1_0 thread_1_1 thread_1_2 thread_1_3 thread_1_4 thread_1_5))\n"
+    "(assert (or (not thread_1_0) thread_1_0_aux))\n"
+    "(assert (or (not thread_1_5) (not thread_1_4_aux)))\n"
     "(assert (or (not thread_1_1) thread_1_1_aux))\n"
-    "(assert (or (not thread_1_6) (not thread_1_5_aux)))\n"
+    "(assert (or (not thread_1_0_aux) thread_1_1_aux))\n"
+    "(assert (or (not thread_1_1) (not thread_1_0_aux)))\n"
     "(assert (or (not thread_1_2) thread_1_2_aux))\n"
     "(assert (or (not thread_1_1_aux) thread_1_2_aux))\n"
     "(assert (or (not thread_1_2) (not thread_1_1_aux)))\n"
@@ -1072,10 +1075,7 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_sinz)
     "(assert (or (not thread_1_3) (not thread_1_2_aux)))\n"
     "(assert (or (not thread_1_4) thread_1_4_aux))\n"
     "(assert (or (not thread_1_3_aux) thread_1_4_aux))\n"
-    "(assert (or (not thread_1_4) (not thread_1_3_aux)))\n"
-    "(assert (or (not thread_1_5) thread_1_5_aux))\n"
-    "(assert (or (not thread_1_4_aux) thread_1_5_aux))\n"
-    "(assert (or (not thread_1_5) (not thread_1_4_aux)))\n\n";
+    "(assert (or (not thread_1_4) (not thread_1_3_aux)))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -1088,23 +1088,26 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_sinz)
     "; thread scheduling ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; thread activation variables - thread_<step>_<thread>\n"
+    "(declare-fun thread_2_0 () Bool)\n"
     "(declare-fun thread_2_1 () Bool)\n"
     "(declare-fun thread_2_2 () Bool)\n"
     "(declare-fun thread_2_3 () Bool)\n"
     "(declare-fun thread_2_4 () Bool)\n"
     "(declare-fun thread_2_5 () Bool)\n"
-    "(declare-fun thread_2_6 () Bool)\n"
     "\n"
+    "(declare-fun thread_2_0_aux () Bool)\n"
     "(declare-fun thread_2_1_aux () Bool)\n"
     "(declare-fun thread_2_2_aux () Bool)\n"
     "(declare-fun thread_2_3_aux () Bool)\n"
     "(declare-fun thread_2_4_aux () Bool)\n"
     "(declare-fun thread_2_5_aux () Bool)\n"
-    "(declare-fun thread_2_6_aux () Bool)\n"
     "\n"
-    "(assert (or thread_2_1 thread_2_2 thread_2_3 thread_2_4 thread_2_5 thread_2_6 exit_2))\n"
+    "(assert (or thread_2_0 thread_2_1 thread_2_2 thread_2_3 thread_2_4 thread_2_5 exit_2))\n"
+    "(assert (or (not thread_2_0) thread_2_0_aux))\n"
+    "(assert (or (not exit_2) (not thread_2_5_aux)))\n"
     "(assert (or (not thread_2_1) thread_2_1_aux))\n"
-    "(assert (or (not exit_2) (not thread_2_6_aux)))\n"
+    "(assert (or (not thread_2_0_aux) thread_2_1_aux))\n"
+    "(assert (or (not thread_2_1) (not thread_2_0_aux)))\n"
     "(assert (or (not thread_2_2) thread_2_2_aux))\n"
     "(assert (or (not thread_2_1_aux) thread_2_2_aux))\n"
     "(assert (or (not thread_2_2) (not thread_2_1_aux)))\n"
@@ -1116,10 +1119,7 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_sinz)
     "(assert (or (not thread_2_4) (not thread_2_3_aux)))\n"
     "(assert (or (not thread_2_5) thread_2_5_aux))\n"
     "(assert (or (not thread_2_4_aux) thread_2_5_aux))\n"
-    "(assert (or (not thread_2_5) (not thread_2_4_aux)))\n"
-    "(assert (or (not thread_2_6) thread_2_6_aux))\n"
-    "(assert (or (not thread_2_5_aux) thread_2_6_aux))\n"
-    "(assert (or (not thread_2_6) (not thread_2_5_aux)))\n\n";
+    "(assert (or (not thread_2_5) (not thread_2_4_aux)))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 }
@@ -1145,12 +1145,12 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
     "(declare-fun sync_1_1 () Bool)\n"
     "\n"
     "; all threads synchronized?\n"
-    "(assert (= sync_1_1 (and stmt_1_1_0 stmt_1_2_0 stmt_1_3_0 (or thread_1_1 thread_1_2 thread_1_3))))\n"
+    "(assert (= sync_1_1 (and stmt_1_0_0 stmt_1_1_0 stmt_1_2_0 (or thread_1_0 thread_1_1 thread_1_2))))\n"
     "\n"
     "; prevent scheduling of waiting threads\n"
+    "(assert (=> (and stmt_1_0_0 (not sync_1_1)) (not thread_1_0))) ; barrier 1: thread 0\n"
     "(assert (=> (and stmt_1_1_0 (not sync_1_1)) (not thread_1_1))) ; barrier 1: thread 1\n"
-    "(assert (=> (and stmt_1_2_0 (not sync_1_1)) (not thread_1_2))) ; barrier 1: thread 2\n"
-    "(assert (=> (and stmt_1_3_0 (not sync_1_1)) (not thread_1_3))) ; barrier 1: thread 3\n\n";
+    "(assert (=> (and stmt_1_2_0 (not sync_1_1)) (not thread_1_2))) ; barrier 1: thread 2\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -1170,16 +1170,16 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
     "(declare-fun sync_1_2 () Bool)\n"
     "\n"
     "; all threads synchronized?\n"
-    "(assert (= sync_1_1 (and stmt_1_1_0 stmt_1_2_0 stmt_1_3_0 (or thread_1_1 thread_1_2 thread_1_3))))\n"
-    "(assert (= sync_1_2 (and stmt_1_1_1 stmt_1_2_1 stmt_1_3_1 (or thread_1_1 thread_1_2 thread_1_3))))\n"
+    "(assert (= sync_1_1 (and stmt_1_0_0 stmt_1_1_0 stmt_1_2_0 (or thread_1_0 thread_1_1 thread_1_2))))\n"
+    "(assert (= sync_1_2 (and stmt_1_0_1 stmt_1_1_1 stmt_1_2_1 (or thread_1_0 thread_1_1 thread_1_2))))\n"
     "\n"
     "; prevent scheduling of waiting threads\n"
+    "(assert (=> (and stmt_1_0_0 (not sync_1_1)) (not thread_1_0))) ; barrier 1: thread 0\n"
     "(assert (=> (and stmt_1_1_0 (not sync_1_1)) (not thread_1_1))) ; barrier 1: thread 1\n"
     "(assert (=> (and stmt_1_2_0 (not sync_1_1)) (not thread_1_2))) ; barrier 1: thread 2\n"
-    "(assert (=> (and stmt_1_3_0 (not sync_1_1)) (not thread_1_3))) ; barrier 1: thread 3\n"
+    "(assert (=> (and stmt_1_0_1 (not sync_1_2)) (not thread_1_0))) ; barrier 2: thread 0\n"
     "(assert (=> (and stmt_1_1_1 (not sync_1_2)) (not thread_1_1))) ; barrier 2: thread 1\n"
-    "(assert (=> (and stmt_1_2_1 (not sync_1_2)) (not thread_1_2))) ; barrier 2: thread 2\n"
-    "(assert (=> (and stmt_1_3_1 (not sync_1_2)) (not thread_1_3))) ; barrier 2: thread 3\n\n";
+    "(assert (=> (and stmt_1_2_1 (not sync_1_2)) (not thread_1_2))) ; barrier 2: thread 2\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -1199,16 +1199,16 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
     "(declare-fun sync_1_2 () Bool)\n"
     "\n"
     "; all threads synchronized?\n"
-    "(assert (= sync_1_1 (and (or stmt_1_1_0 stmt_1_1_2) (or stmt_1_2_0 stmt_1_2_2) (or stmt_1_3_0 stmt_1_3_2) (or thread_1_1 thread_1_2 thread_1_3))))\n"
-    "(assert (= sync_1_2 (and stmt_1_1_1 stmt_1_2_1 stmt_1_3_1 (or thread_1_1 thread_1_2 thread_1_3))))\n"
+    "(assert (= sync_1_1 (and (or stmt_1_0_0 stmt_1_0_2) (or stmt_1_1_0 stmt_1_1_2) (or stmt_1_2_0 stmt_1_2_2) (or thread_1_0 thread_1_1 thread_1_2))))\n"
+    "(assert (= sync_1_2 (and stmt_1_0_1 stmt_1_1_1 stmt_1_2_1 (or thread_1_0 thread_1_1 thread_1_2))))\n"
     "\n"
     "; prevent scheduling of waiting threads\n"
+    "(assert (=> (and (or stmt_1_0_0 stmt_1_0_2) (not sync_1_1)) (not thread_1_0))) ; barrier 1: thread 0\n"
     "(assert (=> (and (or stmt_1_1_0 stmt_1_1_2) (not sync_1_1)) (not thread_1_1))) ; barrier 1: thread 1\n"
     "(assert (=> (and (or stmt_1_2_0 stmt_1_2_2) (not sync_1_1)) (not thread_1_2))) ; barrier 1: thread 2\n"
-    "(assert (=> (and (or stmt_1_3_0 stmt_1_3_2) (not sync_1_1)) (not thread_1_3))) ; barrier 1: thread 3\n"
+    "(assert (=> (and stmt_1_0_1 (not sync_1_2)) (not thread_1_0))) ; barrier 2: thread 0\n"
     "(assert (=> (and stmt_1_1_1 (not sync_1_2)) (not thread_1_1))) ; barrier 2: thread 1\n"
-    "(assert (=> (and stmt_1_2_1 (not sync_1_2)) (not thread_1_2))) ; barrier 2: thread 2\n"
-    "(assert (=> (and stmt_1_3_1 (not sync_1_2)) (not thread_1_3))) ; barrier 2: thread 3\n\n";
+    "(assert (=> (and stmt_1_2_1 (not sync_1_2)) (not thread_1_2))) ; barrier 2: thread 2\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -1227,11 +1227,11 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
   expected =
     "(declare-fun sync_1_1 () Bool)\n"
     "\n"
-    "(assert (= sync_1_1 (and stmt_1_1_0 stmt_1_2_0 stmt_1_3_0 (or thread_1_1 thread_1_2 thread_1_3))))\n"
+    "(assert (= sync_1_1 (and stmt_1_0_0 stmt_1_1_0 stmt_1_2_0 (or thread_1_0 thread_1_1 thread_1_2))))\n"
     "\n"
+    "(assert (=> (and stmt_1_0_0 (not sync_1_1)) (not thread_1_0)))\n"
     "(assert (=> (and stmt_1_1_0 (not sync_1_1)) (not thread_1_1)))\n"
-    "(assert (=> (and stmt_1_2_0 (not sync_1_1)) (not thread_1_2)))\n"
-    "(assert (=> (and stmt_1_3_0 (not sync_1_1)) (not thread_1_3)))\n\n";
+    "(assert (=> (and stmt_1_2_0 (not sync_1_1)) (not thread_1_2)))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 }
@@ -1249,6 +1249,10 @@ TEST_F(SMTLibEncoderTest, add_statement_execution)
     "; statement execution - shorthand for statement & thread activation ;;;;;;;;;;;;\n"
     "\n"
     "; statement execution variables - exec_<step>_<thread>_<pc>\n"
+    "(declare-fun exec_1_0_0 () Bool)\n"
+    "(declare-fun exec_1_0_1 () Bool)\n"
+    "(declare-fun exec_1_0_2 () Bool)\n"
+    "\n"
     "(declare-fun exec_1_1_0 () Bool)\n"
     "(declare-fun exec_1_1_1 () Bool)\n"
     "(declare-fun exec_1_1_2 () Bool)\n"
@@ -1257,9 +1261,9 @@ TEST_F(SMTLibEncoderTest, add_statement_execution)
     "(declare-fun exec_1_2_1 () Bool)\n"
     "(declare-fun exec_1_2_2 () Bool)\n"
     "\n"
-    "(declare-fun exec_1_3_0 () Bool)\n"
-    "(declare-fun exec_1_3_1 () Bool)\n"
-    "(declare-fun exec_1_3_2 () Bool)\n"
+    "(assert (= exec_1_0_0 (and stmt_1_0_0 thread_1_0)))\n"
+    "(assert (= exec_1_0_1 (and stmt_1_0_1 thread_1_0)))\n"
+    "(assert (= exec_1_0_2 (and stmt_1_0_2 thread_1_0)))\n"
     "\n"
     "(assert (= exec_1_1_0 (and stmt_1_1_0 thread_1_1)))\n"
     "(assert (= exec_1_1_1 (and stmt_1_1_1 thread_1_1)))\n"
@@ -1267,11 +1271,7 @@ TEST_F(SMTLibEncoderTest, add_statement_execution)
     "\n"
     "(assert (= exec_1_2_0 (and stmt_1_2_0 thread_1_2)))\n"
     "(assert (= exec_1_2_1 (and stmt_1_2_1 thread_1_2)))\n"
-    "(assert (= exec_1_2_2 (and stmt_1_2_2 thread_1_2)))\n"
-    "\n"
-    "(assert (= exec_1_3_0 (and stmt_1_3_0 thread_1_3)))\n"
-    "(assert (= exec_1_3_1 (and stmt_1_3_1 thread_1_3)))\n"
-    "(assert (= exec_1_3_2 (and stmt_1_3_2 thread_1_3)))\n\n";
+    "(assert (= exec_1_2_2 (and stmt_1_2_2 thread_1_2)))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -1287,6 +1287,11 @@ TEST_F(SMTLibEncoderTest, add_statement_execution)
     "; statement execution - shorthand for statement & thread activation ;;;;;;;;;;;;\n"
     "\n"
     "; statement execution variables - exec_<step>_<thread>_<pc>\n"
+    "(declare-fun exec_1_0_0 () Bool)\n"
+    "(declare-fun exec_1_0_1 () Bool)\n"
+    "(declare-fun exec_1_0_2 () Bool)\n"
+    "(declare-fun exec_1_0_3 () Bool)\n"
+    "\n"
     "(declare-fun exec_1_1_0 () Bool)\n"
     "(declare-fun exec_1_1_1 () Bool)\n"
     "(declare-fun exec_1_1_2 () Bool)\n"
@@ -1297,10 +1302,10 @@ TEST_F(SMTLibEncoderTest, add_statement_execution)
     "(declare-fun exec_1_2_2 () Bool)\n"
     "(declare-fun exec_1_2_3 () Bool)\n"
     "\n"
-    "(declare-fun exec_1_3_0 () Bool)\n"
-    "(declare-fun exec_1_3_1 () Bool)\n"
-    "(declare-fun exec_1_3_2 () Bool)\n"
-    "(declare-fun exec_1_3_3 () Bool)\n"
+    "(assert (= exec_1_0_0 (and stmt_1_0_0 thread_1_0)))\n"
+    "(assert (= exec_1_0_1 (and stmt_1_0_1 thread_1_0)))\n"
+    "(assert (= exec_1_0_2 (and stmt_1_0_2 thread_1_0)))\n"
+    "(assert (= exec_1_0_3 (and stmt_1_0_3 sync_1_1)))\n"
     "\n"
     "(assert (= exec_1_1_0 (and stmt_1_1_0 thread_1_1)))\n"
     "(assert (= exec_1_1_1 (and stmt_1_1_1 thread_1_1)))\n"
@@ -1310,12 +1315,7 @@ TEST_F(SMTLibEncoderTest, add_statement_execution)
     "(assert (= exec_1_2_0 (and stmt_1_2_0 thread_1_2)))\n"
     "(assert (= exec_1_2_1 (and stmt_1_2_1 thread_1_2)))\n"
     "(assert (= exec_1_2_2 (and stmt_1_2_2 thread_1_2)))\n"
-    "(assert (= exec_1_2_3 (and stmt_1_2_3 sync_1_1)))\n"
-    "\n"
-    "(assert (= exec_1_3_0 (and stmt_1_3_0 thread_1_3)))\n"
-    "(assert (= exec_1_3_1 (and stmt_1_3_1 thread_1_3)))\n"
-    "(assert (= exec_1_3_2 (and stmt_1_3_2 thread_1_3)))\n"
-    "(assert (= exec_1_3_3 (and stmt_1_3_3 sync_1_1)))\n\n";
+    "(assert (= exec_1_2_3 (and stmt_1_2_3 sync_1_1)))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -1330,17 +1330,17 @@ TEST_F(SMTLibEncoderTest, add_statement_execution)
   verbose = true;
 
   expected =
+    "(declare-fun exec_1_0_0 () Bool)\n"
+    "\n"
     "(declare-fun exec_1_1_0 () Bool)\n"
     "\n"
     "(declare-fun exec_1_2_0 () Bool)\n"
     "\n"
-    "(declare-fun exec_1_3_0 () Bool)\n"
+    "(assert (= exec_1_0_0 (and stmt_1_0_0 thread_1_0)))\n"
     "\n"
     "(assert (= exec_1_1_0 (and stmt_1_1_0 thread_1_1)))\n"
     "\n"
-    "(assert (= exec_1_2_0 (and stmt_1_2_0 thread_1_2)))\n"
-    "\n"
-    "(assert (= exec_1_3_0 (and stmt_1_3_0 thread_1_3)))\n\n";
+    "(assert (= exec_1_2_0 (and stmt_1_2_0 thread_1_2)))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 }
@@ -1379,22 +1379,22 @@ TEST_F(SMTLibEncoderTest, encode)
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; accu states - accu_<step>_<thread>\n"
+    "(declare-fun accu_0_0 () (_ BitVec 16))\n"
     "(declare-fun accu_0_1 () (_ BitVec 16))\n"
     "(declare-fun accu_0_2 () (_ BitVec 16))\n"
-    "(declare-fun accu_0_3 () (_ BitVec 16))\n"
     "\n"
+    "(assert (= accu_0_0 #x0000))\n"
     "(assert (= accu_0_1 #x0000))\n"
     "(assert (= accu_0_2 #x0000))\n"
-    "(assert (= accu_0_3 #x0000))\n"
     "\n"
     "; mem states - mem_<step>_<thread>\n"
+    "(declare-fun mem_0_0 () (_ BitVec 16))\n"
     "(declare-fun mem_0_1 () (_ BitVec 16))\n"
     "(declare-fun mem_0_2 () (_ BitVec 16))\n"
-    "(declare-fun mem_0_3 () (_ BitVec 16))\n"
     "\n"
+    "(assert (= mem_0_0 #x0000))\n"
     "(assert (= mem_0_1 #x0000))\n"
     "(assert (= mem_0_2 #x0000))\n"
-    "(assert (= mem_0_3 #x0000))\n"
     "\n"
     "; heap states - heap_<step>\n"
     "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n\n";
@@ -1411,21 +1411,21 @@ TEST_F(SMTLibEncoderTest, encode)
   expected =
     "(set-logic QF_AUFBV)\n"
     "\n"
+    "(declare-fun accu_0_0 () (_ BitVec 16))\n"
     "(declare-fun accu_0_1 () (_ BitVec 16))\n"
     "(declare-fun accu_0_2 () (_ BitVec 16))\n"
-    "(declare-fun accu_0_3 () (_ BitVec 16))\n"
     "\n"
+    "(assert (= accu_0_0 #x0000))\n"
     "(assert (= accu_0_1 #x0000))\n"
     "(assert (= accu_0_2 #x0000))\n"
-    "(assert (= accu_0_3 #x0000))\n"
     "\n"
+    "(declare-fun mem_0_0 () (_ BitVec 16))\n"
     "(declare-fun mem_0_1 () (_ BitVec 16))\n"
     "(declare-fun mem_0_2 () (_ BitVec 16))\n"
-    "(declare-fun mem_0_3 () (_ BitVec 16))\n"
     "\n"
+    "(assert (= mem_0_0 #x0000))\n"
     "(assert (= mem_0_1 #x0000))\n"
     "(assert (= mem_0_2 #x0000))\n"
-    "(assert (= mem_0_3 #x0000))\n"
     "\n"
     "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n\n";
 

@@ -21,7 +21,7 @@ struct SMTLibEncoderRelationalTest : public ::testing::Test
           false);
 
       e->step = step;
-      e->thread = 1;
+      e->thread = 0;
       e->pc = 0;
 
       return e;
@@ -85,7 +85,7 @@ TEST_F(SMTLibEncoderRelationalTest, imply)
 TEST_F(SMTLibEncoderRelationalTest, assign_heap)
 {
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 (= heap_1 (store heap_0 #x0000 #x0001))))\n",
+    "(assert (=> exec_1_0_0 (= heap_1 (store heap_0 #x0000 #x0001))))\n",
     encoder->assign_heap(
       smtlib::store(
         encoder->heap_var(encoder->step - 1),
@@ -97,7 +97,7 @@ TEST_F(SMTLibEncoderRelationalTest, assign_heap)
 TEST_F(SMTLibEncoderRelationalTest, assign_accu)
 {
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 (= accu_1_1 #x0000)))\n",
+    "(assert (=> exec_1_0_0 (= accu_1_0 #x0000)))\n",
     encoder->assign_accu(smtlib::word2hex(0)));
 }
 
@@ -105,7 +105,7 @@ TEST_F(SMTLibEncoderRelationalTest, assign_accu)
 TEST_F(SMTLibEncoderRelationalTest, assign_mem)
 {
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 (= mem_1_1 #x0000)))\n",
+    "(assert (=> exec_1_0_0 (= mem_1_0 #x0000)))\n",
     encoder->assign_mem(smtlib::word2hex(0)));
 }
 
@@ -113,7 +113,7 @@ TEST_F(SMTLibEncoderRelationalTest, assign_mem)
 TEST_F(SMTLibEncoderRelationalTest, preserve_heap)
 {
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 (= heap_1 heap_0)))\n",
+    "(assert (=> exec_1_0_0 (= heap_1 heap_0)))\n",
     encoder->preserve_heap());
 }
 
@@ -121,7 +121,7 @@ TEST_F(SMTLibEncoderRelationalTest, preserve_heap)
 TEST_F(SMTLibEncoderRelationalTest, preserve_accu)
 {
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 (= accu_1_1 accu_0_1)))\n",
+    "(assert (=> exec_1_0_0 (= accu_1_0 accu_0_0)))\n",
     encoder->preserve_accu());
 }
 
@@ -129,7 +129,7 @@ TEST_F(SMTLibEncoderRelationalTest, preserve_accu)
 TEST_F(SMTLibEncoderRelationalTest, preserve_mem)
 {
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n",
+    "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n",
     encoder->preserve_mem());
 }
 
@@ -139,12 +139,12 @@ TEST_F(SMTLibEncoderRelationalTest, stmt_activation)
   add_dummy_programs(1);
 
   ASSERT_EQ(
-    "(and (not stmt_2_1_0) stmt_2_1_1 (not stmt_2_1_2))",
+    "(and (not stmt_2_0_0) stmt_2_0_1 (not stmt_2_0_2))",
     encoder->stmt_activation(1));
 
   /* last or unknown pc */
   ASSERT_EQ(
-    "(and (not stmt_2_1_0) (not stmt_2_1_1) (not stmt_2_1_2))",
+    "(and (not stmt_2_0_0) (not stmt_2_0_1) (not stmt_2_0_2))",
     encoder->stmt_activation(3));
 }
 
@@ -154,20 +154,20 @@ TEST_F(SMTLibEncoderRelationalTest, activate_pc)
   add_dummy_programs(1);
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 "
+    "(assert (=> exec_1_0_0 "
       "(and "
-        "(not stmt_2_1_0) "
-        "stmt_2_1_1 "
-        "(not stmt_2_1_2))))\n",
+        "(not stmt_2_0_0) "
+        "stmt_2_0_1 "
+        "(not stmt_2_0_2))))\n",
     encoder->activate_pc(1));
 
   /* last or unknown pc */
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 "
+    "(assert (=> exec_1_0_0 "
       "(and "
-        "(not stmt_2_1_0) "
-        "(not stmt_2_1_1) "
-        "(not stmt_2_1_2))))\n",
+        "(not stmt_2_0_0) "
+        "(not stmt_2_0_1) "
+        "(not stmt_2_0_2))))\n",
     encoder->activate_pc(3));
 
   /* step == bound */
@@ -184,22 +184,22 @@ TEST_F(SMTLibEncoderRelationalTest, activate_next)
   encoder->pc = 1;
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_1 "
+    "(assert (=> exec_1_0_1 "
       "(and "
-        "(not stmt_2_1_0) "
-        "(not stmt_2_1_1) "
-        "stmt_2_1_2)))\n",
+        "(not stmt_2_0_0) "
+        "(not stmt_2_0_1) "
+        "stmt_2_0_2)))\n",
     encoder->activate_next());
 
   /* last pc */
   encoder->pc = 2;
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_2 "
+    "(assert (=> exec_1_0_2 "
       "(and "
-        "(not stmt_2_1_0) "
-        "(not stmt_2_1_1) "
-        "(not stmt_2_1_2))))\n",
+        "(not stmt_2_0_0) "
+        "(not stmt_2_0_1) "
+        "(not stmt_2_0_2))))\n",
     encoder->activate_next());
 
   /* step == bound */
@@ -216,32 +216,32 @@ TEST_F(SMTLibEncoderRelationalTest, activate_jmp)
   encoder->pc = 1;
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_1 "
+    "(assert (=> exec_1_0_1 "
       "(ite foo "
         "(and "
-          "stmt_2_1_0 "
-          "(not stmt_2_1_1) "
-          "(not stmt_2_1_2)) "
+          "stmt_2_0_0 "
+          "(not stmt_2_0_1) "
+          "(not stmt_2_0_2)) "
         "(and "
-          "(not stmt_2_1_0) "
-          "(not stmt_2_1_1) "
-          "stmt_2_1_2))))\n",
+          "(not stmt_2_0_0) "
+          "(not stmt_2_0_1) "
+          "stmt_2_0_2))))\n",
     encoder->activate_jmp("foo", 0));
 
   /* last or unknown pc */
   encoder->pc = 2;
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_2 "
+    "(assert (=> exec_1_0_2 "
       "(ite foo "
         "(and "
-          "stmt_2_1_0 "
-          "(not stmt_2_1_1) "
-          "(not stmt_2_1_2)) "
+          "stmt_2_0_0 "
+          "(not stmt_2_0_1) "
+          "(not stmt_2_0_2)) "
         "(and "
-          "(not stmt_2_1_0) "
-          "(not stmt_2_1_1) "
-          "(not stmt_2_1_2)))))\n",
+          "(not stmt_2_0_0) "
+          "(not stmt_2_0_1) "
+          "(not stmt_2_0_2)))))\n",
     encoder->activate_jmp("foo", 0));
 
   /* step == bound */
@@ -301,6 +301,10 @@ TEST_F(SMTLibEncoderRelationalTest, add_statement_declaration)
     "; statement activation forward declaration ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
+    "(declare-fun stmt_1_0_0 () Bool)\n"
+    "(declare-fun stmt_1_0_1 () Bool)\n"
+    "(declare-fun stmt_1_0_2 () Bool)\n"
+    "\n"
     "(declare-fun stmt_1_1_0 () Bool)\n"
     "(declare-fun stmt_1_1_1 () Bool)\n"
     "(declare-fun stmt_1_1_2 () Bool)\n"
@@ -309,22 +313,18 @@ TEST_F(SMTLibEncoderRelationalTest, add_statement_declaration)
     "(declare-fun stmt_1_2_1 () Bool)\n"
     "(declare-fun stmt_1_2_2 () Bool)\n"
     "\n"
-    "(declare-fun stmt_1_3_0 () Bool)\n"
-    "(declare-fun stmt_1_3_1 () Bool)\n"
-    "(declare-fun stmt_1_3_2 () Bool)\n"
-    "\n"
     "; initial statement activation\n"
+    "(assert stmt_1_0_0)\n"
+    "(assert (not stmt_1_0_1))\n"
+    "(assert (not stmt_1_0_2))\n"
+    "\n"
     "(assert stmt_1_1_0)\n"
     "(assert (not stmt_1_1_1))\n"
     "(assert (not stmt_1_1_2))\n"
     "\n"
     "(assert stmt_1_2_0)\n"
     "(assert (not stmt_1_2_1))\n"
-    "(assert (not stmt_1_2_2))\n"
-    "\n"
-    "(assert stmt_1_3_0)\n"
-    "(assert (not stmt_1_3_1))\n"
-    "(assert (not stmt_1_3_2))\n\n";
+    "(assert (not stmt_1_2_2))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -337,17 +337,17 @@ TEST_F(SMTLibEncoderRelationalTest, add_statement_declaration)
     "; statement activation forward declaration ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
+    "(declare-fun stmt_2_0_0 () Bool)\n"
+    "(declare-fun stmt_2_0_1 () Bool)\n"
+    "(declare-fun stmt_2_0_2 () Bool)\n"
+    "\n"
     "(declare-fun stmt_2_1_0 () Bool)\n"
     "(declare-fun stmt_2_1_1 () Bool)\n"
     "(declare-fun stmt_2_1_2 () Bool)\n"
     "\n"
     "(declare-fun stmt_2_2_0 () Bool)\n"
     "(declare-fun stmt_2_2_1 () Bool)\n"
-    "(declare-fun stmt_2_2_2 () Bool)\n"
-    "\n"
-    "(declare-fun stmt_2_3_0 () Bool)\n"
-    "(declare-fun stmt_2_3_1 () Bool)\n"
-    "(declare-fun stmt_2_3_2 () Bool)\n\n";
+    "(declare-fun stmt_2_2_2 () Bool)\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -366,6 +366,10 @@ TEST_F(SMTLibEncoderRelationalTest, add_statement_declaration)
   verbose = true;
 
   expected =
+    "(declare-fun stmt_1_0_0 () Bool)\n"
+    "(declare-fun stmt_1_0_1 () Bool)\n"
+    "(declare-fun stmt_1_0_2 () Bool)\n"
+    "\n"
     "(declare-fun stmt_1_1_0 () Bool)\n"
     "(declare-fun stmt_1_1_1 () Bool)\n"
     "(declare-fun stmt_1_1_2 () Bool)\n"
@@ -374,9 +378,9 @@ TEST_F(SMTLibEncoderRelationalTest, add_statement_declaration)
     "(declare-fun stmt_1_2_1 () Bool)\n"
     "(declare-fun stmt_1_2_2 () Bool)\n"
     "\n"
-    "(declare-fun stmt_1_3_0 () Bool)\n"
-    "(declare-fun stmt_1_3_1 () Bool)\n"
-    "(declare-fun stmt_1_3_2 () Bool)\n"
+    "(assert stmt_1_0_0)\n"
+    "(assert (not stmt_1_0_1))\n"
+    "(assert (not stmt_1_0_2))\n"
     "\n"
     "(assert stmt_1_1_0)\n"
     "(assert (not stmt_1_1_1))\n"
@@ -384,11 +388,7 @@ TEST_F(SMTLibEncoderRelationalTest, add_statement_declaration)
     "\n"
     "(assert stmt_1_2_0)\n"
     "(assert (not stmt_1_2_1))\n"
-    "(assert (not stmt_1_2_2))\n"
-    "\n"
-    "(assert stmt_1_3_0)\n"
-    "(assert (not stmt_1_3_1))\n"
-    "(assert (not stmt_1_3_2))\n\n";
+    "(assert (not stmt_1_2_2))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 }
@@ -404,17 +404,47 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_update)
     "; state update ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; accu states - accu_<step>_<thread>\n"
+    "(declare-fun accu_1_0 () (_ BitVec 16))\n"
     "(declare-fun accu_1_1 () (_ BitVec 16))\n"
     "(declare-fun accu_1_2 () (_ BitVec 16))\n"
-    "(declare-fun accu_1_3 () (_ BitVec 16))\n"
     "\n"
     "; mem states - mem_<step>_<thread>\n"
+    "(declare-fun mem_1_0 () (_ BitVec 16))\n"
     "(declare-fun mem_1_1 () (_ BitVec 16))\n"
     "(declare-fun mem_1_2 () (_ BitVec 16))\n"
-    "(declare-fun mem_1_3 () (_ BitVec 16))\n"
     "\n"
     "; heap states - heap_<step>\n"
     "(declare-fun heap_1 () (Array (_ BitVec 16) (_ BitVec 16)))\n"
+    "\n"
+    "; thread 0@0: LOAD\t1\n"
+    "(assert (=> exec_1_0_0 (= accu_1_0 (select heap_0 #x0001))))\n"
+    "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= heap_1 heap_0)))\n"
+    "(assert (=> exec_1_0_0 "
+      "(and "
+        "(not stmt_2_0_0) "
+        "stmt_2_0_1 "
+        "(not stmt_2_0_2))))\n"
+    "\n"
+    "; thread 0@1: ADDI\t1\n"
+    "(assert (=> exec_1_0_1 (= accu_1_0 (bvadd accu_0_0 #x0001))))\n"
+    "(assert (=> exec_1_0_1 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_1 (= heap_1 heap_0)))\n"
+    "(assert (=> exec_1_0_1 "
+      "(and "
+        "(not stmt_2_0_0) "
+        "(not stmt_2_0_1) "
+        "stmt_2_0_2)))\n"
+    "\n"
+    "; thread 0@2: STORE\t1\n"
+    "(assert (=> exec_1_0_2 (= accu_1_0 accu_0_0)))\n"
+    "(assert (=> exec_1_0_2 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_2 (= heap_1 (store heap_0 #x0001 accu_0_0))))\n"
+    "(assert (=> exec_1_0_2 "
+      "(and "
+        "(not stmt_2_0_0) "
+        "(not stmt_2_0_1) "
+        "(not stmt_2_0_2))))\n"
     "\n"
     "; thread 1@0: LOAD\t1\n"
     "(assert (=> exec_1_1_0 (= accu_1_1 (select heap_0 #x0001))))\n"
@@ -474,37 +504,7 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_update)
       "(and "
         "(not stmt_2_2_0) "
         "(not stmt_2_2_1) "
-        "(not stmt_2_2_2))))\n"
-    "\n"
-    "; thread 3@0: LOAD\t1\n"
-    "(assert (=> exec_1_3_0 (= accu_1_3 (select heap_0 #x0001))))\n"
-    "(assert (=> exec_1_3_0 (= mem_1_3 mem_0_3)))\n"
-    "(assert (=> exec_1_3_0 (= heap_1 heap_0)))\n"
-    "(assert (=> exec_1_3_0 "
-      "(and "
-        "(not stmt_2_3_0) "
-        "stmt_2_3_1 "
-        "(not stmt_2_3_2))))\n"
-    "\n"
-    "; thread 3@1: ADDI\t1\n"
-    "(assert (=> exec_1_3_1 (= accu_1_3 (bvadd accu_0_3 #x0001))))\n"
-    "(assert (=> exec_1_3_1 (= mem_1_3 mem_0_3)))\n"
-    "(assert (=> exec_1_3_1 (= heap_1 heap_0)))\n"
-    "(assert (=> exec_1_3_1 "
-      "(and "
-        "(not stmt_2_3_0) "
-        "(not stmt_2_3_1) "
-        "stmt_2_3_2)))\n"
-    "\n"
-    "; thread 3@2: STORE\t1\n"
-    "(assert (=> exec_1_3_2 (= accu_1_3 accu_0_3)))\n"
-    "(assert (=> exec_1_3_2 (= mem_1_3 mem_0_3)))\n"
-    "(assert (=> exec_1_3_2 (= heap_1 (store heap_0 #x0001 accu_0_3))))\n"
-    "(assert (=> exec_1_3_2 "
-      "(and "
-        "(not stmt_2_3_0) "
-        "(not stmt_2_3_1) "
-        "(not stmt_2_3_2))))\n\n";
+        "(not stmt_2_2_2))))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -517,17 +517,32 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_update)
     "; state update ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; accu states - accu_<step>_<thread>\n"
+    "(declare-fun accu_2_0 () (_ BitVec 16))\n"
     "(declare-fun accu_2_1 () (_ BitVec 16))\n"
     "(declare-fun accu_2_2 () (_ BitVec 16))\n"
-    "(declare-fun accu_2_3 () (_ BitVec 16))\n"
     "\n"
     "; mem states - mem_<step>_<thread>\n"
+    "(declare-fun mem_2_0 () (_ BitVec 16))\n"
     "(declare-fun mem_2_1 () (_ BitVec 16))\n"
     "(declare-fun mem_2_2 () (_ BitVec 16))\n"
-    "(declare-fun mem_2_3 () (_ BitVec 16))\n"
     "\n"
     "; heap states - heap_<step>\n"
     "(declare-fun heap_2 () (Array (_ BitVec 16) (_ BitVec 16)))\n"
+    "\n"
+    "; thread 0@0: LOAD\t1\n"
+    "(assert (=> exec_2_0_0 (= accu_2_0 (select heap_1 #x0001))))\n"
+    "(assert (=> exec_2_0_0 (= mem_2_0 mem_1_0)))\n"
+    "(assert (=> exec_2_0_0 (= heap_2 heap_1)))\n"
+    "\n"
+    "; thread 0@1: ADDI\t1\n"
+    "(assert (=> exec_2_0_1 (= accu_2_0 (bvadd accu_1_0 #x0001))))\n"
+    "(assert (=> exec_2_0_1 (= mem_2_0 mem_1_0)))\n"
+    "(assert (=> exec_2_0_1 (= heap_2 heap_1)))\n"
+    "\n"
+    "; thread 0@2: STORE\t1\n"
+    "(assert (=> exec_2_0_2 (= accu_2_0 accu_1_0)))\n"
+    "(assert (=> exec_2_0_2 (= mem_2_0 mem_1_0)))\n"
+    "(assert (=> exec_2_0_2 (= heap_2 (store heap_1 #x0001 accu_1_0))))\n"
     "\n"
     "; thread 1@0: LOAD\t1\n"
     "(assert (=> exec_2_1_0 (= accu_2_1 (select heap_1 #x0001))))\n"
@@ -557,22 +572,7 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_update)
     "; thread 2@2: STORE\t1\n"
     "(assert (=> exec_2_2_2 (= accu_2_2 accu_1_2)))\n"
     "(assert (=> exec_2_2_2 (= mem_2_2 mem_1_2)))\n"
-    "(assert (=> exec_2_2_2 (= heap_2 (store heap_1 #x0001 accu_1_2))))\n"
-    "\n"
-    "; thread 3@0: LOAD\t1\n"
-    "(assert (=> exec_2_3_0 (= accu_2_3 (select heap_1 #x0001))))\n"
-    "(assert (=> exec_2_3_0 (= mem_2_3 mem_1_3)))\n"
-    "(assert (=> exec_2_3_0 (= heap_2 heap_1)))\n"
-    "\n"
-    "; thread 3@1: ADDI\t1\n"
-    "(assert (=> exec_2_3_1 (= accu_2_3 (bvadd accu_1_3 #x0001))))\n"
-    "(assert (=> exec_2_3_1 (= mem_2_3 mem_1_3)))\n"
-    "(assert (=> exec_2_3_1 (= heap_2 heap_1)))\n"
-    "\n"
-    "; thread 3@2: STORE\t1\n"
-    "(assert (=> exec_2_3_2 (= accu_2_3 accu_1_3)))\n"
-    "(assert (=> exec_2_3_2 (= mem_2_3 mem_1_3)))\n"
-    "(assert (=> exec_2_3_2 (= heap_2 (store heap_1 #x0001 accu_1_3))))\n\n";
+    "(assert (=> exec_2_2_2 (= heap_2 (store heap_1 #x0001 accu_1_2))))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -584,15 +584,42 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_update)
   verbose = true;
 
   expected =
+    "(declare-fun accu_1_0 () (_ BitVec 16))\n"
     "(declare-fun accu_1_1 () (_ BitVec 16))\n"
     "(declare-fun accu_1_2 () (_ BitVec 16))\n"
-    "(declare-fun accu_1_3 () (_ BitVec 16))\n"
     "\n"
+    "(declare-fun mem_1_0 () (_ BitVec 16))\n"
     "(declare-fun mem_1_1 () (_ BitVec 16))\n"
     "(declare-fun mem_1_2 () (_ BitVec 16))\n"
-    "(declare-fun mem_1_3 () (_ BitVec 16))\n"
     "\n"
     "(declare-fun heap_1 () (Array (_ BitVec 16) (_ BitVec 16)))\n"
+    "\n"
+    "(assert (=> exec_1_0_0 (= accu_1_0 (select heap_0 #x0001))))\n"
+    "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= heap_1 heap_0)))\n"
+    "(assert (=> exec_1_0_0 "
+      "(and "
+        "(not stmt_2_0_0) "
+        "stmt_2_0_1 "
+        "(not stmt_2_0_2))))\n"
+    "\n"
+    "(assert (=> exec_1_0_1 (= accu_1_0 (bvadd accu_0_0 #x0001))))\n"
+    "(assert (=> exec_1_0_1 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_1 (= heap_1 heap_0)))\n"
+    "(assert (=> exec_1_0_1 "
+      "(and "
+        "(not stmt_2_0_0) "
+        "(not stmt_2_0_1) "
+        "stmt_2_0_2)))\n"
+    "\n"
+    "(assert (=> exec_1_0_2 (= accu_1_0 accu_0_0)))\n"
+    "(assert (=> exec_1_0_2 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_2 (= heap_1 (store heap_0 #x0001 accu_0_0))))\n"
+    "(assert (=> exec_1_0_2 "
+      "(and "
+        "(not stmt_2_0_0) "
+        "(not stmt_2_0_1) "
+        "(not stmt_2_0_2))))\n"
     "\n"
     "(assert (=> exec_1_1_0 (= accu_1_1 (select heap_0 #x0001))))\n"
     "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
@@ -646,34 +673,7 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_update)
       "(and "
         "(not stmt_2_2_0) "
         "(not stmt_2_2_1) "
-        "(not stmt_2_2_2))))\n"
-    "\n"
-    "(assert (=> exec_1_3_0 (= accu_1_3 (select heap_0 #x0001))))\n"
-    "(assert (=> exec_1_3_0 (= mem_1_3 mem_0_3)))\n"
-    "(assert (=> exec_1_3_0 (= heap_1 heap_0)))\n"
-    "(assert (=> exec_1_3_0 "
-      "(and "
-        "(not stmt_2_3_0) "
-        "stmt_2_3_1 "
-        "(not stmt_2_3_2))))\n"
-    "\n"
-    "(assert (=> exec_1_3_1 (= accu_1_3 (bvadd accu_0_3 #x0001))))\n"
-    "(assert (=> exec_1_3_1 (= mem_1_3 mem_0_3)))\n"
-    "(assert (=> exec_1_3_1 (= heap_1 heap_0)))\n"
-    "(assert (=> exec_1_3_1 "
-      "(and "
-        "(not stmt_2_3_0) "
-        "(not stmt_2_3_1) "
-        "stmt_2_3_2)))\n"
-    "\n"
-    "(assert (=> exec_1_3_2 (= accu_1_3 accu_0_3)))\n"
-    "(assert (=> exec_1_3_2 (= mem_1_3 mem_0_3)))\n"
-    "(assert (=> exec_1_3_2 (= heap_1 (store heap_0 #x0001 accu_0_3))))\n"
-    "(assert (=> exec_1_3_2 "
-      "(and "
-        "(not stmt_2_3_0) "
-        "(not stmt_2_3_1) "
-        "(not stmt_2_3_2))))\n\n";
+        "(not stmt_2_2_2))))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 }
@@ -687,6 +687,30 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_preservation)
 
   expected =
     "; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "(declare-fun wait_1_0 () Bool)\n"
+    "(assert (= wait_1_0 (not (or thread_1_0 sync_1_1))))\n"
+    "\n"
+    "(assert (=> wait_1_0 (= accu_1_0 accu_0_0)))\n"
+    "(assert (=> wait_1_0 (= mem_1_0 mem_0_0)))\n"
+    "\n"
+    "(assert (=> wait_1_0 (= stmt_2_0_0 stmt_1_0_0)))\n"
+    "(assert (=> wait_1_0 (= stmt_2_0_1 stmt_1_0_1)))\n"
+    "(assert (=> wait_1_0 (= stmt_2_0_2 stmt_1_0_2)))\n"
+    "(assert (=> wait_1_0 (= stmt_2_0_3 stmt_1_0_3)))\n"
+    "(assert (=> wait_1_0 (= stmt_2_0_4 stmt_1_0_4)))\n"
+    "(assert (=> wait_1_0 (= stmt_2_0_5 stmt_1_0_5)))\n"
+    "(assert (=> wait_1_0 (= stmt_2_0_6 stmt_1_0_6)))\n"
+    "(assert (=> wait_1_0 (= stmt_2_0_7 stmt_1_0_7)))\n"
+    "(assert (=> wait_1_0 (= stmt_2_0_8 stmt_1_0_8)))\n"
+    "(assert (=> wait_1_0 (= stmt_2_0_9 stmt_1_0_9)))\n"
+    "(assert (=> wait_1_0 (= stmt_2_0_10 stmt_1_0_10)))\n"
+    "(assert (=> wait_1_0 (= stmt_2_0_11 stmt_1_0_11)))\n"
+    "(assert (=> wait_1_0 (= stmt_2_0_12 stmt_1_0_12)))\n"
+    "(assert (=> wait_1_0 (= stmt_2_0_13 stmt_1_0_13)))\n"
+    "(assert (=> wait_1_0 (= stmt_2_0_14 stmt_1_0_14)))\n"
+    "(assert (=> wait_1_0 (= stmt_2_0_15 stmt_1_0_15)))\n"
+    "(assert (=> wait_1_0 (= stmt_2_0_16 stmt_1_0_16)))\n"
     "\n"
     "(declare-fun wait_1_1 () Bool)\n"
     "(assert (= wait_1_1 (not (or thread_1_1 sync_1_1))))\n"
@@ -734,31 +758,7 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_preservation)
     "(assert (=> wait_1_2 (= stmt_2_2_13 stmt_1_2_13)))\n"
     "(assert (=> wait_1_2 (= stmt_2_2_14 stmt_1_2_14)))\n"
     "(assert (=> wait_1_2 (= stmt_2_2_15 stmt_1_2_15)))\n"
-    "(assert (=> wait_1_2 (= stmt_2_2_16 stmt_1_2_16)))\n"
-    "\n"
-    "(declare-fun wait_1_3 () Bool)\n"
-    "(assert (= wait_1_3 (not (or thread_1_3 sync_1_1))))\n"
-    "\n"
-    "(assert (=> wait_1_3 (= accu_1_3 accu_0_3)))\n"
-    "(assert (=> wait_1_3 (= mem_1_3 mem_0_3)))\n"
-    "\n"
-    "(assert (=> wait_1_3 (= stmt_2_3_0 stmt_1_3_0)))\n"
-    "(assert (=> wait_1_3 (= stmt_2_3_1 stmt_1_3_1)))\n"
-    "(assert (=> wait_1_3 (= stmt_2_3_2 stmt_1_3_2)))\n"
-    "(assert (=> wait_1_3 (= stmt_2_3_3 stmt_1_3_3)))\n"
-    "(assert (=> wait_1_3 (= stmt_2_3_4 stmt_1_3_4)))\n"
-    "(assert (=> wait_1_3 (= stmt_2_3_5 stmt_1_3_5)))\n"
-    "(assert (=> wait_1_3 (= stmt_2_3_6 stmt_1_3_6)))\n"
-    "(assert (=> wait_1_3 (= stmt_2_3_7 stmt_1_3_7)))\n"
-    "(assert (=> wait_1_3 (= stmt_2_3_8 stmt_1_3_8)))\n"
-    "(assert (=> wait_1_3 (= stmt_2_3_9 stmt_1_3_9)))\n"
-    "(assert (=> wait_1_3 (= stmt_2_3_10 stmt_1_3_10)))\n"
-    "(assert (=> wait_1_3 (= stmt_2_3_11 stmt_1_3_11)))\n"
-    "(assert (=> wait_1_3 (= stmt_2_3_12 stmt_1_3_12)))\n"
-    "(assert (=> wait_1_3 (= stmt_2_3_13 stmt_1_3_13)))\n"
-    "(assert (=> wait_1_3 (= stmt_2_3_14 stmt_1_3_14)))\n"
-    "(assert (=> wait_1_3 (= stmt_2_3_15 stmt_1_3_15)))\n"
-    "(assert (=> wait_1_3 (= stmt_2_3_16 stmt_1_3_16)))\n\n";
+    "(assert (=> wait_1_2 (= stmt_2_2_16 stmt_1_2_16)))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -770,6 +770,12 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_preservation)
   expected =
     "; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
+    "(declare-fun wait_2_0 () Bool)\n"
+    "(assert (= wait_2_0 (not (or thread_2_0 sync_2_1))))\n"
+    "\n"
+    "(assert (=> wait_2_0 (= accu_2_0 accu_1_0)))\n"
+    "(assert (=> wait_2_0 (= mem_2_0 mem_1_0)))\n"
+    "\n"
     "(declare-fun wait_2_1 () Bool)\n"
     "(assert (= wait_2_1 (not (or thread_2_1 sync_2_1))))\n"
     "\n"
@@ -780,13 +786,7 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_preservation)
     "(assert (= wait_2_2 (not (or thread_2_2 sync_2_1))))\n"
     "\n"
     "(assert (=> wait_2_2 (= accu_2_2 accu_1_2)))\n"
-    "(assert (=> wait_2_2 (= mem_2_2 mem_1_2)))\n"
-    "\n"
-    "(declare-fun wait_2_3 () Bool)\n"
-    "(assert (= wait_2_3 (not (or thread_2_3 sync_2_1))))\n"
-    "\n"
-    "(assert (=> wait_2_3 (= accu_2_3 accu_1_3)))\n"
-    "(assert (=> wait_2_3 (= mem_2_3 mem_1_3)))\n\n";
+    "(assert (=> wait_2_2 (= mem_2_2 mem_1_2)))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -798,6 +798,12 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_preservation)
   verbose = true;
 
   expected =
+    "(declare-fun wait_2_0 () Bool)\n"
+    "(assert (= wait_2_0 (not (or thread_2_0 sync_2_1))))\n"
+    "\n"
+    "(assert (=> wait_2_0 (= accu_2_0 accu_1_0)))\n"
+    "(assert (=> wait_2_0 (= mem_2_0 mem_1_0)))\n"
+    "\n"
     "(declare-fun wait_2_1 () Bool)\n"
     "(assert (= wait_2_1 (not (or thread_2_1 sync_2_1))))\n"
     "\n"
@@ -808,13 +814,7 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_preservation)
     "(assert (= wait_2_2 (not (or thread_2_2 sync_2_1))))\n"
     "\n"
     "(assert (=> wait_2_2 (= accu_2_2 accu_1_2)))\n"
-    "(assert (=> wait_2_2 (= mem_2_2 mem_1_2)))\n"
-    "\n"
-    "(declare-fun wait_2_3 () Bool)\n"
-    "(assert (= wait_2_3 (not (or thread_2_3 sync_2_1))))\n"
-    "\n"
-    "(assert (=> wait_2_3 (= accu_2_3 accu_1_3)))\n"
-    "(assert (=> wait_2_3 (= mem_2_3 mem_1_3)))\n\n";
+    "(assert (=> wait_2_2 (= mem_2_2 mem_1_2)))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 }
@@ -862,14 +862,14 @@ TEST_F(SMTLibEncoderRelationalTest, LOAD)
   Load load = Load(1);
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 (= accu_1_1 (select heap_0 #x0001))))\n"
-    "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= heap_1 heap_0)))\n"
-    "(assert (=> exec_1_1_0 "
+    "(assert (=> exec_1_0_0 (= accu_1_0 (select heap_0 #x0001))))\n"
+    "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= heap_1 heap_0)))\n"
+    "(assert (=> exec_1_0_0 "
       "(and "
-        "(not stmt_2_1_0) "
-        "stmt_2_1_1 "
-        "(not stmt_2_1_2))"
+        "(not stmt_2_0_0) "
+        "stmt_2_0_1 "
+        "(not stmt_2_0_2))"
     "))\n",
     encoder->encode(load));
 
@@ -877,15 +877,15 @@ TEST_F(SMTLibEncoderRelationalTest, LOAD)
   load.indirect = true;
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 "
-      "(= accu_1_1 (select heap_0 (select heap_0 #x0001)))))\n"
-    "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= heap_1 heap_0)))\n"
-    "(assert (=> exec_1_1_0 "
+    "(assert (=> exec_1_0_0 "
+      "(= accu_1_0 (select heap_0 (select heap_0 #x0001)))))\n"
+    "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= heap_1 heap_0)))\n"
+    "(assert (=> exec_1_0_0 "
       "(and "
-        "(not stmt_2_1_0) "
-        "stmt_2_1_1 "
-        "(not stmt_2_1_2))"
+        "(not stmt_2_0_0) "
+        "stmt_2_0_1 "
+        "(not stmt_2_0_2))"
     "))\n",
     encoder->encode(load));
 }
@@ -898,14 +898,14 @@ TEST_F(SMTLibEncoderRelationalTest, STORE)
   Store store = Store(1);
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 (= accu_1_1 accu_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= heap_1 (store heap_0 #x0001 accu_0_1))))\n"
-    "(assert (=> exec_1_1_0 "
+    "(assert (=> exec_1_0_0 (= accu_1_0 accu_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= heap_1 (store heap_0 #x0001 accu_0_0))))\n"
+    "(assert (=> exec_1_0_0 "
       "(and "
-        "(not stmt_2_1_0) "
-        "stmt_2_1_1 "
-        "(not stmt_2_1_2))"
+        "(not stmt_2_0_0) "
+        "stmt_2_0_1 "
+        "(not stmt_2_0_2))"
     "))\n",
     encoder->encode(store));
 
@@ -913,15 +913,15 @@ TEST_F(SMTLibEncoderRelationalTest, STORE)
   store.indirect = true;
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 (= accu_1_1 accu_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
-    "(assert (=> exec_1_1_0 "
-      "(= heap_1 (store heap_0 (select heap_0 #x0001) accu_0_1))))\n"
-    "(assert (=> exec_1_1_0 "
+    "(assert (=> exec_1_0_0 (= accu_1_0 accu_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_0 "
+      "(= heap_1 (store heap_0 (select heap_0 #x0001) accu_0_0))))\n"
+    "(assert (=> exec_1_0_0 "
       "(and "
-        "(not stmt_2_1_0) "
-        "stmt_2_1_1 "
-        "(not stmt_2_1_2))"
+        "(not stmt_2_0_0) "
+        "stmt_2_0_1 "
+        "(not stmt_2_0_2))"
     "))\n",
     encoder->encode(store));
 }
@@ -934,15 +934,15 @@ TEST_F(SMTLibEncoderRelationalTest, ADD)
   Add add = Add(1);
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 "
-      "(= accu_1_1 (bvadd accu_0_1 (select heap_0 #x0001)))))\n"
-    "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= heap_1 heap_0)))\n"
-    "(assert (=> exec_1_1_0 "
+    "(assert (=> exec_1_0_0 "
+      "(= accu_1_0 (bvadd accu_0_0 (select heap_0 #x0001)))))\n"
+    "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= heap_1 heap_0)))\n"
+    "(assert (=> exec_1_0_0 "
       "(and "
-        "(not stmt_2_1_0) "
-        "stmt_2_1_1 "
-        "(not stmt_2_1_2))"
+        "(not stmt_2_0_0) "
+        "stmt_2_0_1 "
+        "(not stmt_2_0_2))"
     "))\n",
     encoder->encode(add));
 
@@ -950,15 +950,15 @@ TEST_F(SMTLibEncoderRelationalTest, ADD)
   add.indirect = true;
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 "
-      "(= accu_1_1 (bvadd accu_0_1 (select heap_0 (select heap_0 #x0001))))))\n"
-    "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= heap_1 heap_0)))\n"
-    "(assert (=> exec_1_1_0 "
+    "(assert (=> exec_1_0_0 "
+      "(= accu_1_0 (bvadd accu_0_0 (select heap_0 (select heap_0 #x0001))))))\n"
+    "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= heap_1 heap_0)))\n"
+    "(assert (=> exec_1_0_0 "
       "(and "
-        "(not stmt_2_1_0) "
-        "stmt_2_1_1 "
-        "(not stmt_2_1_2))"
+        "(not stmt_2_0_0) "
+        "stmt_2_0_1 "
+        "(not stmt_2_0_2))"
     "))\n",
     encoder->encode(add));
 }
@@ -971,15 +971,15 @@ TEST_F(SMTLibEncoderRelationalTest, ADDI)
   Addi addi = Addi(1);
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 "
-      "(= accu_1_1 (bvadd accu_0_1 #x0001))))\n"
-    "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= heap_1 heap_0)))\n"
-    "(assert (=> exec_1_1_0 "
+    "(assert (=> exec_1_0_0 "
+      "(= accu_1_0 (bvadd accu_0_0 #x0001))))\n"
+    "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= heap_1 heap_0)))\n"
+    "(assert (=> exec_1_0_0 "
       "(and "
-        "(not stmt_2_1_0) "
-        "stmt_2_1_1 "
-        "(not stmt_2_1_2))"
+        "(not stmt_2_0_0) "
+        "stmt_2_0_1 "
+        "(not stmt_2_0_2))"
     "))\n",
     encoder->encode(addi));
 }
@@ -992,15 +992,15 @@ TEST_F(SMTLibEncoderRelationalTest, SUB)
   Sub sub = Sub(1);
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 "
-      "(= accu_1_1 (bvsub accu_0_1 (select heap_0 #x0001)))))\n"
-    "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= heap_1 heap_0)))\n"
-    "(assert (=> exec_1_1_0 "
+    "(assert (=> exec_1_0_0 "
+      "(= accu_1_0 (bvsub accu_0_0 (select heap_0 #x0001)))))\n"
+    "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= heap_1 heap_0)))\n"
+    "(assert (=> exec_1_0_0 "
       "(and "
-        "(not stmt_2_1_0) "
-        "stmt_2_1_1 "
-        "(not stmt_2_1_2))"
+        "(not stmt_2_0_0) "
+        "stmt_2_0_1 "
+        "(not stmt_2_0_2))"
     "))\n",
     encoder->encode(sub));
 
@@ -1008,15 +1008,15 @@ TEST_F(SMTLibEncoderRelationalTest, SUB)
   sub.indirect = true;
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 "
-      "(= accu_1_1 (bvsub accu_0_1 (select heap_0 (select heap_0 #x0001))))))\n"
-    "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= heap_1 heap_0)))\n"
-    "(assert (=> exec_1_1_0 "
+    "(assert (=> exec_1_0_0 "
+      "(= accu_1_0 (bvsub accu_0_0 (select heap_0 (select heap_0 #x0001))))))\n"
+    "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= heap_1 heap_0)))\n"
+    "(assert (=> exec_1_0_0 "
       "(and "
-        "(not stmt_2_1_0) "
-        "stmt_2_1_1 "
-        "(not stmt_2_1_2))"
+        "(not stmt_2_0_0) "
+        "stmt_2_0_1 "
+        "(not stmt_2_0_2))"
     "))\n",
     encoder->encode(sub));
 }
@@ -1029,15 +1029,15 @@ TEST_F(SMTLibEncoderRelationalTest, SUBI)
   Subi subi = Subi(1);
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 "
-      "(= accu_1_1 (bvsub accu_0_1 #x0001))))\n"
-    "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= heap_1 heap_0)))\n"
-    "(assert (=> exec_1_1_0 "
+    "(assert (=> exec_1_0_0 "
+      "(= accu_1_0 (bvsub accu_0_0 #x0001))))\n"
+    "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= heap_1 heap_0)))\n"
+    "(assert (=> exec_1_0_0 "
       "(and "
-        "(not stmt_2_1_0) "
-        "stmt_2_1_1 "
-        "(not stmt_2_1_2))"
+        "(not stmt_2_0_0) "
+        "stmt_2_0_1 "
+        "(not stmt_2_0_2))"
     "))\n",
     encoder->encode(subi));
 }
@@ -1050,15 +1050,15 @@ TEST_F(SMTLibEncoderRelationalTest, CMP)
   Cmp cmp = Cmp(1);
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 "
-      "(= accu_1_1 (bvsub accu_0_1 (select heap_0 #x0001)))))\n"
-    "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= heap_1 heap_0)))\n"
-    "(assert (=> exec_1_1_0 "
+    "(assert (=> exec_1_0_0 "
+      "(= accu_1_0 (bvsub accu_0_0 (select heap_0 #x0001)))))\n"
+    "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= heap_1 heap_0)))\n"
+    "(assert (=> exec_1_0_0 "
       "(and "
-        "(not stmt_2_1_0) "
-        "stmt_2_1_1 "
-        "(not stmt_2_1_2))"
+        "(not stmt_2_0_0) "
+        "stmt_2_0_1 "
+        "(not stmt_2_0_2))"
     "))\n",
     encoder->encode(cmp));
 
@@ -1066,15 +1066,15 @@ TEST_F(SMTLibEncoderRelationalTest, CMP)
   cmp.indirect = true;
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 "
-      "(= accu_1_1 (bvsub accu_0_1 (select heap_0 (select heap_0 #x0001))))))\n"
-    "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= heap_1 heap_0)))\n"
-    "(assert (=> exec_1_1_0 "
+    "(assert (=> exec_1_0_0 "
+      "(= accu_1_0 (bvsub accu_0_0 (select heap_0 (select heap_0 #x0001))))))\n"
+    "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= heap_1 heap_0)))\n"
+    "(assert (=> exec_1_0_0 "
       "(and "
-        "(not stmt_2_1_0) "
-        "stmt_2_1_1 "
-        "(not stmt_2_1_2))"
+        "(not stmt_2_0_0) "
+        "stmt_2_0_1 "
+        "(not stmt_2_0_2))"
     "))\n",
     encoder->encode(cmp));
 }
@@ -1087,14 +1087,14 @@ TEST_F(SMTLibEncoderRelationalTest, JMP)
   Jmp jmp = Jmp(2);
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 (= accu_1_1 accu_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= heap_1 heap_0)))\n"
-    "(assert (=> exec_1_1_0 "
+    "(assert (=> exec_1_0_0 (= accu_1_0 accu_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= heap_1 heap_0)))\n"
+    "(assert (=> exec_1_0_0 "
       "(and "
-        "(not stmt_2_1_0) "
-        "(not stmt_2_1_1) "
-        "stmt_2_1_2)"
+        "(not stmt_2_0_0) "
+        "(not stmt_2_0_1) "
+        "stmt_2_0_2)"
     "))\n",
     encoder->encode(jmp));
 }
@@ -1107,19 +1107,19 @@ TEST_F(SMTLibEncoderRelationalTest, JZ)
   Jz jz = Jz(2);
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 (= accu_1_1 accu_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= heap_1 heap_0)))\n"
-    "(assert (=> exec_1_1_0 "
-      "(ite (= accu_1_1 #x0000) "
+    "(assert (=> exec_1_0_0 (= accu_1_0 accu_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= heap_1 heap_0)))\n"
+    "(assert (=> exec_1_0_0 "
+      "(ite (= accu_1_0 #x0000) "
         "(and "
-          "(not stmt_2_1_0) "
-          "(not stmt_2_1_1) "
-          "stmt_2_1_2) "
+          "(not stmt_2_0_0) "
+          "(not stmt_2_0_1) "
+          "stmt_2_0_2) "
         "(and "
-          "(not stmt_2_1_0) "
-          "stmt_2_1_1 "
-          "(not stmt_2_1_2))"
+          "(not stmt_2_0_0) "
+          "stmt_2_0_1 "
+          "(not stmt_2_0_2))"
     ")))\n",
     encoder->encode(jz));
 }
@@ -1132,19 +1132,19 @@ TEST_F(SMTLibEncoderRelationalTest, JNZ)
   Jnz jnz = Jnz(2);
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 (= accu_1_1 accu_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= heap_1 heap_0)))\n"
-    "(assert (=> exec_1_1_0 "
-      "(ite (not (= accu_1_1 #x0000)) "
+    "(assert (=> exec_1_0_0 (= accu_1_0 accu_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= heap_1 heap_0)))\n"
+    "(assert (=> exec_1_0_0 "
+      "(ite (not (= accu_1_0 #x0000)) "
         "(and "
-          "(not stmt_2_1_0) "
-          "(not stmt_2_1_1) "
-          "stmt_2_1_2) "
+          "(not stmt_2_0_0) "
+          "(not stmt_2_0_1) "
+          "stmt_2_0_2) "
         "(and "
-          "(not stmt_2_1_0) "
-          "stmt_2_1_1 "
-          "(not stmt_2_1_2))"
+          "(not stmt_2_0_0) "
+          "stmt_2_0_1 "
+          "(not stmt_2_0_2))"
     ")))\n",
     encoder->encode(jnz));
 }
@@ -1157,19 +1157,19 @@ TEST_F(SMTLibEncoderRelationalTest, JS)
   Js js = Js(2);
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 (= accu_1_1 accu_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= heap_1 heap_0)))\n"
-    "(assert (=> exec_1_1_0 "
-      "(ite (= #b1 ((_ extract 15 15) accu_1_1)) "
+    "(assert (=> exec_1_0_0 (= accu_1_0 accu_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= heap_1 heap_0)))\n"
+    "(assert (=> exec_1_0_0 "
+      "(ite (= #b1 ((_ extract 15 15) accu_1_0)) "
         "(and "
-          "(not stmt_2_1_0) "
-          "(not stmt_2_1_1) "
-          "stmt_2_1_2) "
+          "(not stmt_2_0_0) "
+          "(not stmt_2_0_1) "
+          "stmt_2_0_2) "
         "(and "
-          "(not stmt_2_1_0) "
-          "stmt_2_1_1 "
-          "(not stmt_2_1_2))"
+          "(not stmt_2_0_0) "
+          "stmt_2_0_1 "
+          "(not stmt_2_0_2))"
     ")))\n",
     encoder->encode(js));
 }
@@ -1182,19 +1182,19 @@ TEST_F(SMTLibEncoderRelationalTest, JNS)
   Jns jns = Jns(2);
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 (= accu_1_1 accu_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= heap_1 heap_0)))\n"
-    "(assert (=> exec_1_1_0 "
-      "(ite (= #b0 ((_ extract 15 15) accu_1_1)) "
+    "(assert (=> exec_1_0_0 (= accu_1_0 accu_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= heap_1 heap_0)))\n"
+    "(assert (=> exec_1_0_0 "
+      "(ite (= #b0 ((_ extract 15 15) accu_1_0)) "
         "(and "
-          "(not stmt_2_1_0) "
-          "(not stmt_2_1_1) "
-          "stmt_2_1_2) "
+          "(not stmt_2_0_0) "
+          "(not stmt_2_0_1) "
+          "stmt_2_0_2) "
         "(and "
-          "(not stmt_2_1_0) "
-          "stmt_2_1_1 "
-          "(not stmt_2_1_2))"
+          "(not stmt_2_0_0) "
+          "stmt_2_0_1 "
+          "(not stmt_2_0_2))"
     ")))\n",
     encoder->encode(jns));
 }
@@ -1207,20 +1207,20 @@ TEST_F(SMTLibEncoderRelationalTest, JNZNS)
   Jnzns jnzns = Jnzns(2);
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 (= accu_1_1 accu_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= heap_1 heap_0)))\n"
-    "(assert (=> exec_1_1_0 "
+    "(assert (=> exec_1_0_0 (= accu_1_0 accu_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= heap_1 heap_0)))\n"
+    "(assert (=> exec_1_0_0 "
       "(ite "
-        "(and (not (= accu_1_1 #x0000)) (= #b0 ((_ extract 15 15) accu_1_1))) "
+        "(and (not (= accu_1_0 #x0000)) (= #b0 ((_ extract 15 15) accu_1_0))) "
         "(and "
-          "(not stmt_2_1_0) "
-          "(not stmt_2_1_1) "
-          "stmt_2_1_2) "
+          "(not stmt_2_0_0) "
+          "(not stmt_2_0_1) "
+          "stmt_2_0_2) "
         "(and "
-          "(not stmt_2_1_0) "
-          "stmt_2_1_1 "
-          "(not stmt_2_1_2))"
+          "(not stmt_2_0_0) "
+          "stmt_2_0_1 "
+          "(not stmt_2_0_2))"
     ")))\n",
     encoder->encode(jnzns));
 }
@@ -1233,14 +1233,14 @@ TEST_F(SMTLibEncoderRelationalTest, MEM)
   Mem mem = Mem(1);
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 (= accu_1_1 (select heap_0 #x0001))))\n"
-    "(assert (=> exec_1_1_0 (= mem_1_1 accu_1_1)))\n"
-    "(assert (=> exec_1_1_0 (= heap_1 heap_0)))\n"
-    "(assert (=> exec_1_1_0 "
+    "(assert (=> exec_1_0_0 (= accu_1_0 (select heap_0 #x0001))))\n"
+    "(assert (=> exec_1_0_0 (= mem_1_0 accu_1_0)))\n"
+    "(assert (=> exec_1_0_0 (= heap_1 heap_0)))\n"
+    "(assert (=> exec_1_0_0 "
       "(and "
-        "(not stmt_2_1_0) "
-        "stmt_2_1_1 "
-        "(not stmt_2_1_2))"
+        "(not stmt_2_0_0) "
+        "stmt_2_0_1 "
+        "(not stmt_2_0_2))"
     "))\n",
     encoder->encode(mem));
 
@@ -1248,15 +1248,15 @@ TEST_F(SMTLibEncoderRelationalTest, MEM)
   mem.indirect = true;
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 "
-      "(= accu_1_1 (select heap_0 (select heap_0 #x0001)))))\n"
-    "(assert (=> exec_1_1_0 (= mem_1_1 accu_1_1)))\n"
-    "(assert (=> exec_1_1_0 (= heap_1 heap_0)))\n"
-    "(assert (=> exec_1_1_0 "
+    "(assert (=> exec_1_0_0 "
+      "(= accu_1_0 (select heap_0 (select heap_0 #x0001)))))\n"
+    "(assert (=> exec_1_0_0 (= mem_1_0 accu_1_0)))\n"
+    "(assert (=> exec_1_0_0 (= heap_1 heap_0)))\n"
+    "(assert (=> exec_1_0_0 "
       "(and "
-        "(not stmt_2_1_0) "
-        "stmt_2_1_1 "
-        "(not stmt_2_1_2))"
+        "(not stmt_2_0_0) "
+        "stmt_2_0_1 "
+        "(not stmt_2_0_2))"
     "))\n",
     encoder->encode(mem));
 }
@@ -1269,21 +1269,21 @@ TEST_F(SMTLibEncoderRelationalTest, CAS)
   Cas cas = Cas(1);
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 (= accu_1_1 "
+    "(assert (=> exec_1_0_0 (= accu_1_0 "
       "(ite "
-        "(= mem_0_1 (select heap_0 #x0001)) "
+        "(= mem_0_0 (select heap_0 #x0001)) "
         "#x0001 "
         "#x0000))))\n"
-    "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= heap_1 "
-      "(ite (= mem_0_1 (select heap_0 #x0001)) "
-        "(store heap_0 #x0001 accu_0_1) "
+    "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= heap_1 "
+      "(ite (= mem_0_0 (select heap_0 #x0001)) "
+        "(store heap_0 #x0001 accu_0_0) "
         "heap_0))))\n"
-    "(assert (=> exec_1_1_0 "
+    "(assert (=> exec_1_0_0 "
       "(and "
-        "(not stmt_2_1_0) "
-        "stmt_2_1_1 "
-        "(not stmt_2_1_2))"
+        "(not stmt_2_0_0) "
+        "stmt_2_0_1 "
+        "(not stmt_2_0_2))"
     "))\n",
     encoder->encode(cas));
 
@@ -1291,21 +1291,21 @@ TEST_F(SMTLibEncoderRelationalTest, CAS)
   cas.indirect = true;
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 (= accu_1_1 "
+    "(assert (=> exec_1_0_0 (= accu_1_0 "
       "(ite "
-        "(= mem_0_1 (select heap_0 (select heap_0 #x0001))) "
+        "(= mem_0_0 (select heap_0 (select heap_0 #x0001))) "
         "#x0001 "
         "#x0000))))\n"
-    "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= heap_1 "
-      "(ite (= mem_0_1 (select heap_0 (select heap_0 #x0001))) "
-        "(store heap_0 (select heap_0 #x0001) accu_0_1) "
+    "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= heap_1 "
+      "(ite (= mem_0_0 (select heap_0 (select heap_0 #x0001))) "
+        "(store heap_0 (select heap_0 #x0001) accu_0_0) "
         "heap_0))))\n"
-    "(assert (=> exec_1_1_0 "
+    "(assert (=> exec_1_0_0 "
       "(and "
-        "(not stmt_2_1_0) "
-        "stmt_2_1_1 "
-        "(not stmt_2_1_2))"
+        "(not stmt_2_0_0) "
+        "stmt_2_0_1 "
+        "(not stmt_2_0_2))"
     "))\n",
     encoder->encode(cas));
 }
@@ -1318,14 +1318,14 @@ TEST_F(SMTLibEncoderRelationalTest, SYNC)
   Sync sync = Sync(1);
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 (= accu_1_1 accu_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= heap_1 heap_0)))\n"
-    "(assert (=> exec_1_1_0 "
+    "(assert (=> exec_1_0_0 (= accu_1_0 accu_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= heap_1 heap_0)))\n"
+    "(assert (=> exec_1_0_0 "
       "(and "
-        "(not stmt_2_1_0) "
-        "stmt_2_1_1 "
-        "(not stmt_2_1_2))"
+        "(not stmt_2_0_0) "
+        "stmt_2_0_1 "
+        "(not stmt_2_0_2))"
     "))\n",
     encoder->encode(sync));
 }
@@ -1338,9 +1338,9 @@ TEST_F(SMTLibEncoderRelationalTest, EXIT)
   Exit exit = Exit(1);
 
   ASSERT_EQ(
-    "(assert (=> exec_1_1_0 (= accu_1_1 accu_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
-    "(assert (=> exec_1_1_0 (= heap_1 heap_0)))\n"
-    "(assert (=> exec_1_1_0 (= exit-code #x0001)))\n",
+    "(assert (=> exec_1_0_0 (= accu_1_0 accu_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> exec_1_0_0 (= heap_1 heap_0)))\n"
+    "(assert (=> exec_1_0_0 (= exit-code #x0001)))\n",
     encoder->encode(exit));
 }

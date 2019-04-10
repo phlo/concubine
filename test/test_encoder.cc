@@ -21,7 +21,7 @@ struct EncoderTest : public ::testing::Test
   void reset_encoder (const word bound)
     {
       encoder = create_encoder(bound);
-      encoder->thread = 1;
+      encoder->thread = 0;
     }
 
   void add_dummy_programs (unsigned num, unsigned size)
@@ -38,7 +38,7 @@ struct EncoderTest : public ::testing::Test
     }
 };
 
-// Encoder::Encoder (const ProgramListPtr, unsigned long);
+// Encoder::Encoder (const ProgramListPtr, unsigned long)
 TEST_F(EncoderTest, constructor)
 {
   for (size_t i = 0; i < 3; i++)
@@ -75,7 +75,7 @@ TEST_F(EncoderTest, constructor)
   for (const auto & pcs : encoder->exit_pcs)
       ASSERT_EQ(vector<word>({5}), get<1>(pcs));
 
-  ASSERT_EQ(set<word>({1, 2, 3}), encoder->cas_threads);
+  ASSERT_EQ(set<word>({0, 1, 2}), encoder->cas_threads);
 }
 
 TEST_F(EncoderTest, constructor_predecessors)
@@ -268,46 +268,46 @@ TEST_F(EncoderTest, constructor_cas_threads)
 
   reset_encoder(0);
 
-  ASSERT_EQ(set<word>({1, 2, 3}), encoder->cas_threads);
+  ASSERT_EQ(set<word>({0, 1, 2}), encoder->cas_threads);
 }
 
-// void iterate_threads (std::function<void(void)>);
+// void iterate_threads (std::function<void(void)>)
 TEST_F(EncoderTest, iterate_threads_void_void)
 {
   add_dummy_programs(3, 3);
 
-  word thread = 1;
+  word thread = 0;
 
   encoder->iterate_threads([&] { ASSERT_EQ(thread++, encoder->thread); });
 }
 
-// void iterate_threads (std::function<void(Program &)>);
+// void iterate_threads (std::function<void(Program &)>)
 TEST_F(EncoderTest, iterate_threads_void_program)
 {
   add_dummy_programs(3, 3);
 
-  word thread = 1;
+  word thread = 0;
 
   encoder->iterate_threads([&] (Program & p) {
     ASSERT_EQ(thread, encoder->thread);
-    ASSERT_EQ(&*programs[thread++ - 1u], &p);
+    ASSERT_EQ(&*programs[thread++], &p);
   });
 }
 
-// void iterate_threads_reverse (std::function<void(Program &)>);
+// void iterate_threads_reverse (std::function<void(Program &)>)
 TEST_F(EncoderTest, iterate_threads_reverse_void_program)
 {
   add_dummy_programs(3, 3);
 
-  word thread = programs.size();
+  word thread = encoder->num_threads - 1;
 
   encoder->iterate_threads_reverse([&] (Program & p) {
-    ASSERT_EQ(thread--, encoder->thread);
-    ASSERT_EQ(&*programs[thread], &p);
+    ASSERT_EQ(thread, encoder->thread);
+    ASSERT_EQ(&*programs[thread--], &p);
   });
 }
 
-// string str (void);
+// string str (void)
 TEST_F(EncoderTest, str)
 {
   encoder->formula << "foo";
