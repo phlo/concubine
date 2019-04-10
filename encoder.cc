@@ -163,7 +163,7 @@ const string SMTLibEncoder::bv_sort =
   smtlib::bitvector(word_size);
 
 const string SMTLibEncoder::exit_code_var =
-  "exit_code";
+  "exit-code";
 
 const string SMTLibEncoder::heap_comment =
   "; heap states - heap_<step>";
@@ -1638,7 +1638,7 @@ void Btor2Encoder::declare_states ()
       formula << btor2::comment("exit code") << eol;
 
   formula <<
-    btor2::state(nid_exit_code = nid(), sid_bv, "exit_code") <<
+    btor2::state(nid_exit_code = nid(), sid_bv, "exit-code") <<
     btor2::init(nid(), sid_bv, nid_exit_code, nids_const[0]) <<
     eol;
 }
@@ -2048,7 +2048,7 @@ void Btor2Encoder::add_exit_code_update ()
 
   thread = 0; /* global state update */
 
-  add_state_update(nid_exit_code, sid_bv, "exit_code", exit_pcs);
+  add_state_update(nid_exit_code, sid_bv, "exit-code", exit_pcs);
 }
 
 void Btor2Encoder::add_state_update ()

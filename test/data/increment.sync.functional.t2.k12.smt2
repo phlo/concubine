@@ -1612,6 +1612,6 @@
 ; exit code
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(declare-fun exit_code () (_ BitVec 16))
+(declare-fun exit-code () (_ BitVec 16))
 
-(assert (= exit_code (ite exec_1_1_7 #x0001 (ite exec_1_2_6 #x0001 (ite exec_2_1_7 #x0001 (ite exec_2_2_6 #x0001 (ite exec_3_1_7 #x0001 (ite exec_3_2_6 #x0001 (ite exec_4_1_7 #x0001 (ite exec_4_2_6 #x0001 (ite exec_5_1_7 #x0001 (ite exec_5_2_6 #x0001 (ite exec_6_1_7 #x0001 (ite exec_6_2_6 #x0001 (ite exec_7_1_7 #x0001 (ite exec_7_2_6 #x0001 (ite exec_8_1_7 #x0001 (ite exec_8_2_6 #x0001 (ite exec_9_1_7 #x0001 (ite exec_9_2_6 #x0001 (ite exec_10_1_7 #x0001 (ite exec_10_2_6 #x0001 (ite exec_11_1_7 #x0001 (ite exec_11_2_6 #x0001 (ite exec_12_1_7 #x0001 (ite exec_12_2_6 #x0001 #x0000))))))))))))))))))))))))))
+(assert (= exit-code (ite exec_1_1_7 #x0001 (ite exec_1_2_6 #x0001 (ite exec_2_1_7 #x0001 (ite exec_2_2_6 #x0001 (ite exec_3_1_7 #x0001 (ite exec_3_2_6 #x0001 (ite exec_4_1_7 #x0001 (ite exec_4_2_6 #x0001 (ite exec_5_1_7 #x0001 (ite exec_5_2_6 #x0001 (ite exec_6_1_7 #x0001 (ite exec_6_2_6 #x0001 (ite exec_7_1_7 #x0001 (ite exec_7_2_6 #x0001 (ite exec_8_1_7 #x0001 (ite exec_8_2_6 #x0001 (ite exec_9_1_7 #x0001 (ite exec_9_2_6 #x0001 (ite exec_10_1_7 #x0001 (ite exec_10_2_6 #x0001 (ite exec_11_1_7 #x0001 (ite exec_11_2_6 #x0001 (ite exec_12_1_7 #x0001 (ite exec_12_2_6 #x0001 #x0000))))))))))))))))))))))))))

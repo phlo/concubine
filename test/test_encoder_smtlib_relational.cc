@@ -263,7 +263,7 @@ TEST_F(SMTLibEncoderRelationalTest, add_exit_code)
     "; exit code\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "(assert (= exit_code #x0000))\n";
+    "(assert (= exit-code #x0000))\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -282,7 +282,7 @@ TEST_F(SMTLibEncoderRelationalTest, add_exit_code)
     "; exit code\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "(assert (=> (not exit_3) (= exit_code #x0000)))\n";
+    "(assert (=> (not exit_3) (= exit-code #x0000)))\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 }
@@ -1341,6 +1341,6 @@ TEST_F(SMTLibEncoderRelationalTest, EXIT)
     "(assert (=> exec_1_1_0 (= accu_1_1 accu_0_1)))\n"
     "(assert (=> exec_1_1_0 (= mem_1_1 mem_0_1)))\n"
     "(assert (=> exec_1_1_0 (= heap_1 heap_0)))\n"
-    "(assert (=> exec_1_1_0 (= exit_code #x0001)))\n",
+    "(assert (=> exec_1_1_0 (= exit-code #x0001)))\n",
     encoder->encode(exit));
 }

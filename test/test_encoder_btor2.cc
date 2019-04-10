@@ -387,7 +387,7 @@ TEST_F(Btor2EncoderTest, declare_states)
     "42 init 1 41 4\n"
     "\n"
     "; exit code\n"
-    "43 state 2 exit_code\n"
+    "43 state 2 exit-code\n"
     "44 init 2 43 6\n"
     "\n",
     encoder->formula.str());
@@ -442,7 +442,7 @@ TEST_F(Btor2EncoderTest, declare_states)
     "41 state 1 exit\n"
     "42 init 1 41 4\n"
     "\n"
-    "43 state 2 exit_code\n"
+    "43 state 2 exit-code\n"
     "44 init 2 43 6\n"
     "\n",
     encoder->formula.str());

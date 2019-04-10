@@ -22,7 +22,7 @@
 (declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))
 
 ; exit code
-(declare-fun exit_code () (_ BitVec 16))
+(declare-fun exit-code () (_ BitVec 16))
 
 ; statement activation forward declaration ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -2237,4 +2237,4 @@
 ; exit code
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (= exit_code #x0000))
+(assert (= exit-code #x0000))

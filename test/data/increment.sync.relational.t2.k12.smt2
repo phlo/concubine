@@ -22,7 +22,7 @@
 (declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))
 
 ; exit code
-(declare-fun exit_code () (_ BitVec 16))
+(declare-fun exit-code () (_ BitVec 16))
 
 ; statement activation forward declaration ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -206,7 +206,7 @@
 (assert (=> exec_1_1_7 (= accu_1_1 accu_0_1)))
 (assert (=> exec_1_1_7 (= mem_1_1 mem_0_1)))
 (assert (=> exec_1_1_7 (= heap_1 heap_0)))
-(assert (=> exec_1_1_7 (= exit_code #x0001)))
+(assert (=> exec_1_1_7 (= exit-code #x0001)))
 
 ; thread 2@0: SYNC	0
 (assert (=> exec_1_2_0 (= accu_1_2 accu_0_2)))
@@ -248,7 +248,7 @@
 (assert (=> exec_1_2_6 (= accu_1_2 accu_0_2)))
 (assert (=> exec_1_2_6 (= mem_1_2 mem_0_2)))
 (assert (=> exec_1_2_6 (= heap_1 heap_0)))
-(assert (=> exec_1_2_6 (= exit_code #x0001)))
+(assert (=> exec_1_2_6 (= exit-code #x0001)))
 
 ; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -435,7 +435,7 @@
 (assert (=> exec_2_1_7 (= accu_2_1 accu_1_1)))
 (assert (=> exec_2_1_7 (= mem_2_1 mem_1_1)))
 (assert (=> exec_2_1_7 (= heap_2 heap_1)))
-(assert (=> exec_2_1_7 (= exit_code #x0001)))
+(assert (=> exec_2_1_7 (= exit-code #x0001)))
 
 ; thread 2@0: SYNC	0
 (assert (=> exec_2_2_0 (= accu_2_2 accu_1_2)))
@@ -477,7 +477,7 @@
 (assert (=> exec_2_2_6 (= accu_2_2 accu_1_2)))
 (assert (=> exec_2_2_6 (= mem_2_2 mem_1_2)))
 (assert (=> exec_2_2_6 (= heap_2 heap_1)))
-(assert (=> exec_2_2_6 (= exit_code #x0001)))
+(assert (=> exec_2_2_6 (= exit-code #x0001)))
 
 ; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -664,7 +664,7 @@
 (assert (=> exec_3_1_7 (= accu_3_1 accu_2_1)))
 (assert (=> exec_3_1_7 (= mem_3_1 mem_2_1)))
 (assert (=> exec_3_1_7 (= heap_3 heap_2)))
-(assert (=> exec_3_1_7 (= exit_code #x0001)))
+(assert (=> exec_3_1_7 (= exit-code #x0001)))
 
 ; thread 2@0: SYNC	0
 (assert (=> exec_3_2_0 (= accu_3_2 accu_2_2)))
@@ -706,7 +706,7 @@
 (assert (=> exec_3_2_6 (= accu_3_2 accu_2_2)))
 (assert (=> exec_3_2_6 (= mem_3_2 mem_2_2)))
 (assert (=> exec_3_2_6 (= heap_3 heap_2)))
-(assert (=> exec_3_2_6 (= exit_code #x0001)))
+(assert (=> exec_3_2_6 (= exit-code #x0001)))
 
 ; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -893,7 +893,7 @@
 (assert (=> exec_4_1_7 (= accu_4_1 accu_3_1)))
 (assert (=> exec_4_1_7 (= mem_4_1 mem_3_1)))
 (assert (=> exec_4_1_7 (= heap_4 heap_3)))
-(assert (=> exec_4_1_7 (= exit_code #x0001)))
+(assert (=> exec_4_1_7 (= exit-code #x0001)))
 
 ; thread 2@0: SYNC	0
 (assert (=> exec_4_2_0 (= accu_4_2 accu_3_2)))
@@ -935,7 +935,7 @@
 (assert (=> exec_4_2_6 (= accu_4_2 accu_3_2)))
 (assert (=> exec_4_2_6 (= mem_4_2 mem_3_2)))
 (assert (=> exec_4_2_6 (= heap_4 heap_3)))
-(assert (=> exec_4_2_6 (= exit_code #x0001)))
+(assert (=> exec_4_2_6 (= exit-code #x0001)))
 
 ; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1122,7 +1122,7 @@
 (assert (=> exec_5_1_7 (= accu_5_1 accu_4_1)))
 (assert (=> exec_5_1_7 (= mem_5_1 mem_4_1)))
 (assert (=> exec_5_1_7 (= heap_5 heap_4)))
-(assert (=> exec_5_1_7 (= exit_code #x0001)))
+(assert (=> exec_5_1_7 (= exit-code #x0001)))
 
 ; thread 2@0: SYNC	0
 (assert (=> exec_5_2_0 (= accu_5_2 accu_4_2)))
@@ -1164,7 +1164,7 @@
 (assert (=> exec_5_2_6 (= accu_5_2 accu_4_2)))
 (assert (=> exec_5_2_6 (= mem_5_2 mem_4_2)))
 (assert (=> exec_5_2_6 (= heap_5 heap_4)))
-(assert (=> exec_5_2_6 (= exit_code #x0001)))
+(assert (=> exec_5_2_6 (= exit-code #x0001)))
 
 ; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1351,7 +1351,7 @@
 (assert (=> exec_6_1_7 (= accu_6_1 accu_5_1)))
 (assert (=> exec_6_1_7 (= mem_6_1 mem_5_1)))
 (assert (=> exec_6_1_7 (= heap_6 heap_5)))
-(assert (=> exec_6_1_7 (= exit_code #x0001)))
+(assert (=> exec_6_1_7 (= exit-code #x0001)))
 
 ; thread 2@0: SYNC	0
 (assert (=> exec_6_2_0 (= accu_6_2 accu_5_2)))
@@ -1393,7 +1393,7 @@
 (assert (=> exec_6_2_6 (= accu_6_2 accu_5_2)))
 (assert (=> exec_6_2_6 (= mem_6_2 mem_5_2)))
 (assert (=> exec_6_2_6 (= heap_6 heap_5)))
-(assert (=> exec_6_2_6 (= exit_code #x0001)))
+(assert (=> exec_6_2_6 (= exit-code #x0001)))
 
 ; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1580,7 +1580,7 @@
 (assert (=> exec_7_1_7 (= accu_7_1 accu_6_1)))
 (assert (=> exec_7_1_7 (= mem_7_1 mem_6_1)))
 (assert (=> exec_7_1_7 (= heap_7 heap_6)))
-(assert (=> exec_7_1_7 (= exit_code #x0001)))
+(assert (=> exec_7_1_7 (= exit-code #x0001)))
 
 ; thread 2@0: SYNC	0
 (assert (=> exec_7_2_0 (= accu_7_2 accu_6_2)))
@@ -1622,7 +1622,7 @@
 (assert (=> exec_7_2_6 (= accu_7_2 accu_6_2)))
 (assert (=> exec_7_2_6 (= mem_7_2 mem_6_2)))
 (assert (=> exec_7_2_6 (= heap_7 heap_6)))
-(assert (=> exec_7_2_6 (= exit_code #x0001)))
+(assert (=> exec_7_2_6 (= exit-code #x0001)))
 
 ; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1809,7 +1809,7 @@
 (assert (=> exec_8_1_7 (= accu_8_1 accu_7_1)))
 (assert (=> exec_8_1_7 (= mem_8_1 mem_7_1)))
 (assert (=> exec_8_1_7 (= heap_8 heap_7)))
-(assert (=> exec_8_1_7 (= exit_code #x0001)))
+(assert (=> exec_8_1_7 (= exit-code #x0001)))
 
 ; thread 2@0: SYNC	0
 (assert (=> exec_8_2_0 (= accu_8_2 accu_7_2)))
@@ -1851,7 +1851,7 @@
 (assert (=> exec_8_2_6 (= accu_8_2 accu_7_2)))
 (assert (=> exec_8_2_6 (= mem_8_2 mem_7_2)))
 (assert (=> exec_8_2_6 (= heap_8 heap_7)))
-(assert (=> exec_8_2_6 (= exit_code #x0001)))
+(assert (=> exec_8_2_6 (= exit-code #x0001)))
 
 ; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -2038,7 +2038,7 @@
 (assert (=> exec_9_1_7 (= accu_9_1 accu_8_1)))
 (assert (=> exec_9_1_7 (= mem_9_1 mem_8_1)))
 (assert (=> exec_9_1_7 (= heap_9 heap_8)))
-(assert (=> exec_9_1_7 (= exit_code #x0001)))
+(assert (=> exec_9_1_7 (= exit-code #x0001)))
 
 ; thread 2@0: SYNC	0
 (assert (=> exec_9_2_0 (= accu_9_2 accu_8_2)))
@@ -2080,7 +2080,7 @@
 (assert (=> exec_9_2_6 (= accu_9_2 accu_8_2)))
 (assert (=> exec_9_2_6 (= mem_9_2 mem_8_2)))
 (assert (=> exec_9_2_6 (= heap_9 heap_8)))
-(assert (=> exec_9_2_6 (= exit_code #x0001)))
+(assert (=> exec_9_2_6 (= exit-code #x0001)))
 
 ; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -2267,7 +2267,7 @@
 (assert (=> exec_10_1_7 (= accu_10_1 accu_9_1)))
 (assert (=> exec_10_1_7 (= mem_10_1 mem_9_1)))
 (assert (=> exec_10_1_7 (= heap_10 heap_9)))
-(assert (=> exec_10_1_7 (= exit_code #x0001)))
+(assert (=> exec_10_1_7 (= exit-code #x0001)))
 
 ; thread 2@0: SYNC	0
 (assert (=> exec_10_2_0 (= accu_10_2 accu_9_2)))
@@ -2309,7 +2309,7 @@
 (assert (=> exec_10_2_6 (= accu_10_2 accu_9_2)))
 (assert (=> exec_10_2_6 (= mem_10_2 mem_9_2)))
 (assert (=> exec_10_2_6 (= heap_10 heap_9)))
-(assert (=> exec_10_2_6 (= exit_code #x0001)))
+(assert (=> exec_10_2_6 (= exit-code #x0001)))
 
 ; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -2496,7 +2496,7 @@
 (assert (=> exec_11_1_7 (= accu_11_1 accu_10_1)))
 (assert (=> exec_11_1_7 (= mem_11_1 mem_10_1)))
 (assert (=> exec_11_1_7 (= heap_11 heap_10)))
-(assert (=> exec_11_1_7 (= exit_code #x0001)))
+(assert (=> exec_11_1_7 (= exit-code #x0001)))
 
 ; thread 2@0: SYNC	0
 (assert (=> exec_11_2_0 (= accu_11_2 accu_10_2)))
@@ -2538,7 +2538,7 @@
 (assert (=> exec_11_2_6 (= accu_11_2 accu_10_2)))
 (assert (=> exec_11_2_6 (= mem_11_2 mem_10_2)))
 (assert (=> exec_11_2_6 (= heap_11 heap_10)))
-(assert (=> exec_11_2_6 (= exit_code #x0001)))
+(assert (=> exec_11_2_6 (= exit-code #x0001)))
 
 ; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -2698,7 +2698,7 @@
 (assert (=> exec_12_1_7 (= accu_12_1 accu_11_1)))
 (assert (=> exec_12_1_7 (= mem_12_1 mem_11_1)))
 (assert (=> exec_12_1_7 (= heap_12 heap_11)))
-(assert (=> exec_12_1_7 (= exit_code #x0001)))
+(assert (=> exec_12_1_7 (= exit-code #x0001)))
 
 ; thread 2@0: SYNC	0
 (assert (=> exec_12_2_0 (= accu_12_2 accu_11_2)))
@@ -2734,7 +2734,7 @@
 (assert (=> exec_12_2_6 (= accu_12_2 accu_11_2)))
 (assert (=> exec_12_2_6 (= mem_12_2 mem_11_2)))
 (assert (=> exec_12_2_6 (= heap_12 heap_11)))
-(assert (=> exec_12_2_6 (= exit_code #x0001)))
+(assert (=> exec_12_2_6 (= exit-code #x0001)))
 
 ; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -2754,4 +2754,4 @@
 ; exit code
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (=> (not exit_12) (= exit_code #x0000)))
+(assert (=> (not exit_12) (= exit-code #x0000)))

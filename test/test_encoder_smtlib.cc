@@ -697,7 +697,7 @@ TEST_F(SMTLibEncoderTest, declare_exit_code)
 {
   encoder->declare_exit_code();
 
-  expected = "(declare-fun exit_code () (_ BitVec 16))\n\n";
+  expected = "(declare-fun exit-code () (_ BitVec 16))\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 }

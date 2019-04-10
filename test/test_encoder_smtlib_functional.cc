@@ -572,9 +572,9 @@ TEST_F(SMTLibEncoderFunctionalTest, add_exit_code)
     "; exit code\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "(declare-fun exit_code () (_ BitVec 16))\n"
+    "(declare-fun exit-code () (_ BitVec 16))\n"
     "\n"
-    "(assert (= exit_code #x0000))\n";
+    "(assert (= exit-code #x0000))\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
 
@@ -597,9 +597,9 @@ TEST_F(SMTLibEncoderFunctionalTest, add_exit_code)
     "; exit code\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "(declare-fun exit_code () (_ BitVec 16))\n"
+    "(declare-fun exit-code () (_ BitVec 16))\n"
     "\n"
-    "(assert (= exit_code "
+    "(assert (= exit-code "
       "(ite exec_1_1_0 "
         "#x0000 "
         "(ite exec_1_2_0 "
@@ -620,9 +620,9 @@ TEST_F(SMTLibEncoderFunctionalTest, add_exit_code)
     "; exit code\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "(declare-fun exit_code () (_ BitVec 16))\n"
+    "(declare-fun exit-code () (_ BitVec 16))\n"
     "\n"
-    "(assert (= exit_code "
+    "(assert (= exit-code "
       "(ite exec_1_1_0 "
         "#x0000 "
         "(ite exec_1_2_0 "
@@ -653,9 +653,9 @@ TEST_F(SMTLibEncoderFunctionalTest, add_exit_code)
   verbose = true;
 
   expected =
-    "(declare-fun exit_code () (_ BitVec 16))\n"
+    "(declare-fun exit-code () (_ BitVec 16))\n"
     "\n"
-    "(assert (= exit_code "
+    "(assert (= exit-code "
       "(ite exec_1_1_0 "
         "#x0000 "
         "(ite exec_1_2_0 "
