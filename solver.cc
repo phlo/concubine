@@ -31,7 +31,7 @@ SchedulePtr Solver::solve (Encoder & formula, string & constraints)
 
   exit_code = shell.last_exit_code();
 
-  cout << std_out.str();
+  // cout << std_out.str();
 
   return build_schedule();
 }

@@ -1,0 +1,9 @@
+data/indirect.addressing.asm
+.
+# tid	pc	cmd	arg	accu	mem	heap
+0	0	STORE	1	0	0	{(1,0)}
+0	1	ADDI	1	1	0	{}
+0	2	STORE	[1]	1	0	{(0,1)}
+0	3	LOAD	[0]	0	0	{}
+0	4	ADD	[1]	1	0	{}
+0	5	CMP	[1]	0	0	{}
