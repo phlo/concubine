@@ -13,6 +13,7 @@ GTEST_LIB = $(GTEST_DIR)/make/gtest-all.o
 CXXFLAGS += -isystem $(GTEST_DIR)/include \
 			-I../ \
 			-pthread \
+			-lboolector \
 			-D__TEST__
 
 # object files of code to test (exported)
@@ -33,7 +34,7 @@ TEST_RUN := run_all_tests
 # gtest filter
 GTEST_FILTER = --gtest_filter=
 
-GTEST_FILTER += "*"
+# GTEST_FILTER += "*"
 # GTEST_FILTER += *Encoder*
 # GTEST_FILTER += SMTLibEncoderFunctional*
 # GTEST_FILTER += SMTLibEncoderRelational*
@@ -45,7 +46,9 @@ GTEST_FILTER += "*"
 # GTEST_FILTER += ProgramTest.*
 # GTEST_FILTER += ScheduleTest.*
 # GTEST_FILTER += InstructionSetTest.*
-# GTEST_FILTER += BoolectorTest.*
+GTEST_FILTER += BoolectorTest.*
+GTEST_FILTER += Z3Test.*
+GTEST_FILTER += CVC4Test.*
 
 GTEST_FILTER := $(shell echo ${GTEST_FILTER} | sed -e 's/ /:/g')
 
