@@ -5,9 +5,11 @@
 
 struct Z3 : public SMTLibSolver
 {
-  virtual std::string build_command (void);
+  virtual std::string             name (void);
 
-  virtual SchedulePtr build_schedule (void);
+  virtual std::string             build_command (void);
+
+  virtual std::optional<Variable> parse_line (std::istringstream &);
 };
 
 typedef std::shared_ptr<Z3> Z3Ptr;

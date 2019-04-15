@@ -2,6 +2,8 @@
 
 #include <sstream>
 
+#include "encoder.hh"
+#include "parser.hh"
 #include "streamredirecter.hh"
 #include "z3.hh"
 
@@ -42,4 +44,26 @@ TEST_F(Z3Test, unsat)
   redirecter.stop();
 
   ASSERT_EQ("unsat\n", z3.std_out.str());
+}
+
+// TODO: remove
+TEST_F(Z3Test, print_sync)
+{
+  /* concurrent increment using SYNC */
+  string constraints;
+  string increment_0 = "data/increment.sync.thread.0.asm";
+  string increment_n = "data/increment.sync.thread.n.asm";
+
+  ProgramListPtr programs = make_shared<ProgramList>();
+
+  programs->push_back(create_from_file<Program>(increment_0));
+  programs->push_back(create_from_file<Program>(increment_n));
+
+  EncoderPtr encoder = make_shared<SMTLibEncoderFunctional>(programs, 12);
+
+  string formula = z3.build_formula(*encoder, constraints);
+
+  ASSERT_TRUE(z3.sat(formula));
+
+  cout << z3.std_out.str();
 }

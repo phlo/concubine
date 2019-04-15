@@ -3,6 +3,8 @@
 #include <sstream>
 
 #include "cvc4.hh"
+#include "encoder.hh"
+#include "parser.hh"
 #include "streamredirecter.hh"
 
 using namespace std;
@@ -42,4 +44,26 @@ TEST_F(CVC4Test, unsat)
   redirecter.stop();
 
   ASSERT_EQ("unsat\n", cvc4.std_out.str());
+}
+
+// TODO: remove
+TEST_F(CVC4Test, print_sync)
+{
+  /* concurrent increment using SYNC */
+  string constraints;
+  string increment_0 = "data/increment.sync.thread.0.asm";
+  string increment_n = "data/increment.sync.thread.n.asm";
+
+  ProgramListPtr programs = make_shared<ProgramList>();
+
+  programs->push_back(create_from_file<Program>(increment_0));
+  programs->push_back(create_from_file<Program>(increment_n));
+
+  EncoderPtr encoder = make_shared<SMTLibEncoderFunctional>(programs, 12);
+
+  string formula = cvc4.build_formula(*encoder, constraints);
+
+  ASSERT_TRUE(cvc4.sat(formula));
+
+  cout << cvc4.std_out.str();
 }

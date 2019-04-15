@@ -4,13 +4,91 @@
 
 using namespace std;
 
+string Boolector::name () { return "boolector"; }
+
 string Boolector::build_command ()
 {
   return "boolector --model-gen --output-number-format=dec";
 }
 
-SchedulePtr Boolector::build_schedule ()
+optional<Solver::Variable> Boolector::parse_line (istringstream & line)
 {
+  string token;
+
+  unsigned long nid;
+
+  word idx = 0, val = 0;
+
+  /* parse node id */
+  if (!(line >> nid))
+    throw runtime_error("parsing node id failed");
+
+  /* parse value */
+  if (!(line >> val))
+    {
+      line.clear();
+
+      /* array element index */
+      if (!(line >> token))
+        runtime_error("missing array index");
+
+      try
+        {
+          token = token.substr(1, token.size() - 2);
+          idx = stoul(token);
+        }
+      catch (...)
+        {
+          runtime_error("illegal array index [" + token + "]");
+        }
+
+      /* array element value */
+      if (!(line >> val))
+        {
+          line.clear();
+
+          if (!(line >> token))
+            runtime_error("missing array value");
+
+          runtime_error("illegal array value [" + token + "]");
+        }
+    }
+
+  /* parse variable */
+  optional<Variable> variable = parse_variable(line);
+
+  if (variable && variable->step)
+    switch (variable->type)
+      {
+      case Variable::THREAD:
+      case Variable::EXEC:
+      case Variable::EXIT:
+        if (val)
+          return variable;
+        break;
+
+      case Variable::ACCU:
+      case Variable::MEM:
+      case Variable::EXIT_CODE:
+        variable->val = val;
+        return variable;
+
+      case Variable::HEAP:
+        variable->idx = idx;
+        variable->val = val;
+        return variable;
+
+      default: {}
+      }
+
+  return {};
+}
+
+#ifdef DEPRECATED
+SchedulePtr build_schedule ()
+{
+  stringstream std_out;
+
   // not really needed
   if (!std_out.rdbuf()->in_avail())
     throw runtime_error("missing model");
@@ -25,11 +103,19 @@ SchedulePtr Boolector::build_schedule ()
 
   string variable;
 
-  unsigned long nid, step, line_num = 2;
+  Schedule::step_t step;
+
+  unsigned long nid;
+
+  /* current and previous line's step numbers */
+  unsigned long step_cur = 0, step_prev = step_cur;
+
+  /* current line number */
+  unsigned long lineno = 2;
 
   word tid, pc, accu, mem, idx, val;
 
-  for (string line_buf; getline(std_out, line_buf); line_num++)
+  for (string line_buf; getline(std_out, line_buf); lineno++)
     {
       /* skip empty lines */
       if (line_buf.empty())
@@ -39,7 +125,7 @@ SchedulePtr Boolector::build_schedule ()
 
       /* parse node id */
       if (!(line >> nid))
-        parser_error("boolector", line_num, "parsing node id failed");
+        parser_error("boolector", lineno, "parsing node id failed");
 
       cout << "nid = " << nid  << " | " << line_buf;
 
@@ -50,13 +136,20 @@ SchedulePtr Boolector::build_schedule ()
 
           /* array element index */
           if (!(line >> token))
-            parser_error("boolector", line_num, "missing array index");
+            parser_error("boolector", lineno, "missing array index");
 
-          if (!(istringstream(token.substr(1, token.size() - 2)) >> idx))
+          try
+            {
+              token = token.substr(1, token.size() - 2);
+              idx = stoul(token);
+            }
+          catch (...)
+            {
               parser_error(
                 "boolector",
-                line_num,
+                lineno,
                 "illegal array index [" + token + "]");
+            }
 
           /* array element value */
           if (!(line >> val))
@@ -64,11 +157,11 @@ SchedulePtr Boolector::build_schedule ()
               line.clear();
 
               if (!(line >> token))
-                parser_error("boolector", line_num, "missing array value");
+                parser_error("boolector", lineno, "missing array value");
 
               parser_error(
                 "boolector",
-                line_num,
+                lineno,
                 "illegal array value [" + token + "]");
             }
 
@@ -79,13 +172,36 @@ SchedulePtr Boolector::build_schedule ()
 
       /* variable */
       if (!getline(line, variable, '_'))
-        parser_error("boolector", line_num, "missing variable");
+        parser_error("boolector", lineno, "missing variable");
 
-      if (variable == "exec")
+      /* step */
+      parse_step(step_cur, line, lineno, token);
+
+      cout << " | step = " << step_cur;
+
+      /* finished current step - append to schedule */
+      if (step_cur != step_prev)
         {
+          cout << " | " << " next";
+          step_prev = step_cur;
+          step = {};
+        }
+
+      /* parse context */
+      if (variable == "thread" && val)
+        {
+          parse_tid(tid, line, lineno, token);
+        }
+      else if (variable == "exec" && val)
+        {
+          // parse_tid(tid, line, lineno, token);
+          parse_pc(pc, line, lineno, token);
         }
       else if (variable == "accu")
         {
+          /* assumption: current tid has already been parsed */
+
+
         }
       else if (variable == "mem")
         {
@@ -94,22 +210,8 @@ SchedulePtr Boolector::build_schedule ()
         {
         }
 
-      /* step */
-      if (!getline(line, token, '_'))
-        parser_error("boolector", line_num, "missing step");
-
-      try
-        {
-          step = stoul(token);
-        }
-      catch (...)
-        {
-          parser_error("boolector", line_num, "illegal step [" + token + "]");
-        }
-
-      cout << " | step = " << step;
-
       (void) step;
+      (void) step_prev;
       (void) tid;
       (void) pc;
       (void) accu;
@@ -120,3 +222,4 @@ SchedulePtr Boolector::build_schedule ()
 
   return schedule;
 }
+#endif

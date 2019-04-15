@@ -6,6 +6,8 @@ using namespace std;
 
 BtorMC::BtorMC(unsigned long b) : bound(b) {}
 
+string BtorMC::name () { return "btormc"; }
+
 string BtorMC::build_command ()
 {
   return "btormc --trace-gen-full -kmax " + to_string(bound);
@@ -16,7 +18,17 @@ string BtorMC::build_formula (Encoder & formula, string & constraints)
   return formula.str() + (constraints.empty() ? "" : constraints + eol);
 }
 
-SchedulePtr BtorMC::build_schedule ()
+optional<Solver::Variable> BtorMC::parse_line (istringstream & line)
 {
-  return nullptr; // TODO
+  (void) line;
+
+  return {};
+}
+
+optional<Solver::Variable> BtorMC::parse_variable (istringstream & line)
+{
+  // TODO
+  (void) line;
+
+  return {};
 }

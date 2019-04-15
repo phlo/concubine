@@ -9,11 +9,15 @@ struct BtorMC : public Solver
 
   const unsigned long bound;
 
-  virtual std::string build_command (void);
+  virtual std::string             name (void);
 
-  virtual std::string build_formula (Encoder &, std::string &);
+  virtual std::string             build_command (void);
 
-  virtual SchedulePtr build_schedule (void);
+  virtual std::string             build_formula (Encoder &, std::string &);
+
+  virtual std::optional<Variable> parse_line (std::istringstream &);
+
+  virtual std::optional<Variable> parse_variable (std::istringstream &);
 };
 
 typedef std::shared_ptr<BtorMC> BtorMCPtr;
