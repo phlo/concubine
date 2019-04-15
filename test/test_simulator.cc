@@ -142,19 +142,19 @@ TEST_F(SimulatorTest, run_simple)
   ASSERT_EQ(0, schedule->exit);
 
   ASSERT_EQ(
-    Schedule::thread_updates_t({
+    Schedule::Thread_Updates({
       {{1, 0}},
       {{2, 0}}}),
     schedule->pc_updates);
 
   ASSERT_EQ(
-    Schedule::thread_updates_t({
+    Schedule::Thread_Updates({
       {{1, 1}},
       {{2, 1}}}),
     schedule->accu_updates);
 
   ASSERT_EQ(
-    Schedule::thread_updates_t({
+    Schedule::Thread_Updates({
       {{1, 0}},
       {{2, 0}}}),
     schedule->mem_updates);
@@ -254,19 +254,19 @@ TEST_F(SimulatorTest, run_add_sync_exit)
   ASSERT_EQ(1, schedule->exit);
 
   ASSERT_EQ(
-    Schedule::thread_updates_t({
+    Schedule::Thread_Updates({
       {{1, 0}, {3, 1}, {5, 2}},
       {{2, 0}, {4, 1}}}),
     schedule->pc_updates);
 
   ASSERT_EQ(
-    Schedule::thread_updates_t({
+    Schedule::Thread_Updates({
       {{1, 1}},
       {{2, 1}}}),
     schedule->accu_updates);
 
   ASSERT_EQ(
-    Schedule::thread_updates_t({
+    Schedule::Thread_Updates({
       {{1, 0}},
       {{2, 0}}}),
     schedule->mem_updates);
@@ -504,25 +504,25 @@ TEST_F(SimulatorTest, run_race_condition)
   ASSERT_EQ(1, schedule->exit);
 
   ASSERT_EQ(
-    Schedule::thread_updates_t({
+    Schedule::Thread_Updates({
       {{1, 0}, {10, 1}, {11, 2}, {12, 3}, {13, 4}},
       {{2, 0}, {4, 1}, {6, 2}, {8, 3}},
       {{3, 0}, {5, 1}, {7, 2}, {9, 3}}}),
     schedule->pc_updates);
 
   ASSERT_EQ(
-    Schedule::thread_updates_t({
+    Schedule::Thread_Updates({
       {{1, 0}, {10, 1}, {11, 65535}, {13, 1}},
       {{2, 0}, {4, 1}},
       {{3, 0}, {5, 1}}}),
     schedule->accu_updates);
 
   ASSERT_EQ(
-    Schedule::thread_updates_t({{{1, 0}}, {{2, 0}}, {{3, 0}}}),
+    Schedule::Thread_Updates({{{1, 0}}, {{2, 0}}, {{3, 0}}}),
     schedule->mem_updates);
 
   ASSERT_EQ(
-    Schedule::heap_updates_t({{1, {{6, 1}}}}),
+    Schedule::Heap_Updates({{1, {{6, 1}}}}),
     schedule->heap_updates);
 }
 
@@ -577,15 +577,15 @@ TEST_F(SimulatorTest, run_zero_bound)
   ASSERT_EQ(0, schedule->exit);
 
   ASSERT_EQ(
-    Schedule::thread_updates_t({{{1, 0}}}),
+    Schedule::Thread_Updates({{{1, 0}}}),
     schedule->pc_updates);
 
   ASSERT_EQ(
-    Schedule::thread_updates_t({{{1, 0}}}),
+    Schedule::Thread_Updates({{{1, 0}}}),
     schedule->accu_updates);
 
   ASSERT_EQ(
-    Schedule::thread_updates_t({{{1, 0}}}),
+    Schedule::Thread_Updates({{{1, 0}}}),
     schedule->mem_updates);
 
   ASSERT_TRUE(schedule->heap_updates.empty());

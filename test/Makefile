@@ -44,11 +44,11 @@ GTEST_FILTER = --gtest_filter=
 # GTEST_FILTER += MainTest.*
 # GTEST_FILTER += Experimental.*
 # GTEST_FILTER += ProgramTest.*
-# GTEST_FILTER += ScheduleTest.*
+GTEST_FILTER += ScheduleTest.*
 # GTEST_FILTER += InstructionSetTest.*
 GTEST_FILTER += BoolectorTest.*
-GTEST_FILTER += Z3Test.*
-GTEST_FILTER += CVC4Test.*
+# GTEST_FILTER += Z3Test.*
+# GTEST_FILTER += CVC4Test.*
 
 GTEST_FILTER := $(shell echo ${GTEST_FILTER} | sed -e 's/ /:/g')
 
@@ -60,7 +60,12 @@ run: $(TEST_RUN)
 # debug tests
 .PHONY: debug
 debug: $(TEST_RUN)
-	gdb --args run_all_tests $(GTEST_FILTER)
+	gdb --args $(TEST_RUN) $(GTEST_FILTER)
+
+# valgrind tests
+.PHONY: valgrind
+valgrind: $(TEST_RUN)
+	valgrind -v --leak-check=full --undef-value-errors=no ./$(TEST_RUN) $(GTEST_FILTER)
 
 # build executable containing all test cases
 $(TEST_RUN): $(GTEST_LIB) $(OBJ) $(TEST_OBJ)

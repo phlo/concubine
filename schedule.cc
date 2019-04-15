@@ -7,15 +7,15 @@
 using namespace std;
 
 /* default constructor ********************************************************/
+/*
 Schedule::Schedule () :
-  path(""),
   bound(0),
   programs(new ProgramList()),
   exit(0)
 {}
+*/
 
 Schedule::Schedule (ProgramListPtr _programs) :
-  path(""),
   bound(0),
   programs(_programs),
   exit(0)
@@ -25,8 +25,7 @@ Schedule::Schedule (ProgramListPtr _programs) :
 }
 
 /* construct from file ********************************************************/
-Schedule::Schedule(istream & file, string & name) :
-  path(name),
+Schedule::Schedule(istream & file, string & path) :
   bound(0),
   programs(new ProgramList()),
   exit(0)
@@ -36,7 +35,7 @@ Schedule::Schedule(istream & file, string & name) :
   unsigned long line_num = 1;
 
   /* parse programs */
-  for (string line_buf; getline(file, line_buf); line_num++)
+  for (string line_buf; getline(file, line_buf); ++line_num)
     {
       /* skip empty lines */
       if (line_buf.empty())
@@ -74,10 +73,11 @@ Schedule::Schedule(istream & file, string & name) :
 
   /* parse body */
   line_num++;
-  for (string line_buf; getline(file, line_buf); line_num++)
+  unsigned long step = 0;
+  for (string line_buf; getline(file, line_buf); ++line_num)
     {
       string symbol;
-      word tid, pc, arg, accu, mem;
+      word thread, pc, arg, accu, mem;
 
       /* skip empty lines */
       if (line_buf.empty())
@@ -89,21 +89,25 @@ Schedule::Schedule(istream & file, string & name) :
       if (line_buf[line_buf.find_first_not_of(" \t")] == '#')
         continue;
 
+      step++;
+
       /* parse thread id */
-      if (!(line >> tid))
+      if (!(line >> thread))
         {
           line.clear();
           line >> token;
           parser_error(path, line_num, "illegal thread id [" + token + "]");
         }
 
-      if (tid >= programs->size())
+      if (thread >= programs->size())
           parser_error(
             path,
             line_num,
-            "unknown thread id [" + to_string(tid) + "]");
+            "unknown thread id [" + to_string(thread) + "]");
 
-      const Program & program = *programs->at(tid);
+      insert_thread(step, thread);
+
+      const Program & program = *programs->at(thread);
 
       /* parse pc */
       if (!(line >> pc))
@@ -128,6 +132,8 @@ Schedule::Schedule(istream & file, string & name) :
             path,
             line_num,
             "illegal program counter [" + to_string(pc) + "]");
+
+      insert_pc(step, thread, pc);
 
       /* parse instruction symbol */
       if (!(line >> symbol))
@@ -203,6 +209,8 @@ Schedule::Schedule(istream & file, string & name) :
             "illegal accumulator register value [" + token + "]");
         }
 
+      insert_accu(step, thread, accu);
+
       /* parse mem */
       if (!(line >> mem))
         {
@@ -217,11 +225,11 @@ Schedule::Schedule(istream & file, string & name) :
             "illegal CAS memory register value [" + token + "]");
         }
 
+      insert_mem(step, thread, mem);
+
       /* parse heap cell */
       if (!(line >> token))
         parser_error(path, line_num, "missing heap update");
-
-      optional<pair<word, word>> heap;
 
       string cell = token.substr(1, token.size() - 2);
 
@@ -234,15 +242,12 @@ Schedule::Schedule(istream & file, string & name) :
             word val = stoul(cell.substr(split + 1));
 
             /* heap cell update */
-            heap = make_pair(idx, val);
+            insert_heap(step, {idx, val});
           }
         catch (const exception & e)
           {
             parser_error(path, line_num, "illegal heap update [" + token + "]");
           }
-
-      /* append state update */
-      push_back(tid, pc, accu, mem, heap);
     }
 
   if (!bound)
@@ -253,13 +258,8 @@ void Schedule::init_state_update_lists ()
 {
   size_t num_threads = programs->size();
 
-  /* append pc states */
   pc_updates.resize(num_threads);
-
-  /* append accu states */
   accu_updates.resize(num_threads);
-
-  /* append mem states */
   mem_updates.resize(num_threads);
 }
 
@@ -273,7 +273,7 @@ void Schedule::push_back (
                           const word pc,
                           const word accu,
                           const word mem,
-                          const optional<pair<word, word>> heap
+                          const optional<Heap_Cell> heap
                          )
 {
   /* append thread id */
@@ -282,30 +282,97 @@ void Schedule::push_back (
   unsigned long step = scheduled.size();
 
   /* append pc state update */
-  update_list_t * updates = &pc_updates[tid];
-  if (updates->empty() || updates->back().second != pc)
-    updates->push_back(make_pair(step, pc));
+  // update_list_t * updates = &pc_updates[tid];
+  // if (updates->empty() || updates->back().second != pc)
+    // updates->push_back(make_pair(step, pc));
+  insert_pc(step, tid, pc);
 
   /* append accu state update */
-  updates = &accu_updates[tid];
-  if (updates->empty() || updates->back().second != accu)
-    updates->push_back(make_pair(step, accu));
+  // updates = &accu_updates[tid];
+  // if (updates->empty() || updates->back().second != accu)
+    // updates->push_back(make_pair(step, accu));
+  insert_accu(step, tid, accu);
 
   /* append mem state update */
-  updates = &mem_updates[tid];
-  if (updates->empty() || updates->back().second != mem)
-    updates->push_back(make_pair(step, mem));
+  // updates = &mem_updates[tid];
+  // if (updates->empty() || updates->back().second != mem)
+    // updates->push_back(make_pair(step, mem));
+  insert_mem(step, tid, mem);
 
   /* append heap state update */
+  // if (heap)
+    // {
+      // updates = &heap_updates[heap->idx];
+      // if (updates->empty() || updates->back().second != heap->val)
+        // updates->push_back(make_pair(step, heap->val));
+    // }
   if (heap)
-    {
-      updates = &heap_updates[heap->first];
-      if (updates->empty() || updates->back().second != heap->second)
-        updates->push_back(make_pair(step, heap->second));
-    }
+    insert_heap(step, heap.value());
 
   /* raise bound */
   bound++;
+}
+
+void Schedule::insert_thread (const unsigned long step, const word tid)
+{
+  // HACK: try to preallocate using known bound!
+  if (scheduled.size() < step)
+    scheduled.resize(step);
+
+  scheduled.at(step - 1) = tid;
+
+  // NOTE: find a better way to update bound
+  if (bound < step)
+    bound = step;
+}
+
+/* thread state update helper */
+void Schedule::insert (
+                       Schedule::Update_Map & updates,
+                       const unsigned long step,
+                       const word val
+                      )
+{
+  auto hint = updates.lower_bound(step);
+
+  if (updates.empty())
+    {
+      updates.insert(hint, {step, val});
+    }
+  else
+    {
+      /* get previous state */
+      auto prev = std::prev(hint);
+
+      /* ensure that no update exists for this step */
+      // NOTE: remove -> performace?
+      if (hint != updates.end() && prev->first == step)
+        throw runtime_error("update already exists");
+
+      /* add new state only if it changed */
+      if (prev->second != val)
+        updates.insert(hint, {step, val});
+    }
+}
+
+void Schedule::insert_pc (const unsigned long step, const word thread, const word pc)
+{
+  insert(pc_updates.at(thread), step, pc);
+}
+
+void Schedule::insert_accu (const unsigned long step, const word thread, const word accu)
+{
+  insert(accu_updates.at(thread), step, accu);
+}
+
+void Schedule::insert_mem (const unsigned long step, const word thread, const word mem)
+{
+  insert(mem_updates.at(thread), step, mem);
+}
+
+void Schedule::insert_heap (const unsigned long step, const Heap_Cell heap)
+{
+  insert(heap_updates[heap.idx], step, heap.val);
 }
 
 /* Schedule::at (unsigned long) ***********************************************/
@@ -393,7 +460,7 @@ std::string Schedule::print ()
       ss << '{';
 
       if (step.heap)
-        ss << '(' << step.heap->first << ',' << step.heap->second << ')';
+        ss << '(' << step.heap->idx << ',' << step.heap->val << ')';
 
       ss << '}' << eol;
     }
@@ -414,37 +481,36 @@ Schedule::iterator::iterator (Schedule * _schedule, unsigned long _step) :
   /* initialize state update iterators */
   pc.reserve(num_threads);
   for (const auto & updates : schedule->pc_updates)
-    pc.push_back(make_pair(updates.begin(), updates.end()));
+    pc.push_back({updates.begin(), updates.end()});
 
   accu.reserve(num_threads);
   for (const auto & updates : schedule->accu_updates)
-    accu.push_back(make_pair(updates.begin(), updates.end()));
+    accu.push_back({updates.begin(), updates.end()});
 
   mem.reserve(num_threads);
   for (const auto & updates : schedule->mem_updates)
-    mem.push_back(make_pair(updates.begin(), updates.end()));
+    mem.push_back({updates.begin(), updates.end()});
 
   heap.reserve(schedule->heap_updates.size());
   for (const auto & [idx, updates] : schedule->heap_updates)
-    heap[idx] = make_pair(updates.begin(), updates.cend());
+    heap[idx] = {updates.begin(), updates.cend()};
 
-  /* assign update members */
   assign();
 }
 
 /* Schedule::iterator::next_thread_state (void) *******************************/
-word Schedule::iterator::next_thread_state (update_it_pair_t & state)
+word Schedule::iterator::next_thread_state (Update_Iterators & state)
 {
-  update_it_t next = state.first + 1;
+  auto next {std::next(state.cur)};
 
-  while (next != state.second && next->first <= step)
-    state.first = next++;
+  while (next != state.end && next->first <= step)
+    state.cur = next++;
 
-  return state.first->second;
+  return state.cur->second;
 }
 
 /* Schedule::iterator::next_heap_state (void) *********************************/
-Schedule::heap_cell_t Schedule::iterator::next_heap_state ()
+optional<Schedule::Heap_Cell> Schedule::iterator::next_heap_state ()
 {
   if (
       StorePtr store =
@@ -454,13 +520,13 @@ Schedule::heap_cell_t Schedule::iterator::next_heap_state ()
     {
       word idx =
         store->indirect
-          ? schedule->heap_updates[store->arg].back().second
+          ? schedule->heap_updates[store->arg].rend()->second
           : store->arg;
 
-      update_it_pair_t & cell = heap[idx];
+      auto & cell = heap.at(idx);
 
-      if (cell.first->first == step)
-        return make_optional(make_pair(idx, cell.first++->second));
+      if (cell.cur->first == step)
+        return {{idx, cell.cur++->second}};
     }
 
   return {};

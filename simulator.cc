@@ -88,12 +88,12 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
       StorePtr store = dynamic_pointer_cast<Store>(thread->program[pc]);
 
       /* optional heap update */
-      optional<pair<word, word>> heap_cell;
+      optional<Schedule::Heap_Cell> heap_cell;
 
       /* mind indirect stores: save address in case it is overwritten */
       if (store)
         heap_cell =
-          make_pair(store->indirect ? heap[store->arg] : store->arg, 0);
+          {store->indirect ? heap[store->arg] : store->arg, 0};
 
       /* execute thread */
       thread->execute();
@@ -102,7 +102,7 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
       if (store)
         {
           if (store->get_opcode() == Instruction::OPCode::Store || thread->accu)
-            heap_cell->second = heap[heap_cell->first];
+            heap_cell->idx = heap[heap_cell->val];
           else /* CAS failed */
             heap_cell = {};
         }

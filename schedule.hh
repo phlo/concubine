@@ -1,6 +1,7 @@
 #ifndef SCHEDULE_HH_
 #define SCHEDULE_HH_
 
+#include <map>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -13,59 +14,66 @@
  ******************************************************************************/
 struct Schedule
 {
-  typedef std::vector<word>                       thread_list_t;
-  typedef std::pair<unsigned long, word>          update_t;
-  typedef std::vector<update_t>                   update_list_t;
-  typedef std::vector<update_list_t>              thread_updates_t;
-  typedef std::unordered_map<word, update_list_t> heap_updates_t;
-  typedef std::optional<std::pair<word, word>>    heap_cell_t;
+  using Update_Map      = std::map<unsigned long, word>; /* step -> state */
 
-  /* struct containing the state update at a specific step */
-  struct step_t
+  using Thread_Updates  = std::vector<Update_Map>;
+  using Heap_Updates    = std::unordered_map<word, Update_Map>;
+
+  struct Heap_Cell
     {
-      word thread;
-      word pc;
-      word accu;
-      word mem;
-      std::optional<std::pair<word, word>> heap;
+      word idx;
+      word val;
+    };
+
+  /* state at a specific step */
+  struct Step
+    {
+      word thread {0};
+      word pc {0};
+      word accu {0};
+      word mem {0};
+      std::optional<Heap_Cell> heap;
     };
 
   /* schedule iterator */
   class iterator
     {
     private:
-      typedef update_list_t::const_iterator               update_it_t;
-      typedef std::pair<update_it_t, update_it_t>         update_it_pair_t;
-      typedef std::vector<update_it_pair_t>               update_it_list_t;
-      typedef std::unordered_map<word, update_it_pair_t>  update_it_map_t;
+      struct Update_Iterators
+        {
+          Update_Map::const_iterator cur;
+          Update_Map::const_iterator end;
+        };
+      using Thread_Iterators  = std::vector<Update_Iterators>;
+      using Heap_Iterators    = std::unordered_map<word, Update_Iterators>;
 
       Schedule *        schedule;
 
       unsigned long     step;
 
-      step_t            update;
+      Step              update;
 
-      update_it_list_t  pc,
+      Thread_Iterators  pc,
                         accu,
                         mem;
 
-      update_it_map_t   heap;
+      Heap_Iterators    heap;
 
       /* return current thread state and advance */
-      word              next_thread_state (update_it_pair_t & state);
+      word              next_thread_state (Update_Iterators & state);
 
-      /* return heap state update and advance */
-      heap_cell_t       next_heap_state (void);
+      /* return current heap state update and advance */
+      std::optional<Heap_Cell> next_heap_state (void);
 
       /* assign state update */
       void              assign (void);
 
     public:
-      typedef std::ptrdiff_t            difference_type; // size_t ?
-      typedef step_t                    value_type;
-      typedef const step_t *            pointer;
-      typedef const step_t &            reference;
-      typedef std::forward_iterator_tag iterator_category;
+      using difference_type   = std::ptrdiff_t; // size_t ?
+      using value_type        = Step;
+      using pointer           = const Step *;
+      using reference         = const Step &;
+      using iterator_category = std::forward_iterator_tag;
 
       iterator (Schedule *, unsigned long = 1);
 
@@ -79,19 +87,17 @@ struct Schedule
       pointer     operator -> () const;
     };
 
-  /* default constructor (for testing) */
-  Schedule (void);
+  /* initialize with given bound */
+  explicit Schedule (unsigned long bound);
 
   /* construct from simulator/solver */
-  Schedule (ProgramListPtr);
+  Schedule (ProgramListPtr programs);
 
   /* construct from file */
-  Schedule (std::istream &, std::string &);
-
-  /* path to schedule file */
-  std::string       path;
+  Schedule (std::istream & file, std::string & path);
 
   /* bound used == size() */
+  // NOTE: remove?
   unsigned long     bound;
 
   /* programs used to generate the schedule */
@@ -101,15 +107,15 @@ struct Schedule
   word              exit;
 
   /* thread sequence */
-  thread_list_t     scheduled;
+  std::vector<word> scheduled;
 
   /* thread states */
-  thread_updates_t  pc_updates,
+  Thread_Updates    pc_updates,
                     accu_updates,
                     mem_updates;
 
   /* heap state updates (idx -> [(step, val), ...]) */
-  heap_updates_t    heap_updates;
+  Heap_Updates      heap_updates;
 
   /* initialize thread state update lists */
   void              init_state_update_lists (void);
@@ -123,8 +129,15 @@ struct Schedule
                                const word,
                                const word,
                                const word,
-                               const heap_cell_t
+                               const std::optional<Heap_Cell>
                               );
+
+  void              insert (Update_Map & updates, const unsigned long step, const word val);
+  void              insert_thread (const unsigned long step, const word thread);
+  void              insert_pc (const unsigned long step, const word thread, const word pc);
+  void              insert_accu (const unsigned long step, const word thread, const word accu);
+  void              insert_mem (const unsigned long step, const word thread, const word mem);
+  void              insert_heap (const unsigned long step, const Heap_Cell cell);
 
   /* return thread id scheduled at the given step */
   word              at (unsigned long);

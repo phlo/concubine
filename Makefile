@@ -53,6 +53,11 @@ test: build
 debug: build
 	$(MAKE) -C test debug
 
+# valgrind
+.PHONY: valgrind
+valgrind: build
+	$(MAKE) -C test valgrind
+
 # build executable
 .PHONY: build
 build: $(MAIN)
