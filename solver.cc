@@ -53,8 +53,6 @@ SchedulePtr Solver::build_schedule (ProgramListPtr programs)
 
   SchedulePtr schedule = make_shared<Schedule>(programs);
 
-  vector<Schedule::Step> steps(bound);
-
   /* current line number */
   unsigned long lineno = 2;
 
@@ -74,50 +72,42 @@ SchedulePtr Solver::build_schedule (ProgramListPtr programs)
 
           if (variable)
             {
-              Schedule::Step & step = steps.at(variable->step - 1);
-
               switch (variable->type)
                 {
                 case Variable::THREAD:
-                  step.thread = variable->thread;
+                  schedule->insert_thread(
+                    variable->step,
+                    variable->thread);
                   break;
 
                 case Variable::EXEC:
-                  step.pc = variable->pc;
+                  schedule->insert_pc(
+                    variable->step,
+                    variable->thread,
+                    variable->pc);
                   break;
 
                 case Variable::ACCU:
-                  if (step.thread == variable->thread)
-                    step.accu = variable->val;
+                  schedule->insert_accu(
+                    variable->step,
+                    variable->thread,
+                    variable->val);
                   break;
 
                 case Variable::MEM:
-                  if (step.thread == variable->thread)
-                    step.mem = variable->val;
+                  schedule->insert_mem(
+                    variable->step,
+                    variable->thread,
+                    variable->val);
                   break;
 
                 case Variable::HEAP:
-                  if (!step.heap)
-                    {
-                      /* get currently assigned heap cell */
-                      if (
-                          StorePtr store =
-                            dynamic_pointer_cast<Store>(
-                              programs->at(step.thread)->at(step.pc)))
-                        {
-                          word idx =
-                            store->indirect
-                              ? (--schedule->heap_updates[store->arg].end())->second
-                              : store->arg;
-
-                          if (variable->idx == idx)
-                            step.heap = {idx, variable->val};
-                        }
-                    }
+                  schedule->insert_heap(
+                    variable->step,
+                    {variable->idx, variable->val});
                   break;
 
                 case Variable::EXIT:
-                  steps.resize(variable->val);
                   break;
 
                 case Variable::EXIT_CODE:
@@ -133,10 +123,6 @@ SchedulePtr Solver::build_schedule (ProgramListPtr programs)
           parser_error(name(), lineno, e.what());
         }
     }
-
-  // TODO: assemble schedule
-  for (const auto & step : steps)
-    schedule->push_back(step.thread, step.pc, step.accu, step.mem, step.heap);
 
   return schedule;
 }

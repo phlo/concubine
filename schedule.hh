@@ -123,21 +123,22 @@ struct Schedule
   /* return schedule size (bound) */
   size_t            size (void);
 
-  /* append state update */
-  void              push_back (
-                               const unsigned long,
-                               const word,
-                               const word,
-                               const word,
-                               const std::optional<Heap_Cell>
-                              );
-
+  /* insert state update */
   void              insert (Update_Map & updates, const unsigned long step, const word val);
   void              insert_thread (const unsigned long step, const word thread);
   void              insert_pc (const unsigned long step, const word thread, const word pc);
   void              insert_accu (const unsigned long step, const word thread, const word accu);
   void              insert_mem (const unsigned long step, const word thread, const word mem);
   void              insert_heap (const unsigned long step, const Heap_Cell cell);
+
+  /* append state update */
+  void              push_back (
+                               const unsigned long thread,
+                               const word pc,
+                               const word accu,
+                               const word mem,
+                               const std::optional<Heap_Cell> heap
+                              );
 
   /* return thread id scheduled at the given step */
   word              at (unsigned long);

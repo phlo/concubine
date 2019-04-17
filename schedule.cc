@@ -6,21 +6,12 @@
 
 using namespace std;
 
-/* default constructor ********************************************************/
-/*
-Schedule::Schedule () :
-  bound(0),
-  programs(new ProgramList()),
-  exit(0)
-{}
-*/
-
+/* construct empty ************************************************************/
 Schedule::Schedule (ProgramListPtr _programs) :
   bound(0),
   programs(_programs),
   exit(0)
 {
-  /* initialize thread state update lists */
   init_state_update_lists();
 }
 
@@ -268,51 +259,6 @@ size_t Schedule::size ()
   return bound;
 }
 
-void Schedule::push_back (
-                          const unsigned long tid,
-                          const word pc,
-                          const word accu,
-                          const word mem,
-                          const optional<Heap_Cell> heap
-                         )
-{
-  /* append thread id */
-  scheduled.push_back(tid);
-
-  unsigned long step = scheduled.size();
-
-  /* append pc state update */
-  // update_list_t * updates = &pc_updates[tid];
-  // if (updates->empty() || updates->back().second != pc)
-    // updates->push_back(make_pair(step, pc));
-  insert_pc(step, tid, pc);
-
-  /* append accu state update */
-  // updates = &accu_updates[tid];
-  // if (updates->empty() || updates->back().second != accu)
-    // updates->push_back(make_pair(step, accu));
-  insert_accu(step, tid, accu);
-
-  /* append mem state update */
-  // updates = &mem_updates[tid];
-  // if (updates->empty() || updates->back().second != mem)
-    // updates->push_back(make_pair(step, mem));
-  insert_mem(step, tid, mem);
-
-  /* append heap state update */
-  // if (heap)
-    // {
-      // updates = &heap_updates[heap->idx];
-      // if (updates->empty() || updates->back().second != heap->val)
-        // updates->push_back(make_pair(step, heap->val));
-    // }
-  if (heap)
-    insert_heap(step, heap.value());
-
-  /* raise bound */
-  bound++;
-}
-
 void Schedule::insert_thread (const unsigned long step, const word thread)
 {
   // HACK: try to preallocate using known bound!
@@ -378,6 +324,23 @@ void Schedule::insert_mem (const unsigned long step, const word thread, const wo
 void Schedule::insert_heap (const unsigned long step, const Heap_Cell heap)
 {
   insert(heap_updates[heap.idx], step, heap.val);
+}
+
+void Schedule::push_back (
+                          const unsigned long thread,
+                          const word pc,
+                          const word accu,
+                          const word mem,
+                          const optional<Heap_Cell> heap
+                         )
+{
+  insert_thread(bound + 1, thread);
+  insert_pc(bound, thread, pc);
+  insert_accu(bound, thread, accu);
+  insert_mem(bound, thread, mem);
+
+  if (heap)
+    insert_heap(bound, heap.value());
 }
 
 /* Schedule::at (unsigned long) ***********************************************/
