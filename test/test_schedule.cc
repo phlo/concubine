@@ -550,7 +550,7 @@ TEST_F(ScheduleTest, parse_missing_heap)
 //                           const word mem,
 //                           const optional<pair<word, word>> heap
 //                          )
-TEST_F(ScheduleTest, push_back)
+TEST_F(ScheduleTest, DISABLED_push_back)
 {
   ProgramListPtr programs = ProgramListPtr(new ProgramList());
 
@@ -727,18 +727,28 @@ TEST_F(ScheduleTest, DISABLED_insert_in_order)
 using Insert_Data = tuple<unsigned long, word, word, word>;
 
 const vector<Insert_Data> insert_data {
-  {1, 0, 0, 0},
-  {2, 1, 0, 0},
-  {3, 0, 1, 0},
-  {4, 1, 1, 0},
-  {5, 0, 0, 1},
-  {6, 1, 0, 1},
-  {7, 0, 1, 1},
-  {8, 1, 1, 1},
+  {1,  0, 0, 0},
+  {2,  1, 0, 0},
+  {3,  0, 0, 0},
+  {4,  1, 0, 0},
+  {5,  0, 1, 0},
+  {6,  1, 1, 0},
+  {7,  0, 1, 0},
+  {8,  1, 1, 0},
+  {9,  0, 0, 1},
+  {10, 1, 0, 1},
+  {11, 0, 0, 1},
+  {12, 1, 0, 1},
+  {13, 0, 1, 1},
+  {14, 1, 1, 1},
+  {15, 0, 1, 1},
+  {16, 1, 1, 1},
 };
 
 // void Schedule::insert_thread (const unsigned long step, const word thread)
-const vector<word> insert_thread_expected {0, 1, 0, 1, 0, 1, 0, 1};
+const vector<word> insert_thread_expected {
+  0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1
+};
 
 TEST_F(ScheduleTest, insert_thread)
 {
@@ -747,7 +757,7 @@ TEST_F(ScheduleTest, insert_thread)
   for (const auto & [step, thread, _, __] : insert_data)
     schedule->insert_thread(step, thread);
 
-  ASSERT_EQ(8, schedule->bound);
+  ASSERT_EQ(insert_thread_expected.size(), schedule->bound);
   ASSERT_EQ(insert_thread_expected, schedule->scheduled);
 }
 
@@ -762,7 +772,7 @@ TEST_F(ScheduleTest, insert_thread_reverse)
   for (const auto & [step, thread, _, __] : data)
     schedule->insert_thread(step, thread);
 
-  ASSERT_EQ(8, schedule->bound);
+  ASSERT_EQ(insert_thread_expected.size(), schedule->bound);
   ASSERT_EQ(insert_thread_expected, schedule->scheduled);
 }
 
@@ -777,7 +787,7 @@ TEST_F(ScheduleTest, insert_thread_random)
   for (const auto & [step, thread, _, __] : data)
     schedule->insert_thread(step, thread);
 
-  ASSERT_EQ(8, schedule->bound);
+  ASSERT_EQ(insert_thread_expected.size(), schedule->bound);
   ASSERT_EQ(insert_thread_expected, schedule->scheduled);
 }
 
@@ -787,8 +797,8 @@ TEST_F(ScheduleTest, insert_thread_random)
 //                           const word pc
 //                          )
 const vector<Schedule::Update_Map> insert_pc_expected {
-  {{1, 0}, {3, 1}, {5, 0}, {7, 1}},
-  {{2, 0}, {4, 1}, {6, 0}, {8, 1}}
+  {{1, 0}, {5, 1}, {9, 0}, {13, 1}},
+  {{2, 0}, {6, 1}, {10, 0}, {14, 1}}
 };
 
 TEST_F(ScheduleTest, insert_pc)
@@ -930,8 +940,8 @@ TEST_F(ScheduleTest, insert_mem_random)
 
 // void Schedule::insert_heap (const unsigned long step, const Heap_Cell cell)
 const Schedule::Heap_Updates insert_heap_expected {
-  {0, {{1, 0}, {5, 1}}},
-  {1, {{3, 0}, {7, 1}}}
+  {0, {{1, 0}, {9, 1}}},
+  {1, {{5, 0}, {13, 1}}}
 };
 
 TEST_F(ScheduleTest, insert_heap)

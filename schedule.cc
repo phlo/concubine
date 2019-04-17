@@ -326,32 +326,37 @@ void Schedule::insert_thread (const unsigned long step, const word thread)
     bound = step;
 }
 
-/* thread state update helper */
+// state update map inserter
+// * insert iff previous value is different
+// * erase next iff value is equal
 void Schedule::insert (
                        Schedule::Update_Map & updates,
                        const unsigned long step,
                        const word val
                       )
 {
-  auto hint = updates.lower_bound(step);
-
   if (updates.empty())
     {
-      updates.insert(hint, {step, val});
+      updates.insert({step, val});
     }
   else
     {
-      /* get previous state */
-      auto prev = std::prev(hint);
+      auto hint {updates.lower_bound(step)};
+      bool valid {hint != updates.end()};
 
       /* ensure that no update exists for this step */
-      // NOTE: remove -> performace?
-      if (hint != updates.end() && prev->first == step)
+      if (valid && hint->first == step)
         throw runtime_error("update already exists");
 
-      /* add new state only if it changed */
-      if (prev->second != val)
-        updates.insert(hint, {step, val});
+      /* return if value doesn't change */
+      if (hint != updates.begin() && prev(hint)->second == val)
+        return;
+
+      updates.insert(hint, {step, val});
+
+      /* erase next if value doesn't change */
+      if (valid && hint->second == val)
+        updates.erase(hint);
     }
 }
 
