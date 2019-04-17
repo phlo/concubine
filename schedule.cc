@@ -313,13 +313,13 @@ void Schedule::push_back (
   bound++;
 }
 
-void Schedule::insert_thread (const unsigned long step, const word tid)
+void Schedule::insert_thread (const unsigned long step, const word thread)
 {
   // HACK: try to preallocate using known bound!
   if (scheduled.size() < step)
     scheduled.resize(step);
 
-  scheduled.at(step - 1) = tid;
+  scheduled.at(step - 1) = thread;
 
   // NOTE: find a better way to update bound
   if (bound < step)
