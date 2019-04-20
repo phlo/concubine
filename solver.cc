@@ -1,11 +1,8 @@
 #include "solver.hh"
 
-#include <cassert>
-
 #include "encoder.hh"
 #include "parser.hh"
 #include "shell.hh"
-#include "smtlib.hh"
 
 using namespace std;
 
@@ -17,24 +14,19 @@ void Solver::print (Encoder & formula, string & constraints)
 bool Solver::sat (string & input)
 {
   Shell shell;
-  string sat;
 
   std_out = shell.run(build_command(), input);
+
+  string sat;
 
   return (std_out >> sat) && sat == "sat";
 }
 
 SchedulePtr Solver::solve (Encoder & formula, string & constraints)
 {
-  Shell shell;
-
   string input = build_formula(formula, constraints);
 
-  std_out = shell.run(build_command(), input);
-
-  exit_code = shell.last_exit_code();
-
-  // cout << std_out.str();
+  sat(input);
 
   return build_schedule(formula.programs);
 }
@@ -64,8 +56,6 @@ SchedulePtr Solver::build_schedule (ProgramListPtr programs)
 
       istringstream line(line_buf);
 
-      // cout << line_buf << eol;
-
       try
         {
           optional<Variable> variable = parse_line(line);
@@ -74,43 +64,43 @@ SchedulePtr Solver::build_schedule (ProgramListPtr programs)
             {
               switch (variable->type)
                 {
-                case Variable::THREAD:
+                case Variable::Type::THREAD:
                   schedule->insert_thread(
                     variable->step,
                     variable->thread);
                   break;
 
-                case Variable::EXEC:
+                case Variable::Type::EXEC:
                   schedule->insert_pc(
                     variable->step,
                     variable->thread,
                     variable->pc);
                   break;
 
-                case Variable::ACCU:
+                case Variable::Type::ACCU:
                   schedule->insert_accu(
                     variable->step,
                     variable->thread,
                     variable->val);
                   break;
 
-                case Variable::MEM:
+                case Variable::Type::MEM:
                   schedule->insert_mem(
                     variable->step,
                     variable->thread,
                     variable->val);
                   break;
 
-                case Variable::HEAP:
+                case Variable::Type::HEAP:
                   schedule->insert_heap(
                     variable->step,
                     {variable->idx, variable->val});
                   break;
 
-                case Variable::EXIT:
+                case Variable::Type::EXIT:
                   break;
 
-                case Variable::EXIT_CODE:
+                case Variable::Type::EXIT_CODE:
                   schedule->exit = variable->val;
                   break;
 
@@ -127,12 +117,17 @@ SchedulePtr Solver::build_schedule (ProgramListPtr programs)
   return schedule;
 }
 
-word Solver::parse_thread (istringstream & line)
+string Solver::build_formula (Encoder & formula, string & constraints)
+{
+  return formula.str() + eol + (constraints.empty() ? "" : constraints + eol);
+}
+
+unsigned long Solver::parse_suffix (istringstream & line, const string name)
 {
   string token;
 
   if (!getline(line, token, '_'))
-    throw runtime_error("missing thread id");
+    throw runtime_error("missing " + name);
 
   try
     {
@@ -140,115 +135,60 @@ word Solver::parse_thread (istringstream & line)
     }
   catch (...)
     {
-      throw runtime_error("illegal thread id [" + token + "]");
+      throw runtime_error("illegal " + name + " [" + token + "]");
     }
 }
 
-word Solver::parse_pc (istringstream & line)
+optional<Solver::Variable> Solver::parse_variable (istringstream & line)
 {
-  string token;
-
-  if (!getline(line, token, '_'))
-    throw runtime_error("missing pc");
-
-  try
-    {
-      return stoul(token);
-    }
-  catch (...)
-    {
-      throw runtime_error("illegal pc [" + token + "]");
-    }
-}
-
-string SMTLibSolver::build_formula (Encoder & formula, string & constraints)
-{
-  bound = formula.bound;
-
-  return
-    formula.str() + eol +
-    (constraints.empty() ? "" : constraints + eol) +
-    smtlib::check_sat() + eol;
-}
-
-optional<Solver::Variable> SMTLibSolver::parse_variable (istringstream & line)
-{
-  string name;
-
-  optional<Variable> variable = Variable();
+  optional<Variable> variable {Variable()};
 
   line >> ws;
+
+  string name;
 
   if (!getline(line, name, '_'))
     runtime_error("missing variable");
 
   if (name == "thread")
-    variable->type = Variable::THREAD;
+    {
+      variable->type = Variable::Type::THREAD;
+      variable->step = parse_suffix(line, "step");
+      variable->thread = parse_suffix(line, "thread");
+    }
   else if (name == "exec")
-    variable->type = Variable::EXEC;
+    {
+      variable->type = Variable::Type::EXEC;
+      variable->step = parse_suffix(line, "step");
+      variable->thread = parse_suffix(line, "thread");
+      variable->pc = parse_suffix(line, "pc");
+    }
   else if (name == "accu")
-    variable->type = Variable::ACCU;
+    {
+      variable->type = Variable::Type::ACCU;
+      variable->step = parse_suffix(line, "step");
+      variable->thread = parse_suffix(line, "thread");
+    }
   else if (name == "mem")
-    variable->type = Variable::MEM;
+    {
+      variable->type = Variable::Type::MEM;
+      variable->step = parse_suffix(line, "step");
+      variable->thread = parse_suffix(line, "thread");
+    }
   else if (name == "heap")
-    variable->type = Variable::HEAP;
+    {
+      variable->type = Variable::Type::HEAP;
+      variable->step = parse_suffix(line, "step");
+    }
   else if (name == "exit")
-    variable->type = Variable::EXIT;
+    {
+      variable->type = Variable::Type::EXIT;
+      variable->step = parse_suffix(line, "step");
+    }
   else if (name == "exit-code")
-    variable->type = Variable::EXIT_CODE;
+    variable->type = Variable::Type::EXIT_CODE;
   else
     return {};
 
-  switch (variable->type)
-    {
-    case Variable::THREAD:
-      variable->step = parse_step(line);
-      variable->thread = parse_thread(line);
-      break;
-
-    case Variable::EXEC:
-      variable->step = parse_step(line);
-      variable->thread = parse_thread(line);
-      variable->pc = parse_pc(line);
-      break;
-
-    case Variable::ACCU:
-      variable->step = parse_step(line);
-      variable->thread = parse_thread(line);
-      break;
-
-    case Variable::MEM:
-      variable->step = parse_step(line);
-      variable->thread = parse_thread(line);
-      break;
-
-    case Variable::HEAP:
-      variable->step = parse_step(line);
-      break;
-
-    case Variable::EXIT:
-      variable->step = parse_step(line);
-      break;
-
-    default: {}
-    }
-
   return variable;
-}
-
-unsigned long SMTLibSolver::parse_step (istringstream & line)
-{
-  string token;
-
-  if (!getline(line, token, '_'))
-    throw runtime_error("missing step");
-
-  try
-    {
-      return stoul(token);
-    }
-  catch (...)
-    {
-      throw runtime_error("illegal step [" + token + "]");
-    }
 }

@@ -14,7 +14,8 @@ string CVC4::build_command ()
 string CVC4::build_formula (Encoder & formula, string & constraints)
 {
   return
-    SMTLibSolver::build_formula(formula, constraints) +
+    Solver::build_formula(formula, constraints) +
+    smtlib::check_sat() + eol +
     smtlib::get_model();
 }
 

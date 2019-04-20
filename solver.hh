@@ -10,39 +10,9 @@ struct Encoder;
 
 struct Solver
 {
-  /* the solver's stdout */
-  std::stringstream   std_out;
-
-  /* the solver's exit code */
-  int                 exit_code;
-
-  /* bound */
-  unsigned long       bound;
-
-  /* print the complete (formula + specification) to stdout */
-  void                print (Encoder &, std::string &);
-
-  /* evaluate arbitrary formula */
-  bool                sat (std::string &);
-
-  /* run solver and return schedule */
-  SchedulePtr         solve (Encoder &, std::string &);
-
-  /* build schedule based on the specific solver's output */
-  SchedulePtr         build_schedule (ProgramListPtr);
-
-  /* returns the solver's name */
-  virtual std::string name (void) = 0;
-
-  /* build command line for the specific solver */
-  virtual std::string build_command (void) = 0;
-
-  /* build formula for the specific solver */
-  virtual std::string build_formula (Encoder &, std::string &) = 0;
-
   struct Variable
     {
-      enum Type
+      enum class Type
         {
           THREAD,
           EXEC,
@@ -61,25 +31,40 @@ struct Solver
       word          val;
     };
 
-  word                parse_thread (std::istringstream &);
+  /* the solver's stdout */
+  std::stringstream std_out;
 
-  word                parse_pc (std::istringstream &);
+  /* build command line for the specific solver */
+  virtual std::string build_command (void) = 0;
 
-  virtual std::optional<Variable> parse_line (std::istringstream &) = 0;
-  virtual std::optional<Variable> parse_variable (std::istringstream &) = 0;
+  /* build formula for the specific solver */
+  virtual std::string build_formula (Encoder & encoder, std::string & constraints);
+
+  /* build schedule based on the specific solver's output */
+  SchedulePtr build_schedule (ProgramListPtr programs);
+
+  // TODO: find better name - parse_part?
+  /* parse variable metadata (step, thread, pc) */
+  unsigned long parse_suffix (std::istringstream & line, const std::string name);
+
+  virtual std::optional<Variable> parse_line (std::istringstream & line) = 0;
+
+  virtual std::optional<Variable> parse_variable (std::istringstream & line);
+
+  /* returns the solver's name */
+  virtual std::string name () = 0;
+
+  // TODO: deprecate
+  /* evaluate arbitrary formula */
+  virtual bool sat (std::string & formula);
+
+  /* print the complete (formula + specification) to stdout */
+  void print (Encoder & encoder, std::string & constraints);
+
+  /* run solver and return schedule */
+  virtual SchedulePtr solve (Encoder & encoder, std::string & constraints);
 };
 
 typedef std::shared_ptr<Solver> SolverPtr;
-
-/* base class for solvers using SMT-Lib as input */
-struct SMTLibSolver : public Solver
-{
-  virtual std::string build_command (void) = 0;
-
-  virtual std::string build_formula (Encoder &, std::string &);
-
-  unsigned long parse_step (std::istringstream &);
-  virtual std::optional<Variable> parse_variable (std::istringstream &);
-};
 
 #endif

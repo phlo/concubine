@@ -60,20 +60,20 @@ optional<Solver::Variable> Boolector::parse_line (istringstream & line)
   if (variable && variable->step)
     switch (variable->type)
       {
-      case Variable::THREAD:
-      case Variable::EXEC:
-      case Variable::EXIT:
+      case Variable::Type::THREAD:
+      case Variable::Type::EXEC:
+      case Variable::Type::EXIT:
         if (val)
           return variable;
         break;
 
-      case Variable::ACCU:
-      case Variable::MEM:
-      case Variable::EXIT_CODE:
+      case Variable::Type::ACCU:
+      case Variable::Type::MEM:
+      case Variable::Type::EXIT_CODE:
         variable->val = val;
         return variable;
 
-      case Variable::HEAP:
+      case Variable::Type::HEAP:
         variable->idx = idx;
         variable->val = val;
         return variable;
@@ -200,8 +200,6 @@ SchedulePtr build_schedule ()
       else if (variable == "accu")
         {
           /* assumption: current tid has already been parsed */
-
-
         }
       else if (variable == "mem")
         {

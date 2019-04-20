@@ -7,9 +7,7 @@ struct BtorMC : public Solver
 {
   BtorMC (unsigned long);
 
-  const unsigned long bound;
-
-  virtual std::string             name (void);
+  const unsigned long             bound;
 
   virtual std::string             build_command (void);
 
@@ -18,6 +16,8 @@ struct BtorMC : public Solver
   virtual std::optional<Variable> parse_line (std::istringstream &);
 
   virtual std::optional<Variable> parse_variable (std::istringstream &);
+
+  virtual std::string             name (void);
 };
 
 typedef std::shared_ptr<BtorMC> BtorMCPtr;

@@ -3,15 +3,17 @@
 
 #include "solver.hh"
 
-struct CVC4 : public SMTLibSolver
+class CVC4 : public Solver
 {
-  virtual std::string             name (void);
+  virtual std::string build_command ();
 
-  virtual std::string             build_command (void);
-
-  virtual std::string             build_formula (Encoder &, std::string &);
+  virtual std::string build_formula (Encoder & encoder, std::string & constraints);
 
   virtual std::optional<Variable> parse_line (std::istringstream &);
+
+public:
+
+  virtual std::string name ();
 };
 
 typedef std::shared_ptr<CVC4> CVC4Ptr;

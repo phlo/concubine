@@ -14,6 +14,7 @@ CXXFLAGS += -isystem $(GTEST_DIR)/include \
 			-I../ \
 			-pthread \
 			-lboolector \
+			-lz3 \
 			-D__TEST__
 
 # object files of code to test (exported)
@@ -44,11 +45,12 @@ GTEST_FILTER = --gtest_filter=
 # GTEST_FILTER += MainTest.*
 # GTEST_FILTER += Experimental.*
 # GTEST_FILTER += ProgramTest.*
-GTEST_FILTER += ScheduleTest.*
+# GTEST_FILTER += ScheduleTest.*
 # GTEST_FILTER += InstructionSetTest.*
-# GTEST_FILTER += BoolectorTest.*
-# GTEST_FILTER += Z3Test.*
-# GTEST_FILTER += CVC4Test.*
+GTEST_FILTER += BoolectorTest.*
+GTEST_FILTER += BtorMCTest.*
+GTEST_FILTER += Z3Test.*
+GTEST_FILTER += CVC4Test.*
 
 GTEST_FILTER := $(shell echo ${GTEST_FILTER} | sed -e 's/ /:/g')
 

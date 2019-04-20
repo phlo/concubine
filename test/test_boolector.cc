@@ -69,7 +69,7 @@ TEST_F(BoolectorTest, DISABLED_print_sync)
   cout << boolector.std_out.str();
 }
 
-TEST_F(BoolectorTest, solve_sync)
+TEST_F(BoolectorTest, DISABLED_solve_sync)
 {
   /* concurrent increment using SYNC */
   string constraints;
@@ -99,7 +99,7 @@ TEST_F(BoolectorTest, solve_sync)
   cout << schedule->print();
 }
 
-TEST_F(BoolectorTest, solve_increment_multiple)
+TEST_F(BoolectorTest, DISABLED_solve_increment_multiple)
 {
   /* concurrent increment using SYNC */
   string constraints;

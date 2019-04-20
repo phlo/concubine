@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
 
-#include <sstream>
-
-#include "cvc4.hh"
 #include "encoder.hh"
 #include "parser.hh"
 #include "streamredirecter.hh"
+
+#include "publicate.hh"
+#include "cvc4.hh"
 
 using namespace std;
 
@@ -47,7 +47,7 @@ TEST_F(CVC4Test, unsat)
 }
 
 // TODO: remove
-TEST_F(CVC4Test, print_sync)
+TEST_F(CVC4Test, DISABLED_print_model)
 {
   /* concurrent increment using SYNC */
   string constraints;
@@ -63,7 +63,9 @@ TEST_F(CVC4Test, print_sync)
 
   string formula = cvc4.build_formula(*encoder, constraints);
 
-  ASSERT_TRUE(cvc4.sat(formula));
+  bool sat = cvc4.sat(formula);
 
   cout << cvc4.std_out.str();
+
+  ASSERT_TRUE(sat);
 }
