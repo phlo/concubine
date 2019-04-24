@@ -6,7 +6,6 @@
 
 using namespace std;
 
-/* construct empty ************************************************************/
 Schedule::Schedule (ProgramListPtr _programs) :
   bound(0),
   programs(_programs),
@@ -15,7 +14,6 @@ Schedule::Schedule (ProgramListPtr _programs) :
   init_state_update_lists();
 }
 
-/* construct from file ********************************************************/
 Schedule::Schedule(istream & file, string & path) :
   bound(0),
   programs(new ProgramList()),
@@ -96,7 +94,7 @@ Schedule::Schedule(istream & file, string & path) :
             line_num,
             "unknown thread id [" + to_string(thread) + "]");
 
-      insert_thread(step, thread);
+      push_back_thread(step, thread);
 
       const Program & program = *programs->at(thread);
 
@@ -124,7 +122,7 @@ Schedule::Schedule(istream & file, string & path) :
             line_num,
             "illegal program counter [" + to_string(pc) + "]");
 
-      insert_pc(step, thread, pc);
+      push_back_pc(step, thread, pc);
 
       /* parse instruction symbol */
       if (!(line >> symbol))
@@ -200,7 +198,7 @@ Schedule::Schedule(istream & file, string & path) :
             "illegal accumulator register value [" + token + "]");
         }
 
-      insert_accu(step, thread, accu);
+      push_back_accu(step, thread, accu);
 
       /* parse mem */
       if (!(line >> mem))
@@ -216,7 +214,7 @@ Schedule::Schedule(istream & file, string & path) :
             "illegal CAS memory register value [" + token + "]");
         }
 
-      insert_mem(step, thread, mem);
+      push_back_mem(step, thread, mem);
 
       /* parse heap cell */
       if (!(line >> token))
@@ -233,7 +231,7 @@ Schedule::Schedule(istream & file, string & path) :
             word val = stoul(cell.substr(split + 1));
 
             /* heap cell update */
-            insert_heap(step, {idx, val});
+            push_back_heap(step, {idx, val});
           }
         catch (const exception & e)
           {
@@ -254,105 +252,29 @@ void Schedule::init_state_update_lists ()
   mem_updates.resize(num_threads);
 }
 
-size_t Schedule::size ()
+void Schedule::push_back (
+                          Schedule::Update_Map & updates,
+                          const unsigned long step,
+                          const word val
+                         )
 {
-  return bound;
-}
-
-// TODO: remove
-void pretty_print (Schedule::Update_Map & updates)
-{
-  cout << '{';
-
-  for (auto it = updates.begin(); it != updates.end(); ++it)
-    {
-      if (it != updates.begin())
-        cout << ", ";
-
-      cout << '{' << it->first << ", " << it->second << '}';
-    }
-
-  cout << '}' << eol;
-}
-
-// state update map inserter
-// * insert iff previous value is different
-// * erase next iff value is equal
-void Schedule::insert (
-                       Schedule::Update_Map & updates,
-                       const unsigned long step,
-                       const word val
-                      )
-{
-  cout.setstate(ios_base::failbit);
-
-  pretty_print(updates);
-  cout << "insert = {" << step << ", " << val << '}' << eol;
-
   if (updates.empty())
     {
       updates.insert({step, val});
     }
   else
     {
-      auto hint {updates.lower_bound(step)};
-      bool valid {hint != updates.end()};
-
-      if (valid)
-        cout << "hint = {" << hint->first << ", " << hint->second << '}' << eol;
+      auto end = updates.end();
+      auto prev = std::prev(end);
 
       /* ensure that no update exists for this step */
-      if (valid && hint->first == step)
+      if (prev->first == step)
         throw runtime_error("update already exists");
 
-      /* return if value doesn't change */
-      if (hint == updates.begin() || (prev(hint)->first != step - 1 || (prev(hint)->first == step - 1 && prev(hint)->second != val)))
-        updates.insert(hint, {step, val});
-
-      /* erase next if value doesn't change */
-      if (valid && hint->first == step + 1 && hint->second == val)
-        updates.erase(hint);
+      /* insert if value doesn't change */
+      if (prev->second != val)
+        updates.insert(end, {step, val});
     }
-
-  pretty_print(updates);
-  cout << "################################################################################" << eol;
-
-  cout.clear();
-}
-
-void Schedule::insert_thread (const unsigned long step, const word thread)
-{
-  // if (thread)
-    // cout.setstate(ios_base::failbit);
-
-  insert(thread_updates, step, thread);
-
-  // if (thread)
-    // cout.clear();
-
-  // HACK: find a better way to increase bound
-  if (step > bound)
-    bound = step;
-}
-
-void Schedule::insert_pc (const unsigned long step, const word thread, const word pc)
-{
-  insert(pc_updates.at(thread), step, pc);
-}
-
-void Schedule::insert_accu (const unsigned long step, const word thread, const word accu)
-{
-  insert(accu_updates.at(thread), step, accu);
-}
-
-void Schedule::insert_mem (const unsigned long step, const word thread, const word mem)
-{
-  insert(mem_updates.at(thread), step, mem);
-}
-
-void Schedule::insert_heap (const unsigned long step, const Heap_Cell heap)
-{
-  insert(heap_updates[heap.idx], step, heap.val);
 }
 
 void Schedule::push_back (
@@ -363,34 +285,69 @@ void Schedule::push_back (
                           const optional<Heap_Cell> heap
                          )
 {
-  insert_thread(bound + 1, thread);
-  insert_pc(bound, thread, pc);
-  insert_accu(bound, thread, accu);
-  insert_mem(bound, thread, mem);
+  ++bound;
+
+  push_back(thread_updates, bound, thread);
+  push_back(pc_updates[thread], bound, pc);
+  push_back(accu_updates[thread], bound, accu);
+  push_back(mem_updates[thread], bound, mem);
 
   if (heap)
-    insert_heap(bound, heap.value());
+    push_back(heap_updates[heap->idx], bound, heap->val);
 }
 
-/* Schedule::at (unsigned long) ***********************************************/
-// word Schedule::at (unsigned long step)
-// {
-  // return scheduled.at(step);
-// }
+void Schedule::push_back_thread (const unsigned long step, const word thread)
+{
+  push_back(thread_updates, step, thread);
 
-/* Schedule::begin (void) *****************************************************/
+  if (step > bound)
+    bound = step;
+}
+
+void Schedule::push_back_pc (const unsigned long step, const word thread, const word pc)
+{
+  push_back(pc_updates.at(thread), step, pc);
+
+  if (step > bound)
+    bound = step;
+}
+
+void Schedule::push_back_accu (const unsigned long step, const word thread, const word accu)
+{
+  push_back(accu_updates.at(thread), step, accu);
+
+  if (step > bound)
+    bound = step;
+}
+
+void Schedule::push_back_mem (const unsigned long step, const word thread, const word mem)
+{
+  push_back(mem_updates.at(thread), step, mem);
+
+  if (step > bound)
+    bound = step;
+}
+
+void Schedule::push_back_heap (const unsigned long step, const Heap_Cell heap)
+{
+  push_back(heap_updates[heap.idx], step, heap.val);
+
+  if (step > bound)
+    bound = step;
+}
+
+size_t Schedule::size () { return bound; }
+
 Schedule::iterator Schedule::begin ()
 {
   return iterator(this);
 }
 
-/* Schedule::end (void) *******************************************************/
 Schedule::iterator Schedule::end ()
 {
   return iterator(this, bound + 1);
 }
 
-/* Schedule::print (void) *****************************************************/
 std::string Schedule::print ()
 {
   ostringstream ss;
@@ -465,7 +422,6 @@ std::string Schedule::print ()
   return ss.str();
 }
 
-/* Schedule::iterator (Schedule *, unsigned long) *****************************/
 Schedule::iterator::iterator (Schedule * _schedule, unsigned long _step) :
   schedule(_schedule),
   step(_step),
@@ -496,7 +452,6 @@ Schedule::iterator::iterator (Schedule * _schedule, unsigned long _step) :
   assign();
 }
 
-/* Schedule::iterator::next_thread_state (void) *******************************/
 word Schedule::iterator::next_thread_state (Update_Iterators & state)
 {
   auto next {std::next(state.cur)};
@@ -507,7 +462,6 @@ word Schedule::iterator::next_thread_state (Update_Iterators & state)
   return state.cur->second;
 }
 
-/* Schedule::iterator::next_heap_state (void) *********************************/
 optional<Schedule::Heap_Cell> Schedule::iterator::next_heap_state ()
 {
   if (
@@ -530,7 +484,6 @@ optional<Schedule::Heap_Cell> Schedule::iterator::next_heap_state ()
   return {};
 }
 
-/* Schedule::iterator::assign (void) ******************************************/
 void Schedule::iterator::assign ()
 {
   update.thread = next_thread_state(thread);
@@ -540,7 +493,6 @@ void Schedule::iterator::assign ()
   update.heap   = next_heap_state();
 }
 
-/* Schedule::iterator::operator ++ (void) - prefix ****************************/
 Schedule::iterator & Schedule::iterator::operator ++ ()
 {
   /* prevent increments beyond end() */
@@ -551,7 +503,6 @@ Schedule::iterator & Schedule::iterator::operator ++ ()
   return *this;
 }
 
-/* Schedule::iterator::operator ++ (int) - postfix ****************************/
 Schedule::iterator Schedule::iterator::operator ++ (int)
 {
   iterator retval = *this;
@@ -559,31 +510,26 @@ Schedule::iterator Schedule::iterator::operator ++ (int)
   return retval;
 }
 
-/* Schedule::iterator::operator == (const Schedule::iterator &) ***************/
 bool Schedule::iterator::operator == (const iterator & other) const
 {
   return schedule == other.schedule && step == other.step;
 }
 
-/* Schedule::iterator::operator != (const Schedule::iterator &) ***************/
 bool Schedule::iterator::operator != (const iterator & other) const
 {
   return !(*this == other);
 }
 
-/* Schedule::iterator::operator * (void) **************************************/
 Schedule::iterator::reference Schedule::iterator::operator * () const
 {
   return update;
 }
 
-/* Schedule::iterator::operator -> (void) *************************************/
 Schedule::iterator::pointer Schedule::iterator::operator -> () const
 {
   return &update;
 }
 
-/* operator == (const Schedule &, const Schedule &) ***************************/
 bool operator == (const Schedule & a, const Schedule & b)
 {
   if (a.bound != b.bound)
@@ -607,7 +553,6 @@ bool operator == (const Schedule & a, const Schedule & b)
     a.heap_updates == b.heap_updates;
 }
 
-/* operator != (const Schedule &, const Schedule &) ***************************/
 bool operator != (const Schedule & a, const Schedule & b)
 {
   return !(a == b);

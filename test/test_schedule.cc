@@ -1,15 +1,10 @@
 #include <gtest/gtest.h>
 
-#include <random>
-
 #include "parser.hh"
 #include "schedule.hh"
 
 using namespace std;
 
-/*******************************************************************************
- * Test Case Fixture
-*******************************************************************************/
 struct ScheduleTest : public ::testing::Test
 {
   string dummy_path = "dummy.schedule";
@@ -552,10 +547,10 @@ TEST_F(ScheduleTest, parse_missing_heap)
     }
 }
 
-// void Schedule::insert_*
+// void Schedule::push_back_*
 using Insert_Data = tuple<unsigned long, word, word, word>;
 
-const vector<Insert_Data> insert_data {
+const vector<Insert_Data> push_back_data {
   {1,  0, 0, 0},
   {2,  1, 0, 0},
   {3,  0, 0, 0},
@@ -574,259 +569,108 @@ const vector<Insert_Data> insert_data {
   {16, 1, 1, 1},
 };
 
-// void Schedule::insert_thread (const unsigned long step, const word thread)
-const Schedule::Update_Map insert_thread_expected {
-  {1,  0},
-  {2,  1},
-  {3,  0},
-  {4,  1},
-  {5,  0},
-  {6,  1},
-  {7,  0},
-  {8,  1},
-  {9,  0},
-  {10, 1},
-  {11, 0},
-  {12, 1},
-  {13, 0},
-  {14, 1},
-  {15, 0},
-  {16, 1}
-};
-
-TEST_F(ScheduleTest, insert_thread)
+// void Schedule::push_back_thread (const unsigned long step, const word thread)
+TEST_F(ScheduleTest, push_back_thread)
 {
   create_dummy_schedule(2);
 
-  for (const auto & [step, thread, _, __] : insert_data)
-    schedule->insert_thread(step, thread);
+  for (const auto & [step, thread, _, __] : push_back_data)
+    schedule->push_back_thread(step, thread);
 
-  ASSERT_EQ(insert_thread_expected.size(), schedule->bound);
-  ASSERT_EQ(insert_thread_expected, schedule->thread_updates);
+  ASSERT_EQ(push_back_data.size(), schedule->bound);
+  ASSERT_EQ(
+    Schedule::Update_Map ({
+      {1,  0},
+      {2,  1},
+      {3,  0},
+      {4,  1},
+      {5,  0},
+      {6,  1},
+      {7,  0},
+      {8,  1},
+      {9,  0},
+      {10, 1},
+      {11, 0},
+      {12, 1},
+      {13, 0},
+      {14, 1},
+      {15, 0},
+      {16, 1}
+    }),
+    schedule->thread_updates);
 }
 
-TEST_F(ScheduleTest, insert_thread_reverse)
-{
-  create_dummy_schedule(2);
-
-  vector<Insert_Data> data {insert_data};
-
-  reverse(data.begin(), data.end());
-
-  for (const auto & [step, thread, _, __] : data)
-    schedule->insert_thread(step, thread);
-
-  ASSERT_EQ(insert_thread_expected.size(), schedule->bound);
-  ASSERT_EQ(insert_thread_expected, schedule->thread_updates);
-}
-
-TEST_F(ScheduleTest, insert_thread_random)
-{
-  create_dummy_schedule(2);
-
-  vector<Insert_Data> data {insert_data};
-
-  shuffle(data.begin(), data.end(), mt19937());
-
-  for (const auto & [step, thread, _, __] : data)
-    schedule->insert_thread(step, thread);
-
-  ASSERT_EQ(insert_thread_expected.size(), schedule->bound);
-  ASSERT_EQ(insert_thread_expected, schedule->thread_updates);
-}
-
-// void Schedule::insert_pc (
-//                           const unsigned long step,
-//                           const word thread,
-//                           const word pc
-//                          )
-const vector<Schedule::Update_Map> insert_pc_expected {
+// void Schedule::push_back_pc (
+//                              const unsigned long step,
+//                              const word thread,
+//                              const word pc
+//                             )
+const vector<Schedule::Update_Map> push_back_expected {
   {{1, 0}, {5, 1}, {9, 0}, {13, 1}},
   {{2, 0}, {6, 1}, {10, 0}, {14, 1}}
 };
 
-TEST_F(ScheduleTest, insert_pc)
+TEST_F(ScheduleTest, push_back_pc)
 {
   create_dummy_schedule(2);
 
-  for (const auto & [step, thread, pc, _] : insert_data)
-    schedule->insert_pc(step, thread, pc);
+  for (const auto & [step, thread, pc, _] : push_back_data)
+    schedule->push_back_pc(step, thread, pc);
 
-  ASSERT_EQ(0, schedule->bound);
-  ASSERT_EQ(insert_pc_expected, schedule->pc_updates);
+  ASSERT_EQ(push_back_data.size(), schedule->bound);
+  ASSERT_EQ(push_back_expected, schedule->pc_updates);
 }
 
-TEST_F(ScheduleTest, insert_pc_reverse)
+// void Schedule::push_back_accu (
+//                                const unsigned long step,
+//                                const word thread,
+//                                const word accu
+//                               )
+TEST_F(ScheduleTest, push_back_accu)
 {
   create_dummy_schedule(2);
 
-  vector<Insert_Data> data {insert_data};
+  for (const auto & [step, thread, accu, _] : push_back_data)
+    schedule->push_back_accu(step, thread, accu);
 
-  reverse(data.begin(), data.end());
-
-  for (const auto & [step, thread, pc, _] : data)
-    schedule->insert_pc(step, thread, pc);
-
-  ASSERT_EQ(0, schedule->bound);
-  ASSERT_EQ(insert_pc_expected, schedule->pc_updates);
+  ASSERT_EQ(push_back_data.size(), schedule->bound);
+  ASSERT_EQ(push_back_expected, schedule->accu_updates);
 }
 
-TEST_F(ScheduleTest, insert_pc_random)
+// void Schedule::push_back_mem (
+//                               const unsigned long step,
+//                               const word thread,
+//                               const word mem
+//                              )
+TEST_F(ScheduleTest, push_back_mem)
 {
   create_dummy_schedule(2);
 
-  vector<Insert_Data> data {insert_data};
+  for (const auto & [step, thread, mem, _] : push_back_data)
+    schedule->push_back_mem(step, thread, mem);
 
-  shuffle(data.begin(), data.end(), mt19937());
-
-  for (const auto & [step, thread, pc, _] : data)
-    schedule->insert_pc(step, thread, pc);
-
-  ASSERT_EQ(0, schedule->bound);
-  ASSERT_EQ(insert_pc_expected, schedule->pc_updates);
+  ASSERT_EQ(push_back_data.size(), schedule->bound);
+  ASSERT_EQ(push_back_expected, schedule->mem_updates);
 }
 
-// void Schedule::insert_accu (
-//                             const unsigned long step,
-//                             const word thread,
-//                             const word accu
-//                            )
-const vector<Schedule::Update_Map> insert_accu_expected {insert_pc_expected};
-
-TEST_F(ScheduleTest, insert_accu)
+// void Schedule::push_back_heap (
+//                                const unsigned long step,
+//                                const Heap_Cell cell
+//                               )
+TEST_F(ScheduleTest, push_back_heap)
 {
   create_dummy_schedule(2);
 
-  for (const auto & [step, thread, accu, _] : insert_data)
-    schedule->insert_accu(step, thread, accu);
+  for (const auto & [step, thread, idx, val] : push_back_data)
+    schedule->push_back_heap(step, {idx, val});
 
-  ASSERT_EQ(0, schedule->bound);
-  ASSERT_EQ(insert_accu_expected, schedule->accu_updates);
-}
-
-TEST_F(ScheduleTest, insert_accu_reverse)
-{
-  create_dummy_schedule(2);
-
-  vector<Insert_Data> data {insert_data};
-
-  reverse(data.begin(), data.end());
-
-  for (const auto & [step, thread, accu, _] : data)
-    schedule->insert_accu(step, thread, accu);
-
-  ASSERT_EQ(0, schedule->bound);
-  ASSERT_EQ(insert_accu_expected, schedule->accu_updates);
-}
-
-TEST_F(ScheduleTest, insert_accu_random)
-{
-  create_dummy_schedule(2);
-
-  vector<Insert_Data> data {insert_data};
-
-  shuffle(data.begin(), data.end(), mt19937());
-
-  for (const auto & [step, thread, accu, _] : data)
-    schedule->insert_accu(step, thread, accu);
-
-  ASSERT_EQ(0, schedule->bound);
-  ASSERT_EQ(insert_accu_expected, schedule->accu_updates);
-}
-
-// void Schedule::insert_mem (
-//                            const unsigned long step,
-//                            const word thread,
-//                            const word mem
-//                           )
-const vector<Schedule::Update_Map> insert_mem_expected {insert_pc_expected};
-
-TEST_F(ScheduleTest, insert_mem)
-{
-  create_dummy_schedule(2);
-
-  for (const auto & [step, thread, mem, _] : insert_data)
-    schedule->insert_mem(step, thread, mem);
-
-  ASSERT_EQ(0, schedule->bound);
-  ASSERT_EQ(insert_mem_expected, schedule->mem_updates);
-}
-
-TEST_F(ScheduleTest, insert_mem_reverse)
-{
-  create_dummy_schedule(2);
-
-  vector<Insert_Data> data {insert_data};
-
-  reverse(data.begin(), data.end());
-
-  for (const auto & [step, thread, mem, _] : data)
-    schedule->insert_mem(step, thread, mem);
-
-  ASSERT_EQ(0, schedule->bound);
-  ASSERT_EQ(insert_mem_expected, schedule->mem_updates);
-}
-
-TEST_F(ScheduleTest, insert_mem_random)
-{
-  create_dummy_schedule(2);
-
-  vector<Insert_Data> data {insert_data};
-
-  shuffle(data.begin(), data.end(), mt19937());
-
-  for (const auto & [step, thread, mem, _] : data)
-    schedule->insert_mem(step, thread, mem);
-
-  ASSERT_EQ(0, schedule->bound);
-  ASSERT_EQ(insert_mem_expected, schedule->mem_updates);
-}
-
-// void Schedule::insert_heap (const unsigned long step, const Heap_Cell cell)
-const Schedule::Heap_Updates insert_heap_expected {
-  {0, {{1, 0}, {9, 1}}},
-  {1, {{5, 0}, {13, 1}}}
-};
-
-TEST_F(ScheduleTest, insert_heap)
-{
-  create_dummy_schedule(2);
-
-  for (const auto & [step, thread, idx, val] : insert_data)
-    schedule->insert_heap(step, {idx, val});
-
-  ASSERT_EQ(0, schedule->bound);
-  ASSERT_EQ(insert_heap_expected, schedule->heap_updates);
-}
-
-TEST_F(ScheduleTest, insert_heap_reverse)
-{
-  create_dummy_schedule(2);
-
-  vector<Insert_Data> data {insert_data};
-
-  reverse(data.begin(), data.end());
-
-  for (const auto & [step, thread, idx, val] : data)
-    schedule->insert_heap(step, {idx, val});
-
-  ASSERT_EQ(0, schedule->bound);
-  ASSERT_EQ(insert_heap_expected, schedule->heap_updates);
-}
-
-TEST_F(ScheduleTest, insert_heap_random)
-{
-  create_dummy_schedule(2);
-
-  vector<Insert_Data> data {insert_data};
-
-  shuffle(data.begin(), data.end(), mt19937());
-
-  for (const auto & [step, thread, idx, val] : data)
-    schedule->insert_heap(step, {idx, val});
-
-  ASSERT_EQ(0, schedule->bound);
-  ASSERT_EQ(insert_heap_expected, schedule->heap_updates);
+  ASSERT_EQ(push_back_data.size(), schedule->bound);
+  ASSERT_EQ(
+    Schedule::Heap_Updates ({
+      {0, {{1, 0}, {9, 1}}},
+      {1, {{5, 0}, {13, 1}}}
+    }),
+    schedule->heap_updates);
 }
 
 // std::string Schedule::print ()

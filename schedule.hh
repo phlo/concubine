@@ -15,16 +15,8 @@
 struct Schedule
 {
   using Update_Map      = std::map<unsigned long, word>; /* step -> state */
-
   using Thread_Updates  = std::vector<Update_Map>;
   using Heap_Updates    = std::unordered_map<word, Update_Map>;
-
-  enum class Insert_Order
-    {
-      INORDER,
-      REVERSE,
-      RANDOM
-    };
 
   struct Heap_Cell
     {
@@ -61,21 +53,19 @@ struct Schedule
       Step              update;
 
       Update_Iterators  thread;
-
       Thread_Iterators  pc,
                         accu,
                         mem;
-
       Heap_Iterators    heap;
 
       /* return current thread state and advance */
       word              next_thread_state (Update_Iterators & state);
 
       /* return current heap state update and advance */
-      std::optional<Heap_Cell> next_heap_state (void);
+      std::optional<Heap_Cell> next_heap_state ();
 
       /* assign state update */
-      void              assign (void);
+      void              assign ();
 
     public:
       using difference_type   = std::ptrdiff_t; // size_t ?
@@ -106,60 +96,76 @@ struct Schedule
   Schedule (std::istream & file, std::string & path);
 
   /* bound used == size() */
-  // NOTE: remove?
-  unsigned long     bound;
+  unsigned long   bound;
 
   /* programs used to generate the schedule */
-  ProgramListPtr    programs;
+  ProgramListPtr  programs;
 
   /* exit code */
-  word              exit;
+  word            exit;
 
   /* thread sequence */
-  Update_Map        thread_updates;
+  Update_Map      thread_updates;
 
   /* register states */
-  Thread_Updates    pc_updates,
-                    accu_updates,
-                    mem_updates;
+  Thread_Updates  pc_updates,
+                  accu_updates,
+                  mem_updates;
 
   /* heap state updates (idx -> [(step, val), ...]) */
-  Heap_Updates      heap_updates;
+  Heap_Updates    heap_updates;
 
   /* initialize thread state update lists */
-  void              init_state_update_lists (void);
-
-  /* return schedule size (bound) */
-  size_t            size (void);
-
-  /* insert state update */
-  void              insert (Update_Map & updates, const unsigned long step, const word val);
-  void              insert_thread (const unsigned long step, const word thread);
-  void              insert_pc (const unsigned long step, const word thread, const word pc);
-  void              insert_accu (const unsigned long step, const word thread, const word accu);
-  void              insert_mem (const unsigned long step, const word thread, const word mem);
-  void              insert_heap (const unsigned long step, const Heap_Cell cell);
+  void            init_state_update_lists ();
 
   /* append state update */
-  void              push_back (
-                               const unsigned long thread,
-                               const word pc,
-                               const word accu,
-                               const word mem,
-                               const std::optional<Heap_Cell> heap
-                              );
+  void            push_back (
+                             Update_Map & updates,
+                             const unsigned long step,
+                             const word val
+                            );
+  void            push_back (
+                             const unsigned long thread,
+                             const word pc,
+                             const word accu,
+                             const word mem,
+                             const std::optional<Heap_Cell> heap
+                            );
+  void            push_back_thread (
+                                    const unsigned long step,
+                                    const word thread
+                                   );
+  void            push_back_pc (
+                                const unsigned long step,
+                                const word thread,
+                                const word pc
+                               );
+  void            push_back_accu (
+                                  const unsigned long step,
+                                  const word thread,
+                                  const word accu
+                                 );
+  void            push_back_mem (
+                                 const unsigned long step,
+                                 const word thread,
+                                 const word mem
+                                );
+  void            push_back_heap (
+                                  const unsigned long step,
+                                  const Heap_Cell cell
+                                 );
 
-  /* return thread id scheduled at the given step */
-  // word              at (unsigned long);
+  /* return schedule size (bound) */
+  size_t          size ();
 
   /* return an iterator to the beginning */
-  iterator          begin (void);
+  iterator        begin ();
 
   /* return an iterator to the end */
-  iterator          end (void);
+  iterator        end ();
 
   /* print schedule */
-  std::string       print (void);
+  std::string     print ();
 };
 
 /*******************************************************************************
