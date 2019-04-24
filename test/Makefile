@@ -47,9 +47,9 @@ GTEST_FILTER = --gtest_filter=
 # GTEST_FILTER += ProgramTest.*
 # GTEST_FILTER += ScheduleTest.*
 # GTEST_FILTER += InstructionSetTest.*
-# GTEST_FILTER += BoolectorTest.*
+GTEST_FILTER += BoolectorTest.*
 # GTEST_FILTER += BtorMCTest.*
-GTEST_FILTER += Z3Test.*
+# GTEST_FILTER += Z3Test.*
 # GTEST_FILTER += CVC4Test.*
 
 GTEST_FILTER := $(shell echo ${GTEST_FILTER} | sed -e 's/ /:/g')

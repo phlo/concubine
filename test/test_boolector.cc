@@ -3,7 +3,6 @@
 #include "boolector.hh"
 #include "encoder.hh"
 #include "parser.hh"
-#include "streamredirecter.hh"
 
 using namespace std;
 
@@ -19,14 +18,7 @@ TEST_F(BoolectorTest, sat)
 {
   string formula = "(assert true)(check-sat)";
 
-  ostringstream ss;
-  StreamRedirecter redirecter(cout, ss);
-
-  redirecter.start();
-
   ASSERT_TRUE(boolector.sat(formula));
-
-  redirecter.stop();
 
   ASSERT_EQ("sat\n", boolector.std_out.str());
 }
@@ -35,41 +27,12 @@ TEST_F(BoolectorTest, unsat)
 {
   string formula = "(assert false)(check-sat)";
 
-  ostringstream ss;
-  StreamRedirecter redirecter(cout, ss);
-
-  redirecter.start();
-
   ASSERT_FALSE(boolector.sat(formula));
-
-  redirecter.stop();
 
   ASSERT_EQ("unsat\n", boolector.std_out.str());
 }
 
-// TODO: remove
-TEST_F(BoolectorTest, DISABLED_print_sync)
-{
-  /* concurrent increment using SYNC */
-  string constraints;
-  string increment_0 = "data/increment.sync.thread.0.asm";
-  string increment_n = "data/increment.sync.thread.n.asm";
-
-  programs = make_shared<ProgramList>();
-
-  programs->push_back(create_from_file<Program>(increment_0));
-  programs->push_back(create_from_file<Program>(increment_n));
-
-  encoder = make_shared<SMTLibEncoderFunctional>(programs, 12);
-
-  string formula = boolector.build_formula(*encoder, constraints);
-
-  ASSERT_TRUE(boolector.sat(formula));
-
-  cout << boolector.std_out.str();
-}
-
-TEST_F(BoolectorTest, DISABLED_solve_sync)
+TEST_F(BoolectorTest, solve_sync)
 {
   /* concurrent increment using SYNC */
   string constraints;
@@ -85,74 +48,65 @@ TEST_F(BoolectorTest, DISABLED_solve_sync)
 
   schedule = boolector.solve(*encoder, constraints);
 
-  ASSERT_EQ(0, schedule->exit);
-  ASSERT_EQ(16, schedule->size());
-
-  ASSERT_EQ(2, schedule->programs->size());
-  ASSERT_EQ(increment_0, schedule->programs->at(0)->path);
-  ASSERT_EQ(increment_n, schedule->programs->at(1)->path);
-
   ASSERT_EQ(
-    // vector<word>({0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1}),
-    Schedule::Update_Map({
-      {1,  0},
-      {2,  1},
-      {3,  0},
-      {6,  1},
-      {10, 0},
-      {11, 1},
-      {13, 0},
-      {16, 1}}),
-    schedule->thread_updates);
-
-  cout << schedule->print();
+    "data/increment.sync.thread.0.asm\n"
+    "data/increment.sync.thread.n.asm\n"
+    ".\n"
+    "# tid	pc	cmd	arg	accu	mem	heap\n"
+    "0	0	STORE	0	0	0	{(0,0)}\n"
+    "1	0	SYNC	0	0	0	{}\n"
+    "0	2	LOAD	0	0	0	{}\n"
+    "0	3	ADDI	1	1	0	{}\n"
+    "0	4	STORE	0	1	0	{(0,1)}\n"
+    "1	1	SYNC	1	0	0	{}\n"
+    "1	2	LOAD	0	1	0	{}\n"
+    "1	3	ADDI	1	2	0	{}\n"
+    "1	4	STORE	0	2	0	{(0,2)}\n"
+    "0	6	JNZ	1	1	0	{}\n"
+    "1	5	JNZ	0	2	0	{}\n"
+    "1	0	SYNC	0	2	0	{}\n"
+    "0	2	LOAD	0	2	0	{}\n"
+    "0	3	ADDI	1	3	0	{}\n"
+    "0	4	STORE	0	3	0	{(0,3)}\n"
+    "1	1	SYNC	1	2	0	{}\n",
+    schedule->print());
 }
 
-TEST_F(BoolectorTest, DISABLED_solve_increment_multiple)
+TEST_F(BoolectorTest, solve_cas)
 {
-  /* concurrent increment using SYNC */
+  /* concurrent increment using CAS */
   string constraints;
-  string increment = "data/increment.multiple.asm";
+  string increment = "data/increment.cas.asm";
 
   programs = make_shared<ProgramList>();
 
+  programs->push_back(create_from_file<Program>(increment));
   programs->push_back(create_from_file<Program>(increment));
 
   encoder = make_shared<SMTLibEncoderFunctional>(programs, 16);
 
   schedule = boolector.solve(*encoder, constraints);
 
-  cout << schedule->print();
-}
-
-TEST_F(BoolectorTest, DISABLED_solve_missing_model)
-{
-  programs = make_shared<ProgramList>();
-
-  programs->push_back(make_shared<Program>());
-
-  encoder = make_shared<SMTLibEncoderFunctional>(programs, 1);
-
-  string constraints;
-
-  boolector.solve(*encoder, constraints);
-}
-
-#include <boolector/boolector.h>
-TEST_F(BoolectorTest, DISABLED_parse_smt2_c_api)
-{
-  const char * infile_name = "/tmp/boolector.smt2";
-
-  Btor *btor = boolector_new();
-
-  char *error_msg;
-  int status;
-  int result;
-  FILE *infile = fopen (infile_name, "r");
-  FILE *outfile = fopen ("/tmp/outfile", "w");
-  result = boolector_parse (btor, infile, infile_name, outfile, &error_msg, &status);
-
-  cout << "result = " << result << eol;
-  cout << "status = " << status << eol;
-  cout << "error msg = " << error_msg << eol;
+  ASSERT_EQ(
+    "data/increment.cas.asm\n"
+    "data/increment.cas.asm\n"
+    ".\n"
+    "# tid	pc	cmd	arg	accu	mem	heap\n"
+    "0	0	STORE	0	0	0	{(0,0)}\n"
+    "1	0	STORE	0	0	0	{}\n"
+    "1	1	SYNC	0	0	0	{}\n"
+    "0	LOOP	MEM	0	0	0	{}\n"
+    "1	LOOP	MEM	0	0	0	{}\n"
+    "0	3	ADDI	1	1	0	{}\n"
+    "0	4	CAS	0	1	0	{(0,1)}\n"
+    "1	3	ADDI	1	1	0	{}\n"
+    "1	4	CAS	0	0	0	{}\n"
+    "0	5	JMP	LOOP	1	0	{}\n"
+    "1	5	JMP	LOOP	0	0	{}\n"
+    "0	LOOP	MEM	0	1	1	{}\n"
+    "0	3	ADDI	1	2	1	{}\n"
+    "0	4	CAS	0	1	1	{(0,2)}\n"
+    "1	LOOP	MEM	0	2	2	{}\n"
+    "1	3	ADDI	1	3	2	{}\n",
+    schedule->print());
 }
