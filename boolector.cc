@@ -11,7 +11,7 @@ string Boolector::build_command ()
   return "boolector --model-gen --output-number-format=dec";
 }
 
-optional<Solver::Variable> Boolector::parse_line (istringstream & line)
+optional<Boolector::Variable> Boolector::parse_line (istringstream & line)
 {
   string token;
 

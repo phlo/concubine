@@ -18,14 +18,14 @@ string BtorMC::build_formula (Encoder & formula, string & constraints)
   return formula.str() + (constraints.empty() ? "" : constraints + eol);
 }
 
-optional<Solver::Variable> BtorMC::parse_line (istringstream & line)
+optional<BtorMC::Variable> BtorMC::parse_line (istringstream & line)
 {
   (void) line;
 
   return {};
 }
 
-optional<Solver::Variable> BtorMC::parse_variable (istringstream & line)
+optional<BtorMC::Variable> BtorMC::parse_variable (istringstream & line)
 {
   // TODO
   (void) line;

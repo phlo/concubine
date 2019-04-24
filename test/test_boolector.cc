@@ -93,8 +93,17 @@ TEST_F(BoolectorTest, DISABLED_solve_sync)
   ASSERT_EQ(increment_n, schedule->programs->at(1)->path);
 
   ASSERT_EQ(
-    vector<word>({0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1}),
-    schedule->scheduled);
+    // vector<word>({0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1}),
+    Schedule::Update_Map({
+      {1,  0},
+      {2,  1},
+      {3,  0},
+      {6,  1},
+      {10, 0},
+      {11, 1},
+      {13, 0},
+      {16, 1}}),
+    schedule->thread_updates);
 
   cout << schedule->print();
 }

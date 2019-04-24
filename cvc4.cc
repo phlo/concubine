@@ -19,7 +19,7 @@ string CVC4::build_formula (Encoder & formula, string & constraints)
     smtlib::get_model();
 }
 
-optional<Solver::Variable> CVC4::parse_line (istringstream & line)
+optional<CVC4::Variable> CVC4::parse_line (istringstream & line)
 {
   // TODO
   (void) line;

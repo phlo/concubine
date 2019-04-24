@@ -259,17 +259,20 @@ size_t Schedule::size ()
   return bound;
 }
 
-void Schedule::insert_thread (const unsigned long step, const word thread)
+// TODO: remove
+void pretty_print (Schedule::Update_Map & updates)
 {
-  // HACK: try to preallocate using known bound!
-  if (scheduled.size() < step)
-    scheduled.resize(step);
+  cout << '{';
 
-  scheduled.at(step - 1) = thread;
+  for (auto it = updates.begin(); it != updates.end(); ++it)
+    {
+      if (it != updates.begin())
+        cout << ", ";
 
-  // NOTE: find a better way to update bound
-  if (bound < step)
-    bound = step;
+      cout << '{' << it->first << ", " << it->second << '}';
+    }
+
+  cout << '}' << eol;
 }
 
 // state update map inserter
@@ -281,6 +284,11 @@ void Schedule::insert (
                        const word val
                       )
 {
+  cout.setstate(ios_base::failbit);
+
+  pretty_print(updates);
+  cout << "insert = {" << step << ", " << val << '}' << eol;
+
   if (updates.empty())
     {
       updates.insert({step, val});
@@ -290,20 +298,41 @@ void Schedule::insert (
       auto hint {updates.lower_bound(step)};
       bool valid {hint != updates.end()};
 
+      if (valid)
+        cout << "hint = {" << hint->first << ", " << hint->second << '}' << eol;
+
       /* ensure that no update exists for this step */
       if (valid && hint->first == step)
         throw runtime_error("update already exists");
 
       /* return if value doesn't change */
-      if (hint != updates.begin() && prev(hint)->second == val)
-        return;
-
-      updates.insert(hint, {step, val});
+      if (hint == updates.begin() || (prev(hint)->first != step - 1 || (prev(hint)->first == step - 1 && prev(hint)->second != val)))
+        updates.insert(hint, {step, val});
 
       /* erase next if value doesn't change */
-      if (valid && hint->second == val)
+      if (valid && hint->first == step + 1 && hint->second == val)
         updates.erase(hint);
     }
+
+  pretty_print(updates);
+  cout << "################################################################################" << eol;
+
+  cout.clear();
+}
+
+void Schedule::insert_thread (const unsigned long step, const word thread)
+{
+  // if (thread)
+    // cout.setstate(ios_base::failbit);
+
+  insert(thread_updates, step, thread);
+
+  // if (thread)
+    // cout.clear();
+
+  // HACK: find a better way to increase bound
+  if (step > bound)
+    bound = step;
 }
 
 void Schedule::insert_pc (const unsigned long step, const word thread, const word pc)
@@ -344,10 +373,10 @@ void Schedule::push_back (
 }
 
 /* Schedule::at (unsigned long) ***********************************************/
-word Schedule::at (unsigned long step)
-{
-  return scheduled.at(step);
-}
+// word Schedule::at (unsigned long step)
+// {
+  // return scheduled.at(step);
+// }
 
 /* Schedule::begin (void) *****************************************************/
 Schedule::iterator Schedule::begin ()
@@ -439,14 +468,15 @@ std::string Schedule::print ()
 /* Schedule::iterator (Schedule *, unsigned long) *****************************/
 Schedule::iterator::iterator (Schedule * _schedule, unsigned long _step) :
   schedule(_schedule),
-  step(_step)
+  step(_step),
+  thread({schedule->thread_updates.begin(), schedule->thread_updates.end()})
 {
   if (step > schedule->bound)
     return;
 
   size_t num_threads = schedule->programs->size();
 
-  /* initialize state update iterators */
+  /* initialize state update iterator lists */
   pc.reserve(num_threads);
   for (const auto & updates : schedule->pc_updates)
     pc.push_back({updates.begin(), updates.end()});
@@ -503,7 +533,7 @@ optional<Schedule::Heap_Cell> Schedule::iterator::next_heap_state ()
 /* Schedule::iterator::assign (void) ******************************************/
 void Schedule::iterator::assign ()
 {
-  update.thread = schedule->at(step - 1);
+  update.thread = next_thread_state(thread);
   update.pc     = next_thread_state(pc[update.thread]);
   update.accu   = next_thread_state(accu[update.thread]);
   update.mem    = next_thread_state(mem[update.thread]);
@@ -569,10 +599,8 @@ bool operator == (const Schedule & a, const Schedule & b)
     if (*a.programs->at(i) != *b.programs->at(i))
       return false;
 
-  if (a.scheduled != b.scheduled)
-    return false;
-
   return
+    a.thread_updates == b.thread_updates &&
     a.pc_updates == b.pc_updates &&
     a.accu_updates == b.accu_updates &&
     a.mem_updates == b.mem_updates &&

@@ -3,7 +3,7 @@
 
 #include "solver.hh"
 
-struct BtorMC : public Solver
+struct BtorMC : public ExternalSolver
 {
   BtorMC (unsigned long);
 

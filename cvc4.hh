@@ -3,7 +3,7 @@
 
 #include "solver.hh"
 
-class CVC4 : public Solver
+class CVC4 : public ExternalSolver
 {
   virtual std::string build_command ();
 

@@ -41,17 +41,26 @@ TEST_F(ScheduleTest, parse)
   ASSERT_EQ(program_path, schedule->programs->at(1)->path);
 
   ASSERT_EQ(
-    vector<word>({0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1}),
-    schedule->scheduled);
+    // vector<word>({0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1}),
+    Schedule::Update_Map({
+      {1,  0},
+      {2,  1},
+      {4,  0},
+      {7,  1},
+      {8,  0},
+      {10, 1},
+      {12, 0},
+      {16, 1}}),
+    schedule->thread_updates);
 
   ASSERT_EQ(
     Schedule::Update_Map({
-      {1, 0},
-      {4, 1},
-      {5, 2},
-      {6, 3},
-      {8, 4},
-      {9, 5},
+      {1,  0},
+      {4,  1},
+      {5,  2},
+      {6,  3},
+      {8,  4},
+      {9,  5},
       {12, 2},
       {13, 3},
       {14, 4},
@@ -59,9 +68,9 @@ TEST_F(ScheduleTest, parse)
     schedule->pc_updates[0]);
   ASSERT_EQ(
     Schedule::Update_Map({
-      {2, 0},
-      {3, 1},
-      {7, 2},
+      {2,  0},
+      {3,  1},
+      {7,  2},
       {10, 3},
       {11, 4},
       {16, 5}}),
@@ -69,21 +78,21 @@ TEST_F(ScheduleTest, parse)
 
   ASSERT_EQ(
     Schedule::Update_Map({
-      {1, 0},
-      {6, 1},
+      {1,  0},
+      {6,  1},
       {13, 2},
       {14, 1}}),
     schedule->accu_updates[0]);
   ASSERT_EQ(
     Schedule::Update_Map({
-      {2, 0},
+      {2,  0},
       {10, 1},
       {11, 0}}),
     schedule->accu_updates[1]);
 
   ASSERT_EQ(
     Schedule::Update_Map({
-      {1, 0},
+      {1,  0},
       {12, 1}}),
     schedule->mem_updates[0]);
   ASSERT_EQ(
@@ -106,9 +115,9 @@ TEST_F(ScheduleTest, parse_empty_line)
 
   schedule = SchedulePtr(new Schedule(inbuf, dummy_path));
 
+  ASSERT_EQ(1, schedule->size());
   ASSERT_EQ(1, schedule->programs->size());
   ASSERT_EQ(program_path, schedule->programs->at(0)->path);
-  ASSERT_EQ(0, schedule->at(0));
 }
 
 TEST_F(ScheduleTest, parse_file_not_found)
@@ -566,8 +575,23 @@ const vector<Insert_Data> insert_data {
 };
 
 // void Schedule::insert_thread (const unsigned long step, const word thread)
-const vector<word> insert_thread_expected {
-  0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1
+const Schedule::Update_Map insert_thread_expected {
+  {1,  0},
+  {2,  1},
+  {3,  0},
+  {4,  1},
+  {5,  0},
+  {6,  1},
+  {7,  0},
+  {8,  1},
+  {9,  0},
+  {10, 1},
+  {11, 0},
+  {12, 1},
+  {13, 0},
+  {14, 1},
+  {15, 0},
+  {16, 1}
 };
 
 TEST_F(ScheduleTest, insert_thread)
@@ -578,7 +602,7 @@ TEST_F(ScheduleTest, insert_thread)
     schedule->insert_thread(step, thread);
 
   ASSERT_EQ(insert_thread_expected.size(), schedule->bound);
-  ASSERT_EQ(insert_thread_expected, schedule->scheduled);
+  ASSERT_EQ(insert_thread_expected, schedule->thread_updates);
 }
 
 TEST_F(ScheduleTest, insert_thread_reverse)
@@ -593,7 +617,7 @@ TEST_F(ScheduleTest, insert_thread_reverse)
     schedule->insert_thread(step, thread);
 
   ASSERT_EQ(insert_thread_expected.size(), schedule->bound);
-  ASSERT_EQ(insert_thread_expected, schedule->scheduled);
+  ASSERT_EQ(insert_thread_expected, schedule->thread_updates);
 }
 
 TEST_F(ScheduleTest, insert_thread_random)
@@ -608,7 +632,7 @@ TEST_F(ScheduleTest, insert_thread_random)
     schedule->insert_thread(step, thread);
 
   ASSERT_EQ(insert_thread_expected.size(), schedule->bound);
-  ASSERT_EQ(insert_thread_expected, schedule->scheduled);
+  ASSERT_EQ(insert_thread_expected, schedule->thread_updates);
 }
 
 // void Schedule::insert_pc (

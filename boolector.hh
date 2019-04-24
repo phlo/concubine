@@ -3,7 +3,7 @@
 
 #include "solver.hh"
 
-class Boolector : public Solver
+class Boolector : public ExternalSolver
 {
   virtual std::string build_command ();
 

@@ -98,7 +98,7 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
       /* execute thread */
       thread->execute();
 
-      /* get heap update (ignore failed CAS) */
+      /* get eventual heap update (ignore failed CAS) */
       if (store)
         {
           if (store->get_opcode() == Instruction::OPCode::Store || thread->accu)
@@ -222,13 +222,12 @@ SchedulePtr Simulator::replay (Schedule & schedule, unsigned long _bound)
   /* set bound */
   bound = _bound && _bound < schedule.bound ? _bound : schedule.bound;
 
-  /* index variable for iterating the Schedule */
-  unsigned long step = 0;
+  Schedule::iterator iterator {schedule.begin()};
 
   /* replay scheduler */
-  function<ThreadPtr(void)> scheduler = [this, &schedule, &step]
+  function<ThreadPtr(void)> scheduler = [this, &iterator]
     {
-      return threads[schedule.at(step++)];
+      return threads[iterator++->thread];
     };
 
   return run(scheduler);

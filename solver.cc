@@ -6,12 +6,17 @@
 
 using namespace std;
 
+string Solver::build_formula (Encoder & formula, string & constraints)
+{
+  return formula.str() + eol + (constraints.empty() ? "" : constraints + eol);
+}
+
 void Solver::print (Encoder & formula, string & constraints)
 {
   cout << build_formula(formula, constraints);
 }
 
-bool Solver::sat (string & input)
+bool ExternalSolver::sat (string & input)
 {
   Shell shell;
 
@@ -22,7 +27,7 @@ bool Solver::sat (string & input)
   return (std_out >> sat) && sat == "sat";
 }
 
-SchedulePtr Solver::solve (Encoder & formula, string & constraints)
+SchedulePtr ExternalSolver::solve (Encoder & formula, string & constraints)
 {
   string input = build_formula(formula, constraints);
 
@@ -31,7 +36,7 @@ SchedulePtr Solver::solve (Encoder & formula, string & constraints)
   return build_schedule(formula.programs);
 }
 
-SchedulePtr Solver::build_schedule (ProgramListPtr programs)
+SchedulePtr ExternalSolver::build_schedule (ProgramListPtr programs)
 {
   // not really needed
   if (!std_out.rdbuf()->in_avail())
@@ -117,12 +122,7 @@ SchedulePtr Solver::build_schedule (ProgramListPtr programs)
   return schedule;
 }
 
-string Solver::build_formula (Encoder & formula, string & constraints)
-{
-  return formula.str() + eol + (constraints.empty() ? "" : constraints + eol);
-}
-
-unsigned long Solver::parse_suffix (istringstream & line, const string name)
+unsigned long parse_suffix (istringstream & line, const string name)
 {
   string token;
 
@@ -139,7 +139,8 @@ unsigned long Solver::parse_suffix (istringstream & line, const string name)
     }
 }
 
-optional<Solver::Variable> Solver::parse_variable (istringstream & line)
+optional<ExternalSolver::Variable>
+ExternalSolver::parse_variable (istringstream & line)
 {
   optional<Variable> variable {Variable()};
 

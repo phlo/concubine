@@ -19,6 +19,13 @@ struct Schedule
   using Thread_Updates  = std::vector<Update_Map>;
   using Heap_Updates    = std::unordered_map<word, Update_Map>;
 
+  enum class Insert_Order
+    {
+      INORDER,
+      REVERSE,
+      RANDOM
+    };
+
   struct Heap_Cell
     {
       word idx;
@@ -52,6 +59,8 @@ struct Schedule
       unsigned long     step;
 
       Step              update;
+
+      Update_Iterators  thread;
 
       Thread_Iterators  pc,
                         accu,
@@ -107,9 +116,9 @@ struct Schedule
   word              exit;
 
   /* thread sequence */
-  std::vector<word> scheduled;
+  Update_Map        thread_updates;
 
-  /* thread states */
+  /* register states */
   Thread_Updates    pc_updates,
                     accu_updates,
                     mem_updates;
@@ -141,7 +150,7 @@ struct Schedule
                               );
 
   /* return thread id scheduled at the given step */
-  word              at (unsigned long);
+  // word              at (unsigned long);
 
   /* return an iterator to the beginning */
   iterator          begin (void);
