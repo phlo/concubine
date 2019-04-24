@@ -44,24 +44,28 @@ TEST_F(Z3Test, solve_sync)
 
   schedule = z3.solve(*encoder, constraints);
 
-  ASSERT_EQ(0, schedule->exit);
-  ASSERT_EQ(16, schedule->size());
-
-  ASSERT_EQ(2, schedule->programs->size());
-  ASSERT_EQ(increment_0, schedule->programs->at(0)->path);
-  ASSERT_EQ(increment_n, schedule->programs->at(1)->path);
-
   ASSERT_EQ(
-    Schedule::Update_Map({
-      {1, 0},
-      {2, 1},
-      {3, 0},
-      {7, 1},
-      {11, 0},
-      {12, 1},
-      {13, 0}
-    }),
-    schedule->thread_updates);
+    "data/increment.sync.thread.0.asm\n"
+    "data/increment.sync.thread.n.asm\n"
+    ".\n"
+    "# tid	pc	cmd	arg	accu	mem	heap\n"
+    "0	0	STORE	0	0	0	{(0,0)}\n"
+    "1	0	SYNC	0	0	0	{}\n"
+    "0	2	LOAD	0	0	0	{}\n"
+    "0	3	ADDI	1	1	0	{}\n"
+    "0	4	STORE	0	1	0	{(0,1)}\n"
+    "0	5	SYNC	1	1	0	{}\n"
+    "1	2	LOAD	0	1	0	{}\n"
+    "1	3	ADDI	1	2	0	{}\n"
+    "1	4	STORE	0	2	0	{(0,2)}\n"
+    "1	5	JNZ	0	2	0	{}\n"
+    "0	6	JNZ	1	1	0	{}\n"
+    "1	0	SYNC	0	2	0	{}\n"
+    "0	2	LOAD	0	2	0	{}\n"
+    "0	3	ADDI	1	3	0	{}\n"
+    "0	4	STORE	0	3	0	{(0,3)}\n"
+    "0	5	SYNC	1	3	0	{}\n",
+    schedule->print());
 }
 
 TEST_F(Z3Test, solve_cas)
@@ -79,18 +83,26 @@ TEST_F(Z3Test, solve_cas)
 
   schedule = z3.solve(*encoder, constraints);
 
-  ASSERT_EQ(0, schedule->exit);
-  ASSERT_EQ(16, schedule->size());
-
-  ASSERT_EQ(2, schedule->programs->size());
-  ASSERT_EQ(increment, schedule->programs->at(0)->path);
-  ASSERT_EQ(increment, schedule->programs->at(1)->path);
-
   ASSERT_EQ(
-    Schedule::Update_Map({
-      {1, 1},
-      {2, 0},
-      {3, 1}
-    }),
-    schedule->thread_updates);
+    "data/increment.cas.asm\n"
+    "data/increment.cas.asm\n"
+    ".\n"
+    "# tid	pc	cmd	arg	accu	mem	heap\n"
+    "1	0	STORE	0	0	0	{(0,0)}\n"
+    "0	0	STORE	0	0	0	{}\n"
+    "1	1	SYNC	0	0	0	{}\n"
+    "1	LOOP	MEM	0	0	0	{}\n"
+    "1	3	ADDI	1	1	0	{}\n"
+    "1	4	CAS	0	1	0	{(0,1)}\n"
+    "1	5	JMP	LOOP	1	0	{}\n"
+    "1	LOOP	MEM	0	1	1	{}\n"
+    "1	3	ADDI	1	2	1	{}\n"
+    "1	4	CAS	0	1	1	{(0,2)}\n"
+    "1	5	JMP	LOOP	1	1	{}\n"
+    "1	LOOP	MEM	0	2	2	{}\n"
+    "1	3	ADDI	1	3	2	{}\n"
+    "1	4	CAS	0	1	2	{(0,3)}\n"
+    "1	5	JMP	LOOP	1	2	{}\n"
+    "1	LOOP	MEM	0	3	3	{}\n",
+    schedule->print());
 }
