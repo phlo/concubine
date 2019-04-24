@@ -46,15 +46,14 @@ TEST_F(MainTest, simulate_increment_sync)
 {
   /* read expected schedule from file */
   ifstream schedule_file("data/increment.sync.t2.k16.schedule");
-  string expected(( istreambuf_iterator<char>(schedule_file) ),
-                    istreambuf_iterator<char>());
+  string expected((istreambuf_iterator<char>(schedule_file)),
+                   istreambuf_iterator<char>());
 
-  string args         = " simulate -v -s 0 -k 16 ";
-  string increment_0  = " data/increment.sync.thread.0.asm ";
-  string increment_n  = " data/increment.sync.thread.n.asm ";
+  string args = " simulate -v -s 0 -k 16 ";
+  string increment_0 = " data/increment.sync.thread.0.asm ";
+  string increment_n = " data/increment.sync.thread.n.asm ";
 
-  string cmd =
-    executable + args + increment_0 + " " + increment_n;
+  string cmd = executable + args + increment_0 + " " + increment_n;
 
   string actual = shell.run(cmd).str();
 
@@ -67,14 +66,13 @@ TEST_F(MainTest, simulate_increment_cas)
 {
   /* read expected schedule from file */
   ifstream schedule_file("data/increment.cas.t2.k16.schedule");
-  string expected(( istreambuf_iterator<char>(schedule_file) ),
-                    istreambuf_iterator<char>());
+  string expected((istreambuf_iterator<char>(schedule_file)),
+                   istreambuf_iterator<char>());
 
-  string args       = " simulate -v -s 0 -k 16 ";
-  string increment  = "data/increment.cas.asm";
+  string args = " simulate -v -s 0 -k 16 ";
+  string increment = "data/increment.cas.asm";
 
-  string cmd =
-    executable + args + increment + " " + increment;
+  string cmd = executable + args + increment + " " + increment;
 
   string actual = shell.run(cmd).str();
 
@@ -168,8 +166,8 @@ TEST_F(MainTest, replay_increment_sync)
 
   /* read expected schedule from file */
   ifstream sfs(schedule_file);
-  string expected(( istreambuf_iterator<char>(sfs) ),
-                    istreambuf_iterator<char>());
+  string expected((istreambuf_iterator<char>(sfs)),
+                   istreambuf_iterator<char>());
 
   string args = " replay -v ";
 
@@ -188,8 +186,8 @@ TEST_F(MainTest, replay_increment_cas)
 
   /* read expected schedule from file */
   ifstream sfs(schedule_file);
-  string expected(( istreambuf_iterator<char>(sfs) ),
-                    istreambuf_iterator<char>());
+  string expected((istreambuf_iterator<char>(sfs)),
+                   istreambuf_iterator<char>());
 
   string args = " replay -v ";
 
@@ -261,29 +259,27 @@ TEST_F(MainTest, replay_illegal_bound)
 /* solve_pretend_functional_cas ***********************************************/
 TEST_F(MainTest, solve_pretend_functional_cas)
 {
-  string args         = " solve -v -p 12 ";
+  string args = " solve -v -p 12 ";
   string program_file = "data/increment.cas.asm";
 
   string cmd = executable + args + program_file + " " + program_file;
 
   /* read expected smt formula from file */
   ifstream ffs("data/increment.cas.functional.t2.k12.smt2");
-  string expected(( istreambuf_iterator<char>(ffs) ),
-                    istreambuf_iterator<char>());
-
-  expected += "\n(check-sat)\n(exit)\n";
+  string expected((istreambuf_iterator<char>(ffs)),
+                   istreambuf_iterator<char>());
 
   string actual = shell.run(cmd).str();
 
   EXPECT_EQ(0, shell.last_exit_code());
-  ASSERT_EQ(expected, actual);
+  ASSERT_EQ(expected + '\n', actual);
 }
 
 /* solve_cas ******************************************************************/
 TEST_F(MainTest, solve_cas)
 {
-  string args     = " solve -v 8 ";
-  string program  = "data/increment.cas.asm";
+  string args = " solve -v 8 ";
+  string program = "data/increment.cas.asm";
 
   string cmd = executable + args + program + " " + program;
 
@@ -292,14 +288,14 @@ TEST_F(MainTest, solve_cas)
   string actual = shell.run(cmd).str();
 
   ASSERT_EQ(0, shell.last_exit_code());
-  ASSERT_EQ("sat", actual.substr(0, 3));
+  ASSERT_EQ("", actual);
 }
 
 /* solve_illegal_args *********************************************************/
 TEST_F(MainTest, solve_illegal_args)
 {
-  executable      = executable + " solve ";
-  string program  = "data/increment.cas.asm";
+  executable = executable + " solve ";
+  string program = "data/increment.cas.asm";
 
   /* no arguments */
   string expected = "error: too few arguments\n";

@@ -92,8 +92,7 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
 
       /* mind indirect stores: save address in case it is overwritten */
       if (store)
-        heap_cell =
-          {store->indirect ? heap[store->arg] : store->arg, 0};
+        heap_cell = {store->indirect ? heap[store->arg] : store->arg, 0};
 
       /* execute thread */
       thread->execute();
@@ -102,7 +101,7 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
       if (store)
         {
           if (store->get_opcode() == Instruction::OPCode::Store || thread->accu)
-            heap_cell->idx = heap[heap_cell->val];
+            heap_cell->val = heap[heap_cell->idx];
           else /* CAS failed */
             heap_cell = {};
         }
