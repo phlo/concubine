@@ -13,7 +13,7 @@ class CVC4 : public ExternalSolver
 
 public:
 
-  virtual std::string name ();
+  virtual std::string name () const;
 };
 
 typedef std::shared_ptr<CVC4> CVC4Ptr;

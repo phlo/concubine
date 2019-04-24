@@ -4,7 +4,7 @@
 
 using namespace std;
 
-string CVC4::name () { return "cvc4"; }
+string CVC4::name () const { return "cvc4"; }
 
 string CVC4::build_command ()
 {

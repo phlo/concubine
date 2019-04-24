@@ -6,7 +6,7 @@ using namespace std;
 
 BtorMC::BtorMC(unsigned long b) : bound(b) {}
 
-string BtorMC::name () { return "btormc"; }
+string BtorMC::name () const { return "btormc"; }
 
 string BtorMC::build_command ()
 {

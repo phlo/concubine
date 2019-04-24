@@ -17,7 +17,7 @@ struct BtorMC : public ExternalSolver
 
   virtual std::optional<Variable> parse_variable (std::istringstream &);
 
-  virtual std::string             name (void);
+  virtual std::string             name (void) const;
 };
 
 typedef std::shared_ptr<BtorMC> BtorMCPtr;

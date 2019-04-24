@@ -14,7 +14,7 @@ struct Solver
   virtual std::string build_formula (Encoder & encoder, std::string & constraints);
 
   /* returns the solver's name */
-  virtual std::string name () = 0;
+  virtual std::string name () const = 0;
 
   /* evaluate arbitrary formula */
   virtual bool        sat (std::string & formula) = 0;
@@ -22,12 +22,14 @@ struct Solver
   /* run solver and return schedule */
   virtual SchedulePtr solve (Encoder & encoder, std::string & constraints) = 0;
 
+  // TODO: remove - redundant, use build_formula instead
   /* print the complete (formula + specification) to stdout */
   void                print (Encoder & encoder, std::string & constraints);
 };
 
 typedef std::shared_ptr<Solver> SolverPtr;
 
+/* Base class for solvers running in a forked process. */
 struct ExternalSolver : public Solver
 {
   struct Variable
@@ -59,7 +61,7 @@ struct ExternalSolver : public Solver
   // unsigned long parse_suffix (std::istringstream & line, const std::string name);
 
   /* build command line for the specific solver */
-  virtual std::string build_command (void) = 0;
+  virtual std::string build_command () = 0;
 
   /* build schedule based on the specific solver's output */
   SchedulePtr build_schedule (ProgramListPtr programs);

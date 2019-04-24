@@ -4,7 +4,7 @@
 
 using namespace std;
 
-string Boolector::name () { return "boolector"; }
+string Boolector::name () const { return "boolector"; }
 
 string Boolector::build_command ()
 {
