@@ -11,11 +11,6 @@ string Solver::build_formula (Encoder & formula, string & constraints)
   return formula.str() + eol + (constraints.empty() ? "" : constraints + eol);
 }
 
-void Solver::print (Encoder & formula, string & constraints)
-{
-  cout << build_formula(formula, constraints);
-}
-
 bool ExternalSolver::sat (string & input)
 {
   Shell shell;
@@ -122,7 +117,7 @@ SchedulePtr ExternalSolver::build_schedule (ProgramListPtr programs)
   return schedule;
 }
 
-unsigned long parse_suffix (istringstream & line, const string name)
+unsigned long parse_attribute (istringstream & line, const string name)
 {
   string token;
 
@@ -154,37 +149,37 @@ ExternalSolver::parse_variable (istringstream & line)
   if (name == "thread")
     {
       variable->type = Variable::Type::THREAD;
-      variable->step = parse_suffix(line, "step");
-      variable->thread = parse_suffix(line, "thread");
+      variable->step = parse_attribute(line, "step");
+      variable->thread = parse_attribute(line, "thread");
     }
   else if (name == "exec")
     {
       variable->type = Variable::Type::EXEC;
-      variable->step = parse_suffix(line, "step");
-      variable->thread = parse_suffix(line, "thread");
-      variable->pc = parse_suffix(line, "pc");
+      variable->step = parse_attribute(line, "step");
+      variable->thread = parse_attribute(line, "thread");
+      variable->pc = parse_attribute(line, "pc");
     }
   else if (name == "accu")
     {
       variable->type = Variable::Type::ACCU;
-      variable->step = parse_suffix(line, "step");
-      variable->thread = parse_suffix(line, "thread");
+      variable->step = parse_attribute(line, "step");
+      variable->thread = parse_attribute(line, "thread");
     }
   else if (name == "mem")
     {
       variable->type = Variable::Type::MEM;
-      variable->step = parse_suffix(line, "step");
-      variable->thread = parse_suffix(line, "thread");
+      variable->step = parse_attribute(line, "step");
+      variable->thread = parse_attribute(line, "thread");
     }
   else if (name == "heap")
     {
       variable->type = Variable::Type::HEAP;
-      variable->step = parse_suffix(line, "step");
+      variable->step = parse_attribute(line, "step");
     }
   else if (name == "exit")
     {
       variable->type = Variable::Type::EXIT;
-      variable->step = parse_suffix(line, "step");
+      variable->step = parse_attribute(line, "step");
     }
   else if (name == "exit-code")
     variable->type = Variable::Type::EXIT_CODE;

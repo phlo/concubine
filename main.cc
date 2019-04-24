@@ -420,7 +420,7 @@ int solve (char * name, int argc, char ** argv)
 
       /* print program if we're pretending */
       if (pretend)
-        solver->print(*encoder, constraints);
+        cout << solver->build_formula(*encoder, constraints);
       else
         solver->solve(*encoder, constraints); // TODO: print schedule
     }

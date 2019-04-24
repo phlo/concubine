@@ -21,10 +21,6 @@ struct Solver
 
   /* run solver and return schedule */
   virtual SchedulePtr solve (Encoder & encoder, std::string & constraints) = 0;
-
-  // TODO: remove - redundant, use build_formula instead
-  /* print the complete (formula + specification) to stdout */
-  void                print (Encoder & encoder, std::string & constraints);
 };
 
 typedef std::shared_ptr<Solver> SolverPtr;
@@ -55,10 +51,6 @@ struct ExternalSolver : public Solver
 
   /* the solver's stdout */
   std::stringstream std_out;
-
-  // TODO: find better name - parse_part?
-  /* parse variable metadata (step, thread, pc) */
-  // unsigned long parse_suffix (std::istringstream & line, const std::string name);
 
   /* build command line for the specific solver */
   virtual std::string build_command () = 0;
