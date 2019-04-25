@@ -422,7 +422,7 @@ int solve (char * name, int argc, char ** argv)
       if (pretend)
         cout << solver->build_formula(*encoder, constraints);
       else
-        solver->solve(*encoder, constraints); // TODO: print schedule
+        cout << solver->solve(*encoder, constraints)->print();
     }
   catch (const exception & e)
     {
