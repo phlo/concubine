@@ -10,6 +10,8 @@ struct Encoder;
 
 struct Solver
 {
+  unsigned long parse_attribute (std::istringstream & line, const std::string name, const char delimiter = '_');
+
   /* build formula for the specific solver */
   virtual std::string build_formula (Encoder & encoder, std::string & constraints);
 

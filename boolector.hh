@@ -7,6 +7,7 @@ class Boolector : public ExternalSolver
 {
   virtual std::string build_command ();
 
+protected:
   virtual std::optional<Variable> parse_line (std::istringstream & line);
 
 public:

@@ -22,6 +22,7 @@ bool ExternalSolver::sat (string & input)
   return (std_out >> sat) && sat == "sat";
 }
 
+#include <iostream>
 SchedulePtr ExternalSolver::solve (Encoder & formula, string & constraints)
 {
   string input = build_formula(formula, constraints);
@@ -40,15 +41,15 @@ SchedulePtr ExternalSolver::build_schedule (ProgramListPtr programs)
   string sat;
 
   /* ensure that formula is sat */
-  if (!(std_out >> sat) || sat != "sat")
-    runtime_error("formula is not sat [" + sat + "]");
+  // if (!(std_out >> sat) || sat != "sat")
+    // runtime_error("formula is not sat [" + sat + "]");
 
   SchedulePtr schedule = make_shared<Schedule>(programs);
 
   /* current line number */
   unsigned long lineno = 2;
 
-  for (string line_buf; getline(std_out, line_buf); lineno++)
+  for (string line_buf; getline(std_out >> std::ws, line_buf); lineno++)
     {
       /* skip empty lines */
       if (line_buf.empty())
@@ -117,11 +118,15 @@ SchedulePtr ExternalSolver::build_schedule (ProgramListPtr programs)
   return schedule;
 }
 
-unsigned long parse_attribute (istringstream & line, const string name)
+unsigned long Solver::parse_attribute (
+                                       istringstream & line,
+                                       const string name,
+                                       const char delimiter
+                                      )
 {
   string token;
 
-  if (!getline(line, token, '_'))
+  if (!getline(line, token, delimiter))
     throw runtime_error("missing " + name);
 
   try
@@ -139,12 +144,10 @@ ExternalSolver::parse_variable (istringstream & line)
 {
   optional<Variable> variable {Variable()};
 
-  line >> ws;
-
   string name;
 
-  if (!getline(line, name, '_'))
-    runtime_error("missing variable");
+  if (!getline(line >> ws, name, '_'))
+    throw runtime_error("missing variable");
 
   if (name == "thread")
     {

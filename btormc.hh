@@ -1,9 +1,9 @@
 #ifndef BTORMC_HH
 #define BTORMC_HH
 
-#include "solver.hh"
+#include "boolector.hh"
 
-struct BtorMC : public ExternalSolver
+struct BtorMC : public Boolector
 {
   BtorMC (unsigned long);
 

@@ -1,5 +1,7 @@
 #include "boolector.hh"
 
+#include <iomanip>
+
 #include "parser.hh"
 
 using namespace std;
@@ -8,7 +10,8 @@ string Boolector::name () const { return "boolector"; }
 
 string Boolector::build_command ()
 {
-  return "boolector --model-gen --output-number-format=dec";
+  // return "boolector --model-gen --output-number-format=dec";
+  return "boolector --model-gen";
 }
 
 optional<Boolector::Variable> Boolector::parse_line (istringstream & line)
@@ -21,41 +24,75 @@ optional<Boolector::Variable> Boolector::parse_line (istringstream & line)
 
   /* parse node id */
   if (!(line >> nid))
-    throw runtime_error("parsing node id failed");
+    {
+      line >> token;
+      throw runtime_error("parsing node id failed [" + token + ']');
+    }
 
   /* parse value */
-  if (!(line >> val))
+  if (!(line >> token))
+    throw runtime_error("missing value");
+
+  try
     {
-      line.clear();
-
+      val = stoul(token, nullptr, 2);
+    }
+  catch (const logic_error &)
+    {
       /* array element index */
-      if (!(line >> token))
-        runtime_error("missing array index");
-
       try
         {
           token = token.substr(1, token.size() - 2);
-          idx = stoul(token);
+          idx = stoul(token, nullptr, 2);
         }
-      catch (...)
+      catch (const logic_error &)
         {
-          runtime_error("illegal array index [" + token + "]");
+          throw runtime_error("illegal array index [" + token + "]");
         }
 
       /* array element value */
-      if (!(line >> val))
+      if (!(line >> token))
+        throw runtime_error("missing array value");
+
+      try
         {
-          line.clear();
-
-          if (!(line >> token))
-            runtime_error("missing array value");
-
-          runtime_error("illegal array value [" + token + "]");
+          val = stoul(token, nullptr, 2);
+        }
+      catch (const logic_error &)
+        {
+          throw runtime_error("illegal array value [" + token + "]");
         }
     }
 
   /* parse variable */
   optional<Variable> variable = parse_variable(line);
+
+  /*
+  if (variable && variable->type == Variable::Type::EXEC && val)
+    {
+      cout
+        << "exec step = " << variable->step
+        << " thread = " << variable->thread
+        << " pc = " << variable->pc << eol;
+    }
+
+  if (variable && variable->step)
+    {
+      cout << "\tvariable: ";
+      switch (variable->type)
+        {
+        case Variable::Type::THREAD: cout << "THREAD"; break;
+        case Variable::Type::EXEC: cout << "EXEC"; break;
+        case Variable::Type::ACCU: cout << "ACCU"; break;
+        case Variable::Type::MEM: cout << "MEM"; break;
+        case Variable::Type::HEAP: cout << "HEAP"; break;
+        case Variable::Type::EXIT: cout << "EXIT"; break;
+        case Variable::Type::EXIT_CODE: cout << "EXIT_CODE"; break;
+        default: ;
+        }
+      cout << " step = " << variable->step << eol;
+    }
+  */
 
   if (variable && variable->step)
     switch (variable->type)

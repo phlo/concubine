@@ -48,6 +48,41 @@ TEST_F(BoolectorTest, solve_sync)
 
   schedule = boolector.solve(*encoder, constraints);
 
+  cout << "scheduled threads" << eol;
+  for (const auto & [step, thread] : schedule->thread_updates)
+    {
+      cout << "\t{" << step << ", " << thread << "}" << eol;
+    }
+
+  cout << "pc updates" << eol;
+  unsigned long thread = 0;
+  for (const auto & updates : schedule->pc_updates)
+    {
+      for (const auto & [step, val] : updates)
+        {
+          cout << "\t" << thread << ": {" << step << ", " << val << "}" << eol;
+        }
+      thread++;
+    }
+
+  cout << "accu updates" << eol;
+  thread = 0;
+  for (const auto & updates : schedule->accu_updates)
+    {
+      for (const auto & [step, val] : updates)
+        {
+          cout << "\t" << thread << ": {" << step << ", " << val << "}" << eol;
+        }
+      thread++;
+    }
+
+  cout << "heap updates" << eol;
+  for (const auto & updates : schedule->heap_updates)
+    for (const auto & [idx, val] : updates.second)
+      {
+        cout << "\t{" << idx << ", " << val << "}" << eol;
+      }
+
   ASSERT_EQ(
     "data/increment.sync.thread.0.asm\n"
     "data/increment.sync.thread.n.asm\n"
@@ -72,7 +107,7 @@ TEST_F(BoolectorTest, solve_sync)
     schedule->print());
 }
 
-TEST_F(BoolectorTest, solve_cas)
+TEST_F(BoolectorTest, DISABLED_solve_cas)
 {
   /* concurrent increment using CAS */
   string constraints;
