@@ -143,6 +143,7 @@ struct SMTLibEncoder : public Encoder
   static const std::string  thread_comment;
   static const std::string  exec_comment;
   static const std::string  cas_comment;
+  static const std::string  block_comment;
   static const std::string  sync_comment;
   static const std::string  exit_comment;
 
@@ -163,6 +164,7 @@ struct SMTLibEncoder : public Encoder
   std::string               exec_var (void);
   std::string               cas_var (const word, const word);
   std::string               cas_var (void);
+  std::string               block_var (const word, const word, const word);
   std::string               sync_var (const word, const word);
   std::string               exit_var (const word);
   std::string               exit_var (void);
@@ -176,6 +178,7 @@ struct SMTLibEncoder : public Encoder
   void                      declare_thread_vars (void);
   void                      declare_exec_vars (void);
   void                      declare_cas_vars (void);
+  void                      declare_block_vars (void);
   void                      declare_sync_vars (void);
   void                      declare_exit_var (void);
   void                      declare_exit_code (void);

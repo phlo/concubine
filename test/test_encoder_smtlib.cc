@@ -202,6 +202,14 @@ TEST_F(SMTLibEncoderTest, cas_var)
   ASSERT_EQ("cas_2_3", encoder->cas_var());
 }
 
+// std::string block_var (const word, const word, const word);
+TEST_F(SMTLibEncoderTest, block_var_args)
+{
+  ASSERT_EQ("block_6_3_0", encoder->block_var(6, 3, 0));
+  ASSERT_EQ("block_7_4_1", encoder->block_var(7, 4, 1));
+  ASSERT_EQ("block_8_5_2", encoder->block_var(8, 5, 2));
+}
+
 // string sync_var (const word, const word);
 TEST_F(SMTLibEncoderTest, sync_var_args)
 {
@@ -582,6 +590,61 @@ TEST_F(SMTLibEncoderTest, declare_cas_vars)
     "(declare-fun cas_1_2 () Bool)\n\n";
 
   ASSERT_EQ(expected, encoder->formula.str());
+}
+
+// void declare_block_vars (void);
+TEST_F(SMTLibEncoderTest, declare_block_vars)
+{
+  add_dummy_programs(3, 3);
+
+  /* single sync id */
+  for (const auto & p : programs)
+    p->push_back(Instruction::Set::create("SYNC", 0));
+
+  reset_encoder(0, 2);
+
+  encoder->declare_block_vars();
+
+  ASSERT_EQ(
+    "; blocking variables - block_<step>_<id>_<thread>\n"
+    "(declare-fun block_2_0_0 () Bool)\n"
+    "(declare-fun block_2_0_1 () Bool)\n"
+    "(declare-fun block_2_0_2 () Bool)\n\n",
+    encoder->formula.str());
+
+  /* two sync ids */
+  for (const auto & p : programs)
+    p->push_back(Instruction::Set::create("SYNC", 1));
+
+  reset_encoder(0, 2);
+
+  encoder->declare_block_vars();
+
+  ASSERT_EQ(
+    "; blocking variables - block_<step>_<id>_<thread>\n"
+    "(declare-fun block_2_0_0 () Bool)\n"
+    "(declare-fun block_2_0_1 () Bool)\n"
+    "(declare-fun block_2_0_2 () Bool)\n"
+    "(declare-fun block_2_1_0 () Bool)\n"
+    "(declare-fun block_2_1_1 () Bool)\n"
+    "(declare-fun block_2_1_2 () Bool)\n\n",
+    encoder->formula.str());
+
+  /* verbosity */
+  reset_encoder(0, 2);
+
+  verbose = false;
+  encoder->declare_block_vars();
+  verbose = true;
+
+  ASSERT_EQ(
+    "(declare-fun block_2_0_0 () Bool)\n"
+    "(declare-fun block_2_0_1 () Bool)\n"
+    "(declare-fun block_2_0_2 () Bool)\n"
+    "(declare-fun block_2_1_0 () Bool)\n"
+    "(declare-fun block_2_1_1 () Bool)\n"
+    "(declare-fun block_2_1_2 () Bool)\n\n",
+    encoder->formula.str());
 }
 
 // void declare_sync_vars (void);
@@ -1134,7 +1197,7 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
       programs[i]->push_back(Instruction::Set::create("SYNC", 1));
     }
 
-  reset_encoder(0, 1);
+  reset_encoder(0, 2);
 
   encoder->add_synchronization_constraints();
 
@@ -1158,7 +1221,7 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
   for (const auto & p : programs)
     p->push_back(Instruction::Set::create("SYNC", 2));
 
-  reset_encoder(0, 1);
+  reset_encoder(0, 2);
 
   encoder->add_synchronization_constraints();
 
@@ -1187,7 +1250,7 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
   for (const auto & p : programs)
     p->push_back(Instruction::Set::create("SYNC", 1));
 
-  reset_encoder(0, 1);
+  reset_encoder(0, 2);
 
   encoder->add_synchronization_constraints();
 
@@ -1218,7 +1281,7 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
 
   ASSERT_EQ(programs[0]->size(), 1);
 
-  reset_encoder(0, 1);
+  reset_encoder(0, 2);
 
   verbose = false;
   encoder->add_synchronization_constraints();

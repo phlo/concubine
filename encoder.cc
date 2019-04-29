@@ -186,6 +186,9 @@ const string SMTLibEncoder::exec_comment =
 const string SMTLibEncoder::cas_comment =
   "; CAS condition - cas_<step>_<thread>";
 
+const string SMTLibEncoder::block_comment =
+  "; blocking variables - block_<step>_<id>_<thread>";
+
 const string SMTLibEncoder::sync_comment =
   "; sync variables - sync_<step>_<id>";
 
@@ -268,6 +271,11 @@ string SMTLibEncoder::cas_var (const word k, const word t)
 string SMTLibEncoder::cas_var ()
 {
   return cas_var(step, thread);
+}
+
+string SMTLibEncoder::block_var (const word k, const word id, const word tid)
+{
+  return "block_" + to_string(k) + '_' + to_string(id) + '_' + to_string(tid);
 }
 
 string SMTLibEncoder::sync_var (const word k, const word id)
@@ -368,6 +376,20 @@ void SMTLibEncoder::declare_cas_vars ()
     if (cas_threads.find(thread) != cas_threads.end())
       formula << smtlib::declare_bool_var(cas_var()) << eol;
   });
+
+  formula << eol;
+}
+
+void SMTLibEncoder::declare_block_vars ()
+{
+  if (verbose)
+    formula << block_comment << eol;
+
+  for (const auto & s : sync_pcs)
+    for (thread = 0; thread < num_threads; thread++)
+      formula
+        << smtlib::declare_bool_var(block_var(step, s.first, thread))
+        << eol;
 
   formula << eol;
 }
@@ -495,36 +517,53 @@ void SMTLibEncoder::add_thread_scheduling ()
 
 void SMTLibEncoder::add_synchronization_constraints ()
 {
+  /* skip if step == 1 or SYNC isn't called at all */
+  if (sync_pcs.empty() || step < 2)
+    return;
+
   if (verbose)
     formula << smtlib::comment_subsection("synchronization constraints");
 
+  declare_block_vars();
+
+  for (const auto & [s, threads] : sync_pcs)
+    for (const auto & [t, pcs] : threads)
+      {
+        vector<string> block_args;
+
+        block_args.reserve(pcs.size() + 1);
+
+        for (const word p : pcs)
+          block_args.push_back(exec_var(step - 1, t, p));
+
+        block_args.push_back(block_var(step - 1, s, t));
+
+        formula <<
+          assign_var(
+            block_var(step, s, t),
+            smtlib::ite(
+              sync_var(step - 1, s),
+              "false",
+              smtlib::lor(block_args))) <<
+          eol;
+      }
+
+  formula << eol;
+
   declare_sync_vars();
 
-  if (verbose)
-    formula << "; all threads synchronized?" << eol;
-
-  for (const auto & [id, threads] : sync_pcs)
+  for (const auto & [s, threads] : sync_pcs)
     {
       vector<string> sync_args;
-      vector<string> thread_args;
 
-      for (const auto & [t, stmts] : threads)
-        {
-          vector<string> args;
+      sync_args.reserve(threads.size());
 
-          thread_args.push_back(thread_var(step, t));
-
-          for (const auto & s : stmts)
-            args.push_back(stmt_var(step, t, s));
-
-          sync_args.push_back(args.size() > 1 ? smtlib::lor(args) : args[0]);
-        }
-
-      sync_args.push_back(smtlib::lor(thread_args));
+      for (const auto & t : threads)
+        sync_args.push_back(block_var(step, s, t.first));
 
       formula <<
         assign_var(
-          sync_var(step, id),
+          sync_var(step, s),
           smtlib::land(sync_args)) <<
         eol;
     }
@@ -534,28 +573,17 @@ void SMTLibEncoder::add_synchronization_constraints ()
   if (verbose)
     formula << "; prevent scheduling of waiting threads" << eol;
 
-  for (const auto & id : sync_pcs)
-    for (const auto & [this_thread, this_stmts] : id.second)
+  for (const auto & [s, threads] : sync_pcs)
+    for (const auto & [t, pcs] : threads)
       {
-        vector<string> args;
-
-        /* build disjunction of this threads SYNC statements */
-        for (const auto & this_pc : this_stmts)
-          args.push_back(stmt_var(step, this_thread, this_pc));
-
-        string this_sync = args.size() > 1 ? smtlib::lor(args) : args[0];
-
-        args.clear();
-
-        /* add thread blocking assertion */
         formula <<
           smtlib::assertion(
             smtlib::implication(
-              smtlib::land({this_sync, smtlib::lnot(sync_var(step, id.first))}),
-              smtlib::lnot(thread_var(step, this_thread))));
+              smtlib::land({block_var(step, s, t), smtlib::lnot(sync_var(step, s))}),
+              smtlib::lnot(thread_var(step, t))));
 
         if (verbose)
-          formula << " ; barrier " << id.first << ": thread " << this_thread;
+          formula << " ; barrier " << s << ": thread " << t;
 
         formula << eol;
       }
@@ -573,17 +601,9 @@ void SMTLibEncoder::add_statement_execution ()
 
   iterate_threads([&] (Program & program) {
     for (pc = 0; pc < program.size(); pc++)
-      {
-        string activator = thread_var();
-
-        /* SYNC: depend on corresponding sync instead of thread variable */
-        if (SyncPtr s = dynamic_pointer_cast<Sync>(program[pc]))
-          activator = sync_var(step, s->arg);
-
-        formula <<
-          assign_var(exec_var(), smtlib::land({stmt_var(), activator})) <<
-          eol;
-      }
+      formula
+        << assign_var(exec_var(), smtlib::land({stmt_var(), thread_var()}))
+        << eol;
 
     formula << eol;
   });

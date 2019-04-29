@@ -37,6 +37,7 @@ GTEST_FILTER = --gtest_filter=
 
 # GTEST_FILTER += "*"
 # GTEST_FILTER += *Encoder*
+GTEST_FILTER += SMTLibEncoderTest.*
 # GTEST_FILTER += SMTLibEncoderFunctional*
 # GTEST_FILTER += SMTLibEncoderRelational*
 # GTEST_FILTER += Btor2Encoder*
@@ -47,8 +48,8 @@ GTEST_FILTER = --gtest_filter=
 # GTEST_FILTER += ProgramTest.*
 # GTEST_FILTER += ScheduleTest.*
 # GTEST_FILTER += InstructionSetTest.*
-GTEST_FILTER += BoolectorTest.*
-GTEST_FILTER += BtorMCTest.*
+# GTEST_FILTER += BoolectorTest.*
+# GTEST_FILTER += BtorMCTest.*
 # GTEST_FILTER += Z3Test.*
 # GTEST_FILTER += CVC4Test.*
 
