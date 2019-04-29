@@ -3,6 +3,7 @@
 #include "btormc.hh"
 #include "encoder.hh"
 #include "parser.hh"
+#include "simulator.hh"
 
 using namespace std;
 
@@ -58,6 +59,7 @@ TEST_F(BtorMCTest, solve_sync)
 
   schedule = btormc.solve(*encoder, constraints);
 
+  /*
   cout << "scheduled threads" << eol;
   for (const auto & [step, thread] : schedule->thread_updates)
     {
@@ -92,32 +94,67 @@ TEST_F(BtorMCTest, solve_sync)
       {
         cout << "\t{" << idx << ", " << val << "}" << eol;
       }
-
-  cout << schedule->print();
+  */
 
   ASSERT_EQ(
-    "",
-    // "data/increment.sync.thread.0.asm\n"
-    // "data/increment.sync.thread.n.asm\n"
-    // ".\n"
-    // "# tid	pc	cmd	arg	accu	mem	heap\n"
-    // "0	0	STORE	0	0	0	{(0,0)}\n"
-    // "1	0	SYNC	0	0	0	{}\n"
-    // "0	2	LOAD	0	0	0	{}\n"
-    // "0	3	ADDI	1	1	0	{}\n"
-    // "0	4	STORE	0	1	0	{(0,1)}\n"
-    // "1	1	SYNC	1	0	0	{}\n"
-    // "1	2	LOAD	0	1	0	{}\n"
-    // "1	3	ADDI	1	2	0	{}\n"
-    // "1	4	STORE	0	2	0	{(0,2)}\n"
-    // "0	6	JNZ	1	1	0	{}\n"
-    // "1	5	JNZ	0	2	0	{}\n"
-    // "1	0	SYNC	0	2	0	{}\n"
-    // "0	2	LOAD	0	2	0	{}\n"
-    // "0	3	ADDI	1	3	0	{}\n"
-    // "0	4	STORE	0	3	0	{(0,3)}\n"
-    // "1	1	SYNC	1	2	0	{}\n",
+    "data/increment.sync.thread.0.asm\n"
+    "data/increment.sync.thread.n.asm\n"
+    ".\n"
+    "# tid	pc	cmd	arg	accu	mem	heap\n"
+    "0	0	STORE	0	0	0	{(0,0)}\n"
+    "1	0	SYNC	0	0	0	{}\n"
+    "0	2	LOAD	0	0	0	{}\n"
+    "0	3	ADDI	1	1	0	{}\n"
+    "0	4	STORE	0	1	0	{(0,1)}\n"
+    "1	1	SYNC	1	0	0	{}\n"
+    "1	2	LOAD	0	1	0	{}\n"
+    "1	3	ADDI	1	2	0	{}\n"
+    "0	6	JNZ	1	1	0	{}\n"
+    "1	4	STORE	0	2	0	{(0,2)}\n"
+    "1	5	JNZ	0	2	0	{}\n"
+    "1	0	SYNC	0	2	0	{}\n"
+    "0	2	LOAD	0	2	0	{}\n"
+    "0	3	ADDI	1	3	0	{}\n"
+    "0	4	STORE	0	3	0	{(0,3)}\n"
+    "1	1	SYNC	1	2	0	{}\n"
+    "1	2	LOAD	0	2	0	{}\n",
     schedule->print());
+
+  ofstream file {"/tmp/test.schedule"};
+  file << schedule->print();
+  file.close();
+
+  SchedulePtr parsed {create_from_file<Schedule>("/tmp/test.schedule")};
+
+  vector<vector<pair<unsigned long, word>>> pc_diff;
+  for (size_t t = 0; t < schedule->pc_updates.size(); t++)
+    {
+      vector<pair<unsigned long, word>> diff;
+
+      std::set_symmetric_difference(
+        schedule->pc_updates[t].begin(), schedule->pc_updates[t].end(),
+        parsed->pc_updates[t].begin(), parsed->pc_updates[t].end(),
+        std::back_inserter(diff));
+
+      pc_diff.push_back(diff);
+    }
+
+  cout << "pc diff" << eol;
+  unsigned long thread = 0;
+  for (const auto & updates : pc_diff)
+    {
+      for (const auto & [step, val] : updates)
+        cout << "\t" << thread << ": {" << step << ", " << val << "}" << eol;
+      thread++;
+    }
+
+  ASSERT_EQ(*parsed, *schedule);
+
+  Simulator simulator {programs};
+
+  SchedulePtr simulated {simulator.replay(*parsed)};
+
+  ASSERT_EQ(*simulated, *schedule);
 }
 
 TEST_F(BtorMCTest, DISABLED_solve_cas)

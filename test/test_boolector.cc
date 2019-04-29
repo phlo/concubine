@@ -3,6 +3,7 @@
 #include "boolector.hh"
 #include "encoder.hh"
 #include "parser.hh"
+#include "simulator.hh"
 
 using namespace std;
 
@@ -48,6 +49,7 @@ TEST_F(BoolectorTest, solve_sync)
 
   schedule = boolector.solve(*encoder, constraints);
 
+  /*
   cout << "scheduled threads" << eol;
   for (const auto & [step, thread] : schedule->thread_updates)
     {
@@ -82,6 +84,7 @@ TEST_F(BoolectorTest, solve_sync)
       {
         cout << "\t{" << idx << ", " << val << "}" << eol;
       }
+  */
 
   ASSERT_EQ(
     "data/increment.sync.thread.0.asm\n"
@@ -105,6 +108,42 @@ TEST_F(BoolectorTest, solve_sync)
     "0	4	STORE	0	3	0	{(0,3)}\n"
     "1	1	SYNC	1	2	0	{}\n",
     schedule->print());
+
+  ofstream file {"/tmp/test.schedule"};
+  file << schedule->print();
+  file.close();
+
+  SchedulePtr parsed {create_from_file<Schedule>("/tmp/test.schedule")};
+
+  vector<vector<pair<unsigned long, word>>> pc_diff;
+  for (size_t t = 0; t < schedule->pc_updates.size(); t++)
+    {
+      vector<pair<unsigned long, word>> diff;
+
+      std::set_symmetric_difference(
+        schedule->pc_updates[t].begin(), schedule->pc_updates[t].end(),
+        parsed->pc_updates[t].begin(), parsed->pc_updates[t].end(),
+        std::back_inserter(diff));
+
+      pc_diff.push_back(diff);
+    }
+
+  cout << "pc diff" << eol;
+  unsigned long thread = 0;
+  for (const auto & updates : pc_diff)
+    {
+      for (const auto & [step, val] : updates)
+        cout << "\t" << thread << ": {" << step << ", " << val << "}" << eol;
+      thread++;
+    }
+
+  ASSERT_EQ(*parsed, *schedule);
+
+  Simulator simulator {programs};
+
+  SchedulePtr simulated {simulator.replay(*parsed)};
+
+  ASSERT_EQ(*simulated, *schedule);
 }
 
 TEST_F(BoolectorTest, DISABLED_solve_cas)

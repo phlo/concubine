@@ -75,8 +75,11 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
 
   bool done = active.empty();
 
+  unsigned long step = 0; // TODO: remove (debug)
   while (!done && (!bound || schedule->bound < bound))
     {
+      step++;
+
       ThreadPtr thread = scheduler();
 
       assert(thread->state == Thread::State::RUNNING);
