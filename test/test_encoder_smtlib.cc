@@ -6,7 +6,6 @@ using namespace std;
 
 struct SMTLibEncoderTest : public ::testing::Test
 {
-  const char *      expected;
   ProgramList       programs;
   SMTLibEncoderPtr  encoder = create_encoder(0);
 
@@ -244,11 +243,10 @@ TEST_F(SMTLibEncoderTest, declare_heap_var)
 {
   encoder->declare_heap_var();
 
-  expected =
+  ASSERT_EQ(
     "; heap states - heap_<step>\n"
-    "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n\n",
+    encoder->formula.str());
 }
 
 // void declare_accu_vars (void);
@@ -259,26 +257,24 @@ TEST_F(SMTLibEncoderTest, declare_accu_vars)
   /* step 0 */
   encoder->declare_accu_vars();
 
-  expected =
+  ASSERT_EQ(
     "; accu states - accu_<step>_<thread>\n"
     "(declare-fun accu_0_0 () (_ BitVec 16))\n"
     "(declare-fun accu_0_1 () (_ BitVec 16))\n"
-    "(declare-fun accu_0_2 () (_ BitVec 16))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun accu_0_2 () (_ BitVec 16))\n\n",
+    encoder->formula.str());
 
   /* step 1 */
   reset_encoder(0, 1);
 
   encoder->declare_accu_vars();
 
-  expected =
+  ASSERT_EQ(
     "; accu states - accu_<step>_<thread>\n"
     "(declare-fun accu_1_0 () (_ BitVec 16))\n"
     "(declare-fun accu_1_1 () (_ BitVec 16))\n"
-    "(declare-fun accu_1_2 () (_ BitVec 16))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun accu_1_2 () (_ BitVec 16))\n\n",
+    encoder->formula.str());
 
   /* verbosity */
   reset_encoder(0, 0);
@@ -287,12 +283,11 @@ TEST_F(SMTLibEncoderTest, declare_accu_vars)
   encoder->declare_accu_vars();
   verbose = true;
 
-  expected =
+  ASSERT_EQ(
     "(declare-fun accu_0_0 () (_ BitVec 16))\n"
     "(declare-fun accu_0_1 () (_ BitVec 16))\n"
-    "(declare-fun accu_0_2 () (_ BitVec 16))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun accu_0_2 () (_ BitVec 16))\n\n",
+    encoder->formula.str());
 }
 
 // void declare_mem_vars (void);
@@ -303,26 +298,24 @@ TEST_F(SMTLibEncoderTest, declare_mem_vars)
   /* step 0 */
   encoder->declare_mem_vars();
 
-  expected =
+  ASSERT_EQ(
     "; mem states - mem_<step>_<thread>\n"
     "(declare-fun mem_0_0 () (_ BitVec 16))\n"
     "(declare-fun mem_0_1 () (_ BitVec 16))\n"
-    "(declare-fun mem_0_2 () (_ BitVec 16))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun mem_0_2 () (_ BitVec 16))\n\n",
+    encoder->formula.str());
 
   /* step 1 */
   reset_encoder(0, 1);
 
   encoder->declare_mem_vars();
 
-  expected =
+  ASSERT_EQ(
     "; mem states - mem_<step>_<thread>\n"
     "(declare-fun mem_1_0 () (_ BitVec 16))\n"
     "(declare-fun mem_1_1 () (_ BitVec 16))\n"
-    "(declare-fun mem_1_2 () (_ BitVec 16))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun mem_1_2 () (_ BitVec 16))\n\n",
+    encoder->formula.str());
 
   /* verbosity */
   reset_encoder(0, 0);
@@ -331,12 +324,11 @@ TEST_F(SMTLibEncoderTest, declare_mem_vars)
   encoder->declare_mem_vars();
   verbose = true;
 
-  expected =
+  ASSERT_EQ(
     "(declare-fun mem_0_0 () (_ BitVec 16))\n"
     "(declare-fun mem_0_1 () (_ BitVec 16))\n"
-    "(declare-fun mem_0_2 () (_ BitVec 16))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun mem_0_2 () (_ BitVec 16))\n\n",
+    encoder->formula.str());
 }
 
 // void declare_stmt_vars (void);
@@ -349,7 +341,7 @@ TEST_F(SMTLibEncoderTest, declare_stmt_vars)
 
   encoder->declare_stmt_vars();
 
-  expected =
+  ASSERT_EQ(
     "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
     "(declare-fun stmt_1_0_0 () Bool)\n"
     "(declare-fun stmt_1_0_1 () Bool)\n"
@@ -361,16 +353,15 @@ TEST_F(SMTLibEncoderTest, declare_stmt_vars)
     "\n"
     "(declare-fun stmt_1_2_0 () Bool)\n"
     "(declare-fun stmt_1_2_1 () Bool)\n"
-    "(declare-fun stmt_1_2_2 () Bool)\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun stmt_1_2_2 () Bool)\n\n",
+    encoder->formula.str());
 
   /* step 2 */
   reset_encoder(0, 2);
 
   encoder->declare_stmt_vars();
 
-  expected =
+  ASSERT_EQ(
     "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
     "(declare-fun stmt_2_0_0 () Bool)\n"
     "(declare-fun stmt_2_0_1 () Bool)\n"
@@ -382,9 +373,8 @@ TEST_F(SMTLibEncoderTest, declare_stmt_vars)
     "\n"
     "(declare-fun stmt_2_2_0 () Bool)\n"
     "(declare-fun stmt_2_2_1 () Bool)\n"
-    "(declare-fun stmt_2_2_2 () Bool)\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun stmt_2_2_2 () Bool)\n\n",
+    encoder->formula.str());
 
   /* verbosity */
   reset_encoder(0, 1);
@@ -393,7 +383,7 @@ TEST_F(SMTLibEncoderTest, declare_stmt_vars)
   encoder->declare_stmt_vars();
   verbose = true;
 
-  expected =
+  ASSERT_EQ(
     "(declare-fun stmt_1_0_0 () Bool)\n"
     "(declare-fun stmt_1_0_1 () Bool)\n"
     "(declare-fun stmt_1_0_2 () Bool)\n"
@@ -404,9 +394,8 @@ TEST_F(SMTLibEncoderTest, declare_stmt_vars)
     "\n"
     "(declare-fun stmt_1_2_0 () Bool)\n"
     "(declare-fun stmt_1_2_1 () Bool)\n"
-    "(declare-fun stmt_1_2_2 () Bool)\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun stmt_1_2_2 () Bool)\n\n",
+    encoder->formula.str());
 }
 
 // void declare_thread_vars (void);
@@ -419,26 +408,24 @@ TEST_F(SMTLibEncoderTest, declare_thread_vars)
 
   encoder->declare_thread_vars();
 
-  expected =
+  ASSERT_EQ(
     "; thread activation variables - thread_<step>_<thread>\n"
     "(declare-fun thread_1_0 () Bool)\n"
     "(declare-fun thread_1_1 () Bool)\n"
-    "(declare-fun thread_1_2 () Bool)\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun thread_1_2 () Bool)\n",
+    encoder->formula.str());
 
   /* step 2 */
   reset_encoder(0, 2);
 
   encoder->declare_thread_vars();
 
-  expected =
+  ASSERT_EQ(
     "; thread activation variables - thread_<step>_<thread>\n"
     "(declare-fun thread_2_0 () Bool)\n"
     "(declare-fun thread_2_1 () Bool)\n"
-    "(declare-fun thread_2_2 () Bool)\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun thread_2_2 () Bool)\n",
+    encoder->formula.str());
 
   /* verbosity */
   reset_encoder(0, 1);
@@ -447,12 +434,11 @@ TEST_F(SMTLibEncoderTest, declare_thread_vars)
   encoder->declare_thread_vars();
   verbose = true;
 
-  expected =
+  ASSERT_EQ(
     "(declare-fun thread_1_0 () Bool)\n"
     "(declare-fun thread_1_1 () Bool)\n"
-    "(declare-fun thread_1_2 () Bool)\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun thread_1_2 () Bool)\n",
+    encoder->formula.str());
 }
 
 // void declare_exec_vars (void);
@@ -465,7 +451,7 @@ TEST_F(SMTLibEncoderTest, declare_exec_vars)
 
   encoder->declare_exec_vars();
 
-  expected =
+  ASSERT_EQ(
     "; statement execution variables - exec_<step>_<thread>_<pc>\n"
     "(declare-fun exec_1_0_0 () Bool)\n"
     "(declare-fun exec_1_0_1 () Bool)\n"
@@ -477,16 +463,15 @@ TEST_F(SMTLibEncoderTest, declare_exec_vars)
     "\n"
     "(declare-fun exec_1_2_0 () Bool)\n"
     "(declare-fun exec_1_2_1 () Bool)\n"
-    "(declare-fun exec_1_2_2 () Bool)\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun exec_1_2_2 () Bool)\n\n",
+    encoder->formula.str());
 
   /* step 2 */
   reset_encoder(0, 2);
 
   encoder->declare_exec_vars();
 
-  expected =
+  ASSERT_EQ(
     "; statement execution variables - exec_<step>_<thread>_<pc>\n"
     "(declare-fun exec_2_0_0 () Bool)\n"
     "(declare-fun exec_2_0_1 () Bool)\n"
@@ -498,9 +483,8 @@ TEST_F(SMTLibEncoderTest, declare_exec_vars)
     "\n"
     "(declare-fun exec_2_2_0 () Bool)\n"
     "(declare-fun exec_2_2_1 () Bool)\n"
-    "(declare-fun exec_2_2_2 () Bool)\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun exec_2_2_2 () Bool)\n\n",
+    encoder->formula.str());
 
   /* verbosity */
   reset_encoder(0, 1);
@@ -509,7 +493,7 @@ TEST_F(SMTLibEncoderTest, declare_exec_vars)
   encoder->declare_exec_vars();
   verbose = true;
 
-  expected =
+  ASSERT_EQ(
     "(declare-fun exec_1_0_0 () Bool)\n"
     "(declare-fun exec_1_0_1 () Bool)\n"
     "(declare-fun exec_1_0_2 () Bool)\n"
@@ -520,9 +504,8 @@ TEST_F(SMTLibEncoderTest, declare_exec_vars)
     "\n"
     "(declare-fun exec_1_2_0 () Bool)\n"
     "(declare-fun exec_1_2_1 () Bool)\n"
-    "(declare-fun exec_1_2_2 () Bool)\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun exec_1_2_2 () Bool)\n\n",
+    encoder->formula.str());
 }
 
 // void declare_cas_vars (void);
@@ -542,11 +525,10 @@ TEST_F(SMTLibEncoderTest, declare_cas_vars)
 
   encoder->declare_cas_vars();
 
-  expected =
+  ASSERT_EQ(
     "; CAS condition - cas_<step>_<thread>\n"
-    "(declare-fun cas_1_0 () Bool)\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun cas_1_0 () Bool)\n\n",
+    encoder->formula.str());
 
   /* 1 CAS per thread */
   for (const auto & p : programs)
@@ -556,26 +538,24 @@ TEST_F(SMTLibEncoderTest, declare_cas_vars)
 
   encoder->declare_cas_vars();
 
-  expected =
+  ASSERT_EQ(
     "; CAS condition - cas_<step>_<thread>\n"
     "(declare-fun cas_1_0 () Bool)\n"
     "(declare-fun cas_1_1 () Bool)\n"
-    "(declare-fun cas_1_2 () Bool)\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun cas_1_2 () Bool)\n\n",
+    encoder->formula.str());
 
   /* step 2 */
   reset_encoder(0, 2);
 
   encoder->declare_cas_vars();
 
-  expected =
+  ASSERT_EQ(
     "; CAS condition - cas_<step>_<thread>\n"
     "(declare-fun cas_2_0 () Bool)\n"
     "(declare-fun cas_2_1 () Bool)\n"
-    "(declare-fun cas_2_2 () Bool)\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun cas_2_2 () Bool)\n\n",
+    encoder->formula.str());
 
   /* verbosity */
   reset_encoder(0, 1);
@@ -584,12 +564,11 @@ TEST_F(SMTLibEncoderTest, declare_cas_vars)
   encoder->declare_cas_vars();
   verbose = true;
 
-  expected =
+  ASSERT_EQ(
     "(declare-fun cas_1_0 () Bool)\n"
     "(declare-fun cas_1_1 () Bool)\n"
-    "(declare-fun cas_1_2 () Bool)\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun cas_1_2 () Bool)\n\n",
+    encoder->formula.str());
 }
 
 // void declare_block_vars (void);
@@ -662,13 +641,12 @@ TEST_F(SMTLibEncoderTest, declare_sync_vars)
 
   encoder->declare_sync_vars();
 
-  expected =
+  ASSERT_EQ(
     "; sync variables - sync_<step>_<id>\n"
     "(declare-fun sync_1_1 () Bool)\n"
     "(declare-fun sync_1_2 () Bool)\n"
-    "(declare-fun sync_1_3 () Bool)\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun sync_1_3 () Bool)\n\n",
+    encoder->formula.str());
 
   /* same sync ids */
   for (const auto & p : programs)
@@ -678,28 +656,26 @@ TEST_F(SMTLibEncoderTest, declare_sync_vars)
 
   encoder->declare_sync_vars();
 
-  expected =
+  ASSERT_EQ(
     "; sync variables - sync_<step>_<id>\n"
     "(declare-fun sync_1_1 () Bool)\n"
     "(declare-fun sync_1_2 () Bool)\n"
     "(declare-fun sync_1_3 () Bool)\n"
-    "(declare-fun sync_1_4 () Bool)\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun sync_1_4 () Bool)\n\n",
+    encoder->formula.str());
 
   /* step 2 */
   reset_encoder(0, 2);
 
   encoder->declare_sync_vars();
 
-  expected =
+  ASSERT_EQ(
     "; sync variables - sync_<step>_<id>\n"
     "(declare-fun sync_2_1 () Bool)\n"
     "(declare-fun sync_2_2 () Bool)\n"
     "(declare-fun sync_2_3 () Bool)\n"
-    "(declare-fun sync_2_4 () Bool)\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun sync_2_4 () Bool)\n\n",
+    encoder->formula.str());
 
   /* verbosity */
   reset_encoder(0, 1);
@@ -708,13 +684,12 @@ TEST_F(SMTLibEncoderTest, declare_sync_vars)
   encoder->declare_sync_vars();
   verbose = true;
 
-  expected =
+  ASSERT_EQ(
     "(declare-fun sync_1_1 () Bool)\n"
     "(declare-fun sync_1_2 () Bool)\n"
     "(declare-fun sync_1_3 () Bool)\n"
-    "(declare-fun sync_1_4 () Bool)\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun sync_1_4 () Bool)\n\n",
+    encoder->formula.str());
 }
 
 // void declare_exit_var (void);
@@ -725,22 +700,20 @@ TEST_F(SMTLibEncoderTest, declare_exit_vars)
 
   encoder->declare_exit_var();
 
-  expected =
+  ASSERT_EQ(
     "; exit flag - exit_<step>\n"
-    "(declare-fun exit_1 () Bool)\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun exit_1 () Bool)\n\n",
+    encoder->formula.str());
 
   /* step 2 */
   reset_encoder(0, 2);
 
   encoder->declare_exit_var();
 
-  expected =
+  ASSERT_EQ(
     "; exit flag - exit_<step>\n"
-    "(declare-fun exit_2 () Bool)\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun exit_2 () Bool)\n\n",
+    encoder->formula.str());
 
   /* verbosity */
   reset_encoder(0, 1);
@@ -749,10 +722,7 @@ TEST_F(SMTLibEncoderTest, declare_exit_vars)
   encoder->declare_exit_var();
   verbose = true;
 
-  expected =
-    "(declare-fun exit_1 () Bool)\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+  ASSERT_EQ("(declare-fun exit_1 () Bool)\n\n", encoder->formula.str());
 }
 
 // void declare_exit_code (void);
@@ -760,17 +730,15 @@ TEST_F(SMTLibEncoderTest, declare_exit_code)
 {
   encoder->declare_exit_code();
 
-  expected = "(declare-fun exit-code () (_ BitVec 16))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+  ASSERT_EQ(
+    "(declare-fun exit-code () (_ BitVec 16))\n\n",
+    encoder->formula.str());
 }
 
 // string assign_var (string, string);
 TEST_F(SMTLibEncoderTest, assign_var)
 {
-  ASSERT_EQ(
-    "(assert (= foo bar))",
-    encoder->assign_var("foo", "bar"));
+  ASSERT_EQ("(assert (= foo bar))", encoder->assign_var("foo", "bar"));
 }
 
 // void add_initial_state (void);
@@ -780,7 +748,7 @@ TEST_F(SMTLibEncoderTest, add_initial_state)
 
   encoder->add_initial_state();
 
-  expected =
+  ASSERT_EQ(
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "; initial state\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
@@ -804,9 +772,8 @@ TEST_F(SMTLibEncoderTest, add_initial_state)
     "(assert (= mem_0_2 #x0000))\n"
     "\n"
     "; heap states - heap_<step>\n"
-    "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n\n",
+    encoder->formula.str());
 
   /* verbosity */
   reset_encoder(0, 0);
@@ -815,7 +782,7 @@ TEST_F(SMTLibEncoderTest, add_initial_state)
   encoder->add_initial_state();
   verbose = true;
 
-  expected =
+  ASSERT_EQ(
     "(declare-fun accu_0_0 () (_ BitVec 16))\n"
     "(declare-fun accu_0_1 () (_ BitVec 16))\n"
     "(declare-fun accu_0_2 () (_ BitVec 16))\n"
@@ -832,9 +799,8 @@ TEST_F(SMTLibEncoderTest, add_initial_state)
     "(assert (= mem_0_1 #x0000))\n"
     "(assert (= mem_0_2 #x0000))\n"
     "\n"
-    "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n\n",
+    encoder->formula.str());
 }
 
 // void add_initial_statement_activation (void);
@@ -846,7 +812,7 @@ TEST_F(SMTLibEncoderTest, add_initial_statement_activation)
 
   encoder->add_initial_statement_activation();
 
-  expected =
+  ASSERT_EQ(
     "; initial statement activation\n"
     "(assert stmt_1_0_0)\n"
     "(assert (not stmt_1_0_1))\n"
@@ -858,9 +824,8 @@ TEST_F(SMTLibEncoderTest, add_initial_statement_activation)
     "\n"
     "(assert stmt_1_2_0)\n"
     "(assert (not stmt_1_2_1))\n"
-    "(assert (not stmt_1_2_2))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(assert (not stmt_1_2_2))\n\n",
+    encoder->formula.str());
 
   /* verbosity */
   reset_encoder(0, 1);
@@ -869,7 +834,7 @@ TEST_F(SMTLibEncoderTest, add_initial_statement_activation)
   encoder->add_initial_statement_activation();
   verbose = true;
 
-  expected =
+  ASSERT_EQ(
     "(assert stmt_1_0_0)\n"
     "(assert (not stmt_1_0_1))\n"
     "(assert (not stmt_1_0_2))\n"
@@ -880,9 +845,8 @@ TEST_F(SMTLibEncoderTest, add_initial_statement_activation)
     "\n"
     "(assert stmt_1_2_0)\n"
     "(assert (not stmt_1_2_1))\n"
-    "(assert (not stmt_1_2_2))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(assert (not stmt_1_2_2))\n\n",
+    encoder->formula.str());
 }
 
 // void add_exit_flag (void);
@@ -916,30 +880,28 @@ TEST_F(SMTLibEncoderTest, add_exit_flag)
 
   encoder->add_exit_flag();
 
-  expected =
+  ASSERT_EQ(
     "; exit flag ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; exit flag - exit_<step>\n"
     "(declare-fun exit_2 () Bool)\n"
     "\n"
-    "(assert (= exit_2 (or exec_1_0_0 exec_1_1_0 exec_1_2_0)))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(assert (= exit_2 (or exec_1_0_0 exec_1_1_0 exec_1_2_0)))\n\n",
+    encoder->formula.str());
 
   /* step 3 - reached bound */
   reset_encoder(3, 3);
 
   encoder->add_exit_flag();
 
-  expected =
+  ASSERT_EQ(
     "; exit flag ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; exit flag - exit_<step>\n"
     "(declare-fun exit_3 () Bool)\n"
     "\n"
-    "(assert (= exit_3 (or exit_2 exec_2_0_0 exec_2_1_0 exec_2_2_0)))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(assert (= exit_3 (or exit_2 exec_2_0_0 exec_2_1_0 exec_2_2_0)))\n\n",
+    encoder->formula.str());
 
   /* verbosity */
   reset_encoder(3, 3);
@@ -948,12 +910,11 @@ TEST_F(SMTLibEncoderTest, add_exit_flag)
   encoder->add_exit_flag();
   verbose = true;
 
-  expected =
+  ASSERT_EQ(
     "(declare-fun exit_3 () Bool)\n"
     "\n"
-    "(assert (= exit_3 (or exit_2 exec_2_0_0 exec_2_1_0 exec_2_2_0)))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(assert (= exit_3 (or exit_2 exec_2_0_0 exec_2_1_0 exec_2_2_0)))\n\n",
+    encoder->formula.str());
 }
 
 // void add_thread_scheduling (void);
@@ -970,7 +931,7 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_naive)
 
   encoder->add_thread_scheduling();
 
-  expected =
+  ASSERT_EQ(
     "; thread scheduling ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; thread activation variables - thread_<step>_<thread>\n"
@@ -981,9 +942,8 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_naive)
     "(assert (or thread_1_0 thread_1_1 thread_1_2))\n"
     "(assert (or (not thread_1_0) (not thread_1_1)))\n"
     "(assert (or (not thread_1_0) (not thread_1_2)))\n"
-    "(assert (or (not thread_1_1) (not thread_1_2)))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(assert (or (not thread_1_1) (not thread_1_2)))\n\n",
+    encoder->formula.str());
 
   /* EXIT call - step 1 */
   for (const auto & p : programs)
@@ -993,7 +953,7 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_naive)
 
   encoder->add_thread_scheduling();
 
-  expected =
+  ASSERT_EQ(
     "; thread scheduling ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; thread activation variables - thread_<step>_<thread>\n"
@@ -1004,16 +964,15 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_naive)
     "(assert (or thread_1_0 thread_1_1 thread_1_2))\n"
     "(assert (or (not thread_1_0) (not thread_1_1)))\n"
     "(assert (or (not thread_1_0) (not thread_1_2)))\n"
-    "(assert (or (not thread_1_1) (not thread_1_2)))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(assert (or (not thread_1_1) (not thread_1_2)))\n\n",
+    encoder->formula.str());
 
   /* EXIT call - step 2 */
   reset_encoder(2, 2);
 
   encoder->add_thread_scheduling();
 
-  expected =
+  ASSERT_EQ(
     "; thread scheduling ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; thread activation variables - thread_<step>_<thread>\n"
@@ -1027,9 +986,8 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_naive)
     "(assert (or (not thread_2_0) (not exit_2)))\n"
     "(assert (or (not thread_2_1) (not thread_2_2)))\n"
     "(assert (or (not thread_2_1) (not exit_2)))\n"
-    "(assert (or (not thread_2_2) (not exit_2)))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(assert (or (not thread_2_2) (not exit_2)))\n\n",
+    encoder->formula.str());
 
   /* verbosity */
   reset_encoder(1, 1);
@@ -1038,7 +996,7 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_naive)
   encoder->add_thread_scheduling();
   verbose = true;
 
-  expected =
+  ASSERT_EQ(
     "(declare-fun thread_1_0 () Bool)\n"
     "(declare-fun thread_1_1 () Bool)\n"
     "(declare-fun thread_1_2 () Bool)\n"
@@ -1046,9 +1004,8 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_naive)
     "(assert (or thread_1_0 thread_1_1 thread_1_2))\n"
     "(assert (or (not thread_1_0) (not thread_1_1)))\n"
     "(assert (or (not thread_1_0) (not thread_1_2)))\n"
-    "(assert (or (not thread_1_1) (not thread_1_2)))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(assert (or (not thread_1_1) (not thread_1_2)))\n\n",
+    encoder->formula.str());
 }
 
 TEST_F(SMTLibEncoderTest, add_thread_scheduling_sinz)
@@ -1064,7 +1021,7 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_sinz)
 
   encoder->add_thread_scheduling();
 
-  expected =
+  ASSERT_EQ(
     "; thread scheduling ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; thread activation variables - thread_<step>_<thread>\n"
@@ -1095,9 +1052,8 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_sinz)
     "(assert (or (not thread_1_3) (not thread_1_2_aux)))\n"
     "(assert (or (not thread_1_4) thread_1_4_aux))\n"
     "(assert (or (not thread_1_3_aux) thread_1_4_aux))\n"
-    "(assert (or (not thread_1_4) (not thread_1_3_aux)))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(assert (or (not thread_1_4) (not thread_1_3_aux)))\n\n",
+    encoder->formula.str());
 
   /* EXIT call - step 1 */
   for (const auto & p : programs)
@@ -1107,7 +1063,7 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_sinz)
 
   encoder->add_thread_scheduling();
 
-  expected =
+  ASSERT_EQ(
     "; thread scheduling ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; thread activation variables - thread_<step>_<thread>\n"
@@ -1138,16 +1094,15 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_sinz)
     "(assert (or (not thread_1_3) (not thread_1_2_aux)))\n"
     "(assert (or (not thread_1_4) thread_1_4_aux))\n"
     "(assert (or (not thread_1_3_aux) thread_1_4_aux))\n"
-    "(assert (or (not thread_1_4) (not thread_1_3_aux)))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(assert (or (not thread_1_4) (not thread_1_3_aux)))\n\n",
+    encoder->formula.str());
 
   /* EXIT call - step 2 */
   reset_encoder(2, 2);
 
   encoder->add_thread_scheduling();
 
-  expected =
+  ASSERT_EQ(
     "; thread scheduling ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; thread activation variables - thread_<step>_<thread>\n"
@@ -1182,9 +1137,8 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_sinz)
     "(assert (or (not thread_2_4) (not thread_2_3_aux)))\n"
     "(assert (or (not thread_2_5) thread_2_5_aux))\n"
     "(assert (or (not thread_2_4_aux) thread_2_5_aux))\n"
-    "(assert (or (not thread_2_5) (not thread_2_4_aux)))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(assert (or (not thread_2_5) (not thread_2_4_aux)))\n\n",
+    encoder->formula.str());
 }
 
 // void add_synchronization_constraints (void);
@@ -1201,21 +1155,28 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
 
   encoder->add_synchronization_constraints();
 
-  expected =
+  ASSERT_EQ(
     "; synchronization constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "; sync variables - sync_<step>_<id>\n"
-    "(declare-fun sync_1_1 () Bool)\n"
+    "; blocking variables - block_<step>_<id>_<thread>\n"
+    "(declare-fun block_2_1_0 () Bool)\n"
+    "(declare-fun block_2_1_1 () Bool)\n"
+    "(declare-fun block_2_1_2 () Bool)\n"
     "\n"
-    "; all threads synchronized?\n"
-    "(assert (= sync_1_1 (and stmt_1_0_0 stmt_1_1_0 stmt_1_2_0 (or thread_1_0 thread_1_1 thread_1_2))))\n"
+    "(assert (= block_2_1_0 (ite sync_1_1 false (or exec_1_0_0 block_1_1_0))))\n"
+    "(assert (= block_2_1_1 (ite sync_1_1 false (or exec_1_1_0 block_1_1_1))))\n"
+    "(assert (= block_2_1_2 (ite sync_1_1 false (or exec_1_2_0 block_1_1_2))))\n"
+    "\n"
+    "; sync variables - sync_<step>_<id>\n"
+    "(declare-fun sync_2_1 () Bool)\n"
+    "\n"
+    "(assert (= sync_2_1 (and block_2_1_0 block_2_1_1 block_2_1_2)))\n"
     "\n"
     "; prevent scheduling of waiting threads\n"
-    "(assert (=> (and stmt_1_0_0 (not sync_1_1)) (not thread_1_0))) ; barrier 1: thread 0\n"
-    "(assert (=> (and stmt_1_1_0 (not sync_1_1)) (not thread_1_1))) ; barrier 1: thread 1\n"
-    "(assert (=> (and stmt_1_2_0 (not sync_1_1)) (not thread_1_2))) ; barrier 1: thread 2\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(assert (=> (and block_2_1_0 (not sync_2_1)) (not thread_2_0))) ; barrier 1: thread 0\n"
+    "(assert (=> (and block_2_1_1 (not sync_2_1)) (not thread_2_1))) ; barrier 1: thread 1\n"
+    "(assert (=> (and block_2_1_2 (not sync_2_1)) (not thread_2_2))) ; barrier 1: thread 2\n\n",
+    encoder->formula.str());
 
   /* two different barriers */
   for (const auto & p : programs)
@@ -1225,26 +1186,39 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
 
   encoder->add_synchronization_constraints();
 
-  expected =
+  ASSERT_EQ(
     "; synchronization constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "; sync variables - sync_<step>_<id>\n"
-    "(declare-fun sync_1_1 () Bool)\n"
-    "(declare-fun sync_1_2 () Bool)\n"
+    "; blocking variables - block_<step>_<id>_<thread>\n"
+    "(declare-fun block_2_1_0 () Bool)\n"
+    "(declare-fun block_2_1_1 () Bool)\n"
+    "(declare-fun block_2_1_2 () Bool)\n"
+    "(declare-fun block_2_2_0 () Bool)\n"
+    "(declare-fun block_2_2_1 () Bool)\n"
+    "(declare-fun block_2_2_2 () Bool)\n"
     "\n"
-    "; all threads synchronized?\n"
-    "(assert (= sync_1_1 (and stmt_1_0_0 stmt_1_1_0 stmt_1_2_0 (or thread_1_0 thread_1_1 thread_1_2))))\n"
-    "(assert (= sync_1_2 (and stmt_1_0_1 stmt_1_1_1 stmt_1_2_1 (or thread_1_0 thread_1_1 thread_1_2))))\n"
+    "(assert (= block_2_1_0 (ite sync_1_1 false (or exec_1_0_0 block_1_1_0))))\n"
+    "(assert (= block_2_1_1 (ite sync_1_1 false (or exec_1_1_0 block_1_1_1))))\n"
+    "(assert (= block_2_1_2 (ite sync_1_1 false (or exec_1_2_0 block_1_1_2))))\n"
+    "(assert (= block_2_2_0 (ite sync_1_2 false (or exec_1_0_1 block_1_2_0))))\n"
+    "(assert (= block_2_2_1 (ite sync_1_2 false (or exec_1_1_1 block_1_2_1))))\n"
+    "(assert (= block_2_2_2 (ite sync_1_2 false (or exec_1_2_1 block_1_2_2))))\n"
+    "\n"
+    "; sync variables - sync_<step>_<id>\n"
+    "(declare-fun sync_2_1 () Bool)\n"
+    "(declare-fun sync_2_2 () Bool)\n"
+    "\n"
+    "(assert (= sync_2_1 (and block_2_1_0 block_2_1_1 block_2_1_2)))\n"
+    "(assert (= sync_2_2 (and block_2_2_0 block_2_2_1 block_2_2_2)))\n"
     "\n"
     "; prevent scheduling of waiting threads\n"
-    "(assert (=> (and stmt_1_0_0 (not sync_1_1)) (not thread_1_0))) ; barrier 1: thread 0\n"
-    "(assert (=> (and stmt_1_1_0 (not sync_1_1)) (not thread_1_1))) ; barrier 1: thread 1\n"
-    "(assert (=> (and stmt_1_2_0 (not sync_1_1)) (not thread_1_2))) ; barrier 1: thread 2\n"
-    "(assert (=> (and stmt_1_0_1 (not sync_1_2)) (not thread_1_0))) ; barrier 2: thread 0\n"
-    "(assert (=> (and stmt_1_1_1 (not sync_1_2)) (not thread_1_1))) ; barrier 2: thread 1\n"
-    "(assert (=> (and stmt_1_2_1 (not sync_1_2)) (not thread_1_2))) ; barrier 2: thread 2\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(assert (=> (and block_2_1_0 (not sync_2_1)) (not thread_2_0))) ; barrier 1: thread 0\n"
+    "(assert (=> (and block_2_1_1 (not sync_2_1)) (not thread_2_1))) ; barrier 1: thread 1\n"
+    "(assert (=> (and block_2_1_2 (not sync_2_1)) (not thread_2_2))) ; barrier 1: thread 2\n"
+    "(assert (=> (and block_2_2_0 (not sync_2_2)) (not thread_2_0))) ; barrier 2: thread 0\n"
+    "(assert (=> (and block_2_2_1 (not sync_2_2)) (not thread_2_1))) ; barrier 2: thread 1\n"
+    "(assert (=> (and block_2_2_2 (not sync_2_2)) (not thread_2_2))) ; barrier 2: thread 2\n\n",
+    encoder->formula.str());
 
   /* two identical barriers */
   for (const auto & p : programs)
@@ -1254,26 +1228,39 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
 
   encoder->add_synchronization_constraints();
 
-  expected =
+  ASSERT_EQ(
     "; synchronization constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "; sync variables - sync_<step>_<id>\n"
-    "(declare-fun sync_1_1 () Bool)\n"
-    "(declare-fun sync_1_2 () Bool)\n"
+    "; blocking variables - block_<step>_<id>_<thread>\n"
+    "(declare-fun block_2_1_0 () Bool)\n"
+    "(declare-fun block_2_1_1 () Bool)\n"
+    "(declare-fun block_2_1_2 () Bool)\n"
+    "(declare-fun block_2_2_0 () Bool)\n"
+    "(declare-fun block_2_2_1 () Bool)\n"
+    "(declare-fun block_2_2_2 () Bool)\n"
     "\n"
-    "; all threads synchronized?\n"
-    "(assert (= sync_1_1 (and (or stmt_1_0_0 stmt_1_0_2) (or stmt_1_1_0 stmt_1_1_2) (or stmt_1_2_0 stmt_1_2_2) (or thread_1_0 thread_1_1 thread_1_2))))\n"
-    "(assert (= sync_1_2 (and stmt_1_0_1 stmt_1_1_1 stmt_1_2_1 (or thread_1_0 thread_1_1 thread_1_2))))\n"
+    "(assert (= block_2_1_0 (ite sync_1_1 false (or exec_1_0_0 exec_1_0_2 block_1_1_0))))\n"
+    "(assert (= block_2_1_1 (ite sync_1_1 false (or exec_1_1_0 exec_1_1_2 block_1_1_1))))\n"
+    "(assert (= block_2_1_2 (ite sync_1_1 false (or exec_1_2_0 exec_1_2_2 block_1_1_2))))\n"
+    "(assert (= block_2_2_0 (ite sync_1_2 false (or exec_1_0_1 block_1_2_0))))\n"
+    "(assert (= block_2_2_1 (ite sync_1_2 false (or exec_1_1_1 block_1_2_1))))\n"
+    "(assert (= block_2_2_2 (ite sync_1_2 false (or exec_1_2_1 block_1_2_2))))\n"
+    "\n"
+    "; sync variables - sync_<step>_<id>\n"
+    "(declare-fun sync_2_1 () Bool)\n"
+    "(declare-fun sync_2_2 () Bool)\n"
+    "\n"
+    "(assert (= sync_2_1 (and block_2_1_0 block_2_1_1 block_2_1_2)))\n"
+    "(assert (= sync_2_2 (and block_2_2_0 block_2_2_1 block_2_2_2)))\n"
     "\n"
     "; prevent scheduling of waiting threads\n"
-    "(assert (=> (and (or stmt_1_0_0 stmt_1_0_2) (not sync_1_1)) (not thread_1_0))) ; barrier 1: thread 0\n"
-    "(assert (=> (and (or stmt_1_1_0 stmt_1_1_2) (not sync_1_1)) (not thread_1_1))) ; barrier 1: thread 1\n"
-    "(assert (=> (and (or stmt_1_2_0 stmt_1_2_2) (not sync_1_1)) (not thread_1_2))) ; barrier 1: thread 2\n"
-    "(assert (=> (and stmt_1_0_1 (not sync_1_2)) (not thread_1_0))) ; barrier 2: thread 0\n"
-    "(assert (=> (and stmt_1_1_1 (not sync_1_2)) (not thread_1_1))) ; barrier 2: thread 1\n"
-    "(assert (=> (and stmt_1_2_1 (not sync_1_2)) (not thread_1_2))) ; barrier 2: thread 2\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(assert (=> (and block_2_1_0 (not sync_2_1)) (not thread_2_0))) ; barrier 1: thread 0\n"
+    "(assert (=> (and block_2_1_1 (not sync_2_1)) (not thread_2_1))) ; barrier 1: thread 1\n"
+    "(assert (=> (and block_2_1_2 (not sync_2_1)) (not thread_2_2))) ; barrier 1: thread 2\n"
+    "(assert (=> (and block_2_2_0 (not sync_2_2)) (not thread_2_0))) ; barrier 2: thread 0\n"
+    "(assert (=> (and block_2_2_1 (not sync_2_2)) (not thread_2_1))) ; barrier 2: thread 1\n"
+    "(assert (=> (and block_2_2_2 (not sync_2_2)) (not thread_2_2))) ; barrier 2: thread 2\n\n",
+    encoder->formula.str());
 
   /* verbosity */
   for (const auto & p : programs)
@@ -1287,16 +1274,23 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
   encoder->add_synchronization_constraints();
   verbose = true;
 
-  expected =
-    "(declare-fun sync_1_1 () Bool)\n"
+  ASSERT_EQ(
+    "(declare-fun block_2_1_0 () Bool)\n"
+    "(declare-fun block_2_1_1 () Bool)\n"
+    "(declare-fun block_2_1_2 () Bool)\n"
     "\n"
-    "(assert (= sync_1_1 (and stmt_1_0_0 stmt_1_1_0 stmt_1_2_0 (or thread_1_0 thread_1_1 thread_1_2))))\n"
+    "(assert (= block_2_1_0 (ite sync_1_1 false (or exec_1_0_0 block_1_1_0))))\n"
+    "(assert (= block_2_1_1 (ite sync_1_1 false (or exec_1_1_0 block_1_1_1))))\n"
+    "(assert (= block_2_1_2 (ite sync_1_1 false (or exec_1_2_0 block_1_1_2))))\n"
     "\n"
-    "(assert (=> (and stmt_1_0_0 (not sync_1_1)) (not thread_1_0)))\n"
-    "(assert (=> (and stmt_1_1_0 (not sync_1_1)) (not thread_1_1)))\n"
-    "(assert (=> (and stmt_1_2_0 (not sync_1_1)) (not thread_1_2)))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun sync_2_1 () Bool)\n"
+    "\n"
+    "(assert (= sync_2_1 (and block_2_1_0 block_2_1_1 block_2_1_2)))\n"
+    "\n"
+    "(assert (=> (and block_2_1_0 (not sync_2_1)) (not thread_2_0)))\n"
+    "(assert (=> (and block_2_1_1 (not sync_2_1)) (not thread_2_1)))\n"
+    "(assert (=> (and block_2_1_2 (not sync_2_1)) (not thread_2_2)))\n\n",
+    encoder->formula.str());
 }
 
 // void add_statement_execution (void);
@@ -1308,7 +1302,7 @@ TEST_F(SMTLibEncoderTest, add_statement_execution)
 
   encoder->add_statement_execution();
 
-  expected =
+  ASSERT_EQ(
     "; statement execution - shorthand for statement & thread activation ;;;;;;;;;;;;\n"
     "\n"
     "; statement execution variables - exec_<step>_<thread>_<pc>\n"
@@ -1334,9 +1328,8 @@ TEST_F(SMTLibEncoderTest, add_statement_execution)
     "\n"
     "(assert (= exec_1_2_0 (and stmt_1_2_0 thread_1_2)))\n"
     "(assert (= exec_1_2_1 (and stmt_1_2_1 thread_1_2)))\n"
-    "(assert (= exec_1_2_2 (and stmt_1_2_2 thread_1_2)))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(assert (= exec_1_2_2 (and stmt_1_2_2 thread_1_2)))\n\n",
+    encoder->formula.str());
 
   /* last statement is a sync barrier */
   for (const auto & p : programs)
@@ -1346,7 +1339,7 @@ TEST_F(SMTLibEncoderTest, add_statement_execution)
 
   encoder->add_statement_execution();
 
-  expected =
+  ASSERT_EQ(
     "; statement execution - shorthand for statement & thread activation ;;;;;;;;;;;;\n"
     "\n"
     "; statement execution variables - exec_<step>_<thread>_<pc>\n"
@@ -1368,19 +1361,18 @@ TEST_F(SMTLibEncoderTest, add_statement_execution)
     "(assert (= exec_1_0_0 (and stmt_1_0_0 thread_1_0)))\n"
     "(assert (= exec_1_0_1 (and stmt_1_0_1 thread_1_0)))\n"
     "(assert (= exec_1_0_2 (and stmt_1_0_2 thread_1_0)))\n"
-    "(assert (= exec_1_0_3 (and stmt_1_0_3 sync_1_1)))\n"
+    "(assert (= exec_1_0_3 (and stmt_1_0_3 thread_1_0)))\n"
     "\n"
     "(assert (= exec_1_1_0 (and stmt_1_1_0 thread_1_1)))\n"
     "(assert (= exec_1_1_1 (and stmt_1_1_1 thread_1_1)))\n"
     "(assert (= exec_1_1_2 (and stmt_1_1_2 thread_1_1)))\n"
-    "(assert (= exec_1_1_3 (and stmt_1_1_3 sync_1_1)))\n"
+    "(assert (= exec_1_1_3 (and stmt_1_1_3 thread_1_1)))\n"
     "\n"
     "(assert (= exec_1_2_0 (and stmt_1_2_0 thread_1_2)))\n"
     "(assert (= exec_1_2_1 (and stmt_1_2_1 thread_1_2)))\n"
     "(assert (= exec_1_2_2 (and stmt_1_2_2 thread_1_2)))\n"
-    "(assert (= exec_1_2_3 (and stmt_1_2_3 sync_1_1)))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(assert (= exec_1_2_3 (and stmt_1_2_3 thread_1_2)))\n\n",
+    encoder->formula.str());
 
   /* verbosity */
   for (const auto & p : programs)
@@ -1392,7 +1384,7 @@ TEST_F(SMTLibEncoderTest, add_statement_execution)
   encoder->add_statement_execution();
   verbose = true;
 
-  expected =
+  ASSERT_EQ(
     "(declare-fun exec_1_0_0 () Bool)\n"
     "\n"
     "(declare-fun exec_1_1_0 () Bool)\n"
@@ -1403,9 +1395,8 @@ TEST_F(SMTLibEncoderTest, add_statement_execution)
     "\n"
     "(assert (= exec_1_1_0 (and stmt_1_1_0 thread_1_1)))\n"
     "\n"
-    "(assert (= exec_1_2_0 (and stmt_1_2_0 thread_1_2)))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(assert (= exec_1_2_0 (and stmt_1_2_0 thread_1_2)))\n\n",
+    encoder->formula.str());
 }
 
 // string load(Load &);
@@ -1415,16 +1406,12 @@ TEST_F(SMTLibEncoderTest, load)
 
   encoder->step = 1;
 
-  expected = "(select heap_0 #x0001)";
-
-  ASSERT_EQ(expected, encoder->load(l));
+  ASSERT_EQ("(select heap_0 #x0001)", encoder->load(l));
 
   /* indirect */
   l.indirect = true;
 
-  expected = "(select heap_0 (select heap_0 #x0001))";
-
-  ASSERT_EQ(expected, encoder->load(l));
+  ASSERT_EQ("(select heap_0 (select heap_0 #x0001))", encoder->load(l));
 }
 
 // virtual void encode (void);
@@ -1434,7 +1421,7 @@ TEST_F(SMTLibEncoderTest, encode)
 
   encoder->SMTLibEncoder::encode();
 
-  expected =
+  ASSERT_EQ(
     "(set-logic QF_AUFBV)\n"
     "\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
@@ -1460,9 +1447,8 @@ TEST_F(SMTLibEncoderTest, encode)
     "(assert (= mem_0_2 #x0000))\n"
     "\n"
     "; heap states - heap_<step>\n"
-    "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n\n",
+    encoder->formula.str());
 
   /* verbosity */
   reset_encoder(0, 0);
@@ -1471,7 +1457,7 @@ TEST_F(SMTLibEncoderTest, encode)
   encoder->SMTLibEncoder::encode();
   verbose = true;
 
-  expected =
+  ASSERT_EQ(
     "(set-logic QF_AUFBV)\n"
     "\n"
     "(declare-fun accu_0_0 () (_ BitVec 16))\n"
@@ -1490,7 +1476,6 @@ TEST_F(SMTLibEncoderTest, encode)
     "(assert (= mem_0_1 #x0000))\n"
     "(assert (= mem_0_2 #x0000))\n"
     "\n"
-    "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n\n",
+    encoder->formula.str());
 }

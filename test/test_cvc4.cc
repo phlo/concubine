@@ -47,7 +47,7 @@ TEST_F(CVC4Test, unsat)
 }
 
 // TODO: remove
-TEST_F(CVC4Test, DISABLED_print_model)
+TEST_F(CVC4Test, print_model)
 {
   /* concurrent increment using SYNC */
   string constraints;
