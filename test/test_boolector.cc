@@ -9,6 +9,7 @@ using namespace std;
 
 struct BoolectorTest : public ::testing::Test
 {
+  string          constraints;
   Boolector       boolector;
   EncoderPtr      encoder;
   ProgramListPtr  programs = make_shared<ProgramList>();
@@ -36,7 +37,6 @@ TEST_F(BoolectorTest, unsat)
 TEST_F(BoolectorTest, solve_sync)
 {
   /* concurrent increment using SYNC */
-  string constraints;
   string increment_0 = "data/increment.sync.thread.0.asm";
   string increment_n = "data/increment.sync.thread.n.asm";
 
@@ -149,7 +149,6 @@ TEST_F(BoolectorTest, solve_sync)
 TEST_F(BoolectorTest, DISABLED_solve_cas)
 {
   /* concurrent increment using CAS */
-  string constraints;
   string increment = "data/increment.cas.asm";
 
   programs = make_shared<ProgramList>();
@@ -183,4 +182,17 @@ TEST_F(BoolectorTest, DISABLED_solve_cas)
     "1	LOOP	MEM	0	2	2	{}\n"
     "1	3	ADDI	1	3	2	{}\n",
     schedule->print());
+}
+
+TEST_F(BoolectorTest, encode_deadlock)
+{
+  /* deadlock after 3 steps -> unsat */
+  programs->push_back(create_from_file<Program>("data/deadlock.thread.0.asm"));
+  programs->push_back(create_from_file<Program>("data/deadlock.thread.1.asm"));
+
+  encoder = make_shared<SMTLibEncoderFunctional>(programs, 3);
+
+  string formula = encoder->str();
+
+  ASSERT_FALSE(boolector.sat(formula));
 }

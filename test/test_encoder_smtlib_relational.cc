@@ -8,17 +8,13 @@ using namespace std;
 
 struct SMTLibEncoderRelationalTest : public ::testing::Test
 {
-  string                      expected;
-  ProgramList                 programs;
-  SMTLibEncoderRelationalPtr  encoder = create_encoder(2, 1);
+  ProgramListPtr              programs {make_shared<ProgramList>()};
+  SMTLibEncoderRelationalPtr  encoder {create_encoder(2, 1)};
 
   SMTLibEncoderRelationalPtr create_encoder (const word bound, const word step)
     {
       SMTLibEncoderRelationalPtr e =
-        make_shared<SMTLibEncoderRelational>(
-          make_shared<ProgramList>(programs),
-          bound,
-          false);
+        make_shared<SMTLibEncoderRelational>(programs, bound, false);
 
       e->step = step;
       e->thread = 0;
@@ -36,11 +32,11 @@ struct SMTLibEncoderRelationalTest : public ::testing::Test
     {
       for (size_t i = 0; i < num_threads; i++)
         {
-          programs.push_back(ProgramPtr(new Program()));
+          programs->push_back(ProgramPtr(new Program()));
 
-          programs[i]->push_back(Instruction::Set::create("LOAD", 1));
-          programs[i]->push_back(Instruction::Set::create("ADDI", 1));
-          programs[i]->push_back(Instruction::Set::create("STORE", 1));
+          (*programs)[i]->push_back(Instruction::Set::create("LOAD", 1));
+          (*programs)[i]->push_back(Instruction::Set::create("ADDI", 1));
+          (*programs)[i]->push_back(Instruction::Set::create("STORE", 1));
         }
 
       reset_encoder(2, 1);
@@ -50,25 +46,25 @@ struct SMTLibEncoderRelationalTest : public ::testing::Test
     {
       for (size_t i = 0; i < num_threads; i++)
         {
-          programs.push_back(shared_ptr<Program>(new Program()));
+          programs->push_back(shared_ptr<Program>(new Program()));
 
-          programs[i]->push_back(Instruction::Set::create("LOAD", 1));  // 0
-          programs[i]->push_back(Instruction::Set::create("STORE", 1)); // 1
-          programs[i]->push_back(Instruction::Set::create("ADD", 1));   // 2
-          programs[i]->push_back(Instruction::Set::create("ADDI", 1));  // 3
-          programs[i]->push_back(Instruction::Set::create("SUB", 1));   // 4
-          programs[i]->push_back(Instruction::Set::create("SUBI", 1));  // 5
-          programs[i]->push_back(Instruction::Set::create("CMP", 1));   // 6
-          programs[i]->push_back(Instruction::Set::create("JMP", 1));   // 7
-          programs[i]->push_back(Instruction::Set::create("JZ", 1));    // 8
-          programs[i]->push_back(Instruction::Set::create("JNZ", 1));   // 9
-          programs[i]->push_back(Instruction::Set::create("JS", 1));    // 10
-          programs[i]->push_back(Instruction::Set::create("JNS", 1));   // 11
-          programs[i]->push_back(Instruction::Set::create("JNZNS", 1)); // 12
-          programs[i]->push_back(Instruction::Set::create("MEM", 1));   // 13
-          programs[i]->push_back(Instruction::Set::create("CAS", 1));   // 14
-          programs[i]->push_back(Instruction::Set::create("SYNC", 1));  // 15
-          programs[i]->push_back(Instruction::Set::create("EXIT", 1));  // 16
+          (*programs)[i]->push_back(Instruction::Set::create("LOAD", 1));  // 0
+          (*programs)[i]->push_back(Instruction::Set::create("STORE", 1)); // 1
+          (*programs)[i]->push_back(Instruction::Set::create("ADD", 1));   // 2
+          (*programs)[i]->push_back(Instruction::Set::create("ADDI", 1));  // 3
+          (*programs)[i]->push_back(Instruction::Set::create("SUB", 1));   // 4
+          (*programs)[i]->push_back(Instruction::Set::create("SUBI", 1));  // 5
+          (*programs)[i]->push_back(Instruction::Set::create("CMP", 1));   // 6
+          (*programs)[i]->push_back(Instruction::Set::create("JMP", 1));   // 7
+          (*programs)[i]->push_back(Instruction::Set::create("JZ", 1));    // 8
+          (*programs)[i]->push_back(Instruction::Set::create("JNZ", 1));   // 9
+          (*programs)[i]->push_back(Instruction::Set::create("JS", 1));    // 10
+          (*programs)[i]->push_back(Instruction::Set::create("JNS", 1));   // 11
+          (*programs)[i]->push_back(Instruction::Set::create("JNZNS", 1)); // 12
+          (*programs)[i]->push_back(Instruction::Set::create("MEM", 1));   // 13
+          (*programs)[i]->push_back(Instruction::Set::create("CAS", 1));   // 14
+          (*programs)[i]->push_back(Instruction::Set::create("SYNC", 1));  // 15
+          (*programs)[i]->push_back(Instruction::Set::create("EXIT", 1));  // 16
         }
 
       reset_encoder(2, 1);
@@ -258,33 +254,31 @@ TEST_F(SMTLibEncoderRelationalTest, add_exit_code)
 
   encoder->add_exit_code();
 
-  expected =
+  ASSERT_EQ(
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "; exit code\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "(assert (= exit-code #x0000))\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(assert (= exit-code #x0000))\n",
+    encoder->formula.str());
 
   reset_encoder(3, 1);
 
   /* step == bound */
-  for (const auto & program : programs)
+  for (const auto & program : *programs)
     program->push_back(Instruction::Set::create("EXIT", 1));
 
   reset_encoder(3, 3);
 
   encoder->add_exit_code();
 
-  expected =
+  ASSERT_EQ(
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "; exit code\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "(assert (=> (not exit_3) (= exit-code #x0000)))\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(assert (=> (not exit_3) (= exit-code #x0000)))\n",
+    encoder->formula.str());
 }
 
 // void add_statement_declaration (void);
@@ -297,7 +291,7 @@ TEST_F(SMTLibEncoderRelationalTest, add_statement_declaration)
 
   encoder->add_statement_declaration();
 
-  expected =
+  ASSERT_EQ(
     "; statement activation forward declaration ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
@@ -324,16 +318,15 @@ TEST_F(SMTLibEncoderRelationalTest, add_statement_declaration)
     "\n"
     "(assert stmt_1_2_0)\n"
     "(assert (not stmt_1_2_1))\n"
-    "(assert (not stmt_1_2_2))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(assert (not stmt_1_2_2))\n\n",
+    encoder->formula.str());
 
   /* step 1 */
   reset_encoder(2, 1);
 
   encoder->add_statement_declaration();
 
-  expected =
+  ASSERT_EQ(
     "; statement activation forward declaration ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
@@ -347,9 +340,8 @@ TEST_F(SMTLibEncoderRelationalTest, add_statement_declaration)
     "\n"
     "(declare-fun stmt_2_2_0 () Bool)\n"
     "(declare-fun stmt_2_2_1 () Bool)\n"
-    "(declare-fun stmt_2_2_2 () Bool)\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(declare-fun stmt_2_2_2 () Bool)\n\n",
+    encoder->formula.str());
 
   /* step 2 == bound */
   reset_encoder(2, 2);
@@ -365,7 +357,7 @@ TEST_F(SMTLibEncoderRelationalTest, add_statement_declaration)
   encoder->add_statement_declaration();
   verbose = true;
 
-  expected =
+  ASSERT_EQ(
     "(declare-fun stmt_1_0_0 () Bool)\n"
     "(declare-fun stmt_1_0_1 () Bool)\n"
     "(declare-fun stmt_1_0_2 () Bool)\n"
@@ -388,9 +380,8 @@ TEST_F(SMTLibEncoderRelationalTest, add_statement_declaration)
     "\n"
     "(assert stmt_1_2_0)\n"
     "(assert (not stmt_1_2_1))\n"
-    "(assert (not stmt_1_2_2))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(assert (not stmt_1_2_2))\n\n",
+    encoder->formula.str());
 }
 
 // void add_state_update (void);
@@ -400,7 +391,7 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_update)
 
   encoder->add_state_update();
 
-  expected =
+  ASSERT_EQ(
     "; state update ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; accu states - accu_<step>_<thread>\n"
@@ -504,16 +495,15 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_update)
       "(and "
         "(not stmt_2_2_0) "
         "(not stmt_2_2_1) "
-        "(not stmt_2_2_2))))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+        "(not stmt_2_2_2))))\n\n",
+    encoder->formula.str());
 
   /* step == bound */
   reset_encoder(2, 2);
 
   encoder->add_state_update();
 
-  expected =
+  ASSERT_EQ(
     "; state update ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; accu states - accu_<step>_<thread>\n"
@@ -572,9 +562,8 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_update)
     "; thread 2@2: STORE\t1\n"
     "(assert (=> exec_2_2_2 (= accu_2_2 accu_1_2)))\n"
     "(assert (=> exec_2_2_2 (= mem_2_2 mem_1_2)))\n"
-    "(assert (=> exec_2_2_2 (= heap_2 (store heap_1 #x0001 accu_1_2))))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(assert (=> exec_2_2_2 (= heap_2 (store heap_1 #x0001 accu_1_2))))\n\n",
+    encoder->formula.str());
 
   /* verbosity */
   reset_encoder(2, 1);
@@ -583,7 +572,7 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_update)
   encoder->add_state_update();
   verbose = true;
 
-  expected =
+  ASSERT_EQ(
     "(declare-fun accu_1_0 () (_ BitVec 16))\n"
     "(declare-fun accu_1_1 () (_ BitVec 16))\n"
     "(declare-fun accu_1_2 () (_ BitVec 16))\n"
@@ -673,9 +662,8 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_update)
       "(and "
         "(not stmt_2_2_0) "
         "(not stmt_2_2_1) "
-        "(not stmt_2_2_2))))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+        "(not stmt_2_2_2))))\n\n",
+    encoder->formula.str());
 }
 
 // void add_state_preservation (void);
@@ -685,110 +673,108 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_preservation)
 
   encoder->add_state_preservation();
 
-  expected =
+  ASSERT_EQ(
     "; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "(declare-fun wait_1_0 () Bool)\n"
-    "(assert (= wait_1_0 (not (or thread_1_0 sync_1_1))))\n"
+    "(declare-fun preserve_1_0 () Bool)\n"
+    "(assert (= preserve_1_0 (not thread_1_0)))\n"
     "\n"
-    "(assert (=> wait_1_0 (= accu_1_0 accu_0_0)))\n"
-    "(assert (=> wait_1_0 (= mem_1_0 mem_0_0)))\n"
+    "(assert (=> preserve_1_0 (= accu_1_0 accu_0_0)))\n"
+    "(assert (=> preserve_1_0 (= mem_1_0 mem_0_0)))\n"
     "\n"
-    "(assert (=> wait_1_0 (= stmt_2_0_0 stmt_1_0_0)))\n"
-    "(assert (=> wait_1_0 (= stmt_2_0_1 stmt_1_0_1)))\n"
-    "(assert (=> wait_1_0 (= stmt_2_0_2 stmt_1_0_2)))\n"
-    "(assert (=> wait_1_0 (= stmt_2_0_3 stmt_1_0_3)))\n"
-    "(assert (=> wait_1_0 (= stmt_2_0_4 stmt_1_0_4)))\n"
-    "(assert (=> wait_1_0 (= stmt_2_0_5 stmt_1_0_5)))\n"
-    "(assert (=> wait_1_0 (= stmt_2_0_6 stmt_1_0_6)))\n"
-    "(assert (=> wait_1_0 (= stmt_2_0_7 stmt_1_0_7)))\n"
-    "(assert (=> wait_1_0 (= stmt_2_0_8 stmt_1_0_8)))\n"
-    "(assert (=> wait_1_0 (= stmt_2_0_9 stmt_1_0_9)))\n"
-    "(assert (=> wait_1_0 (= stmt_2_0_10 stmt_1_0_10)))\n"
-    "(assert (=> wait_1_0 (= stmt_2_0_11 stmt_1_0_11)))\n"
-    "(assert (=> wait_1_0 (= stmt_2_0_12 stmt_1_0_12)))\n"
-    "(assert (=> wait_1_0 (= stmt_2_0_13 stmt_1_0_13)))\n"
-    "(assert (=> wait_1_0 (= stmt_2_0_14 stmt_1_0_14)))\n"
-    "(assert (=> wait_1_0 (= stmt_2_0_15 stmt_1_0_15)))\n"
-    "(assert (=> wait_1_0 (= stmt_2_0_16 stmt_1_0_16)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_0 stmt_1_0_0)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_1 stmt_1_0_1)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_2 stmt_1_0_2)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_3 stmt_1_0_3)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_4 stmt_1_0_4)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_5 stmt_1_0_5)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_6 stmt_1_0_6)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_7 stmt_1_0_7)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_8 stmt_1_0_8)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_9 stmt_1_0_9)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_10 stmt_1_0_10)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_11 stmt_1_0_11)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_12 stmt_1_0_12)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_13 stmt_1_0_13)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_14 stmt_1_0_14)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_15 stmt_1_0_15)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_16 stmt_1_0_16)))\n"
     "\n"
-    "(declare-fun wait_1_1 () Bool)\n"
-    "(assert (= wait_1_1 (not (or thread_1_1 sync_1_1))))\n"
+    "(declare-fun preserve_1_1 () Bool)\n"
+    "(assert (= preserve_1_1 (not thread_1_1)))\n"
     "\n"
-    "(assert (=> wait_1_1 (= accu_1_1 accu_0_1)))\n"
-    "(assert (=> wait_1_1 (= mem_1_1 mem_0_1)))\n"
+    "(assert (=> preserve_1_1 (= accu_1_1 accu_0_1)))\n"
+    "(assert (=> preserve_1_1 (= mem_1_1 mem_0_1)))\n"
     "\n"
-    "(assert (=> wait_1_1 (= stmt_2_1_0 stmt_1_1_0)))\n"
-    "(assert (=> wait_1_1 (= stmt_2_1_1 stmt_1_1_1)))\n"
-    "(assert (=> wait_1_1 (= stmt_2_1_2 stmt_1_1_2)))\n"
-    "(assert (=> wait_1_1 (= stmt_2_1_3 stmt_1_1_3)))\n"
-    "(assert (=> wait_1_1 (= stmt_2_1_4 stmt_1_1_4)))\n"
-    "(assert (=> wait_1_1 (= stmt_2_1_5 stmt_1_1_5)))\n"
-    "(assert (=> wait_1_1 (= stmt_2_1_6 stmt_1_1_6)))\n"
-    "(assert (=> wait_1_1 (= stmt_2_1_7 stmt_1_1_7)))\n"
-    "(assert (=> wait_1_1 (= stmt_2_1_8 stmt_1_1_8)))\n"
-    "(assert (=> wait_1_1 (= stmt_2_1_9 stmt_1_1_9)))\n"
-    "(assert (=> wait_1_1 (= stmt_2_1_10 stmt_1_1_10)))\n"
-    "(assert (=> wait_1_1 (= stmt_2_1_11 stmt_1_1_11)))\n"
-    "(assert (=> wait_1_1 (= stmt_2_1_12 stmt_1_1_12)))\n"
-    "(assert (=> wait_1_1 (= stmt_2_1_13 stmt_1_1_13)))\n"
-    "(assert (=> wait_1_1 (= stmt_2_1_14 stmt_1_1_14)))\n"
-    "(assert (=> wait_1_1 (= stmt_2_1_15 stmt_1_1_15)))\n"
-    "(assert (=> wait_1_1 (= stmt_2_1_16 stmt_1_1_16)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_0 stmt_1_1_0)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_1 stmt_1_1_1)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_2 stmt_1_1_2)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_3 stmt_1_1_3)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_4 stmt_1_1_4)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_5 stmt_1_1_5)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_6 stmt_1_1_6)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_7 stmt_1_1_7)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_8 stmt_1_1_8)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_9 stmt_1_1_9)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_10 stmt_1_1_10)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_11 stmt_1_1_11)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_12 stmt_1_1_12)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_13 stmt_1_1_13)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_14 stmt_1_1_14)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_15 stmt_1_1_15)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_16 stmt_1_1_16)))\n"
     "\n"
-    "(declare-fun wait_1_2 () Bool)\n"
-    "(assert (= wait_1_2 (not (or thread_1_2 sync_1_1))))\n"
+    "(declare-fun preserve_1_2 () Bool)\n"
+    "(assert (= preserve_1_2 (not thread_1_2)))\n"
     "\n"
-    "(assert (=> wait_1_2 (= accu_1_2 accu_0_2)))\n"
-    "(assert (=> wait_1_2 (= mem_1_2 mem_0_2)))\n"
+    "(assert (=> preserve_1_2 (= accu_1_2 accu_0_2)))\n"
+    "(assert (=> preserve_1_2 (= mem_1_2 mem_0_2)))\n"
     "\n"
-    "(assert (=> wait_1_2 (= stmt_2_2_0 stmt_1_2_0)))\n"
-    "(assert (=> wait_1_2 (= stmt_2_2_1 stmt_1_2_1)))\n"
-    "(assert (=> wait_1_2 (= stmt_2_2_2 stmt_1_2_2)))\n"
-    "(assert (=> wait_1_2 (= stmt_2_2_3 stmt_1_2_3)))\n"
-    "(assert (=> wait_1_2 (= stmt_2_2_4 stmt_1_2_4)))\n"
-    "(assert (=> wait_1_2 (= stmt_2_2_5 stmt_1_2_5)))\n"
-    "(assert (=> wait_1_2 (= stmt_2_2_6 stmt_1_2_6)))\n"
-    "(assert (=> wait_1_2 (= stmt_2_2_7 stmt_1_2_7)))\n"
-    "(assert (=> wait_1_2 (= stmt_2_2_8 stmt_1_2_8)))\n"
-    "(assert (=> wait_1_2 (= stmt_2_2_9 stmt_1_2_9)))\n"
-    "(assert (=> wait_1_2 (= stmt_2_2_10 stmt_1_2_10)))\n"
-    "(assert (=> wait_1_2 (= stmt_2_2_11 stmt_1_2_11)))\n"
-    "(assert (=> wait_1_2 (= stmt_2_2_12 stmt_1_2_12)))\n"
-    "(assert (=> wait_1_2 (= stmt_2_2_13 stmt_1_2_13)))\n"
-    "(assert (=> wait_1_2 (= stmt_2_2_14 stmt_1_2_14)))\n"
-    "(assert (=> wait_1_2 (= stmt_2_2_15 stmt_1_2_15)))\n"
-    "(assert (=> wait_1_2 (= stmt_2_2_16 stmt_1_2_16)))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(assert (=> preserve_1_2 (= stmt_2_2_0 stmt_1_2_0)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_1 stmt_1_2_1)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_2 stmt_1_2_2)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_3 stmt_1_2_3)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_4 stmt_1_2_4)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_5 stmt_1_2_5)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_6 stmt_1_2_6)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_7 stmt_1_2_7)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_8 stmt_1_2_8)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_9 stmt_1_2_9)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_10 stmt_1_2_10)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_11 stmt_1_2_11)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_12 stmt_1_2_12)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_13 stmt_1_2_13)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_14 stmt_1_2_14)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_15 stmt_1_2_15)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_16 stmt_1_2_16)))\n\n",
+    encoder->formula.str());
 
   /* step == bound */
   reset_encoder(2, 2);
 
   encoder->add_state_preservation();
 
-  expected =
+  ASSERT_EQ(
     "; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "(declare-fun wait_2_0 () Bool)\n"
-    "(assert (= wait_2_0 (not (or thread_2_0 sync_2_1))))\n"
+    "(declare-fun preserve_2_0 () Bool)\n"
+    "(assert (= preserve_2_0 (not thread_2_0)))\n"
     "\n"
-    "(assert (=> wait_2_0 (= accu_2_0 accu_1_0)))\n"
-    "(assert (=> wait_2_0 (= mem_2_0 mem_1_0)))\n"
+    "(assert (=> preserve_2_0 (= accu_2_0 accu_1_0)))\n"
+    "(assert (=> preserve_2_0 (= mem_2_0 mem_1_0)))\n"
     "\n"
-    "(declare-fun wait_2_1 () Bool)\n"
-    "(assert (= wait_2_1 (not (or thread_2_1 sync_2_1))))\n"
+    "(declare-fun preserve_2_1 () Bool)\n"
+    "(assert (= preserve_2_1 (not thread_2_1)))\n"
     "\n"
-    "(assert (=> wait_2_1 (= accu_2_1 accu_1_1)))\n"
-    "(assert (=> wait_2_1 (= mem_2_1 mem_1_1)))\n"
+    "(assert (=> preserve_2_1 (= accu_2_1 accu_1_1)))\n"
+    "(assert (=> preserve_2_1 (= mem_2_1 mem_1_1)))\n"
     "\n"
-    "(declare-fun wait_2_2 () Bool)\n"
-    "(assert (= wait_2_2 (not (or thread_2_2 sync_2_1))))\n"
+    "(declare-fun preserve_2_2 () Bool)\n"
+    "(assert (= preserve_2_2 (not thread_2_2)))\n"
     "\n"
-    "(assert (=> wait_2_2 (= accu_2_2 accu_1_2)))\n"
-    "(assert (=> wait_2_2 (= mem_2_2 mem_1_2)))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(assert (=> preserve_2_2 (= accu_2_2 accu_1_2)))\n"
+    "(assert (=> preserve_2_2 (= mem_2_2 mem_1_2)))\n\n",
+    encoder->formula.str());
 
   /* verbosity */
   reset_encoder(2, 2);
@@ -797,42 +783,41 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_preservation)
   encoder->add_state_preservation();
   verbose = true;
 
-  expected =
-    "(declare-fun wait_2_0 () Bool)\n"
-    "(assert (= wait_2_0 (not (or thread_2_0 sync_2_1))))\n"
+  ASSERT_EQ(
+    "(declare-fun preserve_2_0 () Bool)\n"
+    "(assert (= preserve_2_0 (not thread_2_0)))\n"
     "\n"
-    "(assert (=> wait_2_0 (= accu_2_0 accu_1_0)))\n"
-    "(assert (=> wait_2_0 (= mem_2_0 mem_1_0)))\n"
+    "(assert (=> preserve_2_0 (= accu_2_0 accu_1_0)))\n"
+    "(assert (=> preserve_2_0 (= mem_2_0 mem_1_0)))\n"
     "\n"
-    "(declare-fun wait_2_1 () Bool)\n"
-    "(assert (= wait_2_1 (not (or thread_2_1 sync_2_1))))\n"
+    "(declare-fun preserve_2_1 () Bool)\n"
+    "(assert (= preserve_2_1 (not thread_2_1)))\n"
     "\n"
-    "(assert (=> wait_2_1 (= accu_2_1 accu_1_1)))\n"
-    "(assert (=> wait_2_1 (= mem_2_1 mem_1_1)))\n"
+    "(assert (=> preserve_2_1 (= accu_2_1 accu_1_1)))\n"
+    "(assert (=> preserve_2_1 (= mem_2_1 mem_1_1)))\n"
     "\n"
-    "(declare-fun wait_2_2 () Bool)\n"
-    "(assert (= wait_2_2 (not (or thread_2_2 sync_2_1))))\n"
+    "(declare-fun preserve_2_2 () Bool)\n"
+    "(assert (= preserve_2_2 (not thread_2_2)))\n"
     "\n"
-    "(assert (=> wait_2_2 (= accu_2_2 accu_1_2)))\n"
-    "(assert (=> wait_2_2 (= mem_2_2 mem_1_2)))\n\n";
-
-  ASSERT_EQ(expected, encoder->formula.str());
+    "(assert (=> preserve_2_2 (= accu_2_2 accu_1_2)))\n"
+    "(assert (=> preserve_2_2 (= mem_2_2 mem_1_2)))\n\n",
+    encoder->formula.str());
 }
 
 // virtual void encode (void);
 TEST_F(SMTLibEncoderRelationalTest, encode_sync)
 {
   /* concurrent increment using SYNC */
-  programs.push_back(
+  programs->push_back(
     create_from_file<Program>("data/increment.sync.thread.0.asm"));
-  programs.push_back(
+  programs->push_back(
     create_from_file<Program>("data/increment.sync.thread.n.asm"));
 
-  encoder =
-    make_shared<SMTLibEncoderRelational>(
-      make_shared<ProgramList>(programs), 12);
+  encoder = make_shared<SMTLibEncoderRelational>(programs, 16);
 
-  ifstream ifs("data/increment.sync.relational.t2.k12.smt2");
+  ifstream ifs("data/increment.sync.relational.t2.k16.smt2");
+
+  string expected;
   expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
 
   ASSERT_EQ(expected, encoder->formula.str());
@@ -841,14 +826,14 @@ TEST_F(SMTLibEncoderRelationalTest, encode_sync)
 TEST_F(SMTLibEncoderRelationalTest, encode_cas)
 {
   /* concurrent increment using CAS */
-  programs.push_back(create_from_file<Program>("data/increment.cas.asm"));
-  programs.push_back(create_from_file<Program>("data/increment.cas.asm"));
+  programs->push_back(create_from_file<Program>("data/increment.cas.asm"));
+  programs->push_back(create_from_file<Program>("data/increment.cas.asm"));
 
-  encoder =
-    make_shared<SMTLibEncoderRelational>(
-      make_shared<ProgramList>(programs), 12);
+  encoder = make_shared<SMTLibEncoderRelational>(programs, 16);
 
-  ifstream ifs("data/increment.cas.relational.t2.k12.smt2");
+  ifstream ifs("data/increment.cas.relational.t2.k16.smt2");
+
+  string expected;
   expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
 
   ASSERT_EQ(expected, encoder->formula.str());

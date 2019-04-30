@@ -536,16 +536,27 @@ void SMTLibEncoder::add_synchronization_constraints ()
         for (const word p : pcs)
           block_args.push_back(exec_var(step - 1, t, p));
 
-        block_args.push_back(block_var(step - 1, s, t));
+        if (step > 2)
+          {
+            block_args.push_back(block_var(step - 1, s, t));
 
-        formula <<
-          assign_var(
-            block_var(step, s, t),
-            smtlib::ite(
-              sync_var(step - 1, s),
-              "false",
-              smtlib::lor(block_args))) <<
-          eol;
+            formula <<
+              assign_var(
+                block_var(step, s, t),
+                smtlib::ite(
+                  sync_var(step - 1, s),
+                  "false",
+                  smtlib::lor(block_args))) <<
+              eol;
+          }
+        else
+          {
+            formula <<
+              assign_var(
+                block_var(step, s, t),
+                smtlib::lor(block_args)) <<
+              eol;
+          }
       }
 
   formula << eol;
@@ -1152,34 +1163,26 @@ void SMTLibEncoderRelational::add_state_preservation ()
     formula << smtlib::comment_subsection("state preservation");
 
   iterate_threads([&] (Program & program) {
-    vector<string> args({thread_var()});
-
-    /* collect sync variables related to this thread */
-    for (const auto & [id, threads] : sync_pcs)
-      if (threads.find(thread) != threads.end())
-        args.push_back(sync_var(step, id));
-
-    /* waiting condition */
-    string condition = smtlib::lnot(smtlib::lor(args));
 
     /* define waiting variable */
-    string wait = "wait_" + to_string(step) + "_" + to_string(thread);
+    string preserve = "preserve_" + to_string(step) + "_" + to_string(thread);
 
+    /* waiting condition - thread not scheduled */
     formula
-      << smtlib::declare_bool_var(wait) << eol
-      << assign_var(wait, condition) << eol
+      << smtlib::declare_bool_var(preserve) << eol
+      << assign_var(preserve, smtlib::lnot(thread_var())) << eol
       << eol;
 
     /* preserver accu */
     formula <<
       imply(
-        wait,
+        preserve,
         smtlib::equality({accu_var(), accu_var(step - 1, thread)}));
 
     /* preserve CAS memory register */
     formula <<
       imply(
-        wait,
+        preserve,
         smtlib::equality({mem_var(), mem_var(step - 1, thread)}));
 
     /* preserver statement activation */
@@ -1190,7 +1193,7 @@ void SMTLibEncoderRelational::add_state_preservation ()
         for (pc = 0; pc < program.size(); pc++)
           formula <<
             imply(
-              wait,
+              preserve,
               smtlib::equality({stmt_var(step + 1, thread, pc), stmt_var()}));
       }
 

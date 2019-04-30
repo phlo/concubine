@@ -1,3 +1,2 @@
 SYNC 0
 SYNC 1
-SYNC 2

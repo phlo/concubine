@@ -1144,7 +1144,7 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_sinz)
 // void add_synchronization_constraints (void);
 TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
 {
-  /* single sync barrier */
+  /* single sync barrier - step 2 */
   for (size_t i = 0; i < 3; i++)
     {
       programs.push_back(shared_ptr<Program>(new Program()));
@@ -1163,9 +1163,9 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
     "(declare-fun block_2_1_1 () Bool)\n"
     "(declare-fun block_2_1_2 () Bool)\n"
     "\n"
-    "(assert (= block_2_1_0 (ite sync_1_1 false (or exec_1_0_0 block_1_1_0))))\n"
-    "(assert (= block_2_1_1 (ite sync_1_1 false (or exec_1_1_0 block_1_1_1))))\n"
-    "(assert (= block_2_1_2 (ite sync_1_1 false (or exec_1_2_0 block_1_1_2))))\n"
+    "(assert (= block_2_1_0 exec_1_0_0))\n"
+    "(assert (= block_2_1_1 exec_1_1_0))\n"
+    "(assert (= block_2_1_2 exec_1_2_0))\n"
     "\n"
     "; sync variables - sync_<step>_<id>\n"
     "(declare-fun sync_2_1 () Bool)\n"
@@ -1178,11 +1178,8 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
     "(assert (=> (and block_2_1_2 (not sync_2_1)) (not thread_2_2))) ; barrier 1: thread 2\n\n",
     encoder->formula.str());
 
-  /* two different barriers */
-  for (const auto & p : programs)
-    p->push_back(Instruction::Set::create("SYNC", 2));
-
-  reset_encoder(0, 2);
+  /* single sync barrier - step 3+ */
+  reset_encoder(0, 3);
 
   encoder->add_synchronization_constraints();
 
@@ -1190,41 +1187,72 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
     "; synchronization constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; blocking variables - block_<step>_<id>_<thread>\n"
-    "(declare-fun block_2_1_0 () Bool)\n"
-    "(declare-fun block_2_1_1 () Bool)\n"
-    "(declare-fun block_2_1_2 () Bool)\n"
-    "(declare-fun block_2_2_0 () Bool)\n"
-    "(declare-fun block_2_2_1 () Bool)\n"
-    "(declare-fun block_2_2_2 () Bool)\n"
+    "(declare-fun block_3_1_0 () Bool)\n"
+    "(declare-fun block_3_1_1 () Bool)\n"
+    "(declare-fun block_3_1_2 () Bool)\n"
     "\n"
-    "(assert (= block_2_1_0 (ite sync_1_1 false (or exec_1_0_0 block_1_1_0))))\n"
-    "(assert (= block_2_1_1 (ite sync_1_1 false (or exec_1_1_0 block_1_1_1))))\n"
-    "(assert (= block_2_1_2 (ite sync_1_1 false (or exec_1_2_0 block_1_1_2))))\n"
-    "(assert (= block_2_2_0 (ite sync_1_2 false (or exec_1_0_1 block_1_2_0))))\n"
-    "(assert (= block_2_2_1 (ite sync_1_2 false (or exec_1_1_1 block_1_2_1))))\n"
-    "(assert (= block_2_2_2 (ite sync_1_2 false (or exec_1_2_1 block_1_2_2))))\n"
+    "(assert (= block_3_1_0 (ite sync_2_1 false (or exec_2_0_0 block_2_1_0))))\n"
+    "(assert (= block_3_1_1 (ite sync_2_1 false (or exec_2_1_0 block_2_1_1))))\n"
+    "(assert (= block_3_1_2 (ite sync_2_1 false (or exec_2_2_0 block_2_1_2))))\n"
     "\n"
     "; sync variables - sync_<step>_<id>\n"
-    "(declare-fun sync_2_1 () Bool)\n"
-    "(declare-fun sync_2_2 () Bool)\n"
+    "(declare-fun sync_3_1 () Bool)\n"
     "\n"
-    "(assert (= sync_2_1 (and block_2_1_0 block_2_1_1 block_2_1_2)))\n"
-    "(assert (= sync_2_2 (and block_2_2_0 block_2_2_1 block_2_2_2)))\n"
+    "(assert (= sync_3_1 (and block_3_1_0 block_3_1_1 block_3_1_2)))\n"
     "\n"
     "; prevent scheduling of waiting threads\n"
-    "(assert (=> (and block_2_1_0 (not sync_2_1)) (not thread_2_0))) ; barrier 1: thread 0\n"
-    "(assert (=> (and block_2_1_1 (not sync_2_1)) (not thread_2_1))) ; barrier 1: thread 1\n"
-    "(assert (=> (and block_2_1_2 (not sync_2_1)) (not thread_2_2))) ; barrier 1: thread 2\n"
-    "(assert (=> (and block_2_2_0 (not sync_2_2)) (not thread_2_0))) ; barrier 2: thread 0\n"
-    "(assert (=> (and block_2_2_1 (not sync_2_2)) (not thread_2_1))) ; barrier 2: thread 1\n"
-    "(assert (=> (and block_2_2_2 (not sync_2_2)) (not thread_2_2))) ; barrier 2: thread 2\n\n",
+    "(assert (=> (and block_3_1_0 (not sync_3_1)) (not thread_3_0))) ; barrier 1: thread 0\n"
+    "(assert (=> (and block_3_1_1 (not sync_3_1)) (not thread_3_1))) ; barrier 1: thread 1\n"
+    "(assert (=> (and block_3_1_2 (not sync_3_1)) (not thread_3_2))) ; barrier 1: thread 2\n\n",
+    encoder->formula.str());
+
+  /* two different barriers */
+  for (const auto & p : programs)
+    p->push_back(Instruction::Set::create("SYNC", 2));
+
+  reset_encoder(0, 3);
+
+  encoder->add_synchronization_constraints();
+
+  ASSERT_EQ(
+    "; synchronization constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; blocking variables - block_<step>_<id>_<thread>\n"
+    "(declare-fun block_3_1_0 () Bool)\n"
+    "(declare-fun block_3_1_1 () Bool)\n"
+    "(declare-fun block_3_1_2 () Bool)\n"
+    "(declare-fun block_3_2_0 () Bool)\n"
+    "(declare-fun block_3_2_1 () Bool)\n"
+    "(declare-fun block_3_2_2 () Bool)\n"
+    "\n"
+    "(assert (= block_3_1_0 (ite sync_2_1 false (or exec_2_0_0 block_2_1_0))))\n"
+    "(assert (= block_3_1_1 (ite sync_2_1 false (or exec_2_1_0 block_2_1_1))))\n"
+    "(assert (= block_3_1_2 (ite sync_2_1 false (or exec_2_2_0 block_2_1_2))))\n"
+    "(assert (= block_3_2_0 (ite sync_2_2 false (or exec_2_0_1 block_2_2_0))))\n"
+    "(assert (= block_3_2_1 (ite sync_2_2 false (or exec_2_1_1 block_2_2_1))))\n"
+    "(assert (= block_3_2_2 (ite sync_2_2 false (or exec_2_2_1 block_2_2_2))))\n"
+    "\n"
+    "; sync variables - sync_<step>_<id>\n"
+    "(declare-fun sync_3_1 () Bool)\n"
+    "(declare-fun sync_3_2 () Bool)\n"
+    "\n"
+    "(assert (= sync_3_1 (and block_3_1_0 block_3_1_1 block_3_1_2)))\n"
+    "(assert (= sync_3_2 (and block_3_2_0 block_3_2_1 block_3_2_2)))\n"
+    "\n"
+    "; prevent scheduling of waiting threads\n"
+    "(assert (=> (and block_3_1_0 (not sync_3_1)) (not thread_3_0))) ; barrier 1: thread 0\n"
+    "(assert (=> (and block_3_1_1 (not sync_3_1)) (not thread_3_1))) ; barrier 1: thread 1\n"
+    "(assert (=> (and block_3_1_2 (not sync_3_1)) (not thread_3_2))) ; barrier 1: thread 2\n"
+    "(assert (=> (and block_3_2_0 (not sync_3_2)) (not thread_3_0))) ; barrier 2: thread 0\n"
+    "(assert (=> (and block_3_2_1 (not sync_3_2)) (not thread_3_1))) ; barrier 2: thread 1\n"
+    "(assert (=> (and block_3_2_2 (not sync_3_2)) (not thread_3_2))) ; barrier 2: thread 2\n\n",
     encoder->formula.str());
 
   /* two identical barriers */
   for (const auto & p : programs)
     p->push_back(Instruction::Set::create("SYNC", 1));
 
-  reset_encoder(0, 2);
+  reset_encoder(0, 3);
 
   encoder->add_synchronization_constraints();
 
@@ -1232,34 +1260,34 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
     "; synchronization constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; blocking variables - block_<step>_<id>_<thread>\n"
-    "(declare-fun block_2_1_0 () Bool)\n"
-    "(declare-fun block_2_1_1 () Bool)\n"
-    "(declare-fun block_2_1_2 () Bool)\n"
-    "(declare-fun block_2_2_0 () Bool)\n"
-    "(declare-fun block_2_2_1 () Bool)\n"
-    "(declare-fun block_2_2_2 () Bool)\n"
+    "(declare-fun block_3_1_0 () Bool)\n"
+    "(declare-fun block_3_1_1 () Bool)\n"
+    "(declare-fun block_3_1_2 () Bool)\n"
+    "(declare-fun block_3_2_0 () Bool)\n"
+    "(declare-fun block_3_2_1 () Bool)\n"
+    "(declare-fun block_3_2_2 () Bool)\n"
     "\n"
-    "(assert (= block_2_1_0 (ite sync_1_1 false (or exec_1_0_0 exec_1_0_2 block_1_1_0))))\n"
-    "(assert (= block_2_1_1 (ite sync_1_1 false (or exec_1_1_0 exec_1_1_2 block_1_1_1))))\n"
-    "(assert (= block_2_1_2 (ite sync_1_1 false (or exec_1_2_0 exec_1_2_2 block_1_1_2))))\n"
-    "(assert (= block_2_2_0 (ite sync_1_2 false (or exec_1_0_1 block_1_2_0))))\n"
-    "(assert (= block_2_2_1 (ite sync_1_2 false (or exec_1_1_1 block_1_2_1))))\n"
-    "(assert (= block_2_2_2 (ite sync_1_2 false (or exec_1_2_1 block_1_2_2))))\n"
+    "(assert (= block_3_1_0 (ite sync_2_1 false (or exec_2_0_0 exec_2_0_2 block_2_1_0))))\n"
+    "(assert (= block_3_1_1 (ite sync_2_1 false (or exec_2_1_0 exec_2_1_2 block_2_1_1))))\n"
+    "(assert (= block_3_1_2 (ite sync_2_1 false (or exec_2_2_0 exec_2_2_2 block_2_1_2))))\n"
+    "(assert (= block_3_2_0 (ite sync_2_2 false (or exec_2_0_1 block_2_2_0))))\n"
+    "(assert (= block_3_2_1 (ite sync_2_2 false (or exec_2_1_1 block_2_2_1))))\n"
+    "(assert (= block_3_2_2 (ite sync_2_2 false (or exec_2_2_1 block_2_2_2))))\n"
     "\n"
     "; sync variables - sync_<step>_<id>\n"
-    "(declare-fun sync_2_1 () Bool)\n"
-    "(declare-fun sync_2_2 () Bool)\n"
+    "(declare-fun sync_3_1 () Bool)\n"
+    "(declare-fun sync_3_2 () Bool)\n"
     "\n"
-    "(assert (= sync_2_1 (and block_2_1_0 block_2_1_1 block_2_1_2)))\n"
-    "(assert (= sync_2_2 (and block_2_2_0 block_2_2_1 block_2_2_2)))\n"
+    "(assert (= sync_3_1 (and block_3_1_0 block_3_1_1 block_3_1_2)))\n"
+    "(assert (= sync_3_2 (and block_3_2_0 block_3_2_1 block_3_2_2)))\n"
     "\n"
     "; prevent scheduling of waiting threads\n"
-    "(assert (=> (and block_2_1_0 (not sync_2_1)) (not thread_2_0))) ; barrier 1: thread 0\n"
-    "(assert (=> (and block_2_1_1 (not sync_2_1)) (not thread_2_1))) ; barrier 1: thread 1\n"
-    "(assert (=> (and block_2_1_2 (not sync_2_1)) (not thread_2_2))) ; barrier 1: thread 2\n"
-    "(assert (=> (and block_2_2_0 (not sync_2_2)) (not thread_2_0))) ; barrier 2: thread 0\n"
-    "(assert (=> (and block_2_2_1 (not sync_2_2)) (not thread_2_1))) ; barrier 2: thread 1\n"
-    "(assert (=> (and block_2_2_2 (not sync_2_2)) (not thread_2_2))) ; barrier 2: thread 2\n\n",
+    "(assert (=> (and block_3_1_0 (not sync_3_1)) (not thread_3_0))) ; barrier 1: thread 0\n"
+    "(assert (=> (and block_3_1_1 (not sync_3_1)) (not thread_3_1))) ; barrier 1: thread 1\n"
+    "(assert (=> (and block_3_1_2 (not sync_3_1)) (not thread_3_2))) ; barrier 1: thread 2\n"
+    "(assert (=> (and block_3_2_0 (not sync_3_2)) (not thread_3_0))) ; barrier 2: thread 0\n"
+    "(assert (=> (and block_3_2_1 (not sync_3_2)) (not thread_3_1))) ; barrier 2: thread 1\n"
+    "(assert (=> (and block_3_2_2 (not sync_3_2)) (not thread_3_2))) ; barrier 2: thread 2\n\n",
     encoder->formula.str());
 
   /* verbosity */
@@ -1279,9 +1307,9 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
     "(declare-fun block_2_1_1 () Bool)\n"
     "(declare-fun block_2_1_2 () Bool)\n"
     "\n"
-    "(assert (= block_2_1_0 (ite sync_1_1 false (or exec_1_0_0 block_1_1_0))))\n"
-    "(assert (= block_2_1_1 (ite sync_1_1 false (or exec_1_1_0 block_1_1_1))))\n"
-    "(assert (= block_2_1_2 (ite sync_1_1 false (or exec_1_2_0 block_1_1_2))))\n"
+    "(assert (= block_2_1_0 exec_1_0_0))\n"
+    "(assert (= block_2_1_1 exec_1_1_0))\n"
+    "(assert (= block_2_1_2 exec_1_2_0))\n"
     "\n"
     "(declare-fun sync_2_1 () Bool)\n"
     "\n"
