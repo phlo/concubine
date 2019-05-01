@@ -374,7 +374,8 @@ struct Btor2Encoder : public Encoder
   std::map<
     word,
     std::vector<std::string>> nids_stmt,
-                              nids_exec;
+                              nids_exec,
+                              nids_block;
 
   std::map<
     word,
@@ -383,34 +384,47 @@ struct Btor2Encoder : public Encoder
       std::string>>           nids_store,
                               nids_store_indirect;
 
-  std::string                 nid (void);
+  std::string                 nid ();
 
-  std::string                 symbol (word);
+  std::string                 symbol (word pc);
 
-  void                        declare_sorts (void);
-  void                        declare_constants (void);
-  void                        declare_states (void);
+  void                        declare_sorts ();
 
-  void                        add_bound (void);
-  void                        add_thread_scheduling (void);
-  void                        add_synchronization_constraints (void);
-  void                        add_statement_execution (void);
-  void                        add_statement_activation (void);
-  void                        add_state_update (
-                                                std::string,
-                                                std::string,
-                                                std::string,
-                                                std::unordered_map<
-                                                  word,
-                                                  std::vector<word>> &,
-                                                const bool = false
-                                               );
-  void                        add_accu_update (void);
-  void                        add_mem_update (void);
-  void                        add_heap_update (void);
-  void                        add_exit_flag_update (void);
-  void                        add_exit_code_update (void);
-  void                        add_state_update (void);
+  void                        declare_constants ();
+
+  void                        declare_accu ();
+  void                        declare_mem ();
+  void                        declare_heap ();
+  void                        declare_stmt ();
+  void                        declare_exec ();
+  void                        declare_block ();
+  void                        declare_sync ();
+  void                        declare_exit ();
+  void                        declare_states ();
+
+  void                        define_next (
+                                           std::string state,
+                                           std::string sid,
+                                           std::string symbol,
+                                           std::unordered_map<
+                                             word,
+                                             std::vector<word>> & alters_state,
+                                           const bool global = false
+                                          );
+  void                        define_accu ();
+  void                        define_mem ();
+  void                        define_heap ();
+  void                        define_stmt ();
+  void                        define_exec ();
+  void                        define_block (); // TODO
+  void                        define_sync (); // TODO
+  void                        define_exit ();
+  void                        define_states ();
+
+  void                        add_bound ();
+  void                        add_thread_scheduling ();
+  void                        add_synchronization_constraints ();
+  void                        add_machine_state_definitions ();
 
   std::string                 add_load(std::string *);
 
