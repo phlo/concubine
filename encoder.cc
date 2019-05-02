@@ -1526,39 +1526,6 @@ string Btor2Encoder::symbol (word p)
     to_string(op.arg);
 }
 
-void Btor2Encoder::declare_sorts ()
-{
-  if (verbose)
-    formula << btor2::comment_section("sorts");
-
-  formula <<
-    btor2::declare_sort(sid_bool = nid(), "1") <<
-    btor2::declare_sort(sid_bv = nid(), to_string(word_size)) <<
-    btor2::declare_array(sid_heap = nid(), "2", "2") <<
-    eol;
-}
-
-void Btor2Encoder::declare_constants ()
-{
-  if (verbose)
-    formula << btor2::comment_section("constants");
-
-  /* declare boolean constants */
-  formula <<
-    btor2::constd(nid_false = nid(), sid_bool, "0") <<
-    btor2::constd(nid_true = nid(), sid_bool, "1");
-
-  /* declare bitvector constants */
-  for (const auto & c : nids_const)
-    formula <<
-      btor2::constd(
-        nids_const[c.first] = nid(),
-        sid_bv,
-        to_string(c.first));
-
-  formula << eol;
-}
-
 void Btor2Encoder::declare_accu ()
 {
   if (verbose)
@@ -1670,13 +1637,13 @@ void Btor2Encoder::declare_block ()
         {
           formula <<
             btor2::state(
-              nids_block[thread].emplace_back(nid()),
+              nids_block[s].emplace_back(nid()),
               sid_bool,
               "block_" + to_string(s) + "_" + to_string(t.first)) <<
             btor2::init(
               nid(),
               sid_bool,
-              nids_block[thread].back(),
+              nids_block[s].back(),
               pc ? nid_false : nid_true);
         }
 
@@ -1707,7 +1674,7 @@ void Btor2Encoder::declare_sync ()
   formula << eol;
 }
 
-void Btor2Encoder::declare_exit ()
+void Btor2Encoder::declare_exit_flag ()
 {
   if (verbose)
       formula << btor2::comment("exit flag") << eol;
@@ -1716,7 +1683,10 @@ void Btor2Encoder::declare_exit ()
     btor2::state(nid_exit = nid(), sid_bool, "exit") <<
     btor2::init(nid(), sid_bool, nid_exit, nid_false) <<
     eol;
+}
 
+void Btor2Encoder::declare_exit_code ()
+{
   if (verbose)
       formula << btor2::comment("exit code") << eol;
 
@@ -1724,21 +1694,6 @@ void Btor2Encoder::declare_exit ()
     btor2::state(nid_exit_code = nid(), sid_bv, "exit-code") <<
     btor2::init(nid(), sid_bv, nid_exit_code, nids_const[0]) <<
     eol;
-}
-
-void Btor2Encoder::declare_states ()
-{
-  if (verbose)
-    formula << btor2::comment_section("states");
-
-  declare_heap();
-  declare_accu();
-  declare_mem();
-  declare_stmt();
-  declare_exec();
-  declare_block();
-  declare_sync();
-  declare_exit();
 }
 
 void Btor2Encoder::define_next (
@@ -1835,18 +1790,11 @@ void Btor2Encoder::define_mem ()
 
 void Btor2Encoder::define_heap ()
 {
-  if (verbose)
-    formula << btor2::comment_subsection("heap definition");
-
   define_next(nid_heap, sid_heap, "heap", alters_heap, true);
 }
 
 void Btor2Encoder::define_stmt ()
 {
-  if (verbose)
-    formula <<
-      btor2::comment_subsection("statement activation definitions");
-
   iterate_threads([&] (Program & program) {
 
     /* map storing nids of jump conditions */
@@ -1937,11 +1885,6 @@ void Btor2Encoder::define_stmt ()
 
 void Btor2Encoder::define_exec ()
 {
-  if (verbose)
-    formula <<
-      btor2::comment_section(
-        "statement execution - shorthand for statement & thread activation");
-
   iterate_threads([this] (const Program & program) {
     for (pc = 0; pc < program.size(); pc++)
       {
@@ -1970,10 +1913,10 @@ void Btor2Encoder::define_exec ()
   });
 }
 
-void Btor2Encoder::define_exit ()
+void Btor2Encoder::define_exit_flag ()
 {
   if (verbose)
-    formula << btor2::comment_subsection("exit flag definition");
+    formula << btor2::comment_subsection("exit flag");
 
   vector<string> args({nid_exit});
 
@@ -1990,61 +1933,63 @@ void Btor2Encoder::define_exit ()
     }
 
   formula << btor2::next(nid(), sid_bool, nid_exit, nid_cond) << eol;
+}
 
+void Btor2Encoder::define_exit_code ()
+{
   if (verbose)
-    formula << btor2::comment_subsection("exit code definition");
+    formula << btor2::comment_subsection("exit code");
 
   define_next(nid_exit_code, sid_bv, "exit-code", exit_pcs, true);
 }
 
-void Btor2Encoder::define_states ()
+void Btor2Encoder::add_sorts ()
 {
   if (verbose)
-    formula << btor2::comment_section("state updates");
+    formula << btor2::comment_section("sorts");
 
-  /* update statement activation */
-  define_stmt();
-
-  /* update accu states */
-  define_accu();
-
-  /* update mem states */
-  define_mem();
-
-  /* update heap state */
-  define_heap();
-
-  /* exit states */
-  define_exit();
+  formula <<
+    btor2::declare_sort(sid_bool = nid(), "1") <<
+    btor2::declare_sort(sid_bv = nid(), to_string(word_size)) <<
+    btor2::declare_array(sid_heap = nid(), "2", "2") <<
+    eol;
 }
 
-void Btor2Encoder::add_bound ()
+void Btor2Encoder::add_constants ()
 {
   if (verbose)
-    formula << btor2::comment_section("bound");
+    formula << btor2::comment_section("constants");
 
-  /* step counter */
-  if (verbose)
-    formula << btor2::comment("step counter") << eol;
-
-  string nid_prev;
-  string nid_ctr = nid();
-
+  /* declare boolean constants */
   formula <<
-    btor2::state(nid_ctr, sid_bv, "k") <<
-    btor2::init(nid(), sid_bv, nid_ctr, nids_const[0]) <<
-    btor2::add(nid_prev = nid(), sid_bv, nids_const[1], nid_ctr) <<
-    btor2::next(nid(), sid_bv, nid_ctr, nid_prev) <<
-    eol;
+    btor2::constd(nid_false = nid(), sid_bool, "0") <<
+    btor2::constd(nid_true = nid(), sid_bool, "1");
 
-  /* bound */
+  /* declare bitvector constants */
+  for (const auto & c : nids_const)
+    formula <<
+      btor2::constd(
+        nids_const[c.first] = nid(),
+        sid_bv,
+        to_string(c.first));
+
+  formula << eol;
+}
+
+void Btor2Encoder::add_state_declarations ()
+{
   if (verbose)
-    formula << btor2::comment("bound (" + to_string(bound) + ")") << eol;
+    formula << btor2::comment_section("state declarations");
 
-  formula <<
-    btor2::eq(nid_prev = nid(), sid_bool, nids_const[bound], nid_ctr) <<
-    btor2::bad(nid(), nid_prev) <<
-    eol;
+  declare_heap();
+  declare_accu();
+  declare_mem();
+  declare_stmt();
+  declare_exec();
+  declare_block();
+  declare_sync();
+  declare_exit_flag();
+  declare_exit_code();
 }
 
 void Btor2Encoder::add_thread_scheduling ()
@@ -2209,6 +2154,81 @@ void Btor2Encoder::add_synchronization_constraints ()
     }
 }
 
+void Btor2Encoder::add_statement_activation ()
+{
+  if (verbose)
+    formula <<
+      btor2::comment_section("statement activation");
+
+  define_stmt();
+}
+
+void Btor2Encoder::add_statement_execution ()
+{
+  if (verbose)
+    formula <<
+      btor2::comment_section(
+        "statement execution - shorthand for statement & thread activation");
+
+  define_exec();
+}
+
+void Btor2Encoder::add_register_definitions ()
+{
+  if (verbose)
+    formula << btor2::comment_section("register state definitions");
+
+  define_accu();
+
+  define_mem();
+}
+
+void Btor2Encoder::add_heap_definition ()
+{
+  if (verbose)
+    formula << btor2::comment_section("heap state definition");
+
+  define_heap();
+}
+
+void Btor2Encoder::add_exit_definitions ()
+{
+  if (verbose)
+    formula << btor2::comment_section("exit definitions");
+
+  define_exit_flag();
+  define_exit_code();
+}
+
+void Btor2Encoder::add_bound ()
+{
+  if (verbose)
+    formula << btor2::comment_section("bound");
+
+  /* step counter */
+  if (verbose)
+    formula << btor2::comment("step counter") << eol;
+
+  string nid_prev;
+  string nid_ctr = nid();
+
+  formula <<
+    btor2::state(nid_ctr, sid_bv, "k") <<
+    btor2::init(nid(), sid_bv, nid_ctr, nids_const[0]) <<
+    btor2::add(nid_prev = nid(), sid_bv, nids_const[1], nid_ctr) <<
+    btor2::next(nid(), sid_bv, nid_ctr, nid_prev) <<
+    eol;
+
+  /* bound */
+  if (verbose)
+    formula << btor2::comment("bound (" + to_string(bound) + ")") << eol;
+
+  formula <<
+    btor2::eq(nid_prev = nid(), sid_bool, nids_const[bound], nid_ctr) <<
+    btor2::bad(nid(), nid_prev) <<
+    eol;
+}
+
 string Btor2Encoder::add_load (string * nid_idx)
 {
   formula << btor2::read(*nid_idx = nid(), sid_bv, nid_heap, *nid_idx);
@@ -2268,14 +2288,17 @@ string Btor2Encoder::store (Store & s)
 
 void Btor2Encoder::encode ()
 {
-  declare_sorts();
-  declare_constants();
-  add_bound();
-  declare_states();
+  add_sorts();
+  add_constants();
+  add_state_declarations();
   add_thread_scheduling();
   add_synchronization_constraints();
-  define_exec();
-  define_states();
+  add_statement_activation();
+  add_statement_execution();
+  add_register_definitions();
+  add_heap_definition();
+  add_exit_definitions();
+  add_bound();
 }
 
 string Btor2Encoder::encode (Load & l)

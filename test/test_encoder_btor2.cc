@@ -77,8 +77,8 @@ struct Btor2EncoderTest : public ::testing::Test
 
   void add_declerations (bool clear_formula)
     {
-      encoder->declare_sorts();
-      encoder->declare_constants();
+      encoder->add_sorts();
+      encoder->add_constants();
 
       if (clear_formula)
         encoder->formula.str("");
@@ -86,10 +86,9 @@ struct Btor2EncoderTest : public ::testing::Test
 
   void init_states (bool clear_formula)
     {
-      encoder->declare_sorts();
-      encoder->declare_constants();
-      encoder->add_bound();
-      encoder->declare_states();
+      encoder->add_sorts();
+      encoder->add_constants();
+      encoder->add_state_declarations();
 
       if (clear_formula)
         encoder->formula.str("");
@@ -97,10 +96,9 @@ struct Btor2EncoderTest : public ::testing::Test
 
   void init_thread_scheduling (bool clear_formula)
     {
-      encoder->declare_sorts();
-      encoder->declare_constants();
-      encoder->add_bound();
-      encoder->declare_states();
+      encoder->add_sorts();
+      encoder->add_constants();
+      encoder->add_state_declarations();
       encoder->add_thread_scheduling();
 
       if (clear_formula)
@@ -109,26 +107,11 @@ struct Btor2EncoderTest : public ::testing::Test
 
   void init_synchronization_constraints (bool clear_formula)
     {
-      encoder->declare_sorts();
-      encoder->declare_constants();
-      encoder->add_bound();
-      encoder->declare_states();
+      encoder->add_sorts();
+      encoder->add_constants();
+      encoder->add_state_declarations();
       encoder->add_thread_scheduling();
       encoder->add_synchronization_constraints();
-
-      if (clear_formula)
-        encoder->formula.str("");
-    }
-
-  void init_statement_execution (bool clear_formula)
-    {
-      encoder->declare_sorts();
-      encoder->declare_constants();
-      encoder->add_bound();
-      encoder->declare_states();
-      encoder->add_thread_scheduling();
-      encoder->add_synchronization_constraints();
-      encoder->define_exec();
 
       if (clear_formula)
         encoder->formula.str("");
@@ -136,14 +119,26 @@ struct Btor2EncoderTest : public ::testing::Test
 
   void init_statement_activation (bool clear_formula)
     {
-      encoder->declare_sorts();
-      encoder->declare_constants();
-      encoder->add_bound();
-      encoder->declare_states();
+      encoder->add_sorts();
+      encoder->add_constants();
+      encoder->add_state_declarations();
       encoder->add_thread_scheduling();
       encoder->add_synchronization_constraints();
-      encoder->define_exec();
-      encoder->define_stmt();
+      encoder->add_statement_activation();
+
+      if (clear_formula)
+        encoder->formula.str("");
+    }
+
+  void init_statement_execution (bool clear_formula)
+    {
+      encoder->add_sorts();
+      encoder->add_constants();
+      encoder->add_state_declarations();
+      encoder->add_thread_scheduling();
+      encoder->add_synchronization_constraints();
+      encoder->add_statement_activation();
+      encoder->add_statement_execution();
 
       if (clear_formula)
         encoder->formula.str("");
@@ -166,10 +161,10 @@ TEST_F(Btor2EncoderTest, constructor)
     encoder->nids_const);
 }
 
-// void Btor2Encoder::declare_sorts ()
-TEST_F(Btor2EncoderTest, declare_sorts)
+// void Btor2Encoder::add_sorts ()
+TEST_F(Btor2EncoderTest, add_sorts)
 {
-  encoder->declare_sorts();
+  encoder->add_sorts();
 
   ASSERT_EQ("1", encoder->sid_bool);
   ASSERT_EQ("2", encoder->sid_bv);
@@ -189,7 +184,7 @@ TEST_F(Btor2EncoderTest, declare_sorts)
   reset_encoder(1);
 
   verbose = false;
-  encoder->declare_sorts();
+  encoder->add_sorts();
   verbose = true;
 
   ASSERT_EQ(
@@ -200,8 +195,8 @@ TEST_F(Btor2EncoderTest, declare_sorts)
     encoder->str());
 }
 
-// void Btor2Encoder::declare_constants ()
-TEST_F(Btor2EncoderTest, declare_constants)
+// void Btor2Encoder::add_constants ()
+TEST_F(Btor2EncoderTest, add_constants)
 {
   for (size_t thread = 0; thread < 3; thread++)
     {
@@ -215,8 +210,8 @@ TEST_F(Btor2EncoderTest, declare_constants)
 
   reset_encoder(1);
 
-  encoder->declare_sorts();
-  encoder->declare_constants();
+  encoder->add_sorts();
+  encoder->add_constants();
 
   ASSERT_EQ("4", encoder->nid_false);
   ASSERT_EQ("5", encoder->nid_true);
@@ -251,8 +246,8 @@ TEST_F(Btor2EncoderTest, declare_constants)
   reset_encoder(1);
 
   verbose = false;
-  encoder->declare_sorts();
-  encoder->declare_constants();
+  encoder->add_sorts();
+  encoder->add_constants();
   verbose = true;
 
   ASSERT_EQ(
@@ -272,53 +267,8 @@ TEST_F(Btor2EncoderTest, declare_constants)
     encoder->str());
 }
 
-// void add_bound ()
-TEST_F(Btor2EncoderTest, add_bound)
-{
-  add_declerations(true);
-
-  encoder->add_bound();
-
-  ASSERT_EQ(
-    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "; bound\n"
-    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    "; step counter\n"
-    "8 state 2 k\n"
-    "9 init 2 8 6\n"
-    "10 add 2 7 8\n"
-    "11 next 2 8 10\n"
-    "\n"
-    "; bound (1)\n"
-    "12 eq 1 7 8\n"
-    "13 bad 12\n"
-    "\n",
-    encoder->formula.str());
-
-  /* verbosity */
-  reset_encoder(1);
-
-  add_declerations(true);
-
-  verbose = false;
-  encoder->add_bound();
-  verbose = true;
-
-  ASSERT_EQ(
-    "8 state 2 k\n"
-    "9 init 2 8 6\n"
-    "10 add 2 7 8\n"
-    "11 next 2 8 10\n"
-    "\n"
-    "12 eq 1 7 8\n"
-    "13 bad 12\n"
-    "\n",
-    encoder->formula.str());
-}
-
-// void declare_states ()
-TEST_F(Btor2EncoderTest, declare_states)
+// void Btor2Encoder::add_state_declarations ()
+TEST_F(Btor2EncoderTest, add_state_declarations)
 {
   for (size_t thread = 0; thread < 3; thread++)
     {
@@ -335,21 +285,38 @@ TEST_F(Btor2EncoderTest, declare_states)
 
   add_declerations(true);
 
-  encoder->declare_states();
+  int offset = encoder->node;
+
+  encoder->add_state_declarations();
 
   cout << encoder->formula.str() << eol;
 
-  ASSERT_EQ("10", encoder->nid_heap);
-  ASSERT_EQ(Word2NIDMap({{0, "11"}, {1, "13"}, {2, "15"}}), encoder->nids_accu);
-  ASSERT_EQ(Word2NIDMap({{0, "17"}, {1, "19"}, {2, "21"}}), encoder->nids_mem);
-  ASSERT_EQ(vector<string>({"23", "25", "27"}), encoder->nids_stmt[0]);
-  ASSERT_EQ(vector<string>({"29", "31", "33"}), encoder->nids_stmt[1]);
-  ASSERT_EQ(vector<string>({"35", "37", "39"}), encoder->nids_stmt[2]);
-  ASSERT_EQ("41", encoder->nid_exit);
-  ASSERT_EQ("43", encoder->nid_exit_code);
+  ASSERT_EQ("8", encoder->nid_heap);
+
+  ASSERT_EQ(Word2NIDMap({{0, "9"}, {1, "10"}, {2, "11"}}), encoder->nids_accu);
+
+  ASSERT_EQ(Word2NIDMap({{0, "12"}, {1, "13"}, {2, "14"}}), encoder->nids_mem);
+
+  ASSERT_EQ(vector<string>({"15", "17", "19"}), encoder->nids_stmt[0]);
+  ASSERT_EQ(vector<string>({"21", "23", "25"}), encoder->nids_stmt[1]);
+  ASSERT_EQ(vector<string>({"27", "29", "31"}), encoder->nids_stmt[2]);
+
+  ASSERT_EQ(vector<string>({"33", "35", "37"}), encoder->nids_exec[0]);
+  ASSERT_EQ(vector<string>({"39", "41", "43"}), encoder->nids_exec[1]);
+  ASSERT_EQ(vector<string>({"45", "47", "49"}), encoder->nids_exec[2]);
+
+  ASSERT_EQ(vector<string>({"51", "53", "55"}), encoder->nids_block[0]);
+
+  ASSERT_EQ("57", encoder->nids_sync[0]);
+
+  ASSERT_EQ("59", encoder->nid_exit);
+
+  ASSERT_EQ("61", encoder->nid_exit_code);
+
+  /*
   ASSERT_EQ(
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "; states\n"
+    "; state declarations\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; heap\n"
@@ -402,6 +369,83 @@ TEST_F(Btor2EncoderTest, declare_states)
     "44 init 2 43 6\n"
     "\n",
     encoder->formula.str());
+  */
+
+  ostringstream expected;
+
+  expected <<
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; state declarations\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n";
+
+  offset = static_cast<int>(encoder->node) - offset;
+
+  expected << "; heap\n";
+  expected << nid(-offset--) + " state 3 heap\n\n";
+
+  expected << "; accumulator\n";
+  for (encoder->thread = 0; encoder->thread < 3; encoder->thread++)
+    {
+      expected <<
+        nid(-offset--) + " state 2 accu_" + to_string(encoder->thread) + eol;
+    }
+
+  expected << eol;
+
+  ASSERT_EQ(expected.str(), encoder->formula.str());
+
+  /*
+
+  expected = "; update accu ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n";
+
+  for (encoder->thread = 0; encoder->thread < 3; encoder->thread++)
+    {
+      vector<string> & exec = encoder->nids_exec[encoder->thread];
+
+      string thread = to_string(encoder->thread);
+      string accu = encoder->nids_accu[encoder->thread];
+
+      string nid_0_ite  = nid(-offset--);
+      string nid_2_add  = nid(-offset--);
+      string nid_2_ite  = nid(-offset--);
+      string nid_3_addi = nid(-offset--);
+      string nid_3_ite  = nid(-offset--);
+      string nid_4_sub  = nid(-offset--);
+      string nid_4_ite  = nid(-offset--);
+      string nid_5_subi = nid(-offset--);
+      string nid_5_ite  = nid(-offset--);
+      string nid_6_cmp  = nid(-offset--);
+      string nid_6_ite  = nid(-offset--);
+      string nid_13_mem = nid(-offset--);
+      string nid_14_eq  = nid(-offset--);
+      string nid_14_cas = nid(-offset--);
+      string nid_14_ite = nid(-offset--);
+      string nid_next   = nid(-offset--);
+
+      expected +=
+        "; accu_" + thread + "\n"
+        + (encoder->thread ? "" : "509 read 2 14 7\n")
+        + nid_0_ite  + " ite 2 " + exec[0] + " 509 " + accu + " " + thread + ":0:LOAD:1\n"
+        + nid_2_add  + " add 2 " + accu + " 509\n"
+        + nid_2_ite  + " ite 2 " + exec[2] + " " + nid_2_add + " " + nid_0_ite + " " + thread + ":2:ADD:1\n"
+        + nid_3_addi + " add 2 " + accu + " 7\n"
+        + nid_3_ite  + " ite 2 " + exec[3] + " " + nid_3_addi + " " + nid_2_ite + " " + thread + ":3:ADDI:1\n"
+        + nid_4_sub  + " sub 2 " + accu + " 509\n"
+        + nid_4_ite  + " ite 2 " + exec[4] + " " + nid_4_sub + " " + nid_3_ite + " " + thread + ":4:SUB:1\n"
+        + nid_5_subi + " sub 2 " + accu + " 7\n"
+        + nid_5_ite  + " ite 2 " + exec[5] + " " + nid_5_subi + " " + nid_4_ite + " " + thread + ":5:SUBI:1\n"
+        + nid_6_cmp  + " sub 2 " + accu + " 509\n"
+        + nid_6_ite  + " ite 2 " + exec[6] + " " + nid_6_cmp + " " + nid_5_ite + " " + thread + ":6:CMP:1\n"
+        + nid_13_mem + " ite 2 " + exec[13] + " 509 " + nid_6_ite + " " + thread + ":13:MEM:1\n"
+        + nid_14_eq  + " eq 1 "  + encoder->nids_mem[encoder->thread] + " 509\n"
+        + nid_14_cas + " ite 2 " + nid_14_eq + " 7 6\n"
+        + nid_14_ite + " ite 2 " + exec[14] + " " + nid_14_cas + " " + nid_13_mem + " " + thread + ":14:CAS:1\n"
+        + nid_next   + " next 2 " + accu + " " + nid_14_ite + "\n"
+        "\n";
+    }
+
+  ASSERT_EQ(expected, encoder->formula.str());
+  */
 
   /* verbosity */
   reset_encoder(1);
@@ -409,7 +453,7 @@ TEST_F(Btor2EncoderTest, declare_states)
   add_declerations(true);
 
   verbose = false;
-  encoder->declare_states();
+  encoder->add_state_declarations();
   verbose = true;
 
   ASSERT_EQ(
@@ -459,7 +503,7 @@ TEST_F(Btor2EncoderTest, declare_states)
     encoder->formula.str());
 }
 
-// void add_thread_scheduling ()
+// void Btor2Encoder::add_thread_scheduling ()
 TEST_F(Btor2EncoderTest, add_thread_scheduling)
 {
   add_dummy_programs(3, 3);
@@ -534,7 +578,7 @@ TEST_F(Btor2EncoderTest, add_thread_scheduling)
     encoder->formula.str());
 }
 
-// void add_synchronization_constraints ()
+// void Btor2Encoder::add_synchronization_constraints ()
 TEST_F(Btor2EncoderTest, add_synchronization_constraints)
 {
   for (size_t thread = 0; thread < 3; thread++)
@@ -900,8 +944,8 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints_no_sync)
   ASSERT_EQ("", encoder->formula.str());
 }
 
-// void define_exec ()
-TEST_F(Btor2EncoderTest, define_exec)
+// void Btor2Encoder::add_statement_execution ()
+TEST_F(Btor2EncoderTest, add_statement_execution)
 {
   add_dummy_programs(3, 2);
 
@@ -912,7 +956,7 @@ TEST_F(Btor2EncoderTest, define_exec)
 
   init_synchronization_constraints(true);
 
-  encoder->define_exec();
+  encoder->add_statement_execution();
 
   ASSERT_EQ(vector<string>({"85", "86", "87"}), encoder->nids_exec[0]);
   ASSERT_EQ(vector<string>({"88", "89", "90"}), encoder->nids_exec[1]);
@@ -942,7 +986,7 @@ TEST_F(Btor2EncoderTest, define_exec)
   init_synchronization_constraints(true);
 
   verbose = false;
-  encoder->define_exec();
+  encoder->add_statement_execution();
   verbose = true;
 
   ASSERT_EQ(
@@ -961,14 +1005,14 @@ TEST_F(Btor2EncoderTest, define_exec)
     encoder->formula.str());
 }
 
-// void define_stmt ()
-TEST_F(Btor2EncoderTest, define_stmt)
+// void Btor2Encoder::add_statement_activation ()
+TEST_F(Btor2EncoderTest, add_statement_activation)
 {
   add_dummy_programs(3, 2);
 
   init_statement_execution(true);
 
-  encoder->define_stmt();
+  encoder->add_statement_activation();
 
   ASSERT_EQ(
     "; update statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
@@ -1014,7 +1058,7 @@ TEST_F(Btor2EncoderTest, define_stmt)
   init_statement_execution(true);
 
   verbose = false;
-  encoder->define_stmt();
+  encoder->add_statement_activation();
   verbose = true;
 
   ASSERT_EQ(
@@ -1048,7 +1092,7 @@ TEST_F(Btor2EncoderTest, define_stmt)
     encoder->formula.str());
 }
 
-TEST_F(Btor2EncoderTest, define_stmt_jmp)
+TEST_F(Btor2EncoderTest, add_statement_activation_jmp)
 {
   for (size_t i = 0; i < 3; i++)
     {
@@ -1064,7 +1108,7 @@ TEST_F(Btor2EncoderTest, define_stmt_jmp)
 
   init_statement_execution(true);
 
-  encoder->define_stmt();
+  encoder->add_statement_activation();
 
   ASSERT_EQ(
     "; update statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
@@ -1141,7 +1185,7 @@ TEST_F(Btor2EncoderTest, define_stmt_jmp)
     encoder->formula.str());
 }
 
-TEST_F(Btor2EncoderTest, define_stmt_jmp_conditional)
+TEST_F(Btor2EncoderTest, add_statement_activation_jmp_conditional)
 {
   for (size_t i = 0; i < 3; i++)
     {
@@ -1157,7 +1201,7 @@ TEST_F(Btor2EncoderTest, define_stmt_jmp_conditional)
 
   init_statement_execution(true);
 
-  encoder->define_stmt();
+  encoder->add_statement_activation();
 
   ASSERT_EQ(vector<string>({"28", "30", "32", "34"}), encoder->nids_stmt[0]);
   ASSERT_EQ(vector<string>({"36", "38", "40", "42"}), encoder->nids_stmt[1]);
@@ -1285,7 +1329,7 @@ TEST_F(Btor2EncoderTest, define_stmt_jmp_conditional)
   */
 }
 
-TEST_F(Btor2EncoderTest, define_stmt_jmp_start)
+TEST_F(Btor2EncoderTest, add_statement_activation_jmp_start)
 {
   for (size_t i = 0; i < 3; i++)
     {
@@ -1301,7 +1345,7 @@ TEST_F(Btor2EncoderTest, define_stmt_jmp_start)
 
   init_statement_execution(true);
 
-  encoder->define_stmt();
+  encoder->add_statement_activation();
 
   ASSERT_EQ(vector<string>({"28", "30", "32", "34"}), encoder->nids_stmt[0]);
   ASSERT_EQ(vector<string>({"36", "38", "40", "42"}), encoder->nids_stmt[1]);
@@ -1429,7 +1473,7 @@ TEST_F(Btor2EncoderTest, define_stmt_jmp_start)
   */
 }
 
-TEST_F(Btor2EncoderTest, define_stmt_jmp_twice)
+TEST_F(Btor2EncoderTest, add_statement_activation_jmp_twice)
 {
   for (size_t i = 0; i < 3; i++)
     {
@@ -1446,7 +1490,7 @@ TEST_F(Btor2EncoderTest, define_stmt_jmp_twice)
 
   init_statement_execution(true);
 
-  encoder->define_stmt();
+  encoder->add_statement_activation();
 
   ASSERT_EQ(vector<string>({"28", "30", "32", "34", "36"}), encoder->nids_stmt[0]);
   ASSERT_EQ(vector<string>({"38", "40", "42", "44", "46"}), encoder->nids_stmt[1]);
@@ -1607,13 +1651,15 @@ TEST_F(Btor2EncoderTest, define_stmt_jmp_twice)
   */
 }
 
-// void define_next (
-//                   string state,
-//                   string sid,
-//                   string symbol,
-//                   unordered_map<word, vector<word>> & alters_state,
-//                   const bool global
-//                  )
+// void Btor2Encoder::define_next (
+//                                 string state,
+//                                 string sid,
+//                                 string symbol,
+//                                 unordered_map<
+//                                   word,
+//                                   vector<word>> & alters_state,
+//                                 const bool global
+//                                )
 TEST_F(Btor2EncoderTest, define_next)
 {
   add_dummy_programs(3, 3);
@@ -1722,6 +1768,91 @@ TEST_F(Btor2EncoderTest, define_next)
     encoder->formula.str());
 }
 
+// void Btor2Encoder::add_register_definitions ()
+TEST_F(Btor2EncoderTest, add_register_definitions)
+{
+  add_instruction_set(3);
+
+  init_statement_execution(true);
+
+  int offset = encoder->node + 1;
+
+  encoder->add_register_definitions();
+
+  offset = static_cast<int>(encoder->node) - offset;
+
+  expected = "; update accu ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n";
+
+  for (encoder->thread = 0; encoder->thread < 3; encoder->thread++)
+    {
+      vector<string> & exec = encoder->nids_exec[encoder->thread];
+
+      string thread = to_string(encoder->thread);
+      string accu = encoder->nids_accu[encoder->thread];
+
+      string nid_0_ite  = nid(-offset--);
+      string nid_2_add  = nid(-offset--);
+      string nid_2_ite  = nid(-offset--);
+      string nid_3_addi = nid(-offset--);
+      string nid_3_ite  = nid(-offset--);
+      string nid_4_sub  = nid(-offset--);
+      string nid_4_ite  = nid(-offset--);
+      string nid_5_subi = nid(-offset--);
+      string nid_5_ite  = nid(-offset--);
+      string nid_6_cmp  = nid(-offset--);
+      string nid_6_ite  = nid(-offset--);
+      string nid_13_mem = nid(-offset--);
+      string nid_14_eq  = nid(-offset--);
+      string nid_14_cas = nid(-offset--);
+      string nid_14_ite = nid(-offset--);
+      string nid_next   = nid(-offset--);
+
+      expected +=
+        "; accu_" + thread + "\n"
+        + (encoder->thread ? "" : "509 read 2 14 7\n")
+        + nid_0_ite  + " ite 2 " + exec[0] + " 509 " + accu + " " + thread + ":0:LOAD:1\n"
+        + nid_2_add  + " add 2 " + accu + " 509\n"
+        + nid_2_ite  + " ite 2 " + exec[2] + " " + nid_2_add + " " + nid_0_ite + " " + thread + ":2:ADD:1\n"
+        + nid_3_addi + " add 2 " + accu + " 7\n"
+        + nid_3_ite  + " ite 2 " + exec[3] + " " + nid_3_addi + " " + nid_2_ite + " " + thread + ":3:ADDI:1\n"
+        + nid_4_sub  + " sub 2 " + accu + " 509\n"
+        + nid_4_ite  + " ite 2 " + exec[4] + " " + nid_4_sub + " " + nid_3_ite + " " + thread + ":4:SUB:1\n"
+        + nid_5_subi + " sub 2 " + accu + " 7\n"
+        + nid_5_ite  + " ite 2 " + exec[5] + " " + nid_5_subi + " " + nid_4_ite + " " + thread + ":5:SUBI:1\n"
+        + nid_6_cmp  + " sub 2 " + accu + " 509\n"
+        + nid_6_ite  + " ite 2 " + exec[6] + " " + nid_6_cmp + " " + nid_5_ite + " " + thread + ":6:CMP:1\n"
+        + nid_13_mem + " ite 2 " + exec[13] + " 509 " + nid_6_ite + " " + thread + ":13:MEM:1\n"
+        + nid_14_eq  + " eq 1 "  + encoder->nids_mem[encoder->thread] + " 509\n"
+        + nid_14_cas + " ite 2 " + nid_14_eq + " 7 6\n"
+        + nid_14_ite + " ite 2 " + exec[14] + " " + nid_14_cas + " " + nid_13_mem + " " + thread + ":14:CAS:1\n"
+        + nid_next   + " next 2 " + accu + " " + nid_14_ite + "\n"
+        "\n";
+    }
+
+  expected = "; update CAS memory register ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n";
+
+  for (encoder->thread = 0; encoder->thread < 3; encoder->thread++)
+    {
+      vector<string> & exec = encoder->nids_exec[encoder->thread];
+
+      string thread = to_string(encoder->thread);
+      string mem = encoder->nids_mem[encoder->thread];
+
+      string nid_13_ite = nid(-offset--);
+      string nid_next = nid(-offset--);
+
+      expected +=
+        "; mem_" + thread + "\n"
+        + (encoder->thread ? "" : "509 read 2 14 7\n")
+        + nid_13_ite + " ite 2 " + exec[13] + " 509 " + mem + " " + thread + ":13:MEM:1\n"
+        + nid_next + " next 2 " + mem + " " + nid_13_ite + "\n"
+        "\n";
+    }
+
+  ASSERT_EQ(expected, encoder->formula.str());
+}
+
+#ifdef NDEPRECATE
 // void Btor2Encoder::define_accu ()
 TEST_F(Btor2EncoderTest, define_accu)
 {
@@ -1821,9 +1952,10 @@ TEST_F(Btor2EncoderTest, define_mem)
 
   ASSERT_EQ(expected, encoder->formula.str());
 }
+#endif
 
-// void Btor2Encoder::define_heap ()
-TEST_F(Btor2EncoderTest, define_heap)
+// void Btor2Encoder::add_heap_definition ()
+TEST_F(Btor2EncoderTest, add_heap_definition)
 {
   add_instruction_set(3);
 
@@ -1881,6 +2013,60 @@ TEST_F(Btor2EncoderTest, define_heap)
     encoder->formula.str());
 }
 
+// void Btor2Encoder::add_exit_definitions ()
+TEST_F(Btor2EncoderTest, define_exit)
+{
+  add_instruction_set(3);
+
+  init_statement_execution(true);
+
+  encoder->add_exit_definitions();
+
+  string nid_one = encoder->nids_const[1];
+  string nid_or_1 = nid(-7);
+  string nid_or_2 = nid(-6);
+  string nid_or_3 = nid(-5);
+  string nid_next = nid(-4);
+  string nid_ite_1 = nid(-3);
+  string nid_ite_2 = nid(-2);
+  string nid_ite_3 = nid(-1);
+
+  ASSERT_EQ(
+    "; update exit flag ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    + nid_or_1 + " or 1 " + encoder->nid_exit + " " + encoder->nids_exec[2][16] + "\n"
+    + nid_or_2 + " or 1 " + encoder->nids_exec[0][16] + " " + nid_or_1 + "\n"
+    + nid_or_3 + " or 1 " + encoder->nids_exec[1][16] + " " + nid_or_2 + "\n"
+    + nid_next + " next 1 " + encoder->nid_exit + " " + nid_or_3 + "\n"
+    "\n"
+    "; update exit code ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    + nid_ite_1 + " ite 2 " + encoder->nids_exec[0][16] + " " + nid_one + " " + encoder->nid_exit_code + " 0:16:EXIT:1\n"
+    + nid_ite_2 + " ite 2 " + encoder->nids_exec[1][16] + " " + nid_one + " " + nid_ite_1 + " 1:16:EXIT:1\n"
+    + nid_ite_3 + " ite 2 " + encoder->nids_exec[2][16] + " " + nid_one + " " + nid_ite_2 + " 2:16:EXIT:1\n"
+    + nid_next + " next 2 " + encoder->nid_exit_code + " " + nid_ite_3 + "\n"
+    "\n",
+    encoder->formula.str());
+}
+
+TEST_F(Btor2EncoderTest, add_exit_definitions_no_exit)
+{
+  add_dummy_programs(3, 3);
+
+  init_statement_execution(true);
+
+  encoder->add_exit_definitions();
+
+  ASSERT_EQ(
+    "; update exit flag ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    + nid(-1) + " next 1 " + encoder->nid_exit + " " + encoder->nid_exit + "\n"
+    "\n",
+    encoder->formula.str());
+}
+
+
+#ifdef NDEPRECATE
 // void Btor2Encoder::define_exit ()
 TEST_F(Btor2EncoderTest, define_exit)
 {
@@ -1917,7 +2103,6 @@ TEST_F(Btor2EncoderTest, define_exit)
     encoder->formula.str());
 }
 
-#ifdef NDEPRECATE
 TEST_F(Btor2EncoderTest, add_exit_flag_update_no_exit)
 {
   add_dummy_programs(3, 3);
@@ -1959,7 +2144,6 @@ TEST_F(Btor2EncoderTest, add_exit_code_update)
     "\n",
     encoder->formula.str());
 }
-#endif
 
 // void define_states ()
 TEST_F(Btor2EncoderTest, define_states)
@@ -2909,6 +3093,52 @@ TEST_F(Btor2EncoderTest, define_states)
     "876 ite 2 200 7 875\n"
     "877 ite 2 217 7 876\n"
     "878 next 2 131 877\n"
+    "\n",
+    encoder->formula.str());
+}
+#endif
+
+// void Btor2Encoder::add_bound ()
+TEST_F(Btor2EncoderTest, add_bound)
+{
+  add_declerations(true);
+
+  encoder->add_bound();
+
+  ASSERT_EQ(
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; bound\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; step counter\n"
+    "8 state 2 k\n"
+    "9 init 2 8 6\n"
+    "10 add 2 7 8\n"
+    "11 next 2 8 10\n"
+    "\n"
+    "; bound (1)\n"
+    "12 eq 1 7 8\n"
+    "13 bad 12\n"
+    "\n",
+    encoder->formula.str());
+
+  /* verbosity */
+  reset_encoder(1);
+
+  add_declerations(true);
+
+  verbose = false;
+  encoder->add_bound();
+  verbose = true;
+
+  ASSERT_EQ(
+    "8 state 2 k\n"
+    "9 init 2 8 6\n"
+    "10 add 2 7 8\n"
+    "11 next 2 8 10\n"
+    "\n"
+    "12 eq 1 7 8\n"
+    "13 bad 12\n"
     "\n",
     encoder->formula.str());
 }

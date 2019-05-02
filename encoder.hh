@@ -388,10 +388,6 @@ struct Btor2Encoder : public Encoder
 
   std::string                 symbol (word pc);
 
-  void                        declare_sorts ();
-
-  void                        declare_constants ();
-
   void                        declare_accu ();
   void                        declare_mem ();
   void                        declare_heap ();
@@ -399,8 +395,8 @@ struct Btor2Encoder : public Encoder
   void                        declare_exec ();
   void                        declare_block ();
   void                        declare_sync ();
-  void                        declare_exit ();
-  void                        declare_states ();
+  void                        declare_exit_flag ();
+  void                        declare_exit_code ();
 
   void                        define_next (
                                            std::string state,
@@ -418,13 +414,20 @@ struct Btor2Encoder : public Encoder
   void                        define_exec ();
   void                        define_block (); // TODO
   void                        define_sync (); // TODO
-  void                        define_exit ();
-  void                        define_states ();
+  void                        define_exit_flag ();
+  void                        define_exit_code ();
 
-  void                        add_bound ();
+  void                        add_sorts ();
+  void                        add_constants ();
+  void                        add_state_declarations ();
   void                        add_thread_scheduling ();
   void                        add_synchronization_constraints ();
-  void                        add_machine_state_definitions ();
+  void                        add_statement_activation ();
+  void                        add_statement_execution ();
+  void                        add_register_definitions ();
+  void                        add_heap_definition ();
+  void                        add_exit_definitions ();
+  void                        add_bound ();
 
   std::string                 add_load(std::string *);
 
