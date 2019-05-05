@@ -20,7 +20,8 @@ WFLAGS   = -pedantic \
            -Wredundant-decls \
            -Wstrict-overflow \
            -Wsign-conversion \
-           -Werror
+           -Werror \
+           -Wfatal-errors
 LDFLAGS  = -lz3
 
 # source files (excluding main.cc)

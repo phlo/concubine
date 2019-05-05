@@ -1511,6 +1511,11 @@ string Btor2Encoder::nid ()
   return to_string(node++);
 }
 
+string Btor2Encoder::nid (int offset)
+{
+  return to_string(static_cast<int>(node) + offset);
+}
+
 string Btor2Encoder::symbol (word p)
 {
   UnaryInstruction & op =
@@ -1526,10 +1531,18 @@ string Btor2Encoder::symbol (word p)
     to_string(op.arg);
 }
 
+void Btor2Encoder::declare_heap ()
+{
+  if (verbose)
+    formula << btor2::comment("heap") << eol;
+
+  formula << btor2::state(nid_heap = nid(), sid_heap, "heap") << eol;
+}
+
 void Btor2Encoder::declare_accu ()
 {
   if (verbose)
-      formula << btor2::comment("accumulator") << eol;
+    formula << btor2::comment("accumulator registers - accu_<thread>") << eol;
 
   ITERATE_THREADS
     formula <<
@@ -1544,7 +1557,7 @@ void Btor2Encoder::declare_accu ()
 void Btor2Encoder::declare_mem ()
 {
   if (verbose)
-      formula << btor2::comment("CAS memory register") << eol;
+    formula << btor2::comment("CAS memory registers - mem_<thread>") << eol;
 
   ITERATE_THREADS
     formula <<
@@ -1556,18 +1569,12 @@ void Btor2Encoder::declare_mem ()
   formula << eol;
 }
 
-void Btor2Encoder::declare_heap ()
-{
-  if (verbose)
-      formula << btor2::comment("heap") << eol;
-
-  formula << btor2::state(nid_heap = nid(), sid_heap, "heap") << eol;
-}
-
 void Btor2Encoder::declare_stmt ()
 {
   if (verbose)
-      formula << btor2::comment("statement activation") << eol;
+    formula
+      << btor2::comment("statement activation flags - stmt_<thread>_<pc>")
+      << eol;
 
   ITERATE_THREADS
     {
@@ -1576,135 +1583,67 @@ void Btor2Encoder::declare_stmt ()
       nids_stmt[thread].reserve(program_size);
 
       for (pc = 0; pc < program_size; pc++)
-        {
-          formula <<
-            btor2::state(
-              nids_stmt[thread].emplace_back(nid()),
-              sid_bool,
-              "stmt_" + to_string(thread) + "_" + to_string(pc)) <<
-            btor2::init(
-              nid(),
-              sid_bool,
-              nids_stmt[thread].back(),
-              pc ? nid_false : nid_true);
-        }
+        formula <<
+          btor2::state(
+            nids_stmt[thread].emplace_back(nid()),
+            sid_bool,
+            "stmt_" + to_string(thread) + "_" + to_string(pc));
 
       formula << eol;
     }
-}
-
-void Btor2Encoder::declare_exec ()
-{
-  if (verbose)
-      formula << btor2::comment("statement execution") << eol;
-
-  iterate_threads([this] (const Program & program) {
-      auto program_size = program.size();
-
-      nids_exec[thread].reserve(program_size);
-
-      for (pc = 0; pc < program_size; pc++)
-        {
-          formula <<
-            btor2::state(
-              nids_exec[thread].emplace_back(nid()),
-              sid_bool,
-              "exec_" + to_string(thread) + "_" + to_string(pc)) <<
-            btor2::init(
-              nid(),
-              sid_bool,
-              nids_exec[thread].back(),
-              pc ? nid_false : nid_true);
-        }
-
-      formula << eol;
-    });
 }
 
 void Btor2Encoder::declare_block ()
 {
-  if (sync_pcs.empty())
-    return;
-
   if (verbose)
-      formula << btor2::comment("thread blocking") << eol;
+    formula
+      << btor2::comment("thread blocking flags - block_<id>_<thread>")
+      << eol;
 
   for (const auto & [s, threads] : sync_pcs)
     {
-      nids_block[thread].reserve(threads.size());
-
-      for (const auto & t : threads)
+      // TODO: ignore single-threaded barriers -> see gitlab issue #65
+      if (threads.size() > 1)
         {
-          formula <<
-            btor2::state(
-              nids_block[s].emplace_back(nid()),
-              sid_bool,
-              "block_" + to_string(s) + "_" + to_string(t.first)) <<
-            btor2::init(
-              nid(),
-              sid_bool,
-              nids_block[s].back(),
-              pc ? nid_false : nid_true);
+          auto & nids = nids_block.insert(nids_block.end(), {s, {}})->second;
+
+          for (const auto & t : threads)
+            formula <<
+              btor2::state(
+                nids.emplace_hint(nids.end(), t.first, nid())->second,
+                sid_bool,
+                "block_" + to_string(s) + "_" + to_string(t.first));
+
+          formula << eol;
         }
-
-      formula << eol;
     }
-}
-
-void Btor2Encoder::declare_sync ()
-{
-  if (sync_pcs.empty())
-    return;
-
-  if (verbose)
-      formula << btor2::comment("synchronization") << eol;
-
-  for (const auto & s : sync_pcs)
-    formula <<
-      btor2::state(
-        nids_sync[s.first] = nid(),
-        sid_bool,
-        "sync_" + to_string(s.first)) <<
-      btor2::init(
-        nid(),
-        sid_bool,
-        nids_sync[s.first],
-        pc ? nid_false : nid_true);
-
-  formula << eol;
 }
 
 void Btor2Encoder::declare_exit_flag ()
 {
   if (verbose)
-      formula << btor2::comment("exit flag") << eol;
+    formula << btor2::comment("exit flag") << eol;
 
   formula <<
     btor2::state(nid_exit = nid(), sid_bool, "exit") <<
-    btor2::init(nid(), sid_bool, nid_exit, nid_false) <<
     eol;
 }
 
 void Btor2Encoder::declare_exit_code ()
 {
-  if (verbose)
-      formula << btor2::comment("exit code") << eol;
-
-  formula <<
-    btor2::state(nid_exit_code = nid(), sid_bv, "exit-code") <<
-    btor2::init(nid(), sid_bv, nid_exit_code, nids_const[0]) <<
-    eol;
+  formula << btor2::state(nid_exit_code = nid(), sid_bv, "exit-code");
 }
 
-void Btor2Encoder::define_next (
-                                string nid_state,
-                                string sid,
-                                string sym,
-                                unordered_map<
-                                  word,
-                                  vector<word>> & alters_state,
-                                const bool global
-                               )
+void Btor2Encoder::define_state (
+                                 string nid_state,
+                                 string sid,
+                                 string nid_init,
+                                 string sym,
+                                 unordered_map<
+                                 word,
+                                 vector<word>> & alters_state,
+                                 const bool global
+                                )
 {
   string nid_next = nid_state;
 
@@ -1714,6 +1653,9 @@ void Btor2Encoder::define_next (
 
   if (verbose && !global)
     formula << btor2::comment(sym) << eol;
+
+  if (!nid_init.empty())
+    formula << btor2::init(nid(), sid, nid_state, nid_init);
 
   unordered_map<word, vector<word>>::iterator thread_it;
   do
@@ -1742,7 +1684,7 @@ void Btor2Encoder::define_next (
       }
   while (global && thread++ < num_threads);
 
-  formula << btor2::next(nid(), sid, nid_state, nid_next) << eol;
+  formula << btor2::next(nid(), sid, nid_state, nid_next, sym) << eol;
 }
 
 void Btor2Encoder::define_accu ()
@@ -1754,13 +1696,10 @@ void Btor2Encoder::define_accu ()
 
   ITERATE_THREADS
     {
-      /* init */
-      formula << btor2::init(nid(), sid_bv, nids_accu[thread], nids_const[0]);
-
-      /* next */
-      define_next(
+      define_state(
         nids_accu[thread],
         sid_bv,
+        nids_const[0],
         "accu_" + to_string(thread),
         alters_accu);
     }
@@ -1776,13 +1715,10 @@ void Btor2Encoder::define_mem ()
 
   ITERATE_THREADS
     {
-      /* init */
-      formula << btor2::init(nid(), sid_bv, nids_mem[thread], nids_const[0]);
-
-      /* next */
-      define_next(
+      define_state(
         nids_mem[thread],
         sid_bv,
+        nids_const[0],
         "mem_" + to_string(thread),
         alters_mem);
     }
@@ -1790,7 +1726,7 @@ void Btor2Encoder::define_mem ()
 
 void Btor2Encoder::define_heap ()
 {
-  define_next(nid_heap, sid_heap, "heap", alters_heap, true);
+  define_state(nid_heap, sid_heap, "", "heap", alters_heap, true);
 }
 
 void Btor2Encoder::define_stmt ()
@@ -1812,25 +1748,29 @@ void Btor2Encoder::define_stmt ()
             eol;
 
         string nid_next = nid();
-        string nid_prev = nids_exec_thread[pc];
+        string nid_exec = nids_exec_thread[pc];
         string nid_stmt = nids_stmt_thread[pc];
+
+        /* initialization */
+        formula <<
+          btor2::init(
+            nid_next,
+            sid_bool,
+            nid_stmt,
+            pc ? nid_false : nid_true);
 
         /* add statement reactivation */
         formula <<
-          btor2::lnot(
-            nid_next,
-            sid_bool,
-            nid_prev) <<
           btor2::land(
             nid_next = nid(),
             sid_bool,
             nid_stmt,
-            nid_next);
+            btor2::lnot(nid_exec));
 
         /* add activation by predecessor's execution */
         for (word prev : predecessors[thread][pc])
           {
-            nid_prev = nids_exec_thread[prev];
+            nid_exec = nids_exec_thread[prev];
 
             /* predecessor is a jump */
             if (JmpPtr j = dynamic_pointer_cast<Jmp>(program[prev]))
@@ -1844,18 +1784,14 @@ void Btor2Encoder::define_stmt ()
                   {
                     /* add negated condition if preceding jump failed */
                     if (prev == pc - 1 && j->arg != pc)
-                      formula <<
-                        btor2::lnot(
-                          nid_cond = nid(),
-                          sid_bool,
-                          nid_cond);
+                      nid_cond = btor2::lnot(nid_cond);
 
                     /* add conjunction of execution variable & jump condition */
                     formula <<
                       btor2::land(
-                        nid_prev = nid(),
+                        nid_exec = nid(),
                         sid_bool,
-                        nid_prev,
+                        nid_exec,
                         nid_cond);
                   }
               }
@@ -1866,7 +1802,7 @@ void Btor2Encoder::define_stmt ()
                 nid_next = nid(),
                 sid_bool,
                 nids_stmt_thread[prev],
-                nid_prev,
+                nid_exec,
                 nid_next,
                 verbose ? symbol(prev) : "");
           }
@@ -1883,40 +1819,81 @@ void Btor2Encoder::define_stmt ()
   });
 }
 
-void Btor2Encoder::define_exec ()
+void Btor2Encoder::define_block ()
 {
-  iterate_threads([this] (const Program & program) {
-    for (pc = 0; pc < program.size(); pc++)
-      {
-        if (verbose)
-          formula <<
-            btor2::comment("exec_" + to_string(thread) + "_" + to_string(pc)) <<
-            eol;
+  if (verbose)
+    formula << btor2::comment("thread blocking flag definitions") << eol;
 
-        string nid_cond;
+  auto nids_sync_it = nids_sync.begin();
+  auto nids_block_it = nids_block.begin();
 
-        formula <<
-          btor2::land(
-            nid_cond = nid(),
-            sid_bool,
-            nids_stmt[thread][pc],
-            nids_thread[thread]) <<
-          btor2::next(
-            nid(),
-            sid_bool,
-            nids_exec[thread][pc],
-            nid_cond) <<
-          eol;
-      }
+  for (const auto & [s, threads] : sync_pcs)
+    {
+      // TODO: ignore single-threaded barriers -> see gitlab issue #65
+      if (threads.size() > 1)
+        {
+          string & nid_sync = nids_sync_it++->second;
 
-    formula << eol;
-  });
+          auto nid_block_it = nids_block_it++->second.begin();
+
+          for (const auto & [t, pcs] : threads)
+            {
+              string prev;
+              string sym = "block_" + to_string(s) + '_' + to_string(t);
+
+              string & nid_block = nid_block_it++->second;
+
+              vector<string> args;
+              args.reserve(pcs.size() + 1);
+              for (const auto & p : pcs)
+                args.push_back(nids_exec[t][p]);
+              args.push_back(nid_block);
+
+              formula <<
+                btor2::init(nid(), sid_bool, nid_block, nid_false) <<
+                btor2::lor(node, sid_bool, args) <<
+                btor2::ite(prev = nid(), sid_bool, nid_sync, nid_false, nid(-1)) <<
+                btor2::next(nid(), sid_bool, nid_block, prev, sym) <<
+                eol;
+            }
+        }
+    }
+}
+
+void Btor2Encoder::define_sync ()
+{
+  if (verbose)
+    formula << btor2::comment("synchronization flags - sync_<id>") << eol;
+
+  for (const auto & [s, blocks] : nids_block)
+    {
+      // TODO: ignore single-threaded barriers -> see gitlab issue #65
+      if (blocks.size() > 1)
+        {
+          vector<string> args;
+
+          for (const auto & [t, nid_block] : blocks)
+            args.push_back(nid_block);
+
+          formula << btor2::land(node, sid_bool, args, "sync_" + to_string(s));
+
+          nids_sync.emplace_hint(nids_sync.end(), s, nid(-1));
+        }
+      else
+        {
+          nids_sync.emplace_hint(nids_sync.end(), s, blocks.begin()->second);
+        }
+    }
+
+  formula << eol;
 }
 
 void Btor2Encoder::define_exit_flag ()
 {
   if (verbose)
-    formula << btor2::comment_subsection("exit flag");
+    formula << btor2::comment("exit flag") << eol;
+
+  formula << btor2::init(nid(), sid_bool, nid_exit, nid_false);
 
   vector<string> args({nid_exit});
 
@@ -1932,15 +1909,23 @@ void Btor2Encoder::define_exit_flag ()
       nid_cond = to_string(node - 1);
     }
 
-  formula << btor2::next(nid(), sid_bool, nid_exit, nid_cond) << eol;
+  formula << btor2::next(nid(), sid_bool, nid_exit, nid_cond, "exit") << eol;
 }
 
 void Btor2Encoder::define_exit_code ()
 {
   if (verbose)
-    formula << btor2::comment_subsection("exit code");
+    formula << btor2::comment("exit code") << eol;
 
-  define_next(nid_exit_code, sid_bv, "exit-code", exit_pcs, true);
+  declare_exit_code();
+
+  define_state(
+    nid_exit_code,
+    sid_bv,
+    nids_const[0],
+    "exit-code",
+    exit_pcs,
+    true);
 }
 
 void Btor2Encoder::add_sorts ()
@@ -1963,7 +1948,8 @@ void Btor2Encoder::add_constants ()
   /* declare boolean constants */
   formula <<
     btor2::constd(nid_false = nid(), sid_bool, "0") <<
-    btor2::constd(nid_true = nid(), sid_bool, "1");
+    btor2::constd(nid_true = nid(), sid_bool, "1") <<
+    eol;
 
   /* declare bitvector constants */
   for (const auto & c : nids_const)
@@ -1976,20 +1962,16 @@ void Btor2Encoder::add_constants ()
   formula << eol;
 }
 
-void Btor2Encoder::add_state_declarations ()
+void Btor2Encoder::add_machine_state_declarations ()
 {
   if (verbose)
-    formula << btor2::comment_section("state declarations");
+    formula << btor2::comment_section("machine state declarations");
 
   declare_heap();
   declare_accu();
   declare_mem();
   declare_stmt();
-  declare_exec();
-  declare_block();
-  declare_sync();
   declare_exit_flag();
-  declare_exit_code();
 }
 
 void Btor2Encoder::add_thread_scheduling ()
@@ -2026,151 +2008,43 @@ void Btor2Encoder::add_thread_scheduling ()
     eol;
 }
 
-void Btor2Encoder::add_synchronization_constraints ()
+void Btor2Encoder::add_statement_execution ()
 {
-  /* skip if there is no call to SYNC */
-  if (sync_pcs.empty())
-    return;
-
   if (verbose)
-    formula << btor2::comment_section("synchronization constraints");
-
-  /* nids of negated thread activation variables */
-  map<word, string> nid_not_thread;
-
-  if (verbose)
-    formula << btor2::comment("negated thread activation variables") << eol;
-
-  iterate_threads([&] () {
     formula <<
-      btor2::lnot(
-        nid_not_thread[thread] = nid(),
-        sid_bool,
-        nids_thread[thread],
-        "not_thread_" + to_string(thread));
-  });
+      btor2::comment_section(
+        "statement execution - exec_<thread>_<pc>");
 
-  formula << eol;
+  iterate_threads([this] (const Program & program) {
 
-  /* nids of negated synchronization conditions */
-  map<word, string> nid_not_sync;
+    auto program_size = program.size();
 
-  for (const auto & [id, threads] : sync_pcs)
-    {
-      if (verbose)
-        formula
-          << btor2::comment("synchronization condition sync_" + to_string(id))
-          << eol;
+    nids_exec[thread].reserve(program_size);
 
-      /* nids of all synchronization conditions for this barrier */
-      vector<string> conditions;
+    for (pc = 0; pc < program_size; pc++)
+      {
+        string sym = "exec_" + to_string(thread) + '_' + to_string(pc);
 
-      /* nids of clauses expressing that a specific thread is at this barrier */
-      map<word, string> waiting;
-
-      /* generate waiting clauses of each thread containing this barrier */
-      for (const auto & [t, pcs] : threads)
-        if (pcs.size() > 1)
-          {
-            vector<string> args;
-
-            for (const auto & p : pcs)
-              args.push_back(nids_stmt[t][p]);
-
-            formula <<
-              btor2::lor(
-                node,
-                sid_bool,
-                args,
-                "thread_" + to_string(t) + "@sync_" + to_string(id));
-
-            waiting[t] = conditions.emplace_back(to_string(node - 1));
-          }
-        else
-          waiting[t] = conditions.emplace_back(nids_stmt[t][*pcs.begin()]);
-
-      /* one of the waiting threads must be executed */
-      if (threads.size() != num_threads)
-        {
-          vector<string> args;
-
-          for (const auto & t : threads)
-            args.push_back(nids_thread[t.first]);
-
-          formula << btor2::lor(node, sid_bool, args);
-
-          conditions.push_back(to_string(node - 1));
-        }
-
-      /* add synchronization condition sync_<id> */
-      if (conditions.size() > 1)
-        {
-          formula <<
-            btor2::land(node, sid_bool, conditions, "sync_" + to_string(id));
-
-          nids_sync[id] = to_string(node - 1);
-        }
-      else
-        {
-          nids_sync[id] = conditions.front();
-        }
-
-      /* add negated synchronization condition */
-      formula <<
-        btor2::lnot(
-          nid_not_sync[id] = nid(),
-          sid_bool,
-          nids_sync[id],
-          "not_sync_" + to_string(id)) <<
-        eol;
-
-      /* disable waiting threads */
-      if (verbose)
         formula <<
-          btor2::comment(
-            "disable threads waiting for barrier " + to_string(id)) <<
-          eol;
+          btor2::land(
+            nids_exec[thread].emplace_back(nid()),
+            sid_bool,
+            nids_stmt[thread][pc],
+            nids_thread[thread],
+            sym);
+      }
 
-      for (const auto & t : threads)
-        {
-          string prev;
-
-          formula <<
-            btor2::land(
-              prev = nid(),
-              sid_bool,
-              waiting[t.first],
-              nid_not_sync[id]) <<
-            btor2::implies(
-              nid(),
-              sid_bool,
-              prev,
-              nid_not_thread[t.first]) <<
-            btor2::constraint(
-              node,
-              "sync_" + to_string(id) + "_block_" + to_string(t.first)) <<
-            eol;
-        }
-    }
+    formula << eol;
+  });
 }
 
 void Btor2Encoder::add_statement_activation ()
 {
   if (verbose)
     formula <<
-      btor2::comment_section("statement activation");
+      btor2::comment_section("statement activation state definitions");
 
   define_stmt();
-}
-
-void Btor2Encoder::add_statement_execution ()
-{
-  if (verbose)
-    formula <<
-      btor2::comment_section(
-        "statement execution - shorthand for statement & thread activation");
-
-  define_exec();
 }
 
 void Btor2Encoder::add_register_definitions ()
@@ -2179,7 +2053,6 @@ void Btor2Encoder::add_register_definitions ()
     formula << btor2::comment_section("register state definitions");
 
   define_accu();
-
   define_mem();
 }
 
@@ -2194,10 +2067,58 @@ void Btor2Encoder::add_heap_definition ()
 void Btor2Encoder::add_exit_definitions ()
 {
   if (verbose)
-    formula << btor2::comment_section("exit definitions");
+    formula << btor2::comment_section("exit state definitions");
 
   define_exit_flag();
   define_exit_code();
+}
+
+void Btor2Encoder::add_synchronization_constraints ()
+{
+  /* skip if there is no call to SYNC */
+  if (sync_pcs.empty())
+    return;
+
+  if (verbose)
+    formula << btor2::comment_section("synchronization constraints");
+
+  declare_block();
+  define_sync();
+  define_block();
+
+  if (verbose)
+    formula << btor2::comment("prevent scheduling of blocked threads") << eol;
+
+  for (const auto & [s, threads] : nids_block)
+    {
+      // TODO: ignore single-threaded barriers -> see gitlab issue #65
+      if (threads.size() > 1)
+        {
+          string not_sync = btor2::lnot(nids_sync[s]);
+
+          for (const auto & [t, nid_block] : threads)
+            {
+              string prev;
+
+              formula <<
+                btor2::land(
+                  prev = nid(),
+                  sid_bool,
+                  nid_block,
+                  not_sync) <<
+                btor2::implies(
+                  prev = nid(),
+                  sid_bool,
+                  prev,
+                  btor2::lnot(nids_thread[t])) <<
+                btor2::constraint(
+                  nid(),
+                  prev,
+                  "block_" + to_string(s) + '_' + to_string(t)) <<
+                eol;
+            }
+        }
+    }
 }
 
 void Btor2Encoder::add_bound ()
@@ -2225,8 +2146,7 @@ void Btor2Encoder::add_bound ()
 
   formula <<
     btor2::eq(nid_prev = nid(), sid_bool, nids_const[bound], nid_ctr) <<
-    btor2::bad(nid(), nid_prev) <<
-    eol;
+    btor2::bad(nid(), nid_prev);
 }
 
 string Btor2Encoder::add_load (string * nid_idx)
@@ -2290,14 +2210,14 @@ void Btor2Encoder::encode ()
 {
   add_sorts();
   add_constants();
-  add_state_declarations();
+  add_machine_state_declarations();
   add_thread_scheduling();
-  add_synchronization_constraints();
-  add_statement_activation();
   add_statement_execution();
+  add_statement_activation();
   add_register_definitions();
   add_heap_definition();
   add_exit_definitions();
+  add_synchronization_constraints();
   add_bound();
 }
 

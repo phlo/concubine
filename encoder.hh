@@ -374,65 +374,64 @@ struct Btor2Encoder : public Encoder
   std::map<
     word,
     std::vector<std::string>> nids_stmt,
-                              nids_exec,
-                              nids_block;
+                              nids_exec;
 
   std::map<
     word,
     std::map<
       word,
-      std::string>>           nids_store,
+      std::string>>           nids_block,
+                              nids_store,
                               nids_store_indirect;
 
   std::string                 nid ();
+  std::string                 nid (int offset);
 
   std::string                 symbol (word pc);
 
+  void                        declare_heap ();
   void                        declare_accu ();
   void                        declare_mem ();
-  void                        declare_heap ();
   void                        declare_stmt ();
-  void                        declare_exec ();
   void                        declare_block ();
-  void                        declare_sync ();
   void                        declare_exit_flag ();
   void                        declare_exit_code ();
 
-  void                        define_next (
-                                           std::string state,
-                                           std::string sid,
-                                           std::string symbol,
-                                           std::unordered_map<
-                                             word,
-                                             std::vector<word>> & alters_state,
-                                           const bool global = false
-                                          );
+  void                        define_state (
+                                            std::string nid,
+                                            std::string sid,
+                                            std::string nid_init,
+                                            std::string symbol,
+                                            std::unordered_map<
+                                              word,
+                                              std::vector<word>> & alters_state,
+                                            const bool global = false
+                                           );
   void                        define_accu ();
   void                        define_mem ();
   void                        define_heap ();
   void                        define_stmt ();
-  void                        define_exec ();
-  void                        define_block (); // TODO
-  void                        define_sync (); // TODO
+  void                        define_block ();
+  void                        define_sync ();
   void                        define_exit_flag ();
   void                        define_exit_code ();
 
   void                        add_sorts ();
   void                        add_constants ();
-  void                        add_state_declarations ();
+  void                        add_machine_state_declarations ();
   void                        add_thread_scheduling ();
-  void                        add_synchronization_constraints ();
-  void                        add_statement_activation ();
   void                        add_statement_execution ();
+  void                        add_statement_activation ();
   void                        add_register_definitions ();
   void                        add_heap_definition ();
   void                        add_exit_definitions ();
+  void                        add_synchronization_constraints ();
   void                        add_bound ();
 
   std::string                 add_load(std::string *);
 
-  std::string                 load(Load &);
-  std::string                 store(Store &);
+  std::string                 load(Load & l);
+  std::string                 store(Store & s);
 
   /* encodes the whole machine configuration */
   virtual void                encode (void);

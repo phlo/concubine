@@ -224,6 +224,11 @@ namespace btor2
           nid + " slice " + sid + " " + node + " " + upper + " " + lower, sym);
     }
 
+  inline std::string lnot (std::string nid)
+    {
+      return '-' + nid;
+    }
+
   inline std::string lnot (
                            std::string nid,
                            std::string sid,

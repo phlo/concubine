@@ -5,9 +5,6 @@
 
 using namespace std;
 
-typedef map<word, string> Word2NIDMap;
-typedef map<word, map<word, string>> Word2Word2NIDMap;
-
 // TODO remove - debug only
 #include "btor2.hh"
 #include "btormc.hh"
@@ -20,7 +17,7 @@ void evaluate (string & formula)
 
 struct Btor2EncoderTest : public ::testing::Test
 {
-  string            expected;
+  string            nid;
   ProgramListPtr    programs {make_shared<ProgramList>()};
   Btor2EncoderPtr   encoder {create_encoder(1)};
 
@@ -75,20 +72,10 @@ struct Btor2EncoderTest : public ::testing::Test
       reset_encoder(1);
     }
 
-  void add_declerations (bool clear_formula)
+  void init_machine_state_declarations (bool clear_formula)
     {
       encoder->add_sorts();
       encoder->add_constants();
-
-      if (clear_formula)
-        encoder->formula.str("");
-    }
-
-  void init_states (bool clear_formula)
-    {
-      encoder->add_sorts();
-      encoder->add_constants();
-      encoder->add_state_declarations();
 
       if (clear_formula)
         encoder->formula.str("");
@@ -96,35 +83,9 @@ struct Btor2EncoderTest : public ::testing::Test
 
   void init_thread_scheduling (bool clear_formula)
     {
-      encoder->add_sorts();
-      encoder->add_constants();
-      encoder->add_state_declarations();
-      encoder->add_thread_scheduling();
+      init_machine_state_declarations(false);
 
-      if (clear_formula)
-        encoder->formula.str("");
-    }
-
-  void init_synchronization_constraints (bool clear_formula)
-    {
-      encoder->add_sorts();
-      encoder->add_constants();
-      encoder->add_state_declarations();
-      encoder->add_thread_scheduling();
-      encoder->add_synchronization_constraints();
-
-      if (clear_formula)
-        encoder->formula.str("");
-    }
-
-  void init_statement_activation (bool clear_formula)
-    {
-      encoder->add_sorts();
-      encoder->add_constants();
-      encoder->add_state_declarations();
-      encoder->add_thread_scheduling();
-      encoder->add_synchronization_constraints();
-      encoder->add_statement_activation();
+      encoder->add_machine_state_declarations();
 
       if (clear_formula)
         encoder->formula.str("");
@@ -132,52 +93,78 @@ struct Btor2EncoderTest : public ::testing::Test
 
   void init_statement_execution (bool clear_formula)
     {
-      encoder->add_sorts();
-      encoder->add_constants();
-      encoder->add_state_declarations();
+      init_thread_scheduling(false);
+
       encoder->add_thread_scheduling();
-      encoder->add_synchronization_constraints();
-      encoder->add_statement_activation();
+
+      if (clear_formula)
+        encoder->formula.str("");
+    }
+
+  void init_statement_activation (bool clear_formula)
+    {
+      init_statement_execution(false);
+
       encoder->add_statement_execution();
 
       if (clear_formula)
         encoder->formula.str("");
     }
 
-  string nid (int offset)
+  void init_register_definitions (bool clear_formula)
     {
-      int nid = encoder->node;
-      return to_string(nid + offset);
+      init_statement_activation(false);
+
+      encoder->add_statement_activation();
+
+      if (clear_formula)
+        encoder->formula.str("");
+    }
+
+  void init_heap_definition (bool clear_formula)
+    {
+      init_register_definitions(false);
+
+      encoder->add_register_definitions();
+
+      if (clear_formula)
+        encoder->formula.str("");
+    }
+
+  void init_exit_definitions (bool clear_formula)
+    {
+      init_heap_definition(false);
+
+      encoder->add_heap_definition();
+
+      if (clear_formula)
+        encoder->formula.str("");
+    }
+
+  void init_synchronization_constraints (bool clear_formula)
+    {
+      init_exit_definitions(false);
+
+      encoder->add_exit_definitions();
+
+      if (clear_formula)
+        encoder->formula.str("");
     }
 };
-
-// Btor2Encoder::Btor2Encoder (const ProgramListPtr, unsigned long, bool)
-TEST_F(Btor2EncoderTest, constructor)
-{
-  add_dummy_programs(3, 3);
-
-  ASSERT_EQ(
-    Word2NIDMap({{0, ""}, {1, ""}, {2, ""}, {3, ""}}),
-    encoder->nids_const);
-}
 
 // void Btor2Encoder::add_sorts ()
 TEST_F(Btor2EncoderTest, add_sorts)
 {
   encoder->add_sorts();
 
-  ASSERT_EQ("1", encoder->sid_bool);
-  ASSERT_EQ("2", encoder->sid_bv);
-  ASSERT_EQ("3", encoder->sid_heap);
   ASSERT_EQ(
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "; sorts\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "1 sort bitvec 1\n"
-    "2 sort bitvec 16\n"
-    "3 sort array 2 2\n"
-    "\n",
+    + encoder->sid_bool + " sort bitvec 1\n"
+    + encoder->sid_bv + " sort bitvec 16\n"
+    + encoder->sid_heap + " sort array 2 2\n\n",
     encoder->str());
 
   /* verbosity */
@@ -188,10 +175,9 @@ TEST_F(Btor2EncoderTest, add_sorts)
   verbose = true;
 
   ASSERT_EQ(
-    "1 sort bitvec 1\n"
-    "2 sort bitvec 16\n"
-    "3 sort array 2 2\n"
-    "\n",
+    encoder->sid_bool + " sort bitvec 1\n"
+    + encoder->sid_bv + " sort bitvec 16\n"
+    + encoder->sid_heap + " sort array 2 2\n\n",
     encoder->str());
 }
 
@@ -211,296 +197,121 @@ TEST_F(Btor2EncoderTest, add_constants)
   reset_encoder(1);
 
   encoder->add_sorts();
+
+  encoder->formula.str("");
+
   encoder->add_constants();
 
-  ASSERT_EQ("4", encoder->nid_false);
-  ASSERT_EQ("5", encoder->nid_true);
   ASSERT_EQ(
-    Word2NIDMap({{0, "6"}, {1, "7"}, {2, "8"}, {3, "9"}, {4, "10"}, {5, "11"}}),
-    encoder->nids_const);
-  ASSERT_EQ(
-    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "; sorts\n"
-    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    "1 sort bitvec 1\n"
-    "2 sort bitvec 16\n"
-    "3 sort array 2 2\n"
-    "\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "; constants\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "4 zero 1\n"
-    "5 one 1\n"
-    "6 zero 2\n"
-    "7 one 2\n"
-    "8 constd 2 2\n"
-    "9 constd 2 3\n"
-    "10 constd 2 4\n"
-    "11 constd 2 5\n"
+    + encoder->nid_false + " zero 1\n"
+    + encoder->nid_true + " one 1\n"
+    "\n"
+    + encoder->nids_const[0] + " zero 2\n"
+    + encoder->nids_const[1] + " one 2\n"
+    + encoder->nids_const[2] + " constd 2 2\n"
+    + encoder->nids_const[3] + " constd 2 3\n"
+    + encoder->nids_const[4] + " constd 2 4\n"
+    + encoder->nids_const[5] + " constd 2 5\n"
     "\n",
     encoder->str());
 
   /* verbosity */
   reset_encoder(1);
 
-  verbose = false;
   encoder->add_sorts();
+
+  encoder->formula.str("");
+
+  verbose = false;
   encoder->add_constants();
   verbose = true;
 
   ASSERT_EQ(
-    "1 sort bitvec 1\n"
-    "2 sort bitvec 16\n"
-    "3 sort array 2 2\n"
+    encoder->nid_false + " zero 1\n"
+    + encoder->nid_true + " one 1\n"
     "\n"
-    "4 zero 1\n"
-    "5 one 1\n"
-    "6 zero 2\n"
-    "7 one 2\n"
-    "8 constd 2 2\n"
-    "9 constd 2 3\n"
-    "10 constd 2 4\n"
-    "11 constd 2 5\n"
+    + encoder->nids_const[0] + " zero 2\n"
+    + encoder->nids_const[1] + " one 2\n"
+    + encoder->nids_const[2] + " constd 2 2\n"
+    + encoder->nids_const[3] + " constd 2 3\n"
+    + encoder->nids_const[4] + " constd 2 4\n"
+    + encoder->nids_const[5] + " constd 2 5\n"
     "\n",
     encoder->str());
 }
 
-// void Btor2Encoder::add_state_declarations ()
-TEST_F(Btor2EncoderTest, add_state_declarations)
+// void Btor2Encoder::add_machine_state_declarations ()
+TEST_F(Btor2EncoderTest, add_machine_state_declarations)
 {
-  for (size_t thread = 0; thread < 3; thread++)
-    {
-      ProgramPtr program = make_shared<Program>();
+  add_dummy_programs(2, 3);
 
-      programs->push_back(program);
+  init_machine_state_declarations(true);
 
-      program->push_back(Instruction::Set::create("ADDI", 1));
-      program->push_back(Instruction::Set::create("SYNC", 0));
-      program->push_back(Instruction::Set::create("ADDI", 1));
-    }
+  encoder->add_machine_state_declarations();
 
-  reset_encoder(1);
-
-  add_declerations(true);
-
-  int offset = encoder->node;
-
-  encoder->add_state_declarations();
-
-  cout << encoder->formula.str() << eol;
-
-  ASSERT_EQ("8", encoder->nid_heap);
-
-  ASSERT_EQ(Word2NIDMap({{0, "9"}, {1, "10"}, {2, "11"}}), encoder->nids_accu);
-
-  ASSERT_EQ(Word2NIDMap({{0, "12"}, {1, "13"}, {2, "14"}}), encoder->nids_mem);
-
-  ASSERT_EQ(vector<string>({"15", "17", "19"}), encoder->nids_stmt[0]);
-  ASSERT_EQ(vector<string>({"21", "23", "25"}), encoder->nids_stmt[1]);
-  ASSERT_EQ(vector<string>({"27", "29", "31"}), encoder->nids_stmt[2]);
-
-  ASSERT_EQ(vector<string>({"33", "35", "37"}), encoder->nids_exec[0]);
-  ASSERT_EQ(vector<string>({"39", "41", "43"}), encoder->nids_exec[1]);
-  ASSERT_EQ(vector<string>({"45", "47", "49"}), encoder->nids_exec[2]);
-
-  ASSERT_EQ(vector<string>({"51", "53", "55"}), encoder->nids_block[0]);
-
-  ASSERT_EQ("57", encoder->nids_sync[0]);
-
-  ASSERT_EQ("59", encoder->nid_exit);
-
-  ASSERT_EQ("61", encoder->nid_exit_code);
-
-  /*
   ASSERT_EQ(
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "; state declarations\n"
+    "; machine state declarations\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; heap\n"
-    "10 state 3 heap\n"
+    + encoder->nid_heap + " state " + encoder->sid_heap + " heap\n"
     "\n"
-    "; accumulator\n"
-    "11 state 2 accu_0\n"
-    "12 init 2 11 6\n"
-    "13 state 2 accu_1\n"
-    "14 init 2 13 6\n"
-    "15 state 2 accu_2\n"
-    "16 init 2 15 6\n"
+    "; accumulator registers - accu_<thread>\n"
+    + encoder->nids_accu[0] + " state 2 accu_0\n"
+    + encoder->nids_accu[1] + " state 2 accu_1\n"
     "\n"
-    "; CAS memory register\n"
-    "17 state 2 mem_0\n"
-    "18 init 2 17 6\n"
-    "19 state 2 mem_1\n"
-    "20 init 2 19 6\n"
-    "21 state 2 mem_2\n"
-    "22 init 2 21 6\n"
+    "; CAS memory registers - mem_<thread>\n"
+    + encoder->nids_mem[0] + " state 2 mem_0\n"
+    + encoder->nids_mem[1] + " state 2 mem_1\n"
     "\n"
-    "; statement activation\n"
-    "23 state 1 stmt_0_0\n"
-    "24 init 1 23 5\n"
-    "25 state 1 stmt_0_1\n"
-    "26 init 1 25 4\n"
-    "27 state 1 stmt_0_2\n"
-    "28 init 1 27 4\n"
+    "; statement activation flags - stmt_<thread>_<pc>\n"
+    + encoder->nids_stmt[0][0] + " state 1 stmt_0_0\n"
+    + encoder->nids_stmt[0][1] + " state 1 stmt_0_1\n"
+    + encoder->nids_stmt[0][2] + " state 1 stmt_0_2\n"
     "\n"
-    "29 state 1 stmt_1_0\n"
-    "30 init 1 29 5\n"
-    "31 state 1 stmt_1_1\n"
-    "32 init 1 31 4\n"
-    "33 state 1 stmt_1_2\n"
-    "34 init 1 33 4\n"
-    "\n"
-    "35 state 1 stmt_2_0\n"
-    "36 init 1 35 5\n"
-    "37 state 1 stmt_2_1\n"
-    "38 init 1 37 4\n"
-    "39 state 1 stmt_2_2\n"
-    "40 init 1 39 4\n"
+    + encoder->nids_stmt[1][0] + " state 1 stmt_1_0\n"
+    + encoder->nids_stmt[1][1] + " state 1 stmt_1_1\n"
+    + encoder->nids_stmt[1][2] + " state 1 stmt_1_2\n"
     "\n"
     "; exit flag\n"
-    "41 state 1 exit\n"
-    "42 init 1 41 4\n"
-    "\n"
-    "; exit code\n"
-    "43 state 2 exit-code\n"
-    "44 init 2 43 6\n"
+    + encoder->nid_exit + " state 1 exit\n"
     "\n",
-    encoder->formula.str());
-  */
-
-  ostringstream expected;
-
-  expected <<
-    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "; state declarations\n"
-    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n";
-
-  offset = static_cast<int>(encoder->node) - offset;
-
-  expected << "; heap\n";
-  expected << nid(-offset--) + " state 3 heap\n\n";
-
-  expected << "; accumulator\n";
-  for (encoder->thread = 0; encoder->thread < 3; encoder->thread++)
-    {
-      expected <<
-        nid(-offset--) + " state 2 accu_" + to_string(encoder->thread) + eol;
-    }
-
-  expected << eol;
-
-  ASSERT_EQ(expected.str(), encoder->formula.str());
-
-  /*
-
-  expected = "; update accu ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n";
-
-  for (encoder->thread = 0; encoder->thread < 3; encoder->thread++)
-    {
-      vector<string> & exec = encoder->nids_exec[encoder->thread];
-
-      string thread = to_string(encoder->thread);
-      string accu = encoder->nids_accu[encoder->thread];
-
-      string nid_0_ite  = nid(-offset--);
-      string nid_2_add  = nid(-offset--);
-      string nid_2_ite  = nid(-offset--);
-      string nid_3_addi = nid(-offset--);
-      string nid_3_ite  = nid(-offset--);
-      string nid_4_sub  = nid(-offset--);
-      string nid_4_ite  = nid(-offset--);
-      string nid_5_subi = nid(-offset--);
-      string nid_5_ite  = nid(-offset--);
-      string nid_6_cmp  = nid(-offset--);
-      string nid_6_ite  = nid(-offset--);
-      string nid_13_mem = nid(-offset--);
-      string nid_14_eq  = nid(-offset--);
-      string nid_14_cas = nid(-offset--);
-      string nid_14_ite = nid(-offset--);
-      string nid_next   = nid(-offset--);
-
-      expected +=
-        "; accu_" + thread + "\n"
-        + (encoder->thread ? "" : "509 read 2 14 7\n")
-        + nid_0_ite  + " ite 2 " + exec[0] + " 509 " + accu + " " + thread + ":0:LOAD:1\n"
-        + nid_2_add  + " add 2 " + accu + " 509\n"
-        + nid_2_ite  + " ite 2 " + exec[2] + " " + nid_2_add + " " + nid_0_ite + " " + thread + ":2:ADD:1\n"
-        + nid_3_addi + " add 2 " + accu + " 7\n"
-        + nid_3_ite  + " ite 2 " + exec[3] + " " + nid_3_addi + " " + nid_2_ite + " " + thread + ":3:ADDI:1\n"
-        + nid_4_sub  + " sub 2 " + accu + " 509\n"
-        + nid_4_ite  + " ite 2 " + exec[4] + " " + nid_4_sub + " " + nid_3_ite + " " + thread + ":4:SUB:1\n"
-        + nid_5_subi + " sub 2 " + accu + " 7\n"
-        + nid_5_ite  + " ite 2 " + exec[5] + " " + nid_5_subi + " " + nid_4_ite + " " + thread + ":5:SUBI:1\n"
-        + nid_6_cmp  + " sub 2 " + accu + " 509\n"
-        + nid_6_ite  + " ite 2 " + exec[6] + " " + nid_6_cmp + " " + nid_5_ite + " " + thread + ":6:CMP:1\n"
-        + nid_13_mem + " ite 2 " + exec[13] + " 509 " + nid_6_ite + " " + thread + ":13:MEM:1\n"
-        + nid_14_eq  + " eq 1 "  + encoder->nids_mem[encoder->thread] + " 509\n"
-        + nid_14_cas + " ite 2 " + nid_14_eq + " 7 6\n"
-        + nid_14_ite + " ite 2 " + exec[14] + " " + nid_14_cas + " " + nid_13_mem + " " + thread + ":14:CAS:1\n"
-        + nid_next   + " next 2 " + accu + " " + nid_14_ite + "\n"
-        "\n";
-    }
-
-  ASSERT_EQ(expected, encoder->formula.str());
-  */
+    encoder->str());
 
   /* verbosity */
   reset_encoder(1);
 
-  add_declerations(true);
+  init_machine_state_declarations(true);
 
   verbose = false;
-  encoder->add_state_declarations();
+  encoder->add_machine_state_declarations();
   verbose = true;
 
   ASSERT_EQ(
-    "10 state 3 heap\n"
+    encoder->nid_heap + " state " + encoder->sid_heap + " heap\n"
     "\n"
-    "11 state 2 accu_0\n"
-    "12 init 2 11 6\n"
-    "13 state 2 accu_1\n"
-    "14 init 2 13 6\n"
-    "15 state 2 accu_2\n"
-    "16 init 2 15 6\n"
+    + encoder->nids_accu[0] + " state 2 accu_0\n"
+    + encoder->nids_accu[1] + " state 2 accu_1\n"
     "\n"
-    "17 state 2 mem_0\n"
-    "18 init 2 17 6\n"
-    "19 state 2 mem_1\n"
-    "20 init 2 19 6\n"
-    "21 state 2 mem_2\n"
-    "22 init 2 21 6\n"
+    + encoder->nids_mem[0] + " state 2 mem_0\n"
+    + encoder->nids_mem[1] + " state 2 mem_1\n"
     "\n"
-    "23 state 1 stmt_0_0\n"
-    "24 init 1 23 5\n"
-    "25 state 1 stmt_0_1\n"
-    "26 init 1 25 4\n"
-    "27 state 1 stmt_0_2\n"
-    "28 init 1 27 4\n"
+    + encoder->nids_stmt[0][0] + " state 1 stmt_0_0\n"
+    + encoder->nids_stmt[0][1] + " state 1 stmt_0_1\n"
+    + encoder->nids_stmt[0][2] + " state 1 stmt_0_2\n"
     "\n"
-    "29 state 1 stmt_1_0\n"
-    "30 init 1 29 5\n"
-    "31 state 1 stmt_1_1\n"
-    "32 init 1 31 4\n"
-    "33 state 1 stmt_1_2\n"
-    "34 init 1 33 4\n"
+    + encoder->nids_stmt[1][0] + " state 1 stmt_1_0\n"
+    + encoder->nids_stmt[1][1] + " state 1 stmt_1_1\n"
+    + encoder->nids_stmt[1][2] + " state 1 stmt_1_2\n"
     "\n"
-    "35 state 1 stmt_2_0\n"
-    "36 init 1 35 5\n"
-    "37 state 1 stmt_2_1\n"
-    "38 init 1 37 4\n"
-    "39 state 1 stmt_2_2\n"
-    "40 init 1 39 4\n"
-    "\n"
-    "41 state 1 exit\n"
-    "42 init 1 41 4\n"
-    "\n"
-    "43 state 2 exit-code\n"
-    "44 init 2 43 6\n"
+    + encoder->nid_exit + " state 1 exit\n"
     "\n",
-    encoder->formula.str());
+    encoder->str());
 }
 
 // void Btor2Encoder::add_thread_scheduling ()
@@ -508,501 +319,124 @@ TEST_F(Btor2EncoderTest, add_thread_scheduling)
 {
   add_dummy_programs(3, 3);
 
-  init_states(true);
+  init_thread_scheduling(true);
 
   encoder->add_thread_scheduling();
 
-  ASSERT_EQ(
-    Word2NIDMap({{0, "51"}, {1, "52"}, {2, "53"}}),
-    encoder->nids_thread);
   ASSERT_EQ(
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "; thread scheduling\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "51 input 1 thread_0\n"
-    "52 input 1 thread_1\n"
-    "53 input 1 thread_2\n"
+    + encoder->nids_thread[0] + " input 1 thread_0\n"
+    + encoder->nids_thread[1] + " input 1 thread_1\n"
+    + encoder->nids_thread[2] + " input 1 thread_2\n"
     "\n"
     "; cardinality constraint\n"
-    "54 or 1 51 52\n"
-    "55 or 1 53 54\n"
-    "56 or 1 47 55\n"
-    "57 constraint 56\n"
-    "58 nand 1 51 52\n"
-    "59 nand 1 51 53\n"
-    "60 nand 1 51 47\n"
-    "61 nand 1 52 53\n"
-    "62 nand 1 52 47\n"
-    "63 nand 1 53 47\n"
-    "64 and 1 58 59\n"
-    "65 and 1 60 64\n"
-    "66 and 1 61 65\n"
-    "67 and 1 62 66\n"
-    "68 and 1 63 67\n"
-    "69 constraint 68\n"
-    "\n",
-    encoder->formula.str());
+    "30 or 1 " + encoder->nids_thread[0] + " " + encoder->nids_thread[1] + "\n"
+    "31 or 1 " + encoder->nids_thread[2] + " 30\n"
+    "32 or 1 " + encoder->nid_exit + " 31\n"
+    "33 constraint 32\n"
+    "34 nand 1 " + encoder->nids_thread[0] + " " + encoder->nids_thread[1] + "\n"
+    "35 nand 1 " + encoder->nids_thread[0] + " " + encoder->nids_thread[2] + "\n"
+    "36 nand 1 " + encoder->nids_thread[0] + " " + encoder->nid_exit + "\n"
+    "37 nand 1 " + encoder->nids_thread[1] + " " + encoder->nids_thread[2] + "\n"
+    "38 nand 1 " + encoder->nids_thread[1] + " " + encoder->nid_exit + "\n"
+    "39 nand 1 " + encoder->nids_thread[2] + " " + encoder->nid_exit + "\n"
+    "40 and 1 34 35\n"
+    "41 and 1 36 40\n"
+    "42 and 1 37 41\n"
+    "43 and 1 38 42\n"
+    "44 and 1 39 43\n"
+    "45 constraint 44\n\n",
+    encoder->str());
 
   /* verbosity */
   reset_encoder(1);
 
-  init_states(true);
+  init_thread_scheduling(true);
 
   verbose = false;
   encoder->add_thread_scheduling();
   verbose = true;
 
   ASSERT_EQ(
-    "51 input 1 thread_0\n"
-    "52 input 1 thread_1\n"
-    "53 input 1 thread_2\n"
+    encoder->nids_thread[0] + " input 1 thread_0\n"
+    + encoder->nids_thread[1] + " input 1 thread_1\n"
+    + encoder->nids_thread[2] + " input 1 thread_2\n"
     "\n"
-    "54 or 1 51 52\n"
-    "55 or 1 53 54\n"
-    "56 or 1 47 55\n"
-    "57 constraint 56\n"
-    "58 nand 1 51 52\n"
-    "59 nand 1 51 53\n"
-    "60 nand 1 51 47\n"
-    "61 nand 1 52 53\n"
-    "62 nand 1 52 47\n"
-    "63 nand 1 53 47\n"
-    "64 and 1 58 59\n"
-    "65 and 1 60 64\n"
-    "66 and 1 61 65\n"
-    "67 and 1 62 66\n"
-    "68 and 1 63 67\n"
-    "69 constraint 68\n"
-    "\n",
-    encoder->formula.str());
-}
-
-// void Btor2Encoder::add_synchronization_constraints ()
-TEST_F(Btor2EncoderTest, add_synchronization_constraints)
-{
-  for (size_t thread = 0; thread < 3; thread++)
-    {
-      ProgramPtr program = make_shared<Program>();
-
-      programs->push_back(program);
-
-      for (size_t pc = 0; pc < 2; pc++)
-        program->push_back(Instruction::Set::create("SYNC", pc + 1));
-    }
-
-  reset_encoder(1);
-
-  init_thread_scheduling(true);
-
-  encoder->add_synchronization_constraints();
-
-  ASSERT_EQ(Word2NIDMap({{1, "67"}, {2, "79"}}), encoder->nids_sync);
-  ASSERT_EQ(
-    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "; synchronization constraints\n"
-    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    "; negated thread activation variables\n"
-    "63 not 1 44 not_thread_0\n"
-    "64 not 1 45 not_thread_1\n"
-    "65 not 1 46 not_thread_2\n"
-    "\n"
-    "; synchronization condition sync_1\n"
-    "66 and 1 28 32\n"
-    "67 and 1 36 66 sync_1\n"
-    "68 not 1 67 not_sync_1\n"
-    "\n"
-    "; disable threads waiting for barrier 1\n"
-    "69 and 1 28 68\n"
-    "70 implies 1 69 63\n"
-    "71 constraint 70 sync_1_block_0\n"
-    "\n"
-    "72 and 1 32 68\n"
-    "73 implies 1 72 64\n"
-    "74 constraint 73 sync_1_block_1\n"
-    "\n"
-    "75 and 1 36 68\n"
-    "76 implies 1 75 65\n"
-    "77 constraint 76 sync_1_block_2\n"
-    "\n"
-    "; synchronization condition sync_2\n"
-    "78 and 1 30 34\n"
-    "79 and 1 38 78 sync_2\n"
-    "80 not 1 79 not_sync_2\n"
-    "\n"
-    "; disable threads waiting for barrier 2\n"
-    "81 and 1 30 80\n"
-    "82 implies 1 81 63\n"
-    "83 constraint 82 sync_2_block_0\n"
-    "\n"
-    "84 and 1 34 80\n"
-    "85 implies 1 84 64\n"
-    "86 constraint 85 sync_2_block_1\n"
-    "\n"
-    "87 and 1 38 80\n"
-    "88 implies 1 87 65\n"
-    "89 constraint 88 sync_2_block_2\n"
-    "\n",
-    encoder->formula.str());
-
-  /* multiple calls to the same barrier */
-  for (const auto & program : *programs)
-    for (size_t pc = 0; pc < 4; pc++)
-      program->push_back(Instruction::Set::create("SYNC", pc % 2 + 1));
-
-  reset_encoder(1);
-
-  init_thread_scheduling(true);
-
-  encoder->add_synchronization_constraints();
-
-  ASSERT_EQ(
-    vector<string>({"28", "30", "32", "34", "36", "38"}),
-    encoder->nids_stmt[0]);
-  ASSERT_EQ(
-    vector<string>({"40", "42", "44", "46", "48", "50"}),
-    encoder->nids_stmt[1]);
-  ASSERT_EQ(
-    vector<string>({"52", "54", "56", "58", "60", "62"}),
-    encoder->nids_stmt[2]);
-  ASSERT_EQ(Word2NIDMap({{1, "97"}, {2, "115"}}), encoder->nids_sync);
-  ASSERT_EQ(
-    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "; synchronization constraints\n"
-    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    "; negated thread activation variables\n"
-    "87 not 1 68 not_thread_0\n"
-    "88 not 1 69 not_thread_1\n"
-    "89 not 1 70 not_thread_2\n"
-    "\n"
-    "; synchronization condition sync_1\n"
-    "90 or 1 28 32\n"
-    "91 or 1 36 90 thread_0@sync_1\n"
-    "92 or 1 40 44\n"
-    "93 or 1 48 92 thread_1@sync_1\n"
-    "94 or 1 52 56\n"
-    "95 or 1 60 94 thread_2@sync_1\n"
-    "96 and 1 91 93\n"
-    "97 and 1 95 96 sync_1\n"
-    "98 not 1 97 not_sync_1\n"
-    "\n"
-    "; disable threads waiting for barrier 1\n"
-    "99 and 1 91 98\n"
-    "100 implies 1 99 87\n"
-    "101 constraint 100 sync_1_block_0\n"
-    "\n"
-    "102 and 1 93 98\n"
-    "103 implies 1 102 88\n"
-    "104 constraint 103 sync_1_block_1\n"
-    "\n"
-    "105 and 1 95 98\n"
-    "106 implies 1 105 89\n"
-    "107 constraint 106 sync_1_block_2\n"
-    "\n"
-    "; synchronization condition sync_2\n"
-    "108 or 1 30 34\n"
-    "109 or 1 38 108 thread_0@sync_2\n"
-    "110 or 1 42 46\n"
-    "111 or 1 50 110 thread_1@sync_2\n"
-    "112 or 1 54 58\n"
-    "113 or 1 62 112 thread_2@sync_2\n"
-    "114 and 1 109 111\n"
-    "115 and 1 113 114 sync_2\n"
-    "116 not 1 115 not_sync_2\n"
-    "\n"
-    "; disable threads waiting for barrier 2\n"
-    "117 and 1 109 116\n"
-    "118 implies 1 117 87\n"
-    "119 constraint 118 sync_2_block_0\n"
-    "\n"
-    "120 and 1 111 116\n"
-    "121 implies 1 120 88\n"
-    "122 constraint 121 sync_2_block_1\n"
-    "\n"
-    "123 and 1 113 116\n"
-    "124 implies 1 123 89\n"
-    "125 constraint 124 sync_2_block_2\n"
-    "\n",
-    encoder->formula.str());
-
-  /* barrier only for a subset of threads */
-  for (size_t i = 0; i < programs->size() - 1; i++)
-    (*programs)[i]->push_back(Instruction::Set::create("SYNC", 3));
-
-  reset_encoder(1);
-
-  init_thread_scheduling(true);
-
-  encoder->add_synchronization_constraints();
-
-  ASSERT_EQ(
-    vector<string>({"29", "31", "33", "35", "37", "39", "41"}),
-    encoder->nids_stmt[0]);
-  ASSERT_EQ(
-    vector<string>({"43", "45", "47", "49", "51", "53", "55"}),
-    encoder->nids_stmt[1]);
-  ASSERT_EQ(
-    vector<string>({"57", "59", "61", "63", "65", "67"}),
-    encoder->nids_stmt[2]);
-  ASSERT_EQ(
-    Word2NIDMap({{1, "102"}, {2, "120"}, {3, "133"}}),
-    encoder->nids_sync);
-  ASSERT_EQ(
-    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "; synchronization constraints\n"
-    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    "; negated thread activation variables\n"
-    "92 not 1 73 not_thread_0\n"
-    "93 not 1 74 not_thread_1\n"
-    "94 not 1 75 not_thread_2\n"
-    "\n"
-    "; synchronization condition sync_1\n"
-    "95 or 1 29 33\n"
-    "96 or 1 37 95 thread_0@sync_1\n"
-    "97 or 1 43 47\n"
-    "98 or 1 51 97 thread_1@sync_1\n"
-    "99 or 1 57 61\n"
-    "100 or 1 65 99 thread_2@sync_1\n"
-    "101 and 1 96 98\n"
-    "102 and 1 100 101 sync_1\n"
-    "103 not 1 102 not_sync_1\n"
-    "\n"
-    "; disable threads waiting for barrier 1\n"
-    "104 and 1 96 103\n"
-    "105 implies 1 104 92\n"
-    "106 constraint 105 sync_1_block_0\n"
-    "\n"
-    "107 and 1 98 103\n"
-    "108 implies 1 107 93\n"
-    "109 constraint 108 sync_1_block_1\n"
-    "\n"
-    "110 and 1 100 103\n"
-    "111 implies 1 110 94\n"
-    "112 constraint 111 sync_1_block_2\n"
-    "\n"
-    "; synchronization condition sync_2\n"
-    "113 or 1 31 35\n"
-    "114 or 1 39 113 thread_0@sync_2\n"
-    "115 or 1 45 49\n"
-    "116 or 1 53 115 thread_1@sync_2\n"
-    "117 or 1 59 63\n"
-    "118 or 1 67 117 thread_2@sync_2\n"
-    "119 and 1 114 116\n"
-    "120 and 1 118 119 sync_2\n"
-    "121 not 1 120 not_sync_2\n"
-    "\n"
-    "; disable threads waiting for barrier 2\n"
-    "122 and 1 114 121\n"
-    "123 implies 1 122 92\n"
-    "124 constraint 123 sync_2_block_0\n"
-    "\n"
-    "125 and 1 116 121\n"
-    "126 implies 1 125 93\n"
-    "127 constraint 126 sync_2_block_1\n"
-    "\n"
-    "128 and 1 118 121\n"
-    "129 implies 1 128 94\n"
-    "130 constraint 129 sync_2_block_2\n"
-    "\n"
-    "; synchronization condition sync_3\n"
-    "131 or 1 73 74\n"
-    "132 and 1 41 55\n"
-    "133 and 1 131 132 sync_3\n"
-    "134 not 1 133 not_sync_3\n"
-    "\n"
-    "; disable threads waiting for barrier 3\n"
-    "135 and 1 41 134\n"
-    "136 implies 1 135 92\n"
-    "137 constraint 136 sync_3_block_0\n"
-    "\n"
-    "138 and 1 55 134\n"
-    "139 implies 1 138 93\n"
-    "140 constraint 139 sync_3_block_1\n"
-    "\n",
-    encoder->formula.str());
-
-  /* verbosity */
-  reset_encoder(1);
-
-  init_thread_scheduling(true);
-
-  verbose = false;
-  encoder->add_synchronization_constraints();
-  verbose = true;
-
-  ASSERT_EQ(
-    "92 not 1 73 not_thread_0\n"
-    "93 not 1 74 not_thread_1\n"
-    "94 not 1 75 not_thread_2\n"
-    "\n"
-    "95 or 1 29 33\n"
-    "96 or 1 37 95 thread_0@sync_1\n"
-    "97 or 1 43 47\n"
-    "98 or 1 51 97 thread_1@sync_1\n"
-    "99 or 1 57 61\n"
-    "100 or 1 65 99 thread_2@sync_1\n"
-    "101 and 1 96 98\n"
-    "102 and 1 100 101 sync_1\n"
-    "103 not 1 102 not_sync_1\n"
-    "\n"
-    "104 and 1 96 103\n"
-    "105 implies 1 104 92\n"
-    "106 constraint 105 sync_1_block_0\n"
-    "\n"
-    "107 and 1 98 103\n"
-    "108 implies 1 107 93\n"
-    "109 constraint 108 sync_1_block_1\n"
-    "\n"
-    "110 and 1 100 103\n"
-    "111 implies 1 110 94\n"
-    "112 constraint 111 sync_1_block_2\n"
-    "\n"
-    "113 or 1 31 35\n"
-    "114 or 1 39 113 thread_0@sync_2\n"
-    "115 or 1 45 49\n"
-    "116 or 1 53 115 thread_1@sync_2\n"
-    "117 or 1 59 63\n"
-    "118 or 1 67 117 thread_2@sync_2\n"
-    "119 and 1 114 116\n"
-    "120 and 1 118 119 sync_2\n"
-    "121 not 1 120 not_sync_2\n"
-    "\n"
-    "122 and 1 114 121\n"
-    "123 implies 1 122 92\n"
-    "124 constraint 123 sync_2_block_0\n"
-    "\n"
-    "125 and 1 116 121\n"
-    "126 implies 1 125 93\n"
-    "127 constraint 126 sync_2_block_1\n"
-    "\n"
-    "128 and 1 118 121\n"
-    "129 implies 1 128 94\n"
-    "130 constraint 129 sync_2_block_2\n"
-    "\n"
-    "131 or 1 73 74\n"
-    "132 and 1 41 55\n"
-    "133 and 1 131 132 sync_3\n"
-    "134 not 1 133 not_sync_3\n"
-    "\n"
-    "135 and 1 41 134\n"
-    "136 implies 1 135 92\n"
-    "137 constraint 136 sync_3_block_0\n"
-    "\n"
-    "138 and 1 55 134\n"
-    "139 implies 1 138 93\n"
-    "140 constraint 139 sync_3_block_1\n"
-    "\n",
-    encoder->formula.str());
-}
-
-TEST_F(Btor2EncoderTest, add_synchronization_constraints_single_thread)
-{
-  ProgramPtr program = make_shared<Program>();
-
-  programs->push_back(program);
-
-  program->push_back(Instruction::Set::create("SYNC", 1));
-
-  reset_encoder(1);
-
-  init_thread_scheduling(true);
-
-  encoder->add_synchronization_constraints();
-
-  ASSERT_EQ(Word2NIDMap({{1, encoder->nids_stmt[0][0]}}), encoder->nids_sync);
-  ASSERT_EQ(
-    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "; synchronization constraints\n"
-    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    "; negated thread activation variables\n"
-    "30 not 1 25 not_thread_0\n"
-    "\n"
-    "; synchronization condition sync_1\n"
-    "31 not 1 19 not_sync_1\n"
-    "\n"
-    "; disable threads waiting for barrier 1\n"
-    "32 and 1 19 31\n"
-    "33 implies 1 32 30\n"
-    "34 constraint 33 sync_1_block_0\n"
-    "\n",
-    encoder->formula.str());
-}
-
-TEST_F(Btor2EncoderTest, add_synchronization_constraints_no_sync)
-{
-  add_dummy_programs(3, 1);
-
-  init_thread_scheduling(true);
-
-  encoder->add_synchronization_constraints();
-
-  ASSERT_TRUE(encoder->nids_sync.empty());
-  ASSERT_EQ("", encoder->formula.str());
+    "30 or 1 " + encoder->nids_thread[0] + " " + encoder->nids_thread[1] + "\n"
+    "31 or 1 " + encoder->nids_thread[2] + " 30\n"
+    "32 or 1 " + encoder->nid_exit + " 31\n"
+    "33 constraint 32\n"
+    "34 nand 1 " + encoder->nids_thread[0] + " " + encoder->nids_thread[1] + "\n"
+    "35 nand 1 " + encoder->nids_thread[0] + " " + encoder->nids_thread[2] + "\n"
+    "36 nand 1 " + encoder->nids_thread[0] + " " + encoder->nid_exit + "\n"
+    "37 nand 1 " + encoder->nids_thread[1] + " " + encoder->nids_thread[2] + "\n"
+    "38 nand 1 " + encoder->nids_thread[1] + " " + encoder->nid_exit + "\n"
+    "39 nand 1 " + encoder->nids_thread[2] + " " + encoder->nid_exit + "\n"
+    "40 and 1 34 35\n"
+    "41 and 1 36 40\n"
+    "42 and 1 37 41\n"
+    "43 and 1 38 42\n"
+    "44 and 1 39 43\n"
+    "45 constraint 44\n\n",
+    encoder->str());
 }
 
 // void Btor2Encoder::add_statement_execution ()
 TEST_F(Btor2EncoderTest, add_statement_execution)
 {
-  add_dummy_programs(3, 2);
-
-  for (const auto & program : *programs)
-    program->push_back(Instruction::Set::create("SYNC", 1));
+  add_dummy_programs(3, 3);
 
   reset_encoder(1);
 
-  init_synchronization_constraints(true);
+  init_statement_execution(true);
 
   encoder->add_statement_execution();
 
-  ASSERT_EQ(vector<string>({"85", "86", "87"}), encoder->nids_exec[0]);
-  ASSERT_EQ(vector<string>({"88", "89", "90"}), encoder->nids_exec[1]);
-  ASSERT_EQ(vector<string>({"91", "92", "93"}), encoder->nids_exec[2]);
   ASSERT_EQ(
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "; statement execution - shorthand for statement & thread activation\n"
+    "; statement execution - exec_<thread>_<pc>\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "85 and 1 29 51 exec_0_0\n"
-    "86 and 1 31 51 exec_0_1\n"
-    "87 and 1 33 74 exec_0_2\n"
+    "46 and 1 " + encoder->nids_stmt[0][0] + " " + encoder->nids_thread[0] + " exec_0_0\n"
+    "47 and 1 " + encoder->nids_stmt[0][1] + " " + encoder->nids_thread[0] + " exec_0_1\n"
+    "48 and 1 " + encoder->nids_stmt[0][2] + " " + encoder->nids_thread[0] + " exec_0_2\n"
     "\n"
-    "88 and 1 35 52 exec_1_0\n"
-    "89 and 1 37 52 exec_1_1\n"
-    "90 and 1 39 74 exec_1_2\n"
+    "49 and 1 " + encoder->nids_stmt[1][0] + " " + encoder->nids_thread[1] + " exec_1_0\n"
+    "50 and 1 " + encoder->nids_stmt[1][1] + " " + encoder->nids_thread[1] + " exec_1_1\n"
+    "51 and 1 " + encoder->nids_stmt[1][2] + " " + encoder->nids_thread[1] + " exec_1_2\n"
     "\n"
-    "91 and 1 41 53 exec_2_0\n"
-    "92 and 1 43 53 exec_2_1\n"
-    "93 and 1 45 74 exec_2_2\n"
+    "52 and 1 " + encoder->nids_stmt[2][0] + " " + encoder->nids_thread[2] + " exec_2_0\n"
+    "53 and 1 " + encoder->nids_stmt[2][1] + " " + encoder->nids_thread[2] + " exec_2_1\n"
+    "54 and 1 " + encoder->nids_stmt[2][2] + " " + encoder->nids_thread[2] + " exec_2_2\n"
     "\n",
-    encoder->formula.str());
+    encoder->str());
 
   /* verbosity */
   reset_encoder(1);
 
-  init_synchronization_constraints(true);
+  init_statement_execution(true);
 
   verbose = false;
   encoder->add_statement_execution();
   verbose = true;
 
   ASSERT_EQ(
-    "85 and 1 29 51 exec_0_0\n"
-    "86 and 1 31 51 exec_0_1\n"
-    "87 and 1 33 74 exec_0_2\n"
+    "46 and 1 " + encoder->nids_stmt[0][0] + " " + encoder->nids_thread[0] + " exec_0_0\n"
+    "47 and 1 " + encoder->nids_stmt[0][1] + " " + encoder->nids_thread[0] + " exec_0_1\n"
+    "48 and 1 " + encoder->nids_stmt[0][2] + " " + encoder->nids_thread[0] + " exec_0_2\n"
     "\n"
-    "88 and 1 35 52 exec_1_0\n"
-    "89 and 1 37 52 exec_1_1\n"
-    "90 and 1 39 74 exec_1_2\n"
+    "49 and 1 " + encoder->nids_stmt[1][0] + " " + encoder->nids_thread[1] + " exec_1_0\n"
+    "50 and 1 " + encoder->nids_stmt[1][1] + " " + encoder->nids_thread[1] + " exec_1_1\n"
+    "51 and 1 " + encoder->nids_stmt[1][2] + " " + encoder->nids_thread[1] + " exec_1_2\n"
     "\n"
-    "91 and 1 41 53 exec_2_0\n"
-    "92 and 1 43 53 exec_2_1\n"
-    "93 and 1 45 74 exec_2_2\n"
+    "52 and 1 " + encoder->nids_stmt[2][0] + " " + encoder->nids_thread[2] + " exec_2_0\n"
+    "53 and 1 " + encoder->nids_stmt[2][1] + " " + encoder->nids_thread[2] + " exec_2_1\n"
+    "54 and 1 " + encoder->nids_stmt[2][2] + " " + encoder->nids_thread[2] + " exec_2_2\n"
     "\n",
-    encoder->formula.str());
+    encoder->str());
 }
 
 // void Btor2Encoder::add_statement_activation ()
@@ -1010,93 +444,95 @@ TEST_F(Btor2EncoderTest, add_statement_activation)
 {
   add_dummy_programs(3, 2);
 
-  init_statement_execution(true);
+  init_statement_activation(true);
 
   encoder->add_statement_activation();
 
   ASSERT_EQ(
-    "; update statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; statement activation state definitions\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; stmt_0_0\n"
-    "70 not 1 64\n"
-    "71 and 1 29 70\n"
-    "72 next 1 29 71 0:0:ADDI:1\n"
+    "49 init 1 " + encoder->nids_stmt[0][0] + " " + encoder->nid_true + "\n"
+    "50 and 1 " + encoder->nids_stmt[0][0] + " -" + encoder->nids_exec[0][0] + "\n"
+    "51 next 1 " + encoder->nids_stmt[0][0] + " 50 0:0:ADDI:1\n"
     "\n"
     "; stmt_0_1\n"
-    "73 not 1 65\n"
-    "74 and 1 31 73\n"
-    "75 ite 1 29 64 74 0:0:ADDI:1\n"
-    "76 next 1 31 75 0:1:ADDI:1\n"
+    "52 init 1 " + encoder->nids_stmt[0][1] + " " + encoder->nid_false + "\n"
+    "53 and 1 " + encoder->nids_stmt[0][1] + " -" + encoder->nids_exec[0][1] + "\n"
+    "54 ite 1 " + encoder->nids_stmt[0][0] + " " + encoder->nids_exec[0][0] + " 53 0:0:ADDI:1\n"
+    "55 next 1 " + encoder->nids_stmt[0][1] + " 54 0:1:ADDI:1\n"
     "\n"
     "; stmt_1_0\n"
-    "77 not 1 66\n"
-    "78 and 1 33 77\n"
-    "79 next 1 33 78 1:0:ADDI:2\n"
+    "56 init 1 " + encoder->nids_stmt[1][0] + " " + encoder->nid_true + "\n"
+    "57 and 1 " + encoder->nids_stmt[1][0] + " -" + encoder->nids_exec[1][0] + "\n"
+    "58 next 1 " + encoder->nids_stmt[1][0] + " 57 1:0:ADDI:2\n"
     "\n"
     "; stmt_1_1\n"
-    "80 not 1 67\n"
-    "81 and 1 35 80\n"
-    "82 ite 1 33 66 81 1:0:ADDI:2\n"
-    "83 next 1 35 82 1:1:ADDI:2\n"
+    "59 init 1 " + encoder->nids_stmt[1][1] + " " + encoder->nid_false + "\n"
+    "60 and 1 " + encoder->nids_stmt[1][1] + " -" + encoder->nids_exec[1][1] + "\n"
+    "61 ite 1 " + encoder->nids_stmt[1][0] + " " + encoder->nids_exec[1][0] + " 60 1:0:ADDI:2\n"
+    "62 next 1 " + encoder->nids_stmt[1][1] + " 61 1:1:ADDI:2\n"
     "\n"
     "; stmt_2_0\n"
-    "84 not 1 68\n"
-    "85 and 1 37 84\n"
-    "86 next 1 37 85 2:0:ADDI:3\n"
+    "63 init 1 " + encoder->nids_stmt[2][0] + " " + encoder->nid_true + "\n"
+    "64 and 1 " + encoder->nids_stmt[2][0] + " -" + encoder->nids_exec[2][0] + "\n"
+    "65 next 1 " + encoder->nids_stmt[2][0] + " 64 2:0:ADDI:3\n"
     "\n"
     "; stmt_2_1\n"
-    "87 not 1 69\n"
-    "88 and 1 39 87\n"
-    "89 ite 1 37 68 88 2:0:ADDI:3\n"
-    "90 next 1 39 89 2:1:ADDI:3\n"
+    "66 init 1 " + encoder->nids_stmt[2][1] + " " + encoder->nid_false + "\n"
+    "67 and 1 " + encoder->nids_stmt[2][1] + " -" + encoder->nids_exec[2][1] + "\n"
+    "68 ite 1 " + encoder->nids_stmt[2][0] + " " + encoder->nids_exec[2][0] + " 67 2:0:ADDI:3\n"
+    "69 next 1 " + encoder->nids_stmt[2][1] + " 68 2:1:ADDI:3\n"
     "\n",
-    encoder->formula.str());
+    encoder->str());
 
   /* verbosity */
   reset_encoder(1);
 
-  init_statement_execution(true);
+  init_statement_activation(true);
 
   verbose = false;
   encoder->add_statement_activation();
   verbose = true;
 
   ASSERT_EQ(
-    "70 not 1 64\n"
-    "71 and 1 29 70\n"
-    "72 next 1 29 71\n"
+    "49 init 1 " + encoder->nids_stmt[0][0] + " " + encoder->nid_true + "\n"
+    "50 and 1 " + encoder->nids_stmt[0][0] + " -" + encoder->nids_exec[0][0] + "\n"
+    "51 next 1 " + encoder->nids_stmt[0][0] + " 50\n"
     "\n"
-    "73 not 1 65\n"
-    "74 and 1 31 73\n"
-    "75 ite 1 29 64 74\n"
-    "76 next 1 31 75\n"
+    "52 init 1 " + encoder->nids_stmt[0][1] + " " + encoder->nid_false + "\n"
+    "53 and 1 " + encoder->nids_stmt[0][1] + " -" + encoder->nids_exec[0][1] + "\n"
+    "54 ite 1 " + encoder->nids_stmt[0][0] + " " + encoder->nids_exec[0][0] + " 53\n"
+    "55 next 1 " + encoder->nids_stmt[0][1] + " 54\n"
     "\n"
-    "77 not 1 66\n"
-    "78 and 1 33 77\n"
-    "79 next 1 33 78\n"
+    "56 init 1 " + encoder->nids_stmt[1][0] + " " + encoder->nid_true + "\n"
+    "57 and 1 " + encoder->nids_stmt[1][0] + " -" + encoder->nids_exec[1][0] + "\n"
+    "58 next 1 " + encoder->nids_stmt[1][0] + " 57\n"
     "\n"
-    "80 not 1 67\n"
-    "81 and 1 35 80\n"
-    "82 ite 1 33 66 81\n"
-    "83 next 1 35 82\n"
+    "59 init 1 " + encoder->nids_stmt[1][1] + " " + encoder->nid_false + "\n"
+    "60 and 1 " + encoder->nids_stmt[1][1] + " -" + encoder->nids_exec[1][1] + "\n"
+    "61 ite 1 " + encoder->nids_stmt[1][0] + " " + encoder->nids_exec[1][0] + " 60\n"
+    "62 next 1 " + encoder->nids_stmt[1][1] + " 61\n"
     "\n"
-    "84 not 1 68\n"
-    "85 and 1 37 84\n"
-    "86 next 1 37 85\n"
+    "63 init 1 " + encoder->nids_stmt[2][0] + " " + encoder->nid_true + "\n"
+    "64 and 1 " + encoder->nids_stmt[2][0] + " -" + encoder->nids_exec[2][0] + "\n"
+    "65 next 1 " + encoder->nids_stmt[2][0] + " 64\n"
     "\n"
-    "87 not 1 69\n"
-    "88 and 1 39 87\n"
-    "89 ite 1 37 68 88\n"
-    "90 next 1 39 89\n"
+    "66 init 1 " + encoder->nids_stmt[2][1] + " " + encoder->nid_false + "\n"
+    "67 and 1 " + encoder->nids_stmt[2][1] + " -" + encoder->nids_exec[2][1] + "\n"
+    "68 ite 1 " + encoder->nids_stmt[2][0] + " " + encoder->nids_exec[2][0] + " 67\n"
+    "69 next 1 " + encoder->nids_stmt[2][1] + " 68\n"
     "\n",
-    encoder->formula.str());
+    encoder->str());
 }
 
 TEST_F(Btor2EncoderTest, add_statement_activation_jmp)
 {
   for (size_t i = 0; i < 3; i++)
     {
-      programs->push_back(shared_ptr<Program>(new Program()));
+      programs->push_back(make_shared<Program>());
 
       (*programs)[i]->push_back(Instruction::Set::create("ADDI", 1));
       (*programs)[i]->push_back(Instruction::Set::create("STORE", 1));
@@ -1106,83 +542,85 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp)
 
   reset_encoder(1);
 
-  init_statement_execution(true);
+  init_statement_activation(true);
 
   encoder->add_statement_activation();
 
   ASSERT_EQ(
-    "; update statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; statement activation state definitions\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; stmt_0_0\n"
-    "86 not 1 74\n"
-    "87 and 1 27 86\n"
-    "88 next 1 27 87 0:0:ADDI:1\n"
+    "59 init 1 " + encoder->nids_stmt[0][0] + " " + encoder->nid_true + "\n"
+    "60 and 1 " + encoder->nids_stmt[0][0] + " -" + encoder->nids_exec[0][0] + "\n"
+    "61 next 1 " + encoder->nids_stmt[0][0] + " 60 0:0:ADDI:1\n"
     "\n"
     "; stmt_0_1\n"
-    "89 not 1 75\n"
-    "90 and 1 29 89\n"
-    "91 ite 1 27 74 90 0:0:ADDI:1\n"
-    "92 ite 1 31 76 91 0:2:JMP:1\n"
-    "93 next 1 29 92 0:1:STORE:1\n"
+    "62 init 1 " + encoder->nids_stmt[0][1] + " " + encoder->nid_false + "\n"
+    "63 and 1 " + encoder->nids_stmt[0][1] + " -" + encoder->nids_exec[0][1] + "\n"
+    "64 ite 1 " + encoder->nids_stmt[0][0] + " " + encoder->nids_exec[0][0] + " 63 0:0:ADDI:1\n"
+    "65 ite 1 " + encoder->nids_stmt[0][2] + " " + encoder->nids_exec[0][2] + " 64 0:2:JMP:1\n"
+    "66 next 1 " + encoder->nids_stmt[0][1] + " 65 0:1:STORE:1\n"
     "\n"
     "; stmt_0_2\n"
-    "94 not 1 76\n"
-    "95 and 1 31 94\n"
-    "96 ite 1 29 75 95 0:1:STORE:1\n"
-    "97 next 1 31 96 0:2:JMP:1\n"
+    "67 init 1 " + encoder->nids_stmt[0][2] + " " + encoder->nid_false + "\n"
+    "68 and 1 " + encoder->nids_stmt[0][2] + " -" + encoder->nids_exec[0][2] + "\n"
+    "69 ite 1 " + encoder->nids_stmt[0][1] + " " + encoder->nids_exec[0][1] + " 68 0:1:STORE:1\n"
+    "70 next 1 " + encoder->nids_stmt[0][2] + " 69 0:2:JMP:1\n"
     "\n"
-    "; stmt_0_3\n"
-    "98 not 1 77\n"
-    "99 and 1 33 98\n"
-    "100 next 1 33 99 0:3:EXIT:1\n"
+    "; stmt_0_3\n" // unreachable
+    "71 init 1 " + encoder->nids_stmt[0][3] + " " + encoder->nid_false + "\n"
+    "72 and 1 " + encoder->nids_stmt[0][3] + " -" + encoder->nids_exec[0][3] + "\n"
+    "73 next 1 " + encoder->nids_stmt[0][3] + " 72 0:3:EXIT:1\n"
     "\n"
     "; stmt_1_0\n"
-    "101 not 1 78\n"
-    "102 and 1 35 101\n"
-    "103 next 1 35 102 1:0:ADDI:1\n"
+    "74 init 1 " + encoder->nids_stmt[1][0] + " " + encoder->nid_true + "\n"
+    "75 and 1 " + encoder->nids_stmt[1][0] + " -" + encoder->nids_exec[1][0] + "\n"
+    "76 next 1 " + encoder->nids_stmt[1][0] + " 75 1:0:ADDI:1\n"
     "\n"
     "; stmt_1_1\n"
-    "104 not 1 79\n"
-    "105 and 1 37 104\n"
-    "106 ite 1 35 78 105 1:0:ADDI:1\n"
-    "107 ite 1 39 80 106 1:2:JMP:1\n"
-    "108 next 1 37 107 1:1:STORE:1\n"
+    "77 init 1 " + encoder->nids_stmt[1][1] + " " + encoder->nid_false + "\n"
+    "78 and 1 " + encoder->nids_stmt[1][1] + " -" + encoder->nids_exec[1][1] + "\n"
+    "79 ite 1 " + encoder->nids_stmt[1][0] + " " + encoder->nids_exec[1][0] + " 78 1:0:ADDI:1\n"
+    "80 ite 1 " + encoder->nids_stmt[1][2] + " " + encoder->nids_exec[1][2] + " 79 1:2:JMP:1\n"
+    "81 next 1 " + encoder->nids_stmt[1][1] + " 80 1:1:STORE:1\n"
     "\n"
     "; stmt_1_2\n"
-    "109 not 1 80\n"
-    "110 and 1 39 109\n"
-    "111 ite 1 37 79 110 1:1:STORE:1\n"
-    "112 next 1 39 111 1:2:JMP:1\n"
+    "82 init 1 " + encoder->nids_stmt[1][2] + " " + encoder->nid_false + "\n"
+    "83 and 1 " + encoder->nids_stmt[1][2] + " -" + encoder->nids_exec[1][2] + "\n"
+    "84 ite 1 " + encoder->nids_stmt[1][1] + " " + encoder->nids_exec[1][1] + " 83 1:1:STORE:1\n"
+    "85 next 1 " + encoder->nids_stmt[1][2] + " 84 1:2:JMP:1\n"
     "\n"
-    "; stmt_1_3\n"
-    "113 not 1 81\n"
-    "114 and 1 41 113\n"
-    "115 next 1 41 114 1:3:EXIT:1\n"
+    "; stmt_1_3\n" // unreachable
+    "86 init 1 " + encoder->nids_stmt[1][3] + " " + encoder->nid_false + "\n"
+    "87 and 1 " + encoder->nids_stmt[1][3] + " -" + encoder->nids_exec[1][3] + "\n"
+    "88 next 1 " + encoder->nids_stmt[1][3] + " 87 1:3:EXIT:1\n"
     "\n"
     "; stmt_2_0\n"
-    "116 not 1 82\n"
-    "117 and 1 43 116\n"
-    "118 next 1 43 117 2:0:ADDI:1\n"
+    "89 init 1 " + encoder->nids_stmt[2][0] + " " + encoder->nid_true + "\n"
+    "90 and 1 " + encoder->nids_stmt[2][0] + " -" + encoder->nids_exec[2][0] + "\n"
+    "91 next 1 " + encoder->nids_stmt[2][0] + " 90 2:0:ADDI:1\n"
     "\n"
     "; stmt_2_1\n"
-    "119 not 1 83\n"
-    "120 and 1 45 119\n"
-    "121 ite 1 43 82 120 2:0:ADDI:1\n"
-    "122 ite 1 47 84 121 2:2:JMP:1\n"
-    "123 next 1 45 122 2:1:STORE:1\n"
+    "92 init 1 " + encoder->nids_stmt[2][1] + " " + encoder->nid_false + "\n"
+    "93 and 1 " + encoder->nids_stmt[2][1] + " -" + encoder->nids_exec[2][1] + "\n"
+    "94 ite 1 " + encoder->nids_stmt[2][0] + " " + encoder->nids_exec[2][0] + " 93 2:0:ADDI:1\n"
+    "95 ite 1 " + encoder->nids_stmt[2][2] + " " + encoder->nids_exec[2][2] + " 94 2:2:JMP:1\n"
+    "96 next 1 " + encoder->nids_stmt[2][1] + " 95 2:1:STORE:1\n"
     "\n"
     "; stmt_2_2\n"
-    "124 not 1 84\n"
-    "125 and 1 47 124\n"
-    "126 ite 1 45 83 125 2:1:STORE:1\n"
-    "127 next 1 47 126 2:2:JMP:1\n"
+    "97 init 1 " + encoder->nids_stmt[2][2] + " " + encoder->nid_false + "\n"
+    "98 and 1 " + encoder->nids_stmt[2][2] + " -" + encoder->nids_exec[2][2] + "\n"
+    "99 ite 1 " + encoder->nids_stmt[2][1] + " " + encoder->nids_exec[2][1] + " 98 2:1:STORE:1\n"
+    "100 next 1 " + encoder->nids_stmt[2][2] + " 99 2:2:JMP:1\n"
     "\n"
-    "; stmt_2_3\n"
-    "128 not 1 85\n"
-    "129 and 1 49 128\n"
-    "130 next 1 49 129 2:3:EXIT:1\n"
+    "; stmt_2_3\n" // unreachable
+    "101 init 1 " + encoder->nids_stmt[2][3] + " " + encoder->nid_false + "\n"
+    "102 and 1 " + encoder->nids_stmt[2][3] + " -" + encoder->nids_exec[2][3] + "\n"
+    "103 next 1 " + encoder->nids_stmt[2][3] + " 102 2:3:EXIT:1\n"
     "\n",
-    encoder->formula.str());
+    encoder->str());
 }
 
 TEST_F(Btor2EncoderTest, add_statement_activation_jmp_conditional)
@@ -1199,106 +637,97 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_conditional)
 
   reset_encoder(3);
 
-  init_statement_execution(true);
+  init_statement_activation(true);
 
   encoder->add_statement_activation();
 
-  ASSERT_EQ(vector<string>({"28", "30", "32", "34"}), encoder->nids_stmt[0]);
-  ASSERT_EQ(vector<string>({"36", "38", "40", "42"}), encoder->nids_stmt[1]);
-  ASSERT_EQ(vector<string>({"44", "46", "48", "50"}), encoder->nids_stmt[2]);
-
-  ASSERT_EQ(vector<string>({"75", "76", "77", "78"}), encoder->nids_exec[0]);
-  ASSERT_EQ(vector<string>({"79", "80", "81", "82"}), encoder->nids_exec[1]);
-  ASSERT_EQ(vector<string>({"83", "84", "85", "86"}), encoder->nids_exec[2]);
-
   ASSERT_EQ(
-    "; update statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; statement activation state definitions\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; stmt_0_0\n"
-    "87 not 1 75\n"
-    "88 and 1 28 87\n"
-    "89 next 1 28 88 0:0:ADDI:1\n"
+    "60 init 1 " + encoder->nids_stmt[0][0] + " " + encoder->nid_true + "\n"
+    "61 and 1 " + encoder->nids_stmt[0][0] + " -" + encoder->nids_exec[0][0] + "\n"
+    "62 next 1 " + encoder->nids_stmt[0][0] + " 61 0:0:ADDI:1\n"
     "\n"
     "; stmt_0_1\n"
-    "90 not 1 76\n"
-    "91 and 1 30 90\n"
-    "92 ite 1 28 75 91 0:0:ADDI:1\n"
-    "93 ne 1 16 6\n"
-    "94 and 1 77 93\n"
-    "95 ite 1 32 94 92 0:2:JNZ:1\n"
-    "96 next 1 30 95 0:1:STORE:1\n"
+    "63 init 1 " + encoder->nids_stmt[0][1] + " " + encoder->nid_false + "\n"
+    "64 and 1 " + encoder->nids_stmt[0][1] + " -" + encoder->nids_exec[0][1] + "\n"
+    "65 ite 1 " + encoder->nids_stmt[0][0] + " " + encoder->nids_exec[0][0] + " 64 0:0:ADDI:1\n"
+    "66 ne 1 " + encoder->nids_accu[0] + " " + encoder->nids_const[0] + "\n"
+    "67 and 1 " + encoder->nids_exec[0][2] + " 66\n"
+    "68 ite 1 " + encoder->nids_stmt[0][2] + " 67 65 0:2:JNZ:1\n"
+    "69 next 1 " + encoder->nids_stmt[0][1] + " 68 0:1:STORE:1\n"
     "\n"
     "; stmt_0_2\n"
-    "97 not 1 77\n"
-    "98 and 1 32 97\n"
-    "99 ite 1 30 76 98 0:1:STORE:1\n"
-    "100 next 1 32 99 0:2:JNZ:1\n"
+    "70 init 1 " + encoder->nids_stmt[0][2] + " " + encoder->nid_false + "\n"
+    "71 and 1 " + encoder->nids_stmt[0][2] + " -" + encoder->nids_exec[0][2] + "\n"
+    "72 ite 1 " + encoder->nids_stmt[0][1] + " " + encoder->nids_exec[0][1] + " 71 0:1:STORE:1\n"
+    "73 next 1 " + encoder->nids_stmt[0][2] + " 72 0:2:JNZ:1\n"
     "\n"
     "; stmt_0_3\n"
-    "101 not 1 78\n"
-    "102 and 1 34 101\n"
-    "103 not 1 93\n"
-    "104 and 1 77 103\n"
-    "105 ite 1 32 104 102 0:2:JNZ:1\n"
-    "106 next 1 34 105 0:3:EXIT:1\n"
+    "74 init 1 " + encoder->nids_stmt[0][3] + " " + encoder->nid_false + "\n"
+    "75 and 1 " + encoder->nids_stmt[0][3] + " -" + encoder->nids_exec[0][3] + "\n"
+    "76 and 1 " + encoder->nids_exec[0][2] + " -66\n"
+    "77 ite 1 " + encoder->nids_stmt[0][2] + " 76 75 0:2:JNZ:1\n"
+    "78 next 1 " + encoder->nids_stmt[0][3] + " 77 0:3:EXIT:1\n"
     "\n"
     "; stmt_1_0\n"
-    "107 not 1 79\n"
-    "108 and 1 36 107\n"
-    "109 next 1 36 108 1:0:ADDI:1\n"
+    "79 init 1 " + encoder->nids_stmt[1][0] + " " + encoder->nid_true + "\n"
+    "80 and 1 " + encoder->nids_stmt[1][0] + " -" + encoder->nids_exec[1][0] + "\n"
+    "81 next 1 " + encoder->nids_stmt[1][0] + " 80 1:0:ADDI:1\n"
     "\n"
     "; stmt_1_1\n"
-    "110 not 1 80\n"
-    "111 and 1 38 110\n"
-    "112 ite 1 36 79 111 1:0:ADDI:1\n"
-    "113 ne 1 18 6\n"
-    "114 and 1 81 113\n"
-    "115 ite 1 40 114 112 1:2:JNZ:1\n"
-    "116 next 1 38 115 1:1:STORE:1\n"
+    "82 init 1 " + encoder->nids_stmt[1][1] + " " + encoder->nid_false + "\n"
+    "83 and 1 " + encoder->nids_stmt[1][1] + " -" + encoder->nids_exec[1][1] + "\n"
+    "84 ite 1 " + encoder->nids_stmt[1][0] + " " + encoder->nids_exec[1][0] + " 83 1:0:ADDI:1\n"
+    "85 ne 1 " + encoder->nids_accu[1] + " " + encoder->nids_const[0] + "\n"
+    "86 and 1 " + encoder->nids_exec[1][2] + " 85\n"
+    "87 ite 1 " + encoder->nids_stmt[1][2] + " 86 84 1:2:JNZ:1\n"
+    "88 next 1 " + encoder->nids_stmt[1][1] + " 87 1:1:STORE:1\n"
     "\n"
     "; stmt_1_2\n"
-    "117 not 1 81\n"
-    "118 and 1 40 117\n"
-    "119 ite 1 38 80 118 1:1:STORE:1\n"
-    "120 next 1 40 119 1:2:JNZ:1\n"
+    "89 init 1 " + encoder->nids_stmt[1][2] + " " + encoder->nid_false + "\n"
+    "90 and 1 " + encoder->nids_stmt[1][2] + " -" + encoder->nids_exec[1][2] + "\n"
+    "91 ite 1 " + encoder->nids_stmt[1][1] + " " + encoder->nids_exec[1][1] + " 90 1:1:STORE:1\n"
+    "92 next 1 " + encoder->nids_stmt[1][2] + " 91 1:2:JNZ:1\n"
     "\n"
     "; stmt_1_3\n"
-    "121 not 1 82\n"
-    "122 and 1 42 121\n"
-    "123 not 1 113\n"
-    "124 and 1 81 123\n"
-    "125 ite 1 40 124 122 1:2:JNZ:1\n"
-    "126 next 1 42 125 1:3:EXIT:1\n"
+    "93 init 1 " + encoder->nids_stmt[1][3] + " " + encoder->nid_false + "\n"
+    "94 and 1 " + encoder->nids_stmt[1][3] + " -" + encoder->nids_exec[1][3] + "\n"
+    "95 and 1 " + encoder->nids_exec[1][2] + " -85\n"
+    "96 ite 1 " + encoder->nids_stmt[1][2] + " 95 94 1:2:JNZ:1\n"
+    "97 next 1 " + encoder->nids_stmt[1][3] + " 96 1:3:EXIT:1\n"
     "\n"
     "; stmt_2_0\n"
-    "127 not 1 83\n"
-    "128 and 1 44 127\n"
-    "129 next 1 44 128 2:0:ADDI:1\n"
+    "98 init 1 " + encoder->nids_stmt[2][0] + " " + encoder->nid_true + "\n"
+    "99 and 1 " + encoder->nids_stmt[2][0] + " -" + encoder->nids_exec[2][0] + "\n"
+    "100 next 1 " + encoder->nids_stmt[2][0] + " 99 2:0:ADDI:1\n"
     "\n"
     "; stmt_2_1\n"
-    "130 not 1 84\n"
-    "131 and 1 46 130\n"
-    "132 ite 1 44 83 131 2:0:ADDI:1\n"
-    "133 ne 1 20 6\n"
-    "134 and 1 85 133\n"
-    "135 ite 1 48 134 132 2:2:JNZ:1\n"
-    "136 next 1 46 135 2:1:STORE:1\n"
+    "101 init 1 " + encoder->nids_stmt[2][1] + " " + encoder->nid_false + "\n"
+    "102 and 1 " + encoder->nids_stmt[2][1] + " -" + encoder->nids_exec[2][1] + "\n"
+    "103 ite 1 " + encoder->nids_stmt[2][0] + " " + encoder->nids_exec[2][0] + " 102 2:0:ADDI:1\n"
+    "104 ne 1 " + encoder->nids_accu[2] + " " + encoder->nids_const[0] + "\n"
+    "105 and 1 " + encoder->nids_exec[2][2] + " 104\n"
+    "106 ite 1 " + encoder->nids_stmt[2][2] + " 105 103 2:2:JNZ:1\n"
+    "107 next 1 " + encoder->nids_stmt[2][1] + " 106 2:1:STORE:1\n"
     "\n"
     "; stmt_2_2\n"
-    "137 not 1 85\n"
-    "138 and 1 48 137\n"
-    "139 ite 1 46 84 138 2:1:STORE:1\n"
-    "140 next 1 48 139 2:2:JNZ:1\n"
+    "108 init 1 " + encoder->nids_stmt[2][2] + " " + encoder->nid_false + "\n"
+    "109 and 1 " + encoder->nids_stmt[2][2] + " -" + encoder->nids_exec[2][2] + "\n"
+    "110 ite 1 " + encoder->nids_stmt[2][1] + " " + encoder->nids_exec[2][1] + " 109 2:1:STORE:1\n"
+    "111 next 1 " + encoder->nids_stmt[2][2] + " 110 2:2:JNZ:1\n"
     "\n"
     "; stmt_2_3\n"
-    "141 not 1 86\n"
-    "142 and 1 50 141\n"
-    "143 not 1 133\n"
-    "144 and 1 85 143\n"
-    "145 ite 1 48 144 142 2:2:JNZ:1\n"
-    "146 next 1 50 145 2:3:EXIT:1\n"
+    "112 init 1 " + encoder->nids_stmt[2][3] + " " + encoder->nid_false + "\n"
+    "113 and 1 " + encoder->nids_stmt[2][3] + " -" + encoder->nids_exec[2][3] + "\n"
+    "114 and 1 " + encoder->nids_exec[2][2] + " -104\n"
+    "115 ite 1 " + encoder->nids_stmt[2][2] + " 114 113 2:2:JNZ:1\n"
+    "116 next 1 " + encoder->nids_stmt[2][3] + " 115 2:3:EXIT:1\n"
     "\n",
-    encoder->formula.str());
+    encoder->str());
 
   /* TODO remove
   reset_encoder(4);
@@ -1312,7 +741,7 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_conditional)
   encoder->add_statement_execution();
   encoder->add_statement_activation();
 
-  string formula = encoder->formula.str() + eol;
+  string formula = encoder->str() + eol;
 
   formula +=
     btor2::next(
@@ -1343,106 +772,97 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_start)
 
   reset_encoder(3);
 
-  init_statement_execution(true);
+  init_statement_activation(true);
 
   encoder->add_statement_activation();
 
-  ASSERT_EQ(vector<string>({"28", "30", "32", "34"}), encoder->nids_stmt[0]);
-  ASSERT_EQ(vector<string>({"36", "38", "40", "42"}), encoder->nids_stmt[1]);
-  ASSERT_EQ(vector<string>({"44", "46", "48", "50"}), encoder->nids_stmt[2]);
-
-  ASSERT_EQ(vector<string>({"75", "76", "77", "78"}), encoder->nids_exec[0]);
-  ASSERT_EQ(vector<string>({"79", "80", "81", "82"}), encoder->nids_exec[1]);
-  ASSERT_EQ(vector<string>({"83", "84", "85", "86"}), encoder->nids_exec[2]);
-
   ASSERT_EQ(
-    "; update statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; statement activation state definitions\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; stmt_0_0\n"
-    "87 not 1 75\n"
-    "88 and 1 28 87\n"
-    "89 ne 1 16 6\n"
-    "90 and 1 77 89\n"
-    "91 ite 1 32 90 88 0:2:JNZ:0\n"
-    "92 next 1 28 91 0:0:ADDI:1\n"
+    "60 init 1 " + encoder->nids_stmt[0][0] + " " + encoder->nid_true + "\n"
+    "61 and 1 " + encoder->nids_stmt[0][0] + " -" + encoder->nids_exec[0][0] + "\n"
+    "62 ne 1 " + encoder->nids_accu[0] + " " + encoder->nids_const[0] + "\n"
+    "63 and 1 " + encoder->nids_exec[0][2] + " 62\n"
+    "64 ite 1 " + encoder->nids_stmt[0][2] + " 63 61 0:2:JNZ:0\n"
+    "65 next 1 " + encoder->nids_stmt[0][0] + " 64 0:0:ADDI:1\n"
     "\n"
     "; stmt_0_1\n"
-    "93 not 1 76\n"
-    "94 and 1 30 93\n"
-    "95 ite 1 28 75 94 0:0:ADDI:1\n"
-    "96 next 1 30 95 0:1:STORE:1\n"
+    "66 init 1 " + encoder->nids_stmt[0][1] + " " + encoder->nid_false + "\n"
+    "67 and 1 " + encoder->nids_stmt[0][1] + " -" + encoder->nids_exec[0][1] + "\n"
+    "68 ite 1 " + encoder->nids_stmt[0][0] + " " + encoder->nids_exec[0][0] + " 67 0:0:ADDI:1\n"
+    "69 next 1 " + encoder->nids_stmt[0][1] + " 68 0:1:STORE:1\n"
     "\n"
     "; stmt_0_2\n"
-    "97 not 1 77\n"
-    "98 and 1 32 97\n"
-    "99 ite 1 30 76 98 0:1:STORE:1\n"
-    "100 next 1 32 99 0:2:JNZ:0\n"
+    "70 init 1 " + encoder->nids_stmt[0][2] + " " + encoder->nid_false + "\n"
+    "71 and 1 " + encoder->nids_stmt[0][2] + " -" + encoder->nids_exec[0][2] + "\n"
+    "72 ite 1 " + encoder->nids_stmt[0][1] + " " + encoder->nids_exec[0][1] + " 71 0:1:STORE:1\n"
+    "73 next 1 " + encoder->nids_stmt[0][2] + " 72 0:2:JNZ:0\n"
     "\n"
     "; stmt_0_3\n"
-    "101 not 1 78\n"
-    "102 and 1 34 101\n"
-    "103 not 1 89\n"
-    "104 and 1 77 103\n"
-    "105 ite 1 32 104 102 0:2:JNZ:0\n"
-    "106 next 1 34 105 0:3:EXIT:1\n"
+    "74 init 1 " + encoder->nids_stmt[0][3] + " " + encoder->nid_false + "\n"
+    "75 and 1 " + encoder->nids_stmt[0][3] + " -" + encoder->nids_exec[0][3] + "\n"
+    "76 and 1 " + encoder->nids_exec[0][2] + " -62\n"
+    "77 ite 1 " + encoder->nids_stmt[0][2] + " 76 75 0:2:JNZ:0\n"
+    "78 next 1 " + encoder->nids_stmt[0][3] + " 77 0:3:EXIT:1\n"
     "\n"
     "; stmt_1_0\n"
-    "107 not 1 79\n"
-    "108 and 1 36 107\n"
-    "109 ne 1 18 6\n"
-    "110 and 1 81 109\n"
-    "111 ite 1 40 110 108 1:2:JNZ:0\n"
-    "112 next 1 36 111 1:0:ADDI:1\n"
+    "79 init 1 " + encoder->nids_stmt[1][0] + " " + encoder->nid_true + "\n"
+    "80 and 1 " + encoder->nids_stmt[1][0] + " -" + encoder->nids_exec[1][0] + "\n"
+    "81 ne 1 " + encoder->nids_accu[1] + " " + encoder->nids_const[0] + "\n"
+    "82 and 1 " + encoder->nids_exec[1][2] + " 81\n"
+    "83 ite 1 " + encoder->nids_stmt[1][2] + " 82 80 1:2:JNZ:0\n"
+    "84 next 1 " + encoder->nids_stmt[1][0] + " 83 1:0:ADDI:1\n"
     "\n"
     "; stmt_1_1\n"
-    "113 not 1 80\n"
-    "114 and 1 38 113\n"
-    "115 ite 1 36 79 114 1:0:ADDI:1\n"
-    "116 next 1 38 115 1:1:STORE:1\n"
+    "85 init 1 " + encoder->nids_stmt[1][1] + " " + encoder->nid_false + "\n"
+    "86 and 1 " + encoder->nids_stmt[1][1] + " -" + encoder->nids_exec[1][1] + "\n"
+    "87 ite 1 " + encoder->nids_stmt[1][0] + " " + encoder->nids_exec[1][0] + " 86 1:0:ADDI:1\n"
+    "88 next 1 " + encoder->nids_stmt[1][1] + " 87 1:1:STORE:1\n"
     "\n"
     "; stmt_1_2\n"
-    "117 not 1 81\n"
-    "118 and 1 40 117\n"
-    "119 ite 1 38 80 118 1:1:STORE:1\n"
-    "120 next 1 40 119 1:2:JNZ:0\n"
+    "89 init 1 " + encoder->nids_stmt[1][2] + " " + encoder->nid_false + "\n"
+    "90 and 1 " + encoder->nids_stmt[1][2] + " -" + encoder->nids_exec[1][2] + "\n"
+    "91 ite 1 " + encoder->nids_stmt[1][1] + " " + encoder->nids_exec[1][1] + " 90 1:1:STORE:1\n"
+    "92 next 1 " + encoder->nids_stmt[1][2] + " 91 1:2:JNZ:0\n"
     "\n"
     "; stmt_1_3\n"
-    "121 not 1 82\n"
-    "122 and 1 42 121\n"
-    "123 not 1 109\n"
-    "124 and 1 81 123\n"
-    "125 ite 1 40 124 122 1:2:JNZ:0\n"
-    "126 next 1 42 125 1:3:EXIT:1\n"
+    "93 init 1 " + encoder->nids_stmt[1][3] + " " + encoder->nid_false + "\n"
+    "94 and 1 " + encoder->nids_stmt[1][3] + " -" + encoder->nids_exec[1][3] + "\n"
+    "95 and 1 " + encoder->nids_exec[1][2] + " -81\n"
+    "96 ite 1 " + encoder->nids_stmt[1][2] + " 95 94 1:2:JNZ:0\n"
+    "97 next 1 " + encoder->nids_stmt[1][3] + " 96 1:3:EXIT:1\n"
     "\n"
     "; stmt_2_0\n"
-    "127 not 1 83\n"
-    "128 and 1 44 127\n"
-    "129 ne 1 20 6\n"
-    "130 and 1 85 129\n"
-    "131 ite 1 48 130 128 2:2:JNZ:0\n"
-    "132 next 1 44 131 2:0:ADDI:1\n"
+    "98 init 1 " + encoder->nids_stmt[2][0] + " " + encoder->nid_true + "\n"
+    "99 and 1 " + encoder->nids_stmt[2][0] + " -" + encoder->nids_exec[2][0] + "\n"
+    "100 ne 1 " + encoder->nids_accu[2] + " " + encoder->nids_const[0] + "\n"
+    "101 and 1 " + encoder->nids_exec[2][2] + " 100\n"
+    "102 ite 1 " + encoder->nids_stmt[2][2] + " 101 99 2:2:JNZ:0\n"
+    "103 next 1 " + encoder->nids_stmt[2][0] + " 102 2:0:ADDI:1\n"
     "\n"
     "; stmt_2_1\n"
-    "133 not 1 84\n"
-    "134 and 1 46 133\n"
-    "135 ite 1 44 83 134 2:0:ADDI:1\n"
-    "136 next 1 46 135 2:1:STORE:1\n"
+    "104 init 1 " + encoder->nids_stmt[2][1] + " " + encoder->nid_false + "\n"
+    "105 and 1 " + encoder->nids_stmt[2][1] + " -" + encoder->nids_exec[2][1] + "\n"
+    "106 ite 1 " + encoder->nids_stmt[2][0] + " " + encoder->nids_exec[2][0] + " 105 2:0:ADDI:1\n"
+    "107 next 1 " + encoder->nids_stmt[2][1] + " 106 2:1:STORE:1\n"
     "\n"
     "; stmt_2_2\n"
-    "137 not 1 85\n"
-    "138 and 1 48 137\n"
-    "139 ite 1 46 84 138 2:1:STORE:1\n"
-    "140 next 1 48 139 2:2:JNZ:0\n"
+    "108 init 1 " + encoder->nids_stmt[2][2] + " " + encoder->nid_false + "\n"
+    "109 and 1 " + encoder->nids_stmt[2][2] + " -" + encoder->nids_exec[2][2] + "\n"
+    "110 ite 1 " + encoder->nids_stmt[2][1] + " " + encoder->nids_exec[2][1] + " 109 2:1:STORE:1\n"
+    "111 next 1 " + encoder->nids_stmt[2][2] + " 110 2:2:JNZ:0\n"
     "\n"
     "; stmt_2_3\n"
-    "141 not 1 86\n"
-    "142 and 1 50 141\n"
-    "143 not 1 129\n"
-    "144 and 1 85 143\n"
-    "145 ite 1 48 144 142 2:2:JNZ:0\n"
-    "146 next 1 50 145 2:3:EXIT:1\n"
+    "112 init 1 " + encoder->nids_stmt[2][3] + " " + encoder->nid_false + "\n"
+    "113 and 1 " + encoder->nids_stmt[2][3] + " -" + encoder->nids_exec[2][3] + "\n"
+    "114 and 1 " + encoder->nids_exec[2][2] + " -100\n"
+    "115 ite 1 " + encoder->nids_stmt[2][2] + " 114 113 2:2:JNZ:0\n"
+    "116 next 1 " + encoder->nids_stmt[2][3] + " 115 2:3:EXIT:1\n"
     "\n",
-    encoder->formula.str());
+    encoder->str());
 
   /* TODO remove
   reset_encoder(4);
@@ -1456,7 +876,7 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_start)
   encoder->add_statement_execution();
   encoder->add_statement_activation();
 
-  string formula = encoder->formula.str() + eol;
+  string formula = encoder->str() + eol;
 
   formula +=
     btor2::next(
@@ -1488,139 +908,127 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_twice)
 
   reset_encoder(3);
 
-  init_statement_execution(true);
+  init_statement_activation(true);
 
   encoder->add_statement_activation();
 
-  ASSERT_EQ(vector<string>({"28", "30", "32", "34", "36"}), encoder->nids_stmt[0]);
-  ASSERT_EQ(vector<string>({"38", "40", "42", "44", "46"}), encoder->nids_stmt[1]);
-  ASSERT_EQ(vector<string>({"48", "50", "52", "54", "56"}), encoder->nids_stmt[2]);
-
-  ASSERT_EQ(vector<string>({"81", "82", "83", "84", "85"}), encoder->nids_exec[0]);
-  ASSERT_EQ(vector<string>({"86", "87", "88", "89", "90"}), encoder->nids_exec[1]);
-  ASSERT_EQ(vector<string>({"91", "92", "93", "94", "95"}), encoder->nids_exec[2]);
-
   ASSERT_EQ(
-    "; update statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; statement activation state definitions\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; stmt_0_0\n"
-    "96 not 1 81\n"
-    "97 and 1 28 96\n"
-    "98 next 1 28 97 0:0:ADDI:1\n"
+    "66 init 1 " + encoder->nids_stmt[0][0] + " " + encoder->nid_true + "\n"
+    "67 and 1 " + encoder->nids_stmt[0][0] + " -" + encoder->nids_exec[0][0] + "\n"
+    "68 next 1 " + encoder->nids_stmt[0][0] + " 67 0:0:ADDI:1\n"
     "\n"
     "; stmt_0_1\n"
-    "99 not 1 82\n"
-    "100 and 1 30 99\n"
-    "101 ite 1 28 81 100 0:0:ADDI:1\n"
-    "102 eq 1 16 6\n"
-    "103 and 1 83 102\n"
-    "104 ite 1 32 103 101 0:2:JZ:1\n"
-    "105 ne 1 16 6\n"
-    "106 and 1 84 105\n"
-    "107 ite 1 34 106 104 0:3:JNZ:1\n"
-    "108 next 1 30 107 0:1:STORE:1\n"
+    "69 init 1 " + encoder->nids_stmt[0][1] + " " + encoder->nid_false + "\n"
+    "70 and 1 " + encoder->nids_stmt[0][1] + " -" + encoder->nids_exec[0][1] + "\n"
+    "71 ite 1 " + encoder->nids_stmt[0][0] + " " + encoder->nids_exec[0][0] + " 70 0:0:ADDI:1\n"
+    "72 eq 1 " + encoder->nids_accu[0] + " " + encoder->nids_const[0] + "\n"
+    "73 and 1 " + encoder->nids_exec[0][2] + " 72\n"
+    "74 ite 1 " + encoder->nids_stmt[0][2] + " 73 71 0:2:JZ:1\n"
+    "75 ne 1 " + encoder->nids_accu[0] + " " + encoder->nids_const[0] + "\n"
+    "76 and 1 " + encoder->nids_exec[0][3] + " 75\n"
+    "77 ite 1 " + encoder->nids_stmt[0][3] + " 76 74 0:3:JNZ:1\n"
+    "78 next 1 " + encoder->nids_stmt[0][1] + " 77 0:1:STORE:1\n"
     "\n"
     "; stmt_0_2\n"
-    "109 not 1 83\n"
-    "110 and 1 32 109\n"
-    "111 ite 1 30 82 110 0:1:STORE:1\n"
-    "112 next 1 32 111 0:2:JZ:1\n"
+    "79 init 1 " + encoder->nids_stmt[0][2] + " " + encoder->nid_false + "\n"
+    "80 and 1 " + encoder->nids_stmt[0][2] + " -" + encoder->nids_exec[0][2] + "\n"
+    "81 ite 1 " + encoder->nids_stmt[0][1] + " " + encoder->nids_exec[0][1] + " 80 0:1:STORE:1\n"
+    "82 next 1 " + encoder->nids_stmt[0][2] + " 81 0:2:JZ:1\n"
     "\n"
     "; stmt_0_3\n"
-    "113 not 1 84\n"
-    "114 and 1 34 113\n"
-    "115 not 1 102\n"
-    "116 and 1 83 115\n"
-    "117 ite 1 32 116 114 0:2:JZ:1\n"
-    "118 next 1 34 117 0:3:JNZ:1\n"
+    "83 init 1 " + encoder->nids_stmt[0][3] + " " + encoder->nid_false + "\n"
+    "84 and 1 " + encoder->nids_stmt[0][3] + " -" + encoder->nids_exec[0][3] + "\n"
+    "85 and 1 " + encoder->nids_exec[0][2] + " -72\n"
+    "86 ite 1 " + encoder->nids_stmt[0][2] + " 85 84 0:2:JZ:1\n"
+    "87 next 1 " + encoder->nids_stmt[0][3] + " 86 0:3:JNZ:1\n"
     "\n"
     "; stmt_0_4\n"
-    "119 not 1 85\n"
-    "120 and 1 36 119\n"
-    "121 not 1 105\n"
-    "122 and 1 84 121\n"
-    "123 ite 1 34 122 120 0:3:JNZ:1\n"
-    "124 next 1 36 123 0:4:EXIT:1\n"
+    "88 init 1 " + encoder->nids_stmt[0][4] + " " + encoder->nid_false + "\n"
+    "89 and 1 " + encoder->nids_stmt[0][4] + " -" + encoder->nids_exec[0][4] + "\n"
+    "90 and 1 " + encoder->nids_exec[0][3] + " -75\n"
+    "91 ite 1 " + encoder->nids_stmt[0][3] + " 90 89 0:3:JNZ:1\n"
+    "92 next 1 " + encoder->nids_stmt[0][4] + " 91 0:4:EXIT:1\n"
     "\n"
     "; stmt_1_0\n"
-    "125 not 1 86\n"
-    "126 and 1 38 125\n"
-    "127 next 1 38 126 1:0:ADDI:1\n"
+    "93 init 1 " + encoder->nids_stmt[1][0] + " " + encoder->nid_true + "\n"
+    "94 and 1 " + encoder->nids_stmt[1][0] + " -" + encoder->nids_exec[1][0] + "\n"
+    "95 next 1 " + encoder->nids_stmt[1][0] + " 94 1:0:ADDI:1\n"
     "\n"
     "; stmt_1_1\n"
-    "128 not 1 87\n"
-    "129 and 1 40 128\n"
-    "130 ite 1 38 86 129 1:0:ADDI:1\n"
-    "131 eq 1 18 6\n"
-    "132 and 1 88 131\n"
-    "133 ite 1 42 132 130 1:2:JZ:1\n"
-    "134 ne 1 18 6\n"
-    "135 and 1 89 134\n"
-    "136 ite 1 44 135 133 1:3:JNZ:1\n"
-    "137 next 1 40 136 1:1:STORE:1\n"
+    "96 init 1 " + encoder->nids_stmt[1][1] + " " + encoder->nid_false + "\n"
+    "97 and 1 " + encoder->nids_stmt[1][1] + " -" + encoder->nids_exec[1][1] + "\n"
+    "98 ite 1 " + encoder->nids_stmt[1][0] + " " + encoder->nids_exec[1][0] + " 97 1:0:ADDI:1\n"
+    "99 eq 1 " + encoder->nids_accu[1] + " " + encoder->nids_const[0] + "\n"
+    "100 and 1 " + encoder->nids_exec[1][2] + " 99\n"
+    "101 ite 1 " + encoder->nids_stmt[1][2] + " 100 98 1:2:JZ:1\n"
+    "102 ne 1 " + encoder->nids_accu[1] + " " + encoder->nids_const[0] + "\n"
+    "103 and 1 " + encoder->nids_exec[1][3] + " 102\n"
+    "104 ite 1 " + encoder->nids_stmt[1][3] + " 103 101 1:3:JNZ:1\n"
+    "105 next 1 " + encoder->nids_stmt[1][1] + " 104 1:1:STORE:1\n"
     "\n"
     "; stmt_1_2\n"
-    "138 not 1 88\n"
-    "139 and 1 42 138\n"
-    "140 ite 1 40 87 139 1:1:STORE:1\n"
-    "141 next 1 42 140 1:2:JZ:1\n"
+    "106 init 1 " + encoder->nids_stmt[1][2] + " " + encoder->nid_false + "\n"
+    "107 and 1 " + encoder->nids_stmt[1][2] + " -" + encoder->nids_exec[1][2] + "\n"
+    "108 ite 1 " + encoder->nids_stmt[1][1] + " " + encoder->nids_exec[1][1] + " 107 1:1:STORE:1\n"
+    "109 next 1 " + encoder->nids_stmt[1][2] + " 108 1:2:JZ:1\n"
     "\n"
     "; stmt_1_3\n"
-    "142 not 1 89\n"
-    "143 and 1 44 142\n"
-    "144 not 1 131\n"
-    "145 and 1 88 144\n"
-    "146 ite 1 42 145 143 1:2:JZ:1\n"
-    "147 next 1 44 146 1:3:JNZ:1\n"
+    "110 init 1 " + encoder->nids_stmt[1][3] + " " + encoder->nid_false + "\n"
+    "111 and 1 " + encoder->nids_stmt[1][3] + " -" + encoder->nids_exec[1][3] + "\n"
+    "112 and 1 " + encoder->nids_exec[1][2] + " -99\n"
+    "113 ite 1 " + encoder->nids_stmt[1][2] + " 112 111 1:2:JZ:1\n"
+    "114 next 1 " + encoder->nids_stmt[1][3] + " 113 1:3:JNZ:1\n"
     "\n"
     "; stmt_1_4\n"
-    "148 not 1 90\n"
-    "149 and 1 46 148\n"
-    "150 not 1 134\n"
-    "151 and 1 89 150\n"
-    "152 ite 1 44 151 149 1:3:JNZ:1\n"
-    "153 next 1 46 152 1:4:EXIT:1\n"
+    "115 init 1 " + encoder->nids_stmt[1][4] + " " + encoder->nid_false + "\n"
+    "116 and 1 " + encoder->nids_stmt[1][4] + " -" + encoder->nids_exec[1][4] + "\n"
+    "117 and 1 " + encoder->nids_exec[1][3] + " -102\n"
+    "118 ite 1 " + encoder->nids_stmt[1][3] + " 117 116 1:3:JNZ:1\n"
+    "119 next 1 " + encoder->nids_stmt[1][4] + " 118 1:4:EXIT:1\n"
     "\n"
     "; stmt_2_0\n"
-    "154 not 1 91\n"
-    "155 and 1 48 154\n"
-    "156 next 1 48 155 2:0:ADDI:1\n"
+    "120 init 1 " + encoder->nids_stmt[2][0] + " " + encoder->nid_true + "\n"
+    "121 and 1 " + encoder->nids_stmt[2][0] + " -" + encoder->nids_exec[2][0] + "\n"
+    "122 next 1 " + encoder->nids_stmt[2][0] + " 121 2:0:ADDI:1\n"
     "\n"
     "; stmt_2_1\n"
-    "157 not 1 92\n"
-    "158 and 1 50 157\n"
-    "159 ite 1 48 91 158 2:0:ADDI:1\n"
-    "160 eq 1 20 6\n"
-    "161 and 1 93 160\n"
-    "162 ite 1 52 161 159 2:2:JZ:1\n"
-    "163 ne 1 20 6\n"
-    "164 and 1 94 163\n"
-    "165 ite 1 54 164 162 2:3:JNZ:1\n"
-    "166 next 1 50 165 2:1:STORE:1\n"
+    "123 init 1 " + encoder->nids_stmt[2][1] + " " + encoder->nid_false + "\n"
+    "124 and 1 " + encoder->nids_stmt[2][1] + " -" + encoder->nids_exec[2][1] + "\n"
+    "125 ite 1 " + encoder->nids_stmt[2][0] + " " + encoder->nids_exec[2][0] + " 124 2:0:ADDI:1\n"
+    "126 eq 1 " + encoder->nids_accu[2] + " " + encoder->nids_const[0] + "\n"
+    "127 and 1 " + encoder->nids_exec[2][2] + " 126\n"
+    "128 ite 1 " + encoder->nids_stmt[2][2] + " 127 125 2:2:JZ:1\n"
+    "129 ne 1 " + encoder->nids_accu[2] + " " + encoder->nids_const[0] + "\n"
+    "130 and 1 " + encoder->nids_exec[2][3] + " 129\n"
+    "131 ite 1 " + encoder->nids_stmt[2][3] + " 130 128 2:3:JNZ:1\n"
+    "132 next 1 " + encoder->nids_stmt[2][1] + " 131 2:1:STORE:1\n"
     "\n"
     "; stmt_2_2\n"
-    "167 not 1 93\n"
-    "168 and 1 52 167\n"
-    "169 ite 1 50 92 168 2:1:STORE:1\n"
-    "170 next 1 52 169 2:2:JZ:1\n"
+    "133 init 1 " + encoder->nids_stmt[2][2] + " " + encoder->nid_false + "\n"
+    "134 and 1 " + encoder->nids_stmt[2][2] + " -" + encoder->nids_exec[2][2] + "\n"
+    "135 ite 1 " + encoder->nids_stmt[2][1] + " " + encoder->nids_exec[2][1] + " 134 2:1:STORE:1\n"
+    "136 next 1 " + encoder->nids_stmt[2][2] + " 135 2:2:JZ:1\n"
     "\n"
     "; stmt_2_3\n"
-    "171 not 1 94\n"
-    "172 and 1 54 171\n"
-    "173 not 1 160\n"
-    "174 and 1 93 173\n"
-    "175 ite 1 52 174 172 2:2:JZ:1\n"
-    "176 next 1 54 175 2:3:JNZ:1\n"
+    "137 init 1 " + encoder->nids_stmt[2][3] + " " + encoder->nid_false + "\n"
+    "138 and 1 " + encoder->nids_stmt[2][3] + " -" + encoder->nids_exec[2][3] + "\n"
+    "139 and 1 " + encoder->nids_exec[2][2] + " -126\n"
+    "140 ite 1 " + encoder->nids_stmt[2][2] + " 139 138 2:2:JZ:1\n"
+    "141 next 1 " + encoder->nids_stmt[2][3] + " 140 2:3:JNZ:1\n"
     "\n"
     "; stmt_2_4\n"
-    "177 not 1 95\n"
-    "178 and 1 56 177\n"
-    "179 not 1 163\n"
-    "180 and 1 94 179\n"
-    "181 ite 1 54 180 178 2:3:JNZ:1\n"
-    "182 next 1 56 181 2:4:EXIT:1\n"
+    "142 init 1 " + encoder->nids_stmt[2][4] + " " + encoder->nid_false + "\n"
+    "143 and 1 " + encoder->nids_stmt[2][4] + " -" + encoder->nids_exec[2][4] + "\n"
+    "144 and 1 " + encoder->nids_exec[2][3] + " -129\n"
+    "145 ite 1 " + encoder->nids_stmt[2][3] + " 144 143 2:3:JNZ:1\n"
+    "146 next 1 " + encoder->nids_stmt[2][4] + " 145 2:4:EXIT:1\n"
     "\n",
-    encoder->formula.str());
+    encoder->str());
 
   /* TODO remove
   reset_encoder(10);
@@ -1634,7 +1042,7 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_twice)
   encoder->add_statement_execution();
   encoder->add_statement_activation();
 
-  string formula = encoder->formula.str() + eol;
+  string formula = encoder->str() + eol;
 
   formula +=
     btor2::next(
@@ -1651,1457 +1059,799 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_twice)
   */
 }
 
-// void Btor2Encoder::define_next (
-//                                 string state,
-//                                 string sid,
-//                                 string symbol,
-//                                 unordered_map<
-//                                   word,
-//                                   vector<word>> & alters_state,
-//                                 const bool global
-//                                )
-TEST_F(Btor2EncoderTest, define_next)
-{
-  add_dummy_programs(3, 3);
-
-  init_statement_activation(true);
-
-  string state = "0";
-  string sid = encoder->sid_bv;
-  string sym = "state";
-  unordered_map<word, vector<word>> alters_state({
-    {0, {0, 1, 2}},
-    {1, {0, 1, 2}},
-    {2, {0, 1, 2}}
-  });
-
-  /* thread states */
-  for (encoder->thread = 0; encoder->thread < 3; encoder->thread++)
-    {
-      encoder->define_next(state, sid, sym, alters_state);
-
-      vector<string> & exec = encoder->nids_exec[encoder->thread];
-
-      string thread = to_string(encoder->thread);
-      string arg = to_string(encoder->thread + 1);
-
-      string nid_accu = encoder->nids_accu[encoder->thread];
-      string nid_arg = encoder->nids_const[encoder->thread + 1];
-
-      string nid_0_addi = nid(-7);
-      string nid_0_ite  = nid(-6);
-      string nid_1_addi = nid(-5);
-      string nid_1_ite  = nid(-4);
-      string nid_2_addi = nid(-3);
-      string nid_2_ite  = nid(-2);
-      string nid_next   = nid(-1);
-
-      ASSERT_EQ(
-        "; " + sym + "\n"
-        + nid_0_addi + " add " + sid + " " + nid_accu + " " + nid_arg + "\n"
-        + nid_0_ite  + " ite " + sid + " " + exec[0] + " " + nid_0_addi + " " + state + " " + thread + ":0:ADDI:" + arg + "\n"
-        + nid_1_addi + " add " + sid + " " + nid_accu + " " + nid_arg + "\n"
-        + nid_1_ite  + " ite " + sid + " " + exec[1] + " " + nid_1_addi + " " + nid_0_ite + " " + thread + ":1:ADDI:" + arg + "\n"
-        + nid_2_addi + " add " + sid + " " + nid_accu + " " + nid_arg + "\n"
-        + nid_2_ite  + " ite " + sid + " " + exec[2] + " " + nid_2_addi + " " + nid_1_ite + " " + thread + ":2:ADDI:" + arg + "\n"
-        + nid_next   + " next " + sid + " " + state + " " + nid_2_ite + "\n"
-        "\n",
-        encoder->formula.str());
-
-      encoder->formula.str("");
-    }
-
-  /* global state */
-  reset_encoder(1);
-
-  init_statement_activation(true);
-
-  encoder->define_next(state, sid, sym, alters_state, true);
-
-  string nid_0_0_addi = nid(-19);
-  string nid_0_0_ite  = nid(-18);
-  string nid_0_1_addi = nid(-17);
-  string nid_0_1_ite  = nid(-16);
-  string nid_0_2_addi = nid(-15);
-  string nid_0_2_ite  = nid(-14);
-
-  string nid_1_0_addi = nid(-13);
-  string nid_1_0_ite  = nid(-12);
-  string nid_1_1_addi = nid(-11);
-  string nid_1_1_ite  = nid(-10);
-  string nid_1_2_addi = nid(-9);
-  string nid_1_2_ite  = nid(-8);
-
-  string nid_2_0_addi = nid(-7);
-  string nid_2_0_ite  = nid(-6);
-  string nid_2_1_addi = nid(-5);
-  string nid_2_1_ite  = nid(-4);
-  string nid_2_2_addi = nid(-3);
-  string nid_2_2_ite  = nid(-2);
-
-  string nid_next     = nid(-1);
-
-  ASSERT_EQ(
-      nid_0_0_addi + " add " + sid + " " + encoder->nids_accu[0] + " 7\n"
-    + nid_0_0_ite  + " ite " + sid + " " + encoder->nids_exec[0][0] + " " + nid_0_0_addi + " " + state + " 0:0:ADDI:1\n"
-    + nid_0_1_addi + " add " + sid + " " + encoder->nids_accu[0] + " 7\n"
-    + nid_0_1_ite  + " ite " + sid + " " + encoder->nids_exec[0][1] + " " + nid_0_1_addi + " " + nid_0_0_ite + " 0:1:ADDI:1\n"
-    + nid_0_2_addi + " add " + sid + " " + encoder->nids_accu[0] + " 7\n"
-    + nid_0_2_ite  + " ite " + sid + " " + encoder->nids_exec[0][2] + " " + nid_0_2_addi + " " + nid_0_1_ite + " 0:2:ADDI:1\n"
-
-    + nid_1_0_addi + " add " + sid + " " + encoder->nids_accu[1] + " 8\n"
-    + nid_1_0_ite  + " ite " + sid + " " + encoder->nids_exec[1][0] + " " + nid_1_0_addi + " " + nid_0_2_ite + " 1:0:ADDI:2\n"
-    + nid_1_1_addi + " add " + sid + " " + encoder->nids_accu[1] + " 8\n"
-    + nid_1_1_ite  + " ite " + sid + " " + encoder->nids_exec[1][1] + " " + nid_1_1_addi + " " + nid_1_0_ite + " 1:1:ADDI:2\n"
-    + nid_1_2_addi + " add " + sid + " " + encoder->nids_accu[1] + " 8\n"
-    + nid_1_2_ite  + " ite " + sid + " " + encoder->nids_exec[1][2] + " " + nid_1_2_addi + " " + nid_1_1_ite + " 1:2:ADDI:2\n"
-
-    + nid_2_0_addi + " add " + sid + " " + encoder->nids_accu[2] + " 9\n"
-    + nid_2_0_ite  + " ite " + sid + " " + encoder->nids_exec[2][0] + " " + nid_2_0_addi + " " + nid_1_2_ite + " 2:0:ADDI:3\n"
-    + nid_2_1_addi + " add " + sid + " " + encoder->nids_accu[2] + " 9\n"
-    + nid_2_1_ite  + " ite " + sid + " " + encoder->nids_exec[2][1] + " " + nid_2_1_addi + " " + nid_2_0_ite + " 2:1:ADDI:3\n"
-    + nid_2_2_addi + " add " + sid + " " + encoder->nids_accu[2] + " 9\n"
-    + nid_2_2_ite  + " ite " + sid + " " + encoder->nids_exec[2][2] + " " + nid_2_2_addi + " " + nid_2_1_ite + " 2:2:ADDI:3\n"
-
-    + nid_next + " next " + sid + " " + state + " " + nid_2_2_ite + "\n"
-    "\n",
-    encoder->formula.str());
-}
-
 // void Btor2Encoder::add_register_definitions ()
 TEST_F(Btor2EncoderTest, add_register_definitions)
 {
   add_instruction_set(3);
 
-  init_statement_execution(true);
-
-  int offset = encoder->node + 1;
+  init_register_definitions(true);
 
   encoder->add_register_definitions();
 
-  offset = static_cast<int>(encoder->node) - offset;
+  ASSERT_EQ(
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; register state definitions\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; accumulator definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; accu_0\n"
+    "413 init 2 " + encoder->nids_accu[0] + " " + encoder->nids_const[0] + "\n"
+    "414 read 2 " + encoder->nid_heap + " " + encoder->nids_const[1] + "\n"
+    "415 ite 2 " + encoder->nids_exec[0][0] + " 414 " + encoder->nids_accu[0] + " 0:0:LOAD:1\n"
+    "416 add 2 " + encoder->nids_accu[0] + " 414\n"
+    "417 ite 2 " + encoder->nids_exec[0][2] + " 416 415 0:2:ADD:1\n"
+    "418 add 2 " + encoder->nids_accu[0] + " " + encoder->nids_const[1] + "\n"
+    "419 ite 2 " + encoder->nids_exec[0][3] + " 418 417 0:3:ADDI:1\n"
+    "420 sub 2 " + encoder->nids_accu[0] + " 414\n"
+    "421 ite 2 " + encoder->nids_exec[0][4] + " 420 419 0:4:SUB:1\n"
+    "422 sub 2 " + encoder->nids_accu[0] + " " + encoder->nids_const[1] + "\n"
+    "423 ite 2 " + encoder->nids_exec[0][5] + " 422 421 0:5:SUBI:1\n"
+    "424 sub 2 " + encoder->nids_accu[0] + " 414\n"
+    "425 ite 2 " + encoder->nids_exec[0][6] + " 424 423 0:6:CMP:1\n"
+    "426 ite 2 " + encoder->nids_exec[0][13] + " 414 425 0:13:MEM:1\n"
+    "427 eq 1 " + encoder->nids_mem[0] + " 414\n"
+    "428 ite 2 427 " + encoder->nids_const[1] + " " + encoder->nids_const[0] + "\n"
+    "429 ite 2 " + encoder->nids_exec[0][14] + " 428 426 0:14:CAS:1\n"
+    "430 next 2 " + encoder->nids_accu[0] + " 429 accu_0\n"
+    "\n"
+    "; accu_1\n"
+    "431 init 2 " + encoder->nids_accu[1] + " " + encoder->nids_const[0] + "\n"
+    "432 ite 2 " + encoder->nids_exec[1][0] + " 414 " + encoder->nids_accu[1] + " 1:0:LOAD:1\n"
+    "433 add 2 " + encoder->nids_accu[1] + " 414\n"
+    "434 ite 2 " + encoder->nids_exec[1][2] + " 433 432 1:2:ADD:1\n"
+    "435 add 2 " + encoder->nids_accu[1] + " " + encoder->nids_const[1] + "\n"
+    "436 ite 2 " + encoder->nids_exec[1][3] + " 435 434 1:3:ADDI:1\n"
+    "437 sub 2 " + encoder->nids_accu[1] + " 414\n"
+    "438 ite 2 " + encoder->nids_exec[1][4] + " 437 436 1:4:SUB:1\n"
+    "439 sub 2 " + encoder->nids_accu[1] + " " + encoder->nids_const[1] + "\n"
+    "440 ite 2 " + encoder->nids_exec[1][5] + " 439 438 1:5:SUBI:1\n"
+    "441 sub 2 " + encoder->nids_accu[1] + " 414\n"
+    "442 ite 2 " + encoder->nids_exec[1][6] + " 441 440 1:6:CMP:1\n"
+    "443 ite 2 " + encoder->nids_exec[1][13] + " 414 442 1:13:MEM:1\n"
+    "444 eq 1 " + encoder->nids_mem[1] + " 414\n"
+    "445 ite 2 444 " + encoder->nids_const[1] + " " + encoder->nids_const[0] + "\n"
+    "446 ite 2 " + encoder->nids_exec[1][14] + " 445 443 1:14:CAS:1\n"
+    "447 next 2 " + encoder->nids_accu[1] + " 446 accu_1\n"
+    "\n"
+    "; accu_2\n"
+    "448 init 2 " + encoder->nids_accu[2] + " " + encoder->nids_const[0] + "\n"
+    "449 ite 2 " + encoder->nids_exec[2][0] + " 414 " + encoder->nids_accu[2] + " 2:0:LOAD:1\n"
+    "450 add 2 " + encoder->nids_accu[2] + " 414\n"
+    "451 ite 2 " + encoder->nids_exec[2][2] + " 450 449 2:2:ADD:1\n"
+    "452 add 2 " + encoder->nids_accu[2] + " " + encoder->nids_const[1] + "\n"
+    "453 ite 2 " + encoder->nids_exec[2][3] + " 452 451 2:3:ADDI:1\n"
+    "454 sub 2 " + encoder->nids_accu[2] + " 414\n"
+    "455 ite 2 " + encoder->nids_exec[2][4] + " 454 453 2:4:SUB:1\n"
+    "456 sub 2 " + encoder->nids_accu[2] + " " + encoder->nids_const[1] + "\n"
+    "457 ite 2 " + encoder->nids_exec[2][5] + " 456 455 2:5:SUBI:1\n"
+    "458 sub 2 " + encoder->nids_accu[2] + " 414\n"
+    "459 ite 2 " + encoder->nids_exec[2][6] + " 458 457 2:6:CMP:1\n"
+    "460 ite 2 " + encoder->nids_exec[2][13] + " 414 459 2:13:MEM:1\n"
+    "461 eq 1 " + encoder->nids_mem[2] + " 414\n"
+    "462 ite 2 461 " + encoder->nids_const[1] + " " + encoder->nids_const[0] + "\n"
+    "463 ite 2 " + encoder->nids_exec[2][14] + " 462 460 2:14:CAS:1\n"
+    "464 next 2 " + encoder->nids_accu[2] + " 463 accu_2\n"
+    "\n"
+    "; CAS memory register definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; mem_0\n"
+    "465 init 2 " + encoder->nids_mem[0] + " " + encoder->nids_const[0] + "\n"
+    "466 ite 2 " + encoder->nids_exec[0][13] + " 414 " + encoder->nids_mem[0] + " 0:13:MEM:1\n"
+    "467 next 2 " + encoder->nids_mem[0] + " 466 mem_0\n"
+    "\n"
+    "; mem_1\n"
+    "468 init 2 " + encoder->nids_mem[1] + " " + encoder->nids_const[0] + "\n"
+    "469 ite 2 " + encoder->nids_exec[1][13] + " 414 " + encoder->nids_mem[1] + " 1:13:MEM:1\n"
+    "470 next 2 " + encoder->nids_mem[1] + " 469 mem_1\n"
+    "\n"
+    "; mem_2\n"
+    "471 init 2 " + encoder->nids_mem[2] + " " + encoder->nids_const[0] + "\n"
+    "472 ite 2 " + encoder->nids_exec[2][13] + " 414 " + encoder->nids_mem[2] + " 2:13:MEM:1\n"
+    "473 next 2 " + encoder->nids_mem[2] + " 472 mem_2\n"
+    "\n",
+    encoder->str());
 
-  expected = "; update accu ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n";
+  /* verbosity */
+  reset_encoder(1);
 
-  for (encoder->thread = 0; encoder->thread < 3; encoder->thread++)
-    {
-      vector<string> & exec = encoder->nids_exec[encoder->thread];
+  init_register_definitions(true);
 
-      string thread = to_string(encoder->thread);
-      string accu = encoder->nids_accu[encoder->thread];
+  verbose = false;
+  encoder->add_register_definitions();
+  verbose = true;
 
-      string nid_0_ite  = nid(-offset--);
-      string nid_2_add  = nid(-offset--);
-      string nid_2_ite  = nid(-offset--);
-      string nid_3_addi = nid(-offset--);
-      string nid_3_ite  = nid(-offset--);
-      string nid_4_sub  = nid(-offset--);
-      string nid_4_ite  = nid(-offset--);
-      string nid_5_subi = nid(-offset--);
-      string nid_5_ite  = nid(-offset--);
-      string nid_6_cmp  = nid(-offset--);
-      string nid_6_ite  = nid(-offset--);
-      string nid_13_mem = nid(-offset--);
-      string nid_14_eq  = nid(-offset--);
-      string nid_14_cas = nid(-offset--);
-      string nid_14_ite = nid(-offset--);
-      string nid_next   = nid(-offset--);
-
-      expected +=
-        "; accu_" + thread + "\n"
-        + (encoder->thread ? "" : "509 read 2 14 7\n")
-        + nid_0_ite  + " ite 2 " + exec[0] + " 509 " + accu + " " + thread + ":0:LOAD:1\n"
-        + nid_2_add  + " add 2 " + accu + " 509\n"
-        + nid_2_ite  + " ite 2 " + exec[2] + " " + nid_2_add + " " + nid_0_ite + " " + thread + ":2:ADD:1\n"
-        + nid_3_addi + " add 2 " + accu + " 7\n"
-        + nid_3_ite  + " ite 2 " + exec[3] + " " + nid_3_addi + " " + nid_2_ite + " " + thread + ":3:ADDI:1\n"
-        + nid_4_sub  + " sub 2 " + accu + " 509\n"
-        + nid_4_ite  + " ite 2 " + exec[4] + " " + nid_4_sub + " " + nid_3_ite + " " + thread + ":4:SUB:1\n"
-        + nid_5_subi + " sub 2 " + accu + " 7\n"
-        + nid_5_ite  + " ite 2 " + exec[5] + " " + nid_5_subi + " " + nid_4_ite + " " + thread + ":5:SUBI:1\n"
-        + nid_6_cmp  + " sub 2 " + accu + " 509\n"
-        + nid_6_ite  + " ite 2 " + exec[6] + " " + nid_6_cmp + " " + nid_5_ite + " " + thread + ":6:CMP:1\n"
-        + nid_13_mem + " ite 2 " + exec[13] + " 509 " + nid_6_ite + " " + thread + ":13:MEM:1\n"
-        + nid_14_eq  + " eq 1 "  + encoder->nids_mem[encoder->thread] + " 509\n"
-        + nid_14_cas + " ite 2 " + nid_14_eq + " 7 6\n"
-        + nid_14_ite + " ite 2 " + exec[14] + " " + nid_14_cas + " " + nid_13_mem + " " + thread + ":14:CAS:1\n"
-        + nid_next   + " next 2 " + accu + " " + nid_14_ite + "\n"
-        "\n";
-    }
-
-  expected = "; update CAS memory register ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n";
-
-  for (encoder->thread = 0; encoder->thread < 3; encoder->thread++)
-    {
-      vector<string> & exec = encoder->nids_exec[encoder->thread];
-
-      string thread = to_string(encoder->thread);
-      string mem = encoder->nids_mem[encoder->thread];
-
-      string nid_13_ite = nid(-offset--);
-      string nid_next = nid(-offset--);
-
-      expected +=
-        "; mem_" + thread + "\n"
-        + (encoder->thread ? "" : "509 read 2 14 7\n")
-        + nid_13_ite + " ite 2 " + exec[13] + " 509 " + mem + " " + thread + ":13:MEM:1\n"
-        + nid_next + " next 2 " + mem + " " + nid_13_ite + "\n"
-        "\n";
-    }
-
-  ASSERT_EQ(expected, encoder->formula.str());
+  ASSERT_EQ(
+    "413 init 2 " + encoder->nids_accu[0] + " " + encoder->nids_const[0] + "\n"
+    "414 read 2 " + encoder->nid_heap + " " + encoder->nids_const[1] + "\n"
+    "415 ite 2 " + encoder->nids_exec[0][0] + " 414 " + encoder->nids_accu[0] + "\n"
+    "416 add 2 " + encoder->nids_accu[0] + " 414\n"
+    "417 ite 2 " + encoder->nids_exec[0][2] + " 416 415\n"
+    "418 add 2 " + encoder->nids_accu[0] + " " + encoder->nids_const[1] + "\n"
+    "419 ite 2 " + encoder->nids_exec[0][3] + " 418 417\n"
+    "420 sub 2 " + encoder->nids_accu[0] + " 414\n"
+    "421 ite 2 " + encoder->nids_exec[0][4] + " 420 419\n"
+    "422 sub 2 " + encoder->nids_accu[0] + " " + encoder->nids_const[1] + "\n"
+    "423 ite 2 " + encoder->nids_exec[0][5] + " 422 421\n"
+    "424 sub 2 " + encoder->nids_accu[0] + " 414\n"
+    "425 ite 2 " + encoder->nids_exec[0][6] + " 424 423\n"
+    "426 ite 2 " + encoder->nids_exec[0][13] + " 414 425\n"
+    "427 eq 1 " + encoder->nids_mem[0] + " 414\n"
+    "428 ite 2 427 " + encoder->nids_const[1] + " " + encoder->nids_const[0] + "\n"
+    "429 ite 2 " + encoder->nids_exec[0][14] + " 428 426\n"
+    "430 next 2 " + encoder->nids_accu[0] + " 429 accu_0\n"
+    "\n"
+    "431 init 2 " + encoder->nids_accu[1] + " " + encoder->nids_const[0] + "\n"
+    "432 ite 2 " + encoder->nids_exec[1][0] + " 414 " + encoder->nids_accu[1] + "\n"
+    "433 add 2 " + encoder->nids_accu[1] + " 414\n"
+    "434 ite 2 " + encoder->nids_exec[1][2] + " 433 432\n"
+    "435 add 2 " + encoder->nids_accu[1] + " " + encoder->nids_const[1] + "\n"
+    "436 ite 2 " + encoder->nids_exec[1][3] + " 435 434\n"
+    "437 sub 2 " + encoder->nids_accu[1] + " 414\n"
+    "438 ite 2 " + encoder->nids_exec[1][4] + " 437 436\n"
+    "439 sub 2 " + encoder->nids_accu[1] + " " + encoder->nids_const[1] + "\n"
+    "440 ite 2 " + encoder->nids_exec[1][5] + " 439 438\n"
+    "441 sub 2 " + encoder->nids_accu[1] + " 414\n"
+    "442 ite 2 " + encoder->nids_exec[1][6] + " 441 440\n"
+    "443 ite 2 " + encoder->nids_exec[1][13] + " 414 442\n"
+    "444 eq 1 " + encoder->nids_mem[1] + " 414\n"
+    "445 ite 2 444 " + encoder->nids_const[1] + " " + encoder->nids_const[0] + "\n"
+    "446 ite 2 " + encoder->nids_exec[1][14] + " 445 443\n"
+    "447 next 2 " + encoder->nids_accu[1] + " 446 accu_1\n"
+    "\n"
+    "448 init 2 " + encoder->nids_accu[2] + " " + encoder->nids_const[0] + "\n"
+    "449 ite 2 " + encoder->nids_exec[2][0] + " 414 " + encoder->nids_accu[2] + "\n"
+    "450 add 2 " + encoder->nids_accu[2] + " 414\n"
+    "451 ite 2 " + encoder->nids_exec[2][2] + " 450 449\n"
+    "452 add 2 " + encoder->nids_accu[2] + " " + encoder->nids_const[1] + "\n"
+    "453 ite 2 " + encoder->nids_exec[2][3] + " 452 451\n"
+    "454 sub 2 " + encoder->nids_accu[2] + " 414\n"
+    "455 ite 2 " + encoder->nids_exec[2][4] + " 454 453\n"
+    "456 sub 2 " + encoder->nids_accu[2] + " " + encoder->nids_const[1] + "\n"
+    "457 ite 2 " + encoder->nids_exec[2][5] + " 456 455\n"
+    "458 sub 2 " + encoder->nids_accu[2] + " 414\n"
+    "459 ite 2 " + encoder->nids_exec[2][6] + " 458 457\n"
+    "460 ite 2 " + encoder->nids_exec[2][13] + " 414 459\n"
+    "461 eq 1 " + encoder->nids_mem[2] + " 414\n"
+    "462 ite 2 461 " + encoder->nids_const[1] + " " + encoder->nids_const[0] + "\n"
+    "463 ite 2 " + encoder->nids_exec[2][14] + " 462 460\n"
+    "464 next 2 " + encoder->nids_accu[2] + " 463 accu_2\n"
+    "\n"
+    "465 init 2 " + encoder->nids_mem[0] + " " + encoder->nids_const[0] + "\n"
+    "466 ite 2 " + encoder->nids_exec[0][13] + " 414 " + encoder->nids_mem[0] + "\n"
+    "467 next 2 " + encoder->nids_mem[0] + " 466 mem_0\n"
+    "\n"
+    "468 init 2 " + encoder->nids_mem[1] + " " + encoder->nids_const[0] + "\n"
+    "469 ite 2 " + encoder->nids_exec[1][13] + " 414 " + encoder->nids_mem[1] + "\n"
+    "470 next 2 " + encoder->nids_mem[1] + " 469 mem_1\n"
+    "\n"
+    "471 init 2 " + encoder->nids_mem[2] + " " + encoder->nids_const[0] + "\n"
+    "472 ite 2 " + encoder->nids_exec[2][13] + " 414 " + encoder->nids_mem[2] + "\n"
+    "473 next 2 " + encoder->nids_mem[2] + " 472 mem_2\n"
+    "\n",
+    encoder->str());
 }
-
-#ifdef NDEPRECATE
-// void Btor2Encoder::define_accu ()
-TEST_F(Btor2EncoderTest, define_accu)
-{
-  add_instruction_set(3);
-
-  init_statement_activation(true);
-
-  int offset = encoder->node + 1;
-
-  encoder->define_accu();
-
-  offset = static_cast<int>(encoder->node) - offset;
-
-  expected = "; update accu ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n";
-
-  for (encoder->thread = 0; encoder->thread < 3; encoder->thread++)
-    {
-      vector<string> & exec = encoder->nids_exec[encoder->thread];
-
-      string thread = to_string(encoder->thread);
-      string accu = encoder->nids_accu[encoder->thread];
-
-      string nid_0_ite  = nid(-offset--);
-      string nid_2_add  = nid(-offset--);
-      string nid_2_ite  = nid(-offset--);
-      string nid_3_addi = nid(-offset--);
-      string nid_3_ite  = nid(-offset--);
-      string nid_4_sub  = nid(-offset--);
-      string nid_4_ite  = nid(-offset--);
-      string nid_5_subi = nid(-offset--);
-      string nid_5_ite  = nid(-offset--);
-      string nid_6_cmp  = nid(-offset--);
-      string nid_6_ite  = nid(-offset--);
-      string nid_13_mem = nid(-offset--);
-      string nid_14_eq  = nid(-offset--);
-      string nid_14_cas = nid(-offset--);
-      string nid_14_ite = nid(-offset--);
-      string nid_next   = nid(-offset--);
-
-      expected +=
-        "; accu_" + thread + "\n"
-        + (encoder->thread ? "" : "509 read 2 14 7\n")
-        + nid_0_ite  + " ite 2 " + exec[0] + " 509 " + accu + " " + thread + ":0:LOAD:1\n"
-        + nid_2_add  + " add 2 " + accu + " 509\n"
-        + nid_2_ite  + " ite 2 " + exec[2] + " " + nid_2_add + " " + nid_0_ite + " " + thread + ":2:ADD:1\n"
-        + nid_3_addi + " add 2 " + accu + " 7\n"
-        + nid_3_ite  + " ite 2 " + exec[3] + " " + nid_3_addi + " " + nid_2_ite + " " + thread + ":3:ADDI:1\n"
-        + nid_4_sub  + " sub 2 " + accu + " 509\n"
-        + nid_4_ite  + " ite 2 " + exec[4] + " " + nid_4_sub + " " + nid_3_ite + " " + thread + ":4:SUB:1\n"
-        + nid_5_subi + " sub 2 " + accu + " 7\n"
-        + nid_5_ite  + " ite 2 " + exec[5] + " " + nid_5_subi + " " + nid_4_ite + " " + thread + ":5:SUBI:1\n"
-        + nid_6_cmp  + " sub 2 " + accu + " 509\n"
-        + nid_6_ite  + " ite 2 " + exec[6] + " " + nid_6_cmp + " " + nid_5_ite + " " + thread + ":6:CMP:1\n"
-        + nid_13_mem + " ite 2 " + exec[13] + " 509 " + nid_6_ite + " " + thread + ":13:MEM:1\n"
-        + nid_14_eq  + " eq 1 "  + encoder->nids_mem[encoder->thread] + " 509\n"
-        + nid_14_cas + " ite 2 " + nid_14_eq + " 7 6\n"
-        + nid_14_ite + " ite 2 " + exec[14] + " " + nid_14_cas + " " + nid_13_mem + " " + thread + ":14:CAS:1\n"
-        + nid_next   + " next 2 " + accu + " " + nid_14_ite + "\n"
-        "\n";
-    }
-
-  ASSERT_EQ(expected, encoder->formula.str());
-}
-
-// void Btor2Encoder::define_mem ()
-TEST_F(Btor2EncoderTest, define_mem)
-{
-  add_instruction_set(3);
-
-  init_statement_activation(true);
-
-  int offset = encoder->node + 1;
-
-  encoder->define_mem();
-
-  offset = static_cast<int>(encoder->node) - offset;
-
-  expected = "; update CAS memory register ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n";
-
-  for (encoder->thread = 0; encoder->thread < 3; encoder->thread++)
-    {
-      vector<string> & exec = encoder->nids_exec[encoder->thread];
-
-      string thread = to_string(encoder->thread);
-      string mem = encoder->nids_mem[encoder->thread];
-
-      string nid_13_ite = nid(-offset--);
-      string nid_next = nid(-offset--);
-
-      expected +=
-        "; mem_" + thread + "\n"
-        + (encoder->thread ? "" : "509 read 2 14 7\n")
-        + nid_13_ite + " ite 2 " + exec[13] + " 509 " + mem + " " + thread + ":13:MEM:1\n"
-        + nid_next + " next 2 " + mem + " " + nid_13_ite + "\n"
-        "\n";
-    }
-
-  ASSERT_EQ(expected, encoder->formula.str());
-}
-#endif
 
 // void Btor2Encoder::add_heap_definition ()
 TEST_F(Btor2EncoderTest, add_heap_definition)
 {
   add_instruction_set(3);
 
-  init_statement_activation(true);
+  init_heap_definition(true);
 
-  encoder->update_accu = false;
-
-  encoder->define_heap();
-
-  string nid_0_write  = nid(-17);
-  string nid_0_1_ite  = nid(-16);
-  string nid_read     = nid(-15);
-  string nid_0_14_eq  = nid(-14);
-  string nid_0_14_cas = nid(-13);
-  string nid_0_14_ite = nid(-12);
-
-  string nid_1_write  = nid(-11);
-  string nid_1_1_ite  = nid(-10);
-  string nid_1_14_eq  = nid(-9);
-  string nid_1_14_cas = nid(-8);
-  string nid_1_14_ite = nid(-7);
-
-  string nid_2_write  = nid(-6);
-  string nid_2_1_ite  = nid(-5);
-  string nid_2_14_eq  = nid(-4);
-  string nid_2_14_cas = nid(-3);
-  string nid_2_14_ite = nid(-2);
-
-  string nid_next     = nid(-1);
-
-  ASSERT_EQ(
-    "; update heap ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n"
-
-    + nid_0_write  + " write 3 " + encoder->nid_heap + " " + encoder->nids_const[1] + " " + encoder->nids_accu[0] + "\n"
-    + nid_0_1_ite  + " ite 3 " + encoder->nids_exec[0][1] + " " + nid_0_write + " " + encoder->nid_heap + " 0:1:STORE:1\n"
-    + nid_read     + " read 2 " + encoder->nid_heap + " " + encoder->nids_const[1] + "\n"
-    + nid_0_14_eq  + " eq 1 "  + encoder->nids_mem[0] + " " + nid_read + "\n"
-    + nid_0_14_cas + " ite 3 " + nid_0_14_eq + " " + nid_0_write + " " + encoder->nid_heap + "\n"
-    + nid_0_14_ite + " ite 3 " + encoder->nids_exec[0][14] + " " + nid_0_14_cas + " " + nid_0_1_ite + " 0:14:CAS:1\n"
-
-    + nid_1_write  + " write 3 " + encoder->nid_heap + " " + encoder->nids_const[1] + " " + encoder->nids_accu[1] + "\n"
-    + nid_1_1_ite  + " ite 3 " + encoder->nids_exec[1][1] + " " + nid_1_write + " " + nid_0_14_ite + " 1:1:STORE:1\n"
-    + nid_1_14_eq  + " eq 1 "  + encoder->nids_mem[1] + " " + nid_read + "\n"
-    + nid_1_14_cas + " ite 3 " + nid_1_14_eq + " " + nid_1_write + " " + encoder->nid_heap + "\n"
-    + nid_1_14_ite + " ite 3 " + encoder->nids_exec[1][14] + " " + nid_1_14_cas + " " + nid_1_1_ite + " 1:14:CAS:1\n"
-
-    + nid_2_write  + " write 3 " + encoder->nid_heap + " " + encoder->nids_const[1] + " " + encoder->nids_accu[2] + "\n"
-    + nid_2_1_ite  + " ite 3 " + encoder->nids_exec[2][1] + " " + nid_2_write + " " + nid_1_14_ite + " 2:1:STORE:1\n"
-    + nid_2_14_eq  + " eq 1 "  + encoder->nids_mem[2] + " " + nid_read + "\n"
-    + nid_2_14_cas + " ite 3 " + nid_2_14_eq + " " + nid_2_write + " " + encoder->nid_heap + "\n"
-    + nid_2_14_ite + " ite 3 " + encoder->nids_exec[2][14] + " " + nid_2_14_cas + " " + nid_2_1_ite + " 2:14:CAS:1\n"
-
-    + nid_next     + " next 3 14 " + nid_2_14_ite + "\n"
-    "\n",
-    encoder->formula.str());
-}
-
-// void Btor2Encoder::add_exit_definitions ()
-TEST_F(Btor2EncoderTest, define_exit)
-{
-  add_instruction_set(3);
-
-  init_statement_execution(true);
-
-  encoder->add_exit_definitions();
-
-  string nid_one = encoder->nids_const[1];
-  string nid_or_1 = nid(-7);
-  string nid_or_2 = nid(-6);
-  string nid_or_3 = nid(-5);
-  string nid_next = nid(-4);
-  string nid_ite_1 = nid(-3);
-  string nid_ite_2 = nid(-2);
-  string nid_ite_3 = nid(-1);
-
-  ASSERT_EQ(
-    "; update exit flag ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    + nid_or_1 + " or 1 " + encoder->nid_exit + " " + encoder->nids_exec[2][16] + "\n"
-    + nid_or_2 + " or 1 " + encoder->nids_exec[0][16] + " " + nid_or_1 + "\n"
-    + nid_or_3 + " or 1 " + encoder->nids_exec[1][16] + " " + nid_or_2 + "\n"
-    + nid_next + " next 1 " + encoder->nid_exit + " " + nid_or_3 + "\n"
-    "\n"
-    "; update exit code ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    + nid_ite_1 + " ite 2 " + encoder->nids_exec[0][16] + " " + nid_one + " " + encoder->nid_exit_code + " 0:16:EXIT:1\n"
-    + nid_ite_2 + " ite 2 " + encoder->nids_exec[1][16] + " " + nid_one + " " + nid_ite_1 + " 1:16:EXIT:1\n"
-    + nid_ite_3 + " ite 2 " + encoder->nids_exec[2][16] + " " + nid_one + " " + nid_ite_2 + " 2:16:EXIT:1\n"
-    + nid_next + " next 2 " + encoder->nid_exit_code + " " + nid_ite_3 + "\n"
-    "\n",
-    encoder->formula.str());
-}
-
-TEST_F(Btor2EncoderTest, add_exit_definitions_no_exit)
-{
-  add_dummy_programs(3, 3);
-
-  init_statement_execution(true);
-
-  encoder->add_exit_definitions();
-
-  ASSERT_EQ(
-    "; update exit flag ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    + nid(-1) + " next 1 " + encoder->nid_exit + " " + encoder->nid_exit + "\n"
-    "\n",
-    encoder->formula.str());
-}
-
-
-#ifdef NDEPRECATE
-// void Btor2Encoder::define_exit ()
-TEST_F(Btor2EncoderTest, define_exit)
-{
-  add_instruction_set(3);
-
-  init_statement_activation(true);
-
-  encoder->define_exit();
-
-  string nid_one = encoder->nids_const[1];
-  string nid_or_1 = nid(-7);
-  string nid_or_2 = nid(-6);
-  string nid_or_3 = nid(-5);
-  string nid_next = nid(-4);
-  string nid_ite_1 = nid(-3);
-  string nid_ite_2 = nid(-2);
-  string nid_ite_3 = nid(-1);
-
-  ASSERT_EQ(
-    "; update exit flag ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    + nid_or_1 + " or 1 " + encoder->nid_exit + " " + encoder->nids_exec[2][16] + "\n"
-    + nid_or_2 + " or 1 " + encoder->nids_exec[0][16] + " " + nid_or_1 + "\n"
-    + nid_or_3 + " or 1 " + encoder->nids_exec[1][16] + " " + nid_or_2 + "\n"
-    + nid_next + " next 1 " + encoder->nid_exit + " " + nid_or_3 + "\n"
-    "\n"
-    "; update exit code ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    + nid_ite_1 + " ite 2 " + encoder->nids_exec[0][16] + " " + nid_one + " " + encoder->nid_exit_code + " 0:16:EXIT:1\n"
-    + nid_ite_2 + " ite 2 " + encoder->nids_exec[1][16] + " " + nid_one + " " + nid_ite_1 + " 1:16:EXIT:1\n"
-    + nid_ite_3 + " ite 2 " + encoder->nids_exec[2][16] + " " + nid_one + " " + nid_ite_2 + " 2:16:EXIT:1\n"
-    + nid_next + " next 2 " + encoder->nid_exit_code + " " + nid_ite_3 + "\n"
-    "\n",
-    encoder->formula.str());
-}
-
-TEST_F(Btor2EncoderTest, add_exit_flag_update_no_exit)
-{
-  add_dummy_programs(3, 3);
-
-  init_statement_activation(true);
-
-  encoder->add_exit_flag_update();
-
-  ASSERT_EQ(
-    "; update exit flag ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    + nid(-1) + " next 1 " + encoder->nid_exit + " " + encoder->nid_exit + "\n"
-    "\n",
-    encoder->formula.str());
-}
-
-// void Btor2Encoder::add_exit_code_update ()
-TEST_F(Btor2EncoderTest, add_exit_code_update)
-{
-  add_instruction_set(3);
-
-  init_statement_activation(true);
-
-  encoder->add_exit_code_update();
-
-  string nid_one = encoder->nids_const[1];
-  string nid_ite_1 = nid(-4);
-  string nid_ite_2 = nid(-3);
-  string nid_ite_3 = nid(-2);
-  string nid_next = nid(-1);
-
-  ASSERT_EQ(
-    "; update exit code ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    + nid_ite_1 + " ite 2 " + encoder->nids_exec[0][16] + " " + nid_one + " " + encoder->nid_exit_code + " 0:16:EXIT:1\n"
-    + nid_ite_2 + " ite 2 " + encoder->nids_exec[1][16] + " " + nid_one + " " + nid_ite_1 + " 1:16:EXIT:1\n"
-    + nid_ite_3 + " ite 2 " + encoder->nids_exec[2][16] + " " + nid_one + " " + nid_ite_2 + " 2:16:EXIT:1\n"
-    + nid_next + " next 2 " + encoder->nid_exit_code + " " + nid_ite_3 + "\n"
-    "\n",
-    encoder->formula.str());
-}
-
-// void define_states ()
-TEST_F(Btor2EncoderTest, define_states)
-{
-  add_instruction_set(3);
-
-  init_statement_activation(true);
-
-  encoder->define_states();
+  encoder->add_heap_definition();
 
   ASSERT_EQ(
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "; state updates\n"
+    "; heap state definition\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "; update statement activation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    "; stmt_0_0\n"
-    "509 not 1 167\n"
-    "510 and 1 27 509\n"
-    "511 next 1 27 510 0:0:LOAD:1\n"
-    "\n"
-    "; stmt_0_1\n"
-    "512 not 1 168\n"
-    "513 and 1 29 512\n"
-    "514 ite 1 27 167 513 0:0:LOAD:1\n"
-    "515 ite 1 41 174 514 0:7:JMP:1\n"
-    "516 eq 1 15 6\n"
-    "517 and 1 175 516\n"
-    "518 ite 1 43 517 515 0:8:JZ:1\n"
-    "519 ne 1 15 6\n"
-    "520 and 1 176 519\n"
-    "521 ite 1 45 520 518 0:9:JNZ:1\n"
-    "522 slice 1 15 15 15\n"
-    "523 and 1 177 522\n"
-    "524 ite 1 47 523 521 0:10:JS:1\n"
-    "525 slice 1 15 15 15\n"
-    "526 not 1 525\n"
-    "527 and 1 178 526\n"
-    "528 ite 1 49 527 524 0:11:JNS:1\n"
-    "530 ne 1 15 6\n"
-    "531 slice 1 15 15 15\n"
-    "532 not 1 531\n"
-    "533 and 1 530 532\n"
-    "534 and 1 179 533\n"
-    "535 ite 1 51 534 528 0:12:JNZNS:1\n"
-    "536 next 1 29 535 0:1:STORE:1\n"
-    "\n"
-    "; stmt_0_2\n"
-    "537 not 1 169\n"
-    "538 and 1 31 537\n"
-    "539 ite 1 29 168 538 0:1:STORE:1\n"
-    "540 next 1 31 539 0:2:ADD:1\n"
-    "\n"
-    "; stmt_0_3\n"
-    "541 not 1 170\n"
-    "542 and 1 33 541\n"
-    "543 ite 1 31 169 542 0:2:ADD:1\n"
-    "544 next 1 33 543 0:3:ADDI:1\n"
-    "\n"
-    "; stmt_0_4\n"
-    "545 not 1 171\n"
-    "546 and 1 35 545\n"
-    "547 ite 1 33 170 546 0:3:ADDI:1\n"
-    "548 next 1 35 547 0:4:SUB:1\n"
-    "\n"
-    "; stmt_0_5\n"
-    "549 not 1 172\n"
-    "550 and 1 37 549\n"
-    "551 ite 1 35 171 550 0:4:SUB:1\n"
-    "552 next 1 37 551 0:5:SUBI:1\n"
-    "\n"
-    "; stmt_0_6\n"
-    "553 not 1 173\n"
-    "554 and 1 39 553\n"
-    "555 ite 1 37 172 554 0:5:SUBI:1\n"
-    "556 next 1 39 555 0:6:CMP:1\n"
-    "\n"
-    "; stmt_0_7\n"
-    "557 not 1 174\n"
-    "558 and 1 41 557\n"
-    "559 ite 1 39 173 558 0:6:CMP:1\n"
-    "560 next 1 41 559 0:7:JMP:1\n"
-    "\n"
-    "; stmt_0_8\n"
-    "561 not 1 175\n"
-    "562 and 1 43 561\n"
-    "563 next 1 43 562 0:8:JZ:1\n"
-    "\n"
-    "; stmt_0_9\n"
-    "564 not 1 176\n"
-    "565 and 1 45 564\n"
-    "566 not 1 516\n"
-    "567 and 1 175 566\n"
-    "568 ite 1 43 567 565 0:8:JZ:1\n"
-    "569 next 1 45 568 0:9:JNZ:1\n"
-    "\n"
-    "; stmt_0_10\n"
-    "570 not 1 177\n"
-    "571 and 1 47 570\n"
-    "572 not 1 519\n"
-    "573 and 1 176 572\n"
-    "574 ite 1 45 573 571 0:9:JNZ:1\n"
-    "575 next 1 47 574 0:10:JS:1\n"
-    "\n"
-    "; stmt_0_11\n"
-    "576 not 1 178\n"
-    "577 and 1 49 576\n"
-    "578 not 1 522\n"
-    "579 and 1 177 578\n"
-    "580 ite 1 47 579 577 0:10:JS:1\n"
-    "581 next 1 49 580 0:11:JNS:1\n"
-    "\n"
-    "; stmt_0_12\n"
-    "582 not 1 179\n"
-    "583 and 1 51 582\n"
-    "584 not 1 526\n"
-    "585 and 1 178 584\n"
-    "586 ite 1 49 585 583 0:11:JNS:1\n"
-    "587 next 1 51 586 0:12:JNZNS:1\n"
-    "\n"
-    "; stmt_0_13\n"
-    "588 not 1 180\n"
-    "589 and 1 53 588\n"
-    "590 not 1 533\n"
-    "591 and 1 179 590\n"
-    "592 ite 1 51 591 589 0:12:JNZNS:1\n"
-    "593 next 1 53 592 0:13:MEM:1\n"
-    "\n"
-    "; stmt_0_14\n"
-    "594 not 1 181\n"
-    "595 and 1 55 594\n"
-    "596 ite 1 53 180 595 0:13:MEM:1\n"
-    "597 next 1 55 596 0:14:CAS:1\n"
-    "\n"
-    "; stmt_0_15\n"
-    "598 not 1 182\n"
-    "599 and 1 57 598\n"
-    "600 ite 1 55 181 599 0:14:CAS:1\n"
-    "601 next 1 57 600 0:15:SYNC:1\n"
-    "\n"
-    "; stmt_0_16\n"
-    "602 not 1 183\n"
-    "603 and 1 59 602\n"
-    "604 ite 1 57 182 603 0:15:SYNC:1\n"
-    "605 next 1 59 604 0:16:EXIT:1\n"
-    "\n"
-    "; stmt_1_0\n"
-    "606 not 1 184\n"
-    "607 and 1 61 606\n"
-    "608 next 1 61 607 1:0:LOAD:1\n"
-    "\n"
-    "; stmt_1_1\n"
-    "609 not 1 185\n"
-    "610 and 1 63 609\n"
-    "611 ite 1 61 184 610 1:0:LOAD:1\n"
-    "612 ite 1 75 191 611 1:7:JMP:1\n"
-    "613 eq 1 17 6\n"
-    "614 and 1 192 613\n"
-    "615 ite 1 77 614 612 1:8:JZ:1\n"
-    "616 ne 1 17 6\n"
-    "617 and 1 193 616\n"
-    "618 ite 1 79 617 615 1:9:JNZ:1\n"
-    "619 slice 1 17 15 15\n"
-    "620 and 1 194 619\n"
-    "621 ite 1 81 620 618 1:10:JS:1\n"
-    "622 slice 1 17 15 15\n"
-    "623 not 1 622\n"
-    "624 and 1 195 623\n"
-    "625 ite 1 83 624 621 1:11:JNS:1\n"
-    "627 ne 1 17 6\n"
-    "628 slice 1 17 15 15\n"
-    "629 not 1 628\n"
-    "630 and 1 627 629\n"
-    "631 and 1 196 630\n"
-    "632 ite 1 85 631 625 1:12:JNZNS:1\n"
-    "633 next 1 63 632 1:1:STORE:1\n"
-    "\n"
-    "; stmt_1_2\n"
-    "634 not 1 186\n"
-    "635 and 1 65 634\n"
-    "636 ite 1 63 185 635 1:1:STORE:1\n"
-    "637 next 1 65 636 1:2:ADD:1\n"
-    "\n"
-    "; stmt_1_3\n"
-    "638 not 1 187\n"
-    "639 and 1 67 638\n"
-    "640 ite 1 65 186 639 1:2:ADD:1\n"
-    "641 next 1 67 640 1:3:ADDI:1\n"
-    "\n"
-    "; stmt_1_4\n"
-    "642 not 1 188\n"
-    "643 and 1 69 642\n"
-    "644 ite 1 67 187 643 1:3:ADDI:1\n"
-    "645 next 1 69 644 1:4:SUB:1\n"
-    "\n"
-    "; stmt_1_5\n"
-    "646 not 1 189\n"
-    "647 and 1 71 646\n"
-    "648 ite 1 69 188 647 1:4:SUB:1\n"
-    "649 next 1 71 648 1:5:SUBI:1\n"
-    "\n"
-    "; stmt_1_6\n"
-    "650 not 1 190\n"
-    "651 and 1 73 650\n"
-    "652 ite 1 71 189 651 1:5:SUBI:1\n"
-    "653 next 1 73 652 1:6:CMP:1\n"
-    "\n"
-    "; stmt_1_7\n"
-    "654 not 1 191\n"
-    "655 and 1 75 654\n"
-    "656 ite 1 73 190 655 1:6:CMP:1\n"
-    "657 next 1 75 656 1:7:JMP:1\n"
-    "\n"
-    "; stmt_1_8\n"
-    "658 not 1 192\n"
-    "659 and 1 77 658\n"
-    "660 next 1 77 659 1:8:JZ:1\n"
-    "\n"
-    "; stmt_1_9\n"
-    "661 not 1 193\n"
-    "662 and 1 79 661\n"
-    "663 not 1 613\n"
-    "664 and 1 192 663\n"
-    "665 ite 1 77 664 662 1:8:JZ:1\n"
-    "666 next 1 79 665 1:9:JNZ:1\n"
-    "\n"
-    "; stmt_1_10\n"
-    "667 not 1 194\n"
-    "668 and 1 81 667\n"
-    "669 not 1 616\n"
-    "670 and 1 193 669\n"
-    "671 ite 1 79 670 668 1:9:JNZ:1\n"
-    "672 next 1 81 671 1:10:JS:1\n"
-    "\n"
-    "; stmt_1_11\n"
-    "673 not 1 195\n"
-    "674 and 1 83 673\n"
-    "675 not 1 619\n"
-    "676 and 1 194 675\n"
-    "677 ite 1 81 676 674 1:10:JS:1\n"
-    "678 next 1 83 677 1:11:JNS:1\n"
-    "\n"
-    "; stmt_1_12\n"
-    "679 not 1 196\n"
-    "680 and 1 85 679\n"
-    "681 not 1 623\n"
-    "682 and 1 195 681\n"
-    "683 ite 1 83 682 680 1:11:JNS:1\n"
-    "684 next 1 85 683 1:12:JNZNS:1\n"
-    "\n"
-    "; stmt_1_13\n"
-    "685 not 1 197\n"
-    "686 and 1 87 685\n"
-    "687 not 1 630\n"
-    "688 and 1 196 687\n"
-    "689 ite 1 85 688 686 1:12:JNZNS:1\n"
-    "690 next 1 87 689 1:13:MEM:1\n"
-    "\n"
-    "; stmt_1_14\n"
-    "691 not 1 198\n"
-    "692 and 1 89 691\n"
-    "693 ite 1 87 197 692 1:13:MEM:1\n"
-    "694 next 1 89 693 1:14:CAS:1\n"
-    "\n"
-    "; stmt_1_15\n"
-    "695 not 1 199\n"
-    "696 and 1 91 695\n"
-    "697 ite 1 89 198 696 1:14:CAS:1\n"
-    "698 next 1 91 697 1:15:SYNC:1\n"
-    "\n"
-    "; stmt_1_16\n"
-    "699 not 1 200\n"
-    "700 and 1 93 699\n"
-    "701 ite 1 91 199 700 1:15:SYNC:1\n"
-    "702 next 1 93 701 1:16:EXIT:1\n"
-    "\n"
-    "; stmt_2_0\n"
-    "703 not 1 201\n"
-    "704 and 1 95 703\n"
-    "705 next 1 95 704 2:0:LOAD:1\n"
-    "\n"
-    "; stmt_2_1\n"
-    "706 not 1 202\n"
-    "707 and 1 97 706\n"
-    "708 ite 1 95 201 707 2:0:LOAD:1\n"
-    "709 ite 1 109 208 708 2:7:JMP:1\n"
-    "710 eq 1 19 6\n"
-    "711 and 1 209 710\n"
-    "712 ite 1 111 711 709 2:8:JZ:1\n"
-    "713 ne 1 19 6\n"
-    "714 and 1 210 713\n"
-    "715 ite 1 113 714 712 2:9:JNZ:1\n"
-    "716 slice 1 19 15 15\n"
-    "717 and 1 211 716\n"
-    "718 ite 1 115 717 715 2:10:JS:1\n"
-    "719 slice 1 19 15 15\n"
-    "720 not 1 719\n"
-    "721 and 1 212 720\n"
-    "722 ite 1 117 721 718 2:11:JNS:1\n"
-    "724 ne 1 19 6\n"
-    "725 slice 1 19 15 15\n"
-    "726 not 1 725\n"
-    "727 and 1 724 726\n"
-    "728 and 1 213 727\n"
-    "729 ite 1 119 728 722 2:12:JNZNS:1\n"
-    "730 next 1 97 729 2:1:STORE:1\n"
-    "\n"
-    "; stmt_2_2\n"
-    "731 not 1 203\n"
-    "732 and 1 99 731\n"
-    "733 ite 1 97 202 732 2:1:STORE:1\n"
-    "734 next 1 99 733 2:2:ADD:1\n"
-    "\n"
-    "; stmt_2_3\n"
-    "735 not 1 204\n"
-    "736 and 1 101 735\n"
-    "737 ite 1 99 203 736 2:2:ADD:1\n"
-    "738 next 1 101 737 2:3:ADDI:1\n"
-    "\n"
-    "; stmt_2_4\n"
-    "739 not 1 205\n"
-    "740 and 1 103 739\n"
-    "741 ite 1 101 204 740 2:3:ADDI:1\n"
-    "742 next 1 103 741 2:4:SUB:1\n"
-    "\n"
-    "; stmt_2_5\n"
-    "743 not 1 206\n"
-    "744 and 1 105 743\n"
-    "745 ite 1 103 205 744 2:4:SUB:1\n"
-    "746 next 1 105 745 2:5:SUBI:1\n"
-    "\n"
-    "; stmt_2_6\n"
-    "747 not 1 207\n"
-    "748 and 1 107 747\n"
-    "749 ite 1 105 206 748 2:5:SUBI:1\n"
-    "750 next 1 107 749 2:6:CMP:1\n"
-    "\n"
-    "; stmt_2_7\n"
-    "751 not 1 208\n"
-    "752 and 1 109 751\n"
-    "753 ite 1 107 207 752 2:6:CMP:1\n"
-    "754 next 1 109 753 2:7:JMP:1\n"
-    "\n"
-    "; stmt_2_8\n"
-    "755 not 1 209\n"
-    "756 and 1 111 755\n"
-    "757 next 1 111 756 2:8:JZ:1\n"
-    "\n"
-    "; stmt_2_9\n"
-    "758 not 1 210\n"
-    "759 and 1 113 758\n"
-    "760 not 1 710\n"
-    "761 and 1 209 760\n"
-    "762 ite 1 111 761 759 2:8:JZ:1\n"
-    "763 next 1 113 762 2:9:JNZ:1\n"
-    "\n"
-    "; stmt_2_10\n"
-    "764 not 1 211\n"
-    "765 and 1 115 764\n"
-    "766 not 1 713\n"
-    "767 and 1 210 766\n"
-    "768 ite 1 113 767 765 2:9:JNZ:1\n"
-    "769 next 1 115 768 2:10:JS:1\n"
-    "\n"
-    "; stmt_2_11\n"
-    "770 not 1 212\n"
-    "771 and 1 117 770\n"
-    "772 not 1 716\n"
-    "773 and 1 211 772\n"
-    "774 ite 1 115 773 771 2:10:JS:1\n"
-    "775 next 1 117 774 2:11:JNS:1\n"
-    "\n"
-    "; stmt_2_12\n"
-    "776 not 1 213\n"
-    "777 and 1 119 776\n"
-    "778 not 1 720\n"
-    "779 and 1 212 778\n"
-    "780 ite 1 117 779 777 2:11:JNS:1\n"
-    "781 next 1 119 780 2:12:JNZNS:1\n"
-    "\n"
-    "; stmt_2_13\n"
-    "782 not 1 214\n"
-    "783 and 1 121 782\n"
-    "784 not 1 727\n"
-    "785 and 1 213 784\n"
-    "786 ite 1 119 785 783 2:12:JNZNS:1\n"
-    "787 next 1 121 786 2:13:MEM:1\n"
-    "\n"
-    "; stmt_2_14\n"
-    "788 not 1 215\n"
-    "789 and 1 123 788\n"
-    "790 ite 1 121 214 789 2:13:MEM:1\n"
-    "791 next 1 123 790 2:14:CAS:1\n"
-    "\n"
-    "; stmt_2_15\n"
-    "792 not 1 216\n"
-    "793 and 1 125 792\n"
-    "794 ite 1 123 215 793 2:14:CAS:1\n"
-    "795 next 1 125 794 2:15:SYNC:1\n"
-    "\n"
-    "; stmt_2_16\n"
-    "796 not 1 217\n"
-    "797 and 1 127 796\n"
-    "798 ite 1 125 216 797 2:15:SYNC:1\n"
-    "799 next 1 127 798 2:16:EXIT:1\n"
-    "\n"
-    "; update accu ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    "; accu_0\n"
-    "800 read 2 14 7\n"
-    "801 ite 2 167 800 15 0:0:LOAD:1\n"
-    "802 add 2 15 800\n"
-    "803 ite 2 169 802 801 0:2:ADD:1\n"
-    "804 add 2 15 7\n"
-    "805 ite 2 170 804 803 0:3:ADDI:1\n"
-    "806 sub 2 15 800\n"
-    "807 ite 2 171 806 805 0:4:SUB:1\n"
-    "808 sub 2 15 7\n"
-    "809 ite 2 172 808 807 0:5:SUBI:1\n"
-    "810 sub 2 15 800\n"
-    "811 ite 2 173 810 809 0:6:CMP:1\n"
-    "812 ite 2 180 800 811 0:13:MEM:1\n"
-    "813 eq 1 21 800\n"
-    "814 ite 2 813 7 6\n"
-    "815 ite 2 181 814 812 0:14:CAS:1\n"
-    "816 next 2 15 815\n"
-    "\n"
-    "; accu_1\n"
-    "817 ite 2 184 800 17 1:0:LOAD:1\n"
-    "818 add 2 17 800\n"
-    "819 ite 2 186 818 817 1:2:ADD:1\n"
-    "820 add 2 17 7\n"
-    "821 ite 2 187 820 819 1:3:ADDI:1\n"
-    "822 sub 2 17 800\n"
-    "823 ite 2 188 822 821 1:4:SUB:1\n"
-    "824 sub 2 17 7\n"
-    "825 ite 2 189 824 823 1:5:SUBI:1\n"
-    "826 sub 2 17 800\n"
-    "827 ite 2 190 826 825 1:6:CMP:1\n"
-    "828 ite 2 197 800 827 1:13:MEM:1\n"
-    "829 eq 1 23 800\n"
-    "830 ite 2 829 7 6\n"
-    "831 ite 2 198 830 828 1:14:CAS:1\n"
-    "832 next 2 17 831\n"
-    "\n"
-    "; accu_2\n"
-    "833 ite 2 201 800 19 2:0:LOAD:1\n"
-    "834 add 2 19 800\n"
-    "835 ite 2 203 834 833 2:2:ADD:1\n"
-    "836 add 2 19 7\n"
-    "837 ite 2 204 836 835 2:3:ADDI:1\n"
-    "838 sub 2 19 800\n"
-    "839 ite 2 205 838 837 2:4:SUB:1\n"
-    "840 sub 2 19 7\n"
-    "841 ite 2 206 840 839 2:5:SUBI:1\n"
-    "842 sub 2 19 800\n"
-    "843 ite 2 207 842 841 2:6:CMP:1\n"
-    "844 ite 2 214 800 843 2:13:MEM:1\n"
-    "845 eq 1 25 800\n"
-    "846 ite 2 845 7 6\n"
-    "847 ite 2 215 846 844 2:14:CAS:1\n"
-    "848 next 2 19 847\n"
-    "\n"
-    "; update CAS memory register ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    "; mem_0\n"
-    "849 ite 2 180 800 21 0:13:MEM:1\n"
-    "850 next 2 21 849\n"
-    "\n"
-    "; mem_1\n"
-    "851 ite 2 197 800 23 1:13:MEM:1\n"
-    "852 next 2 23 851\n"
-    "\n"
-    "; mem_2\n"
-    "853 ite 2 214 800 25 2:13:MEM:1\n"
-    "854 next 2 25 853\n"
-    "\n"
-    "; update heap ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    "855 write 3 14 7 15\n"
-    "856 ite 3 168 855 14 0:1:STORE:1\n"
-    "857 eq 1 21 800\n"
-    "858 ite 3 857 855 14\n"
-    "859 ite 3 181 858 856 0:14:CAS:1\n"
-    "860 write 3 14 7 17\n"
-    "861 ite 3 185 860 859 1:1:STORE:1\n"
-    "862 eq 1 23 800\n"
-    "863 ite 3 862 860 14\n"
-    "864 ite 3 198 863 861 1:14:CAS:1\n"
-    "865 write 3 14 7 19\n"
-    "866 ite 3 202 865 864 2:1:STORE:1\n"
-    "867 eq 1 25 800\n"
-    "868 ite 3 867 865 14\n"
-    "869 ite 3 215 868 866 2:14:CAS:1\n"
-    "870 next 3 14 869\n"
-    "\n"
-    "; update exit flag ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    "871 or 1 129 217\n"
-    "872 or 1 183 871\n"
-    "873 or 1 200 872\n"
-    "874 next 1 129 873\n"
-    "\n"
-    "; update exit code ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    "875 ite 2 183 7 131 0:16:EXIT:1\n"
-    "876 ite 2 200 7 875 1:16:EXIT:1\n"
-    "877 ite 2 217 7 876 2:16:EXIT:1\n"
-    "878 next 2 131 877\n"
+    "474 write 3 " + encoder->nid_heap + " " + encoder->nids_const[1] + " " + encoder->nids_accu[0] + "\n"
+    "475 ite 3 " + encoder->nids_exec[0][1] + " 474 " + encoder->nid_heap + " 0:1:STORE:1\n"
+    "476 eq 1 " + encoder->nids_mem[0] + " 414\n"
+    "477 ite 3 476 474 " + encoder->nid_heap + "\n"
+    "478 ite 3 " + encoder->nids_exec[0][14] + " 477 475 0:14:CAS:1\n"
+    "479 write 3 " + encoder->nid_heap + " " + encoder->nids_const[1] + " " + encoder->nids_accu[1] + "\n"
+    "480 ite 3 " + encoder->nids_exec[1][1] + " 479 478 1:1:STORE:1\n"
+    "481 eq 1 " + encoder->nids_mem[1] + " 414\n"
+    "482 ite 3 481 479 " + encoder->nid_heap + "\n"
+    "483 ite 3 " + encoder->nids_exec[1][14] + " 482 480 1:14:CAS:1\n"
+    "484 write 3 " + encoder->nid_heap + " " + encoder->nids_const[1] + " " + encoder->nids_accu[2] + "\n"
+    "485 ite 3 " + encoder->nids_exec[2][1] + " 484 483 2:1:STORE:1\n"
+    "486 eq 1 " + encoder->nids_mem[2] + " 414\n"
+    "487 ite 3 486 484 " + encoder->nid_heap + "\n"
+    "488 ite 3 " + encoder->nids_exec[2][14] + " 487 485 2:14:CAS:1\n"
+    "489 next 3 " + encoder->nid_heap + " 488 heap\n"
     "\n",
-    encoder->formula.str());
+    encoder->str());
 
   /* verbosity */
   reset_encoder(1);
 
-  init_statement_activation(true);
+  init_heap_definition(true);
 
   verbose = false;
-  encoder->define_states();
+  encoder->add_heap_definition();
   verbose = true;
 
   ASSERT_EQ(
-    "509 not 1 167\n"
-    "510 and 1 27 509\n"
-    "511 next 1 27 510\n"
-    "\n"
-    "512 not 1 168\n"
-    "513 and 1 29 512\n"
-    "514 ite 1 27 167 513\n"
-    "515 ite 1 41 174 514\n"
-    "516 eq 1 15 6\n"
-    "517 and 1 175 516\n"
-    "518 ite 1 43 517 515\n"
-    "519 ne 1 15 6\n"
-    "520 and 1 176 519\n"
-    "521 ite 1 45 520 518\n"
-    "522 slice 1 15 15 15\n"
-    "523 and 1 177 522\n"
-    "524 ite 1 47 523 521\n"
-    "525 slice 1 15 15 15\n"
-    "526 not 1 525\n"
-    "527 and 1 178 526\n"
-    "528 ite 1 49 527 524\n"
-    "530 ne 1 15 6\n"
-    "531 slice 1 15 15 15\n"
-    "532 not 1 531\n"
-    "533 and 1 530 532\n"
-    "534 and 1 179 533\n"
-    "535 ite 1 51 534 528\n"
-    "536 next 1 29 535\n"
-    "\n"
-    "537 not 1 169\n"
-    "538 and 1 31 537\n"
-    "539 ite 1 29 168 538\n"
-    "540 next 1 31 539\n"
-    "\n"
-    "541 not 1 170\n"
-    "542 and 1 33 541\n"
-    "543 ite 1 31 169 542\n"
-    "544 next 1 33 543\n"
-    "\n"
-    "545 not 1 171\n"
-    "546 and 1 35 545\n"
-    "547 ite 1 33 170 546\n"
-    "548 next 1 35 547\n"
-    "\n"
-    "549 not 1 172\n"
-    "550 and 1 37 549\n"
-    "551 ite 1 35 171 550\n"
-    "552 next 1 37 551\n"
-    "\n"
-    "553 not 1 173\n"
-    "554 and 1 39 553\n"
-    "555 ite 1 37 172 554\n"
-    "556 next 1 39 555\n"
-    "\n"
-    "557 not 1 174\n"
-    "558 and 1 41 557\n"
-    "559 ite 1 39 173 558\n"
-    "560 next 1 41 559\n"
-    "\n"
-    "561 not 1 175\n"
-    "562 and 1 43 561\n"
-    "563 next 1 43 562\n"
-    "\n"
-    "564 not 1 176\n"
-    "565 and 1 45 564\n"
-    "566 not 1 516\n"
-    "567 and 1 175 566\n"
-    "568 ite 1 43 567 565\n"
-    "569 next 1 45 568\n"
-    "\n"
-    "570 not 1 177\n"
-    "571 and 1 47 570\n"
-    "572 not 1 519\n"
-    "573 and 1 176 572\n"
-    "574 ite 1 45 573 571\n"
-    "575 next 1 47 574\n"
-    "\n"
-    "576 not 1 178\n"
-    "577 and 1 49 576\n"
-    "578 not 1 522\n"
-    "579 and 1 177 578\n"
-    "580 ite 1 47 579 577\n"
-    "581 next 1 49 580\n"
-    "\n"
-    "582 not 1 179\n"
-    "583 and 1 51 582\n"
-    "584 not 1 526\n"
-    "585 and 1 178 584\n"
-    "586 ite 1 49 585 583\n"
-    "587 next 1 51 586\n"
-    "\n"
-    "588 not 1 180\n"
-    "589 and 1 53 588\n"
-    "590 not 1 533\n"
-    "591 and 1 179 590\n"
-    "592 ite 1 51 591 589\n"
-    "593 next 1 53 592\n"
-    "\n"
-    "594 not 1 181\n"
-    "595 and 1 55 594\n"
-    "596 ite 1 53 180 595\n"
-    "597 next 1 55 596\n"
-    "\n"
-    "598 not 1 182\n"
-    "599 and 1 57 598\n"
-    "600 ite 1 55 181 599\n"
-    "601 next 1 57 600\n"
-    "\n"
-    "602 not 1 183\n"
-    "603 and 1 59 602\n"
-    "604 ite 1 57 182 603\n"
-    "605 next 1 59 604\n"
-    "\n"
-    "606 not 1 184\n"
-    "607 and 1 61 606\n"
-    "608 next 1 61 607\n"
-    "\n"
-    "609 not 1 185\n"
-    "610 and 1 63 609\n"
-    "611 ite 1 61 184 610\n"
-    "612 ite 1 75 191 611\n"
-    "613 eq 1 17 6\n"
-    "614 and 1 192 613\n"
-    "615 ite 1 77 614 612\n"
-    "616 ne 1 17 6\n"
-    "617 and 1 193 616\n"
-    "618 ite 1 79 617 615\n"
-    "619 slice 1 17 15 15\n"
-    "620 and 1 194 619\n"
-    "621 ite 1 81 620 618\n"
-    "622 slice 1 17 15 15\n"
-    "623 not 1 622\n"
-    "624 and 1 195 623\n"
-    "625 ite 1 83 624 621\n"
-    "627 ne 1 17 6\n"
-    "628 slice 1 17 15 15\n"
-    "629 not 1 628\n"
-    "630 and 1 627 629\n"
-    "631 and 1 196 630\n"
-    "632 ite 1 85 631 625\n"
-    "633 next 1 63 632\n"
-    "\n"
-    "634 not 1 186\n"
-    "635 and 1 65 634\n"
-    "636 ite 1 63 185 635\n"
-    "637 next 1 65 636\n"
-    "\n"
-    "638 not 1 187\n"
-    "639 and 1 67 638\n"
-    "640 ite 1 65 186 639\n"
-    "641 next 1 67 640\n"
-    "\n"
-    "642 not 1 188\n"
-    "643 and 1 69 642\n"
-    "644 ite 1 67 187 643\n"
-    "645 next 1 69 644\n"
-    "\n"
-    "646 not 1 189\n"
-    "647 and 1 71 646\n"
-    "648 ite 1 69 188 647\n"
-    "649 next 1 71 648\n"
-    "\n"
-    "650 not 1 190\n"
-    "651 and 1 73 650\n"
-    "652 ite 1 71 189 651\n"
-    "653 next 1 73 652\n"
-    "\n"
-    "654 not 1 191\n"
-    "655 and 1 75 654\n"
-    "656 ite 1 73 190 655\n"
-    "657 next 1 75 656\n"
-    "\n"
-    "658 not 1 192\n"
-    "659 and 1 77 658\n"
-    "660 next 1 77 659\n"
-    "\n"
-    "661 not 1 193\n"
-    "662 and 1 79 661\n"
-    "663 not 1 613\n"
-    "664 and 1 192 663\n"
-    "665 ite 1 77 664 662\n"
-    "666 next 1 79 665\n"
-    "\n"
-    "667 not 1 194\n"
-    "668 and 1 81 667\n"
-    "669 not 1 616\n"
-    "670 and 1 193 669\n"
-    "671 ite 1 79 670 668\n"
-    "672 next 1 81 671\n"
-    "\n"
-    "673 not 1 195\n"
-    "674 and 1 83 673\n"
-    "675 not 1 619\n"
-    "676 and 1 194 675\n"
-    "677 ite 1 81 676 674\n"
-    "678 next 1 83 677\n"
-    "\n"
-    "679 not 1 196\n"
-    "680 and 1 85 679\n"
-    "681 not 1 623\n"
-    "682 and 1 195 681\n"
-    "683 ite 1 83 682 680\n"
-    "684 next 1 85 683\n"
-    "\n"
-    "685 not 1 197\n"
-    "686 and 1 87 685\n"
-    "687 not 1 630\n"
-    "688 and 1 196 687\n"
-    "689 ite 1 85 688 686\n"
-    "690 next 1 87 689\n"
-    "\n"
-    "691 not 1 198\n"
-    "692 and 1 89 691\n"
-    "693 ite 1 87 197 692\n"
-    "694 next 1 89 693\n"
-    "\n"
-    "695 not 1 199\n"
-    "696 and 1 91 695\n"
-    "697 ite 1 89 198 696\n"
-    "698 next 1 91 697\n"
-    "\n"
-    "699 not 1 200\n"
-    "700 and 1 93 699\n"
-    "701 ite 1 91 199 700\n"
-    "702 next 1 93 701\n"
-    "\n"
-    "703 not 1 201\n"
-    "704 and 1 95 703\n"
-    "705 next 1 95 704\n"
-    "\n"
-    "706 not 1 202\n"
-    "707 and 1 97 706\n"
-    "708 ite 1 95 201 707\n"
-    "709 ite 1 109 208 708\n"
-    "710 eq 1 19 6\n"
-    "711 and 1 209 710\n"
-    "712 ite 1 111 711 709\n"
-    "713 ne 1 19 6\n"
-    "714 and 1 210 713\n"
-    "715 ite 1 113 714 712\n"
-    "716 slice 1 19 15 15\n"
-    "717 and 1 211 716\n"
-    "718 ite 1 115 717 715\n"
-    "719 slice 1 19 15 15\n"
-    "720 not 1 719\n"
-    "721 and 1 212 720\n"
-    "722 ite 1 117 721 718\n"
-    "724 ne 1 19 6\n"
-    "725 slice 1 19 15 15\n"
-    "726 not 1 725\n"
-    "727 and 1 724 726\n"
-    "728 and 1 213 727\n"
-    "729 ite 1 119 728 722\n"
-    "730 next 1 97 729\n"
-    "\n"
-    "731 not 1 203\n"
-    "732 and 1 99 731\n"
-    "733 ite 1 97 202 732\n"
-    "734 next 1 99 733\n"
-    "\n"
-    "735 not 1 204\n"
-    "736 and 1 101 735\n"
-    "737 ite 1 99 203 736\n"
-    "738 next 1 101 737\n"
-    "\n"
-    "739 not 1 205\n"
-    "740 and 1 103 739\n"
-    "741 ite 1 101 204 740\n"
-    "742 next 1 103 741\n"
-    "\n"
-    "743 not 1 206\n"
-    "744 and 1 105 743\n"
-    "745 ite 1 103 205 744\n"
-    "746 next 1 105 745\n"
-    "\n"
-    "747 not 1 207\n"
-    "748 and 1 107 747\n"
-    "749 ite 1 105 206 748\n"
-    "750 next 1 107 749\n"
-    "\n"
-    "751 not 1 208\n"
-    "752 and 1 109 751\n"
-    "753 ite 1 107 207 752\n"
-    "754 next 1 109 753\n"
-    "\n"
-    "755 not 1 209\n"
-    "756 and 1 111 755\n"
-    "757 next 1 111 756\n"
-    "\n"
-    "758 not 1 210\n"
-    "759 and 1 113 758\n"
-    "760 not 1 710\n"
-    "761 and 1 209 760\n"
-    "762 ite 1 111 761 759\n"
-    "763 next 1 113 762\n"
-    "\n"
-    "764 not 1 211\n"
-    "765 and 1 115 764\n"
-    "766 not 1 713\n"
-    "767 and 1 210 766\n"
-    "768 ite 1 113 767 765\n"
-    "769 next 1 115 768\n"
-    "\n"
-    "770 not 1 212\n"
-    "771 and 1 117 770\n"
-    "772 not 1 716\n"
-    "773 and 1 211 772\n"
-    "774 ite 1 115 773 771\n"
-    "775 next 1 117 774\n"
-    "\n"
-    "776 not 1 213\n"
-    "777 and 1 119 776\n"
-    "778 not 1 720\n"
-    "779 and 1 212 778\n"
-    "780 ite 1 117 779 777\n"
-    "781 next 1 119 780\n"
-    "\n"
-    "782 not 1 214\n"
-    "783 and 1 121 782\n"
-    "784 not 1 727\n"
-    "785 and 1 213 784\n"
-    "786 ite 1 119 785 783\n"
-    "787 next 1 121 786\n"
-    "\n"
-    "788 not 1 215\n"
-    "789 and 1 123 788\n"
-    "790 ite 1 121 214 789\n"
-    "791 next 1 123 790\n"
-    "\n"
-    "792 not 1 216\n"
-    "793 and 1 125 792\n"
-    "794 ite 1 123 215 793\n"
-    "795 next 1 125 794\n"
-    "\n"
-    "796 not 1 217\n"
-    "797 and 1 127 796\n"
-    "798 ite 1 125 216 797\n"
-    "799 next 1 127 798\n"
-    "\n"
-    "800 read 2 14 7\n"
-    "801 ite 2 167 800 15\n"
-    "802 add 2 15 800\n"
-    "803 ite 2 169 802 801\n"
-    "804 add 2 15 7\n"
-    "805 ite 2 170 804 803\n"
-    "806 sub 2 15 800\n"
-    "807 ite 2 171 806 805\n"
-    "808 sub 2 15 7\n"
-    "809 ite 2 172 808 807\n"
-    "810 sub 2 15 800\n"
-    "811 ite 2 173 810 809\n"
-    "812 ite 2 180 800 811\n"
-    "813 eq 1 21 800\n"
-    "814 ite 2 813 7 6\n"
-    "815 ite 2 181 814 812\n"
-    "816 next 2 15 815\n"
-    "\n"
-    "817 ite 2 184 800 17\n"
-    "818 add 2 17 800\n"
-    "819 ite 2 186 818 817\n"
-    "820 add 2 17 7\n"
-    "821 ite 2 187 820 819\n"
-    "822 sub 2 17 800\n"
-    "823 ite 2 188 822 821\n"
-    "824 sub 2 17 7\n"
-    "825 ite 2 189 824 823\n"
-    "826 sub 2 17 800\n"
-    "827 ite 2 190 826 825\n"
-    "828 ite 2 197 800 827\n"
-    "829 eq 1 23 800\n"
-    "830 ite 2 829 7 6\n"
-    "831 ite 2 198 830 828\n"
-    "832 next 2 17 831\n"
-    "\n"
-    "833 ite 2 201 800 19\n"
-    "834 add 2 19 800\n"
-    "835 ite 2 203 834 833\n"
-    "836 add 2 19 7\n"
-    "837 ite 2 204 836 835\n"
-    "838 sub 2 19 800\n"
-    "839 ite 2 205 838 837\n"
-    "840 sub 2 19 7\n"
-    "841 ite 2 206 840 839\n"
-    "842 sub 2 19 800\n"
-    "843 ite 2 207 842 841\n"
-    "844 ite 2 214 800 843\n"
-    "845 eq 1 25 800\n"
-    "846 ite 2 845 7 6\n"
-    "847 ite 2 215 846 844\n"
-    "848 next 2 19 847\n"
-    "\n"
-    "849 ite 2 180 800 21\n"
-    "850 next 2 21 849\n"
-    "\n"
-    "851 ite 2 197 800 23\n"
-    "852 next 2 23 851\n"
-    "\n"
-    "853 ite 2 214 800 25\n"
-    "854 next 2 25 853\n"
-    "\n"
-    "855 write 3 14 7 15\n"
-    "856 ite 3 168 855 14\n"
-    "857 eq 1 21 800\n"
-    "858 ite 3 857 855 14\n"
-    "859 ite 3 181 858 856\n"
-    "860 write 3 14 7 17\n"
-    "861 ite 3 185 860 859\n"
-    "862 eq 1 23 800\n"
-    "863 ite 3 862 860 14\n"
-    "864 ite 3 198 863 861\n"
-    "865 write 3 14 7 19\n"
-    "866 ite 3 202 865 864\n"
-    "867 eq 1 25 800\n"
-    "868 ite 3 867 865 14\n"
-    "869 ite 3 215 868 866\n"
-    "870 next 3 14 869\n"
-    "\n"
-    "871 or 1 129 217\n"
-    "872 or 1 183 871\n"
-    "873 or 1 200 872\n"
-    "874 next 1 129 873\n"
-    "\n"
-    "875 ite 2 183 7 131\n"
-    "876 ite 2 200 7 875\n"
-    "877 ite 2 217 7 876\n"
-    "878 next 2 131 877\n"
+    "474 write 3 " + encoder->nid_heap + " " + encoder->nids_const[1] + " " + encoder->nids_accu[0] + "\n"
+    "475 ite 3 " + encoder->nids_exec[0][1] + " 474 " + encoder->nid_heap + "\n"
+    "476 eq 1 " + encoder->nids_mem[0] + " 414\n"
+    "477 ite 3 476 474 " + encoder->nid_heap + "\n"
+    "478 ite 3 " + encoder->nids_exec[0][14] + " 477 475\n"
+    "479 write 3 " + encoder->nid_heap + " " + encoder->nids_const[1] + " " + encoder->nids_accu[1] + "\n"
+    "480 ite 3 " + encoder->nids_exec[1][1] + " 479 478\n"
+    "481 eq 1 " + encoder->nids_mem[1] + " 414\n"
+    "482 ite 3 481 479 " + encoder->nid_heap + "\n"
+    "483 ite 3 " + encoder->nids_exec[1][14] + " 482 480\n"
+    "484 write 3 " + encoder->nid_heap + " " + encoder->nids_const[1] + " " + encoder->nids_accu[2] + "\n"
+    "485 ite 3 " + encoder->nids_exec[2][1] + " 484 483\n"
+    "486 eq 1 " + encoder->nids_mem[2] + " 414\n"
+    "487 ite 3 486 484 " + encoder->nid_heap + "\n"
+    "488 ite 3 " + encoder->nids_exec[2][14] + " 487 485\n"
+    "489 next 3 " + encoder->nid_heap + " 488 heap\n"
     "\n",
-    encoder->formula.str());
+    encoder->str());
 }
-#endif
+
+// void Btor2Encoder::add_exit_definitions ()
+TEST_F(Btor2EncoderTest, add_exit_definitions)
+{
+  add_instruction_set(3);
+
+  init_exit_definitions(true);
+
+  encoder->add_exit_definitions();
+
+  ASSERT_EQ(
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; exit state definitions\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; exit flag\n"
+    "490 init 1 " + encoder->nid_exit + " " + encoder->nid_false + "\n"
+    "491 or 1 " + encoder->nid_exit + " " + encoder->nids_exec[2][16] + "\n"
+    "492 or 1 " + encoder->nids_exec[0][16] + " 491\n"
+    "493 or 1 " + encoder->nids_exec[1][16] + " 492\n"
+    "494 next 1 " + encoder->nid_exit + " 493 exit\n"
+    "\n"
+    "; exit code\n"
+    "495 state 2 exit-code\n"
+    "496 init 2 " + encoder->nid_exit_code + " " + encoder->nids_const[0] + "\n"
+    "497 ite 2 " + encoder->nids_exec[0][16] + " " + encoder->nids_const[1] + " " + encoder->nid_exit_code + " 0:16:EXIT:1\n"
+    "498 ite 2 " + encoder->nids_exec[1][16] + " " + encoder->nids_const[1] + " 497 1:16:EXIT:1\n"
+    "499 ite 2 " + encoder->nids_exec[2][16] + " " + encoder->nids_const[1] + " 498 2:16:EXIT:1\n"
+    "500 next 2 " + encoder->nid_exit_code + " 499 exit-code\n"
+    "\n",
+    encoder->str());
+
+  /* verbosity */
+  reset_encoder(1);
+
+  init_exit_definitions(true);
+
+  verbose = false;
+  encoder->add_exit_definitions();
+  verbose = true;
+
+  ASSERT_EQ(
+    "490 init 1 " + encoder->nid_exit + " " + encoder->nid_false + "\n"
+    "491 or 1 " + encoder->nid_exit + " " + encoder->nids_exec[2][16] + "\n"
+    "492 or 1 " + encoder->nids_exec[0][16] + " 491\n"
+    "493 or 1 " + encoder->nids_exec[1][16] + " 492\n"
+    "494 next 1 " + encoder->nid_exit + " 493 exit\n"
+    "\n"
+    "495 state 2 exit-code\n"
+    "496 init 2 " + encoder->nid_exit_code + " " + encoder->nids_const[0] + "\n"
+    "497 ite 2 " + encoder->nids_exec[0][16] + " " + encoder->nids_const[1] + " " + encoder->nid_exit_code + "\n"
+    "498 ite 2 " + encoder->nids_exec[1][16] + " " + encoder->nids_const[1] + " 497\n"
+    "499 ite 2 " + encoder->nids_exec[2][16] + " " + encoder->nids_const[1] + " 498\n"
+    "500 next 2 " + encoder->nid_exit_code + " 499 exit-code\n"
+    "\n",
+    encoder->str());
+}
+
+TEST_F(Btor2EncoderTest, add_exit_definitions_no_exit)
+{
+  add_dummy_programs(1, 1);
+
+  init_exit_definitions(true);
+
+  encoder->add_exit_definitions();
+
+  ASSERT_EQ(
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; exit state definitions\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; exit flag\n"
+    "29 init 1 " + encoder->nid_exit + " " + encoder->nid_false + "\n"
+    "30 next 1 " + encoder->nid_exit + " " + encoder->nid_exit + " exit\n"
+    "\n"
+    "; exit code\n"
+    "31 state 2 exit-code\n"
+    "32 init 2 " + encoder->nid_exit_code + " " + encoder->nids_const[0] + "\n"
+    "33 next 2 " + encoder->nid_exit_code + " " + encoder->nid_exit_code + " exit-code\n"
+    "\n",
+    encoder->str());
+}
+
+// void Btor2Encoder::add_synchronization_constraints ()
+TEST_F(Btor2EncoderTest, add_synchronization_constraints)
+{
+  for (size_t thread = 0; thread < 3; thread++)
+    {
+      ProgramPtr program = make_shared<Program>();
+
+      programs->push_back(program);
+
+      for (size_t id = 1; id < 3; id++)
+        program->push_back(Instruction::Set::create("SYNC", id));
+    }
+
+  reset_encoder(1);
+
+  init_synchronization_constraints(true);
+
+  encoder->add_synchronization_constraints();
+
+  ASSERT_EQ(
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; synchronization constraints\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; thread blocking flags - block_<id>_<thread>\n"
+    "87 state 1 block_1_0\n"
+    "88 state 1 block_1_1\n"
+    "89 state 1 block_1_2\n"
+    "\n"
+    "90 state 1 block_2_0\n"
+    "91 state 1 block_2_1\n"
+    "92 state 1 block_2_2\n"
+    "\n"
+    "; synchronization flags - sync_<id>\n"
+    "93 and 1 " + encoder->nids_block[1][0] + " " + encoder->nids_block[1][1] + "\n"
+    "94 and 1 " + encoder->nids_block[1][2] + " 93 sync_1\n"
+    "95 and 1 " + encoder->nids_block[2][0] + " " + encoder->nids_block[2][1] + "\n"
+    "96 and 1 " + encoder->nids_block[2][2] + " 95 sync_2\n"
+    "\n"
+    "; thread blocking flag definitions\n"
+    "97 init 1 " + encoder->nids_block[1][0] + " 4\n"
+    "98 or 1 " + encoder->nids_exec[0][0] + " " + encoder->nids_block[1][0] + "\n"
+    "99 ite 1 " + encoder->nids_sync[1] + " 4 98\n"
+    "100 next 1 " + encoder->nids_block[1][0] + " 99 block_1_0\n"
+    "\n"
+    "101 init 1 " + encoder->nids_block[1][1] + " 4\n"
+    "102 or 1 " + encoder->nids_exec[1][0] + " " + encoder->nids_block[1][1] + "\n"
+    "103 ite 1 " + encoder->nids_sync[1] + " 4 102\n"
+    "104 next 1 " + encoder->nids_block[1][1] + " 103 block_1_1\n"
+    "\n"
+    "105 init 1 " + encoder->nids_block[1][2] + " 4\n"
+    "106 or 1 " + encoder->nids_exec[2][0] + " " + encoder->nids_block[1][2] + "\n"
+    "107 ite 1 " + encoder->nids_sync[1] + " 4 106\n"
+    "108 next 1 " + encoder->nids_block[1][2] + " 107 block_1_2\n"
+    "\n"
+    "109 init 1 " + encoder->nids_block[2][0] + " 4\n"
+    "110 or 1 " + encoder->nids_exec[0][1] + " " + encoder->nids_block[2][0] + "\n"
+    "111 ite 1 " + encoder->nids_sync[2] + " 4 110\n"
+    "112 next 1 " + encoder->nids_block[2][0] + " 111 block_2_0\n"
+    "\n"
+    "113 init 1 " + encoder->nids_block[2][1] + " 4\n"
+    "114 or 1 " + encoder->nids_exec[1][1] + " " + encoder->nids_block[2][1] + "\n"
+    "115 ite 1 " + encoder->nids_sync[2] + " 4 114\n"
+    "116 next 1 " + encoder->nids_block[2][1] + " 115 block_2_1\n"
+    "\n"
+    "117 init 1 " + encoder->nids_block[2][2] + " 4\n"
+    "118 or 1 " + encoder->nids_exec[2][1] + " " + encoder->nids_block[2][2] + "\n"
+    "119 ite 1 " + encoder->nids_sync[2] + " 4 118\n"
+    "120 next 1 " + encoder->nids_block[2][2] + " 119 block_2_2\n"
+    "\n"
+    "; prevent scheduling of blocked threads\n"
+    "121 and 1 " + encoder->nids_block[1][0] + " -" + encoder->nids_sync[1] + "\n"
+    "122 implies 1 121 -" + encoder->nids_thread[0] + "\n"
+    "123 constraint 122 block_1_0\n"
+    "\n"
+    "124 and 1 " + encoder->nids_block[1][1] + " -" + encoder->nids_sync[1] + "\n"
+    "125 implies 1 124 -" + encoder->nids_thread[1] + "\n"
+    "126 constraint 125 block_1_1\n"
+    "\n"
+    "127 and 1 " + encoder->nids_block[1][2] + " -" + encoder->nids_sync[1] + "\n"
+    "128 implies 1 127 -" + encoder->nids_thread[2] + "\n"
+    "129 constraint 128 block_1_2\n"
+    "\n"
+    "130 and 1 " + encoder->nids_block[2][0] + " -" + encoder->nids_sync[2] + "\n"
+    "131 implies 1 130 -" + encoder->nids_thread[0] + "\n"
+    "132 constraint 131 block_2_0\n"
+    "\n"
+    "133 and 1 " + encoder->nids_block[2][1] + " -" + encoder->nids_sync[2] + "\n"
+    "134 implies 1 133 -" + encoder->nids_thread[1] + "\n"
+    "135 constraint 134 block_2_1\n"
+    "\n"
+    "136 and 1 " + encoder->nids_block[2][2] + " -" + encoder->nids_sync[2] + "\n"
+    "137 implies 1 136 -" + encoder->nids_thread[2] + "\n"
+    "138 constraint 137 block_2_2\n"
+    "\n",
+    encoder->str());
+
+  /* multiple calls to the same barrier */
+  for (const auto & program : *programs)
+    for (size_t pc = 0; pc < 4; pc++)
+      program->push_back(Instruction::Set::create("SYNC", pc % 2 + 1));
+
+  reset_encoder(1);
+
+  init_synchronization_constraints(true);
+
+  encoder->add_synchronization_constraints();
+
+  ASSERT_EQ(
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; synchronization constraints\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; thread blocking flags - block_<id>_<thread>\n"
+    "159 state 1 block_1_0\n"
+    "160 state 1 block_1_1\n"
+    "161 state 1 block_1_2\n"
+    "\n"
+    "162 state 1 block_2_0\n"
+    "163 state 1 block_2_1\n"
+    "164 state 1 block_2_2\n"
+    "\n"
+    "; synchronization flags - sync_<id>\n"
+    "165 and 1 " + encoder->nids_block[1][0] + " " + encoder->nids_block[1][1] + "\n"
+    "166 and 1 " + encoder->nids_block[1][2] + " 165 sync_1\n"
+    "167 and 1 " + encoder->nids_block[2][0] + " " + encoder->nids_block[2][1] + "\n"
+    "168 and 1 " + encoder->nids_block[2][2] + " 167 sync_2\n"
+    "\n"
+    "; thread blocking flag definitions\n"
+    "169 init 1 " + encoder->nids_block[1][0] + " 4\n"
+    "170 or 1 " + encoder->nids_exec[0][0] + " " + encoder->nids_exec[0][2] + "\n"
+    "171 or 1 " + encoder->nids_exec[0][4] + " 170\n"
+    "172 or 1 " + encoder->nids_block[1][0] + " 171\n"
+    "173 ite 1 " + encoder->nids_sync[1] + " 4 172\n"
+    "174 next 1 " + encoder->nids_block[1][0] + " 173 block_1_0\n"
+    "\n"
+    "175 init 1 " + encoder->nids_block[1][1] + " 4\n"
+    "176 or 1 " + encoder->nids_exec[1][0] + " " + encoder->nids_exec[1][2] + "\n"
+    "177 or 1 " + encoder->nids_exec[1][4] + " 176\n"
+    "178 or 1 " + encoder->nids_block[1][1] + " 177\n"
+    "179 ite 1 " + encoder->nids_sync[1] + " 4 178\n"
+    "180 next 1 " + encoder->nids_block[1][1] + " 179 block_1_1\n"
+    "\n"
+    "181 init 1 " + encoder->nids_block[1][2] + " 4\n"
+    "182 or 1 " + encoder->nids_exec[2][0] + " " + encoder->nids_exec[2][2] + "\n"
+    "183 or 1 " + encoder->nids_exec[2][4] + " 182\n"
+    "184 or 1 " + encoder->nids_block[1][2] + " 183\n"
+    "185 ite 1 " + encoder->nids_sync[1] + " 4 184\n"
+    "186 next 1 " + encoder->nids_block[1][2] + " 185 block_1_2\n"
+    "\n"
+    "187 init 1 " + encoder->nids_block[2][0] + " 4\n"
+    "188 or 1 " + encoder->nids_exec[0][1] + " " + encoder->nids_exec[0][3] + "\n"
+    "189 or 1 " + encoder->nids_exec[0][5] + " 188\n"
+    "190 or 1 " + encoder->nids_block[2][0] + " 189\n"
+    "191 ite 1 " + encoder->nids_sync[2] + " 4 190\n"
+    "192 next 1 " + encoder->nids_block[2][0] + " 191 block_2_0\n"
+    "\n"
+    "193 init 1 " + encoder->nids_block[2][1] + " 4\n"
+    "194 or 1 " + encoder->nids_exec[1][1] + " " + encoder->nids_exec[1][3] + "\n"
+    "195 or 1 " + encoder->nids_exec[1][5] + " 194\n"
+    "196 or 1 " + encoder->nids_block[2][1] + " 195\n"
+    "197 ite 1 " + encoder->nids_sync[2] + " 4 196\n"
+    "198 next 1 " + encoder->nids_block[2][1] + " 197 block_2_1\n"
+    "\n"
+    "199 init 1 " + encoder->nids_block[2][2] + " 4\n"
+    "200 or 1 " + encoder->nids_exec[2][1] + " " + encoder->nids_exec[2][3] + "\n"
+    "201 or 1 " + encoder->nids_exec[2][5] + " 200\n"
+    "202 or 1 " + encoder->nids_block[2][2] + " 201\n"
+    "203 ite 1 " + encoder->nids_sync[2] + " 4 202\n"
+    "204 next 1 " + encoder->nids_block[2][2] + " 203 block_2_2\n"
+    "\n"
+    "; prevent scheduling of blocked threads\n"
+    "205 and 1 " + encoder->nids_block[1][0] + " -" + encoder->nids_sync[1] + "\n"
+    "206 implies 1 205 -" + encoder->nids_thread[0] + "\n"
+    "207 constraint 206 block_1_0\n"
+    "\n"
+    "208 and 1 " + encoder->nids_block[1][1] + " -" + encoder->nids_sync[1] + "\n"
+    "209 implies 1 208 -" + encoder->nids_thread[1] + "\n"
+    "210 constraint 209 block_1_1\n"
+    "\n"
+    "211 and 1 " + encoder->nids_block[1][2] + " -" + encoder->nids_sync[1] + "\n"
+    "212 implies 1 211 -" + encoder->nids_thread[2] + "\n"
+    "213 constraint 212 block_1_2\n"
+    "\n"
+    "214 and 1 " + encoder->nids_block[2][0] + " -" + encoder->nids_sync[2] + "\n"
+    "215 implies 1 214 -" + encoder->nids_thread[0] + "\n"
+    "216 constraint 215 block_2_0\n"
+    "\n"
+    "217 and 1 " + encoder->nids_block[2][1] + " -" + encoder->nids_sync[2] + "\n"
+    "218 implies 1 217 -" + encoder->nids_thread[1] + "\n"
+    "219 constraint 218 block_2_1\n"
+    "\n"
+    "220 and 1 " + encoder->nids_block[2][2] + " -" + encoder->nids_sync[2] + "\n"
+    "221 implies 1 220 -" + encoder->nids_thread[2] + "\n"
+    "222 constraint 221 block_2_2\n"
+    "\n",
+    encoder->str());
+
+  /* barrier only for a subset of threads */
+  for (size_t i = 0; i < programs->size() - 1; i++)
+    (*programs)[i]->push_back(Instruction::Set::create("SYNC", 3));
+
+  reset_encoder(1);
+
+  init_synchronization_constraints(true);
+
+  encoder->add_synchronization_constraints();
+
+  ASSERT_EQ(
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; synchronization constraints\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; thread blocking flags - block_<id>_<thread>\n"
+    "172 state 1 block_1_0\n"
+    "173 state 1 block_1_1\n"
+    "174 state 1 block_1_2\n"
+    "\n"
+    "175 state 1 block_2_0\n"
+    "176 state 1 block_2_1\n"
+    "177 state 1 block_2_2\n"
+    "\n"
+    "178 state 1 block_3_0\n"
+    "179 state 1 block_3_1\n"
+    "\n"
+    "; synchronization flags - sync_<id>\n"
+    "180 and 1 " + encoder->nids_block[1][0] + " " + encoder->nids_block[1][1] + "\n"
+    "181 and 1 " + encoder->nids_block[1][2] + " 180 sync_1\n"
+    "182 and 1 " + encoder->nids_block[2][0] + " " + encoder->nids_block[2][1] + "\n"
+    "183 and 1 " + encoder->nids_block[2][2] + " 182 sync_2\n"
+    "184 and 1 " + encoder->nids_block[3][0] + " " + encoder->nids_block[3][1] + " sync_3\n"
+    "\n"
+    "; thread blocking flag definitions\n"
+    "185 init 1 " + encoder->nids_block[1][0] + " 4\n"
+    "186 or 1 " + encoder->nids_exec[0][0] + " " + encoder->nids_exec[0][2] + "\n"
+    "187 or 1 " + encoder->nids_exec[0][4] + " 186\n"
+    "188 or 1 " + encoder->nids_block[1][0] + " 187\n"
+    "189 ite 1 " + encoder->nids_sync[1] + " 4 188\n"
+    "190 next 1 " + encoder->nids_block[1][0] + " 189 block_1_0\n"
+    "\n"
+    "191 init 1 " + encoder->nids_block[1][1] + " 4\n"
+    "192 or 1 " + encoder->nids_exec[1][0] + " " + encoder->nids_exec[1][2] + "\n"
+    "193 or 1 " + encoder->nids_exec[1][4] + " 192\n"
+    "194 or 1 " + encoder->nids_block[1][1] + " 193\n"
+    "195 ite 1 " + encoder->nids_sync[1] + " 4 194\n"
+    "196 next 1 " + encoder->nids_block[1][1] + " 195 block_1_1\n"
+    "\n"
+    "197 init 1 " + encoder->nids_block[1][2] + " 4\n"
+    "198 or 1 " + encoder->nids_exec[2][0] + " " + encoder->nids_exec[2][2] + "\n"
+    "199 or 1 " + encoder->nids_exec[2][4] + " 198\n"
+    "200 or 1 " + encoder->nids_block[1][2] + " 199\n"
+    "201 ite 1 " + encoder->nids_sync[1] + " 4 200\n"
+    "202 next 1 " + encoder->nids_block[1][2] + " 201 block_1_2\n"
+    "\n"
+    "203 init 1 " + encoder->nids_block[2][0] + " 4\n"
+    "204 or 1 " + encoder->nids_exec[0][1] + " " + encoder->nids_exec[0][3] + "\n"
+    "205 or 1 " + encoder->nids_exec[0][5] + " 204\n"
+    "206 or 1 " + encoder->nids_block[2][0] + " 205\n"
+    "207 ite 1 " + encoder->nids_sync[2] + " 4 206\n"
+    "208 next 1 " + encoder->nids_block[2][0] + " 207 block_2_0\n"
+    "\n"
+    "209 init 1 " + encoder->nids_block[2][1] + " 4\n"
+    "210 or 1 " + encoder->nids_exec[1][1] + " " + encoder->nids_exec[1][3] + "\n"
+    "211 or 1 " + encoder->nids_exec[1][5] + " 210\n"
+    "212 or 1 " + encoder->nids_block[2][1] + " 211\n"
+    "213 ite 1 " + encoder->nids_sync[2] + " 4 212\n"
+    "214 next 1 " + encoder->nids_block[2][1] + " 213 block_2_1\n"
+    "\n"
+    "215 init 1 " + encoder->nids_block[2][2] + " 4\n"
+    "216 or 1 " + encoder->nids_exec[2][1] + " " + encoder->nids_exec[2][3] + "\n"
+    "217 or 1 " + encoder->nids_exec[2][5] + " 216\n"
+    "218 or 1 " + encoder->nids_block[2][2] + " 217\n"
+    "219 ite 1 " + encoder->nids_sync[2] + " 4 218\n"
+    "220 next 1 " + encoder->nids_block[2][2] + " 219 block_2_2\n"
+    "\n"
+    "221 init 1 " + encoder->nids_block[3][0] + " 4\n"
+    "222 or 1 " + encoder->nids_exec[0][6] + " " + encoder->nids_block[3][0] + "\n"
+    "223 ite 1 " + encoder->nids_sync[3] + " 4 222\n"
+    "224 next 1 " + encoder->nids_block[3][0] + " 223 block_3_0\n"
+    "\n"
+    "225 init 1 " + encoder->nids_block[3][1] + " 4\n"
+    "226 or 1 " + encoder->nids_exec[1][6] + " " + encoder->nids_block[3][1] + "\n"
+    "227 ite 1 " + encoder->nids_sync[3] + " 4 226\n"
+    "228 next 1 " + encoder->nids_block[3][1] + " 227 block_3_1\n"
+    "\n"
+    "; prevent scheduling of blocked threads\n"
+    "229 and 1 " + encoder->nids_block[1][0] + " -" + encoder->nids_sync[1] + "\n"
+    "230 implies 1 229 -" + encoder->nids_thread[0] + "\n"
+    "231 constraint 230 block_1_0\n"
+    "\n"
+    "232 and 1 " + encoder->nids_block[1][1] + " -" + encoder->nids_sync[1] + "\n"
+    "233 implies 1 232 -" + encoder->nids_thread[1] + "\n"
+    "234 constraint 233 block_1_1\n"
+    "\n"
+    "235 and 1 " + encoder->nids_block[1][2] + " -" + encoder->nids_sync[1] + "\n"
+    "236 implies 1 235 -" + encoder->nids_thread[2] + "\n"
+    "237 constraint 236 block_1_2\n"
+    "\n"
+    "238 and 1 " + encoder->nids_block[2][0] + " -" + encoder->nids_sync[2] + "\n"
+    "239 implies 1 238 -" + encoder->nids_thread[0] + "\n"
+    "240 constraint 239 block_2_0\n"
+    "\n"
+    "241 and 1 " + encoder->nids_block[2][1] + " -" + encoder->nids_sync[2] + "\n"
+    "242 implies 1 241 -" + encoder->nids_thread[1] + "\n"
+    "243 constraint 242 block_2_1\n"
+    "\n"
+    "244 and 1 " + encoder->nids_block[2][2] + " -" + encoder->nids_sync[2] + "\n"
+    "245 implies 1 244 -" + encoder->nids_thread[2] + "\n"
+    "246 constraint 245 block_2_2\n"
+    "\n"
+    "247 and 1 " + encoder->nids_block[3][0] + " -" + encoder->nids_sync[3] + "\n"
+    "248 implies 1 247 -" + encoder->nids_thread[0] + "\n"
+    "249 constraint 248 block_3_0\n"
+    "\n"
+    "250 and 1 " + encoder->nids_block[3][1] + " -" + encoder->nids_sync[3] + "\n"
+    "251 implies 1 250 -" + encoder->nids_thread[1] + "\n"
+    "252 constraint 251 block_3_1\n"
+    "\n",
+    encoder->str());
+
+  /* verbosity */
+  reset_encoder(1);
+
+  init_synchronization_constraints(true);
+
+  verbose = false;
+  encoder->add_synchronization_constraints();
+  verbose = true;
+
+  ASSERT_EQ(
+    "172 state 1 block_1_0\n"
+    "173 state 1 block_1_1\n"
+    "174 state 1 block_1_2\n"
+    "\n"
+    "175 state 1 block_2_0\n"
+    "176 state 1 block_2_1\n"
+    "177 state 1 block_2_2\n"
+    "\n"
+    "178 state 1 block_3_0\n"
+    "179 state 1 block_3_1\n"
+    "\n"
+    "180 and 1 " + encoder->nids_block[1][0] + " " + encoder->nids_block[1][1] + "\n"
+    "181 and 1 " + encoder->nids_block[1][2] + " 180 sync_1\n"
+    "182 and 1 " + encoder->nids_block[2][0] + " " + encoder->nids_block[2][1] + "\n"
+    "183 and 1 " + encoder->nids_block[2][2] + " 182 sync_2\n"
+    "184 and 1 " + encoder->nids_block[3][0] + " " + encoder->nids_block[3][1] + " sync_3\n"
+    "\n"
+    "185 init 1 " + encoder->nids_block[1][0] + " 4\n"
+    "186 or 1 " + encoder->nids_exec[0][0] + " " + encoder->nids_exec[0][2] + "\n"
+    "187 or 1 " + encoder->nids_exec[0][4] + " 186\n"
+    "188 or 1 " + encoder->nids_block[1][0] + " 187\n"
+    "189 ite 1 " + encoder->nids_sync[1] + " 4 188\n"
+    "190 next 1 " + encoder->nids_block[1][0] + " 189 block_1_0\n"
+    "\n"
+    "191 init 1 " + encoder->nids_block[1][1] + " 4\n"
+    "192 or 1 " + encoder->nids_exec[1][0] + " " + encoder->nids_exec[1][2] + "\n"
+    "193 or 1 " + encoder->nids_exec[1][4] + " 192\n"
+    "194 or 1 " + encoder->nids_block[1][1] + " 193\n"
+    "195 ite 1 " + encoder->nids_sync[1] + " 4 194\n"
+    "196 next 1 " + encoder->nids_block[1][1] + " 195 block_1_1\n"
+    "\n"
+    "197 init 1 " + encoder->nids_block[1][2] + " 4\n"
+    "198 or 1 " + encoder->nids_exec[2][0] + " " + encoder->nids_exec[2][2] + "\n"
+    "199 or 1 " + encoder->nids_exec[2][4] + " 198\n"
+    "200 or 1 " + encoder->nids_block[1][2] + " 199\n"
+    "201 ite 1 " + encoder->nids_sync[1] + " 4 200\n"
+    "202 next 1 " + encoder->nids_block[1][2] + " 201 block_1_2\n"
+    "\n"
+    "203 init 1 " + encoder->nids_block[2][0] + " 4\n"
+    "204 or 1 " + encoder->nids_exec[0][1] + " " + encoder->nids_exec[0][3] + "\n"
+    "205 or 1 " + encoder->nids_exec[0][5] + " 204\n"
+    "206 or 1 " + encoder->nids_block[2][0] + " 205\n"
+    "207 ite 1 " + encoder->nids_sync[2] + " 4 206\n"
+    "208 next 1 " + encoder->nids_block[2][0] + " 207 block_2_0\n"
+    "\n"
+    "209 init 1 " + encoder->nids_block[2][1] + " 4\n"
+    "210 or 1 " + encoder->nids_exec[1][1] + " " + encoder->nids_exec[1][3] + "\n"
+    "211 or 1 " + encoder->nids_exec[1][5] + " 210\n"
+    "212 or 1 " + encoder->nids_block[2][1] + " 211\n"
+    "213 ite 1 " + encoder->nids_sync[2] + " 4 212\n"
+    "214 next 1 " + encoder->nids_block[2][1] + " 213 block_2_1\n"
+    "\n"
+    "215 init 1 " + encoder->nids_block[2][2] + " 4\n"
+    "216 or 1 " + encoder->nids_exec[2][1] + " " + encoder->nids_exec[2][3] + "\n"
+    "217 or 1 " + encoder->nids_exec[2][5] + " 216\n"
+    "218 or 1 " + encoder->nids_block[2][2] + " 217\n"
+    "219 ite 1 " + encoder->nids_sync[2] + " 4 218\n"
+    "220 next 1 " + encoder->nids_block[2][2] + " 219 block_2_2\n"
+    "\n"
+    "221 init 1 " + encoder->nids_block[3][0] + " 4\n"
+    "222 or 1 " + encoder->nids_exec[0][6] + " " + encoder->nids_block[3][0] + "\n"
+    "223 ite 1 " + encoder->nids_sync[3] + " 4 222\n"
+    "224 next 1 " + encoder->nids_block[3][0] + " 223 block_3_0\n"
+    "\n"
+    "225 init 1 " + encoder->nids_block[3][1] + " 4\n"
+    "226 or 1 " + encoder->nids_exec[1][6] + " " + encoder->nids_block[3][1] + "\n"
+    "227 ite 1 " + encoder->nids_sync[3] + " 4 226\n"
+    "228 next 1 " + encoder->nids_block[3][1] + " 227 block_3_1\n"
+    "\n"
+    "229 and 1 " + encoder->nids_block[1][0] + " -" + encoder->nids_sync[1] + "\n"
+    "230 implies 1 229 -" + encoder->nids_thread[0] + "\n"
+    "231 constraint 230 block_1_0\n"
+    "\n"
+    "232 and 1 " + encoder->nids_block[1][1] + " -" + encoder->nids_sync[1] + "\n"
+    "233 implies 1 232 -" + encoder->nids_thread[1] + "\n"
+    "234 constraint 233 block_1_1\n"
+    "\n"
+    "235 and 1 " + encoder->nids_block[1][2] + " -" + encoder->nids_sync[1] + "\n"
+    "236 implies 1 235 -" + encoder->nids_thread[2] + "\n"
+    "237 constraint 236 block_1_2\n"
+    "\n"
+    "238 and 1 " + encoder->nids_block[2][0] + " -" + encoder->nids_sync[2] + "\n"
+    "239 implies 1 238 -" + encoder->nids_thread[0] + "\n"
+    "240 constraint 239 block_2_0\n"
+    "\n"
+    "241 and 1 " + encoder->nids_block[2][1] + " -" + encoder->nids_sync[2] + "\n"
+    "242 implies 1 241 -" + encoder->nids_thread[1] + "\n"
+    "243 constraint 242 block_2_1\n"
+    "\n"
+    "244 and 1 " + encoder->nids_block[2][2] + " -" + encoder->nids_sync[2] + "\n"
+    "245 implies 1 244 -" + encoder->nids_thread[2] + "\n"
+    "246 constraint 245 block_2_2\n"
+    "\n"
+    "247 and 1 " + encoder->nids_block[3][0] + " -" + encoder->nids_sync[3] + "\n"
+    "248 implies 1 247 -" + encoder->nids_thread[0] + "\n"
+    "249 constraint 248 block_3_0\n"
+    "\n"
+    "250 and 1 " + encoder->nids_block[3][1] + " -" + encoder->nids_sync[3] + "\n"
+    "251 implies 1 250 -" + encoder->nids_thread[1] + "\n"
+    "252 constraint 251 block_3_1\n"
+    "\n",
+    encoder->str());
+}
+
+TEST_F(Btor2EncoderTest, add_synchronization_constraints_single_thread)
+{
+  ProgramPtr program = make_shared<Program>();
+  programs->push_back(program);
+  program->push_back(Instruction::Set::create("SYNC", 1));
+
+  reset_encoder(1);
+
+  init_synchronization_constraints(true);
+
+  encoder->add_synchronization_constraints();
+
+  // TODO: ignore single-threaded barriers -> see gitlab issue #65
+  ASSERT_EQ(
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; synchronization constraints\n"
+    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; thread blocking flags - block_<id>_<thread>\n"
+    "; synchronization flags - sync_<id>\n"
+    "\n"
+    "; thread blocking flag definitions\n"
+    "; prevent scheduling of blocked threads\n",
+    encoder->str());
+}
+
+TEST_F(Btor2EncoderTest, add_synchronization_constraints_no_sync)
+{
+  add_dummy_programs(3, 3);
+
+  init_synchronization_constraints(true);
+
+  encoder->add_synchronization_constraints();
+
+  ASSERT_EQ("", encoder->str());
+}
 
 // void Btor2Encoder::add_bound ()
 TEST_F(Btor2EncoderTest, add_bound)
 {
-  add_declerations(true);
+  init_machine_state_declarations(true);
 
   encoder->add_bound();
 
@@ -3112,20 +1862,19 @@ TEST_F(Btor2EncoderTest, add_bound)
     "\n"
     "; step counter\n"
     "8 state 2 k\n"
-    "9 init 2 8 6\n"
-    "10 add 2 7 8\n"
+    "9 init 2 8 " + encoder->nids_const[0] + "\n"
+    "10 add 2 " + encoder->nids_const[1] + " 8\n"
     "11 next 2 8 10\n"
     "\n"
     "; bound (1)\n"
-    "12 eq 1 7 8\n"
-    "13 bad 12\n"
-    "\n",
-    encoder->formula.str());
+    "12 eq 1 " + encoder->nids_const[encoder->bound] + " 8\n"
+    "13 bad 12\n",
+    encoder->str());
 
   /* verbosity */
   reset_encoder(1);
 
-  add_declerations(true);
+  init_machine_state_declarations(true);
 
   verbose = false;
   encoder->add_bound();
@@ -3133,154 +1882,128 @@ TEST_F(Btor2EncoderTest, add_bound)
 
   ASSERT_EQ(
     "8 state 2 k\n"
-    "9 init 2 8 6\n"
-    "10 add 2 7 8\n"
+    "9 init 2 8 " + encoder->nids_const[0] + "\n"
+    "10 add 2 " + encoder->nids_const[1] + " 8\n"
     "11 next 2 8 10\n"
     "\n"
-    "12 eq 1 7 8\n"
-    "13 bad 12\n"
-    "\n",
-    encoder->formula.str());
+    "12 eq 1 " + encoder->nids_const[encoder->bound] + " 8\n"
+    "13 bad 12\n",
+    encoder->str());
 }
 
-// std::string load(Load &)
+// std::string Btor2Encoder::load(Load & l)
 TEST_F(Btor2EncoderTest, load)
 {
   add_dummy_programs(1, 1);
 
-  init_statement_activation(true);
+  init_register_definitions(true);
 
   Load l(1);
 
-  ASSERT_EQ("34", encoder->load(l));
-  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
-  ASSERT_EQ("34 read 2 14 7\n", encoder->formula.str());
+  encoder->load(l);
+  ASSERT_EQ(
+    encoder->nids_load[1] + " read 2 " + encoder->nid_heap + " " + encoder->nids_const[1] + "\n",
+    encoder->str());
 
   /* another load from the same memory address */
   encoder->formula.str("");
 
-  ASSERT_EQ("34", encoder->load(l));
-  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
-  ASSERT_EQ("", encoder->formula.str());
-
-  /* indirect */
-  encoder->formula.str("");
-
-  l.indirect = true;
-
-  ASSERT_EQ("35", encoder->load(l));
-  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "35"}}), encoder->nids_load_indirect);
-  ASSERT_EQ("35 read 2 14 34\n", encoder->formula.str());
-
-  /* another load from the same memory address */
-  encoder->formula.str("");
-
-  ASSERT_EQ("35", encoder->load(l));
-  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "35"}}), encoder->nids_load_indirect);
-  ASSERT_EQ("", encoder->formula.str());
+  encoder->load(l);
+  ASSERT_EQ("", encoder->str());
 }
 
-// std::string store(Store &)
+TEST_F(Btor2EncoderTest, load_indirect)
+{
+  add_dummy_programs(1, 1);
+
+  init_register_definitions(true);
+
+  Load l(1, true);
+
+  encoder->load(l);
+  ASSERT_EQ(
+    encoder->nids_load[1] + " read 2 " + encoder->nid_heap + " " + encoder->nids_const[1] + "\n" +
+    encoder->nids_load_indirect[1] + " read 2 " + encoder->nid_heap + " " + encoder->nids_load[1] + "\n",
+    encoder->str());
+
+  /* another load from the same memory address */
+  encoder->formula.str("");
+
+  encoder->load(l);
+  ASSERT_EQ("", encoder->str());
+}
+
+// std::string Btor2Encoder::store(Store & s)
 TEST_F(Btor2EncoderTest, store)
 {
   add_dummy_programs(2, 1);
 
-  init_statement_activation(true);
+  init_register_definitions(true);
 
   Store s(1);
 
   encoder->thread = 0;
-  ASSERT_EQ("51", encoder->store(s));
-  ASSERT_EQ(Word2Word2NIDMap({{0, {{1, "51"}}}}), encoder->nids_store);
-  ASSERT_EQ("51 write 3 15 7 16\n", encoder->formula.str());
+  encoder->store(s);
+  ASSERT_EQ(
+    encoder->nids_store[0][1] + " write 3 " + encoder->nid_heap + " " + encoder->nids_const[1] + " " + encoder->nids_accu[0] + "\n",
+    encoder->str());
 
   encoder->formula.str("");
 
   encoder->thread = 1;
-  ASSERT_EQ("52", encoder->store(s));
+  encoder->store(s);
   ASSERT_EQ(
-    Word2Word2NIDMap({
-      {0, {{1, "51"}}},
-      {1, {{1, "52"}}}}),
-    encoder->nids_store);
-  ASSERT_EQ("52 write 3 15 7 18\n", encoder->formula.str());
+    encoder->nids_store[1][1] + " write 3 " + encoder->nid_heap + " " + encoder->nids_const[1] + " " + encoder->nids_accu[1] + "\n",
+    encoder->str());
 
   /* another store to the same memory address */
   encoder->formula.str("");
 
   encoder->thread = 0;
-  ASSERT_EQ("51", encoder->store(s));
-  ASSERT_EQ(
-    Word2Word2NIDMap({
-      {0, {{1, "51"}}},
-      {1, {{1, "52"}}}}),
-    encoder->nids_store);
-  ASSERT_EQ("", encoder->formula.str());
+  encoder->store(s);
+  ASSERT_EQ("", encoder->str());
 
   encoder->thread = 1;
-  ASSERT_EQ("52", encoder->store(s));
-  ASSERT_EQ(
-    Word2Word2NIDMap({
-      {0, {{1, "51"}}},
-      {1, {{1, "52"}}}}),
-    encoder->nids_store);
-  ASSERT_EQ("", encoder->formula.str());
-
-  /* indirect */
-  encoder->formula.str("");
-
-  s.indirect = true;
-
-  encoder->thread = 0;
-  ASSERT_EQ("54", encoder->store(s));
-  ASSERT_EQ(Word2NIDMap({{1, "53"}}), encoder->nids_load);
-  ASSERT_EQ(Word2Word2NIDMap({{0, {{1, "54"}}}}), encoder->nids_store_indirect);
-  ASSERT_EQ(
-    "53 read 2 15 7\n"
-    "54 write 3 15 53 16\n",
-    encoder->formula.str());
-
-  encoder->formula.str("");
-
-  encoder->thread = 1;
-  ASSERT_EQ("55", encoder->store(s));
-  ASSERT_EQ(Word2NIDMap({{1, "53"}}), encoder->nids_load);
-  ASSERT_EQ(
-    Word2Word2NIDMap({
-      {0, {{1, "54"}}},
-      {1, {{1, "55"}}}}),
-    encoder->nids_store_indirect);
-  ASSERT_EQ(
-    "55 write 3 15 53 18\n",
-    encoder->formula.str());
-
-  /* another store to the same memory address */
-  encoder->formula.str("");
-
-  encoder->thread = 0;
-  ASSERT_EQ("54", encoder->store(s));
-  ASSERT_EQ(Word2NIDMap({{1, "53"}}), encoder->nids_load);
-  ASSERT_EQ(
-    Word2Word2NIDMap({
-      {0, {{1, "54"}}},
-      {1, {{1, "55"}}}}),
-    encoder->nids_store_indirect);
-  ASSERT_EQ("", encoder->formula.str());
-
-  encoder->thread = 1;
-  ASSERT_EQ("55", encoder->store(s));
-  ASSERT_EQ(Word2NIDMap({{1, "53"}}), encoder->nids_load);
-  ASSERT_EQ(
-    Word2Word2NIDMap({
-      {0, {{1, "54"}}},
-      {1, {{1, "55"}}}}),
-    encoder->nids_store_indirect);
-  ASSERT_EQ("", encoder->formula.str());
+  encoder->store(s);
+  ASSERT_EQ("", encoder->str());
 }
 
-// virtual void encode (void)
+TEST_F(Btor2EncoderTest, store_indirect)
+{
+  add_dummy_programs(2, 1);
+
+  init_register_definitions(true);
+
+  Store s(1, true);
+
+  encoder->thread = 0;
+  encoder->store(s);
+  ASSERT_EQ(
+    encoder->nids_load[1] + " read 2 " + encoder->nid_heap + " " + encoder->nids_const[1] + "\n" +
+    encoder->nids_store_indirect[0][1] + " write 3 " + encoder->nid_heap + " " + encoder->nids_load[1] + " " + encoder->nids_accu[0] + "\n",
+    encoder->str());
+
+  encoder->formula.str("");
+
+  encoder->thread = 1;
+  encoder->store(s);
+  ASSERT_EQ(
+    encoder->nids_store_indirect[1][1] + " write 3 " + encoder->nid_heap + " " + encoder->nids_load[1] + " " + encoder->nids_accu[1] + "\n",
+    encoder->str());
+
+  /* another store to the same memory address */
+  encoder->formula.str("");
+
+  encoder->thread = 0;
+  encoder->store(s);
+  ASSERT_EQ("", encoder->str());
+
+  encoder->thread = 1;
+  encoder->store(s);
+  ASSERT_EQ("", encoder->str());
+}
+
+// virtual void Btor2Encoder::encode ()
 TEST_F(Btor2EncoderTest, encode_sync)
 {
   /* concurrent increment using SYNC */
@@ -3289,12 +2012,17 @@ TEST_F(Btor2EncoderTest, encode_sync)
   programs->push_back(
     create_from_file<Program>("data/increment.sync.thread.n.asm"));
 
-  encoder = make_shared<Btor2Encoder>(programs, 12);
+  encoder = make_shared<Btor2Encoder>(programs, 16);
 
-  ifstream ifs("data/increment.sync.t2.k12.btor2");
+  string formula = "increment.sync.t2.k16.btor2";
+
+  ofstream tmp("/tmp/" + formula);
+  tmp << encoder->str();
+
+  string expected;
+  ifstream ifs("data/" + formula);
   expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
-
-  ASSERT_EQ(expected, encoder->formula.str());
+  ASSERT_EQ(expected, encoder->str());
 }
 
 TEST_F(Btor2EncoderTest, encode_cas)
@@ -3303,588 +2031,537 @@ TEST_F(Btor2EncoderTest, encode_cas)
   programs->push_back(create_from_file<Program>("data/increment.cas.asm"));
   programs->push_back(create_from_file<Program>("data/increment.cas.asm"));
 
-  encoder = make_shared<Btor2Encoder>(programs, 12);
+  encoder = make_shared<Btor2Encoder>(programs, 16);
 
-  ifstream ifs("data/increment.cas.t2.k12.btor2");
+  string formula = "increment.cas.t2.k16.btor2";
+
+  ofstream tmp("/tmp/" + formula);
+  tmp << encoder->str();
+
+  string expected;
+  ifstream ifs("data/" + formula);
   expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
-
-  ASSERT_EQ(expected, encoder->formula.str());
+  ASSERT_EQ(expected, encoder->str());
 }
 
-// virtual std::string encode (Load &)
+// virtual std::string Btor2Encoder::encode (Load & l)
 TEST_F(Btor2EncoderTest, LOAD)
 {
   Btor2EncoderTest_load_Test();
 }
 
-// virtual std::string encode (Store &)
+TEST_F(Btor2EncoderTest, LOAD_indirect)
+{
+  Btor2EncoderTest_load_indirect_Test();
+}
+
+// virtual std::string Btor2Encoder::encode (Store & s)
 TEST_F(Btor2EncoderTest, STORE)
 {
   Btor2EncoderTest_store_Test();
 }
 
-// virtual std::string encode (Add &)
+TEST_F(Btor2EncoderTest, STORE_indirect)
+{
+  Btor2EncoderTest_store_indirect_Test();
+}
+
+// virtual std::string Btor2Encoder::encode (Add & a)
 TEST_F(Btor2EncoderTest, ADD)
 {
-  add_dummy_programs(1, 1);
+  add_dummy_programs(2, 1);
 
-  init_statement_activation(true);
-
-  encoder->thread = 0;
+  init_register_definitions(true);
 
   Add a(1);
 
-  ASSERT_EQ("35", encoder->encode(a));
-  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
+  encoder->thread = 0;
+  nid = encoder->encode(a);
   ASSERT_EQ(
-    "34 read 2 14 7\n"
-    "35 add 2 15 34\n",
-    encoder->formula.str());
+    encoder->nids_load[1] + " read 2 " + encoder->nid_heap + " " + encoder->nids_const[1] + "\n"
+    + nid + " add 2 " + encoder->nids_accu[0] + " " + encoder->nids_load[1] + "\n",
+    encoder->str());
 
-  /* another ADD from the same memory address */
+  /* another ADD from a different thread, but same memory address */
   encoder->formula.str("");
 
-  ASSERT_EQ("36", encoder->encode(a));
-  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
-  ASSERT_EQ("36 add 2 15 34\n", encoder->formula.str());
-
-  /* indirect */
-  encoder->formula.str("");
-
-  a.indirect = true;
-
-  ASSERT_EQ("38", encoder->encode(a));
-  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "37"}}), encoder->nids_load_indirect);
+  encoder->thread = 1;
+  nid = encoder->encode(a);
   ASSERT_EQ(
-    "37 read 2 14 34\n"
-    "38 add 2 15 37\n",
-    encoder->formula.str());
-
-  /* another ADD from the same memory address */
-  encoder->formula.str("");
-
-  ASSERT_EQ("39", encoder->encode(a));
-  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "37"}}), encoder->nids_load_indirect);
-  ASSERT_EQ("39 add 2 15 37\n", encoder->formula.str());
+    nid + " add 2 " + encoder->nids_accu[1] + " " + encoder->nids_load[1] + "\n",
+    encoder->str());
 }
 
-// virtual std::string encode (Addi &)
-TEST_F(Btor2EncoderTest, ADDI)
+TEST_F(Btor2EncoderTest, ADD_indirect)
 {
-  add_dummy_programs(1, 1);
+  add_dummy_programs(2, 1);
 
-  init_statement_activation(true);
+  init_register_definitions(true);
+
+  Add a(1, true);
 
   encoder->thread = 0;
+  nid = encoder->encode(a);
+  ASSERT_EQ(
+    encoder->nids_load[1] + " read 2 " + encoder->nid_heap + " " + encoder->nids_const[1] + "\n"
+    + encoder->nids_load_indirect[1] + " read 2 " + encoder->nid_heap + " " + encoder->nids_load[1] + "\n"
+    + nid + " add 2 " + encoder->nids_accu[0] + " " + encoder->nids_load_indirect[1] + "\n",
+    encoder->str());
+
+  /* another ADD from a different thread, but same memory address */
+  encoder->formula.str("");
+
+  encoder->thread = 1;
+  nid = encoder->encode(a);
+  ASSERT_EQ(
+    nid + " add 2 " + encoder->nids_accu[1] + " " + encoder->nids_load_indirect[1] + "\n",
+    encoder->str());
+}
+
+// virtual std::string Btor2Encoder::encode (Addi & a)
+TEST_F(Btor2EncoderTest, ADDI)
+{
+  add_dummy_programs(2, 1);
+
+  init_register_definitions(true);
 
   Addi a(1);
 
-  ASSERT_EQ("34", encoder->encode(a));
-  ASSERT_EQ("34 add 2 15 7\n", encoder->formula.str());
+  encoder->thread = 0;
+  nid = encoder->encode(a);
+  ASSERT_EQ(
+    nid + " add 2 " + encoder->nids_accu[0] + " " + encoder->nids_const[1] + "\n",
+    encoder->str());
 
-  /* another ADDI with the same constant */
+  /* another ADDI from a different thread */
   encoder->formula.str("");
 
-  ASSERT_EQ("35", encoder->encode(a));
-  ASSERT_EQ("35 add 2 15 7\n", encoder->formula.str());
+  encoder->thread = 1;
+  nid = encoder->encode(a);
+  ASSERT_EQ(
+    nid + " add 2 " + encoder->nids_accu[1] + " " + encoder->nids_const[1] + "\n",
+    encoder->str());
 }
 
-// virtual std::string encode (Sub &)
+// virtual std::string Btor2Encoder::encode (Sub & s)
 TEST_F(Btor2EncoderTest, SUB)
 {
-  add_dummy_programs(1, 1);
+  add_dummy_programs(2, 1);
 
-  init_statement_activation(true);
-
-  encoder->thread = 0;
+  init_register_definitions(true);
 
   Sub s(1);
 
-  ASSERT_EQ("35", encoder->encode(s));
-  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
+  encoder->thread = 0;
+  nid = encoder->encode(s);
   ASSERT_EQ(
-    "34 read 2 14 7\n"
-    "35 sub 2 15 34\n",
-    encoder->formula.str());
+    encoder->nids_load[1] + " read 2 " + encoder->nid_heap + " " + encoder->nids_const[1] + "\n"
+    + nid + " sub 2 " + encoder->nids_accu[0] + " " + encoder->nids_load[1] + "\n",
+    encoder->str());
 
-  /* another SUB from the same memory address */
+  /* another SUB from a different thread, but same memory address */
   encoder->formula.str("");
 
-  ASSERT_EQ("36", encoder->encode(s));
-  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
-  ASSERT_EQ("36 sub 2 15 34\n", encoder->formula.str());
-
-  /* indirect */
-  encoder->formula.str("");
-
-  s.indirect = true;
-
-  ASSERT_EQ("38", encoder->encode(s));
-  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "37"}}), encoder->nids_load_indirect);
+  encoder->thread = 1;
+  nid = encoder->encode(s);
   ASSERT_EQ(
-    "37 read 2 14 34\n"
-    "38 sub 2 15 37\n",
-    encoder->formula.str());
-
-  /* another SUB from the same memory address */
-  encoder->formula.str("");
-
-  ASSERT_EQ("39", encoder->encode(s));
-  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "37"}}), encoder->nids_load_indirect);
-  ASSERT_EQ("39 sub 2 15 37\n", encoder->formula.str());
+    nid + " sub 2 " + encoder->nids_accu[1] + " " + encoder->nids_load[1] + "\n",
+    encoder->str());
 }
 
-// virtual std::string encode (Subi &)
-TEST_F(Btor2EncoderTest, SUBI)
+TEST_F(Btor2EncoderTest, SUB_indirect)
 {
-  add_dummy_programs(1, 1);
+  add_dummy_programs(2, 1);
 
-  init_statement_activation(true);
+  init_register_definitions(true);
+
+  Sub s(1, true);
 
   encoder->thread = 0;
+  nid = encoder->encode(s);
+  ASSERT_EQ(
+    encoder->nids_load[1] + " read 2 " + encoder->nid_heap + " " + encoder->nids_const[1] + "\n"
+    + encoder->nids_load_indirect[1] + " read 2 " + encoder->nid_heap + " " + encoder->nids_load[1] + "\n"
+    + nid + " sub 2 " + encoder->nids_accu[0] + " " + encoder->nids_load_indirect[1] + "\n",
+    encoder->str());
+
+  /* another SUB from a different thread, but same memory address */
+  encoder->formula.str("");
+
+  encoder->thread = 1;
+  nid = encoder->encode(s);
+  ASSERT_EQ(
+    nid + " sub 2 " + encoder->nids_accu[1] + " " + encoder->nids_load_indirect[1] + "\n",
+    encoder->str());
+}
+
+// virtual std::string Btor2Encoder::encode (Subi & s)
+TEST_F(Btor2EncoderTest, SUBI)
+{
+  add_dummy_programs(2, 1);
+
+  init_register_definitions(true);
 
   Subi s(1);
 
-  ASSERT_EQ("34", encoder->encode(s));
-  ASSERT_EQ("34 sub 2 15 7\n", encoder->formula.str());
+  encoder->thread = 0;
+  nid = encoder->encode(s);
+  ASSERT_EQ(
+    nid + " sub 2 " + encoder->nids_accu[0] + " " + encoder->nids_const[1] + "\n",
+    encoder->str());
 
-  /* another SUBI with the same constant */
+  /* another SUBI from a different thread */
   encoder->formula.str("");
 
-  ASSERT_EQ("35", encoder->encode(s));
-  ASSERT_EQ("35 sub 2 15 7\n", encoder->formula.str());
+  encoder->thread = 1;
+  nid = encoder->encode(s);
+  ASSERT_EQ(
+    nid + " sub 2 " + encoder->nids_accu[1] + " " + encoder->nids_const[1] + "\n",
+    encoder->str());
 }
 
-// virtual std::string encode (Cmp &)
+// virtual std::string Btor2Encoder::encode (Cmp & c)
 TEST_F(Btor2EncoderTest, CMP)
 {
-  add_dummy_programs(1, 1);
+  add_dummy_programs(2, 1);
 
-  init_statement_activation(true);
-
-  encoder->thread = 0;
+  init_register_definitions(true);
 
   Cmp c(1);
 
-  ASSERT_EQ("35", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
+  encoder->thread = 0;
+  nid = encoder->encode(c);
   ASSERT_EQ(
-    "34 read 2 14 7\n"
-    "35 sub 2 15 34\n",
-    encoder->formula.str());
+    encoder->nids_load[1] + " read 2 " + encoder->nid_heap + " " + encoder->nids_const[1] + "\n"
+    + nid + " sub 2 " + encoder->nids_accu[0] + " " + encoder->nids_load[1] + "\n",
+    encoder->str());
 
-  /* another CMP from the same memory address */
+  /* another CMP from a different thread, but same memory address */
   encoder->formula.str("");
 
-  ASSERT_EQ("36", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
-  ASSERT_EQ("36 sub 2 15 34\n", encoder->formula.str());
-
-  /* indirect */
-  encoder->formula.str("");
-
-  c.indirect = true;
-
-  ASSERT_EQ("38", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "37"}}), encoder->nids_load_indirect);
+  encoder->thread = 1;
+  nid = encoder->encode(c);
   ASSERT_EQ(
-    "37 read 2 14 34\n"
-    "38 sub 2 15 37\n",
-    encoder->formula.str());
-
-  /* another CMP from the same memory address */
-  encoder->formula.str("");
-
-  ASSERT_EQ("39", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "34"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "37"}}), encoder->nids_load_indirect);
-  ASSERT_EQ("39 sub 2 15 37\n", encoder->formula.str());
+    nid + " sub 2 " + encoder->nids_accu[1] + " " + encoder->nids_load[1] + "\n",
+    encoder->str());
 }
 
-// virtual std::string encode (Jmp &)
-TEST_F(Btor2EncoderTest, JMP)
+TEST_F(Btor2EncoderTest, CMP_indirect)
 {
-  add_dummy_programs(1, 1);
+  add_dummy_programs(2, 1);
 
-  init_statement_activation(true);
+  init_register_definitions(true);
+
+  Cmp c(1, true);
 
   encoder->thread = 0;
+  nid = encoder->encode(c);
+  ASSERT_EQ(
+    encoder->nids_load[1] + " read 2 " + encoder->nid_heap + " " + encoder->nids_const[1] + "\n"
+    + encoder->nids_load_indirect[1] + " read 2 " + encoder->nid_heap + " " + encoder->nids_load[1] + "\n"
+    + nid + " sub 2 " + encoder->nids_accu[0] + " " + encoder->nids_load_indirect[1] + "\n",
+    encoder->str());
 
+  /* another CMP from a different thread, but same memory address */
+  encoder->formula.str("");
+
+  encoder->thread = 1;
+  nid = encoder->encode(c);
+  ASSERT_EQ(
+    nid + " sub 2 " + encoder->nids_accu[1] + " " + encoder->nids_load_indirect[1] + "\n",
+    encoder->str());
+}
+
+// virtual std::string Btor2Encoder::encode (Jmp & j)
+TEST_F(Btor2EncoderTest, JMP)
+{
   Jmp j(1);
 
   ASSERT_EQ("", encoder->encode(j));
-  ASSERT_EQ("", encoder->formula.str());
+  ASSERT_EQ("", encoder->str());
 }
 
-// virtual std::string encode (Jz &)
+// virtual std::string Btor2Encoder::encode (Jz & j)
 TEST_F(Btor2EncoderTest, JZ)
 {
-  add_dummy_programs(1, 1);
+  add_dummy_programs(2, 1);
 
-  init_statement_activation(true);
-
-  encoder->thread = 0;
+  init_register_definitions(true);
 
   Jz j(1);
 
-  ASSERT_EQ("34", encoder->encode(j));
-  ASSERT_EQ("34 eq 1 15 6\n", encoder->formula.str());
+  encoder->thread = 0;
+  nid = encoder->encode(j);
+  ASSERT_EQ(
+    nid + " eq 1 " + encoder->nids_accu[0] + " " + encoder->nids_const[0] + "\n",
+    encoder->str());
+
+  /* another JZ from a different thread */
+  encoder->formula.str("");
+
+  encoder->thread = 1;
+  nid = encoder->encode(j);
+  ASSERT_EQ(
+    nid + " eq 1 " + encoder->nids_accu[1] + " " + encoder->nids_const[0] + "\n",
+    encoder->str());
 }
 
-// virtual std::string encode (Jnz &)
+// virtual std::string Btor2Encoder::encode (Jnz & j)
 TEST_F(Btor2EncoderTest, JNZ)
 {
-  add_dummy_programs(1, 1);
+  add_dummy_programs(2, 1);
 
-  init_statement_activation(true);
-
-  encoder->thread = 0;
+  init_register_definitions(true);
 
   Jnz j(1);
 
-  ASSERT_EQ("34", encoder->encode(j));
-  ASSERT_EQ("34 ne 1 15 6\n", encoder->formula.str());
+  encoder->thread = 0;
+  nid = encoder->encode(j);
+  ASSERT_EQ(
+    nid + " ne 1 " + encoder->nids_accu[0] + " " + encoder->nids_const[0] + "\n",
+    encoder->str());
+
+  /* another JNZ from a different thread */
+  encoder->formula.str("");
+
+  encoder->thread = 1;
+  nid = encoder->encode(j);
+  ASSERT_EQ(
+    nid + " ne 1 " + encoder->nids_accu[1] + " " + encoder->nids_const[0] + "\n",
+    encoder->str());
 }
 
-// virtual std::string encode (Js &)
+// virtual std::string Btor2Encoder::encode (Js & j)
 TEST_F(Btor2EncoderTest, JS)
 {
-  add_dummy_programs(1, 1);
+  add_dummy_programs(2, 1);
 
-  init_statement_activation(true);
-
-  encoder->thread = 0;
+  init_register_definitions(true);
 
   Js j(1);
 
-  ASSERT_EQ("34", encoder->encode(j));
-  ASSERT_EQ("34 slice 1 15 15 15\n", encoder->formula.str());
+  encoder->thread = 0;
+  nid = encoder->encode(j);
+  ASSERT_EQ(
+    nid + " slice 1 " + encoder->nids_accu[0] + " " + encoder->msb + " " + encoder->msb + "\n",
+    encoder->str());
+
+  /* another JS from a different thread */
+  encoder->formula.str("");
+
+  encoder->thread = 1;
+  nid = encoder->encode(j);
+  ASSERT_EQ(
+    nid + " slice 1 " + encoder->nids_accu[1] + " " + encoder->msb + " " + encoder->msb + "\n",
+    encoder->str());
 }
 
-// virtual std::string encode (Jns &)
+// virtual std::string Btor2Encoder::encode (Jns & j)
 TEST_F(Btor2EncoderTest, JNS)
 {
-  add_dummy_programs(1, 1);
+  add_dummy_programs(2, 1);
 
-  init_statement_activation(true);
-
-  encoder->thread = 0;
+  init_register_definitions(true);
 
   Jns j(1);
 
-  ASSERT_EQ("35", encoder->encode(j));
+  encoder->thread = 0;
+  nid = encoder->encode(j);
   ASSERT_EQ(
-    "34 slice 1 15 15 15\n"
-    "35 not 1 34\n",
-    encoder->formula.str());
+    encoder->nid(-2) + " slice 1 " + encoder->nids_accu[0] + " " + encoder->msb + " " + encoder->msb + "\n"
+    + nid + " not 1 " + encoder->nid(-2) + "\n",
+    encoder->str());
+
+  /* another JNS from a different thread */
+  encoder->formula.str("");
+
+  encoder->thread = 1;
+  nid = encoder->encode(j);
+  ASSERT_EQ(
+    encoder->nid(-2) + " slice 1 " + encoder->nids_accu[1] + " " + encoder->msb + " " + encoder->msb + "\n"
+    + nid + " not 1 " + encoder->nid(-2) + "\n",
+    encoder->str());
 }
 
-// virtual std::string encode (Jnzns &)
+// virtual std::string Btor2Encoder::encode (Jnzns & j)
 TEST_F(Btor2EncoderTest, JNZNS)
 {
-  add_dummy_programs(1, 1);
+  add_dummy_programs(2, 1);
 
-  init_statement_activation(true);
-
-  encoder->thread = 0;
+  init_register_definitions(true);
 
   Jnzns j(1);
 
-  ASSERT_EQ("38", encoder->encode(j));
+  encoder->thread = 0;
+  nid = encoder->encode(j);
   ASSERT_EQ(
-    "35 ne 1 15 6\n"
-    "36 slice 1 15 15 15\n"
-    "37 not 1 36\n"
-    "38 and 1 35 37\n",
-    encoder->formula.str());
+    encoder->nid(-4) + " ne 1 " + encoder->nids_accu[0] + " " + encoder->nids_const[0] + "\n"
+    + encoder->nid(-3) + " slice 1 " + encoder->nids_accu[0] + " " + encoder->msb + " " + encoder->msb + "\n"
+    + encoder->nid(-2) + " not 1 " + encoder->nid(-3) + "\n"
+    + nid + " and 1 " + encoder->nid(-4) + " " + encoder->nid(-2) + "\n",
+    encoder->str());
+
+  /* another JNZNS from a different thread */
+  encoder->formula.str("");
+
+  encoder->thread = 1;
+  nid = encoder->encode(j);
+  ASSERT_EQ(
+    encoder->nid(-4) + " ne 1 " + encoder->nids_accu[1] + " " + encoder->nids_const[0] + "\n"
+    + encoder->nid(-3) + " slice 1 " + encoder->nids_accu[1] + " " + encoder->msb + " " + encoder->msb + "\n"
+    + encoder->nid(-2) + " not 1 " + encoder->nid(-3) + "\n"
+    + nid + " and 1 " + encoder->nid(-4) + " " + encoder->nid(-2) + "\n",
+    encoder->str());
 }
 
-// virtual std::string encode (Mem &)
+// virtual std::string Btor2Encoder::encode (Mem & m)
 TEST_F(Btor2EncoderTest, MEM)
 {
   Btor2EncoderTest_LOAD_Test();
 }
 
-// virtual std::string encode (Cas &)
+TEST_F(Btor2EncoderTest, MEM_indirect)
+{
+  Btor2EncoderTest_LOAD_indirect_Test();
+}
+
+// virtual std::string Btor2Encoder::encode (Cas & c)
 TEST_F(Btor2EncoderTest, CAS_accu)
 {
   add_dummy_programs(2, 1);
 
-  init_statement_activation(true);
-
-  encoder->update_accu = true;
+  init_register_definitions(true);
 
   Cas c(1);
 
-  encoder->thread = 0;
-  ASSERT_EQ("53", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
-  ASSERT_EQ(
-    "51 read 2 15 7\n"
-    "52 eq 1 20 51\n"
-    "53 ite 2 52 7 6\n",
-    encoder->formula.str());
+  encoder->update_accu = true;
 
+  encoder->thread = 0;
+  nid = encoder->encode(c);
+  ASSERT_EQ(
+    encoder->nids_load[1] + " read 2 " + encoder->nid_heap + " " + encoder->nids_const[1] + "\n"
+    + encoder->nid(-2) + " eq 1 " + encoder->nids_mem[0] + " " + encoder->nids_load[1] + "\n"
+    + nid + " ite 2 " + encoder->nid(-2) + " " + encoder->nids_const[1] + " " + encoder->nids_const[0] + "\n",
+    encoder->str());
+
+  /* another CAS from a different thread, but same memory address */
   encoder->formula.str("");
 
   encoder->thread = 1;
-  ASSERT_EQ("55", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
+  nid = encoder->encode(c);
   ASSERT_EQ(
-    "54 eq 1 22 51\n"
-    "55 ite 2 54 7 6\n",
-    encoder->formula.str());
+    encoder->nid(-2) + " eq 1 " + encoder->nids_mem[1] + " " + encoder->nids_load[1] + "\n"
+    + nid + " ite 2 " + encoder->nid(-2) + " " + encoder->nids_const[1] + " " + encoder->nids_const[0] + "\n",
+    encoder->str());
+}
 
-  /* another CAS to the same memory address */
-  encoder->formula.str("");
+TEST_F(Btor2EncoderTest, CAS_accu_indirect)
+{
+  add_dummy_programs(2, 1);
+
+  init_register_definitions(true);
+
+  Cas c(1, true);
+
+  encoder->update_accu = true;
 
   encoder->thread = 0;
-  ASSERT_EQ("57", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
+  nid = encoder->encode(c);
   ASSERT_EQ(
-    "56 eq 1 20 51\n"
-    "57 ite 2 56 7 6\n",
-    encoder->formula.str());
+    encoder->nids_load[1] + " read 2 " + encoder->nid_heap + " " + encoder->nids_const[1] + "\n"
+    + encoder->nids_load_indirect[1] + " read 2 " + encoder->nid_heap + " " + encoder->nids_load[1] + "\n"
+    + encoder->nid(-2) + " eq 1 " + encoder->nids_mem[0] + " " + encoder->nids_load_indirect[1] + "\n"
+    + nid + " ite 2 " + encoder->nid(-2) + " " + encoder->nids_const[1] + " " + encoder->nids_const[0] + "\n",
+    encoder->str());
 
+  /* another CAS from a different thread, but same memory address */
   encoder->formula.str("");
 
   encoder->thread = 1;
-  ASSERT_EQ("59", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
+  nid = encoder->encode(c);
   ASSERT_EQ(
-    "58 eq 1 22 51\n"
-    "59 ite 2 58 7 6\n",
-    encoder->formula.str());
-
-  /* indirect */
-  encoder->formula.str("");
-
-  c.indirect = true;
-
-  encoder->thread = 0;
-  ASSERT_EQ("62", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "60"}}), encoder->nids_load_indirect);
-  ASSERT_EQ(
-    "60 read 2 15 51\n"
-    "61 eq 1 20 60\n"
-    "62 ite 2 61 7 6\n",
-    encoder->formula.str());
-
-  encoder->formula.str("");
-
-  encoder->thread = 1;
-  ASSERT_EQ("64", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "60"}}), encoder->nids_load_indirect);
-  ASSERT_EQ(
-    "63 eq 1 22 60\n"
-    "64 ite 2 63 7 6\n",
-    encoder->formula.str());
-
-  /* another CAS to the same memory address */
-  encoder->formula.str("");
-
-  encoder->thread = 0;
-  ASSERT_EQ("66", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "60"}}), encoder->nids_load_indirect);
-  ASSERT_EQ(
-    "65 eq 1 20 60\n"
-    "66 ite 2 65 7 6\n",
-    encoder->formula.str());
-
-  encoder->formula.str("");
-
-  encoder->thread = 1;
-  ASSERT_EQ("68", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "60"}}), encoder->nids_load_indirect);
-  ASSERT_EQ(
-    "67 eq 1 22 60\n"
-    "68 ite 2 67 7 6\n",
-    encoder->formula.str());
+    encoder->nid(-2) + " eq 1 " + encoder->nids_mem[1] + " " + encoder->nids_load_indirect[1] + "\n"
+    + nid + " ite 2 " + encoder->nid(-2) + " " + encoder->nids_const[1] + " " + encoder->nids_const[0] + "\n",
+    encoder->str());
 }
 
 TEST_F(Btor2EncoderTest, CAS_heap)
 {
   add_dummy_programs(2, 1);
 
-  init_statement_activation(true);
-
-  encoder->update_accu = false;
+  init_register_definitions(true);
 
   Cas c(1);
 
-  encoder->thread = 0;
-  ASSERT_EQ("54", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
-  ASSERT_EQ(Word2Word2NIDMap({{0, {{1, "53"}}}}), encoder->nids_store);
-  ASSERT_EQ(
-    "51 read 2 15 7\n"
-    "52 eq 1 20 51\n"
-    "53 write 3 15 7 16\n"
-    "54 ite 3 52 53 15\n",
-    encoder->formula.str());
+  encoder->update_accu = false;
 
+  encoder->thread = 0;
+  nid = encoder->encode(c);
+  ASSERT_EQ(
+    encoder->nids_load[1] + " read 2 " + encoder->nid_heap + " " + encoder->nids_const[1] + "\n"
+    + encoder->nid(-3) + " eq 1 " + encoder->nids_mem[0] + " " + encoder->nids_load[1] + "\n"
+    + encoder->nid(-2) + " write 3 " + encoder->nid_heap + " " + encoder->nids_const[1] + " " + encoder->nids_accu[0] + "\n"
+    + nid + " ite 3 " + encoder->nid(-3) + " " + encoder->nid(-2) + " " + encoder->nid_heap + "\n",
+    encoder->str());
+
+  /* another CAS from a different thread, but same memory address */
   encoder->formula.str("");
 
   encoder->thread = 1;
-  ASSERT_EQ("57", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
+  nid = encoder->encode(c);
   ASSERT_EQ(
-    Word2Word2NIDMap({
-      {0, {{1, "53"}}},
-      {1, {{1, "56"}}}}),
-    encoder->nids_store);
-  ASSERT_EQ(
-    "55 eq 1 22 51\n"
-    "56 write 3 15 7 18\n"
-    "57 ite 3 55 56 15\n",
-    encoder->formula.str());
-
-  /* another CAS to the same memory address */
-  encoder->formula.str("");
-
-  encoder->thread = 0;
-  ASSERT_EQ("59", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
-  ASSERT_EQ(
-    Word2Word2NIDMap({
-      {0, {{1, "53"}}},
-      {1, {{1, "56"}}}}),
-    encoder->nids_store);
-  ASSERT_EQ(
-    "58 eq 1 20 51\n"
-    "59 ite 3 58 53 15\n",
-    encoder->formula.str());
-
-  encoder->formula.str("");
-
-  encoder->thread = 1;
-  ASSERT_EQ("61", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
-  ASSERT_EQ(
-    Word2Word2NIDMap({
-      {0, {{1, "53"}}},
-      {1, {{1, "56"}}}}),
-    encoder->nids_store);
-  ASSERT_EQ(
-    "60 eq 1 22 51\n"
-    "61 ite 3 60 56 15\n",
-    encoder->formula.str());
-
-  /* indirect */
-  encoder->formula.str("");
-
-  c.indirect = true;
-
-  encoder->thread = 0;
-  ASSERT_EQ("65", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "62"}}), encoder->nids_load_indirect);
-  ASSERT_EQ(
-    Word2Word2NIDMap({
-      {0, {{1, "53"}}},
-      {1, {{1, "56"}}}}),
-    encoder->nids_store);
-  ASSERT_EQ(Word2Word2NIDMap({{0, {{1, "64"}}}}), encoder->nids_store_indirect);
-  ASSERT_EQ(
-    "62 read 2 15 51\n"
-    "63 eq 1 20 62\n"
-    "64 write 3 15 51 16\n"
-    "65 ite 3 63 64 15\n",
-    encoder->formula.str());
-
-  encoder->formula.str("");
-
-  encoder->thread = 1;
-  ASSERT_EQ("68", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "62"}}), encoder->nids_load_indirect);
-  ASSERT_EQ(
-    Word2Word2NIDMap({
-      {0, {{1, "53"}}},
-      {1, {{1, "56"}}}}),
-    encoder->nids_store);
-  ASSERT_EQ(
-    Word2Word2NIDMap({
-      {0, {{1, "64"}}},
-      {1, {{1, "67"}}}}),
-    encoder->nids_store_indirect);
-  ASSERT_EQ(
-    "66 eq 1 22 62\n"
-    "67 write 3 15 51 18\n"
-    "68 ite 3 66 67 15\n",
-    encoder->formula.str());
-
-  /* another CAS to the same memory address */
-  encoder->formula.str("");
-
-  encoder->thread = 0;
-  ASSERT_EQ("70", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "62"}}), encoder->nids_load_indirect);
-  ASSERT_EQ(
-    Word2Word2NIDMap({
-      {0, {{1, "53"}}},
-      {1, {{1, "56"}}}}),
-    encoder->nids_store);
-  ASSERT_EQ(
-    Word2Word2NIDMap({
-      {0, {{1, "64"}}},
-      {1, {{1, "67"}}}}),
-    encoder->nids_store_indirect);
-  ASSERT_EQ(
-    "69 eq 1 20 62\n"
-    "70 ite 3 69 64 15\n",
-    encoder->formula.str());
-
-  encoder->formula.str("");
-
-  encoder->thread = 1;
-  ASSERT_EQ("72", encoder->encode(c));
-  ASSERT_EQ(Word2NIDMap({{1, "51"}}), encoder->nids_load);
-  ASSERT_EQ(Word2NIDMap({{1, "62"}}), encoder->nids_load_indirect);
-  ASSERT_EQ(
-    Word2Word2NIDMap({
-      {0, {{1, "53"}}},
-      {1, {{1, "56"}}}}),
-    encoder->nids_store);
-  ASSERT_EQ(
-    Word2Word2NIDMap({
-      {0, {{1, "64"}}},
-      {1, {{1, "67"}}}}),
-    encoder->nids_store_indirect);
-  ASSERT_EQ(
-    "71 eq 1 22 62\n"
-    "72 ite 3 71 67 15\n",
-    encoder->formula.str());
+    encoder->nid(-3) + " eq 1 " + encoder->nids_mem[1] + " " + encoder->nids_load[1] + "\n"
+    + encoder->nid(-2) + " write 3 " + encoder->nid_heap + " " + encoder->nids_const[1] + " " + encoder->nids_accu[1] + "\n"
+    + nid + " ite 3 " + encoder->nid(-3) + " " + encoder->nid(-2) + " " + encoder->nid_heap + "\n",
+    encoder->str());
 }
 
-// virtual std::string encode (Sync &)
+TEST_F(Btor2EncoderTest, CAS_heap_indirect)
+{
+  add_dummy_programs(2, 1);
+
+  init_register_definitions(true);
+
+  Cas c(1, true);
+
+  encoder->update_accu = false;
+
+  encoder->thread = 0;
+  nid = encoder->encode(c);
+  ASSERT_EQ(
+    encoder->nids_load[1] + " read 2 " + encoder->nid_heap + " " + encoder->nids_const[1] + "\n"
+    + encoder->nids_load_indirect[1] + " read 2 " + encoder->nid_heap + " " + encoder->nids_load[1] + "\n"
+    + encoder->nid(-3) + " eq 1 " + encoder->nids_mem[0] + " " + encoder->nids_load_indirect[1] + "\n"
+    + encoder->nid(-2) + " write 3 " + encoder->nid_heap + " " + encoder->nids_load[1] + " " + encoder->nids_accu[0] + "\n"
+    + nid + " ite 3 " + encoder->nid(-3) + " " + encoder->nid(-2) + " " + encoder->nid_heap + "\n",
+    encoder->str());
+
+  /* another CAS from a different thread, but same memory address */
+  encoder->formula.str("");
+
+  encoder->thread = 1;
+  nid = encoder->encode(c);
+  ASSERT_EQ(
+    encoder->nid(-3) + " eq 1 " + encoder->nids_mem[1] + " " + encoder->nids_load_indirect[1] + "\n"
+    + encoder->nid(-2) + " write 3 " + encoder->nid_heap + " " + encoder->nids_load[1] + " " + encoder->nids_accu[1] + "\n"
+    + nid + " ite 3 " + encoder->nid(-3) + " " + encoder->nid(-2) + " " + encoder->nid_heap + "\n",
+    encoder->str());
+}
+
+// virtual std::string Btor2Encoder::encode (Sync & s)
 TEST_F(Btor2EncoderTest, SYNC)
 {
   Sync s(1);
 
   ASSERT_EQ("", encoder->encode(s));
-  ASSERT_EQ("", encoder->formula.str());
+  ASSERT_EQ("", encoder->str());
 }
 
-// virtual std::string encode (Exit &)
+// virtual std::string Btor2Encoder::encode (Exit & e)
 TEST_F(Btor2EncoderTest, EXIT)
 {
-  add_dummy_programs(1, 1);
-
-  init_statement_activation(true);
-
   Exit e(1);
 
-  ASSERT_EQ("7", encoder->encode(e));
-  ASSERT_EQ("", encoder->formula.str());
+  ASSERT_EQ(encoder->nids_const[1], encoder->encode(e));
+  ASSERT_EQ("", encoder->str());
 }
