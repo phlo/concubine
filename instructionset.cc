@@ -11,9 +11,9 @@ using namespace std;
 /*******************************************************************************
  * Instruction::Attributes
  ******************************************************************************/
-const unsigned char Instruction::Attributes::ALTERS_HEAP = 1 << 0;
-const unsigned char Instruction::Attributes::ALTERS_ACCU = 1 << 1;
-const unsigned char Instruction::Attributes::ALTERS_MEM  = 1 << 2;
+// const unsigned char Instruction::Attributes::ALTERS_HEAP = 1 << 0;
+// const unsigned char Instruction::Attributes::ALTERS_ACCU = 1 << 1;
+// const unsigned char Instruction::Attributes::ALTERS_MEM  = 1 << 2;
 
 /*******************************************************************************
  * Instruction::Set
@@ -27,7 +27,7 @@ unordered_map<string, Instruction *(*)(const word)>
 unordered_map<string, Instruction *(*)(const word, const bool)>
   Instruction::Set::memory_factory;
 
-Instruction::Type Instruction::Set::contains (string name)
+Instruction::Type Instruction::Set::contains (const string name)
 {
   if (nullary_factory.find(name) != nullary_factory.end())
     return Type::NULLARY;
@@ -41,62 +41,58 @@ Instruction::Type Instruction::Set::contains (string name)
   return Instruction::Type::UNKNOWN;
 }
 
-InstructionPtr Instruction::Set::create (string name)
+Instruction_ptr Instruction::Set::create (const string name)
 {
   if (!contains(name))
     throw runtime_error("Instruction '" + name + "' unknown");
 
-  return InstructionPtr(nullary_factory[name]());
+  return Instruction_ptr(nullary_factory[name]());
 }
 
-InstructionPtr Instruction::Set::create (string name, const word arg)
+Instruction_ptr Instruction::Set::create (const string name, const word arg)
 {
   if (!contains(name))
     throw runtime_error("Instruction '" + name + "' unknown");
 
-  return InstructionPtr(unary_factory[name](arg));
+  return Instruction_ptr(unary_factory[name](arg));
 }
 
-InstructionPtr Instruction::Set::create (
-                                         string name,
-                                         const word arg,
-                                         const bool indirect
-                                        )
+Instruction_ptr Instruction::Set::create (
+                                          const string name,
+                                          const word arg,
+                                          const bool indirect
+                                         )
 {
   if (!contains(name))
     throw runtime_error("Instruction '" + name + "' unknown");
 
-  return InstructionPtr(memory_factory[name](arg, indirect));
+  return Instruction_ptr(memory_factory[name](arg, indirect));
 }
 
 /*******************************************************************************
  * Instruction
  ******************************************************************************/
-
-Instruction::Type Instruction::get_type () const
+Instruction::Type Instruction::type () const
 {
   return Instruction::Type::NULLARY;
 }
 
 /*******************************************************************************
- * UnaryInstruction
+ * Unary
  ******************************************************************************/
-UnaryInstruction::UnaryInstruction (const word a) : arg(a) {}
+Unary::Unary (const word a) : arg(a) {}
 
-Instruction::Type UnaryInstruction::get_type () const
+Instruction::Type Unary::type () const
 {
   return Instruction::Type::UNARY;
 }
 
 /*******************************************************************************
- * MemoryInstruction
+ * Memory
  ******************************************************************************/
-MemoryInstruction::MemoryInstruction (const word a, const bool i) :
-  UnaryInstruction(a),
-  indirect(i)
-{}
+Memory::Memory (const word a, const bool i) : Unary(a), indirect(i) {}
 
-Instruction::Type MemoryInstruction::get_type () const
+Instruction::Type Memory::type () const
 {
   return Instruction::Type::MEMORY;
 }
@@ -106,16 +102,16 @@ Instruction::Type MemoryInstruction::get_type () const
  ******************************************************************************/
 bool operator == (const Instruction & a, const Instruction & b)
 {
-  if (a.get_opcode() != b.get_opcode())
+  if (a.symbol() != b.symbol())
     return false;
 
-  typedef const MemoryInstruction * memory_ptr;
+  using memory_ptr = const Memory *;
 
   if (memory_ptr _a = dynamic_cast<memory_ptr>(&a))
     if (memory_ptr _b = dynamic_cast<memory_ptr>(&b))
       return _a->arg == _b->arg && _a->indirect == _b->indirect;
 
-  typedef const UnaryInstruction * unary_ptr;
+  using unary_ptr = const Unary *;
 
   if (unary_ptr _a = dynamic_cast<unary_ptr>(&a))
     if (unary_ptr _b = dynamic_cast<unary_ptr>(&b))
@@ -135,20 +131,20 @@ bool operator != (const Instruction & a, const Instruction & b)
  * use preprocessor to simplify definition of instructions
  * NOTE: 'execute' defined outside!
  ******************************************************************************/
-#define DEFINE_COMMON_INSTRUCTION_MEMBERS(classname, attr)  \
-  const unsigned char classname::attributes = attr;         \
-  Instruction::OPCode classname::get_opcode () const        \
-    { return OPCode::classname; }                           \
-  const string& classname::get_symbol () const              \
-    { return classname::symbol; }                           \
-  unsigned char classname::get_attributes () const          \
-    { return classname::attributes; }                       \
-  string classname::encode (Encoder & formula)              \
+#define DEFINE_COMMON_INSTRUCTION_MEMBERS(classname, attr)    \
+  const Instruction::Attribute classname::_attributes = attr; \
+  Instruction::OPCode classname::opcode () const              \
+    { return OPCode::classname; }                             \
+  const string & classname::symbol () const                   \
+    { return classname::_symbol; }                            \
+  unsigned char classname::attributes () const                \
+    { return classname::_attributes; }                        \
+  string classname::encode (Encoder & formula)                \
     { return formula.encode(*this); }
 
 #define DEFINE_INSTRUCTION_NULLARY(classname, identifier, attributes) \
   DEFINE_COMMON_INSTRUCTION_MEMBERS (classname, attributes)           \
-  const string  classname::symbol = [](string sym)->const string      \
+  const string  classname::_symbol = [](string sym)->const string     \
   {                                                                   \
     Instruction::Set::nullary_factory[sym] = []()->Instruction *      \
       {                                                               \
@@ -159,7 +155,7 @@ bool operator != (const Instruction & a, const Instruction & b)
 
 #define DEFINE_INSTRUCTION_UNARY(classname, identifier, attributes)   \
   DEFINE_COMMON_INSTRUCTION_MEMBERS(classname, attributes)            \
-  const string  classname::symbol = [](string sym)->const string      \
+  const string  classname::_symbol = [](string sym)->const string     \
   {                                                                   \
     Instruction::Set::unary_factory[sym] =                            \
       [](const word a)->Instruction *                                 \
@@ -171,7 +167,7 @@ bool operator != (const Instruction & a, const Instruction & b)
 
 #define DEFINE_INSTRUCTION_MEMORY(classname, identifier, attributes)  \
   DEFINE_COMMON_INSTRUCTION_MEMBERS(classname, attributes)            \
-  const string  classname::symbol = [](string sym)->const string      \
+  const string  classname::_symbol = [](string sym)->const string     \
   {                                                                   \
     Instruction::Set::unary_factory[sym] =                            \
       [](const word a)->Instruction *                                 \
@@ -187,7 +183,7 @@ bool operator != (const Instruction & a, const Instruction & b)
   }(identifier);                                                      \
 
 /* LOAD ***********************************************************************/
-DEFINE_INSTRUCTION_MEMORY(Load, "LOAD", Attributes::ALTERS_ACCU)
+DEFINE_INSTRUCTION_MEMORY(Load, "LOAD", Attributes::accu | Attributes::read)
 void Load::execute (Thread & thread)
 {
   thread.pc++;
@@ -195,15 +191,22 @@ void Load::execute (Thread & thread)
 }
 
 /* STORE **********************************************************************/
-DEFINE_INSTRUCTION_MEMORY(Store, "STORE", Attributes::ALTERS_HEAP)
+DEFINE_INSTRUCTION_MEMORY(Store, "STORE", Attributes::write)
 void Store::execute (Thread & thread)
 {
   thread.pc++;
   thread.store(arg, thread.accu, indirect);
 }
 
+/* FENCE **********************************************************************/
+DEFINE_INSTRUCTION_NULLARY(Fence, "FENCE", Attributes::barrier)
+void Fence::execute (Thread & thread)
+{
+  thread.pc++;
+}
+
 /* ADD ************************************************************************/
-DEFINE_INSTRUCTION_MEMORY(Add, "ADD", Attributes::ALTERS_ACCU)
+DEFINE_INSTRUCTION_MEMORY(Add, "ADD", Attributes::accu | Attributes::read)
 void Add::execute (Thread & thread)
 {
   thread.pc++;
@@ -211,7 +214,7 @@ void Add::execute (Thread & thread)
 }
 
 /* ADDI ***********************************************************************/
-DEFINE_INSTRUCTION_UNARY(Addi, "ADDI", Attributes::ALTERS_ACCU)
+DEFINE_INSTRUCTION_UNARY(Addi, "ADDI", Attributes::accu)
 void Addi::execute (Thread & thread)
 {
   thread.pc++;
@@ -219,7 +222,7 @@ void Addi::execute (Thread & thread)
 }
 
 /* SUB ************************************************************************/
-DEFINE_INSTRUCTION_MEMORY(Sub, "SUB", Attributes::ALTERS_ACCU)
+DEFINE_INSTRUCTION_MEMORY(Sub, "SUB", Attributes::accu | Attributes::read)
 void Sub::execute (Thread & thread)
 {
   thread.pc++;
@@ -227,7 +230,7 @@ void Sub::execute (Thread & thread)
 }
 
 /* SUBI ***********************************************************************/
-DEFINE_INSTRUCTION_UNARY(Subi, "SUBI", Attributes::ALTERS_ACCU)
+DEFINE_INSTRUCTION_UNARY(Subi, "SUBI", Attributes::accu)
 void Subi::execute (Thread & thread)
 {
   thread.pc++;
@@ -235,7 +238,7 @@ void Subi::execute (Thread & thread)
 }
 
 /* CMP ************************************************************************/
-DEFINE_INSTRUCTION_MEMORY(Cmp, "CMP", Attributes::ALTERS_ACCU)
+DEFINE_INSTRUCTION_MEMORY(Cmp, "CMP", Attributes::accu | Attributes::read)
 void Cmp::execute (Thread & thread)
 {
   thread.pc++;
@@ -246,14 +249,14 @@ void Cmp::execute (Thread & thread)
 }
 
 /* JMP ************************************************************************/
-DEFINE_INSTRUCTION_UNARY(Jmp, "JMP", 0)
+DEFINE_INSTRUCTION_UNARY(Jmp, "JMP", Attributes::none)
 void Jmp::execute (Thread & thread)
 {
   thread.pc = arg;
 }
 
 /* JZ *************************************************************************/
-DEFINE_INSTRUCTION_UNARY(Jz, "JZ", 0)
+DEFINE_INSTRUCTION_UNARY(Jz, "JZ", Attributes::none)
 void Jz::execute (Thread & thread)
 {
   if (thread.accu == 0)
@@ -263,7 +266,7 @@ void Jz::execute (Thread & thread)
 }
 
 /* JNZ ************************************************************************/
-DEFINE_INSTRUCTION_UNARY(Jnz, "JNZ", 0)
+DEFINE_INSTRUCTION_UNARY(Jnz, "JNZ", Attributes::none)
 void Jnz::execute (Thread & thread)
 {
   if (thread.accu != 0)
@@ -273,7 +276,7 @@ void Jnz::execute (Thread & thread)
 }
 
 /* JS *************************************************************************/
-DEFINE_INSTRUCTION_UNARY(Js, "JS", 0)
+DEFINE_INSTRUCTION_UNARY(Js, "JS", Attributes::none)
 void Js::execute (Thread & thread)
 {
   if (static_cast<signed_word>(thread.accu) < 0)
@@ -283,7 +286,7 @@ void Js::execute (Thread & thread)
 }
 
 /* JNS ************************************************************************/
-DEFINE_INSTRUCTION_UNARY(Jns, "JNS", 0)
+DEFINE_INSTRUCTION_UNARY(Jns, "JNS", Attributes::none)
 void Jns::execute (Thread & thread)
 {
   if (static_cast<signed_word>(thread.accu) >= 0)
@@ -293,7 +296,7 @@ void Jns::execute (Thread & thread)
 }
 
 /* JNZNS **********************************************************************/
-DEFINE_INSTRUCTION_UNARY(Jnzns, "JNZNS", 0)
+DEFINE_INSTRUCTION_UNARY(Jnzns, "JNZNS", Attributes::none)
 void Jnzns::execute (Thread & thread)
 {
   if (static_cast<signed_word>(thread.accu) > 0)
@@ -306,7 +309,9 @@ void Jnzns::execute (Thread & thread)
 DEFINE_INSTRUCTION_MEMORY(
   Mem,
   "MEM",
-  Attributes::ALTERS_ACCU | Attributes::ALTERS_MEM)
+  Attributes::accu |
+  Attributes::mem |
+  Attributes::read)
 void Mem::execute (Thread & thread)
 {
   Load::execute(thread);
@@ -317,7 +322,10 @@ void Mem::execute (Thread & thread)
 DEFINE_INSTRUCTION_MEMORY(
   Cas,
   "CAS",
-  Attributes::ALTERS_ACCU | Attributes::ALTERS_HEAP)
+  Attributes::accu |
+  Attributes::read |
+  Attributes::write |
+  Attributes::atomic)
 void Cas::execute (Thread & thread)
 {
   thread.pc++;
@@ -336,9 +344,9 @@ void Cas::execute (Thread & thread)
     }
 }
 
-/* SYNC ***********************************************************************/
-DEFINE_INSTRUCTION_UNARY(Sync, "SYNC", 0)
-void Sync::execute (Thread & thread)
+/* CHECK **********************************************************************/
+DEFINE_INSTRUCTION_UNARY(Check, "CHECK", Attributes::barrier)
+void Check::execute (Thread & thread)
 {
   thread.pc++;
   thread.sync = arg;
@@ -346,7 +354,7 @@ void Sync::execute (Thread & thread)
 }
 
 /* EXIT ***********************************************************************/
-DEFINE_INSTRUCTION_UNARY(Exit, "EXIT", 0)
+DEFINE_INSTRUCTION_UNARY(Exit, "EXIT", Attributes::none)
 void Exit::execute (Thread & thread)
 {
   thread.accu = arg;

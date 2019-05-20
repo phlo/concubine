@@ -21,23 +21,25 @@ struct Instruction
     {
       UNKNOWN = 0,
       NULLARY,
+      BARRIER,
       UNARY,
-      MEMORY
+      MEMORY,
+      ATOMIC
     };
 
    /* OP Codes */
    // NOTE: really necessary?
-  enum OPCode
+  enum class OPCode
     {
-      Exit,
-      Halt,
-      Sync,
       Load,
       Store,
+      Fence,
+
       Add,
       Addi,
       Sub,
       Subi,
+
       Cmp,
       Jmp,
       Jz,
@@ -45,16 +47,27 @@ struct Instruction
       Js,
       Jns,
       Jnzns,
+
       Mem,
-      Cas
+      Cas,
+
+      Check,
+      Halt,
+      Exit
     };
 
   /* Instruction Attributes */
-  struct Attributes
+  using Attribute = uint8_t;
+
+  enum Attributes : Attribute
     {
-      static const unsigned char ALTERS_HEAP;
-      static const unsigned char ALTERS_ACCU;
-      static const unsigned char ALTERS_MEM;
+      none    = 0,
+      accu    = 1 << 1, // modifies accu
+      mem     = 1 << 2, // modifies mem
+      read    = 1 << 3, // read from memory
+      write   = 1 << 4, // write to memory
+      barrier = 1 << 5, // memory barrier
+      atomic  = 1 << 6 | barrier // atomic instruction
     };
 
   /* Instruction Set - containing object factories to simplify parsing ********/
@@ -77,65 +90,56 @@ struct Instruction
 
       virtual ~Set (void) = 0; // for a purely static class
 
+      // NOTE: really needed?
       static Instruction::Type  contains (std::string);
 
-      typedef std::shared_ptr<Instruction> InstructionPtr; // readability
+      typedef std::shared_ptr<Instruction> Instruction_ptr; // readability
 
-      static InstructionPtr create (std::string);
-      static InstructionPtr create (std::string, const word);
-      static InstructionPtr create (std::string, const word, const bool);
+      static Instruction_ptr create (std::string);
+      static Instruction_ptr create (std::string, const word);
+      static Instruction_ptr create (std::string, const word, const bool);
     };
 
   /* Instruction Members ******************************************************/
-  virtual Type                get_type   (void) const;
-  virtual OPCode              get_opcode (void) const = 0;
-  virtual const std::string & get_symbol (void) const = 0;
-  virtual unsigned char       get_attributes (void) const = 0;
+  virtual Type                type   (void) const;
+  virtual OPCode              opcode (void) const = 0;
+  virtual const std::string & symbol (void) const = 0;
+  virtual unsigned char       attributes (void) const = 0;
 
   virtual void                execute (Thread &) = 0;
 
   virtual std::string         encode (Encoder &) = 0;
 };
 
-typedef std::shared_ptr<Instruction> InstructionPtr;
+using Instruction_ptr = std::shared_ptr<Instruction>;
 
 /*******************************************************************************
  * Unary Instruction Base Class
  ******************************************************************************/
-struct UnaryInstruction : public Instruction
+struct Unary : public Instruction
 {
   const word arg;
 
-  UnaryInstruction (const word);
+  Unary (const word);
 
-  virtual Type          get_type (void) const;
-  virtual unsigned char get_attributes (void) const = 0;
-
-  virtual void          execute (Thread &) = 0;
-
-  virtual std::string   encode (Encoder &) = 0;
+  virtual Type          type (void) const;
 };
 
-typedef std::shared_ptr<UnaryInstruction> UnaryInstructionPtr;
+using Unary_ptr = std::shared_ptr<Unary>;
 
 /*******************************************************************************
- * Memory Access Instruction Base Class (for indirect addressing)
+ * Memory Access Instruction Base Class
  ******************************************************************************/
-struct MemoryInstruction : public UnaryInstruction
+struct Memory : public Unary
 {
   bool indirect;
 
-  MemoryInstruction (const word, const bool = false);
+  Memory (const word, const bool = false);
 
-  virtual Type          get_type (void) const;
-  virtual unsigned char get_attributes (void) const = 0;
-
-  virtual void          execute (Thread &) = 0;
-
-  virtual std::string   encode (Encoder &) = 0;
+  virtual Type          type (void) const;
 };
 
-typedef std::shared_ptr<MemoryInstruction> MemoryInstructionPtr;
+using Memory_ptr = std::shared_ptr<Memory>;
 
 /*******************************************************************************
  * Operators
@@ -146,63 +150,62 @@ bool operator != (const Instruction &, const Instruction &);
 /*******************************************************************************
  * Instructions
  ******************************************************************************/
-#define DECLARE_COMMON_INSTRUCTION_MEMBERS()                  \
-    static  const std::string   symbol;                       \
-    static  const unsigned char attributes;                   \
-                                                              \
-    virtual       OPCode        get_opcode () const;          \
-    virtual const std::string & get_symbol () const;          \
-    virtual       unsigned char get_attributes (void) const;  \
-                                                              \
-    virtual       void          execute (Thread &);           \
-                                                              \
-    virtual       std::string   encode (Encoder &);           \
+#define DECLARE_COMMON_MEMBERS()                          \
+    static  const std::string   _symbol;                  \
+    static  const Attribute     _attributes;              \
+                                                          \
+    virtual       OPCode        opcode () const;          \
+    virtual const std::string & symbol () const;          \
+    virtual       Attribute     attributes (void) const;  \
+                                                          \
+    virtual       void          execute (Thread &);       \
+    virtual       std::string   encode (Encoder &);       \
 
-#define DECLARE_INSTRUCTION_NULLARY(classname, baseclass, ...)  \
-  struct classname : public baseclass                           \
-  {                                                             \
-    DECLARE_COMMON_INSTRUCTION_MEMBERS ()                       \
-    __VA_ARGS__                                                 \
-  };                                                            \
-  typedef std::shared_ptr<classname> classname##Ptr;
+#define DECLARE_NULLARY(classname, baseclass)       \
+  struct classname : baseclass                      \
+  {                                                 \
+    DECLARE_COMMON_MEMBERS ()                       \
+  };                                                \
+  using classname##_ptr = std::shared_ptr<classname>;
 
-#define DECLARE_INSTRUCTION_UNARY(classname, baseclass, ...)  \
-  struct classname : public baseclass                         \
-  {                                                           \
-    DECLARE_COMMON_INSTRUCTION_MEMBERS ()                     \
-    __VA_ARGS__                                               \
-    classname (const word a) : baseclass(a) {};               \
-  };                                                          \
-  typedef std::shared_ptr<classname> classname##Ptr;
+#define DECLARE_UNARY(classname, baseclass)       \
+  struct classname : baseclass                    \
+  {                                               \
+    DECLARE_COMMON_MEMBERS ()                     \
+    classname (const word a) : baseclass(a) {};   \
+  };                                              \
+  using classname##_ptr = std::shared_ptr<classname>;
 
-#define DECLARE_INSTRUCTION_MEMORY(classname, baseclass, ...)             \
-  struct classname : public baseclass                                     \
+#define DECLARE_MEMORY(classname, baseclass)                              \
+  struct classname : baseclass                                            \
   {                                                                       \
-    DECLARE_COMMON_INSTRUCTION_MEMBERS ()                                 \
-    __VA_ARGS__                                                           \
+    DECLARE_COMMON_MEMBERS ()                                             \
     classname (const word a, const bool i = false) : baseclass(a, i) {};  \
   };                                                                      \
-  typedef std::shared_ptr<classname> classname##Ptr;
+  using classname##_ptr = std::shared_ptr<classname>;
 
-DECLARE_INSTRUCTION_MEMORY  (Load,  MemoryInstruction, )
-DECLARE_INSTRUCTION_MEMORY  (Store, MemoryInstruction, )
+DECLARE_MEMORY  (Load,  Memory)
+DECLARE_MEMORY  (Store, Memory)
 
-DECLARE_INSTRUCTION_MEMORY  (Add,   Load, )
-DECLARE_INSTRUCTION_UNARY   (Addi,  UnaryInstruction, )
-DECLARE_INSTRUCTION_MEMORY  (Sub,   Load, )
-DECLARE_INSTRUCTION_UNARY   (Subi,  UnaryInstruction, )
+DECLARE_NULLARY (Fence, Instruction)
 
-DECLARE_INSTRUCTION_MEMORY  (Cmp,   Load, )
-DECLARE_INSTRUCTION_UNARY   (Jmp,   UnaryInstruction, )
-DECLARE_INSTRUCTION_UNARY   (Jz,    Jmp, )
-DECLARE_INSTRUCTION_UNARY   (Jnz,   Jmp, )
-DECLARE_INSTRUCTION_UNARY   (Js,    Jmp, )
-DECLARE_INSTRUCTION_UNARY   (Jns,   Jmp, )
-DECLARE_INSTRUCTION_UNARY   (Jnzns, Jmp, )
+DECLARE_MEMORY  (Add,   Load)
+DECLARE_UNARY   (Addi,  Unary)
+DECLARE_MEMORY  (Sub,   Load)
+DECLARE_UNARY   (Subi,  Unary)
 
-DECLARE_INSTRUCTION_MEMORY  (Mem,   Load, )
-DECLARE_INSTRUCTION_MEMORY  (Cas,   Store, )
+DECLARE_MEMORY  (Cmp,   Load)
+DECLARE_UNARY   (Jmp,   Unary)
+DECLARE_UNARY   (Jz,    Jmp)
+DECLARE_UNARY   (Jnz,   Jmp)
+DECLARE_UNARY   (Js,    Jmp)
+DECLARE_UNARY   (Jns,   Jmp)
+DECLARE_UNARY   (Jnzns, Jmp)
 
-DECLARE_INSTRUCTION_UNARY   (Sync,  UnaryInstruction, )
-DECLARE_INSTRUCTION_UNARY   (Exit,  UnaryInstruction, )
+DECLARE_MEMORY  (Mem,   Load)
+DECLARE_MEMORY  (Cas,   Store)
+
+DECLARE_UNARY   (Check, Unary)
+DECLARE_NULLARY (Halt,  Instruction)
+DECLARE_UNARY   (Exit,  Unary)
 #endif

@@ -88,7 +88,7 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
       word pc = thread->pc;
 
       /* pointer to an eventual store instruction */
-      StorePtr store = dynamic_pointer_cast<Store>(thread->program[pc]);
+      Store_ptr store = dynamic_pointer_cast<Store>(thread->program[pc]);
 
       /* optional heap update */
       optional<Schedule::Heap_Cell> heap_cell;
@@ -103,7 +103,7 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
       /* get eventual heap update (ignore failed CAS) */
       if (store)
         {
-          if (store->get_opcode() == Instruction::OPCode::Store || thread->accu)
+          if (store->opcode() == Instruction::OPCode::Store || thread->accu)
             heap_cell->val = heap[heap_cell->idx];
           else /* CAS failed */
             heap_cell = {};
@@ -140,7 +140,7 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
               erase(active, thread);
 
               /* take care if last instruction was a SYNC (bypasses WAITING) */
-              if (dynamic_pointer_cast<Sync>(thread->program.back()))
+              if (dynamic_pointer_cast<Check>(thread->program.back()))
                   {
                     /* remove from list of threads waiting for this barrier */
                     erase(threads_per_sync_id[thread->sync], thread);

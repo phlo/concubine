@@ -35,7 +35,7 @@ struct Btor2EncoderTest : public ::testing::Test
     {
       for (size_t i = 0; i < num; i++)
         {
-          InstructionPtr op = Instruction::Set::create("ADDI", i + 1);
+          Instruction_ptr op = Instruction::Set::create("ADDI", i + 1);
           programs->push_back(shared_ptr<Program>(new Program()));
           for (size_t j = 0; j < size; j++)
             (*programs)[i]->push_back(op);
@@ -2551,9 +2551,9 @@ TEST_F(Btor2EncoderTest, CAS_heap_indirect)
 // virtual std::string Btor2Encoder::encode (Sync & s)
 TEST_F(Btor2EncoderTest, SYNC)
 {
-  Sync s(1);
+  Check c(1);
 
-  ASSERT_EQ("", encoder->encode(s));
+  ASSERT_EQ("", encoder->encode(c));
   ASSERT_EQ("", encoder->str());
 }
 

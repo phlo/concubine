@@ -26,7 +26,7 @@ struct EncoderTest : public ::testing::Test
 
   void add_dummy_programs (unsigned num, unsigned size)
     {
-      InstructionPtr op = Instruction::Set::create("ADDI", 1);
+      Instruction_ptr op = Instruction::Set::create("ADDI", 1);
       for (size_t i = 0; i < num; i++)
         {
           programs.push_back(shared_ptr<Program>(new Program()));

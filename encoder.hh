@@ -73,6 +73,8 @@ struct Encoder
   virtual std::string encode (Load &) = 0;
   virtual std::string encode (Store &) = 0;
 
+  virtual std::string encode (Fence &) = 0;
+
   virtual std::string encode (Add &) = 0;
   virtual std::string encode (Addi &) = 0;
   virtual std::string encode (Sub &) = 0;
@@ -89,7 +91,9 @@ struct Encoder
   virtual std::string encode (Mem &) = 0;
   virtual std::string encode (Cas &) = 0;
 
-  virtual std::string encode (Sync &) = 0;
+  virtual std::string encode (Check &) = 0;
+
+  virtual std::string encode (Halt &) = 0;
   virtual std::string encode (Exit &) = 0;
 
   /*****************************************************************************
@@ -236,6 +240,8 @@ struct SMTLibEncoderFunctional : public SMTLibEncoder
   virtual std::string encode (Load &);
   virtual std::string encode (Store &);
 
+  virtual std::string encode (Fence &);
+
   virtual std::string encode (Add &);
   virtual std::string encode (Addi &);
   virtual std::string encode (Sub &);
@@ -252,7 +258,9 @@ struct SMTLibEncoderFunctional : public SMTLibEncoder
   virtual std::string encode (Mem &);
   virtual std::string encode (Cas &);
 
-  virtual std::string encode (Sync &);
+  virtual std::string encode (Check &);
+
+  virtual std::string encode (Halt &);
   virtual std::string encode (Exit &);
 };
 
@@ -297,6 +305,8 @@ struct SMTLibEncoderRelational : public SMTLibEncoder
   virtual std::string encode (Load &);
   virtual std::string encode (Store &);
 
+  virtual std::string encode (Fence &);
+
   virtual std::string encode (Add &);
   virtual std::string encode (Addi &);
   virtual std::string encode (Sub &);
@@ -313,7 +323,9 @@ struct SMTLibEncoderRelational : public SMTLibEncoder
   virtual std::string encode (Mem &);
   virtual std::string encode (Cas &);
 
-  virtual std::string encode (Sync &);
+  virtual std::string encode (Check &);
+
+  virtual std::string encode (Halt &);
   virtual std::string encode (Exit &);
 };
 
@@ -440,6 +452,8 @@ struct Btor2Encoder : public Encoder
   virtual std::string         encode (Load &);
   virtual std::string         encode (Store &);
 
+  virtual std::string         encode (Fence &);
+
   virtual std::string         encode (Add &);
   virtual std::string         encode (Addi &);
   virtual std::string         encode (Sub &);
@@ -456,7 +470,9 @@ struct Btor2Encoder : public Encoder
   virtual std::string         encode (Mem &);
   virtual std::string         encode (Cas &);
 
-  virtual std::string         encode (Sync &);
+  virtual std::string         encode (Check &);
+
+  virtual std::string         encode (Halt &);
   virtual std::string         encode (Exit &);
 };
 

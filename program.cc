@@ -14,7 +14,7 @@ Program::Program(istream & file, string & name) : path(name)
 {
   string token;
 
-  InstructionPtr cmd;
+  Instruction_ptr cmd;
 
   unsigned long line_num = 1;
 
@@ -96,7 +96,7 @@ Program::Program(istream & file, string & name) : path(name)
                       cmd = Instruction::Set::create(symbol, arg);
 
                       /* check if the instruction supports indirect addresses */
-                      if (auto m = dynamic_pointer_cast<MemoryInstruction>(cmd))
+                      if (auto m = dynamic_pointer_cast<Memory>(cmd))
                         m->indirect = true;
                       else
                         parser_error(
@@ -163,14 +163,14 @@ Program::Program(istream & file, string & name) : path(name)
     }
 }
 
-/* Program::push_back (InstructionPtr) ****************************************/
-void Program::push_back (InstructionPtr i)
+/* Program::push_back (Instruction_ptr) ****************************************/
+void Program::push_back (Instruction_ptr i)
 {
-  deque<InstructionPtr>::push_back(i);
+  deque<Instruction_ptr>::push_back(i);
 
-  /* collect sync barrier ids */
-  if (SyncPtr s = dynamic_pointer_cast<Sync>(i))
-    sync_ids.insert(s->arg);
+  /* collect checkpoint ids */
+  if (Check_ptr c = dynamic_pointer_cast<Check>(i))
+    sync_ids.insert(c->arg);
 }
 
 /* Program::get_pc (const string label) const *********************************/
@@ -226,16 +226,16 @@ string Program::print (bool include_pc, word pc) const
     ss << pc << "\t";
 
   /* instruction symbol */
-  InstructionPtr cmd = at(pc);
-  ss << cmd->get_symbol() << "\t";
+  Instruction_ptr cmd = at(pc);
+  ss << cmd->symbol() << "\t";
 
   /* print unary instruction's argument */
-  if (UnaryInstructionPtr u = dynamic_pointer_cast<UnaryInstruction>(cmd))
+  if (Unary_ptr u = dynamic_pointer_cast<Unary>(cmd))
     {
       label_it = pc_to_label.find(u->arg);
       if (dynamic_pointer_cast<Jmp>(cmd) && label_it != pc_to_label.end())
         ss << *label_it->second;
-      else if (auto m = dynamic_pointer_cast<MemoryInstruction>(u))
+      else if (auto m = dynamic_pointer_cast<Memory>(u))
         ss << (m->indirect ? "[" : "") << m->arg << (m->indirect ? "]" : "");
       else
         ss << u->arg;

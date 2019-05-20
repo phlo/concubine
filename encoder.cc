@@ -43,22 +43,22 @@ Encoder::Encoder (const ProgramListPtr p, unsigned long b) :
         /* collect predecessors */
         if (pc > 0)
           if (!dynamic_pointer_cast<Exit>(program[pc - 1u]))
-            if (program[pc - 1u]->get_symbol() != "JMP")
+            if (program[pc - 1u]->symbol() != "JMP")
               predecessors[thread][pc].insert(pc - 1u);
 
-        if (JmpPtr j = dynamic_pointer_cast<Jmp>(program[pc]))
+        if (Jmp_ptr j = dynamic_pointer_cast<Jmp>(program[pc]))
           predecessors[thread][j->arg].insert(pc);
 
         /* collect CAS statemets */
-        if (CasPtr c = dynamic_pointer_cast<Cas>(program[pc]))
+        if (Cas_ptr c = dynamic_pointer_cast<Cas>(program[pc]))
           cas_threads.insert(thread);
 
-        /* collect sync statemets */
-        if (SyncPtr s = dynamic_pointer_cast<Sync>(program[pc]))
+        /* collect CHECK statemets */
+        if (Check_ptr s = dynamic_pointer_cast<Check>(program[pc]))
           sync_pcs[s->arg][thread].insert(pc);
 
         /* collect exit calls */
-        if (ExitPtr e = dynamic_pointer_cast<Exit>(program[pc]))
+        if (Exit_ptr e = dynamic_pointer_cast<Exit>(program[pc]))
           exit_pcs[thread].push_back(pc);
       }
   });
@@ -654,15 +654,15 @@ SMTLibEncoderFunctional::SMTLibEncoderFunctional (
   iterate_threads([&] (Program & program) {
     for (pc = 0; pc < program.size(); pc++)
       {
-        const unsigned char attributes = program[pc]->get_attributes();
+        const unsigned char attributes = program[pc]->attributes();
 
-        if (attributes & Instruction::Attributes::ALTERS_ACCU)
+        if (attributes & Instruction::Attributes::accu)
           alters_accu[thread].push_back(pc);
 
-        if (attributes & Instruction::Attributes::ALTERS_MEM)
+        if (attributes & Instruction::Attributes::mem)
           alters_mem[thread].push_back(pc);
 
-        if (attributes & Instruction::Attributes::ALTERS_HEAP)
+        if (attributes & Instruction::Attributes::write)
           alters_heap[thread].push_back(pc);
       }
   });
@@ -695,7 +695,7 @@ void SMTLibEncoderFunctional::add_statement_activation ()
               string val = exec_var(step - 1, thread, prev);
 
               /* build conjunction of execution variable and jump condition */
-              if (JmpPtr j = dynamic_pointer_cast<Jmp>(program[prev]))
+              if (Jmp_ptr j = dynamic_pointer_cast<Jmp>(program[prev]))
                 {
                   string cond = j->encode(*this);
 
@@ -871,6 +871,13 @@ string SMTLibEncoderFunctional::encode (Store & s)
       accu_var(step - 1, thread));
 }
 
+/* SMTLibEncoderFunctional::encode (Fence &) **********************************/
+// TODO
+string SMTLibEncoderFunctional::encode (Fence & f [[maybe_unused]])
+{
+  throw runtime_error("not implemented");
+}
+
 /* SMTLibEncoderFunctional::encode (Add &) ************************************/
 string SMTLibEncoderFunctional::encode (Add & a)
 {
@@ -998,10 +1005,17 @@ string SMTLibEncoderFunctional::encode (Cas & c)
         heap);
 }
 
-/* SMTLibEncoderFunctional::encode (Sync &) ***********************************/
-string SMTLibEncoderFunctional::encode (Sync & s [[maybe_unused]])
+/* SMTLibEncoderFunctional::encode (Check &) **********************************/
+string SMTLibEncoderFunctional::encode (Check & s [[maybe_unused]])
 {
   return "";
+}
+
+/* SMTLibEncoderFunctional::encode (Halt &) ***********************************/
+// TODO
+string SMTLibEncoderFunctional::encode (Halt & h [[maybe_unused]])
+{
+  throw runtime_error("not implemented");
 }
 
 /* SMTLibEncoderFunctional::encode (Exit &) ***********************************/
@@ -1277,6 +1291,12 @@ string SMTLibEncoderRelational::encode (Store & s)
     activate_next();
 }
 
+// TODO
+string SMTLibEncoderRelational::encode (Fence & f [[maybe_unused]])
+{
+  throw runtime_error("not implemented");
+}
+
 string SMTLibEncoderRelational::encode (Add & a)
 {
   return
@@ -1445,13 +1465,19 @@ string SMTLibEncoderRelational::encode (Cas & c)
     activate_next();
 }
 
-string SMTLibEncoderRelational::encode (Sync & s [[maybe_unused]])
+string SMTLibEncoderRelational::encode (Check & s [[maybe_unused]])
 {
   return
     preserve_accu() +
     preserve_mem() +
     preserve_heap() +
     activate_next();
+}
+
+// TODO
+string SMTLibEncoderRelational::encode (Halt & h [[maybe_unused]])
+{
+  throw runtime_error("not implemented");
 }
 
 string SMTLibEncoderRelational::encode (Exit & e)
@@ -1483,22 +1509,22 @@ Btor2Encoder::Btor2Encoder (
   iterate_threads([&] (Program & program) {
     for (pc = 0; pc < program.size(); pc++)
       {
-        const InstructionPtr & op = program[pc];
+        const Instruction_ptr & op = program[pc];
 
         /* collect constants */
-        if (UnaryInstructionPtr i = dynamic_pointer_cast<UnaryInstruction>(op))
+        if (Unary_ptr i = dynamic_pointer_cast<Unary>(op))
           nids_const[i->arg] = "";
 
         /* initialize state update maps */
-        const unsigned char attributes = op->get_attributes();
+        const unsigned char attributes = op->attributes();
 
-        if (attributes & Instruction::Attributes::ALTERS_ACCU)
+        if (attributes & Instruction::Attributes::accu)
           alters_accu[thread].push_back(pc);
 
-        if (attributes & Instruction::Attributes::ALTERS_MEM)
+        if (attributes & Instruction::Attributes::mem)
           alters_mem[thread].push_back(pc);
 
-        if (attributes & Instruction::Attributes::ALTERS_HEAP)
+        if (attributes & Instruction::Attributes::write)
           alters_heap[thread].push_back(pc);
       }
   });
@@ -1518,15 +1544,14 @@ string Btor2Encoder::nid (int offset)
 
 string Btor2Encoder::symbol (word p)
 {
-  UnaryInstruction & op =
-    *dynamic_pointer_cast<UnaryInstruction>(programs->at(thread)->at(p));
+  Unary & op = *dynamic_pointer_cast<Unary>(programs->at(thread)->at(p));
 
   return
     to_string(thread) +
     ":" +
     to_string(p) +
     ":" +
-    op.get_symbol() +
+    op.symbol() +
     ":" +
     to_string(op.arg);
 }
@@ -1668,9 +1693,8 @@ void Btor2Encoder::define_state (
         vector<word>::iterator pc_it = pcs.begin();
         for (pc = *pc_it; pc_it != pcs.end(); ++pc_it, pc = *pc_it)
           {
-            UnaryInstruction & op =
-              *dynamic_pointer_cast<UnaryInstruction>(
-                programs->at(thread)->at(pc));
+            Unary & op =
+              *dynamic_pointer_cast<Unary>(programs->at(thread)->at(pc));
 
             formula <<
               btor2::ite(
@@ -1734,7 +1758,7 @@ void Btor2Encoder::define_stmt ()
   iterate_threads([&] (Program & program) {
 
     /* map storing nids of jump conditions */
-    map<JmpPtr, string> nid_jmp;
+    map<Jmp_ptr, string> nid_jmp;
 
     /* reduce lookups */
     const vector<string> & nids_stmt_thread = nids_stmt[thread];
@@ -1773,7 +1797,7 @@ void Btor2Encoder::define_stmt ()
             nid_exec = nids_exec_thread[prev];
 
             /* predecessor is a jump */
-            if (JmpPtr j = dynamic_pointer_cast<Jmp>(program[prev]))
+            if (Jmp_ptr j = dynamic_pointer_cast<Jmp>(program[prev]))
               {
                 string nid_cond = lookup(nid_jmp, j, [&] () {
                   return j->encode(*this);
@@ -2231,6 +2255,12 @@ string Btor2Encoder::encode (Store & s)
   return store(s);
 }
 
+// TODO
+string Btor2Encoder::encode (Fence & f [[maybe_unused]])
+{
+  throw runtime_error("not implemented");
+}
+
 string Btor2Encoder::encode (Add & a)
 {
   string nid_add = load(a);
@@ -2372,9 +2402,15 @@ string Btor2Encoder::encode (Cas & c)
   return nid_cas;
 }
 
-string Btor2Encoder::encode (Sync & s [[maybe_unused]])
+string Btor2Encoder::encode (Check & s [[maybe_unused]])
 {
   return "";
+}
+
+// TODO
+string Btor2Encoder::encode (Halt & h [[maybe_unused]])
+{
+  throw runtime_error("not implemented");
 }
 
 string Btor2Encoder::encode (Exit & e [[maybe_unused]])

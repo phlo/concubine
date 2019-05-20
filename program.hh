@@ -10,7 +10,7 @@
 /*******************************************************************************
  * Program
  ******************************************************************************/
-struct Program : public std::deque<InstructionPtr>
+struct Program : public std::deque<Instruction_ptr>
 {
   /* default constructor (for testing) */
   Program (void);
@@ -38,7 +38,7 @@ struct Program : public std::deque<InstructionPtr>
   std::unordered_set<std::string> labels;
 
   /* appends instruction to the program */
-  void                            push_back (InstructionPtr);
+  void                            push_back (Instruction_ptr);
 
   /* get pc corresponding to the given label */
   word                            get_pc (const std::string label) const;

@@ -35,12 +35,12 @@ TEST_RUN := run_all_tests
 # gtest filter
 GTEST_FILTER = --gtest_filter=
 
-# GTEST_FILTER += "*"
+GTEST_FILTER += "*"
 # GTEST_FILTER += *Encoder*
 # GTEST_FILTER += SMTLibEncoderTest.*
 # GTEST_FILTER += SMTLibEncoderFunctional*
 # GTEST_FILTER += SMTLibEncoderRelational*
-GTEST_FILTER += Btor2EncoderTest.*
+# GTEST_FILTER += Btor2EncoderTest.*
 # GTEST_FILTER += Btor2*
 # GTEST_FILTER += SimulatorTest.*
 # GTEST_FILTER += MainTest.*

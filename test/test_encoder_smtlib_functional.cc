@@ -936,12 +936,12 @@ TEST_F(SMTLibEncoderFunctionalTest, CAS)
     encoder->encode(cas));
 }
 
-// virtual std::string encode (Sync &);
-TEST_F(SMTLibEncoderFunctionalTest, SYNC)
+// virtual std::string encode (Check &);
+TEST_F(SMTLibEncoderFunctionalTest, CHECK)
 {
-  Sync sync = Sync(1);
+  Check check = Check(1);
 
-  ASSERT_TRUE(encoder->encode(sync).empty());
+  ASSERT_TRUE(encoder->encode(check).empty());
 }
 
 // virtual std::string encode (Exit &);

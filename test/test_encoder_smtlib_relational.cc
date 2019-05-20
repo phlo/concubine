@@ -1300,7 +1300,7 @@ TEST_F(SMTLibEncoderRelationalTest, SYNC)
 {
   add_dummy_programs(1);
 
-  Sync sync = Sync(1);
+  Check check = Check(1);
 
   ASSERT_EQ(
     "(assert (=> exec_1_0_0 (= accu_1_0 accu_0_0)))\n"
@@ -1312,7 +1312,7 @@ TEST_F(SMTLibEncoderRelationalTest, SYNC)
         "stmt_2_0_1 "
         "(not stmt_2_0_2))"
     "))\n",
-    encoder->encode(sync));
+    encoder->encode(check));
 }
 
 // virtual std::string encode (Exit &);

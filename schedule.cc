@@ -146,12 +146,12 @@ Schedule::Schedule(istream & file, string & path) :
           if (!(line >> token))
             parser_error(path, line_num, "missing instruction argument");
 
-          const InstructionPtr cmd = program.at(pc);
+          const Instruction_ptr cmd = program.at(pc);
 
           /* arg is an indirect memory address */
           if (token.front() == '[')
             {
-              if (dynamic_pointer_cast<MemoryInstruction>(cmd))
+              if (dynamic_pointer_cast<Memory>(cmd))
                 {
                   istringstream addr(token.substr(1, token.size() - 2));
 
@@ -370,9 +370,7 @@ std::string Schedule::print ()
       const Program & program = *programs->at(step.thread);
 
       /* reference to current instruction */
-      const UnaryInstructionPtr cmd =
-        dynamic_pointer_cast<UnaryInstruction>(
-          program.at(step.pc));
+      const Unary_ptr cmd = dynamic_pointer_cast<Unary>(program[step.pc]);
 
       /* thread id */
       ss << step.thread << sep;
@@ -388,12 +386,12 @@ std::string Schedule::print ()
         }
 
       /* instruction symbol */
-      ss << cmd->get_symbol() << sep;
+      ss << cmd->symbol() << sep;
 
       /* instruction argument */
       string arg(to_string(cmd->arg));
 
-      if (auto m = dynamic_pointer_cast<MemoryInstruction>(cmd))
+      if (auto m = dynamic_pointer_cast<Memory>(cmd))
         {
           if (m->indirect)
             arg = '[' + arg + ']';
@@ -465,7 +463,7 @@ word Schedule::iterator::next_thread_state (Update_Iterators & state)
 optional<Schedule::Heap_Cell> Schedule::iterator::next_heap_state ()
 {
   if (
-      StorePtr store =
+      Store_ptr store =
         dynamic_pointer_cast<Store>(
           schedule->programs->at(update.thread)->at(update.pc))
      )

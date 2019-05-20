@@ -88,8 +88,8 @@ SchedulePtr Z3::solve (Encoder & encoder, string & constraints)
                 optional<Schedule::Heap_Cell> heap;
 
                 /* get eventual heap update (ignore failed CAS) */
-                if (StorePtr store = dynamic_pointer_cast<Store>(program[pc]))
-                  if (store->get_opcode() == Instruction::OPCode::Store || accu)
+                if (Store_ptr store = dynamic_pointer_cast<Store>(program[pc]))
+                  if (store->opcode() == Instruction::OPCode::Store || accu)
                     {
                       word idx = store->arg;
 
