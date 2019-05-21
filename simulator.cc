@@ -33,9 +33,9 @@ ThreadID Simulator::create_thread (Program & program)
   /* add thread to queue */
   threads.push_back(ThreadPtr(new Thread(*this, id, program)));
 
-  /* add to sync id list */
-  for (word i : program.sync_ids)
-    threads_per_sync_id[i].push_back(threads.back());
+  /* add to checkpoint id list */
+  for (word i : program.check_ids)
+    threads_per_check_id[i].push_back(threads.back());
 
   return id;
 }
@@ -51,16 +51,16 @@ void Simulator::activate_threads (ThreadList & queue)
 }
 
 /* Simulator::check_and_resume_waiting (word) *********************************/
-void Simulator::check_and_resume_waiting (word sync_id)
+void Simulator::check_and_resume_waiting (word check_id)
 {
-  /* all other threads already synced to this barrier? */
-  if (waiting_per_sync_id[sync_id] == threads_per_sync_id[sync_id].size())
+  /* all other threads already at this checkpoint? */
+  if (waiting_for_check_id[check_id] == threads_per_check_id[check_id].size())
     {
-      /* reset number of threads waiting for this barrier */
-      waiting_per_sync_id[sync_id] = 0;
+      /* reset number of waiting threads */
+      waiting_for_check_id[check_id] = 0;
 
       /* reactivate threads */
-      activate_threads(threads_per_sync_id[sync_id]);
+      activate_threads(threads_per_check_id[check_id]);
     }
 }
 
@@ -118,17 +118,17 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
         /* keep 'em running */
         case Thread::State::RUNNING: break;
 
-        /* sync issued - check if all other threads are waiting already */
+        /* checkpoint reached - release if all other threads are waiting already */
         case Thread::State::WAITING:
             {
               /* remove from active threads */
               erase(active, thread);
 
               /* increment number of waiting threads */
-              waiting_per_sync_id[thread->sync]++;
+              waiting_for_check_id[thread->check]++;
 
-              /* all other threads already synced to this barrier? */
-              check_and_resume_waiting(thread->sync);
+              /* all other threads already waiting at this checkpoint? */
+              check_and_resume_waiting(thread->check);
 
               break;
             }
@@ -139,14 +139,14 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
               /* remove from active threads */
               erase(active, thread);
 
-              /* take care if last instruction was a SYNC (bypasses WAITING) */
+              /* take care if last instruction was a CHECK (bypasses WAITING) */
               if (dynamic_pointer_cast<Check>(thread->program.back()))
                   {
-                    /* remove from list of threads waiting for this barrier */
-                    erase(threads_per_sync_id[thread->sync], thread);
+                    /* remove from list of waiting threads */
+                    erase(threads_per_check_id[thread->check], thread);
 
                     /* activate all waiting threads if this was the last one */
-                    check_and_resume_waiting(thread->sync);
+                    check_and_resume_waiting(thread->check);
                   }
 
               /* check if we were the last thread standing */

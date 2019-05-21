@@ -10,7 +10,7 @@ struct SMTLibEncoderFunctionalTest : public ::testing::Test
   ProgramListPtr              programs {make_shared<ProgramList>()};
   SMTLibEncoderFunctionalPtr  encoder {create_encoder(1, 1)};
 
-  SMTLibEncoderFunctionalPtr create_encoder (const word bound, const word step)
+  SMTLibEncoderFunctionalPtr  create_encoder (const word bound, const word step)
     {
       SMTLibEncoderFunctionalPtr e =
         make_shared<SMTLibEncoderFunctional>(programs, bound, false);
@@ -46,7 +46,7 @@ struct SMTLibEncoderFunctionalTest : public ::testing::Test
           (*programs)[i]->push_back(Instruction::Set::create("JNZNS", 1)); // 12
           (*programs)[i]->push_back(Instruction::Set::create("MEM", 1));   // 13
           (*programs)[i]->push_back(Instruction::Set::create("CAS", 1));   // 14
-          (*programs)[i]->push_back(Instruction::Set::create("SYNC", 1));  // 15
+          (*programs)[i]->push_back(Instruction::Set::create("CHECK", 1)); // 15
           (*programs)[i]->push_back(Instruction::Set::create("EXIT", 1));  // 16
         }
 
@@ -663,17 +663,17 @@ TEST_F(SMTLibEncoderFunctionalTest, add_exit_code)
 }
 
 // virtual void encode (void);
-TEST_F(SMTLibEncoderFunctionalTest, encode_sync)
+TEST_F(SMTLibEncoderFunctionalTest, encode_check)
 {
-  /* concurrent increment using SYNC */
+  /* concurrent increment using CHECK */
   programs->push_back(
-    create_from_file<Program>("data/increment.sync.thread.0.asm"));
+    create_from_file<Program>("data/increment.check.thread.0.asm"));
   programs->push_back(
-    create_from_file<Program>("data/increment.sync.thread.n.asm"));
+    create_from_file<Program>("data/increment.check.thread.n.asm"));
 
   encoder = make_shared<SMTLibEncoderFunctional>(programs, 16);
 
-  ifstream ifs("data/increment.sync.functional.t2.k16.smt2");
+  ifstream ifs("data/increment.check.functional.t2.k16.smt2");
 
   string expected;
   expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());

@@ -50,8 +50,8 @@ TEST_F(SimulatorTest, create_thread)
 
   ASSERT_TRUE(simulator->active.empty());
   ASSERT_TRUE(simulator->threads.empty());
-  ASSERT_TRUE(simulator->threads_per_sync_id.empty());
-  ASSERT_TRUE(simulator->waiting_per_sync_id.empty());
+  ASSERT_TRUE(simulator->threads_per_check_id.empty());
+  ASSERT_TRUE(simulator->waiting_for_check_id.empty());
 
   program->push_back(Instruction::Set::create("ADDI", 1));
 
@@ -60,22 +60,22 @@ TEST_F(SimulatorTest, create_thread)
   ASSERT_EQ(0, simulator->threads.back()->id);
   ASSERT_TRUE(simulator->active.empty());
   ASSERT_EQ(1, simulator->threads.size());
-  ASSERT_TRUE(simulator->threads_per_sync_id.empty());
-  ASSERT_TRUE(simulator->waiting_per_sync_id.empty());
+  ASSERT_TRUE(simulator->threads_per_check_id.empty());
+  ASSERT_TRUE(simulator->waiting_for_check_id.empty());
 
-  program->push_back(Instruction::Set::create("SYNC", 1));
+  program->push_back(Instruction::Set::create("CHECK", 1));
 
   simulator->create_thread(*program);
 
   ASSERT_EQ(1, simulator->threads.back()->id);
   ASSERT_TRUE(simulator->active.empty());
   ASSERT_EQ(2, simulator->threads.size());
-  ASSERT_EQ(1, simulator->threads_per_sync_id[1].size());
-  ASSERT_TRUE(simulator->waiting_per_sync_id.empty());
+  ASSERT_EQ(1, simulator->threads_per_check_id[1].size());
+  ASSERT_TRUE(simulator->waiting_for_check_id.empty());
 
   /* basically tests mapped default value */
-  ASSERT_EQ(0, simulator->waiting_per_sync_id[0]);
-  ASSERT_TRUE(!simulator->waiting_per_sync_id.empty());
+  ASSERT_EQ(0, simulator->waiting_for_check_id[0]);
+  ASSERT_TRUE(!simulator->waiting_for_check_id.empty());
 }
 
 /* run_simple *****************************************************************/
@@ -87,8 +87,8 @@ TEST_F(SimulatorTest, run_simple)
 
   ASSERT_EQ(0, simulator->active.size());
   ASSERT_EQ(2, simulator->threads.size());
-  ASSERT_TRUE(simulator->threads_per_sync_id.empty());
-  ASSERT_TRUE(simulator->waiting_per_sync_id.empty());
+  ASSERT_TRUE(simulator->threads_per_check_id.empty());
+  ASSERT_TRUE(simulator->waiting_for_check_id.empty());
 
   unsigned long step = 0;
 
@@ -162,19 +162,19 @@ TEST_F(SimulatorTest, run_simple)
   ASSERT_TRUE(schedule->heap_updates.empty());
 }
 
-/* run_add_sync_exit **********************************************************/
-TEST_F(SimulatorTest, run_add_sync_exit)
+/* run_add_check_exit *********************************************************/
+TEST_F(SimulatorTest, run_add_check_exit)
 {
   program->push_back(Instruction::Set::create("ADDI", 1));
-  program->push_back(Instruction::Set::create("SYNC", 1));
+  program->push_back(Instruction::Set::create("CHECK", 1));
   program->push_back(Instruction::Set::create("EXIT", 1));
 
   create_simulator({program, program});
 
   ASSERT_EQ(0, simulator->active.size());
   ASSERT_EQ(2, simulator->threads.size());
-  ASSERT_EQ(2, simulator->threads_per_sync_id[1].size());
-  ASSERT_EQ(0, simulator->waiting_per_sync_id[1]);
+  ASSERT_EQ(2, simulator->threads_per_check_id[1].size());
+  ASSERT_EQ(0, simulator->waiting_for_check_id[1]);
 
   unsigned long step = 0;
 
@@ -204,7 +204,7 @@ TEST_F(SimulatorTest, run_add_sync_exit)
 
               return simulator->threads[0];
             }
-        case 3: /* t0: post SYNC 1 && next == t1 */
+        case 3: /* t0: post CHECK 1 && next == t1 */
             {
               EXPECT_EQ(2, simulator->threads[0]->pc);
               EXPECT_EQ(1, simulator->threads[0]->accu);
@@ -215,11 +215,11 @@ TEST_F(SimulatorTest, run_add_sync_exit)
               EXPECT_EQ(Thread::State::RUNNING, simulator->threads[1]->state);
 
               EXPECT_EQ(1, simulator->active.size());
-              EXPECT_EQ(1, simulator->waiting_per_sync_id[1]);
+              EXPECT_EQ(1, simulator->waiting_for_check_id[1]);
 
               return simulator->threads[1];
             }
-        case 4: /* t1: post SYNC 1 (both active again) && next == t0 */
+        case 4: /* t1: post CHECK 1 (both active again) && next == t0 */
             {
               EXPECT_EQ(2, simulator->threads[0]->pc);
               EXPECT_EQ(1, simulator->threads[0]->accu);
@@ -230,7 +230,7 @@ TEST_F(SimulatorTest, run_add_sync_exit)
               EXPECT_EQ(Thread::State::RUNNING, simulator->threads[1]->state);
 
               EXPECT_EQ(2, simulator->active.size());
-              EXPECT_EQ(0, simulator->waiting_per_sync_id[1]);
+              EXPECT_EQ(0, simulator->waiting_for_check_id[1]);
 
               return simulator->threads[0];
             }
@@ -280,11 +280,11 @@ TEST_F(SimulatorTest, run_race_condition)
   program->push_back(Instruction::Set::create("LOAD", 1));
   program->push_back(Instruction::Set::create("ADDI", 1));
   program->push_back(Instruction::Set::create("STORE", 1));
-  program->push_back(Instruction::Set::create("SYNC", 1));
+  program->push_back(Instruction::Set::create("CHECK", 1));
 
   ProgramPtr checker = make_shared<Program>();
 
-  checker->push_back(Instruction::Set::create("SYNC", 1));
+  checker->push_back(Instruction::Set::create("CHECK", 1));
   checker->push_back(Instruction::Set::create("LOAD", 1));
   checker->push_back(Instruction::Set::create("SUBI", 2));
   checker->push_back(Instruction::Set::create("JZ", 5));
@@ -295,8 +295,8 @@ TEST_F(SimulatorTest, run_race_condition)
 
   ASSERT_EQ(0, simulator->active.size());
   ASSERT_EQ(3, simulator->threads.size());
-  ASSERT_EQ(3, simulator->threads_per_sync_id[1].size());
-  ASSERT_EQ(0, simulator->waiting_per_sync_id[1]);
+  ASSERT_EQ(3, simulator->threads_per_check_id[1].size());
+  ASSERT_EQ(0, simulator->waiting_for_check_id[1]);
 
   unsigned long step = 0;
 
@@ -304,7 +304,7 @@ TEST_F(SimulatorTest, run_race_condition)
     {
       switch (step++)
         {
-        case 0: /* initial = t0 [SYNC 1] */
+        case 0: /* initial = t0 [CHECK 1] */
             {
               EXPECT_EQ(0, simulator->heap[1]);
 
@@ -319,7 +319,7 @@ TEST_F(SimulatorTest, run_race_condition)
 
               return simulator->threads[0];
             }
-        case 1: /* prev = t0 [SYNC 1] | next = t1 [LOAD 1] */
+        case 1: /* prev = t0 [CHECK 1] | next = t1 [LOAD 1] */
             {
               EXPECT_EQ(1, simulator->threads[0]->pc);
               EXPECT_EQ(0, simulator->threads[0]->accu);
@@ -329,7 +329,7 @@ TEST_F(SimulatorTest, run_race_condition)
               EXPECT_EQ(0, simulator->threads[2]->accu);
 
               EXPECT_EQ(2, simulator->active.size());
-              EXPECT_EQ(1, simulator->waiting_per_sync_id[1]);
+              EXPECT_EQ(1, simulator->waiting_for_check_id[1]);
               EXPECT_EQ(Thread::State::WAITING, simulator->threads[0]->state);
 
               return simulator->threads[1];
@@ -391,7 +391,7 @@ TEST_F(SimulatorTest, run_race_condition)
 
               return simulator->threads[2];
             }
-        case 7: /* prev = t2 [STORE 1] | next = t1 [SYNC 1] */
+        case 7: /* prev = t2 [STORE 1] | next = t1 [CHECK 1] */
             {
               EXPECT_EQ(1, simulator->threads[0]->pc);
               EXPECT_EQ(0, simulator->threads[0]->accu);
@@ -404,7 +404,7 @@ TEST_F(SimulatorTest, run_race_condition)
 
               return simulator->threads[1];
             }
-        case 8: /* prev = t1 [SYNC 1] | next = t2 [SYNC 1] */
+        case 8: /* prev = t1 [CHECK 1] | next = t2 [CHECK 1] */
             {
               EXPECT_EQ(1, simulator->threads[0]->pc);
               EXPECT_EQ(0, simulator->threads[0]->accu);
@@ -414,13 +414,13 @@ TEST_F(SimulatorTest, run_race_condition)
               EXPECT_EQ(1, simulator->threads[2]->accu);
 
               EXPECT_EQ(1, simulator->active.size());
-              EXPECT_EQ(1, simulator->waiting_per_sync_id[1]);
+              EXPECT_EQ(1, simulator->waiting_for_check_id[1]);
               EXPECT_EQ(Thread::State::WAITING, simulator->threads[0]->state);
               EXPECT_EQ(Thread::State::STOPPED, simulator->threads[1]->state);
 
               return simulator->threads[2];
             }
-        case 9: /* prev = t2 [SYNC 1] | next = t0 [LOAD 1] */
+        case 9: /* prev = t2 [CHECK 1] | next = t0 [LOAD 1] */
             {
               EXPECT_EQ(1, simulator->threads[0]->pc);
               EXPECT_EQ(0, simulator->threads[0]->accu);
@@ -430,7 +430,7 @@ TEST_F(SimulatorTest, run_race_condition)
               EXPECT_EQ(1, simulator->threads[2]->accu);
 
               EXPECT_EQ(1, simulator->active.size());
-              EXPECT_EQ(0, simulator->waiting_per_sync_id[1]);
+              EXPECT_EQ(0, simulator->waiting_for_check_id[1]);
               EXPECT_EQ(Thread::State::RUNNING, simulator->threads[0]->state);
               EXPECT_EQ(Thread::State::STOPPED, simulator->threads[1]->state);
               EXPECT_EQ(Thread::State::STOPPED, simulator->threads[2]->state);
@@ -591,17 +591,17 @@ TEST_F(SimulatorTest, run_zero_bound)
   ASSERT_TRUE(schedule->heap_updates.empty());
 }
 
-/* simulate_increment_sync ****************************************************/
-TEST_F(SimulatorTest, simulate_increment_sync)
+/* simulate_increment_check ***************************************************/
+TEST_F(SimulatorTest, simulate_increment_check)
 {
   /* read expected schedule from file */
-  ifstream schedule_file("data/increment.sync.t2.k16.schedule");
+  ifstream schedule_file("data/increment.check.t2.k16.schedule");
   string expected((istreambuf_iterator<char>(schedule_file)),
                    istreambuf_iterator<char>());
 
   ProgramPtr
-    increment_0(create_from_file<Program>("data/increment.sync.thread.0.asm")),
-    increment_n(create_from_file<Program>("data/increment.sync.thread.n.asm"));
+    increment_0(create_from_file<Program>("data/increment.check.thread.0.asm")),
+    increment_n(create_from_file<Program>("data/increment.check.thread.n.asm"));
 
   create_simulator({increment_0, increment_n});
 
@@ -635,10 +635,10 @@ TEST_F(SimulatorTest, simulate_increment_cas)
   ASSERT_EQ(expected, schedule->print());
 }
 
-/* replay_increment_sync ******************************************************/
-TEST_F(SimulatorTest, replay_increment_sync)
+/* replay_increment_check *****************************************************/
+TEST_F(SimulatorTest, replay_increment_check)
 {
-  string schedule_file = "data/increment.sync.t2.k16.schedule";
+  string schedule_file = "data/increment.check.t2.k16.schedule";
 
   /* read expected schedule from file */
   ifstream sfs(schedule_file);

@@ -209,12 +209,12 @@ TEST_F(SMTLibEncoderTest, block_var_args)
   ASSERT_EQ("block_8_5_2", encoder->block_var(8, 5, 2));
 }
 
-// string sync_var (const word, const word);
-TEST_F(SMTLibEncoderTest, sync_var_args)
+// string check_var (const word, const word);
+TEST_F(SMTLibEncoderTest, check_var_args)
 {
-  ASSERT_EQ("sync_0_1", encoder->sync_var(0, 1));
-  ASSERT_EQ("sync_1_2", encoder->sync_var(1, 2));
-  ASSERT_EQ("sync_2_3", encoder->sync_var(2, 3));
+  ASSERT_EQ("check_0_1", encoder->check_var(0, 1));
+  ASSERT_EQ("check_1_2", encoder->check_var(1, 2));
+  ASSERT_EQ("check_2_3", encoder->check_var(2, 3));
 }
 
 // string exit_var (const word);
@@ -576,9 +576,9 @@ TEST_F(SMTLibEncoderTest, declare_block_vars)
 {
   add_dummy_programs(3, 3);
 
-  /* single sync id */
+  /* single checkpoint id */
   for (const auto & p : programs)
-    p->push_back(Instruction::Set::create("SYNC", 0));
+    p->push_back(Instruction::Set::create("CHECK", 0));
 
   reset_encoder(0, 2);
 
@@ -591,9 +591,9 @@ TEST_F(SMTLibEncoderTest, declare_block_vars)
     "(declare-fun block_2_0_2 () Bool)\n\n",
     encoder->formula.str());
 
-  /* two sync ids */
+  /* two checkpoint ids */
   for (const auto & p : programs)
-    p->push_back(Instruction::Set::create("SYNC", 1));
+    p->push_back(Instruction::Set::create("CHECK", 1));
 
   reset_encoder(0, 2);
 
@@ -626,69 +626,69 @@ TEST_F(SMTLibEncoderTest, declare_block_vars)
     encoder->formula.str());
 }
 
-// void declare_sync_vars (void);
-TEST_F(SMTLibEncoderTest, declare_sync_vars)
+// void declare_check_vars (void);
+TEST_F(SMTLibEncoderTest, declare_check_vars)
 {
   add_dummy_programs(3, 3);
 
-  word sync_id = 1;
+  word check_id = 1;
 
-  /* 3 different sync ids */
+  /* 3 different checkpoint ids */
   for (const auto & p : programs)
-    p->push_back(Instruction::Set::create("SYNC", sync_id++));
+    p->push_back(Instruction::Set::create("CHECK", check_id++));
 
   reset_encoder(0, 1);
 
-  encoder->declare_sync_vars();
+  encoder->declare_check_vars();
 
   ASSERT_EQ(
-    "; sync variables - sync_<step>_<id>\n"
-    "(declare-fun sync_1_1 () Bool)\n"
-    "(declare-fun sync_1_2 () Bool)\n"
-    "(declare-fun sync_1_3 () Bool)\n\n",
+    "; checkpoint variables - check_<step>_<id>\n"
+    "(declare-fun check_1_1 () Bool)\n"
+    "(declare-fun check_1_2 () Bool)\n"
+    "(declare-fun check_1_3 () Bool)\n\n",
     encoder->formula.str());
 
-  /* same sync ids */
+  /* same checkpoint ids */
   for (const auto & p : programs)
-    p->push_back(Instruction::Set::create("SYNC", sync_id));
+    p->push_back(Instruction::Set::create("CHECK", check_id));
 
   reset_encoder(0, 1);
 
-  encoder->declare_sync_vars();
+  encoder->declare_check_vars();
 
   ASSERT_EQ(
-    "; sync variables - sync_<step>_<id>\n"
-    "(declare-fun sync_1_1 () Bool)\n"
-    "(declare-fun sync_1_2 () Bool)\n"
-    "(declare-fun sync_1_3 () Bool)\n"
-    "(declare-fun sync_1_4 () Bool)\n\n",
+    "; checkpoint variables - check_<step>_<id>\n"
+    "(declare-fun check_1_1 () Bool)\n"
+    "(declare-fun check_1_2 () Bool)\n"
+    "(declare-fun check_1_3 () Bool)\n"
+    "(declare-fun check_1_4 () Bool)\n\n",
     encoder->formula.str());
 
   /* step 2 */
   reset_encoder(0, 2);
 
-  encoder->declare_sync_vars();
+  encoder->declare_check_vars();
 
   ASSERT_EQ(
-    "; sync variables - sync_<step>_<id>\n"
-    "(declare-fun sync_2_1 () Bool)\n"
-    "(declare-fun sync_2_2 () Bool)\n"
-    "(declare-fun sync_2_3 () Bool)\n"
-    "(declare-fun sync_2_4 () Bool)\n\n",
+    "; checkpoint variables - check_<step>_<id>\n"
+    "(declare-fun check_2_1 () Bool)\n"
+    "(declare-fun check_2_2 () Bool)\n"
+    "(declare-fun check_2_3 () Bool)\n"
+    "(declare-fun check_2_4 () Bool)\n\n",
     encoder->formula.str());
 
   /* verbosity */
   reset_encoder(0, 1);
 
   verbose = false;
-  encoder->declare_sync_vars();
+  encoder->declare_check_vars();
   verbose = true;
 
   ASSERT_EQ(
-    "(declare-fun sync_1_1 () Bool)\n"
-    "(declare-fun sync_1_2 () Bool)\n"
-    "(declare-fun sync_1_3 () Bool)\n"
-    "(declare-fun sync_1_4 () Bool)\n\n",
+    "(declare-fun check_1_1 () Bool)\n"
+    "(declare-fun check_1_2 () Bool)\n"
+    "(declare-fun check_1_3 () Bool)\n"
+    "(declare-fun check_1_4 () Bool)\n\n",
     encoder->formula.str());
 }
 
@@ -1141,22 +1141,22 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_sinz)
     encoder->formula.str());
 }
 
-// void add_synchronization_constraints (void);
-TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
+// void add_checkpoint_constraints (void);
+TEST_F(SMTLibEncoderTest, add_checkpoint_constraints)
 {
-  /* single sync barrier - step 2 */
+  /* single checkpoint - step 2 */
   for (size_t i = 0; i < 3; i++)
     {
       programs.push_back(shared_ptr<Program>(new Program()));
-      programs[i]->push_back(Instruction::Set::create("SYNC", 1));
+      programs[i]->push_back(Instruction::Set::create("CHECK", 1));
     }
 
   reset_encoder(0, 2);
 
-  encoder->add_synchronization_constraints();
+  encoder->add_checkpoint_constraints();
 
   ASSERT_EQ(
-    "; synchronization constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; blocking variables - block_<step>_<id>_<thread>\n"
     "(declare-fun block_2_1_0 () Bool)\n"
@@ -1167,55 +1167,55 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
     "(assert (= block_2_1_1 exec_1_1_0))\n"
     "(assert (= block_2_1_2 exec_1_2_0))\n"
     "\n"
-    "; sync variables - sync_<step>_<id>\n"
-    "(declare-fun sync_2_1 () Bool)\n"
+    "; checkpoint variables - check_<step>_<id>\n"
+    "(declare-fun check_2_1 () Bool)\n"
     "\n"
-    "(assert (= sync_2_1 (and block_2_1_0 block_2_1_1 block_2_1_2)))\n"
+    "(assert (= check_2_1 (and block_2_1_0 block_2_1_1 block_2_1_2)))\n"
     "\n"
     "; prevent scheduling of waiting threads\n"
-    "(assert (=> (and block_2_1_0 (not sync_2_1)) (not thread_2_0))) ; barrier 1: thread 0\n"
-    "(assert (=> (and block_2_1_1 (not sync_2_1)) (not thread_2_1))) ; barrier 1: thread 1\n"
-    "(assert (=> (and block_2_1_2 (not sync_2_1)) (not thread_2_2))) ; barrier 1: thread 2\n\n",
+    "(assert (=> (and block_2_1_0 (not check_2_1)) (not thread_2_0))) ; checkpoint 1: thread 0\n"
+    "(assert (=> (and block_2_1_1 (not check_2_1)) (not thread_2_1))) ; checkpoint 1: thread 1\n"
+    "(assert (=> (and block_2_1_2 (not check_2_1)) (not thread_2_2))) ; checkpoint 1: thread 2\n\n",
     encoder->formula.str());
 
-  /* single sync barrier - step 3+ */
+  /* single checkpoint - step 3+ */
   reset_encoder(0, 3);
 
-  encoder->add_synchronization_constraints();
+  encoder->add_checkpoint_constraints();
 
   ASSERT_EQ(
-    "; synchronization constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; blocking variables - block_<step>_<id>_<thread>\n"
     "(declare-fun block_3_1_0 () Bool)\n"
     "(declare-fun block_3_1_1 () Bool)\n"
     "(declare-fun block_3_1_2 () Bool)\n"
     "\n"
-    "(assert (= block_3_1_0 (ite sync_2_1 false (or exec_2_0_0 block_2_1_0))))\n"
-    "(assert (= block_3_1_1 (ite sync_2_1 false (or exec_2_1_0 block_2_1_1))))\n"
-    "(assert (= block_3_1_2 (ite sync_2_1 false (or exec_2_2_0 block_2_1_2))))\n"
+    "(assert (= block_3_1_0 (ite check_2_1 false (or exec_2_0_0 block_2_1_0))))\n"
+    "(assert (= block_3_1_1 (ite check_2_1 false (or exec_2_1_0 block_2_1_1))))\n"
+    "(assert (= block_3_1_2 (ite check_2_1 false (or exec_2_2_0 block_2_1_2))))\n"
     "\n"
-    "; sync variables - sync_<step>_<id>\n"
-    "(declare-fun sync_3_1 () Bool)\n"
+    "; checkpoint variables - check_<step>_<id>\n"
+    "(declare-fun check_3_1 () Bool)\n"
     "\n"
-    "(assert (= sync_3_1 (and block_3_1_0 block_3_1_1 block_3_1_2)))\n"
+    "(assert (= check_3_1 (and block_3_1_0 block_3_1_1 block_3_1_2)))\n"
     "\n"
     "; prevent scheduling of waiting threads\n"
-    "(assert (=> (and block_3_1_0 (not sync_3_1)) (not thread_3_0))) ; barrier 1: thread 0\n"
-    "(assert (=> (and block_3_1_1 (not sync_3_1)) (not thread_3_1))) ; barrier 1: thread 1\n"
-    "(assert (=> (and block_3_1_2 (not sync_3_1)) (not thread_3_2))) ; barrier 1: thread 2\n\n",
+    "(assert (=> (and block_3_1_0 (not check_3_1)) (not thread_3_0))) ; checkpoint 1: thread 0\n"
+    "(assert (=> (and block_3_1_1 (not check_3_1)) (not thread_3_1))) ; checkpoint 1: thread 1\n"
+    "(assert (=> (and block_3_1_2 (not check_3_1)) (not thread_3_2))) ; checkpoint 1: thread 2\n\n",
     encoder->formula.str());
 
-  /* two different barriers */
+  /* two different checkpoints */
   for (const auto & p : programs)
-    p->push_back(Instruction::Set::create("SYNC", 2));
+    p->push_back(Instruction::Set::create("CHECK", 2));
 
   reset_encoder(0, 3);
 
-  encoder->add_synchronization_constraints();
+  encoder->add_checkpoint_constraints();
 
   ASSERT_EQ(
-    "; synchronization constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; blocking variables - block_<step>_<id>_<thread>\n"
     "(declare-fun block_3_1_0 () Bool)\n"
@@ -1225,39 +1225,39 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
     "(declare-fun block_3_2_1 () Bool)\n"
     "(declare-fun block_3_2_2 () Bool)\n"
     "\n"
-    "(assert (= block_3_1_0 (ite sync_2_1 false (or exec_2_0_0 block_2_1_0))))\n"
-    "(assert (= block_3_1_1 (ite sync_2_1 false (or exec_2_1_0 block_2_1_1))))\n"
-    "(assert (= block_3_1_2 (ite sync_2_1 false (or exec_2_2_0 block_2_1_2))))\n"
-    "(assert (= block_3_2_0 (ite sync_2_2 false (or exec_2_0_1 block_2_2_0))))\n"
-    "(assert (= block_3_2_1 (ite sync_2_2 false (or exec_2_1_1 block_2_2_1))))\n"
-    "(assert (= block_3_2_2 (ite sync_2_2 false (or exec_2_2_1 block_2_2_2))))\n"
+    "(assert (= block_3_1_0 (ite check_2_1 false (or exec_2_0_0 block_2_1_0))))\n"
+    "(assert (= block_3_1_1 (ite check_2_1 false (or exec_2_1_0 block_2_1_1))))\n"
+    "(assert (= block_3_1_2 (ite check_2_1 false (or exec_2_2_0 block_2_1_2))))\n"
+    "(assert (= block_3_2_0 (ite check_2_2 false (or exec_2_0_1 block_2_2_0))))\n"
+    "(assert (= block_3_2_1 (ite check_2_2 false (or exec_2_1_1 block_2_2_1))))\n"
+    "(assert (= block_3_2_2 (ite check_2_2 false (or exec_2_2_1 block_2_2_2))))\n"
     "\n"
-    "; sync variables - sync_<step>_<id>\n"
-    "(declare-fun sync_3_1 () Bool)\n"
-    "(declare-fun sync_3_2 () Bool)\n"
+    "; checkpoint variables - check_<step>_<id>\n"
+    "(declare-fun check_3_1 () Bool)\n"
+    "(declare-fun check_3_2 () Bool)\n"
     "\n"
-    "(assert (= sync_3_1 (and block_3_1_0 block_3_1_1 block_3_1_2)))\n"
-    "(assert (= sync_3_2 (and block_3_2_0 block_3_2_1 block_3_2_2)))\n"
+    "(assert (= check_3_1 (and block_3_1_0 block_3_1_1 block_3_1_2)))\n"
+    "(assert (= check_3_2 (and block_3_2_0 block_3_2_1 block_3_2_2)))\n"
     "\n"
     "; prevent scheduling of waiting threads\n"
-    "(assert (=> (and block_3_1_0 (not sync_3_1)) (not thread_3_0))) ; barrier 1: thread 0\n"
-    "(assert (=> (and block_3_1_1 (not sync_3_1)) (not thread_3_1))) ; barrier 1: thread 1\n"
-    "(assert (=> (and block_3_1_2 (not sync_3_1)) (not thread_3_2))) ; barrier 1: thread 2\n"
-    "(assert (=> (and block_3_2_0 (not sync_3_2)) (not thread_3_0))) ; barrier 2: thread 0\n"
-    "(assert (=> (and block_3_2_1 (not sync_3_2)) (not thread_3_1))) ; barrier 2: thread 1\n"
-    "(assert (=> (and block_3_2_2 (not sync_3_2)) (not thread_3_2))) ; barrier 2: thread 2\n\n",
+    "(assert (=> (and block_3_1_0 (not check_3_1)) (not thread_3_0))) ; checkpoint 1: thread 0\n"
+    "(assert (=> (and block_3_1_1 (not check_3_1)) (not thread_3_1))) ; checkpoint 1: thread 1\n"
+    "(assert (=> (and block_3_1_2 (not check_3_1)) (not thread_3_2))) ; checkpoint 1: thread 2\n"
+    "(assert (=> (and block_3_2_0 (not check_3_2)) (not thread_3_0))) ; checkpoint 2: thread 0\n"
+    "(assert (=> (and block_3_2_1 (not check_3_2)) (not thread_3_1))) ; checkpoint 2: thread 1\n"
+    "(assert (=> (and block_3_2_2 (not check_3_2)) (not thread_3_2))) ; checkpoint 2: thread 2\n\n",
     encoder->formula.str());
 
-  /* two identical barriers */
+  /* two identical checkpoints */
   for (const auto & p : programs)
-    p->push_back(Instruction::Set::create("SYNC", 1));
+    p->push_back(Instruction::Set::create("CHECK", 1));
 
   reset_encoder(0, 3);
 
-  encoder->add_synchronization_constraints();
+  encoder->add_checkpoint_constraints();
 
   ASSERT_EQ(
-    "; synchronization constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; blocking variables - block_<step>_<id>_<thread>\n"
     "(declare-fun block_3_1_0 () Bool)\n"
@@ -1267,27 +1267,27 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
     "(declare-fun block_3_2_1 () Bool)\n"
     "(declare-fun block_3_2_2 () Bool)\n"
     "\n"
-    "(assert (= block_3_1_0 (ite sync_2_1 false (or exec_2_0_0 exec_2_0_2 block_2_1_0))))\n"
-    "(assert (= block_3_1_1 (ite sync_2_1 false (or exec_2_1_0 exec_2_1_2 block_2_1_1))))\n"
-    "(assert (= block_3_1_2 (ite sync_2_1 false (or exec_2_2_0 exec_2_2_2 block_2_1_2))))\n"
-    "(assert (= block_3_2_0 (ite sync_2_2 false (or exec_2_0_1 block_2_2_0))))\n"
-    "(assert (= block_3_2_1 (ite sync_2_2 false (or exec_2_1_1 block_2_2_1))))\n"
-    "(assert (= block_3_2_2 (ite sync_2_2 false (or exec_2_2_1 block_2_2_2))))\n"
+    "(assert (= block_3_1_0 (ite check_2_1 false (or exec_2_0_0 exec_2_0_2 block_2_1_0))))\n"
+    "(assert (= block_3_1_1 (ite check_2_1 false (or exec_2_1_0 exec_2_1_2 block_2_1_1))))\n"
+    "(assert (= block_3_1_2 (ite check_2_1 false (or exec_2_2_0 exec_2_2_2 block_2_1_2))))\n"
+    "(assert (= block_3_2_0 (ite check_2_2 false (or exec_2_0_1 block_2_2_0))))\n"
+    "(assert (= block_3_2_1 (ite check_2_2 false (or exec_2_1_1 block_2_2_1))))\n"
+    "(assert (= block_3_2_2 (ite check_2_2 false (or exec_2_2_1 block_2_2_2))))\n"
     "\n"
-    "; sync variables - sync_<step>_<id>\n"
-    "(declare-fun sync_3_1 () Bool)\n"
-    "(declare-fun sync_3_2 () Bool)\n"
+    "; checkpoint variables - check_<step>_<id>\n"
+    "(declare-fun check_3_1 () Bool)\n"
+    "(declare-fun check_3_2 () Bool)\n"
     "\n"
-    "(assert (= sync_3_1 (and block_3_1_0 block_3_1_1 block_3_1_2)))\n"
-    "(assert (= sync_3_2 (and block_3_2_0 block_3_2_1 block_3_2_2)))\n"
+    "(assert (= check_3_1 (and block_3_1_0 block_3_1_1 block_3_1_2)))\n"
+    "(assert (= check_3_2 (and block_3_2_0 block_3_2_1 block_3_2_2)))\n"
     "\n"
     "; prevent scheduling of waiting threads\n"
-    "(assert (=> (and block_3_1_0 (not sync_3_1)) (not thread_3_0))) ; barrier 1: thread 0\n"
-    "(assert (=> (and block_3_1_1 (not sync_3_1)) (not thread_3_1))) ; barrier 1: thread 1\n"
-    "(assert (=> (and block_3_1_2 (not sync_3_1)) (not thread_3_2))) ; barrier 1: thread 2\n"
-    "(assert (=> (and block_3_2_0 (not sync_3_2)) (not thread_3_0))) ; barrier 2: thread 0\n"
-    "(assert (=> (and block_3_2_1 (not sync_3_2)) (not thread_3_1))) ; barrier 2: thread 1\n"
-    "(assert (=> (and block_3_2_2 (not sync_3_2)) (not thread_3_2))) ; barrier 2: thread 2\n\n",
+    "(assert (=> (and block_3_1_0 (not check_3_1)) (not thread_3_0))) ; checkpoint 1: thread 0\n"
+    "(assert (=> (and block_3_1_1 (not check_3_1)) (not thread_3_1))) ; checkpoint 1: thread 1\n"
+    "(assert (=> (and block_3_1_2 (not check_3_1)) (not thread_3_2))) ; checkpoint 1: thread 2\n"
+    "(assert (=> (and block_3_2_0 (not check_3_2)) (not thread_3_0))) ; checkpoint 2: thread 0\n"
+    "(assert (=> (and block_3_2_1 (not check_3_2)) (not thread_3_1))) ; checkpoint 2: thread 1\n"
+    "(assert (=> (and block_3_2_2 (not check_3_2)) (not thread_3_2))) ; checkpoint 2: thread 2\n\n",
     encoder->formula.str());
 
   /* verbosity */
@@ -1299,7 +1299,7 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
   reset_encoder(0, 2);
 
   verbose = false;
-  encoder->add_synchronization_constraints();
+  encoder->add_checkpoint_constraints();
   verbose = true;
 
   ASSERT_EQ(
@@ -1311,13 +1311,13 @@ TEST_F(SMTLibEncoderTest, add_synchronization_constraints)
     "(assert (= block_2_1_1 exec_1_1_0))\n"
     "(assert (= block_2_1_2 exec_1_2_0))\n"
     "\n"
-    "(declare-fun sync_2_1 () Bool)\n"
+    "(declare-fun check_2_1 () Bool)\n"
     "\n"
-    "(assert (= sync_2_1 (and block_2_1_0 block_2_1_1 block_2_1_2)))\n"
+    "(assert (= check_2_1 (and block_2_1_0 block_2_1_1 block_2_1_2)))\n"
     "\n"
-    "(assert (=> (and block_2_1_0 (not sync_2_1)) (not thread_2_0)))\n"
-    "(assert (=> (and block_2_1_1 (not sync_2_1)) (not thread_2_1)))\n"
-    "(assert (=> (and block_2_1_2 (not sync_2_1)) (not thread_2_2)))\n\n",
+    "(assert (=> (and block_2_1_0 (not check_2_1)) (not thread_2_0)))\n"
+    "(assert (=> (and block_2_1_1 (not check_2_1)) (not thread_2_1)))\n"
+    "(assert (=> (and block_2_1_2 (not check_2_1)) (not thread_2_2)))\n\n",
     encoder->formula.str());
 }
 
@@ -1359,9 +1359,9 @@ TEST_F(SMTLibEncoderTest, add_statement_execution)
     "(assert (= exec_1_2_2 (and stmt_1_2_2 thread_1_2)))\n\n",
     encoder->formula.str());
 
-  /* last statement is a sync barrier */
+  /* last statement is a checkpoint */
   for (const auto & p : programs)
-    p->push_back(Instruction::Set::create("SYNC", 1));
+    p->push_back(Instruction::Set::create("CHECK", 1));
 
   reset_encoder(0, 1);
 

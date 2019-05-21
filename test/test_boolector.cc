@@ -34,11 +34,11 @@ TEST_F(BoolectorTest, unsat)
   ASSERT_EQ("unsat\n", boolector.std_out.str());
 }
 
-TEST_F(BoolectorTest, solve_sync)
+TEST_F(BoolectorTest, solve_check)
 {
-  /* concurrent increment using SYNC */
-  string increment_0 = "data/increment.sync.thread.0.asm";
-  string increment_n = "data/increment.sync.thread.n.asm";
+  /* concurrent increment using CHECK */
+  string increment_0 = "data/increment.check.thread.0.asm";
+  string increment_n = "data/increment.check.thread.n.asm";
 
   programs = make_shared<ProgramList>();
 
@@ -87,26 +87,26 @@ TEST_F(BoolectorTest, solve_sync)
   */
 
   ASSERT_EQ(
-    "data/increment.sync.thread.0.asm\n"
-    "data/increment.sync.thread.n.asm\n"
+    "data/increment.check.thread.0.asm\n"
+    "data/increment.check.thread.n.asm\n"
     ".\n"
     "# tid	pc	cmd	arg	accu	mem	heap\n"
     "0	0	STORE	0	0	0	{(0,0)}\n"
-    "1	0	SYNC	0	0	0	{}\n"
+    "1	0	CHECK	0	0	0	{}\n"
     "0	2	LOAD	0	0	0	{}\n"
     "0	3	ADDI	1	1	0	{}\n"
     "0	4	STORE	0	1	0	{(0,1)}\n"
-    "1	1	SYNC	1	0	0	{}\n"
+    "1	1	CHECK	1	0	0	{}\n"
     "1	2	LOAD	0	1	0	{}\n"
     "1	3	ADDI	1	2	0	{}\n"
     "1	4	STORE	0	2	0	{(0,2)}\n"
     "0	6	JNZ	1	1	0	{}\n"
     "1	5	JNZ	0	2	0	{}\n"
-    "1	0	SYNC	0	2	0	{}\n"
+    "1	0	CHECK	0	2	0	{}\n"
     "0	2	LOAD	0	2	0	{}\n"
     "0	3	ADDI	1	3	0	{}\n"
     "0	4	STORE	0	3	0	{(0,3)}\n"
-    "1	1	SYNC	1	2	0	{}\n",
+    "1	1	CHECK	1	2	0	{}\n",
     schedule->print());
 
   ofstream file {"/tmp/test.schedule"};
@@ -167,7 +167,7 @@ TEST_F(BoolectorTest, DISABLED_solve_cas)
     "# tid	pc	cmd	arg	accu	mem	heap\n"
     "0	0	STORE	0	0	0	{(0,0)}\n"
     "1	0	STORE	0	0	0	{}\n"
-    "1	1	SYNC	0	0	0	{}\n"
+    "1	1	CHECK	0	0	0	{}\n"
     "0	LOOP	MEM	0	0	0	{}\n"
     "1	LOOP	MEM	0	0	0	{}\n"
     "0	3	ADDI	1	1	0	{}\n"

@@ -65,7 +65,7 @@ struct Btor2EncoderTest : public ::testing::Test
           (*programs)[i]->push_back(Instruction::Set::create("JNZNS", 1)); // 12
           (*programs)[i]->push_back(Instruction::Set::create("MEM", 1));   // 13
           (*programs)[i]->push_back(Instruction::Set::create("CAS", 1));   // 14
-          (*programs)[i]->push_back(Instruction::Set::create("SYNC", 1));  // 15
+          (*programs)[i]->push_back(Instruction::Set::create("CHECK", 1));  // 15
           (*programs)[i]->push_back(Instruction::Set::create("EXIT", 1));  // 16
         }
 
@@ -141,7 +141,7 @@ struct Btor2EncoderTest : public ::testing::Test
         encoder->formula.str("");
     }
 
-  void init_synchronization_constraints (bool clear_formula)
+  void init_checkpoint_constraints (bool clear_formula)
     {
       init_exit_definitions(false);
 
@@ -737,7 +737,7 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_conditional)
   encoder->add_bound();
   encoder->declare_states();
   encoder->add_thread_scheduling();
-  encoder->add_synchronization_constraints();
+  encoder->add_checkpoint_constraints();
   encoder->add_statement_execution();
   encoder->add_statement_activation();
 
@@ -872,7 +872,7 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_start)
   encoder->add_bound();
   encoder->declare_states();
   encoder->add_thread_scheduling();
-  encoder->add_synchronization_constraints();
+  encoder->add_checkpoint_constraints();
   encoder->add_statement_execution();
   encoder->add_statement_activation();
 
@@ -1038,7 +1038,7 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_twice)
   encoder->add_bound();
   encoder->declare_states();
   encoder->add_thread_scheduling();
-  encoder->add_synchronization_constraints();
+  encoder->add_checkpoint_constraints();
   encoder->add_statement_execution();
   encoder->add_statement_activation();
 
@@ -1377,8 +1377,8 @@ TEST_F(Btor2EncoderTest, add_exit_definitions_no_exit)
     encoder->str());
 }
 
-// void Btor2Encoder::add_synchronization_constraints ()
-TEST_F(Btor2EncoderTest, add_synchronization_constraints)
+// void Btor2Encoder::add_checkpoint_constraints ()
+TEST_F(Btor2EncoderTest, add_checkpoint_constraints)
 {
   for (size_t thread = 0; thread < 3; thread++)
     {
@@ -1387,18 +1387,18 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
       programs->push_back(program);
 
       for (size_t id = 1; id < 3; id++)
-        program->push_back(Instruction::Set::create("SYNC", id));
+        program->push_back(Instruction::Set::create("CHECK", id));
     }
 
   reset_encoder(1);
 
-  init_synchronization_constraints(true);
+  init_checkpoint_constraints(true);
 
-  encoder->add_synchronization_constraints();
+  encoder->add_checkpoint_constraints();
 
   ASSERT_EQ(
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "; synchronization constraints\n"
+    "; checkpoint constraints\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; thread blocking flags - block_<id>_<thread>\n"
@@ -1410,84 +1410,84 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
     "91 state 1 block_2_1\n"
     "92 state 1 block_2_2\n"
     "\n"
-    "; synchronization flags - sync_<id>\n"
+    "; checkpoint flags - check_<id>\n"
     "93 and 1 " + encoder->nids_block[1][0] + " " + encoder->nids_block[1][1] + "\n"
-    "94 and 1 " + encoder->nids_block[1][2] + " 93 sync_1\n"
+    "94 and 1 " + encoder->nids_block[1][2] + " 93 check_1\n"
     "95 and 1 " + encoder->nids_block[2][0] + " " + encoder->nids_block[2][1] + "\n"
-    "96 and 1 " + encoder->nids_block[2][2] + " 95 sync_2\n"
+    "96 and 1 " + encoder->nids_block[2][2] + " 95 check_2\n"
     "\n"
     "; thread blocking flag definitions\n"
     "97 init 1 " + encoder->nids_block[1][0] + " 4\n"
     "98 or 1 " + encoder->nids_exec[0][0] + " " + encoder->nids_block[1][0] + "\n"
-    "99 ite 1 " + encoder->nids_sync[1] + " 4 98\n"
+    "99 ite 1 " + encoder->nids_check[1] + " 4 98\n"
     "100 next 1 " + encoder->nids_block[1][0] + " 99 block_1_0\n"
     "\n"
     "101 init 1 " + encoder->nids_block[1][1] + " 4\n"
     "102 or 1 " + encoder->nids_exec[1][0] + " " + encoder->nids_block[1][1] + "\n"
-    "103 ite 1 " + encoder->nids_sync[1] + " 4 102\n"
+    "103 ite 1 " + encoder->nids_check[1] + " 4 102\n"
     "104 next 1 " + encoder->nids_block[1][1] + " 103 block_1_1\n"
     "\n"
     "105 init 1 " + encoder->nids_block[1][2] + " 4\n"
     "106 or 1 " + encoder->nids_exec[2][0] + " " + encoder->nids_block[1][2] + "\n"
-    "107 ite 1 " + encoder->nids_sync[1] + " 4 106\n"
+    "107 ite 1 " + encoder->nids_check[1] + " 4 106\n"
     "108 next 1 " + encoder->nids_block[1][2] + " 107 block_1_2\n"
     "\n"
     "109 init 1 " + encoder->nids_block[2][0] + " 4\n"
     "110 or 1 " + encoder->nids_exec[0][1] + " " + encoder->nids_block[2][0] + "\n"
-    "111 ite 1 " + encoder->nids_sync[2] + " 4 110\n"
+    "111 ite 1 " + encoder->nids_check[2] + " 4 110\n"
     "112 next 1 " + encoder->nids_block[2][0] + " 111 block_2_0\n"
     "\n"
     "113 init 1 " + encoder->nids_block[2][1] + " 4\n"
     "114 or 1 " + encoder->nids_exec[1][1] + " " + encoder->nids_block[2][1] + "\n"
-    "115 ite 1 " + encoder->nids_sync[2] + " 4 114\n"
+    "115 ite 1 " + encoder->nids_check[2] + " 4 114\n"
     "116 next 1 " + encoder->nids_block[2][1] + " 115 block_2_1\n"
     "\n"
     "117 init 1 " + encoder->nids_block[2][2] + " 4\n"
     "118 or 1 " + encoder->nids_exec[2][1] + " " + encoder->nids_block[2][2] + "\n"
-    "119 ite 1 " + encoder->nids_sync[2] + " 4 118\n"
+    "119 ite 1 " + encoder->nids_check[2] + " 4 118\n"
     "120 next 1 " + encoder->nids_block[2][2] + " 119 block_2_2\n"
     "\n"
     "; prevent scheduling of blocked threads\n"
-    "121 and 1 " + encoder->nids_block[1][0] + " -" + encoder->nids_sync[1] + "\n"
+    "121 and 1 " + encoder->nids_block[1][0] + " -" + encoder->nids_check[1] + "\n"
     "122 implies 1 121 -" + encoder->nids_thread[0] + "\n"
     "123 constraint 122 block_1_0\n"
     "\n"
-    "124 and 1 " + encoder->nids_block[1][1] + " -" + encoder->nids_sync[1] + "\n"
+    "124 and 1 " + encoder->nids_block[1][1] + " -" + encoder->nids_check[1] + "\n"
     "125 implies 1 124 -" + encoder->nids_thread[1] + "\n"
     "126 constraint 125 block_1_1\n"
     "\n"
-    "127 and 1 " + encoder->nids_block[1][2] + " -" + encoder->nids_sync[1] + "\n"
+    "127 and 1 " + encoder->nids_block[1][2] + " -" + encoder->nids_check[1] + "\n"
     "128 implies 1 127 -" + encoder->nids_thread[2] + "\n"
     "129 constraint 128 block_1_2\n"
     "\n"
-    "130 and 1 " + encoder->nids_block[2][0] + " -" + encoder->nids_sync[2] + "\n"
+    "130 and 1 " + encoder->nids_block[2][0] + " -" + encoder->nids_check[2] + "\n"
     "131 implies 1 130 -" + encoder->nids_thread[0] + "\n"
     "132 constraint 131 block_2_0\n"
     "\n"
-    "133 and 1 " + encoder->nids_block[2][1] + " -" + encoder->nids_sync[2] + "\n"
+    "133 and 1 " + encoder->nids_block[2][1] + " -" + encoder->nids_check[2] + "\n"
     "134 implies 1 133 -" + encoder->nids_thread[1] + "\n"
     "135 constraint 134 block_2_1\n"
     "\n"
-    "136 and 1 " + encoder->nids_block[2][2] + " -" + encoder->nids_sync[2] + "\n"
+    "136 and 1 " + encoder->nids_block[2][2] + " -" + encoder->nids_check[2] + "\n"
     "137 implies 1 136 -" + encoder->nids_thread[2] + "\n"
     "138 constraint 137 block_2_2\n"
     "\n",
     encoder->str());
 
-  /* multiple calls to the same barrier */
+  /* multiple calls to the same checkpoint */
   for (const auto & program : *programs)
     for (size_t pc = 0; pc < 4; pc++)
-      program->push_back(Instruction::Set::create("SYNC", pc % 2 + 1));
+      program->push_back(Instruction::Set::create("CHECK", pc % 2 + 1));
 
   reset_encoder(1);
 
-  init_synchronization_constraints(true);
+  init_checkpoint_constraints(true);
 
-  encoder->add_synchronization_constraints();
+  encoder->add_checkpoint_constraints();
 
   ASSERT_EQ(
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "; synchronization constraints\n"
+    "; checkpoint constraints\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; thread blocking flags - block_<id>_<thread>\n"
@@ -1499,95 +1499,95 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
     "163 state 1 block_2_1\n"
     "164 state 1 block_2_2\n"
     "\n"
-    "; synchronization flags - sync_<id>\n"
+    "; checkpoint flags - check_<id>\n"
     "165 and 1 " + encoder->nids_block[1][0] + " " + encoder->nids_block[1][1] + "\n"
-    "166 and 1 " + encoder->nids_block[1][2] + " 165 sync_1\n"
+    "166 and 1 " + encoder->nids_block[1][2] + " 165 check_1\n"
     "167 and 1 " + encoder->nids_block[2][0] + " " + encoder->nids_block[2][1] + "\n"
-    "168 and 1 " + encoder->nids_block[2][2] + " 167 sync_2\n"
+    "168 and 1 " + encoder->nids_block[2][2] + " 167 check_2\n"
     "\n"
     "; thread blocking flag definitions\n"
     "169 init 1 " + encoder->nids_block[1][0] + " 4\n"
     "170 or 1 " + encoder->nids_exec[0][0] + " " + encoder->nids_exec[0][2] + "\n"
     "171 or 1 " + encoder->nids_exec[0][4] + " 170\n"
     "172 or 1 " + encoder->nids_block[1][0] + " 171\n"
-    "173 ite 1 " + encoder->nids_sync[1] + " 4 172\n"
+    "173 ite 1 " + encoder->nids_check[1] + " 4 172\n"
     "174 next 1 " + encoder->nids_block[1][0] + " 173 block_1_0\n"
     "\n"
     "175 init 1 " + encoder->nids_block[1][1] + " 4\n"
     "176 or 1 " + encoder->nids_exec[1][0] + " " + encoder->nids_exec[1][2] + "\n"
     "177 or 1 " + encoder->nids_exec[1][4] + " 176\n"
     "178 or 1 " + encoder->nids_block[1][1] + " 177\n"
-    "179 ite 1 " + encoder->nids_sync[1] + " 4 178\n"
+    "179 ite 1 " + encoder->nids_check[1] + " 4 178\n"
     "180 next 1 " + encoder->nids_block[1][1] + " 179 block_1_1\n"
     "\n"
     "181 init 1 " + encoder->nids_block[1][2] + " 4\n"
     "182 or 1 " + encoder->nids_exec[2][0] + " " + encoder->nids_exec[2][2] + "\n"
     "183 or 1 " + encoder->nids_exec[2][4] + " 182\n"
     "184 or 1 " + encoder->nids_block[1][2] + " 183\n"
-    "185 ite 1 " + encoder->nids_sync[1] + " 4 184\n"
+    "185 ite 1 " + encoder->nids_check[1] + " 4 184\n"
     "186 next 1 " + encoder->nids_block[1][2] + " 185 block_1_2\n"
     "\n"
     "187 init 1 " + encoder->nids_block[2][0] + " 4\n"
     "188 or 1 " + encoder->nids_exec[0][1] + " " + encoder->nids_exec[0][3] + "\n"
     "189 or 1 " + encoder->nids_exec[0][5] + " 188\n"
     "190 or 1 " + encoder->nids_block[2][0] + " 189\n"
-    "191 ite 1 " + encoder->nids_sync[2] + " 4 190\n"
+    "191 ite 1 " + encoder->nids_check[2] + " 4 190\n"
     "192 next 1 " + encoder->nids_block[2][0] + " 191 block_2_0\n"
     "\n"
     "193 init 1 " + encoder->nids_block[2][1] + " 4\n"
     "194 or 1 " + encoder->nids_exec[1][1] + " " + encoder->nids_exec[1][3] + "\n"
     "195 or 1 " + encoder->nids_exec[1][5] + " 194\n"
     "196 or 1 " + encoder->nids_block[2][1] + " 195\n"
-    "197 ite 1 " + encoder->nids_sync[2] + " 4 196\n"
+    "197 ite 1 " + encoder->nids_check[2] + " 4 196\n"
     "198 next 1 " + encoder->nids_block[2][1] + " 197 block_2_1\n"
     "\n"
     "199 init 1 " + encoder->nids_block[2][2] + " 4\n"
     "200 or 1 " + encoder->nids_exec[2][1] + " " + encoder->nids_exec[2][3] + "\n"
     "201 or 1 " + encoder->nids_exec[2][5] + " 200\n"
     "202 or 1 " + encoder->nids_block[2][2] + " 201\n"
-    "203 ite 1 " + encoder->nids_sync[2] + " 4 202\n"
+    "203 ite 1 " + encoder->nids_check[2] + " 4 202\n"
     "204 next 1 " + encoder->nids_block[2][2] + " 203 block_2_2\n"
     "\n"
     "; prevent scheduling of blocked threads\n"
-    "205 and 1 " + encoder->nids_block[1][0] + " -" + encoder->nids_sync[1] + "\n"
+    "205 and 1 " + encoder->nids_block[1][0] + " -" + encoder->nids_check[1] + "\n"
     "206 implies 1 205 -" + encoder->nids_thread[0] + "\n"
     "207 constraint 206 block_1_0\n"
     "\n"
-    "208 and 1 " + encoder->nids_block[1][1] + " -" + encoder->nids_sync[1] + "\n"
+    "208 and 1 " + encoder->nids_block[1][1] + " -" + encoder->nids_check[1] + "\n"
     "209 implies 1 208 -" + encoder->nids_thread[1] + "\n"
     "210 constraint 209 block_1_1\n"
     "\n"
-    "211 and 1 " + encoder->nids_block[1][2] + " -" + encoder->nids_sync[1] + "\n"
+    "211 and 1 " + encoder->nids_block[1][2] + " -" + encoder->nids_check[1] + "\n"
     "212 implies 1 211 -" + encoder->nids_thread[2] + "\n"
     "213 constraint 212 block_1_2\n"
     "\n"
-    "214 and 1 " + encoder->nids_block[2][0] + " -" + encoder->nids_sync[2] + "\n"
+    "214 and 1 " + encoder->nids_block[2][0] + " -" + encoder->nids_check[2] + "\n"
     "215 implies 1 214 -" + encoder->nids_thread[0] + "\n"
     "216 constraint 215 block_2_0\n"
     "\n"
-    "217 and 1 " + encoder->nids_block[2][1] + " -" + encoder->nids_sync[2] + "\n"
+    "217 and 1 " + encoder->nids_block[2][1] + " -" + encoder->nids_check[2] + "\n"
     "218 implies 1 217 -" + encoder->nids_thread[1] + "\n"
     "219 constraint 218 block_2_1\n"
     "\n"
-    "220 and 1 " + encoder->nids_block[2][2] + " -" + encoder->nids_sync[2] + "\n"
+    "220 and 1 " + encoder->nids_block[2][2] + " -" + encoder->nids_check[2] + "\n"
     "221 implies 1 220 -" + encoder->nids_thread[2] + "\n"
     "222 constraint 221 block_2_2\n"
     "\n",
     encoder->str());
 
-  /* barrier only for a subset of threads */
+  /* checkpoint only for a subset of threads */
   for (size_t i = 0; i < programs->size() - 1; i++)
-    (*programs)[i]->push_back(Instruction::Set::create("SYNC", 3));
+    (*programs)[i]->push_back(Instruction::Set::create("CHECK", 3));
 
   reset_encoder(1);
 
-  init_synchronization_constraints(true);
+  init_checkpoint_constraints(true);
 
-  encoder->add_synchronization_constraints();
+  encoder->add_checkpoint_constraints();
 
   ASSERT_EQ(
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "; synchronization constraints\n"
+    "; checkpoint constraints\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; thread blocking flags - block_<id>_<thread>\n"
@@ -1602,96 +1602,96 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
     "178 state 1 block_3_0\n"
     "179 state 1 block_3_1\n"
     "\n"
-    "; synchronization flags - sync_<id>\n"
+    "; checkpoint flags - check_<id>\n"
     "180 and 1 " + encoder->nids_block[1][0] + " " + encoder->nids_block[1][1] + "\n"
-    "181 and 1 " + encoder->nids_block[1][2] + " 180 sync_1\n"
+    "181 and 1 " + encoder->nids_block[1][2] + " 180 check_1\n"
     "182 and 1 " + encoder->nids_block[2][0] + " " + encoder->nids_block[2][1] + "\n"
-    "183 and 1 " + encoder->nids_block[2][2] + " 182 sync_2\n"
-    "184 and 1 " + encoder->nids_block[3][0] + " " + encoder->nids_block[3][1] + " sync_3\n"
+    "183 and 1 " + encoder->nids_block[2][2] + " 182 check_2\n"
+    "184 and 1 " + encoder->nids_block[3][0] + " " + encoder->nids_block[3][1] + " check_3\n"
     "\n"
     "; thread blocking flag definitions\n"
     "185 init 1 " + encoder->nids_block[1][0] + " 4\n"
     "186 or 1 " + encoder->nids_exec[0][0] + " " + encoder->nids_exec[0][2] + "\n"
     "187 or 1 " + encoder->nids_exec[0][4] + " 186\n"
     "188 or 1 " + encoder->nids_block[1][0] + " 187\n"
-    "189 ite 1 " + encoder->nids_sync[1] + " 4 188\n"
+    "189 ite 1 " + encoder->nids_check[1] + " 4 188\n"
     "190 next 1 " + encoder->nids_block[1][0] + " 189 block_1_0\n"
     "\n"
     "191 init 1 " + encoder->nids_block[1][1] + " 4\n"
     "192 or 1 " + encoder->nids_exec[1][0] + " " + encoder->nids_exec[1][2] + "\n"
     "193 or 1 " + encoder->nids_exec[1][4] + " 192\n"
     "194 or 1 " + encoder->nids_block[1][1] + " 193\n"
-    "195 ite 1 " + encoder->nids_sync[1] + " 4 194\n"
+    "195 ite 1 " + encoder->nids_check[1] + " 4 194\n"
     "196 next 1 " + encoder->nids_block[1][1] + " 195 block_1_1\n"
     "\n"
     "197 init 1 " + encoder->nids_block[1][2] + " 4\n"
     "198 or 1 " + encoder->nids_exec[2][0] + " " + encoder->nids_exec[2][2] + "\n"
     "199 or 1 " + encoder->nids_exec[2][4] + " 198\n"
     "200 or 1 " + encoder->nids_block[1][2] + " 199\n"
-    "201 ite 1 " + encoder->nids_sync[1] + " 4 200\n"
+    "201 ite 1 " + encoder->nids_check[1] + " 4 200\n"
     "202 next 1 " + encoder->nids_block[1][2] + " 201 block_1_2\n"
     "\n"
     "203 init 1 " + encoder->nids_block[2][0] + " 4\n"
     "204 or 1 " + encoder->nids_exec[0][1] + " " + encoder->nids_exec[0][3] + "\n"
     "205 or 1 " + encoder->nids_exec[0][5] + " 204\n"
     "206 or 1 " + encoder->nids_block[2][0] + " 205\n"
-    "207 ite 1 " + encoder->nids_sync[2] + " 4 206\n"
+    "207 ite 1 " + encoder->nids_check[2] + " 4 206\n"
     "208 next 1 " + encoder->nids_block[2][0] + " 207 block_2_0\n"
     "\n"
     "209 init 1 " + encoder->nids_block[2][1] + " 4\n"
     "210 or 1 " + encoder->nids_exec[1][1] + " " + encoder->nids_exec[1][3] + "\n"
     "211 or 1 " + encoder->nids_exec[1][5] + " 210\n"
     "212 or 1 " + encoder->nids_block[2][1] + " 211\n"
-    "213 ite 1 " + encoder->nids_sync[2] + " 4 212\n"
+    "213 ite 1 " + encoder->nids_check[2] + " 4 212\n"
     "214 next 1 " + encoder->nids_block[2][1] + " 213 block_2_1\n"
     "\n"
     "215 init 1 " + encoder->nids_block[2][2] + " 4\n"
     "216 or 1 " + encoder->nids_exec[2][1] + " " + encoder->nids_exec[2][3] + "\n"
     "217 or 1 " + encoder->nids_exec[2][5] + " 216\n"
     "218 or 1 " + encoder->nids_block[2][2] + " 217\n"
-    "219 ite 1 " + encoder->nids_sync[2] + " 4 218\n"
+    "219 ite 1 " + encoder->nids_check[2] + " 4 218\n"
     "220 next 1 " + encoder->nids_block[2][2] + " 219 block_2_2\n"
     "\n"
     "221 init 1 " + encoder->nids_block[3][0] + " 4\n"
     "222 or 1 " + encoder->nids_exec[0][6] + " " + encoder->nids_block[3][0] + "\n"
-    "223 ite 1 " + encoder->nids_sync[3] + " 4 222\n"
+    "223 ite 1 " + encoder->nids_check[3] + " 4 222\n"
     "224 next 1 " + encoder->nids_block[3][0] + " 223 block_3_0\n"
     "\n"
     "225 init 1 " + encoder->nids_block[3][1] + " 4\n"
     "226 or 1 " + encoder->nids_exec[1][6] + " " + encoder->nids_block[3][1] + "\n"
-    "227 ite 1 " + encoder->nids_sync[3] + " 4 226\n"
+    "227 ite 1 " + encoder->nids_check[3] + " 4 226\n"
     "228 next 1 " + encoder->nids_block[3][1] + " 227 block_3_1\n"
     "\n"
     "; prevent scheduling of blocked threads\n"
-    "229 and 1 " + encoder->nids_block[1][0] + " -" + encoder->nids_sync[1] + "\n"
+    "229 and 1 " + encoder->nids_block[1][0] + " -" + encoder->nids_check[1] + "\n"
     "230 implies 1 229 -" + encoder->nids_thread[0] + "\n"
     "231 constraint 230 block_1_0\n"
     "\n"
-    "232 and 1 " + encoder->nids_block[1][1] + " -" + encoder->nids_sync[1] + "\n"
+    "232 and 1 " + encoder->nids_block[1][1] + " -" + encoder->nids_check[1] + "\n"
     "233 implies 1 232 -" + encoder->nids_thread[1] + "\n"
     "234 constraint 233 block_1_1\n"
     "\n"
-    "235 and 1 " + encoder->nids_block[1][2] + " -" + encoder->nids_sync[1] + "\n"
+    "235 and 1 " + encoder->nids_block[1][2] + " -" + encoder->nids_check[1] + "\n"
     "236 implies 1 235 -" + encoder->nids_thread[2] + "\n"
     "237 constraint 236 block_1_2\n"
     "\n"
-    "238 and 1 " + encoder->nids_block[2][0] + " -" + encoder->nids_sync[2] + "\n"
+    "238 and 1 " + encoder->nids_block[2][0] + " -" + encoder->nids_check[2] + "\n"
     "239 implies 1 238 -" + encoder->nids_thread[0] + "\n"
     "240 constraint 239 block_2_0\n"
     "\n"
-    "241 and 1 " + encoder->nids_block[2][1] + " -" + encoder->nids_sync[2] + "\n"
+    "241 and 1 " + encoder->nids_block[2][1] + " -" + encoder->nids_check[2] + "\n"
     "242 implies 1 241 -" + encoder->nids_thread[1] + "\n"
     "243 constraint 242 block_2_1\n"
     "\n"
-    "244 and 1 " + encoder->nids_block[2][2] + " -" + encoder->nids_sync[2] + "\n"
+    "244 and 1 " + encoder->nids_block[2][2] + " -" + encoder->nids_check[2] + "\n"
     "245 implies 1 244 -" + encoder->nids_thread[2] + "\n"
     "246 constraint 245 block_2_2\n"
     "\n"
-    "247 and 1 " + encoder->nids_block[3][0] + " -" + encoder->nids_sync[3] + "\n"
+    "247 and 1 " + encoder->nids_block[3][0] + " -" + encoder->nids_check[3] + "\n"
     "248 implies 1 247 -" + encoder->nids_thread[0] + "\n"
     "249 constraint 248 block_3_0\n"
     "\n"
-    "250 and 1 " + encoder->nids_block[3][1] + " -" + encoder->nids_sync[3] + "\n"
+    "250 and 1 " + encoder->nids_block[3][1] + " -" + encoder->nids_check[3] + "\n"
     "251 implies 1 250 -" + encoder->nids_thread[1] + "\n"
     "252 constraint 251 block_3_1\n"
     "\n",
@@ -1700,10 +1700,10 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
   /* verbosity */
   reset_encoder(1);
 
-  init_synchronization_constraints(true);
+  init_checkpoint_constraints(true);
 
   verbose = false;
-  encoder->add_synchronization_constraints();
+  encoder->add_checkpoint_constraints();
   verbose = true;
 
   ASSERT_EQ(
@@ -1719,131 +1719,131 @@ TEST_F(Btor2EncoderTest, add_synchronization_constraints)
     "179 state 1 block_3_1\n"
     "\n"
     "180 and 1 " + encoder->nids_block[1][0] + " " + encoder->nids_block[1][1] + "\n"
-    "181 and 1 " + encoder->nids_block[1][2] + " 180 sync_1\n"
+    "181 and 1 " + encoder->nids_block[1][2] + " 180 check_1\n"
     "182 and 1 " + encoder->nids_block[2][0] + " " + encoder->nids_block[2][1] + "\n"
-    "183 and 1 " + encoder->nids_block[2][2] + " 182 sync_2\n"
-    "184 and 1 " + encoder->nids_block[3][0] + " " + encoder->nids_block[3][1] + " sync_3\n"
+    "183 and 1 " + encoder->nids_block[2][2] + " 182 check_2\n"
+    "184 and 1 " + encoder->nids_block[3][0] + " " + encoder->nids_block[3][1] + " check_3\n"
     "\n"
     "185 init 1 " + encoder->nids_block[1][0] + " 4\n"
     "186 or 1 " + encoder->nids_exec[0][0] + " " + encoder->nids_exec[0][2] + "\n"
     "187 or 1 " + encoder->nids_exec[0][4] + " 186\n"
     "188 or 1 " + encoder->nids_block[1][0] + " 187\n"
-    "189 ite 1 " + encoder->nids_sync[1] + " 4 188\n"
+    "189 ite 1 " + encoder->nids_check[1] + " 4 188\n"
     "190 next 1 " + encoder->nids_block[1][0] + " 189 block_1_0\n"
     "\n"
     "191 init 1 " + encoder->nids_block[1][1] + " 4\n"
     "192 or 1 " + encoder->nids_exec[1][0] + " " + encoder->nids_exec[1][2] + "\n"
     "193 or 1 " + encoder->nids_exec[1][4] + " 192\n"
     "194 or 1 " + encoder->nids_block[1][1] + " 193\n"
-    "195 ite 1 " + encoder->nids_sync[1] + " 4 194\n"
+    "195 ite 1 " + encoder->nids_check[1] + " 4 194\n"
     "196 next 1 " + encoder->nids_block[1][1] + " 195 block_1_1\n"
     "\n"
     "197 init 1 " + encoder->nids_block[1][2] + " 4\n"
     "198 or 1 " + encoder->nids_exec[2][0] + " " + encoder->nids_exec[2][2] + "\n"
     "199 or 1 " + encoder->nids_exec[2][4] + " 198\n"
     "200 or 1 " + encoder->nids_block[1][2] + " 199\n"
-    "201 ite 1 " + encoder->nids_sync[1] + " 4 200\n"
+    "201 ite 1 " + encoder->nids_check[1] + " 4 200\n"
     "202 next 1 " + encoder->nids_block[1][2] + " 201 block_1_2\n"
     "\n"
     "203 init 1 " + encoder->nids_block[2][0] + " 4\n"
     "204 or 1 " + encoder->nids_exec[0][1] + " " + encoder->nids_exec[0][3] + "\n"
     "205 or 1 " + encoder->nids_exec[0][5] + " 204\n"
     "206 or 1 " + encoder->nids_block[2][0] + " 205\n"
-    "207 ite 1 " + encoder->nids_sync[2] + " 4 206\n"
+    "207 ite 1 " + encoder->nids_check[2] + " 4 206\n"
     "208 next 1 " + encoder->nids_block[2][0] + " 207 block_2_0\n"
     "\n"
     "209 init 1 " + encoder->nids_block[2][1] + " 4\n"
     "210 or 1 " + encoder->nids_exec[1][1] + " " + encoder->nids_exec[1][3] + "\n"
     "211 or 1 " + encoder->nids_exec[1][5] + " 210\n"
     "212 or 1 " + encoder->nids_block[2][1] + " 211\n"
-    "213 ite 1 " + encoder->nids_sync[2] + " 4 212\n"
+    "213 ite 1 " + encoder->nids_check[2] + " 4 212\n"
     "214 next 1 " + encoder->nids_block[2][1] + " 213 block_2_1\n"
     "\n"
     "215 init 1 " + encoder->nids_block[2][2] + " 4\n"
     "216 or 1 " + encoder->nids_exec[2][1] + " " + encoder->nids_exec[2][3] + "\n"
     "217 or 1 " + encoder->nids_exec[2][5] + " 216\n"
     "218 or 1 " + encoder->nids_block[2][2] + " 217\n"
-    "219 ite 1 " + encoder->nids_sync[2] + " 4 218\n"
+    "219 ite 1 " + encoder->nids_check[2] + " 4 218\n"
     "220 next 1 " + encoder->nids_block[2][2] + " 219 block_2_2\n"
     "\n"
     "221 init 1 " + encoder->nids_block[3][0] + " 4\n"
     "222 or 1 " + encoder->nids_exec[0][6] + " " + encoder->nids_block[3][0] + "\n"
-    "223 ite 1 " + encoder->nids_sync[3] + " 4 222\n"
+    "223 ite 1 " + encoder->nids_check[3] + " 4 222\n"
     "224 next 1 " + encoder->nids_block[3][0] + " 223 block_3_0\n"
     "\n"
     "225 init 1 " + encoder->nids_block[3][1] + " 4\n"
     "226 or 1 " + encoder->nids_exec[1][6] + " " + encoder->nids_block[3][1] + "\n"
-    "227 ite 1 " + encoder->nids_sync[3] + " 4 226\n"
+    "227 ite 1 " + encoder->nids_check[3] + " 4 226\n"
     "228 next 1 " + encoder->nids_block[3][1] + " 227 block_3_1\n"
     "\n"
-    "229 and 1 " + encoder->nids_block[1][0] + " -" + encoder->nids_sync[1] + "\n"
+    "229 and 1 " + encoder->nids_block[1][0] + " -" + encoder->nids_check[1] + "\n"
     "230 implies 1 229 -" + encoder->nids_thread[0] + "\n"
     "231 constraint 230 block_1_0\n"
     "\n"
-    "232 and 1 " + encoder->nids_block[1][1] + " -" + encoder->nids_sync[1] + "\n"
+    "232 and 1 " + encoder->nids_block[1][1] + " -" + encoder->nids_check[1] + "\n"
     "233 implies 1 232 -" + encoder->nids_thread[1] + "\n"
     "234 constraint 233 block_1_1\n"
     "\n"
-    "235 and 1 " + encoder->nids_block[1][2] + " -" + encoder->nids_sync[1] + "\n"
+    "235 and 1 " + encoder->nids_block[1][2] + " -" + encoder->nids_check[1] + "\n"
     "236 implies 1 235 -" + encoder->nids_thread[2] + "\n"
     "237 constraint 236 block_1_2\n"
     "\n"
-    "238 and 1 " + encoder->nids_block[2][0] + " -" + encoder->nids_sync[2] + "\n"
+    "238 and 1 " + encoder->nids_block[2][0] + " -" + encoder->nids_check[2] + "\n"
     "239 implies 1 238 -" + encoder->nids_thread[0] + "\n"
     "240 constraint 239 block_2_0\n"
     "\n"
-    "241 and 1 " + encoder->nids_block[2][1] + " -" + encoder->nids_sync[2] + "\n"
+    "241 and 1 " + encoder->nids_block[2][1] + " -" + encoder->nids_check[2] + "\n"
     "242 implies 1 241 -" + encoder->nids_thread[1] + "\n"
     "243 constraint 242 block_2_1\n"
     "\n"
-    "244 and 1 " + encoder->nids_block[2][2] + " -" + encoder->nids_sync[2] + "\n"
+    "244 and 1 " + encoder->nids_block[2][2] + " -" + encoder->nids_check[2] + "\n"
     "245 implies 1 244 -" + encoder->nids_thread[2] + "\n"
     "246 constraint 245 block_2_2\n"
     "\n"
-    "247 and 1 " + encoder->nids_block[3][0] + " -" + encoder->nids_sync[3] + "\n"
+    "247 and 1 " + encoder->nids_block[3][0] + " -" + encoder->nids_check[3] + "\n"
     "248 implies 1 247 -" + encoder->nids_thread[0] + "\n"
     "249 constraint 248 block_3_0\n"
     "\n"
-    "250 and 1 " + encoder->nids_block[3][1] + " -" + encoder->nids_sync[3] + "\n"
+    "250 and 1 " + encoder->nids_block[3][1] + " -" + encoder->nids_check[3] + "\n"
     "251 implies 1 250 -" + encoder->nids_thread[1] + "\n"
     "252 constraint 251 block_3_1\n"
     "\n",
     encoder->str());
 }
 
-TEST_F(Btor2EncoderTest, add_synchronization_constraints_single_thread)
+TEST_F(Btor2EncoderTest, add_checkpoint_constraints_single_thread)
 {
   ProgramPtr program = make_shared<Program>();
   programs->push_back(program);
-  program->push_back(Instruction::Set::create("SYNC", 1));
+  program->push_back(Instruction::Set::create("CHECK", 1));
 
   reset_encoder(1);
 
-  init_synchronization_constraints(true);
+  init_checkpoint_constraints(true);
 
-  encoder->add_synchronization_constraints();
+  encoder->add_checkpoint_constraints();
 
-  // TODO: ignore single-threaded barriers -> see gitlab issue #65
+  // TODO: ignore single-threaded checkpoints -> see gitlab issue #65
   ASSERT_EQ(
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "; synchronization constraints\n"
+    "; checkpoint constraints\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
     "; thread blocking flags - block_<id>_<thread>\n"
-    "; synchronization flags - sync_<id>\n"
+    "; checkpoint flags - check_<id>\n"
     "\n"
     "; thread blocking flag definitions\n"
     "; prevent scheduling of blocked threads\n",
     encoder->str());
 }
 
-TEST_F(Btor2EncoderTest, add_synchronization_constraints_no_sync)
+TEST_F(Btor2EncoderTest, add_checkpoint_constraints_no_check)
 {
   add_dummy_programs(3, 3);
 
-  init_synchronization_constraints(true);
+  init_checkpoint_constraints(true);
 
-  encoder->add_synchronization_constraints();
+  encoder->add_checkpoint_constraints();
 
   ASSERT_EQ("", encoder->str());
 }
@@ -2004,17 +2004,17 @@ TEST_F(Btor2EncoderTest, store_indirect)
 }
 
 // virtual void Btor2Encoder::encode ()
-TEST_F(Btor2EncoderTest, encode_sync)
+TEST_F(Btor2EncoderTest, encode_check)
 {
-  /* concurrent increment using SYNC */
+  /* concurrent increment using CHECK */
   programs->push_back(
-    create_from_file<Program>("data/increment.sync.thread.0.asm"));
+    create_from_file<Program>("data/increment.check.thread.0.asm"));
   programs->push_back(
-    create_from_file<Program>("data/increment.sync.thread.n.asm"));
+    create_from_file<Program>("data/increment.check.thread.n.asm"));
 
   encoder = make_shared<Btor2Encoder>(programs, 16);
 
-  string formula = "increment.sync.t2.k16.btor2";
+  string formula = "increment.check.t2.k16.btor2";
 
   ofstream tmp("/tmp/" + formula);
   tmp << encoder->str();
@@ -2548,8 +2548,8 @@ TEST_F(Btor2EncoderTest, CAS_heap_indirect)
     encoder->str());
 }
 
-// virtual std::string Btor2Encoder::encode (Sync & s)
-TEST_F(Btor2EncoderTest, SYNC)
+// virtual std::string Btor2Encoder::encode (Check & c)
+TEST_F(Btor2EncoderTest, CHECK)
 {
   Check c(1);
 

@@ -25,7 +25,7 @@ struct Thread
   {
     INITIAL,  // created, but not started
     RUNNING,  // running
-    WAITING,  // waiting for other thread(s) (syncing)
+    WAITING,  // waiting at checkpoint
     STOPPED,  // no more instructions or halted
     EXITING   // exit called
   };
@@ -36,7 +36,7 @@ struct Thread
   word          pc;         // program counter
   word          mem;        // special CAS register
   word          accu;       // accumulator register
-  word          sync;       // current (or previous) barrier's id
+  word          check;      // current (or previous) checkpoint's id
   State         state;      // thread state
   Simulator &   simulator;  // reference to the simulator owning the thread
   Program &     program;    // pointer to the program being executed

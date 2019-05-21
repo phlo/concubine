@@ -21,8 +21,8 @@ struct Program : public std::deque<Instruction_ptr>
   /* path to program file */
   std::string                     path;
 
-  /* sync barriers */
-  std::unordered_set<word>        sync_ids;
+  /* checkpoint ids */
+  std::unordered_set<word>        check_ids;
 
   /* maps program counters to the label referencing it */
   std::unordered_map<

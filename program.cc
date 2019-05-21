@@ -170,7 +170,7 @@ void Program::push_back (Instruction_ptr i)
 
   /* collect checkpoint ids */
   if (Check_ptr c = dynamic_pointer_cast<Check>(i))
-    sync_ids.insert(c->arg);
+    check_ids.insert(c->arg);
 }
 
 /* Program::get_pc (const string label) const *********************************/

@@ -11,7 +11,7 @@ Thread::Thread (Simulator & _simulator, unsigned int _id, Program & _program) :
   pc(0),
   mem(0),
   accu(0),
-  sync(0),
+  check(0),
   state(INITIAL),
   simulator(_simulator),
   program(_program)

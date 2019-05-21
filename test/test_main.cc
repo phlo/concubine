@@ -41,17 +41,17 @@ TEST_F(MainTest, illegal_commands)
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
 }
 
-/* simulate_increment_sync ****************************************************/
-TEST_F(MainTest, simulate_increment_sync)
+/* simulate_increment_check ***************************************************/
+TEST_F(MainTest, simulate_increment_check)
 {
   /* read expected schedule from file */
-  ifstream schedule_file("data/increment.sync.t2.k16.schedule");
+  ifstream schedule_file("data/increment.check.t2.k16.schedule");
   string expected((istreambuf_iterator<char>(schedule_file)),
                    istreambuf_iterator<char>());
 
   string args = " simulate -v -s 0 -k 16 ";
-  string increment_0 = " data/increment.sync.thread.0.asm ";
-  string increment_n = " data/increment.sync.thread.n.asm ";
+  string increment_0 = " data/increment.check.thread.0.asm ";
+  string increment_n = " data/increment.check.thread.n.asm ";
 
   string cmd = executable + args + increment_0 + " " + increment_n;
 
@@ -159,10 +159,10 @@ TEST_F(MainTest, simulate_illegal_bound)
   ASSERT_EQ(expected, actual);
 }
 
-/* replay_increment_sync ******************************************************/
-TEST_F(MainTest, replay_increment_sync)
+/* replay_increment_check *****************************************************/
+TEST_F(MainTest, replay_increment_check)
 {
-  string schedule_file = "data/increment.sync.t2.k16.schedule";
+  string schedule_file = "data/increment.check.t2.k16.schedule";
 
   /* read expected schedule from file */
   ifstream sfs(schedule_file);

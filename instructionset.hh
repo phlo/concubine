@@ -104,7 +104,7 @@ struct Instruction
   virtual Type                type   (void) const;
   virtual OPCode              opcode (void) const = 0;
   virtual const std::string & symbol (void) const = 0;
-  virtual unsigned char       attributes (void) const = 0;
+  virtual Attribute           attributes (void) const = 0;
 
   virtual void                execute (Thread &) = 0;
 

@@ -49,10 +49,10 @@ TEST_F(CVC4Test, unsat)
 // TODO: remove
 TEST_F(CVC4Test, print_model)
 {
-  /* concurrent increment using SYNC */
+  /* concurrent increment using CHECK */
   string constraints;
-  string increment_0 = "data/increment.sync.thread.0.asm";
-  string increment_n = "data/increment.sync.thread.n.asm";
+  string increment_0 = "data/increment.check.thread.0.asm";
+  string increment_n = "data/increment.check.thread.n.asm";
 
   ProgramListPtr programs = make_shared<ProgramList>();
 

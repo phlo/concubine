@@ -20,12 +20,12 @@ TEST_F(ProgramTest, add)
 {
   program->push_back(Instruction::Set::create("ADD", 1));
   ASSERT_EQ(1, program->size());
-  ASSERT_EQ(0, program->sync_ids.size());
+  ASSERT_EQ(0, program->check_ids.size());
 
-  program->push_back(Instruction::Set::create("SYNC", 1));
+  program->push_back(Instruction::Set::create("CHECK", 1));
   ASSERT_EQ(2, program->size());
-  ASSERT_EQ(1, program->sync_ids.size());
-  ASSERT_TRUE(program->sync_ids.find(1) != program->sync_ids.end());
+  ASSERT_EQ(1, program->check_ids.size());
+  ASSERT_TRUE(program->check_ids.find(1) != program->check_ids.end());
 }
 
 /* parse **********************************************************************/
@@ -34,7 +34,7 @@ TEST_F(ProgramTest, parse)
   program = create_from_file<Program>("data/increment.cas.asm");
 
   ASSERT_EQ(6, program->size());
-  ASSERT_EQ(1, program->sync_ids.size());
+  ASSERT_EQ(1, program->check_ids.size());
   ASSERT_EQ(1, program->labels.size());
   ASSERT_EQ(1, program->pc_to_label.size());
   ASSERT_EQ("LOOP", *program->pc_to_label[2]);
@@ -42,7 +42,7 @@ TEST_F(ProgramTest, parse)
   ASSERT_EQ(2, program->label_to_pc[program->pc_to_label[2]]);
 
   ASSERT_EQ("0\tSTORE\t0",  program->print(true, 0));
-  ASSERT_EQ("1\tSYNC\t0",   program->print(true, 1));
+  ASSERT_EQ("1\tCHECK\t0",  program->print(true, 1));
   ASSERT_EQ("LOOP\tMEM\t0", program->print(true, 2));
   ASSERT_EQ("3\tADDI\t1",   program->print(true, 3));
   ASSERT_EQ("4\tCAS\t0",    program->print(true, 4));
@@ -52,7 +52,7 @@ TEST_F(ProgramTest, parse)
   program = create_from_file<Program>("data/indirect.addressing.asm");
 
   ASSERT_EQ(6, program->size());
-  ASSERT_EQ(0, program->sync_ids.size());
+  ASSERT_EQ(0, program->check_ids.size());
   ASSERT_EQ(0, program->labels.size());
 
   ASSERT_EQ("0\tSTORE\t1",    program->print(true, 0));
@@ -127,7 +127,7 @@ TEST_F(ProgramTest, parse_illegal_instruction)
     }
 
   /* illegal instruction argument (indirect addressing) */
-  inbuf.str("SYNC [0]\n");
+  inbuf.str("CHECK [0]\n");
 
   try
     {
@@ -137,7 +137,7 @@ TEST_F(ProgramTest, parse_illegal_instruction)
   catch (const exception & e)
     {
       ASSERT_EQ(
-        path + ":1: SYNC does not support indirect addressing",
+        path + ":1: CHECK does not support indirect addressing",
         e.what());
     }
 

@@ -11,7 +11,7 @@ struct SMTLibEncoderRelationalTest : public ::testing::Test
   ProgramListPtr              programs {make_shared<ProgramList>()};
   SMTLibEncoderRelationalPtr  encoder {create_encoder(2, 1)};
 
-  SMTLibEncoderRelationalPtr create_encoder (const word bound, const word step)
+  SMTLibEncoderRelationalPtr  create_encoder (const word bound, const word step)
     {
       SMTLibEncoderRelationalPtr e =
         make_shared<SMTLibEncoderRelational>(programs, bound, false);
@@ -63,7 +63,7 @@ struct SMTLibEncoderRelationalTest : public ::testing::Test
           (*programs)[i]->push_back(Instruction::Set::create("JNZNS", 1)); // 12
           (*programs)[i]->push_back(Instruction::Set::create("MEM", 1));   // 13
           (*programs)[i]->push_back(Instruction::Set::create("CAS", 1));   // 14
-          (*programs)[i]->push_back(Instruction::Set::create("SYNC", 1));  // 15
+          (*programs)[i]->push_back(Instruction::Set::create("CHECK", 1)); // 15
           (*programs)[i]->push_back(Instruction::Set::create("EXIT", 1));  // 16
         }
 
@@ -805,17 +805,17 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_preservation)
 }
 
 // virtual void encode (void);
-TEST_F(SMTLibEncoderRelationalTest, encode_sync)
+TEST_F(SMTLibEncoderRelationalTest, encode_check)
 {
-  /* concurrent increment using SYNC */
+  /* concurrent increment using CHECK */
   programs->push_back(
-    create_from_file<Program>("data/increment.sync.thread.0.asm"));
+    create_from_file<Program>("data/increment.check.thread.0.asm"));
   programs->push_back(
-    create_from_file<Program>("data/increment.sync.thread.n.asm"));
+    create_from_file<Program>("data/increment.check.thread.n.asm"));
 
   encoder = make_shared<SMTLibEncoderRelational>(programs, 16);
 
-  ifstream ifs("data/increment.sync.relational.t2.k16.smt2");
+  ifstream ifs("data/increment.check.relational.t2.k16.smt2");
 
   string expected;
   expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
@@ -1295,8 +1295,8 @@ TEST_F(SMTLibEncoderRelationalTest, CAS)
     encoder->encode(cas));
 }
 
-// virtual std::string encode (Sync &);
-TEST_F(SMTLibEncoderRelationalTest, SYNC)
+// virtual std::string encode (Check & c);
+TEST_F(SMTLibEncoderRelationalTest, CHECK)
 {
   add_dummy_programs(1);
 

@@ -48,10 +48,10 @@ TEST_F(EncoderTest, constructor)
       programs[i]->push_back(Instruction::Set::create("CAS", 1));   // 0
       programs[i]->push_back(Instruction::Set::create("ADDI", 1));  // 1
       programs[i]->push_back(Instruction::Set::create("JNS", 1));   // 2
-      programs[i]->push_back(Instruction::Set::create("SYNC", 1));  // 3
+      programs[i]->push_back(Instruction::Set::create("CHECK", 1));  // 3
       programs[i]->push_back(Instruction::Set::create("JMP", 6));   // 4
       programs[i]->push_back(Instruction::Set::create("EXIT", 1));  // 5
-      programs[i]->push_back(Instruction::Set::create("SYNC", 2));  // 6
+      programs[i]->push_back(Instruction::Set::create("CHECK", 2));  // 6
     }
 
   reset_encoder(0);
@@ -68,7 +68,7 @@ TEST_F(EncoderTest, constructor)
       ASSERT_EQ(set<word>({4}), predecessors.at(6));
     }
 
-  for (const auto & [id, threads] : encoder->sync_pcs)
+  for (const auto & [id, threads] : encoder->check_pcs)
     for (const auto & pcs : threads)
       ASSERT_EQ(id == 1 ? set<word>({3}) : set<word>({6}), get<1>(pcs));
 
@@ -222,20 +222,20 @@ TEST_F(EncoderTest, constructor_predecessors_extra)
     }
 }
 
-TEST_F(EncoderTest, constructor_sync_pcs)
+TEST_F(EncoderTest, constructor_check_pcs)
 {
   for (size_t i = 0; i < 3; i++)
     {
       programs.push_back(shared_ptr<Program>(new Program()));
 
-      programs[i]->push_back(Instruction::Set::create("SYNC", 1));
-      programs[i]->push_back(Instruction::Set::create("SYNC", 2));
-      programs[i]->push_back(Instruction::Set::create("SYNC", 3));
+      programs[i]->push_back(Instruction::Set::create("CHECK", 1));
+      programs[i]->push_back(Instruction::Set::create("CHECK", 2));
+      programs[i]->push_back(Instruction::Set::create("CHECK", 3));
     }
 
   reset_encoder(0);
 
-  for (const auto & [id, threads] : encoder->sync_pcs)
+  for (const auto & [id, threads] : encoder->check_pcs)
     for (const auto & pcs : threads)
       ASSERT_EQ(set<word>({static_cast<word>(id - 1)}), get<1>(pcs));
 }

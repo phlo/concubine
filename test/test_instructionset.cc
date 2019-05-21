@@ -10,6 +10,9 @@ using namespace std;
 *******************************************************************************/
 struct InstructionSetTest : public ::testing::Test
 {
+  using Attribute = Instruction::Attribute;
+  using Attributes = Instruction::Attributes;
+
   Instruction_ptr   instruction;
   Program           program;
   Simulator         simulator;
@@ -64,8 +67,8 @@ TEST_F(InstructionSetTest, contains)
   ASSERT_EQ(Instruction::Type::UNARY,   Instruction::Set::contains("JNZNS"));
   ASSERT_EQ(Instruction::Type::MEMORY,  Instruction::Set::contains("MEM"));
   ASSERT_EQ(Instruction::Type::MEMORY,  Instruction::Set::contains("CAS"));
-  ASSERT_EQ(Instruction::Type::NULLARY, Instruction::Set::contains("CHECK"));
-  ASSERT_EQ(Instruction::Type::UNARY,   Instruction::Set::contains("HALT"));
+  ASSERT_EQ(Instruction::Type::UNARY,   Instruction::Set::contains("CHECK"));
+  ASSERT_EQ(Instruction::Type::NULLARY, Instruction::Set::contains("HALT"));
   ASSERT_EQ(Instruction::Type::UNARY,   Instruction::Set::contains("EXIT"));
 }
 
@@ -123,7 +126,7 @@ TEST_F(InstructionSetTest, LOAD)
 
   /* attributes */
   ASSERT_EQ(
-    Instruction::Attributes::accu,
+    Attributes::accu | Attributes::read,
     instruction->attributes());
 }
 
@@ -147,8 +150,17 @@ TEST_F(InstructionSetTest, STORE)
 
   /* attributes */
   ASSERT_EQ(
-    Instruction::Attributes::write,
+    Attributes::write,
     instruction->attributes());
+}
+
+/* FENCE **********************************************************************/
+TEST_F(InstructionSetTest, FENCE)
+{
+  instruction = Instruction::Set::create("FENCE");
+
+  ASSERT_EQ("FENCE", instruction->symbol());
+  ASSERT_EQ(Attributes::barrier, instruction->attributes());
 }
 
 /* ADD ************************************************************************/
@@ -171,7 +183,7 @@ TEST_F(InstructionSetTest, ADD)
 
   /* attributes */
   ASSERT_EQ(
-    Instruction::Attributes::accu,
+    Attributes::accu | Attributes::read,
     instruction->attributes());
 }
 
@@ -191,7 +203,7 @@ TEST_F(InstructionSetTest, ADDI)
 
   /* attributes */
   ASSERT_EQ(
-    Instruction::Attributes::accu,
+    Attributes::accu,
     instruction->attributes());
 }
 
@@ -216,7 +228,7 @@ TEST_F(InstructionSetTest, SUB)
 
   /* attributes */
   ASSERT_EQ(
-    Instruction::Attributes::accu,
+    Attributes::accu | Attributes::read,
     instruction->attributes());
 }
 
@@ -238,7 +250,7 @@ TEST_F(InstructionSetTest, SUBI)
 
   /* attributes */
   ASSERT_EQ(
-    Instruction::Attributes::accu,
+    Attributes::accu,
     instruction->attributes());
 }
 
@@ -271,7 +283,7 @@ TEST_F(InstructionSetTest, CMP)
 
   /* attributes */
   ASSERT_EQ(
-    Instruction::Attributes::accu,
+    Attributes::accu | Attributes::read,
     instruction->attributes());
 }
 
@@ -295,7 +307,7 @@ TEST_F(InstructionSetTest, JMP)
   ASSERT_EQ(word_max, thread.pc);
 
   /* attributes */
-  ASSERT_EQ(0, instruction->attributes());
+  ASSERT_EQ(Attributes::none, instruction->attributes());
 }
 
 /* JZ *************************************************************************/
@@ -323,7 +335,7 @@ TEST_F(InstructionSetTest, JZ)
   ASSERT_EQ(1, thread.pc);
 
   /* attributes */
-  ASSERT_EQ(0, instruction->attributes());
+  ASSERT_EQ(Attributes::none, instruction->attributes());
 }
 
 /* JNZ ************************************************************************/
@@ -351,7 +363,7 @@ TEST_F(InstructionSetTest, JNZ)
   ASSERT_EQ(0, thread.pc);
 
   /* attributes */
-  ASSERT_EQ(0, instruction->attributes());
+  ASSERT_EQ(Attributes::none, instruction->attributes());
 }
 
 /* JS *************************************************************************/
@@ -379,7 +391,7 @@ TEST_F(InstructionSetTest, JS)
   ASSERT_EQ(0, thread.pc);
 
   /* attributes */
-  ASSERT_EQ(0, instruction->attributes());
+  ASSERT_EQ(Attributes::none, instruction->attributes());
 }
 
 /* JNS ************************************************************************/
@@ -407,7 +419,7 @@ TEST_F(InstructionSetTest, JNS)
   ASSERT_EQ(1, thread.pc);
 
   /* attributes */
-  ASSERT_EQ(0, instruction->attributes());
+  ASSERT_EQ(Attributes::none, instruction->attributes());
 }
 
 /* JNZNS **********************************************************************/
@@ -444,7 +456,7 @@ TEST_F(InstructionSetTest, JNZNS)
   ASSERT_EQ(0, thread.pc);
 
   /* attributes */
-  ASSERT_EQ(0, instruction->attributes());
+  ASSERT_EQ(Attributes::none, instruction->attributes());
 }
 
 /* MEM ************************************************************************/
@@ -469,7 +481,7 @@ TEST_F(InstructionSetTest, MEM)
 
   /* attributes */
   ASSERT_EQ(
-    Instruction::Attributes::accu | Instruction::Attributes::mem,
+    Attributes::accu | Attributes::mem | Attributes::read,
     instruction->attributes());
 }
 
@@ -506,29 +518,38 @@ TEST_F(InstructionSetTest, CAS)
 
   /* attributes */
   ASSERT_EQ(
-    Instruction::Attributes::accu | Instruction::Attributes::write,
+    Attributes::accu | Attributes::read | Attributes::write | Attributes::atomic,
     instruction->attributes());
 }
 
-/* SYNC ***********************************************************************/
-TEST_F(InstructionSetTest, SYNC)
+/* CHECK **********************************************************************/
+TEST_F(InstructionSetTest, CHECK)
 {
-  instruction = Instruction::Set::create("SYNC", 1);
+  instruction = Instruction::Set::create("CHECK", 1);
 
-  ASSERT_EQ("SYNC", instruction->symbol());
+  ASSERT_EQ("CHECK", instruction->symbol());
 
   ASSERT_EQ(0, thread.pc);
-  ASSERT_EQ(0, thread.sync);
+  ASSERT_EQ(0, thread.check);
   ASSERT_EQ(Thread::State::INITIAL, thread.state);
 
   instruction->execute(thread);
 
   ASSERT_EQ(1, thread.pc);
-  ASSERT_EQ(1, thread.sync);
+  ASSERT_EQ(1, thread.check);
   ASSERT_EQ(Thread::State::WAITING, thread.state);
 
   /* attributes */
-  ASSERT_EQ(0, instruction->attributes());
+  ASSERT_EQ(Attributes::barrier, instruction->attributes());
+}
+
+/* HALT ***********************************************************************/
+TEST_F(InstructionSetTest, HALT)
+{
+  instruction = Instruction::Set::create("HALT");
+
+  ASSERT_EQ("HALT", instruction->symbol());
+  ASSERT_EQ(Attributes::none, instruction->attributes());
 }
 
 /* EXIT ***********************************************************************/
@@ -549,5 +570,5 @@ TEST_F(InstructionSetTest, EXIT)
   ASSERT_EQ(Thread::State::EXITING, thread.state);
 
   /* attributes */
-  ASSERT_EQ(0, instruction->attributes());
+  ASSERT_EQ(Attributes::none, instruction->attributes());
 }

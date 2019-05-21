@@ -45,12 +45,12 @@ struct Encoder
       word,
       std::set<word>>>  predecessors;
 
-  /* pcs of sync statements (sync id -> thread -> pc) */
+  /* pcs of checkpoint statements (checkpoint id -> thread -> pc) */
   std::map<
     word,
     std::map<
       word,
-      std::set<word>>>  sync_pcs;
+      std::set<word>>>  check_pcs;
 
   /* pcs of exit calls */
   std::unordered_map<
@@ -65,7 +65,7 @@ struct Encoder
    * private functions
   *****************************************************************************/
 
-  void                iterate_threads (std::function<void(void)>);
+  void                iterate_threads (std::function<void()>);
   void                iterate_threads (std::function<void(Program &)>);
   void                iterate_threads_reverse (std::function<void(Program &)>);
 
@@ -101,20 +101,20 @@ struct Encoder
   *****************************************************************************/
 
   /* encodes the whole machine configuration */
-  virtual void        encode (void) = 0;
+  virtual void        encode () = 0;
 
   /* print the SMT formula to stdout */
-  void                print (void);
+  void                print ();
 
   /* returns the SMT formula as string */
-  std::string         str (void);
+  std::string         str ();
 
   /*****************************************************************************
    * DEBUG
   *****************************************************************************/
-  std::string         predecessors_to_string (void);
-  std::string         sync_pcs_to_string (void);
-  std::string         exit_pcs_to_string (void);
+  std::string         predecessors_to_string ();
+  std::string         check_pcs_to_string ();
+  std::string         exit_pcs_to_string ();
 };
 
 /*******************************************************************************
@@ -148,60 +148,60 @@ struct SMTLibEncoder : public Encoder
   static const std::string  exec_comment;
   static const std::string  cas_comment;
   static const std::string  block_comment;
-  static const std::string  sync_comment;
+  static const std::string  check_comment;
   static const std::string  exit_comment;
 
   /* state variable generators */
   std::string               heap_var (const word);
-  std::string               heap_var (void);
+  std::string               heap_var ();
   std::string               accu_var (const word, const word);
-  std::string               accu_var (void);
+  std::string               accu_var ();
   std::string               mem_var (const word, const word);
-  std::string               mem_var (void);
+  std::string               mem_var ();
 
   /* transition variable generators */
   std::string               stmt_var (const word, const word, const word);
-  std::string               stmt_var (void);
+  std::string               stmt_var ();
   std::string               thread_var (const word, const word);
-  std::string               thread_var (void);
+  std::string               thread_var ();
   std::string               exec_var (const word, const word, const word);
-  std::string               exec_var (void);
+  std::string               exec_var ();
   std::string               cas_var (const word, const word);
-  std::string               cas_var (void);
+  std::string               cas_var ();
   std::string               block_var (const word, const word, const word);
-  std::string               sync_var (const word, const word);
+  std::string               check_var (const word, const word);
   std::string               exit_var (const word);
-  std::string               exit_var (void);
+  std::string               exit_var ();
 
   /* variable declaration generators */
-  void                      declare_heap_var (void);
-  void                      declare_accu_vars (void);
-  void                      declare_mem_vars (void);
+  void                      declare_heap_var ();
+  void                      declare_accu_vars ();
+  void                      declare_mem_vars ();
 
-  void                      declare_stmt_vars (void);
-  void                      declare_thread_vars (void);
-  void                      declare_exec_vars (void);
-  void                      declare_cas_vars (void);
-  void                      declare_block_vars (void);
-  void                      declare_sync_vars (void);
-  void                      declare_exit_var (void);
-  void                      declare_exit_code (void);
+  void                      declare_stmt_vars ();
+  void                      declare_thread_vars ();
+  void                      declare_exec_vars ();
+  void                      declare_cas_vars ();
+  void                      declare_block_vars ();
+  void                      declare_check_vars ();
+  void                      declare_exit_var ();
+  void                      declare_exit_code ();
 
   /* expression generators */
   std::string               assign_var (std::string, std::string);
 
   /* common encodings */
-  void                      add_initial_state (void);
-  void                      add_initial_statement_activation (void);
+  void                      add_initial_state ();
+  void                      add_initial_statement_activation ();
 
-  void                      add_exit_flag (void);
-  void                      add_thread_scheduling (void);
-  void                      add_synchronization_constraints (void);
-  void                      add_statement_execution (void);
+  void                      add_exit_flag ();
+  void                      add_thread_scheduling ();
+  void                      add_checkpoint_constraints ();
+  void                      add_statement_execution ();
 
   std::string               load(Load &);
 
-  virtual void              encode (void);
+  virtual void              encode ();
 };
 
 /*******************************************************************************
@@ -229,12 +229,12 @@ struct SMTLibEncoderFunctional : public SMTLibEncoder
   /* flag to distinguish between accu and heap updates when encoding CAS */
   bool                update_accu;
 
-  void                add_statement_activation (void);
-  void                add_state_update (void);
-  void                add_exit_code (void);
+  void                add_statement_activation ();
+  void                add_state_update ();
+  void                add_exit_code ();
 
   /* encodes the whole machine configuration */
-  virtual void        encode (void);
+  virtual void        encode ();
 
   /* double-dispatched instruction encoding functions */
   virtual std::string encode (Load &);
@@ -283,23 +283,23 @@ struct SMTLibEncoderRelational : public SMTLibEncoder
   std::string         assign_accu (std::string);
   std::string         assign_mem (std::string);
 
-  std::string         preserve_heap (void);
-  std::string         preserve_accu (void);
-  std::string         preserve_mem (void);
+  std::string         preserve_heap ();
+  std::string         preserve_accu ();
+  std::string         preserve_mem ();
 
   std::string         stmt_activation (word);
 
   std::string         activate_pc (word);
-  std::string         activate_next (void);
+  std::string         activate_next ();
   std::string         activate_jmp (std::string, word);
 
-  void                add_exit_code (void);
-  void                add_statement_declaration (void);
-  void                add_state_update (void);
-  void                add_state_preservation (void);
+  void                add_exit_code ();
+  void                add_statement_declaration ();
+  void                add_state_update ();
+  void                add_state_preservation ();
 
   /* encodes the whole machine configuration */
-  virtual void        encode (void);
+  virtual void        encode ();
 
   /* double-dispatched instruction encoding functions */
   virtual std::string encode (Load &);
@@ -378,7 +378,7 @@ struct Btor2Encoder : public Encoder
                               nids_mem,
 
                               nids_thread,
-                              nids_sync,
+                              nids_check,
 
                               nids_load,
                               nids_load_indirect;
@@ -424,7 +424,7 @@ struct Btor2Encoder : public Encoder
   void                        define_heap ();
   void                        define_stmt ();
   void                        define_block ();
-  void                        define_sync ();
+  void                        define_check ();
   void                        define_exit_flag ();
   void                        define_exit_code ();
 
@@ -437,7 +437,7 @@ struct Btor2Encoder : public Encoder
   void                        add_register_definitions ();
   void                        add_heap_definition ();
   void                        add_exit_definitions ();
-  void                        add_synchronization_constraints ();
+  void                        add_checkpoint_constraints ();
   void                        add_bound ();
 
   std::string                 add_load(std::string *);
@@ -446,7 +446,7 @@ struct Btor2Encoder : public Encoder
   std::string                 store(Store & s);
 
   /* encodes the whole machine configuration */
-  virtual void                encode (void);
+  virtual void                encode ();
 
   /* double-dispatched instruction encoding functions */
   virtual std::string         encode (Load &);

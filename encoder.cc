@@ -55,7 +55,7 @@ Encoder::Encoder (const ProgramListPtr p, unsigned long b) :
 
         /* collect CHECK statemets */
         if (Check_ptr s = dynamic_pointer_cast<Check>(program[pc]))
-          sync_pcs[s->arg][thread].insert(pc);
+          check_pcs[s->arg][thread].insert(pc);
 
         /* collect exit calls */
         if (Exit_ptr e = dynamic_pointer_cast<Exit>(program[pc]))
@@ -115,13 +115,13 @@ string Encoder::predecessors_to_string ()
   return ss.str();
 }
 
-string Encoder::sync_pcs_to_string ()
+string Encoder::check_pcs_to_string ()
 {
   ostringstream ss;
 
-  for (const auto & [id, threads] : sync_pcs)
+  for (const auto & [id, threads] : check_pcs)
     {
-      ss << "sync " << id << ": " << eol;
+      ss << "check " << id << ": " << eol;
       for (const auto & [_thread, pcs] : threads)
         {
           ss << "  " << _thread << ":";
@@ -191,8 +191,8 @@ const string SMTLibEncoder::cas_comment =
 const string SMTLibEncoder::block_comment =
   "; blocking variables - block_<step>_<id>_<thread>";
 
-const string SMTLibEncoder::sync_comment =
-  "; sync variables - sync_<step>_<id>";
+const string SMTLibEncoder::check_comment =
+  "; check variables - check_<step>_<id>";
 
 const string SMTLibEncoder::exit_comment =
   "; exit flag - exit_<step>";
@@ -280,9 +280,9 @@ string SMTLibEncoder::block_var (const word k, const word id, const word tid)
   return "block_" + to_string(k) + '_' + to_string(id) + '_' + to_string(tid);
 }
 
-string SMTLibEncoder::sync_var (const word k, const word id)
+string SMTLibEncoder::check_var (const word k, const word id)
 {
-  return "sync_" + to_string(k) + '_' + to_string(id);
+  return "check_" + to_string(k) + '_' + to_string(id);
 }
 
 string SMTLibEncoder::exit_var (const word k)
@@ -387,7 +387,7 @@ void SMTLibEncoder::declare_block_vars ()
   if (verbose)
     formula << block_comment << eol;
 
-  for (const auto & [s, threads] : sync_pcs)
+  for (const auto & [s, threads] : check_pcs)
     for (const auto & t : threads)
       formula
         << smtlib::declare_bool_var(block_var(step, s, t.first))
@@ -396,13 +396,13 @@ void SMTLibEncoder::declare_block_vars ()
   formula << eol;
 }
 
-void SMTLibEncoder::declare_sync_vars ()
+void SMTLibEncoder::declare_check_vars ()
 {
   if (verbose)
-    formula << sync_comment << eol;
+    formula << check_comment << eol;
 
-  for (const auto & s : sync_pcs)
-    formula << smtlib::declare_bool_var(sync_var(step, s.first)) << eol;
+  for (const auto & s : check_pcs)
+    formula << smtlib::declare_bool_var(check_var(step, s.first)) << eol;
 
   formula << eol;
 }
@@ -517,18 +517,18 @@ void SMTLibEncoder::add_thread_scheduling ()
     << eol;
 }
 
-void SMTLibEncoder::add_synchronization_constraints ()
+void SMTLibEncoder::add_checkpoint_constraints ()
 {
-  /* skip if step == 1 or SYNC isn't called at all */
-  if (sync_pcs.empty() || step < 2)
+  /* skip if step == 1 or CHECK isn't called at all */
+  if (check_pcs.empty() || step < 2)
     return;
 
   if (verbose)
-    formula << smtlib::comment_subsection("synchronization constraints");
+    formula << smtlib::comment_subsection("checkpoint constraints");
 
   declare_block_vars();
 
-  for (const auto & [s, threads] : sync_pcs)
+  for (const auto & [s, threads] : check_pcs)
     for (const auto & [t, pcs] : threads)
       {
         vector<string> block_args;
@@ -546,7 +546,7 @@ void SMTLibEncoder::add_synchronization_constraints ()
               assign_var(
                 block_var(step, s, t),
                 smtlib::ite(
-                  sync_var(step - 1, s),
+                  check_var(step - 1, s),
                   "false",
                   smtlib::lor(block_args))) <<
               eol;
@@ -563,21 +563,21 @@ void SMTLibEncoder::add_synchronization_constraints ()
 
   formula << eol;
 
-  declare_sync_vars();
+  declare_check_vars();
 
-  for (const auto & [s, threads] : sync_pcs)
+  for (const auto & [s, threads] : check_pcs)
     {
-      vector<string> sync_args;
+      vector<string> check_args;
 
-      sync_args.reserve(threads.size());
+      check_args.reserve(threads.size());
 
       for (const auto & t : threads)
-        sync_args.push_back(block_var(step, s, t.first));
+        check_args.push_back(block_var(step, s, t.first));
 
       formula <<
         assign_var(
-          sync_var(step, s),
-          smtlib::land(sync_args)) <<
+          check_var(step, s),
+          smtlib::land(check_args)) <<
         eol;
     }
 
@@ -586,17 +586,19 @@ void SMTLibEncoder::add_synchronization_constraints ()
   if (verbose)
     formula << "; prevent scheduling of waiting threads" << eol;
 
-  for (const auto & [s, threads] : sync_pcs)
+  for (const auto & [s, threads] : check_pcs)
     for (const auto & [t, pcs] : threads)
       {
         formula <<
           smtlib::assertion(
             smtlib::implication(
-              smtlib::land({block_var(step, s, t), smtlib::lnot(sync_var(step, s))}),
+              smtlib::land({
+                block_var(step, s, t),
+                smtlib::lnot(check_var(step, s))}),
               smtlib::lnot(thread_var(step, t))));
 
         if (verbose)
-          formula << " ; barrier " << s << ": thread " << t;
+          formula << " ; checkpoint " << s << ": thread " << t;
 
         formula << eol;
       }
@@ -835,8 +837,8 @@ void SMTLibEncoderFunctional::encode ()
       /* thread scheduling */
       add_thread_scheduling();
 
-      /* synchronization constraints */
-      add_synchronization_constraints();
+      /* checkpoint constraints */
+      add_checkpoint_constraints();
 
       /* statement execution */
       add_statement_execution();
@@ -1242,8 +1244,8 @@ void SMTLibEncoderRelational::encode ()
       /* thread scheduling */
       add_thread_scheduling();
 
-      /* synchronization constraints */
-      add_synchronization_constraints();
+      /* checkpoint constraints */
+      add_checkpoint_constraints();
 
       /* statement execution */
       add_statement_execution();
@@ -1625,9 +1627,9 @@ void Btor2Encoder::declare_block ()
       << btor2::comment("thread blocking flags - block_<id>_<thread>")
       << eol;
 
-  for (const auto & [s, threads] : sync_pcs)
+  for (const auto & [s, threads] : check_pcs)
     {
-      // TODO: ignore single-threaded barriers -> see gitlab issue #65
+      // TODO: ignore single-threaded checkpoints -> see gitlab issue #65
       if (threads.size() > 1)
         {
           auto & nids = nids_block.insert(nids_block.end(), {s, {}})->second;
@@ -1848,15 +1850,15 @@ void Btor2Encoder::define_block ()
   if (verbose)
     formula << btor2::comment("thread blocking flag definitions") << eol;
 
-  auto nids_sync_it = nids_sync.begin();
+  auto nids_check_it = nids_check.begin();
   auto nids_block_it = nids_block.begin();
 
-  for (const auto & [s, threads] : sync_pcs)
+  for (const auto & [s, threads] : check_pcs)
     {
-      // TODO: ignore single-threaded barriers -> see gitlab issue #65
+      // TODO: ignore single-threaded checkpoints -> see gitlab issue #65
       if (threads.size() > 1)
         {
-          string & nid_sync = nids_sync_it++->second;
+          string & nid_check = nids_check_it++->second;
 
           auto nid_block_it = nids_block_it++->second.begin();
 
@@ -1876,7 +1878,12 @@ void Btor2Encoder::define_block ()
               formula <<
                 btor2::init(nid(), sid_bool, nid_block, nid_false) <<
                 btor2::lor(node, sid_bool, args) <<
-                btor2::ite(prev = nid(), sid_bool, nid_sync, nid_false, nid(-1)) <<
+                btor2::ite(
+                  prev = nid(),
+                  sid_bool,
+                  nid_check,
+                  nid_false,
+                  nid(-1)) <<
                 btor2::next(nid(), sid_bool, nid_block, prev, sym) <<
                 eol;
             }
@@ -1884,14 +1891,14 @@ void Btor2Encoder::define_block ()
     }
 }
 
-void Btor2Encoder::define_sync ()
+void Btor2Encoder::define_check ()
 {
   if (verbose)
-    formula << btor2::comment("synchronization flags - sync_<id>") << eol;
+    formula << btor2::comment("checkpoint flags - check_<id>") << eol;
 
   for (const auto & [s, blocks] : nids_block)
     {
-      // TODO: ignore single-threaded barriers -> see gitlab issue #65
+      // TODO: ignore single-threaded checkpoints -> see gitlab issue #65
       if (blocks.size() > 1)
         {
           vector<string> args;
@@ -1899,13 +1906,13 @@ void Btor2Encoder::define_sync ()
           for (const auto & [t, nid_block] : blocks)
             args.push_back(nid_block);
 
-          formula << btor2::land(node, sid_bool, args, "sync_" + to_string(s));
+          formula << btor2::land(node, sid_bool, args, "check_" + to_string(s));
 
-          nids_sync.emplace_hint(nids_sync.end(), s, nid(-1));
+          nids_check.emplace_hint(nids_check.end(), s, nid(-1));
         }
       else
         {
-          nids_sync.emplace_hint(nids_sync.end(), s, blocks.begin()->second);
+          nids_check.emplace_hint(nids_check.end(), s, blocks.begin()->second);
         }
     }
 
@@ -2097,17 +2104,17 @@ void Btor2Encoder::add_exit_definitions ()
   define_exit_code();
 }
 
-void Btor2Encoder::add_synchronization_constraints ()
+void Btor2Encoder::add_checkpoint_constraints ()
 {
-  /* skip if there is no call to SYNC */
-  if (sync_pcs.empty())
+  /* skip if there is no call to CHECK */
+  if (check_pcs.empty())
     return;
 
   if (verbose)
-    formula << btor2::comment_section("synchronization constraints");
+    formula << btor2::comment_section("checkpoint constraints");
 
   declare_block();
-  define_sync();
+  define_check();
   define_block();
 
   if (verbose)
@@ -2115,10 +2122,10 @@ void Btor2Encoder::add_synchronization_constraints ()
 
   for (const auto & [s, threads] : nids_block)
     {
-      // TODO: ignore single-threaded barriers -> see gitlab issue #65
+      // TODO: ignore single-threaded checkpoints -> see gitlab issue #65
       if (threads.size() > 1)
         {
-          string not_sync = btor2::lnot(nids_sync[s]);
+          string not_check = btor2::lnot(nids_check[s]);
 
           for (const auto & [t, nid_block] : threads)
             {
@@ -2129,7 +2136,7 @@ void Btor2Encoder::add_synchronization_constraints ()
                   prev = nid(),
                   sid_bool,
                   nid_block,
-                  not_sync) <<
+                  not_check) <<
                 btor2::implies(
                   prev = nid(),
                   sid_bool,
@@ -2241,7 +2248,7 @@ void Btor2Encoder::encode ()
   add_register_definitions();
   add_heap_definition();
   add_exit_definitions();
-  add_synchronization_constraints();
+  add_checkpoint_constraints();
   add_bound();
 }
 

@@ -137,7 +137,7 @@ bool operator != (const Instruction & a, const Instruction & b)
     { return OPCode::classname; }                             \
   const string & classname::symbol () const                   \
     { return classname::_symbol; }                            \
-  unsigned char classname::attributes () const                \
+  Instruction::Attribute classname::attributes () const       \
     { return classname::_attributes; }                        \
   string classname::encode (Encoder & formula)                \
     { return formula.encode(*this); }
@@ -199,6 +199,7 @@ void Store::execute (Thread & thread)
 }
 
 /* FENCE **********************************************************************/
+// TODO
 DEFINE_INSTRUCTION_NULLARY(Fence, "FENCE", Attributes::barrier)
 void Fence::execute (Thread & thread)
 {
@@ -349,8 +350,16 @@ DEFINE_INSTRUCTION_UNARY(Check, "CHECK", Attributes::barrier)
 void Check::execute (Thread & thread)
 {
   thread.pc++;
-  thread.sync = arg;
+  thread.check = arg;
   thread.state = Thread::State::WAITING;
+}
+
+/* HALT ***********************************************************************/
+// TODO
+DEFINE_INSTRUCTION_NULLARY(Halt, "HALT", Attributes::none)
+void Halt::execute (Thread & thread)
+{
+  thread.pc++;
 }
 
 /* EXIT ***********************************************************************/

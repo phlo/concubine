@@ -42,11 +42,11 @@ struct Simulator
   /* main memory */
   std::unordered_map<word, word>        heap;
 
-  /* number of threads containing calls to a specific sync barrier (id) */
-  std::unordered_map<word, ThreadList>  threads_per_sync_id;
+  /* number of threads containing calls to a specific checkpoint */
+  std::unordered_map<word, ThreadList>  threads_per_check_id;
 
-  /* number of threads currently waiting for a specific sync barrier (id) */
-  std::unordered_map<word, word>        waiting_per_sync_id;
+  /* number of threads currently waiting for a specific checkpoint */
+  std::unordered_map<word, word>        waiting_for_check_id;
 
   /*****************************************************************************
    * private functions
@@ -55,7 +55,7 @@ struct Simulator
   /* adds all threads to the active queue and sets them running */
   void                                  activate_threads (ThreadList &);
 
-  /* checks if all threads reached the given barrier id and resumes them */
+  /* checks if all threads reached the given checkpoint and resumes them */
   void                                  check_and_resume_waiting (word);
 
   /* run the simulator, using the specified scheduler */
