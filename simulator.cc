@@ -1,15 +1,16 @@
 #include "simulator.hh"
 
-#include <random>
 #include <cassert>
+#include <random>
+#include <sstream>
 
 using namespace std;
 
 /* erases a given element from a <deque> container ****************************/
 template<typename T>
-inline void erase (deque<T> & lst, T & val)
+inline void erase (vector<T> & vec, T & val)
 {
-  lst.erase(remove(lst.begin(), lst.end(), val));
+  vec.erase(find(vec.begin(), vec.end(), val));
 }
 
 /*******************************************************************************
@@ -17,61 +18,62 @@ inline void erase (deque<T> & lst, T & val)
  ******************************************************************************/
 Simulator::Simulator () : bound(0) {}
 
-Simulator::Simulator (ProgramListPtr _programs) :
-  programs(_programs)
+Simulator::Simulator (ProgramListPtr p, uint64_t b, uint64_t s) :
+  programs(p),
+  bound(b),
+  seed(s)
 {
-  for (const ProgramPtr & program : *_programs)
+  for (const ProgramPtr & program : * p)
     create_thread(*program);
 }
 
 /* Simulator::create_thread (Program &) ***************************************/
-ThreadID Simulator::create_thread (Program & program)
+word Simulator::create_thread (Program & program)
 {
   /* determine thread id */
-  ThreadID id = threads.size();
+  word id = threads.size();
 
   /* add thread to queue */
-  threads.push_back(ThreadPtr(new Thread(*this, id, program)));
+  threads.push_back({*this, id, program});
 
-  /* add to checkpoint id list */
+  /* add to checkpoint sets */
   for (word i : program.check_ids)
-    threads_per_check_id[i].push_back(threads.back());
+    threads_per_checkpoint[i].push_back(&threads.back());
 
   return id;
 }
 
-/* Simulator::activate_threads (ThreadList &) *********************************/
-void Simulator::activate_threads (ThreadList & queue)
-{
-  for (ThreadPtr i : queue)
-    {
-      i->state = Thread::State::RUNNING;
-      active.push_back(i);
-    }
-}
-
-/* Simulator::check_and_resume_waiting (word) *********************************/
-void Simulator::check_and_resume_waiting (word check_id)
+/* Simulator::check_and_resume (word) *****************************************/
+void Simulator::check_and_resume (word id)
 {
   /* all other threads already at this checkpoint? */
-  if (waiting_for_check_id[check_id] == threads_per_check_id[check_id].size())
+  if (waiting_for_checkpoint[id] == threads_per_checkpoint[id].size())
     {
       /* reset number of waiting threads */
-      waiting_for_check_id[check_id] = 0;
+      waiting_for_checkpoint[id] = 0;
 
       /* reactivate threads */
-      activate_threads(threads_per_check_id[check_id]);
+      for (Thread * t : threads_per_checkpoint[id])
+        {
+          t->state = Thread::State::running;
+          active.push_back(t);
+        }
     }
 }
 
 /* Simulator::run (Scheduler *) ***********************************************/
-SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
+SchedulePtr Simulator::run (function<Thread *()> scheduler)
 {
   SchedulePtr schedule = make_shared<Schedule>(programs);
 
   assert(active.empty());
 
-  activate_threads(threads);
+  /* activate threads */
+  for (Thread & t : threads)
+    {
+      t.state = Thread::State::running;
+      active.push_back(&t);
+    }
 
   bool done = active.empty();
 
@@ -80,9 +82,9 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
     {
       step++;
 
-      ThreadPtr thread = scheduler();
+      Thread * thread = scheduler();
 
-      assert(thread->state == Thread::State::RUNNING);
+      assert(thread->state == Thread::State::running);
 
       /* store current pc */
       word pc = thread->pc;
@@ -103,7 +105,7 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
       /* get eventual heap update (ignore failed CAS) */
       if (store)
         {
-          if (store->opcode() == Instruction::OPCode::Store || thread->accu)
+          if (!(store->type() & Instruction::Types::atomic) || thread->accu)
             heap_cell->val = heap[heap_cell->idx];
           else /* CAS failed */
             heap_cell = {};
@@ -116,25 +118,25 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
       switch (thread->state)
         {
         /* keep 'em running */
-        case Thread::State::RUNNING: break;
+        case Thread::State::running: break;
 
         /* checkpoint reached - release if all other threads are waiting already */
-        case Thread::State::WAITING:
+        case Thread::State::waiting:
             {
               /* remove from active threads */
               erase(active, thread);
 
               /* increment number of waiting threads */
-              waiting_for_check_id[thread->check]++;
+              waiting_for_checkpoint[thread->check]++;
 
               /* all other threads already waiting at this checkpoint? */
-              check_and_resume_waiting(thread->check);
+              check_and_resume(thread->check);
 
               break;
             }
 
         /* halted - quit if all the others also stopped */
-        case Thread::State::STOPPED:
+        case Thread::State::halted:
             {
               /* remove from active threads */
               erase(active, thread);
@@ -143,24 +145,24 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
               if (dynamic_pointer_cast<Check>(thread->program.back()))
                   {
                     /* remove from list of waiting threads */
-                    erase(threads_per_check_id[thread->check], thread);
+                    erase(threads_per_checkpoint[thread->check], thread);
 
                     /* activate all waiting threads if this was the last one */
-                    check_and_resume_waiting(thread->check);
+                    check_and_resume(thread->check);
                   }
 
               /* check if we were the last thread standing */
-              done = accumulate(threads.begin(), threads.end(), true,
-                [](const bool & d, const ThreadPtr & t)
-                {
-                  return d && t->state == Thread::State::STOPPED;
-                });
+              done = true;
+
+              for (const Thread & t : threads)
+                if (t.state != Thread::State::halted)
+                  done = false;
 
               break;
             }
 
         /* exiting - return exit code */
-        case Thread::State::EXITING:
+        case Thread::State::exited:
             {
               done = true;
               schedule->exit = static_cast<int>(thread->accu);
@@ -168,10 +170,13 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
             }
 
         default:
-          throw runtime_error(
-            "illegal thread state transition " +
-            to_string(Thread::State::RUNNING) + " -> " +
-            to_string(thread->state));
+          ostringstream msg;
+          msg
+            << "illegal thread state transition "
+            << static_cast<char>(Thread::State::running)
+            << " -> "
+            << static_cast<char>(thread->state);
+          throw runtime_error(msg.str());
         }
     }
 
@@ -179,58 +184,216 @@ SchedulePtr Simulator::run (function<ThreadPtr(void)> scheduler)
 }
 
 /* Simulator::simulate (unsigned long, unsigned long) *************************/
-SchedulePtr Simulator::simulate (unsigned long _bound, unsigned long _seed)
+SchedulePtr Simulator::simulate (
+                                 ProgramListPtr programs,
+                                 unsigned long bound,
+                                 unsigned long seed
+                                )
 {
-  /* set bound */
-  bound = _bound;
-
-  /* set seed */
-  seed = _seed;
+  Simulator simulator {programs, bound, seed};
 
   /* Mersenne Twister pseudo-random number generator */
   mt19937_64 random(seed);
 
   /* random scheduler */
-  function<ThreadPtr(void)> scheduler = [this, &random]
-    {
-      return this->active[random() % this->active.size()];
-    };
-
-  return run(scheduler);
+  return simulator.run([&simulator, &random] {
+    return simulator.active[random() % simulator.active.size()];
+  });
 }
 
 /* Simulator::replay (Schedule &, unsigned long) ******************************/
-SchedulePtr Simulator::replay (Schedule & schedule, unsigned long _bound)
+SchedulePtr Simulator::replay (Schedule & schedule, unsigned long bound)
 {
-  /* check programs */
-  if (programs->size() != schedule.programs->size())
-    throw runtime_error(
-      "number of programs differ [" +
-      to_string(programs->size()) +
-      ", " +
-      to_string(schedule.programs->size()) +
-      "]");
-
-  for (size_t i = 0; i < programs->size(); i++)
-    if (*programs->at(i) != *schedule.programs->at(i))
-      throw runtime_error(
-        "program #" +
-        to_string(i) +
-        " differs: " +
-        programs->at(i)->path +
-        " != " +
-        schedule.programs->at(i)->path);
-
-  /* set bound */
-  bound = _bound && _bound < schedule.bound ? _bound : schedule.bound;
-
-  Schedule::iterator iterator {schedule.begin()};
+  Simulator simulator {
+    schedule.programs,
+    bound && bound < schedule.bound ? bound : schedule.bound
+  };
 
   /* replay scheduler */
-  function<ThreadPtr(void)> scheduler = [this, &iterator]
-    {
-      return threads[iterator++->thread];
-    };
+  Schedule::iterator iterator = schedule.begin();
 
-  return run(scheduler);
+  return simulator.run([&simulator, &iterator] {
+    return &simulator.threads[iterator++->thread];
+  });
+}
+
+/*******************************************************************************
+ * Thread
+ ******************************************************************************/
+Thread::Thread (Simulator & _simulator, word _id, Program & _program) :
+  id(_id),
+  pc(0),
+  mem(0),
+  accu(0),
+  check(0),
+  state(State::initial),
+  simulator(_simulator),
+  program(_program)
+{}
+
+/* Thread::load (word) ********************************************************/
+word Thread::load (word addr, bool indirect)
+{
+  return
+    indirect
+      ? simulator.heap[simulator.heap[addr]]
+      : simulator.heap[addr];
+}
+
+/* Thread::store (word, word) *************************************************/
+void Thread::store (word addr, word val, bool indirect)
+{
+  simulator.heap[indirect ? simulator.heap[addr] : addr] = val;
+}
+
+/* Thread::execute (void) *****************************************************/
+void Thread::execute ()
+{
+  if (pc >= program.size())
+    throw runtime_error("illegal pc [" + to_string(pc) + "]");
+
+  /* execute instruction */
+  program.at(pc)->execute(*this);
+
+  /* set state to halted if it was the last command in the program */
+  if (pc >= program.size())
+    state = State::halted;
+}
+void Load::execute (Thread & thread)
+{
+  thread.pc++;
+  thread.accu = thread.load(arg, indirect);
+}
+
+void Store::execute (Thread & thread)
+{
+  thread.pc++;
+  thread.store(arg, thread.accu, indirect);
+}
+
+// TODO
+void Fence::execute (Thread & thread)
+{
+  thread.pc++;
+}
+
+void Add::execute (Thread & thread)
+{
+  thread.pc++;
+  thread.accu += thread.load(arg, indirect);
+}
+
+void Addi::execute (Thread & thread)
+{
+  thread.pc++;
+  thread.accu += arg;
+}
+
+void Sub::execute (Thread & thread)
+{
+  thread.pc++;
+  thread.accu -= thread.load(arg, indirect);
+}
+
+void Subi::execute (Thread & thread)
+{
+  thread.pc++;
+  thread.accu -= arg;
+}
+
+void Cmp::execute (Thread & thread)
+{
+  thread.pc++;
+  thread.accu = static_cast<word>(
+    static_cast<signed_word>(thread.accu) -
+    static_cast<signed_word>(thread.load(arg, indirect))
+  );
+}
+
+void Jmp::execute (Thread & thread)
+{
+  thread.pc = arg;
+}
+
+void Jz::execute (Thread & thread)
+{
+  if (thread.accu == 0)
+    thread.pc = arg;
+  else
+    thread.pc++;
+}
+
+void Jnz::execute (Thread & thread)
+{
+  if (thread.accu != 0)
+    thread.pc = arg;
+  else
+    thread.pc++;
+}
+
+void Js::execute (Thread & thread)
+{
+  if (static_cast<signed_word>(thread.accu) < 0)
+    thread.pc = arg;
+  else
+    thread.pc++;
+}
+
+void Jns::execute (Thread & thread)
+{
+  if (static_cast<signed_word>(thread.accu) >= 0)
+    thread.pc = arg;
+  else
+    thread.pc++;
+}
+
+void Jnzns::execute (Thread & thread)
+{
+  if (static_cast<signed_word>(thread.accu) > 0)
+    thread.pc = arg;
+  else
+    thread.pc++;
+}
+
+void Mem::execute (Thread & thread)
+{
+  Load::execute(thread);
+  thread.mem = thread.accu;
+}
+
+void Cas::execute (Thread & thread)
+{
+  thread.pc++;
+
+  word acutal = thread.load(arg, indirect);
+  word expected = thread.mem;
+
+  if (acutal == expected)
+    {
+      thread.store(arg, thread.accu, indirect);
+      thread.accu = 1;
+    }
+  else
+    {
+      thread.accu = 0;
+    }
+}
+
+void Check::execute (Thread & thread)
+{
+  thread.pc++;
+  thread.check = arg;
+  thread.state = Thread::State::waiting;
+}
+
+// TODO
+void Halt::execute (Thread & thread)
+{
+  thread.pc++;
+}
+
+void Exit::execute (Thread & thread)
+{
+  thread.accu = arg;
+  thread.state = Thread::State::exited;
 }

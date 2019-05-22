@@ -35,7 +35,6 @@ SRC = boolector.cc \
       shell.cc \
       simulator.cc \
       solver.cc \
-      thread.cc \
       z3.cc
 
 # object files

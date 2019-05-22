@@ -89,7 +89,7 @@ SchedulePtr Z3::solve (Encoder & encoder, string & constraints)
 
                 /* get eventual heap update (ignore failed CAS) */
                 if (Store_ptr store = dynamic_pointer_cast<Store>(program[pc]))
-                  if (store->opcode() == Instruction::OPCode::Store || accu)
+                  if (!(store->type() & Instruction::Types::atomic) || accu)
                     {
                       word idx = store->arg;
 

@@ -1,11 +1,16 @@
 #ifndef PROGRAM_HH_
 #define PROGRAM_HH_
 
-#include <istream>
 #include <deque>
+#include <istream>
+#include <memory>
+#include <unordered_map>
 #include <unordered_set>
 
-#include "instructionset.hh"
+#include "common.hh"
+
+struct Instruction;
+using Instruction_ptr = std::shared_ptr<Instruction>;
 
 /*******************************************************************************
  * Program

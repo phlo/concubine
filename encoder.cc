@@ -656,15 +656,15 @@ SMTLibEncoderFunctional::SMTLibEncoderFunctional (
   iterate_threads([&] (Program & program) {
     for (pc = 0; pc < program.size(); pc++)
       {
-        const unsigned char attributes = program[pc]->attributes();
+        const Instruction::Type type = program[pc]->type();
 
-        if (attributes & Instruction::Attributes::accu)
+        if (type & Instruction::Types::accu)
           alters_accu[thread].push_back(pc);
 
-        if (attributes & Instruction::Attributes::mem)
+        if (type & Instruction::Types::mem)
           alters_mem[thread].push_back(pc);
 
-        if (attributes & Instruction::Attributes::write)
+        if (type & Instruction::Types::write)
           alters_heap[thread].push_back(pc);
       }
   });
@@ -1518,15 +1518,15 @@ Btor2Encoder::Btor2Encoder (
           nids_const[i->arg] = "";
 
         /* initialize state update maps */
-        const unsigned char attributes = op->attributes();
+        const Instruction::Type type = op->type();
 
-        if (attributes & Instruction::Attributes::accu)
+        if (type & Instruction::Types::accu)
           alters_accu[thread].push_back(pc);
 
-        if (attributes & Instruction::Attributes::mem)
+        if (type & Instruction::Types::mem)
           alters_mem[thread].push_back(pc);
 
-        if (attributes & Instruction::Attributes::write)
+        if (type & Instruction::Types::write)
           alters_heap[thread].push_back(pc);
       }
   });

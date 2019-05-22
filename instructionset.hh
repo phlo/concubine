@@ -17,55 +17,15 @@ struct Encoder;
 struct Instruction
 {
   /* Instruction Types */
-  enum Type
-    {
-      UNKNOWN = 0,
-      NULLARY,
-      BARRIER,
-      UNARY,
-      MEMORY,
-      ATOMIC
-    };
+  using Type = uint8_t;
 
-   /* OP Codes */
-   // NOTE: really necessary?
-  enum class OPCode
-    {
-      Load,
-      Store,
-      Fence,
-
-      Add,
-      Addi,
-      Sub,
-      Subi,
-
-      Cmp,
-      Jmp,
-      Jz,
-      Jnz,
-      Js,
-      Jns,
-      Jnzns,
-
-      Mem,
-      Cas,
-
-      Check,
-      Halt,
-      Exit
-    };
-
-  /* Instruction Attributes */
-  using Attribute = uint8_t;
-
-  enum Attributes : Attribute
+  enum Types : Type
     {
       none    = 0,
       accu    = 1 << 1, // modifies accu
       mem     = 1 << 2, // modifies mem
-      read    = 1 << 3, // read from memory
-      write   = 1 << 4, // write to memory
+      read    = 1 << 3, // reads from memory
+      write   = 1 << 4, // writes to memory
       barrier = 1 << 5, // memory barrier
       atomic  = 1 << 6 | barrier // atomic instruction
     };
@@ -91,23 +51,24 @@ struct Instruction
       virtual ~Set (void) = 0; // for a purely static class
 
       // NOTE: really needed?
-      static Instruction::Type  contains (std::string);
+      static bool contains (std::string);
 
       typedef std::shared_ptr<Instruction> Instruction_ptr; // readability
 
-      static Instruction_ptr create (std::string);
-      static Instruction_ptr create (std::string, const word);
-      static Instruction_ptr create (std::string, const word, const bool);
+      static Instruction_ptr create (const std::string && name);
+      static Instruction_ptr create (const std::string && name, const word arg);
+      static Instruction_ptr create (
+                                     const std::string && name,
+                                     const word arg,
+                                     const bool indirect
+                                    );
     };
 
   /* Instruction Members ******************************************************/
-  virtual Type                type   (void) const;
-  virtual OPCode              opcode (void) const = 0;
+  virtual Type                type   (void) const = 0;
   virtual const std::string & symbol (void) const = 0;
-  virtual Attribute           attributes (void) const = 0;
 
   virtual void                execute (Thread &) = 0;
-
   virtual std::string         encode (Encoder &) = 0;
 };
 
@@ -121,8 +82,6 @@ struct Unary : public Instruction
   const word arg;
 
   Unary (const word);
-
-  virtual Type          type (void) const;
 };
 
 using Unary_ptr = std::shared_ptr<Unary>;
@@ -135,8 +94,6 @@ struct Memory : public Unary
   bool indirect;
 
   Memory (const word, const bool = false);
-
-  virtual Type          type (void) const;
 };
 
 using Memory_ptr = std::shared_ptr<Memory>;
@@ -150,38 +107,37 @@ bool operator != (const Instruction &, const Instruction &);
 /*******************************************************************************
  * Instructions
  ******************************************************************************/
-#define DECLARE_COMMON_MEMBERS()                          \
-    static  const std::string   _symbol;                  \
-    static  const Attribute     _attributes;              \
-                                                          \
-    virtual       OPCode        opcode () const;          \
-    virtual const std::string & symbol () const;          \
-    virtual       Attribute     attributes (void) const;  \
-                                                          \
-    virtual       void          execute (Thread &);       \
-    virtual       std::string   encode (Encoder &);       \
+#define DECLARE_MEMBERS \
+    static  const Type          _type; \
+    static  const std::string   _symbol; \
+    \
+    virtual       Type          type () const; \
+    virtual const std::string & symbol () const; \
+    \
+    virtual       void          execute (Thread &); \
+    virtual       std::string   encode (Encoder &);
 
-#define DECLARE_NULLARY(classname, baseclass)       \
-  struct classname : baseclass                      \
-  {                                                 \
-    DECLARE_COMMON_MEMBERS ()                       \
-  };                                                \
+#define DECLARE_NULLARY(classname, baseclass) \
+  struct classname : baseclass \
+  { \
+    DECLARE_MEMBERS \
+  }; \
   using classname##_ptr = std::shared_ptr<classname>;
 
-#define DECLARE_UNARY(classname, baseclass)       \
-  struct classname : baseclass                    \
-  {                                               \
-    DECLARE_COMMON_MEMBERS ()                     \
-    classname (const word a) : baseclass(a) {};   \
-  };                                              \
+#define DECLARE_UNARY(classname, baseclass) \
+  struct classname : baseclass \
+  { \
+    DECLARE_MEMBERS \
+    classname (const word a) : baseclass(a) {}; \
+  }; \
   using classname##_ptr = std::shared_ptr<classname>;
 
-#define DECLARE_MEMORY(classname, baseclass)                              \
-  struct classname : baseclass                                            \
-  {                                                                       \
-    DECLARE_COMMON_MEMBERS ()                                             \
-    classname (const word a, const bool i = false) : baseclass(a, i) {};  \
-  };                                                                      \
+#define DECLARE_MEMORY(classname, baseclass) \
+  struct classname : baseclass \
+  { \
+    DECLARE_MEMBERS \
+    classname (const word a, const bool i = false) : baseclass(a, i) {}; \
+  }; \
   using classname##_ptr = std::shared_ptr<classname>;
 
 DECLARE_MEMORY  (Load,  Memory)

@@ -2,6 +2,7 @@
 
 #include <sstream>
 
+#include "instructionset.hh"
 #include "parser.hh"
 
 using namespace std;

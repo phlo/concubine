@@ -7,7 +7,6 @@
 #include <vector>
 
 #include "program.hh"
-#include "thread.hh"
 
 /*******************************************************************************
  * Schedule

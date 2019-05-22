@@ -7,6 +7,7 @@
 #include <set>
 #include <vector>
 
+#include "instructionset.hh"
 #include "program.hh"
 
 /*******************************************************************************
