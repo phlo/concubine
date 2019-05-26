@@ -1,6 +1,7 @@
 #include "program.hh"
 
 #include <sstream>
+#include <vector>
 
 #include "instructionset.hh"
 #include "parser.hh"
@@ -11,6 +12,10 @@ using namespace std;
 Program::Program() {}
 
 /* construct from file ********************************************************/
+#define PARSER_ERROR(msg) do { parser_error(path, line_num, msg); } while (0)
+#define INSTRUCTION_ERROR(msg) PARSER_ERROR("'" + symbol + "' " + msg)
+#define UNKNOWN_INSTRUCTION_ERROR() INSTRUCTION_ERROR("unknown instruction")
+
 Program::Program(istream & file, string & name) : path(name)
 {
   string token;
@@ -20,7 +25,7 @@ Program::Program(istream & file, string & name) : path(name)
   unsigned long line_num = 1;
 
   /* list of jump instructions at pc referencing a certain label */
-  deque<tuple<string, word, const string *>> labelled_jumps;
+  vector<tuple<string, word, const string *>> labelled_jumps;
 
   for (string line_buf; getline(file, line_buf); line_num++)
     {
@@ -52,97 +57,87 @@ Program::Program(istream & file, string & name) : path(name)
 
       string symbol = token;
 
-      /* parse instruction */
-      switch (Instruction::Set::contains(symbol))
-        {
-        case Instruction::Type::NULLARY:
-            {
-              cmd = Instruction::Set::create(symbol);
-              break;
-            }
-        case Instruction::Type::UNARY:
-        case Instruction::Type::MEMORY:
-            {
-              word arg;
+      line >> ws;
 
-              /* try to parse the argument */
-              if (line >> arg)
+      /* parse instruction */
+      if (line.eof())
+        {
+          try { cmd = Instruction::Set::create(symbol); }
+          catch (...) { UNKNOWN_INSTRUCTION_ERROR(); }
+        }
+      else
+        {
+          word arg;
+
+          /* try to parse the argument */
+          if (line >> arg)
+            {
+              try { cmd = Instruction::Set::create(symbol, arg); }
+              catch (...) { UNKNOWN_INSTRUCTION_ERROR(); }
+            }
+          /* label or indirect addressing */
+          else
+            {
+              /* clear failbit - recover ifstream */
+              line.clear();
+
+              /* discard leading whitespaces for later use of peek */
+              line >> ws;
+
+              /* arg is an indirect memory address */
+              if (line.peek() == '[')
                 {
-                  cmd = Instruction::Set::create(symbol, arg);
+                  /* parse enclosed address */
+                  line >> token;
+
+                  try
+                    {
+                      arg = stoul(token.substr(1, token.size() - 2));
+                    }
+                  catch (invalid_argument & e)
+                    {
+                      PARSER_ERROR(
+                        "indirect addressing does not support labels");
+                    }
+
+                  try { cmd = Instruction::Set::create(symbol, arg); }
+                  catch (...) { UNKNOWN_INSTRUCTION_ERROR(); }
+
+                  /* check if the instruction supports indirect addresses */
+                  if (auto m = dynamic_pointer_cast<Memory>(cmd))
+                    m->indirect = true;
+                  else
+                    INSTRUCTION_ERROR("does not support indirect addressing");
                 }
-              /* label or indirect addressing */
+              /* arg is a label */
               else
                 {
-                  /* clear failbit - recover ifstream */
-                  line.clear();
+                  /* create dummy Instruction which will be replaced by the
+                     actual one when all labels are known */
+                  try { cmd = Instruction::Set::create(symbol, word_max); }
+                  catch (...) { UNKNOWN_INSTRUCTION_ERROR(); }
 
-                  /* discard leading whitespaces for later use of peek */
-                  line >> ws;
-
-                  /* arg is an indirect memory address */
-                  if (line.peek() == '[')
+                  /* check if the instruction supports labels (is a jmp) */
+                  if (dynamic_pointer_cast<Jmp>(cmd))
                     {
-                      /* parse enclosed address */
+                      /* get the label */
                       line >> token;
 
-                      istringstream addr(token.substr(1, token.size() - 2));
+                      /* get the program counter */
+                      word pc = size();
 
-                      /* check if address is a number */
-                      if (!(addr >> arg))
-                        parser_error(
-                          path,
-                          line_num,
-                          "indirect addressing does not support labels");
-
-                      cmd = Instruction::Set::create(symbol, arg);
-
-                      /* check if the instruction supports indirect addresses */
-                      if (auto m = dynamic_pointer_cast<Memory>(cmd))
-                        m->indirect = true;
-                      else
-                        parser_error(
-                          path,
-                          line_num,
-                          symbol + " does not support indirect addressing");
+                      /* add tuple to the list of labelled jumps */
+                      labelled_jumps.push_back(
+                        make_tuple(
+                          symbol,
+                          pc,
+                          &*labels.insert(token).first));
                     }
-                  /* arg is a label */
+                  /* error: not a jump instruction */
                   else
-                    {
-                      /* create dummy Instruction which will be replaced by the
-                         actual one when all labels are known */
-                      cmd = Instruction::Set::create(symbol, word_max);
-
-                      /* check if the instruction supports labels (is a jmp) */
-                      if (dynamic_pointer_cast<Jmp>(cmd))
-                        {
-                          /* get the label */
-                          line >> token;
-
-                          /* get the program counter */
-                          word pc = size();
-
-                          /* add tuple to the list of labelled jumps */
-                          labelled_jumps.push_back(
-                            make_tuple(
-                              symbol,
-                              pc,
-                              &*labels.insert(token).first));
-                        }
-                      /* error: not a jump instruction */
-                      else
-                        parser_error(
-                          path,
-                          line_num,
-                          symbol + " does not support labels");
-                    }
+                    INSTRUCTION_ERROR("does not support labels");
                 }
-              break;
             }
-        default: /* unrecognized token */
-          parser_error(
-            path,
-            line_num,
-            "'" + symbol + "'" + " unknown instruction");
         }
 
       push_back(cmd);

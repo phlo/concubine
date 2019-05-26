@@ -7,10 +7,10 @@
 using namespace std;
 
 /* erases a given element from a <deque> container ****************************/
-template<typename T>
-inline void erase (vector<T> & vec, T & val)
+template<typename C, typename T>
+inline void erase (C & container, T & val)
 {
-  vec.erase(find(vec.begin(), vec.end(), val));
+  container.erase(find(container.begin(), container.end(), val));
 }
 
 /*******************************************************************************
@@ -23,6 +23,9 @@ Simulator::Simulator (ProgramListPtr p, uint64_t b, uint64_t s) :
   bound(b),
   seed(s)
 {
+  active.reserve(programs->size());
+  threads.reserve(programs->size());
+
   for (const ProgramPtr & program : * p)
     create_thread(*program);
 }
@@ -231,7 +234,7 @@ Thread::Thread (Simulator & _simulator, word _id, Program & _program) :
   program(_program)
 {}
 
-/* Thread::load (word) ********************************************************/
+/* Thread::load ***************************************************************/
 word Thread::load (word addr, bool indirect)
 {
   return
@@ -240,13 +243,13 @@ word Thread::load (word addr, bool indirect)
       : simulator.heap[addr];
 }
 
-/* Thread::store (word, word) *************************************************/
+/* Thread::store **************************************************************/
 void Thread::store (word addr, word val, bool indirect)
 {
   simulator.heap[indirect ? simulator.heap[addr] : addr] = val;
 }
 
-/* Thread::execute (void) *****************************************************/
+/* Thread::execute ************************************************************/
 void Thread::execute ()
 {
   if (pc >= program.size())
@@ -259,141 +262,145 @@ void Thread::execute ()
   if (pc >= program.size())
     state = State::halted;
 }
-void Load::execute (Thread & thread)
+
+void Thread::execute (Load & l)
 {
-  thread.pc++;
-  thread.accu = thread.load(arg, indirect);
+  pc++;
+  accu = load(l.arg, l.indirect);
 }
 
-void Store::execute (Thread & thread)
+void Thread::execute (Store & s)
 {
-  thread.pc++;
-  thread.store(arg, thread.accu, indirect);
+  pc++;
+  store(s.arg, accu, s.indirect);
 }
 
 // TODO
-void Fence::execute (Thread & thread)
+void Thread::execute (Fence & f [[maybe_unused]])
 {
-  thread.pc++;
+  pc++;
 }
 
-void Add::execute (Thread & thread)
+void Thread::execute (Add & a)
 {
-  thread.pc++;
-  thread.accu += thread.load(arg, indirect);
+  pc++;
+  accu += load(a.arg, a.indirect);
 }
 
-void Addi::execute (Thread & thread)
+void Thread::execute (Addi & a)
 {
-  thread.pc++;
-  thread.accu += arg;
+  pc++;
+  accu += a.arg;
 }
 
-void Sub::execute (Thread & thread)
+void Thread::execute (Sub & s)
 {
-  thread.pc++;
-  thread.accu -= thread.load(arg, indirect);
+  pc++;
+  accu -= load(s.arg, s.indirect);
 }
 
-void Subi::execute (Thread & thread)
+void Thread::execute (Subi & s)
 {
-  thread.pc++;
-  thread.accu -= arg;
+  pc++;
+  accu -= s.arg;
 }
 
-void Cmp::execute (Thread & thread)
+void Thread::execute (Cmp & c)
 {
-  thread.pc++;
-  thread.accu = static_cast<word>(
-    static_cast<signed_word>(thread.accu) -
-    static_cast<signed_word>(thread.load(arg, indirect))
+  pc++;
+  accu =
+    static_cast<word>(
+      static_cast<signed_word>(accu) -
+      static_cast<signed_word>(load(c.arg, c.indirect))
   );
 }
 
-void Jmp::execute (Thread & thread)
+void Thread::execute (Jmp & j)
 {
-  thread.pc = arg;
+  pc = j.arg;
 }
 
-void Jz::execute (Thread & thread)
+void Thread::execute (Jz & j)
 {
-  if (thread.accu == 0)
-    thread.pc = arg;
+  if (accu)
+    pc++;
   else
-    thread.pc++;
+    pc = j.arg;
 }
 
-void Jnz::execute (Thread & thread)
+void Thread::execute (Jnz & j)
 {
-  if (thread.accu != 0)
-    thread.pc = arg;
+  if (accu)
+    pc = j.arg;
   else
-    thread.pc++;
+    pc++;
 }
 
-void Js::execute (Thread & thread)
+void Thread::execute (Js & j)
 {
-  if (static_cast<signed_word>(thread.accu) < 0)
-    thread.pc = arg;
+  if (static_cast<signed_word>(accu) < 0)
+    pc = j.arg;
   else
-    thread.pc++;
+    pc++;
 }
 
-void Jns::execute (Thread & thread)
+void Thread::execute (Jns & j)
 {
-  if (static_cast<signed_word>(thread.accu) >= 0)
-    thread.pc = arg;
+  if (static_cast<signed_word>(accu) >= 0)
+    pc = j.arg;
   else
-    thread.pc++;
+    pc++;
 }
 
-void Jnzns::execute (Thread & thread)
+void Thread::execute (Jnzns & j)
 {
-  if (static_cast<signed_word>(thread.accu) > 0)
-    thread.pc = arg;
+  if (static_cast<signed_word>(accu) > 0)
+    pc = j.arg;
   else
-    thread.pc++;
+    pc++;
 }
 
-void Mem::execute (Thread & thread)
+void Thread::execute (Mem & m)
 {
-  Load::execute(thread);
-  thread.mem = thread.accu;
+  pc++;
+  mem = accu = load(m.arg, m.indirect);
 }
 
-void Cas::execute (Thread & thread)
+void Thread::execute (Cas & c)
 {
-  thread.pc++;
+  pc++;
 
-  word acutal = thread.load(arg, indirect);
-  word expected = thread.mem;
-
-  if (acutal == expected)
+  if (mem == load(c.arg, c.indirect))
     {
-      thread.store(arg, thread.accu, indirect);
-      thread.accu = 1;
+      store(c.arg, accu, c.indirect);
+      accu = 1;
     }
   else
     {
-      thread.accu = 0;
+      accu = 0;
     }
 }
 
-void Check::execute (Thread & thread)
+void Thread::execute (Check & c)
 {
-  thread.pc++;
-  thread.check = arg;
-  thread.state = Thread::State::waiting;
+  pc++;
+  check = c.arg;
+  state = State::waiting;
 }
 
 // TODO
-void Halt::execute (Thread & thread)
+void Thread::execute (Halt & h [[maybe_unused]])
 {
-  thread.pc++;
+  pc++;
 }
 
-void Exit::execute (Thread & thread)
+void Thread::execute (Exit & e)
 {
-  thread.accu = arg;
-  thread.state = Thread::State::exited;
+  accu = e.arg;
+  state = State::exited;
+}
+
+std::ostream & operator << (std::ostream & os, Thread::State s)
+{
+    return os << static_cast<char>(s);
 }

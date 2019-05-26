@@ -1,5 +1,5 @@
 # wait for checker barrier
-SYNC 1
+CHECK 1
 
 # load incremented global
 LOAD 1

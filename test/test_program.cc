@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
 
-#include "parser.hh"
 #include "program.hh"
+
+#include "instructionset.hh"
+#include "parser.hh"
 
 using namespace std;
 
@@ -123,7 +125,7 @@ TEST_F(ProgramTest, parse_illegal_instruction)
     }
   catch (const exception & e)
     {
-      ASSERT_EQ(path + ":1: ADD does not support labels", e.what());
+      ASSERT_EQ(path + ":1: 'ADD' does not support labels", e.what());
     }
 
   /* illegal instruction argument (indirect addressing) */
@@ -137,7 +139,7 @@ TEST_F(ProgramTest, parse_illegal_instruction)
   catch (const exception & e)
     {
       ASSERT_EQ(
-        path + ":1: CHECK does not support indirect addressing",
+        path + ":1: 'CHECK' does not support indirect addressing",
         e.what());
     }
 

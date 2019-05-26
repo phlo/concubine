@@ -1,7 +1,8 @@
 #include <gtest/gtest.h>
 
-#include "program.hh"
 #include "simulator.hh"
+
+#include "program.hh"
 
 using namespace std;
 
@@ -55,7 +56,7 @@ TEST_F(ThreadTest, execute)
   /* success */
   ASSERT_EQ(0, thread.pc);
   ASSERT_EQ(0, thread.accu);
-  ASSERT_EQ(Thread::State::INITIAL, thread.state);
+  ASSERT_EQ(Thread::State::initial, thread.state);
 
   program.push_back(Instruction::Set::create("ADDI", 1));
 
@@ -66,7 +67,7 @@ TEST_F(ThreadTest, execute)
 
   /* fail - pc > program => STOPPED */
   ASSERT_EQ(1, program.size());
-  ASSERT_EQ(Thread::State::STOPPED, thread.state);
+  ASSERT_EQ(Thread::State::halted, thread.state);
 
   try
     {

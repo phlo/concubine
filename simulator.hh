@@ -70,6 +70,8 @@ struct Thread
   void          execute (Exit &);
 };
 
+std::ostream & operator << (std::ostream & os, Thread::State s);
+
 struct Simulator
 {
   /* default constructor (testing only) */
@@ -83,61 +85,65 @@ struct Simulator
    ****************************************************************************/
 
   /* list of programs */
-  ProgramListPtr                  programs;
+  ProgramListPtr            programs;
 
   /* bounded execution */
-  uint64_t                        bound;
+  uint64_t                  bound;
 
   /* seed used for thread scheduling */
-  uint64_t                        seed;
+  uint64_t                  seed;
 
   /* list of active threads */
   // NOTE: much more lookup than insert/remove operations
-  std::vector<Thread *>           active;
+  std::vector<Thread *>     active;
 
   /* list of all threads */
-  std::vector<Thread>             threads;
+  std::vector<Thread>       threads;
 
   /* main memory */
-  std::unordered_map<word, word>  heap;
+  std::unordered_map<
+    word,
+    word>                   heap;
 
   /* number of threads containing calls to a specific checkpoint */
   std::unordered_map<
     word,
-    std::vector<Thread *>>        threads_per_checkpoint;
+    std::vector<Thread *>>  threads_per_checkpoint;
 
   /* number of threads currently waiting for a specific checkpoint */
-  std::unordered_map<word, word>  waiting_for_checkpoint;
+  std::unordered_map<
+    word,
+    word>                   waiting_for_checkpoint;
 
   /*****************************************************************************
    * private functions
    ****************************************************************************/
 
   /* checks if all threads reached the given checkpoint and resumes them */
-  void                            check_and_resume (word id);
+  void                      check_and_resume (word id);
 
   /* creates a thread using the given program, thread id == number of threads*/
-  word                            create_thread (Program &);
+  word                      create_thread (Program &);
 
   /* run the simulator, using the specified scheduler */
-  SchedulePtr                     run (std::function<Thread *()>);
+  SchedulePtr               run (std::function<Thread *()>);
 
   /*****************************************************************************
    * public functions
    ****************************************************************************/
 
   /* runs the simulator using a random schedule */
-  static SchedulePtr              simulate (
-                                            ProgramListPtr programs,
-                                            unsigned long bound = 0,
-                                            unsigned long seed = 0
-                                           );
+  static SchedulePtr        simulate (
+                                      ProgramListPtr programs,
+                                      unsigned long bound = 0,
+                                      unsigned long seed = 0
+                                     );
 
   /* replay the given schedule (schedule must match simulator configuration) */
-  static SchedulePtr              replay (
-                                          Schedule &,
-                                          unsigned long bound = 0
-                                         );
+  static SchedulePtr        replay (
+                                    Schedule &,
+                                    unsigned long bound = 0
+                                   );
 };
 
 /*******************************************************************************

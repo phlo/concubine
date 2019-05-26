@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include "instructionset.hh"
+
 #include "program.hh"
 #include "simulator.hh"
 
@@ -10,8 +12,8 @@ using namespace std;
 *******************************************************************************/
 struct InstructionSetTest : public ::testing::Test
 {
-  using Attribute = Instruction::Attribute;
-  using Attributes = Instruction::Attributes;
+  using Type = Instruction::Type;
+  using Types = Instruction::Types;
 
   Instruction_ptr   instruction;
   Program           program;
@@ -19,28 +21,28 @@ struct InstructionSetTest : public ::testing::Test
   Thread            thread = Thread(simulator, 0, program);
 };
 
-/* Instruction::Set::create (Factory) *****************************************/
-TEST_F(InstructionSetTest, Factory)
+/* Instruction::Set::create (factory) *****************************************/
+TEST_F(InstructionSetTest, factory)
 {
   /* normal */
   instruction = Instruction::Set::create("EXIT", 0);
 
   ASSERT_EQ("EXIT", instruction->symbol());
-  ASSERT_EQ(Instruction::Type::UNARY, instruction->type());
+  ASSERT_EQ(Types::none, instruction->type());
   ASSERT_EQ(0, dynamic_pointer_cast<Unary>(instruction)->arg);
 
   /* negative arg */
   instruction = Instruction::Set::create("LOAD", static_cast<word>(-1));
 
   ASSERT_EQ("LOAD", instruction->symbol());
-  ASSERT_EQ(Instruction::Type::MEMORY, instruction->type());
+  ASSERT_EQ(Types::accu | Types::read, instruction->type());
   ASSERT_EQ(word_max, dynamic_pointer_cast<Unary>(instruction)->arg);
 
   /* arg overflow */
   instruction = Instruction::Set::create("LOAD", word(word_max + 1));
 
   ASSERT_EQ("LOAD", instruction->symbol());
-  ASSERT_EQ(Instruction::Type::MEMORY, instruction->type());
+  ASSERT_EQ(Types::accu | Types::read, instruction->type());
   ASSERT_EQ(0, dynamic_pointer_cast<Unary>(instruction)->arg);
 
   /* unknown instruction */
@@ -51,31 +53,42 @@ TEST_F(InstructionSetTest, Factory)
 /* InstructionSet::contains (std::string) *************************************/
 TEST_F(InstructionSetTest, contains)
 {
-  ASSERT_EQ(Instruction::Type::MEMORY,  Instruction::Set::contains("LOAD"));
-  ASSERT_EQ(Instruction::Type::MEMORY,  Instruction::Set::contains("STORE"));
-  ASSERT_EQ(Instruction::Type::NULLARY, Instruction::Set::contains("FENCE"));
-  ASSERT_EQ(Instruction::Type::MEMORY,  Instruction::Set::contains("ADD"));
-  ASSERT_EQ(Instruction::Type::UNARY,   Instruction::Set::contains("ADDI"));
-  ASSERT_EQ(Instruction::Type::MEMORY,  Instruction::Set::contains("SUB"));
-  ASSERT_EQ(Instruction::Type::UNARY,   Instruction::Set::contains("SUBI"));
-  ASSERT_EQ(Instruction::Type::MEMORY,  Instruction::Set::contains("CMP"));
-  ASSERT_EQ(Instruction::Type::UNARY,   Instruction::Set::contains("JMP"));
-  ASSERT_EQ(Instruction::Type::UNARY,   Instruction::Set::contains("JZ"));
-  ASSERT_EQ(Instruction::Type::UNARY,   Instruction::Set::contains("JNZ"));
-  ASSERT_EQ(Instruction::Type::UNARY,   Instruction::Set::contains("JS"));
-  ASSERT_EQ(Instruction::Type::UNARY,   Instruction::Set::contains("JNS"));
-  ASSERT_EQ(Instruction::Type::UNARY,   Instruction::Set::contains("JNZNS"));
-  ASSERT_EQ(Instruction::Type::MEMORY,  Instruction::Set::contains("MEM"));
-  ASSERT_EQ(Instruction::Type::MEMORY,  Instruction::Set::contains("CAS"));
-  ASSERT_EQ(Instruction::Type::UNARY,   Instruction::Set::contains("CHECK"));
-  ASSERT_EQ(Instruction::Type::NULLARY, Instruction::Set::contains("HALT"));
-  ASSERT_EQ(Instruction::Type::UNARY,   Instruction::Set::contains("EXIT"));
+  ASSERT_EQ(true, Instruction::Set::contains("LOAD"));
+  ASSERT_EQ(true, Instruction::Set::contains("STORE"));
+  ASSERT_EQ(true, Instruction::Set::contains("FENCE"));
+  ASSERT_EQ(true, Instruction::Set::contains("ADD"));
+  ASSERT_EQ(true, Instruction::Set::contains("ADDI"));
+  ASSERT_EQ(true, Instruction::Set::contains("SUB"));
+  ASSERT_EQ(true, Instruction::Set::contains("SUBI"));
+  ASSERT_EQ(true, Instruction::Set::contains("CMP"));
+  ASSERT_EQ(true, Instruction::Set::contains("JMP"));
+  ASSERT_EQ(true, Instruction::Set::contains("JZ"));
+  ASSERT_EQ(true, Instruction::Set::contains("JNZ"));
+  ASSERT_EQ(true, Instruction::Set::contains("JS"));
+  ASSERT_EQ(true, Instruction::Set::contains("JNS"));
+  ASSERT_EQ(true, Instruction::Set::contains("JNZNS"));
+  ASSERT_EQ(true, Instruction::Set::contains("MEM"));
+  ASSERT_EQ(true, Instruction::Set::contains("CAS"));
+  ASSERT_EQ(true, Instruction::Set::contains("CHECK"));
+  ASSERT_EQ(true, Instruction::Set::contains("HALT"));
+  ASSERT_EQ(true, Instruction::Set::contains("EXIT"));
+
+  ASSERT_EQ(false, Instruction::Set::contains("NOP"));
 }
 
 /* operators ******************************************************************/
 TEST_F(InstructionSetTest, operator_equals)
 {
-  /* UnaryInstruction */
+  /* Nullary */
+  ASSERT_EQ(
+    *Instruction::Set::create("FENCE"),
+    *Instruction::Set::create("FENCE"));
+
+  ASSERT_NE(
+    *Instruction::Set::create("FENCE"),
+    *Instruction::Set::create("HALT"));
+
+  /* Unary */
   ASSERT_EQ(
     *Instruction::Set::create("ADDI", 1),
     *Instruction::Set::create("ADDI", 1));
@@ -88,7 +101,7 @@ TEST_F(InstructionSetTest, operator_equals)
     *Instruction::Set::create("ADDI", 1),
     *Instruction::Set::create("SUBI", 1));
 
-  /* MemoryInstruction */
+  /* Memory */
   ASSERT_EQ(
     *Instruction::Set::create("STORE", 1),
     *Instruction::Set::create("STORE", 1));
@@ -114,20 +127,16 @@ TEST_F(InstructionSetTest, LOAD)
   simulator.heap[0] = 1;
 
   ASSERT_EQ("LOAD", instruction->symbol());
+  ASSERT_EQ(Types::accu | Types::read, instruction->type());
 
+  ASSERT_EQ(0, thread.pc);
   ASSERT_EQ(0, thread.accu);
-  ASSERT_EQ(1, simulator.heap[0]);
 
   instruction->execute(thread);
 
-  ASSERT_EQ(1, simulator.heap[0]);
-  ASSERT_EQ(1, thread.accu);
   ASSERT_EQ(1, thread.pc);
-
-  /* attributes */
-  ASSERT_EQ(
-    Attributes::accu | Attributes::read,
-    instruction->attributes());
+  ASSERT_EQ(1, thread.accu);
+  ASSERT_EQ(1, simulator.heap[0]);
 }
 
 /* STORE **********************************************************************/
@@ -136,22 +145,18 @@ TEST_F(InstructionSetTest, STORE)
   instruction = Instruction::Set::create("STORE", 0);
 
   ASSERT_EQ("STORE", instruction->symbol());
+  ASSERT_EQ(Types::write, instruction->type());
 
   thread.accu = 1;
 
-  ASSERT_EQ(1, thread.accu);
+  ASSERT_EQ(0, thread.pc);
   ASSERT_EQ(0, simulator.heap[0]);
 
   instruction->execute(thread);
 
-  ASSERT_EQ(1, simulator.heap[0]);
-  ASSERT_EQ(1, thread.accu);
   ASSERT_EQ(1, thread.pc);
-
-  /* attributes */
-  ASSERT_EQ(
-    Attributes::write,
-    instruction->attributes());
+  ASSERT_EQ(1, thread.accu);
+  ASSERT_EQ(1, simulator.heap[0]);
 }
 
 /* FENCE **********************************************************************/
@@ -160,7 +165,13 @@ TEST_F(InstructionSetTest, FENCE)
   instruction = Instruction::Set::create("FENCE");
 
   ASSERT_EQ("FENCE", instruction->symbol());
-  ASSERT_EQ(Attributes::barrier, instruction->attributes());
+  ASSERT_EQ(Types::barrier, instruction->type());
+
+  ASSERT_EQ(0, thread.pc);
+
+  instruction->execute(thread);
+
+  ASSERT_EQ(1, thread.pc);
 }
 
 /* ADD ************************************************************************/
@@ -169,22 +180,18 @@ TEST_F(InstructionSetTest, ADD)
   instruction = Instruction::Set::create("ADD", 0);
 
   ASSERT_EQ("ADD", instruction->symbol());
+  ASSERT_EQ(Types::accu | Types::read, instruction->type());
 
   simulator.heap[0] = 1;
 
+  ASSERT_EQ(0, thread.pc);
   ASSERT_EQ(0, thread.accu);
-  ASSERT_EQ(1, simulator.heap[0]);
 
   instruction->execute(thread);
 
-  ASSERT_EQ(1, simulator.heap[0]);
-  ASSERT_EQ(1, thread.accu);
   ASSERT_EQ(1, thread.pc);
-
-  /* attributes */
-  ASSERT_EQ(
-    Attributes::accu | Attributes::read,
-    instruction->attributes());
+  ASSERT_EQ(1, thread.accu);
+  ASSERT_EQ(1, simulator.heap[0]);
 }
 
 /* ADDI ***********************************************************************/
@@ -193,18 +200,15 @@ TEST_F(InstructionSetTest, ADDI)
   instruction = Instruction::Set::create("ADDI", 1);
 
   ASSERT_EQ("ADDI", instruction->symbol());
+  ASSERT_EQ(Types::accu, instruction->type());
 
+  ASSERT_EQ(0, thread.pc);
   ASSERT_EQ(0, thread.accu);
 
   instruction->execute(thread);
 
-  ASSERT_EQ(1, thread.accu);
   ASSERT_EQ(1, thread.pc);
-
-  /* attributes */
-  ASSERT_EQ(
-    Attributes::accu,
-    instruction->attributes());
+  ASSERT_EQ(1, thread.accu);
 }
 
 /* SUB ************************************************************************/
@@ -213,23 +217,18 @@ TEST_F(InstructionSetTest, SUB)
   instruction = Instruction::Set::create("SUB", 0);
 
   ASSERT_EQ("SUB", instruction->symbol());
+  ASSERT_EQ(Types::accu | Types::read, instruction->type());
 
   thread.accu = 1;
   simulator.heap[0] = 1;
 
-  ASSERT_EQ(1, thread.accu);
-  ASSERT_EQ(1, simulator.heap[0]);
+  ASSERT_EQ(0, thread.pc);
 
   instruction->execute(thread);
 
-  ASSERT_EQ(1, simulator.heap[0]);
-  ASSERT_EQ(0, thread.accu);
   ASSERT_EQ(1, thread.pc);
-
-  /* attributes */
-  ASSERT_EQ(
-    Attributes::accu | Attributes::read,
-    instruction->attributes());
+  ASSERT_EQ(0, thread.accu);
+  ASSERT_EQ(1, simulator.heap[0]);
 }
 
 /* SUBI ***********************************************************************/
@@ -238,20 +237,16 @@ TEST_F(InstructionSetTest, SUBI)
   instruction = Instruction::Set::create("SUBI", 1);
 
   ASSERT_EQ("SUBI", instruction->symbol());
+  ASSERT_EQ(Types::accu, instruction->type());
 
   thread.accu = 1;
 
-  ASSERT_EQ(1, thread.accu);
+  ASSERT_EQ(0, thread.pc);
 
   instruction->execute(thread);
 
-  ASSERT_EQ(0, thread.accu);
   ASSERT_EQ(1, thread.pc);
-
-  /* attributes */
-  ASSERT_EQ(
-    Attributes::accu,
-    instruction->attributes());
+  ASSERT_EQ(0, thread.accu);
 }
 
 /* CMP ************************************************************************/
@@ -260,54 +255,45 @@ TEST_F(InstructionSetTest, CMP)
   instruction = Instruction::Set::create("CMP", 0);
 
   ASSERT_EQ("CMP", instruction->symbol());
+  ASSERT_EQ(Types::accu | Types::read, instruction->type());
 
-  /* true */
   thread.accu = 1;
   simulator.heap[0] = 1;
 
-  ASSERT_EQ(1, thread.accu);
-  ASSERT_EQ(1, simulator.heap[0]);
+  ASSERT_EQ(0, thread.pc);
 
   instruction->execute(thread);
 
-  ASSERT_EQ(1, simulator.heap[0]);
-  ASSERT_EQ(0, thread.accu);
   ASSERT_EQ(1, thread.pc);
+  ASSERT_EQ(0, thread.accu);
+  ASSERT_EQ(1, simulator.heap[0]);
 
-  /* false */
   instruction->execute(thread);
 
-  ASSERT_EQ(1, simulator.heap[0]);
-  ASSERT_EQ(word_max, thread.accu);
   ASSERT_EQ(2, thread.pc);
-
-  /* attributes */
-  ASSERT_EQ(
-    Attributes::accu | Attributes::read,
-    instruction->attributes());
+  ASSERT_EQ(word_max, thread.accu);
+  ASSERT_EQ(1, simulator.heap[0]);
 }
 
 /* JMP ************************************************************************/
 TEST_F(InstructionSetTest, JMP)
 {
-  instruction = Instruction::Set::create("JMP", 0);
+  instruction = Instruction::Set::create("JMP", word_max);
 
   ASSERT_EQ("JMP", instruction->symbol());
+  ASSERT_EQ(Types::none, instruction->type());
 
   ASSERT_EQ(0, thread.pc);
-
-  instruction->execute(thread);
-
-  ASSERT_EQ(0, thread.pc);
-
-  instruction = Instruction::Set::create("JMP", static_cast<word>(-1));
 
   instruction->execute(thread);
 
   ASSERT_EQ(word_max, thread.pc);
 
-  /* attributes */
-  ASSERT_EQ(Attributes::none, instruction->attributes());
+  instruction = Instruction::Set::create("JMP", 0);
+
+  instruction->execute(thread);
+
+  ASSERT_EQ(0, thread.pc);
 }
 
 /* JZ *************************************************************************/
@@ -316,8 +302,8 @@ TEST_F(InstructionSetTest, JZ)
   instruction = Instruction::Set::create("JZ", 0);
 
   ASSERT_EQ("JZ", instruction->symbol());
+  ASSERT_EQ(Types::none, instruction->type());
 
-  /* true */
   ASSERT_EQ(0, thread.pc);
   ASSERT_EQ(0, thread.accu);
 
@@ -325,17 +311,11 @@ TEST_F(InstructionSetTest, JZ)
 
   ASSERT_EQ(0, thread.pc);
 
-  /* false */
   thread.accu = 1;
-
-  ASSERT_EQ(1, thread.accu);
 
   instruction->execute(thread);
 
   ASSERT_EQ(1, thread.pc);
-
-  /* attributes */
-  ASSERT_EQ(Attributes::none, instruction->attributes());
 }
 
 /* JNZ ************************************************************************/
@@ -344,8 +324,8 @@ TEST_F(InstructionSetTest, JNZ)
   instruction = Instruction::Set::create("JNZ", 0);
 
   ASSERT_EQ("JNZ", instruction->symbol());
+  ASSERT_EQ(Types::none, instruction->type());
 
-  /* false */
   ASSERT_EQ(0, thread.pc);
   ASSERT_EQ(0, thread.accu);
 
@@ -353,17 +333,11 @@ TEST_F(InstructionSetTest, JNZ)
 
   ASSERT_EQ(1, thread.pc);
 
-  /* true */
   thread.accu = 1;
-
-  ASSERT_EQ(1, thread.accu);
 
   instruction->execute(thread);
 
   ASSERT_EQ(0, thread.pc);
-
-  /* attributes */
-  ASSERT_EQ(Attributes::none, instruction->attributes());
 }
 
 /* JS *************************************************************************/
@@ -372,8 +346,8 @@ TEST_F(InstructionSetTest, JS)
   instruction = Instruction::Set::create("JS", 0);
 
   ASSERT_EQ("JS", instruction->symbol());
+  ASSERT_EQ(Types::none, instruction->type());
 
-  /* false */
   ASSERT_EQ(0, thread.pc);
   ASSERT_EQ(0, thread.accu);
 
@@ -381,17 +355,11 @@ TEST_F(InstructionSetTest, JS)
 
   ASSERT_EQ(1, thread.pc);
 
-  /* true */
-  thread.accu = static_cast<word>(-1);
-
-  ASSERT_EQ(word_max, thread.accu);
+  thread.accu = word_max;
 
   instruction->execute(thread);
 
   ASSERT_EQ(0, thread.pc);
-
-  /* attributes */
-  ASSERT_EQ(Attributes::none, instruction->attributes());
 }
 
 /* JNS ************************************************************************/
@@ -400,8 +368,8 @@ TEST_F(InstructionSetTest, JNS)
   instruction = Instruction::Set::create("JNS", 0);
 
   ASSERT_EQ("JNS", instruction->symbol());
+  ASSERT_EQ(Types::none, instruction->type());
 
-  /* true */
   ASSERT_EQ(0, thread.pc);
   ASSERT_EQ(0, thread.accu);
 
@@ -409,17 +377,11 @@ TEST_F(InstructionSetTest, JNS)
 
   ASSERT_EQ(0, thread.pc);
 
-  /* false */
-  thread.accu = static_cast<word>(-1);
-
-  ASSERT_EQ(word_max, thread.accu);
+  thread.accu = word_max;
 
   instruction->execute(thread);
 
   ASSERT_EQ(1, thread.pc);
-
-  /* attributes */
-  ASSERT_EQ(Attributes::none, instruction->attributes());
 }
 
 /* JNZNS **********************************************************************/
@@ -428,8 +390,8 @@ TEST_F(InstructionSetTest, JNZNS)
   instruction = Instruction::Set::create("JNZNS", 0);
 
   ASSERT_EQ("JNZNS", instruction->symbol());
+  ASSERT_EQ(Types::none, instruction->type());
 
-  /* false => JZ */
   ASSERT_EQ(0, thread.pc);
   ASSERT_EQ(0, thread.accu);
 
@@ -437,26 +399,17 @@ TEST_F(InstructionSetTest, JNZNS)
 
   ASSERT_EQ(1, thread.pc);
 
-  /* false => JS */
-  thread.accu = static_cast<word>(-1);
-
-  ASSERT_EQ(word_max, thread.accu);
+  thread.accu = word_max;
 
   instruction->execute(thread);
 
   ASSERT_EQ(2, thread.pc);
 
-  /* true */
   thread.accu = 1;
-
-  ASSERT_EQ(1, thread.accu);
 
   instruction->execute(thread);
 
   ASSERT_EQ(0, thread.pc);
-
-  /* attributes */
-  ASSERT_EQ(Attributes::none, instruction->attributes());
 }
 
 /* MEM ************************************************************************/
@@ -465,24 +418,20 @@ TEST_F(InstructionSetTest, MEM)
   instruction = Instruction::Set::create("MEM", 0);
 
   ASSERT_EQ("MEM", instruction->symbol());
+  ASSERT_EQ(Types::accu | Types::mem | Types::read, instruction->type());
 
   simulator.heap[0] = 1;
 
-  ASSERT_EQ(0, thread.mem);
+  ASSERT_EQ(0, thread.pc);
   ASSERT_EQ(0, thread.accu);
-  ASSERT_EQ(1, simulator.heap[0]);
+  ASSERT_EQ(0, thread.mem);
 
   instruction->execute(thread);
 
   ASSERT_EQ(1, thread.pc);
-  ASSERT_EQ(1, thread.mem);
   ASSERT_EQ(1, thread.accu);
+  ASSERT_EQ(1, thread.mem);
   ASSERT_EQ(1, simulator.heap[0]);
-
-  /* attributes */
-  ASSERT_EQ(
-    Attributes::accu | Attributes::mem | Attributes::read,
-    instruction->attributes());
 }
 
 /* CAS ************************************************************************/
@@ -491,15 +440,15 @@ TEST_F(InstructionSetTest, CAS)
   instruction = Instruction::Set::create("CAS", 0);
 
   ASSERT_EQ("CAS", instruction->symbol());
+  ASSERT_EQ(
+    Types::accu | Types::read | Types::write | Types::atomic,
+    instruction->type());
 
-  /* success */
-  thread.mem = 1;
   thread.accu = 0;
+  thread.mem = 1;
   simulator.heap[0] = 1;
 
-  ASSERT_EQ(1, thread.mem);
-  ASSERT_EQ(0, thread.accu);
-  ASSERT_EQ(1, simulator.heap[0]);
+  ASSERT_EQ(0, thread.pc);
 
   instruction->execute(thread);
 
@@ -508,18 +457,12 @@ TEST_F(InstructionSetTest, CAS)
   ASSERT_EQ(1, thread.accu);
   ASSERT_EQ(0, simulator.heap[0]);
 
-  /* fail */
   instruction->execute(thread);
 
   ASSERT_EQ(2, thread.pc);
   ASSERT_EQ(1, thread.mem);
   ASSERT_EQ(0, thread.accu);
   ASSERT_EQ(0, simulator.heap[0]);
-
-  /* attributes */
-  ASSERT_EQ(
-    Attributes::accu | Attributes::read | Attributes::write | Attributes::atomic,
-    instruction->attributes());
 }
 
 /* CHECK **********************************************************************/
@@ -528,28 +471,27 @@ TEST_F(InstructionSetTest, CHECK)
   instruction = Instruction::Set::create("CHECK", 1);
 
   ASSERT_EQ("CHECK", instruction->symbol());
+  ASSERT_EQ(Types::barrier, instruction->type());
 
   ASSERT_EQ(0, thread.pc);
   ASSERT_EQ(0, thread.check);
-  ASSERT_EQ(Thread::State::INITIAL, thread.state);
+  ASSERT_EQ(Thread::State::initial, thread.state);
 
   instruction->execute(thread);
 
   ASSERT_EQ(1, thread.pc);
   ASSERT_EQ(1, thread.check);
-  ASSERT_EQ(Thread::State::WAITING, thread.state);
-
-  /* attributes */
-  ASSERT_EQ(Attributes::barrier, instruction->attributes());
+  ASSERT_EQ(Thread::State::waiting, thread.state);
 }
 
 /* HALT ***********************************************************************/
 TEST_F(InstructionSetTest, HALT)
 {
+  // TODO
   instruction = Instruction::Set::create("HALT");
 
   ASSERT_EQ("HALT", instruction->symbol());
-  ASSERT_EQ(Attributes::none, instruction->attributes());
+  ASSERT_EQ(Types::none, instruction->type());
 }
 
 /* EXIT ***********************************************************************/
@@ -558,17 +500,15 @@ TEST_F(InstructionSetTest, EXIT)
   instruction = Instruction::Set::create("EXIT", 1);
 
   ASSERT_EQ("EXIT", instruction->symbol());
+  ASSERT_EQ(Types::none, instruction->type());
 
   ASSERT_EQ(0, thread.pc);
   ASSERT_EQ(0, thread.accu);
-  ASSERT_EQ(Thread::State::INITIAL, thread.state);
+  ASSERT_EQ(Thread::State::initial, thread.state);
 
   instruction->execute(thread);
 
   ASSERT_EQ(0, thread.pc);
   ASSERT_EQ(1, thread.accu);
-  ASSERT_EQ(Thread::State::EXITING, thread.state);
-
-  /* attributes */
-  ASSERT_EQ(Attributes::none, instruction->attributes());
+  ASSERT_EQ(Thread::State::exited, thread.state);
 }

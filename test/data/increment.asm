@@ -8,4 +8,4 @@ ADDI 1
 STORE 1
 
 # start checker
-SYNC 1
+CHECK 1

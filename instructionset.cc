@@ -33,7 +33,7 @@ bool Instruction::Set::contains (const string name)
   return false;
 }
 
-Instruction_ptr Instruction::Set::create (const string && name)
+Instruction_ptr Instruction::Set::create (const string & name)
 {
   if (nullary_factory.find(name) == nullary_factory.end())
     throw runtime_error("Instruction '" + name + "' unknown");
@@ -41,7 +41,7 @@ Instruction_ptr Instruction::Set::create (const string && name)
   return Instruction_ptr(nullary_factory[name]());
 }
 
-Instruction_ptr Instruction::Set::create (const string && name, const word arg)
+Instruction_ptr Instruction::Set::create (const string & name, const word arg)
 {
   if (unary_factory.find(name) == unary_factory.end())
     throw runtime_error("Instruction '" + name + "' unknown");
@@ -50,7 +50,7 @@ Instruction_ptr Instruction::Set::create (const string && name, const word arg)
 }
 
 Instruction_ptr Instruction::Set::create (
-                                          const string && name,
+                                          const string & name,
                                           const word arg,
                                           const bool indirect
                                          )
@@ -89,7 +89,7 @@ bool operator == (const Instruction & a, const Instruction & b)
     {
       memory_ptr mb = dynamic_cast<memory_ptr>(&b);
 
-      if (ma->arg != mb->arg && ma->indirect != mb->indirect)
+      if (ma->arg != mb->arg || ma->indirect != mb->indirect)
         return false;
     }
   else if (unary_ptr ua = dynamic_cast<unary_ptr>(&a))
@@ -117,8 +117,8 @@ bool operator != (const Instruction & a, const Instruction & b)
 #define DEFINE_MEMBERS(classname, types) \
   const Instruction::Type classname::_type = types; \
   \
-  Instruction::Type classname::type () const { return classname::_type; } \
   const string & classname::symbol () const { return classname::_symbol; } \
+  Instruction::Type classname::type () const { return classname::_type; } \
   \
   void classname::execute (Thread & thread) { return thread.execute(*this); } \
   string classname::encode (Encoder & formula) { return formula.encode(*this); }

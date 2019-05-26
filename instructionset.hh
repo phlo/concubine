@@ -55,18 +55,18 @@ struct Instruction
 
       typedef std::shared_ptr<Instruction> Instruction_ptr; // readability
 
-      static Instruction_ptr create (const std::string && name);
-      static Instruction_ptr create (const std::string && name, const word arg);
+      static Instruction_ptr create (const std::string & name);
+      static Instruction_ptr create (const std::string & name, const word arg);
       static Instruction_ptr create (
-                                     const std::string && name,
+                                     const std::string & name,
                                      const word arg,
                                      const bool indirect
                                     );
     };
 
   /* Instruction Members ******************************************************/
-  virtual Type                type   (void) const = 0;
   virtual const std::string & symbol (void) const = 0;
+  virtual Type                type   (void) const = 0;
 
   virtual void                execute (Thread &) = 0;
   virtual std::string         encode (Encoder &) = 0;
@@ -108,11 +108,11 @@ bool operator != (const Instruction &, const Instruction &);
  * Instructions
  ******************************************************************************/
 #define DECLARE_MEMBERS \
-    static  const Type          _type; \
     static  const std::string   _symbol; \
+    static  const Type          _type; \
     \
-    virtual       Type          type () const; \
     virtual const std::string & symbol () const; \
+    virtual       Type          type () const; \
     \
     virtual       void          execute (Thread &); \
     virtual       std::string   encode (Encoder &);

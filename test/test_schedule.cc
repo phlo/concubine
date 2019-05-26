@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
 
-#include "parser.hh"
 #include "schedule.hh"
+
+#include "instructionset.hh"
+#include "parser.hh"
 
 using namespace std;
 
