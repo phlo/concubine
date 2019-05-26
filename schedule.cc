@@ -7,9 +7,9 @@
 
 using namespace std;
 
-Schedule::Schedule (ProgramListPtr _programs) :
+Schedule::Schedule (Program_list_ptr p) :
   bound(0),
-  programs(_programs),
+  programs(p),
   exit(0)
 {
   init_state_update_lists();
@@ -17,7 +17,7 @@ Schedule::Schedule (ProgramListPtr _programs) :
 
 Schedule::Schedule(istream & file, string & path) :
   bound(0),
-  programs(new ProgramList()),
+  programs(make_shared<Program_list>()),
   exit(0)
 {
   string token;
@@ -356,7 +356,7 @@ std::string Schedule::print ()
   const char sep = '\t';
 
   /* schedule metadata */
-  for (const ProgramPtr & program : *programs)
+  for (const Program_ptr & program : *programs)
     ss << program->path << eol;
 
   /* separator */

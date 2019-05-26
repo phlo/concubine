@@ -8,7 +8,7 @@ using namespace std;
 
 struct SMTLibEncoderRelationalTest : public ::testing::Test
 {
-  ProgramListPtr              programs {make_shared<ProgramList>()};
+  Program_list_ptr            programs {make_shared<Program_list>()};
   SMTLibEncoderRelationalPtr  encoder {create_encoder(2, 1)};
 
   SMTLibEncoderRelationalPtr  create_encoder (const word bound, const word step)
@@ -32,7 +32,7 @@ struct SMTLibEncoderRelationalTest : public ::testing::Test
     {
       for (size_t i = 0; i < num_threads; i++)
         {
-          programs->push_back(ProgramPtr(new Program()));
+          programs->push_back(make_shared<Program>());
 
           (*programs)[i]->push_back(Instruction::Set::create("LOAD", 1));
           (*programs)[i]->push_back(Instruction::Set::create("ADDI", 1));

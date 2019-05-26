@@ -7,13 +7,13 @@ using namespace std;
 struct EncoderTest : public ::testing::Test
 {
   const char *      expected;
-  ProgramList       programs;
+  Program_list       programs;
   EncoderPtr        encoder = create_encoder(0);
 
   EncoderPtr create_encoder (const word bound)
     {
       return make_shared<SMTLibEncoderFunctional>(
-        make_shared<ProgramList>(programs),
+        make_shared<Program_list>(programs),
         bound,
         false);
     }
@@ -38,7 +38,7 @@ struct EncoderTest : public ::testing::Test
     }
 };
 
-// Encoder::Encoder (const ProgramListPtr, unsigned long)
+// Encoder::Encoder (const Program_list_ptr, unsigned long)
 TEST_F(EncoderTest, constructor)
 {
   for (size_t i = 0; i < 3; i++)

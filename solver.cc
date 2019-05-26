@@ -32,7 +32,7 @@ SchedulePtr ExternalSolver::solve (Encoder & formula, string & constraints)
   return build_schedule(formula.programs);
 }
 
-SchedulePtr ExternalSolver::build_schedule (ProgramListPtr programs)
+SchedulePtr ExternalSolver::build_schedule (Program_list_ptr programs)
 {
   // not really needed
   if (!std_out.rdbuf()->in_avail())

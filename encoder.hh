@@ -16,59 +16,58 @@
 struct Encoder
 {
   /* constructs an Encoder for the given program and bound */
-  Encoder (const ProgramListPtr, unsigned long);
+  Encoder (const Program_list_ptr programs, unsigned long bound);
 
   /* reference to the programs being verified (index == thread id) */
-  const ProgramListPtr  programs;
+  const Program_list_ptr  programs;
 
   /* number of threads (short hand for programs->size()) */
-  const unsigned long   num_threads;
+  const unsigned long     num_threads;
 
   /* bound */
-  const unsigned long   bound;
+  const unsigned long     bound;
 
   /* use Sinz's cardinality constraint (num_threads > 4) */
-  const bool            use_sinz_constraint;
+  const bool              use_sinz_constraint;
 
   /* SMT formula */
-  std::ostringstream    formula;
+  std::ostringstream      formula;
 
   /* current thread id */
-  word                  thread;
+  word                    thread;
 
   /* current pc */
-  word                  pc;
+  word                    pc;
 
   /* pcs of predecessor for each statement */
   std::map<
     word,
     std::map<
       word,
-      std::set<word>>>  predecessors;
+      std::set<word>>>    predecessors;
 
   /* pcs of checkpoint statements (checkpoint id -> thread -> pc) */
   std::map<
     word,
     std::map<
       word,
-      std::set<word>>>  check_pcs;
+      std::set<word>>>    check_pcs;
 
   /* pcs of exit calls */
   std::unordered_map<
     word,
-    std::vector<word>>  exit_pcs;
+    std::vector<word>>    exit_pcs;
 
   /* threads containing CAS statements */
   // TODO: really necessary?
-  std::set<word>        cas_threads;
+  std::set<word>          cas_threads;
 
   /*****************************************************************************
    * private functions
   *****************************************************************************/
-
-  void                iterate_threads (std::function<void()>);
-  void                iterate_threads (std::function<void(Program &)>);
-  void                iterate_threads_reverse (std::function<void(Program &)>);
+  void iterate_threads (std::function<void()>);
+  void iterate_threads (std::function<void(Program &)>);
+  void iterate_threads_reverse (std::function<void(Program &)>);
 
   /* double-dispatched instruction encoding functions */
   virtual std::string encode (Load &) = 0;
@@ -113,9 +112,9 @@ struct Encoder
   /*****************************************************************************
    * DEBUG
   *****************************************************************************/
-  std::string         predecessors_to_string ();
-  std::string         check_pcs_to_string ();
-  std::string         exit_pcs_to_string ();
+  std::string predecessors_to_string ();
+  std::string check_pcs_to_string ();
+  std::string exit_pcs_to_string ();
 };
 
 /*******************************************************************************
@@ -129,7 +128,7 @@ typedef std::shared_ptr<Encoder> EncoderPtr;
 struct SMTLibEncoder : public Encoder
 {
   /* constructs an SMTLibEncoder for the given program and bound */
-  SMTLibEncoder (const ProgramListPtr, unsigned long);
+  SMTLibEncoder (const Program_list_ptr programs, unsigned long bound);
 
   /* encoder variables */
   unsigned long             step;
@@ -216,7 +215,11 @@ typedef std::shared_ptr<SMTLibEncoder> SMTLibEncoderPtr;
 struct SMTLibEncoderFunctional : public SMTLibEncoder
 {
   /* constructs an SMTLibEncoderFunctional for the given program and bound */
-  SMTLibEncoderFunctional (const ProgramListPtr, unsigned long, bool = true);
+  SMTLibEncoderFunctional (
+                           const Program_list_ptr programs,
+                           unsigned long bound,
+                           bool encode = true
+                          );
 
   /* accumulator altering pcs */
   std::unordered_map<word, std::vector<word>> alters_accu;
@@ -276,7 +279,11 @@ typedef std::shared_ptr<SMTLibEncoderFunctional> SMTLibEncoderFunctionalPtr;
 struct SMTLibEncoderRelational : public SMTLibEncoder
 {
   /* constructs an SMTLibEncoderRelational for the given program and bound */
-  SMTLibEncoderRelational (const ProgramListPtr, unsigned long, bool = true);
+  SMTLibEncoderRelational (
+                           const Program_list_ptr programs,
+                           unsigned long bound,
+                           bool encode = true
+                          );
 
   std::string         imply (std::string, std::string);
 
@@ -344,7 +351,11 @@ struct Btor2Encoder : public Encoder
   static std::string          msb;
 
   /* constructs a Btor2Encoder for the given program and bound */
-  Btor2Encoder (const ProgramListPtr, unsigned long, bool = true);
+  Btor2Encoder (
+                const Program_list_ptr programs,
+                unsigned long bound,
+                bool encode = true
+               );
 
   /* accumulator altering pcs */
   std::unordered_map<word, std::vector<word>> alters_accu;

@@ -6,13 +6,13 @@ using namespace std;
 
 struct SMTLibEncoderTest : public ::testing::Test
 {
-  ProgramList       programs;
+  Program_list      programs;
   SMTLibEncoderPtr  encoder = create_encoder(0);
 
   SMTLibEncoderPtr create_encoder (const word bound)
     {
       return make_shared<SMTLibEncoderFunctional>(
-        make_shared<ProgramList>(programs),
+        make_shared<Program_list>(programs),
         bound,
         false);
     }

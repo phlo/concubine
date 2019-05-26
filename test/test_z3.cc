@@ -8,10 +8,10 @@ using namespace std;
 
 struct Z3Test : public ::testing::Test
 {
-  Z3              z3;
-  EncoderPtr      encoder;
-  ProgramListPtr  programs = make_shared<ProgramList>();
-  SchedulePtr     schedule;
+  Z3                z3;
+  EncoderPtr        encoder;
+  Program_list_ptr  programs = make_shared<Program_list>();
+  SchedulePtr       schedule;
 };
 
 TEST_F(Z3Test, sat)
@@ -35,7 +35,7 @@ TEST_F(Z3Test, solve_check)
   string increment_0 = "data/increment.check.thread.0.asm";
   string increment_n = "data/increment.check.thread.n.asm";
 
-  programs = make_shared<ProgramList>();
+  programs = make_shared<Program_list>();
 
   programs->push_back(create_from_file<Program>(increment_0));
   programs->push_back(create_from_file<Program>(increment_n));
@@ -74,7 +74,7 @@ TEST_F(Z3Test, solve_cas)
   string constraints;
   string increment = "data/increment.cas.asm";
 
-  programs = make_shared<ProgramList>();
+  programs = make_shared<Program_list>();
 
   programs->push_back(create_from_file<Program>(increment));
   programs->push_back(create_from_file<Program>(increment));

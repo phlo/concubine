@@ -11,13 +11,13 @@ using namespace std;
 *******************************************************************************/
 struct SimulatorTest : public ::testing::Test
 {
-  ProgramPtr    program = make_shared<Program>();
+  Program_ptr   program = make_shared<Program>();
   SchedulePtr   schedule;
   Simulator_ptr simulator;
 
-  void create_simulator(initializer_list<ProgramPtr> programs)
+  void create_simulator(initializer_list<Program_ptr> programs)
     {
-      simulator = make_shared<Simulator>(make_shared<ProgramList>(programs));
+      simulator = make_shared<Simulator>(make_shared<Program_list>(programs));
     }
 };
 
@@ -260,7 +260,7 @@ TEST_F(SimulatorTest, run_race_condition)
   program->push_back(Instruction::Set::create("STORE", 1));
   program->push_back(Instruction::Set::create("CHECK", 1));
 
-  ProgramPtr checker = make_shared<Program>();
+  Program_ptr checker = make_shared<Program>();
 
   checker->push_back(Instruction::Set::create("CHECK", 1));
   checker->push_back(Instruction::Set::create("LOAD", 1));
@@ -576,7 +576,7 @@ TEST_F(SimulatorTest, simulate_increment_check)
   string expected((istreambuf_iterator<char>(schedule_file)),
                    istreambuf_iterator<char>());
 
-  ProgramListPtr programs = make_shared<ProgramList>();
+  Program_list_ptr programs = make_shared<Program_list>();
   programs->push_back(
     create_from_file<Program>("data/increment.check.thread.0.asm"));
   programs->push_back(
@@ -596,9 +596,9 @@ TEST_F(SimulatorTest, simulate_increment_cas)
   string expected((istreambuf_iterator<char>(schedule_file)),
                    istreambuf_iterator<char>());
 
-  ProgramPtr increment(create_from_file<Program>("data/increment.cas.asm"));
+  Program_ptr increment(create_from_file<Program>("data/increment.cas.asm"));
 
-  ProgramListPtr programs = make_shared<ProgramList>();
+  Program_list_ptr programs = make_shared<Program_list>();
   programs->push_back(increment);
   programs->push_back(increment);
 

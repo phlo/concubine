@@ -58,7 +58,7 @@ struct ExternalSolver : public Solver
   virtual std::string build_command () = 0;
 
   /* build schedule based on the specific solver's output */
-  SchedulePtr build_schedule (ProgramListPtr programs);
+  SchedulePtr build_schedule (Program_list_ptr programs);
 
   virtual std::optional<Variable> parse_variable (std::istringstream & line);
 

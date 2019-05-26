@@ -21,7 +21,7 @@ struct Program : public std::deque<Instruction_ptr>
   Program (void);
 
   /* construct from file */
-  Program (std::istream &, std::string &);
+  Program (std::istream & file, std::string & name);
 
   /* path to program file */
   std::string                     path;
@@ -65,18 +65,18 @@ bool operator == (const Program &, const Program &);
 bool operator != (const Program &, const Program &);
 
 /*******************************************************************************
- * ProgramPtr
+ * Program_ptr
  ******************************************************************************/
-typedef std::shared_ptr<Program> ProgramPtr;
+using Program_ptr = std::shared_ptr<Program>;
 
 /*******************************************************************************
- * ProgramList
+ * Program_list
  ******************************************************************************/
-typedef std::deque<ProgramPtr> ProgramList;
+using Program_list = std::deque<Program_ptr>;
 
 /*******************************************************************************
- * ProgramListPtr
+ * Program_list_ptr
  ******************************************************************************/
-typedef std::shared_ptr<ProgramList> ProgramListPtr;
+using Program_list_ptr = std::shared_ptr<Program_list>;
 
 #endif

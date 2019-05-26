@@ -17,7 +17,7 @@ struct ScheduleTest : public ::testing::Test
 
   void create_dummy_schedule (const size_t num_programs)
     {
-      ProgramListPtr programs = make_shared<ProgramList>();
+      Program_list_ptr programs = make_shared<Program_list>();
 
       for (size_t i = 0; i < num_programs; i++)
         programs->push_back(make_shared<Program>());
@@ -749,14 +749,14 @@ TEST_F(ScheduleTest, iterator)
 // bool operator != (const Schedule &, const Schedule &)
 TEST_F(ScheduleTest, operator_equals)
 {
-  ProgramListPtr p1(new ProgramList());
-  ProgramListPtr p2(new ProgramList());
+  Program_list_ptr p1 = make_shared<Program_list>();
+  Program_list_ptr p2 = make_shared<Program_list>();
 
-  p1->push_back(ProgramPtr(new Program()));
-  p1->push_back(ProgramPtr(new Program()));
+  p1->push_back(make_shared<Program>());
+  p1->push_back(make_shared<Program>());
 
-  p2->push_back(ProgramPtr(new Program()));
-  p2->push_back(ProgramPtr(new Program()));
+  p2->push_back(make_shared<Program>());
+  p2->push_back(make_shared<Program>());
 
   p1->at(0)->path = "program_1.asm";
   p1->at(0)->push_back(Instruction::Set::create("STORE", 1));
@@ -819,11 +819,11 @@ TEST_F(ScheduleTest, operator_equals)
   ASSERT_TRUE(s1 == s2);
 
   /* list of programs differ */
-  p2->push_back(ProgramPtr(new Program()));
+  p2->push_back(make_shared<Program>());
 
   ASSERT_TRUE(s1 != s2);
 
-  p1->push_back(ProgramPtr(new Program()));
+  p1->push_back(make_shared<Program>());
 
   ASSERT_TRUE(s1 == s2);
 

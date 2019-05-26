@@ -18,7 +18,7 @@ inline void erase (C & container, T & val)
  ******************************************************************************/
 Simulator::Simulator () : bound(0) {}
 
-Simulator::Simulator (ProgramListPtr p, uint64_t b, uint64_t s) :
+Simulator::Simulator (Program_list_ptr p, uint64_t b, uint64_t s) :
   programs(p),
   bound(b),
   seed(s)
@@ -26,7 +26,7 @@ Simulator::Simulator (ProgramListPtr p, uint64_t b, uint64_t s) :
   active.reserve(programs->size());
   threads.reserve(programs->size());
 
-  for (const ProgramPtr & program : * p)
+  for (const Program_ptr & program : * p)
     create_thread(*program);
 }
 
@@ -188,7 +188,7 @@ SchedulePtr Simulator::run (function<Thread *()> scheduler)
 
 /* Simulator::simulate (unsigned long, unsigned long) *************************/
 SchedulePtr Simulator::simulate (
-                                 ProgramListPtr programs,
+                                 Program_list_ptr programs,
                                  unsigned long bound,
                                  unsigned long seed
                                 )

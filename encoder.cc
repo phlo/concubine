@@ -31,7 +31,7 @@ V & lookup (map<K, V> & m, K k, F fun)
 /*******************************************************************************
  * Encoder Base Class
  ******************************************************************************/
-Encoder::Encoder (const ProgramListPtr p, unsigned long b) :
+Encoder::Encoder (const Program_list_ptr p, unsigned long b) :
   programs(p),
   num_threads(p->size()),
   bound(b),
@@ -152,10 +152,7 @@ string Encoder::exit_pcs_to_string ()
 /*******************************************************************************
  * SMT-Lib v2.5 Encoder Base Class
  ******************************************************************************/
-SMTLibEncoder::SMTLibEncoder (
-                              const ProgramListPtr p,
-                              unsigned long b
-                             ) :
+SMTLibEncoder::SMTLibEncoder (const Program_list_ptr p, unsigned long b) :
   Encoder(p, b),
   step(0)
 {}
@@ -647,7 +644,7 @@ void SMTLibEncoder::encode ()
  * SMT-Lib v2.5 Functional Encoder Class
  ******************************************************************************/
 SMTLibEncoderFunctional::SMTLibEncoderFunctional (
-                                                  const ProgramListPtr p,
+                                                  const Program_list_ptr p,
                                                   unsigned long b,
                                                   bool e
                                                  ) : SMTLibEncoder(p, b)
@@ -1030,7 +1027,7 @@ string SMTLibEncoderFunctional::encode (Exit & e)
  * SMT-Lib v2.5 Relational Encoder Class
  ******************************************************************************/
 SMTLibEncoderRelational::SMTLibEncoderRelational (
-                                                  const ProgramListPtr p,
+                                                  const Program_list_ptr p,
                                                   unsigned long b,
                                                   bool e
                                                  ) : SMTLibEncoder(p, b)
@@ -1498,11 +1495,8 @@ string SMTLibEncoderRelational::encode (Exit & e)
  ******************************************************************************/
 string Btor2Encoder::msb = to_string(word_size - 1);
 
-Btor2Encoder::Btor2Encoder (
-                            const ProgramListPtr p,
-                            unsigned long b,
-                            bool e
-                           ) : Encoder(p, b), node(1)
+Btor2Encoder::Btor2Encoder (const Program_list_ptr p, unsigned long b, bool e) :
+  Encoder(p, b), node(1)
 {
   /* collect constants */
   nids_const[0] = "";

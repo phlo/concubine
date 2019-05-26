@@ -124,7 +124,7 @@ int simulate (char * name, int argc, char ** argv)
 {
   unsigned int      seed = time(NULL);
   unsigned int      bound = 0;
-  ProgramListPtr    programs(new ProgramList());
+  Program_list_ptr  programs(make_shared<Program_list>());
 
   for (int i = 0; i < argc; i++)
     {
@@ -373,7 +373,7 @@ int solve (char * name, int argc, char ** argv)
         }
 
       /* list of programs (thread id == idx + 1) */
-      ProgramListPtr programs(new ProgramList());
+      Program_list_ptr programs(make_shared<Program_list>());
 
       /* parse programs */
       while (i < argc)

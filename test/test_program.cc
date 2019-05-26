@@ -14,7 +14,7 @@ struct ProgramTest : public ::testing::Test
 {
   string path = "dummy.asm";
 
-  ProgramPtr program = ProgramPtr(new Program());
+  Program_ptr program = make_shared<Program>();
 };
 
 /* add ************************************************************************/
@@ -73,7 +73,7 @@ TEST_F(ProgramTest, parse_empty_line)
     "\n"
     "EXIT 1\n");
 
-  program = ProgramPtr(new Program(inbuf, path));
+  program = make_shared<Program>(inbuf, path);
 
   ASSERT_EQ(2, program->size());
 
@@ -107,7 +107,7 @@ TEST_F(ProgramTest, parse_illegal_instruction)
 
   try
     {
-      program = ProgramPtr(new Program(inbuf, path));
+      program = make_shared<Program>(inbuf, path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -120,7 +120,7 @@ TEST_F(ProgramTest, parse_illegal_instruction)
 
   try
     {
-      program = ProgramPtr(new Program(inbuf, path));
+      program = make_shared<Program>(inbuf, path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -133,7 +133,7 @@ TEST_F(ProgramTest, parse_illegal_instruction)
 
   try
     {
-      program = ProgramPtr(new Program(inbuf, path));
+      program = make_shared<Program>(inbuf, path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -148,7 +148,7 @@ TEST_F(ProgramTest, parse_illegal_instruction)
 
   try
     {
-      program = ProgramPtr(new Program(inbuf, path));
+      program = make_shared<Program>(inbuf, path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -171,7 +171,7 @@ TEST_F(ProgramTest, parse_missing_label)
 
   try
     {
-      program = ProgramPtr(new Program(inbuf, path));
+      program = make_shared<Program>(inbuf, path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -187,7 +187,7 @@ TEST_F(ProgramTest, parse_missing_label)
 
   try
     {
-      program = ProgramPtr(new Program(inbuf, path));
+      program = make_shared<Program>(inbuf, path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -203,7 +203,7 @@ TEST_F(ProgramTest, get_pc)
     "LABEL: ADDI 1\n"
     "JMP LABEL\n");
 
-  program = ProgramPtr(new Program(inbuf, path));
+  program = make_shared<Program>(inbuf, path);
 
   ASSERT_EQ(0, program->get_pc("LABEL"));
 
@@ -226,7 +226,7 @@ TEST_F(ProgramTest, get_label)
     "LABEL: ADDI 1\n"
     "JMP LABEL\n");
 
-  program = ProgramPtr(new Program(inbuf, path));
+  program = make_shared<Program>(inbuf, path);
 
   ASSERT_EQ("LABEL", program->get_label(0));
 

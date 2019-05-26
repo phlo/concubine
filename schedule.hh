@@ -89,82 +89,82 @@ struct Schedule
   explicit Schedule (unsigned long bound);
 
   /* construct from simulator/solver */
-  Schedule (ProgramListPtr programs);
+  Schedule (Program_list_ptr programs);
 
   /* construct from file */
   Schedule (std::istream & file, std::string & path);
 
   /* bound used == size() */
-  unsigned long   bound;
+  unsigned long     bound;
 
   /* programs used to generate the schedule */
-  ProgramListPtr  programs;
+  Program_list_ptr  programs;
 
   /* exit code */
-  word            exit;
+  word              exit;
 
   /* thread sequence */
-  Update_Map      thread_updates;
+  Update_Map        thread_updates;
 
   /* register states */
-  Thread_Updates  pc_updates,
-                  accu_updates,
-                  mem_updates;
+  Thread_Updates    pc_updates,
+                    accu_updates,
+                    mem_updates;
 
   /* heap state updates (idx -> [(step, val), ...]) */
-  Heap_Updates    heap_updates;
+  Heap_Updates      heap_updates;
 
   /* initialize thread state update lists */
-  void            init_state_update_lists ();
+  void              init_state_update_lists ();
 
   /* append state update */
-  void            push_back (
-                             Update_Map & updates,
-                             const unsigned long step,
-                             const word val
-                            );
-  void            push_back (
-                             const unsigned long thread,
-                             const word pc,
-                             const word accu,
-                             const word mem,
-                             const std::optional<Heap_Cell> heap
-                            );
-  void            push_back_thread (
-                                    const unsigned long step,
-                                    const word thread
-                                   );
-  void            push_back_pc (
-                                const unsigned long step,
-                                const word thread,
-                                const word pc
-                               );
-  void            push_back_accu (
+  void              push_back (
+                               Update_Map & updates,
+                               const unsigned long step,
+                               const word val
+                              );
+  void              push_back (
+                               const unsigned long thread,
+                               const word pc,
+                               const word accu,
+                               const word mem,
+                               const std::optional<Heap_Cell> heap
+                              );
+  void              push_back_thread (
+                                      const unsigned long step,
+                                      const word thread
+                                     );
+  void              push_back_pc (
                                   const unsigned long step,
                                   const word thread,
-                                  const word accu
+                                  const word pc
                                  );
-  void            push_back_mem (
-                                 const unsigned long step,
-                                 const word thread,
-                                 const word mem
-                                );
-  void            push_back_heap (
-                                  const unsigned long step,
-                                  const Heap_Cell cell
-                                 );
+  void              push_back_accu (
+                                    const unsigned long step,
+                                    const word thread,
+                                    const word accu
+                                   );
+  void              push_back_mem (
+                                   const unsigned long step,
+                                   const word thread,
+                                   const word mem
+                                  );
+  void              push_back_heap (
+                                    const unsigned long step,
+                                    const Heap_Cell cell
+                                   );
 
   /* return schedule size (bound) */
-  size_t          size ();
+  size_t            size ();
 
   /* return an iterator to the beginning */
-  iterator        begin ();
+  iterator          begin ();
 
   /* return an iterator to the end */
-  iterator        end ();
+  iterator          end ();
 
   /* print schedule */
-  std::string     print ();
+  std::string       print ();
 };
 
 /*******************************************************************************

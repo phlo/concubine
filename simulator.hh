@@ -18,14 +18,14 @@ struct Simulator
   Simulator ();
 
   /* constructs a new simulator for simulation */
-  Simulator (ProgramListPtr programs, uint64_t bound = 0, uint64_t seed = 0);
+  Simulator (Program_list_ptr programs, uint64_t bound = 0, uint64_t seed = 0);
 
   /*****************************************************************************
    * variables
    ****************************************************************************/
 
   /* list of programs */
-  ProgramListPtr            programs;
+  Program_list_ptr          programs;
 
   /* bounded execution */
   uint64_t                  bound;
@@ -74,7 +74,7 @@ struct Simulator
 
   /* runs the simulator using a random schedule */
   static SchedulePtr        simulate (
-                                      ProgramListPtr programs,
+                                      Program_list_ptr programs,
                                       unsigned long bound = 0,
                                       unsigned long seed = 0
                                      );

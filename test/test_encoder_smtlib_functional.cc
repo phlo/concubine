@@ -7,7 +7,7 @@ using namespace std;
 
 struct SMTLibEncoderFunctionalTest : public ::testing::Test
 {
-  ProgramListPtr              programs {make_shared<ProgramList>()};
+  Program_list_ptr            programs {make_shared<Program_list>()};
   SMTLibEncoderFunctionalPtr  encoder {create_encoder(1, 1)};
 
   SMTLibEncoderFunctionalPtr  create_encoder (const word bound, const word step)
@@ -55,7 +55,7 @@ struct SMTLibEncoderFunctionalTest : public ::testing::Test
 };
 
 // SMTLibEncoderFunctional::SMTLibEncoderFunctional (
-//                                                   const ProgramListPtr,
+//                                                   const Program_list_ptr,
 //                                                   unsigned long,
 //                                                   bool
 //                                                  );

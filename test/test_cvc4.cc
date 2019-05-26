@@ -54,7 +54,7 @@ TEST_F(CVC4Test, print_model)
   string increment_0 = "data/increment.check.thread.0.asm";
   string increment_n = "data/increment.check.thread.n.asm";
 
-  ProgramListPtr programs = make_shared<ProgramList>();
+  Program_list_ptr programs = make_shared<Program_list>();
 
   programs->push_back(create_from_file<Program>(increment_0));
   programs->push_back(create_from_file<Program>(increment_n));

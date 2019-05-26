@@ -18,7 +18,7 @@ void evaluate (string & formula)
 struct Btor2EncoderTest : public ::testing::Test
 {
   string            nid;
-  ProgramListPtr    programs {make_shared<ProgramList>()};
+  Program_list_ptr  programs {make_shared<Program_list>()};
   Btor2EncoderPtr   encoder {create_encoder(1)};
 
   Btor2EncoderPtr create_encoder (const word bound)
@@ -186,7 +186,7 @@ TEST_F(Btor2EncoderTest, add_constants)
 {
   for (size_t thread = 0; thread < 3; thread++)
     {
-      ProgramPtr program = make_shared<Program>();
+      Program_ptr program = make_shared<Program>();
 
       programs->push_back(program);
 
@@ -1382,7 +1382,7 @@ TEST_F(Btor2EncoderTest, add_checkpoint_constraints)
 {
   for (size_t thread = 0; thread < 3; thread++)
     {
-      ProgramPtr program = make_shared<Program>();
+      Program_ptr program = make_shared<Program>();
 
       programs->push_back(program);
 
@@ -1813,7 +1813,7 @@ TEST_F(Btor2EncoderTest, add_checkpoint_constraints)
 
 TEST_F(Btor2EncoderTest, add_checkpoint_constraints_single_thread)
 {
-  ProgramPtr program = make_shared<Program>();
+  Program_ptr program = make_shared<Program>();
   programs->push_back(program);
   program->push_back(Instruction::Set::create("CHECK", 1));
 
