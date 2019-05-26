@@ -23,7 +23,7 @@ bool ExternalSolver::sat (string & input)
 }
 
 #include <iostream>
-SchedulePtr ExternalSolver::solve (Encoder & formula, string & constraints)
+Schedule_ptr ExternalSolver::solve (Encoder & formula, string & constraints)
 {
   string input = build_formula(formula, constraints);
 
@@ -32,7 +32,7 @@ SchedulePtr ExternalSolver::solve (Encoder & formula, string & constraints)
   return build_schedule(formula.programs);
 }
 
-SchedulePtr ExternalSolver::build_schedule (Program_list_ptr programs)
+Schedule_ptr ExternalSolver::build_schedule (Program_list_ptr programs)
 {
   // not really needed
   if (!std_out.rdbuf()->in_avail())
@@ -44,7 +44,7 @@ SchedulePtr ExternalSolver::build_schedule (Program_list_ptr programs)
   // if (!(std_out >> sat) || sat != "sat")
     // runtime_error("formula is not sat [" + sat + "]");
 
-  SchedulePtr schedule = make_shared<Schedule>(programs);
+  Schedule_ptr schedule = make_shared<Schedule>(programs);
 
   /* current line number */
   unsigned long lineno = 2;

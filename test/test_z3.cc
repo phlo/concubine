@@ -11,7 +11,7 @@ struct Z3Test : public ::testing::Test
   Z3                z3;
   EncoderPtr        encoder;
   Program_list_ptr  programs = make_shared<Program_list>();
-  SchedulePtr       schedule;
+  Schedule_ptr      schedule;
 };
 
 TEST_F(Z3Test, sat)

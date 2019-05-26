@@ -192,7 +192,7 @@ int simulate (char * name, int argc, char ** argv)
     }
 
   /* run program with given seed */
-  SchedulePtr schedule = Simulator::simulate(programs, bound, seed);
+  Schedule_ptr schedule = Simulator::simulate(programs, bound, seed);
 
   /* print the result */
   cout << schedule->print();
@@ -248,7 +248,7 @@ int replay (char * name, int argc, char ** argv)
   try
     {
       /* create and parse schedule */
-      SchedulePtr schedule(create_from_file<Schedule>(path2schedule));
+      Schedule_ptr schedule(create_from_file<Schedule>(path2schedule));
 
       /* run given schedule */
       schedule = Simulator::replay(*schedule, bound);

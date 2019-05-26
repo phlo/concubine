@@ -174,8 +174,8 @@ bool operator == (const Schedule &, const Schedule &);
 bool operator != (const Schedule &, const Schedule &);
 
 /*******************************************************************************
- * SchedulePtr
+ * Schedule_ptr
  ******************************************************************************/
-typedef std::shared_ptr<Schedule> SchedulePtr;
+using Schedule_ptr = std::shared_ptr<Schedule>;
 
 #endif

@@ -66,21 +66,21 @@ struct Simulator
   word                      create_thread (Program &);
 
   /* run the simulator, using the specified scheduler */
-  SchedulePtr               run (std::function<Thread *()>);
+  Schedule_ptr              run (std::function<Thread *()>);
 
   /*****************************************************************************
    * public functions
    ****************************************************************************/
 
   /* runs the simulator using a random schedule */
-  static SchedulePtr        simulate (
+  static Schedule_ptr       simulate (
                                       Program_list_ptr programs,
                                       unsigned long bound = 0,
                                       unsigned long seed = 0
                                      );
 
   /* replay the given schedule (schedule must match simulator configuration) */
-  static SchedulePtr        replay (
+  static Schedule_ptr       replay (
                                     Schedule &,
                                     unsigned long bound = 0
                                    );

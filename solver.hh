@@ -22,7 +22,7 @@ struct Solver
   virtual bool        sat (std::string & formula) = 0;
 
   /* run solver and return schedule */
-  virtual SchedulePtr solve (Encoder & encoder, std::string & constraints) = 0;
+  virtual Schedule_ptr solve (Encoder & encoder, std::string & constraints) = 0;
 };
 
 typedef std::shared_ptr<Solver> SolverPtr;
@@ -58,7 +58,7 @@ struct ExternalSolver : public Solver
   virtual std::string build_command () = 0;
 
   /* build schedule based on the specific solver's output */
-  SchedulePtr build_schedule (Program_list_ptr programs);
+  Schedule_ptr build_schedule (Program_list_ptr programs);
 
   virtual std::optional<Variable> parse_variable (std::istringstream & line);
 
@@ -66,7 +66,7 @@ struct ExternalSolver : public Solver
 
   virtual bool sat (std::string & formula);
 
-  virtual SchedulePtr solve (Encoder & encoder, std::string & constraints);
+  virtual Schedule_ptr solve (Encoder & encoder, std::string & constraints);
 };
 
 #endif

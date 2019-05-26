@@ -12,7 +12,7 @@ using namespace std;
 struct SimulatorTest : public ::testing::Test
 {
   Program_ptr   program = make_shared<Program>();
-  SchedulePtr   schedule;
+  Schedule_ptr  schedule;
   Simulator_ptr simulator;
 
   void create_simulator(initializer_list<Program_ptr> programs)

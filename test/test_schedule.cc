@@ -13,7 +13,7 @@ struct ScheduleTest : public ::testing::Test
   string program_path = "data/increment.cas.asm";
   string schedule_path = "data/increment.cas.t2.k16.schedule";
 
-  SchedulePtr schedule;
+  Schedule_ptr schedule;
 
   void create_dummy_schedule (const size_t num_programs)
     {
@@ -110,7 +110,7 @@ TEST_F(ScheduleTest, parse_empty_line)
     "\n"
     "0\t0\tEXIT\t1\t0\t0\t{}\n");
 
-  schedule = SchedulePtr(new Schedule(inbuf, dummy_path));
+  schedule = make_shared<Schedule>(inbuf, dummy_path);
 
   ASSERT_EQ(1, schedule->size());
   ASSERT_EQ(1, schedule->programs->size());
@@ -139,7 +139,7 @@ TEST_F(ScheduleTest, parse_no_program)
 
   try
     {
-      schedule = SchedulePtr(new Schedule(inbuf, dummy_path));
+      schedule = make_shared<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -158,7 +158,7 @@ TEST_F(ScheduleTest, parse_program_not_found)
 
   try
     {
-      schedule = SchedulePtr(new Schedule(inbuf, dummy_path));
+      schedule = make_shared<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -177,7 +177,7 @@ TEST_F(ScheduleTest, parse_missing_separator)
 
   try
     {
-      schedule = SchedulePtr(new Schedule(inbuf, dummy_path));
+      schedule = make_shared<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -194,7 +194,7 @@ TEST_F(ScheduleTest, parse_missing_trace)
 
   try
     {
-      schedule = SchedulePtr(new Schedule(inbuf, dummy_path));
+      schedule = make_shared<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -212,7 +212,7 @@ TEST_F(ScheduleTest, parse_unknown_thread_id)
 
   try
     {
-      schedule = SchedulePtr(new Schedule(inbuf, dummy_path));
+      schedule = make_shared<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -230,7 +230,7 @@ TEST_F(ScheduleTest, parse_illegal_thread_id)
 
   try
     {
-      schedule = SchedulePtr(new Schedule(inbuf, dummy_path));
+      schedule = make_shared<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -248,7 +248,7 @@ TEST_F(ScheduleTest, parse_illegal_pc)
 
   try
     {
-      schedule = SchedulePtr(new Schedule(inbuf, dummy_path));
+      schedule = make_shared<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -266,7 +266,7 @@ TEST_F(ScheduleTest, parse_unknown_label)
 
   try
     {
-      schedule = SchedulePtr(new Schedule(inbuf, dummy_path));
+      schedule = make_shared<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -284,7 +284,7 @@ TEST_F(ScheduleTest, parse_unknown_instruction)
 
   try
     {
-      schedule = SchedulePtr(new Schedule(inbuf, dummy_path));
+      schedule = make_shared<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -302,7 +302,7 @@ TEST_F(ScheduleTest, parse_illegal_argument_label_not_supported)
 
   try
     {
-      schedule = SchedulePtr(new Schedule(inbuf, dummy_path));
+      schedule = make_shared<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -320,7 +320,7 @@ TEST_F(ScheduleTest, parse_illegal_argument_unknown_label)
 
   try
     {
-      schedule = SchedulePtr(new Schedule(inbuf, dummy_path));
+      schedule = make_shared<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -338,7 +338,7 @@ TEST_F(ScheduleTest, parse_illegal_accu)
 
   try
     {
-      schedule = SchedulePtr(new Schedule(inbuf, dummy_path));
+      schedule = make_shared<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -358,7 +358,7 @@ TEST_F(ScheduleTest, parse_illegal_mem)
 
   try
     {
-      schedule = SchedulePtr(new Schedule(inbuf, dummy_path));
+      schedule = make_shared<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -378,7 +378,7 @@ TEST_F(ScheduleTest, parse_illegal_heap)
 
   try
     {
-      schedule = SchedulePtr(new Schedule(inbuf, dummy_path));
+      schedule = make_shared<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -394,7 +394,7 @@ TEST_F(ScheduleTest, parse_illegal_heap)
 
   try
     {
-      schedule = SchedulePtr(new Schedule(inbuf, dummy_path));
+      schedule = make_shared<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -410,7 +410,7 @@ TEST_F(ScheduleTest, parse_illegal_heap)
 
   try
     {
-      schedule = SchedulePtr(new Schedule(inbuf, dummy_path));
+      schedule = make_shared<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -428,7 +428,7 @@ TEST_F(ScheduleTest, parse_illegal_heap)
 
   try
     {
-      schedule = SchedulePtr(new Schedule(inbuf, dummy_path));
+      schedule = make_shared<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -448,7 +448,7 @@ TEST_F(ScheduleTest, parse_missing_pc)
 
   try
     {
-      schedule = SchedulePtr(new Schedule(inbuf, dummy_path));
+      schedule = make_shared<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -466,7 +466,7 @@ TEST_F(ScheduleTest, parse_missing_instruction_symbol)
 
   try
     {
-      schedule = SchedulePtr(new Schedule(inbuf, dummy_path));
+      schedule = make_shared<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -484,7 +484,7 @@ TEST_F(ScheduleTest, parse_missing_instruction_argument)
 
   try
     {
-      schedule = SchedulePtr(new Schedule(inbuf, dummy_path));
+      schedule = make_shared<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -502,7 +502,7 @@ TEST_F(ScheduleTest, parse_missing_accu)
 
   try
     {
-      schedule = SchedulePtr(new Schedule(inbuf, dummy_path));
+      schedule = make_shared<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -522,7 +522,7 @@ TEST_F(ScheduleTest, parse_missing_mem)
 
   try
     {
-      schedule = SchedulePtr(new Schedule(inbuf, dummy_path));
+      schedule = make_shared<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -540,7 +540,7 @@ TEST_F(ScheduleTest, parse_missing_heap)
 
   try
     {
-      schedule = SchedulePtr(new Schedule(inbuf, dummy_path));
+      schedule = make_shared<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -828,8 +828,8 @@ TEST_F(ScheduleTest, operator_equals)
   ASSERT_TRUE(s1 == s2);
 
   /* compare files */
-  SchedulePtr sp1 = create_from_file<Schedule>(schedule_path);
-  SchedulePtr sp2 = create_from_file<Schedule>(schedule_path);
+  Schedule_ptr sp1 = create_from_file<Schedule>(schedule_path);
+  Schedule_ptr sp2 = create_from_file<Schedule>(schedule_path);
 
   ASSERT_TRUE(*sp1 == *sp2);
 }

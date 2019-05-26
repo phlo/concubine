@@ -11,7 +11,7 @@ struct Z3 : public Solver
 
   virtual bool sat (std::string & formula);
 
-  virtual SchedulePtr solve (Encoder & encoder, std::string & constraints);
+  virtual Schedule_ptr solve (Encoder & encoder, std::string & constraints);
 };
 
 typedef std::shared_ptr<Z3> Z3Ptr;

@@ -59,7 +59,7 @@ word eval_array (z3::context & c, const z3::model & m, const string sym, const w
     .get_numeral_uint();
 }
 
-SchedulePtr Z3::solve (Encoder & encoder, string & constraints)
+Schedule_ptr Z3::solve (Encoder & encoder, string & constraints)
 {
   z3::context c;
   z3::solver s = c;
@@ -71,7 +71,7 @@ SchedulePtr Z3::solve (Encoder & encoder, string & constraints)
 
   z3::model m = s.get_model();
 
-  SchedulePtr schedule = make_shared<Schedule>(encoder.programs);
+  Schedule_ptr schedule = make_shared<Schedule>(encoder.programs);
 
   for (unsigned long step = 1; step <= encoder.bound; ++step)
     for (unsigned long thread = 0; thread < encoder.programs->size(); ++thread)

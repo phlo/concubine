@@ -12,7 +12,7 @@ struct BtorMCTest : public ::testing::Test
   BtorMC            btormc = BtorMC(16);
   EncoderPtr        encoder;
   Program_list_ptr  programs = make_shared<Program_list>();
-  SchedulePtr       schedule;
+  Schedule_ptr      schedule;
 };
 
 TEST_F(BtorMCTest, sat)
@@ -124,7 +124,7 @@ TEST_F(BtorMCTest, solve_check)
   file << schedule->print();
   file.close();
 
-  SchedulePtr parsed {create_from_file<Schedule>("/tmp/test.schedule")};
+  Schedule_ptr parsed {create_from_file<Schedule>("/tmp/test.schedule")};
 
   vector<vector<pair<unsigned long, word>>> pc_diff;
   for (size_t t = 0; t < schedule->pc_updates.size(); t++)
@@ -152,7 +152,7 @@ TEST_F(BtorMCTest, solve_check)
 
   Simulator simulator {programs};
 
-  SchedulePtr simulated {simulator.replay(*parsed)};
+  Schedule_ptr simulated {simulator.replay(*parsed)};
 
   ASSERT_EQ(*simulated, *schedule);
 }

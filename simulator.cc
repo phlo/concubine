@@ -65,9 +65,9 @@ void Simulator::check_and_resume (word id)
 }
 
 /* Simulator::run (Scheduler *) ***********************************************/
-SchedulePtr Simulator::run (function<Thread *()> scheduler)
+Schedule_ptr Simulator::run (function<Thread *()> scheduler)
 {
-  SchedulePtr schedule = make_shared<Schedule>(programs);
+  Schedule_ptr schedule = make_shared<Schedule>(programs);
 
   assert(active.empty());
 
@@ -187,11 +187,11 @@ SchedulePtr Simulator::run (function<Thread *()> scheduler)
 }
 
 /* Simulator::simulate (unsigned long, unsigned long) *************************/
-SchedulePtr Simulator::simulate (
-                                 Program_list_ptr programs,
-                                 unsigned long bound,
-                                 unsigned long seed
-                                )
+Schedule_ptr Simulator::simulate (
+                                  Program_list_ptr programs,
+                                  unsigned long bound,
+                                  unsigned long seed
+                                 )
 {
   Simulator simulator {programs, bound, seed};
 
@@ -205,7 +205,7 @@ SchedulePtr Simulator::simulate (
 }
 
 /* Simulator::replay (Schedule &, unsigned long) ******************************/
-SchedulePtr Simulator::replay (Schedule & schedule, unsigned long bound)
+Schedule_ptr Simulator::replay (Schedule & schedule, unsigned long bound)
 {
   Simulator simulator {
     schedule.programs,
