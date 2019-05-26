@@ -8,69 +8,9 @@
 #include "common.hh"
 #include "instructionset.hh"
 
-struct Simulator;
-
 // TODO: forward-declare
 #include "program.hh"
 #include "schedule.hh"
-
-struct Thread
-{
-  enum class State : char
-  {
-    initial   = 'I',  // created, but not started
-    running   = 'R',  // running
-    flushing  = 'F',  // flushing store buffer
-    waiting   = 'W',  // waiting at checkpoint
-    halted    = 'H',  // no more instructions or halted
-    exited    = 'E'   // exit called
-  };
-
-  Thread (Simulator & simulator, word id, Program & program);
-
-  word          id;         // thread id
-  word          pc;         // program counter
-  word          mem;        // special CAS register
-  word          accu;       // accumulator register
-  word          check;      // current (or previous) checkpoint's id
-  State         state;      // thread state
-  Simulator &   simulator;  // reference to the simulator owning the thread
-  Program &     program;    // reference to the program being executed
-
-  word          load (word address, bool indirect);
-  void          store (word address, word value, bool indirect);
-
-  void          execute ();
-
-  /* double-dispatched execute functions */
-  void          execute (Load &);
-  void          execute (Store &);
-
-  void          execute (Fence &);
-
-  void          execute (Add &);
-  void          execute (Addi &);
-  void          execute (Sub &);
-  void          execute (Subi &);
-
-  void          execute (Cmp &);
-  void          execute (Jmp &);
-  void          execute (Jz &);
-  void          execute (Jnz &);
-  void          execute (Js &);
-  void          execute (Jns &);
-  void          execute (Jnzns &);
-
-  void          execute (Mem &);
-  void          execute (Cas &);
-
-  void          execute (Check &);
-
-  void          execute (Halt &);
-  void          execute (Exit &);
-};
-
-std::ostream & operator << (std::ostream & os, Thread::State s);
 
 struct Simulator
 {
@@ -146,9 +86,64 @@ struct Simulator
                                    );
 };
 
-/*******************************************************************************
- * SimulatorPtr
- ******************************************************************************/
-typedef std::shared_ptr<Simulator> SimulatorPtr;
+using Simulator_ptr = std::shared_ptr<Simulator>;
+
+struct Thread
+{
+  enum class State : char
+  {
+    initial   = 'I',  // created, but not started
+    running   = 'R',  // running
+    flushing  = 'F',  // flushing store buffer
+    waiting   = 'W',  // waiting at checkpoint
+    halted    = 'H',  // no more instructions or halted
+    exited    = 'E'   // exit called
+  };
+
+  Thread (Simulator & simulator, word id, Program & program);
+
+  word          id;         // thread id
+  word          pc;         // program counter
+  word          mem;        // special CAS register
+  word          accu;       // accumulator register
+  word          check;      // current (or previous) checkpoint's id
+  State         state;      // thread state
+  Simulator &   simulator;  // reference to the simulator owning the thread
+  Program &     program;    // reference to the program being executed
+
+  word          load (word address, bool indirect);
+  void          store (word address, word value, bool indirect);
+
+  void          execute ();
+
+  /* double-dispatched execute functions */
+  void          execute (Load &);
+  void          execute (Store &);
+
+  void          execute (Fence &);
+
+  void          execute (Add &);
+  void          execute (Addi &);
+  void          execute (Sub &);
+  void          execute (Subi &);
+
+  void          execute (Cmp &);
+  void          execute (Jmp &);
+  void          execute (Jz &);
+  void          execute (Jnz &);
+  void          execute (Js &);
+  void          execute (Jns &);
+  void          execute (Jnzns &);
+
+  void          execute (Mem &);
+  void          execute (Cas &);
+
+  void          execute (Check &);
+
+  void          execute (Halt &);
+  void          execute (Exit &);
+};
+
+std::ostream & operator << (std::ostream & os, Thread::State s);
 
 #endif

@@ -223,15 +223,15 @@ SchedulePtr Simulator::replay (Schedule & schedule, unsigned long bound)
 /*******************************************************************************
  * Thread
  ******************************************************************************/
-Thread::Thread (Simulator & _simulator, word _id, Program & _program) :
-  id(_id),
+Thread::Thread (Simulator & s, word i, Program & p) :
+  id(i),
   pc(0),
   mem(0),
   accu(0),
   check(0),
   state(State::initial),
-  simulator(_simulator),
-  program(_program)
+  simulator(s),
+  program(p)
 {}
 
 /* Thread::load ***************************************************************/

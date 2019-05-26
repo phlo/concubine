@@ -13,7 +13,7 @@ struct SimulatorTest : public ::testing::Test
 {
   ProgramPtr    program = make_shared<Program>();
   SchedulePtr   schedule;
-  SimulatorPtr  simulator;
+  Simulator_ptr simulator;
 
   void create_simulator(initializer_list<ProgramPtr> programs)
     {
