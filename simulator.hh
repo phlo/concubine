@@ -14,16 +14,6 @@
 
 struct Simulator
 {
-  /* default constructor (testing only) */
-  Simulator ();
-
-  /* constructs a new simulator for simulation */
-  Simulator (Program_list_ptr programs, uint64_t bound = 0, uint64_t seed = 0);
-
-  /*****************************************************************************
-   * variables
-   ****************************************************************************/
-
   /* list of programs */
   Program_list_ptr          programs;
 
@@ -54,6 +44,16 @@ struct Simulator
   std::unordered_map<
     word,
     word>                   waiting_for_checkpoint;
+
+  /*****************************************************************************
+   * constructors
+   ****************************************************************************/
+
+  /* default constructor (testing only) */
+  Simulator ();
+
+  /* constructs a new simulator for simulation */
+  Simulator (Program_list_ptr programs, uint64_t bound = 0, uint64_t seed = 0);
 
   /*****************************************************************************
    * private functions
@@ -90,6 +90,13 @@ using Simulator_ptr = std::shared_ptr<Simulator>;
 
 struct Thread
 {
+  struct Buffer
+    {
+      bool full = false;
+      word idx = 0;
+      word val = 0;
+    };
+
   enum class State : char
   {
     initial   = 'I',  // created, but not started
@@ -100,20 +107,22 @@ struct Thread
     exited    = 'E'   // exit called
   };
 
-  Thread (Simulator & simulator, word id, Program & program);
-
   word          id;         // thread id
   word          pc;         // program counter
   word          mem;        // special CAS register
   word          accu;       // accumulator register
   word          check;      // current (or previous) checkpoint's id
+  Buffer        buffer;     // store buffer
   State         state;      // thread state
   Simulator &   simulator;  // reference to the simulator owning the thread
   Program &     program;    // reference to the program being executed
 
+  Thread (Simulator & simulator, word id, Program & program);
+
   word          load (word address, bool indirect);
   void          store (word address, word value, bool indirect);
 
+  void          flush ();
   void          execute ();
 
   /* double-dispatched execute functions */

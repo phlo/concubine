@@ -28,7 +28,7 @@ TEST_F(InstructionSetTest, factory)
   instruction = Instruction::Set::create("EXIT", 0);
 
   ASSERT_EQ("EXIT", instruction->symbol());
-  ASSERT_EQ(Types::none, instruction->type());
+  ASSERT_EQ(Types::control, instruction->type());
   ASSERT_EQ(0, dynamic_pointer_cast<Unary>(instruction)->arg);
 
   /* negative arg */
@@ -281,7 +281,7 @@ TEST_F(InstructionSetTest, JMP)
   instruction = Instruction::Set::create("JMP", word_max);
 
   ASSERT_EQ("JMP", instruction->symbol());
-  ASSERT_EQ(Types::none, instruction->type());
+  ASSERT_EQ(Types::control, instruction->type());
 
   ASSERT_EQ(0, thread.pc);
 
@@ -302,7 +302,7 @@ TEST_F(InstructionSetTest, JZ)
   instruction = Instruction::Set::create("JZ", 0);
 
   ASSERT_EQ("JZ", instruction->symbol());
-  ASSERT_EQ(Types::none, instruction->type());
+  ASSERT_EQ(Types::control, instruction->type());
 
   ASSERT_EQ(0, thread.pc);
   ASSERT_EQ(0, thread.accu);
@@ -324,7 +324,7 @@ TEST_F(InstructionSetTest, JNZ)
   instruction = Instruction::Set::create("JNZ", 0);
 
   ASSERT_EQ("JNZ", instruction->symbol());
-  ASSERT_EQ(Types::none, instruction->type());
+  ASSERT_EQ(Types::control, instruction->type());
 
   ASSERT_EQ(0, thread.pc);
   ASSERT_EQ(0, thread.accu);
@@ -346,7 +346,7 @@ TEST_F(InstructionSetTest, JS)
   instruction = Instruction::Set::create("JS", 0);
 
   ASSERT_EQ("JS", instruction->symbol());
-  ASSERT_EQ(Types::none, instruction->type());
+  ASSERT_EQ(Types::control, instruction->type());
 
   ASSERT_EQ(0, thread.pc);
   ASSERT_EQ(0, thread.accu);
@@ -368,7 +368,7 @@ TEST_F(InstructionSetTest, JNS)
   instruction = Instruction::Set::create("JNS", 0);
 
   ASSERT_EQ("JNS", instruction->symbol());
-  ASSERT_EQ(Types::none, instruction->type());
+  ASSERT_EQ(Types::control, instruction->type());
 
   ASSERT_EQ(0, thread.pc);
   ASSERT_EQ(0, thread.accu);
@@ -390,7 +390,7 @@ TEST_F(InstructionSetTest, JNZNS)
   instruction = Instruction::Set::create("JNZNS", 0);
 
   ASSERT_EQ("JNZNS", instruction->symbol());
-  ASSERT_EQ(Types::none, instruction->type());
+  ASSERT_EQ(Types::control, instruction->type());
 
   ASSERT_EQ(0, thread.pc);
   ASSERT_EQ(0, thread.accu);
@@ -471,7 +471,7 @@ TEST_F(InstructionSetTest, CHECK)
   instruction = Instruction::Set::create("CHECK", 1);
 
   ASSERT_EQ("CHECK", instruction->symbol());
-  ASSERT_EQ(Types::barrier, instruction->type());
+  ASSERT_EQ(Types::barrier | Types::control, instruction->type());
 
   ASSERT_EQ(0, thread.pc);
   ASSERT_EQ(0, thread.check);
@@ -491,7 +491,7 @@ TEST_F(InstructionSetTest, HALT)
   instruction = Instruction::Set::create("HALT");
 
   ASSERT_EQ("HALT", instruction->symbol());
-  ASSERT_EQ(Types::none, instruction->type());
+  ASSERT_EQ(Types::control, instruction->type());
 }
 
 /* EXIT ***********************************************************************/
@@ -500,7 +500,7 @@ TEST_F(InstructionSetTest, EXIT)
   instruction = Instruction::Set::create("EXIT", 1);
 
   ASSERT_EQ("EXIT", instruction->symbol());
-  ASSERT_EQ(Types::none, instruction->type());
+  ASSERT_EQ(Types::control, instruction->type());
 
   ASSERT_EQ(0, thread.pc);
   ASSERT_EQ(0, thread.accu);

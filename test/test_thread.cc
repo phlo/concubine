@@ -6,17 +6,14 @@
 
 using namespace std;
 
-/*******************************************************************************
- * Test Case Fixture
-*******************************************************************************/
 struct ThreadTest : public ::testing::Test
 {
   Program         program;
   Simulator       simulator;
-  Thread          thread = Thread(simulator, 0, program);
+  Thread          thread {simulator, 0, program};
 };
 
-/* Load ***********************************************************************/
+/* Thread::load ***************************************************************/
 TEST_F(ThreadTest, load)
 {
   /* load direct */
@@ -30,7 +27,7 @@ TEST_F(ThreadTest, load)
   ASSERT_EQ(1, thread.load(1, true));
 }
 
-/* Store **********************************************************************/
+/* Thread::store **************************************************************/
 TEST_F(ThreadTest, store)
 {
   /* store direct */
@@ -48,11 +45,24 @@ TEST_F(ThreadTest, store)
   ASSERT_EQ(0, simulator.heap[0]);
 }
 
-/* Execute ********************************************************************/
+/* Thread::flush **************************************************************/
+TEST_F(ThreadTest, flush)
+{
+  thread.buffer.full = true;
+  thread.buffer.idx = 0;
+  thread.buffer.val = 1;
+  thread.state = Thread::State::flushing;
+
+  ASSERT_EQ(0, simulator.heap[0]);
+
+  thread.flush();
+
+  ASSERT_EQ(1, simulator.heap[0]);
+}
+
+/* Thread::execute ************************************************************/
 TEST_F(ThreadTest, execute)
 {
-  cout.setstate(ios_base::failbit);
-
   /* success */
   ASSERT_EQ(0, thread.pc);
   ASSERT_EQ(0, thread.accu);
@@ -78,6 +88,4 @@ TEST_F(ThreadTest, execute)
 
   ASSERT_EQ(1, thread.pc);
   ASSERT_EQ(1, thread.accu);
-
-  cout.clear();
 }

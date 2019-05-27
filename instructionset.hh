@@ -22,12 +22,14 @@ struct Instruction
   enum Types : Type
     {
       none    = 0,
-      accu    = 1 << 1, // modifies accu
-      mem     = 1 << 2, // modifies mem
-      read    = 1 << 3, // reads from memory
-      write   = 1 << 4, // writes to memory
-      barrier = 1 << 5, // memory barrier
-      atomic  = 1 << 6 | barrier // atomic instruction
+      accu    = 1 << 0, // modifies accu
+      mem     = 1 << 1, // modifies mem
+      modify  = accu | mem, // modifies a register
+      read    = 1 << 2, // reads from memory
+      write   = 1 << 3, // writes to memory
+      barrier = 1 << 4, // memory barrier
+      atomic  = 1 << 5 | barrier, // atomic instruction
+      control = 1 << 6  // control flow
     };
 
   /* Instruction Set - containing object factories to simplify parsing ********/

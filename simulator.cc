@@ -87,35 +87,46 @@ Schedule_ptr Simulator::run (function<Thread *()> scheduler)
 
       Thread * thread = scheduler();
 
-      assert(thread->state == Thread::State::running);
-
-      /* store current pc */
-      word pc = thread->pc;
-
-      /* pointer to an eventual store instruction */
-      Store_ptr store = dynamic_pointer_cast<Store>(thread->program[pc]);
-
-      /* optional heap update */
-      optional<Schedule::Heap_Cell> heap_cell;
-
-      /* mind indirect stores: save address in case it is overwritten */
-      if (store)
-        heap_cell = {store->indirect ? heap[store->arg] : store->arg, 0};
-
-      /* execute thread */
-      thread->execute();
-
-      /* get eventual heap update (ignore failed CAS) */
-      if (store)
+      /* flush store buffer */
+      if (thread->state == Thread::State::flushing)
         {
-          if (!(store->type() & Instruction::Types::atomic) || thread->accu)
-            heap_cell->val = heap[heap_cell->idx];
-          else /* CAS failed */
-            heap_cell = {};
+          thread->flush();
         }
+      /* execute instruction */
+      else
+        {
+          /* store current pc */
+          word pc = thread->pc;
 
-      /* append state update to schedule */
-      schedule->push_back(thread->id, pc, thread->accu, thread->mem, heap_cell);
+          thread->execute();
+
+          /* pointer to an eventual store instruction */
+          Store_ptr store = dynamic_pointer_cast<Store>(thread->program[pc]);
+
+          /* optional heap update */
+          optional<Schedule::Heap_Cell> heap_cell;
+
+          /* mind indirect stores: save address in case it is overwritten */
+          if (store)
+            heap_cell = {store->indirect ? heap[store->arg] : store->arg, 0};
+
+          /* get eventual heap update (ignore failed CAS) */
+          if (store)
+            {
+              if (!(store->type() & Instruction::Types::atomic) || thread->accu)
+                heap_cell->val = heap[heap_cell->idx];
+              else /* CAS failed */
+                heap_cell = {};
+            }
+
+          /* append state update to schedule */
+          schedule->push_back(
+            thread->id,
+            pc,
+            thread->accu,
+            thread->mem,
+            heap_cell);
+        }
 
       /* handle state transitions */
       switch (thread->state)
@@ -125,61 +136,62 @@ Schedule_ptr Simulator::run (function<Thread *()> scheduler)
 
         /* checkpoint reached - release if all other threads are waiting already */
         case Thread::State::waiting:
-            {
-              /* remove from active threads */
-              erase(active, thread);
+          {
+            /* remove from active threads */
+            erase(active, thread);
 
-              /* increment number of waiting threads */
-              waiting_for_checkpoint[thread->check]++;
+            /* increment number of waiting threads */
+            waiting_for_checkpoint[thread->check]++;
 
-              /* all other threads already waiting at this checkpoint? */
-              check_and_resume(thread->check);
+            /* all other threads already waiting at this checkpoint? */
+            check_and_resume(thread->check);
 
-              break;
-            }
+            break;
+          }
 
         /* halted - quit if all the others also stopped */
         case Thread::State::halted:
-            {
-              /* remove from active threads */
-              erase(active, thread);
+          {
+            /* remove from active threads */
+            erase(active, thread);
 
-              /* take care if last instruction was a CHECK (bypasses WAITING) */
-              if (dynamic_pointer_cast<Check>(thread->program.back()))
-                  {
-                    /* remove from list of waiting threads */
-                    erase(threads_per_checkpoint[thread->check], thread);
+            /* take care if last instruction was a CHECK (bypasses WAITING) */
+            if (dynamic_pointer_cast<Check>(thread->program.back()))
+              {
+                /* remove from list of waiting threads */
+                erase(threads_per_checkpoint[thread->check], thread);
 
-                    /* activate all waiting threads if this was the last one */
-                    check_and_resume(thread->check);
-                  }
+                /* activate all waiting threads if this was the last one */
+                check_and_resume(thread->check);
+              }
 
-              /* check if we were the last thread standing */
-              done = true;
+            /* check if we were the last thread standing */
+            done = true;
 
-              for (const Thread & t : threads)
-                if (t.state != Thread::State::halted)
-                  done = false;
+            for (const Thread & t : threads)
+              if (t.state != Thread::State::halted)
+                done = false;
 
-              break;
-            }
+            break;
+          }
 
         /* exiting - return exit code */
         case Thread::State::exited:
-            {
-              done = true;
-              schedule->exit = static_cast<int>(thread->accu);
-              break;
-            }
+          {
+            done = true;
+            schedule->exit = static_cast<int>(thread->accu);
+            break;
+          }
 
         default:
-          ostringstream msg;
-          msg
-            << "illegal thread state transition "
-            << static_cast<char>(Thread::State::running)
-            << " -> "
-            << static_cast<char>(thread->state);
-          throw runtime_error(msg.str());
+          {
+            ostringstream m;
+            m << "illegal thread state transition "
+              << static_cast<char>(Thread::State::running)
+              << " -> "
+              << static_cast<char>(thread->state);
+            throw runtime_error(m.str());
+          }
         }
     }
 
@@ -200,7 +212,25 @@ Schedule_ptr Simulator::simulate (
 
   /* random scheduler */
   return simulator.run([&simulator, &random] {
-    return simulator.active[random() % simulator.active.size()];
+    Thread * t = simulator.active[random() % simulator.active.size()];
+
+    assert(t->state == Thread::State::running);
+
+    /* rule 2, 5, 7: store buffer may be flushed at any time or must be empty */
+    if (t->buffer.full)
+      {
+        using Type = Instruction::Type;
+        using Types = Instruction::Types;
+
+        static const Type flush = Types::write | Types::barrier;
+
+        const Type type = t->program[t->pc]->type();
+
+        if (random() % 2 || type & flush)
+          t->state = Thread::State::flushing;
+      }
+
+    return t;
   });
 }
 
@@ -247,6 +277,17 @@ word Thread::load (word addr, bool indirect)
 void Thread::store (word addr, word val, bool indirect)
 {
   simulator.heap[indirect ? simulator.heap[addr] : addr] = val;
+}
+
+/* Thread::flush **************************************************************/
+void Thread::flush ()
+{
+  assert(buffer.full);
+  assert(state == Thread::State::flushing);
+
+  simulator.heap[buffer.idx] = buffer.val;
+  buffer.full = false;
+  state = Thread::State::running;
 }
 
 /* Thread::execute ************************************************************/
