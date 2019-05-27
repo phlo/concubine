@@ -66,9 +66,15 @@ debug: $(TEST_RUN)
 	gdb --args $(TEST_RUN) $(GTEST_FILTER)
 
 # valgrind tests
+VALGRIND = valgrind \
+           -v \
+           --leak-check=full \
+           --show-leak-kinds=all \
+           --undef-value-errors=no
+
 .PHONY: valgrind
 valgrind: $(TEST_RUN)
-	valgrind -v --leak-check=full --undef-value-errors=no ./$(TEST_RUN) $(GTEST_FILTER)
+	$(VALGRIND) ./$(TEST_RUN) $(GTEST_FILTER)
 
 # build executable containing all test cases
 $(TEST_RUN): $(GTEST_LIB) $(OBJ) $(TEST_OBJ)
