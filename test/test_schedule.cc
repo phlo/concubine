@@ -26,7 +26,7 @@ struct ScheduleTest : public ::testing::Test
     }
 };
 
-// Schedule::Schedule(istream & file, string & name)
+/* Schedule::Schedule *********************************************************/
 TEST_F(ScheduleTest, parse)
 {
   schedule = create_from_file<Schedule>(schedule_path);
@@ -38,8 +38,7 @@ TEST_F(ScheduleTest, parse)
   ASSERT_EQ(program_path, schedule->programs->at(1)->path);
 
   ASSERT_EQ(
-    // vector<word>({0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1}),
-    Schedule::Update_Map({
+    Schedule::Updates({
       {1,  0},
       {2,  1},
       {4,  0},
@@ -51,7 +50,7 @@ TEST_F(ScheduleTest, parse)
     schedule->thread_updates);
 
   ASSERT_EQ(
-    Schedule::Update_Map({
+    Schedule::Updates({
       {1,  0},
       {4,  1},
       {5,  2},
@@ -64,7 +63,7 @@ TEST_F(ScheduleTest, parse)
       {15, 5}}),
     schedule->pc_updates[0]);
   ASSERT_EQ(
-    Schedule::Update_Map({
+    Schedule::Updates({
       {2,  0},
       {3,  1},
       {7,  2},
@@ -74,26 +73,26 @@ TEST_F(ScheduleTest, parse)
     schedule->pc_updates[1]);
 
   ASSERT_EQ(
-    Schedule::Update_Map({
+    Schedule::Updates({
       {1,  0},
       {6,  1},
       {13, 2},
       {14, 1}}),
     schedule->accu_updates[0]);
   ASSERT_EQ(
-    Schedule::Update_Map({
+    Schedule::Updates({
       {2,  0},
       {10, 1},
       {11, 0}}),
     schedule->accu_updates[1]);
 
   ASSERT_EQ(
-    Schedule::Update_Map({
+    Schedule::Updates({
       {1,  0},
       {12, 1}}),
     schedule->mem_updates[0]);
   ASSERT_EQ(
-    Schedule::Update_Map({
+    Schedule::Updates({
       {2, 0}}),
     schedule->mem_updates[1]);
 
@@ -549,7 +548,7 @@ TEST_F(ScheduleTest, parse_missing_heap)
     }
 }
 
-// void Schedule::push_back_*
+/* Schedule::push_back ********************************************************/
 using Insert_Data = tuple<unsigned long, word, word, word>;
 
 const vector<Insert_Data> push_back_data {
@@ -571,17 +570,17 @@ const vector<Insert_Data> push_back_data {
   {16, 1, 1, 1},
 };
 
-// void Schedule::push_back_thread (const unsigned long step, const word thread)
-TEST_F(ScheduleTest, push_back_thread)
+/* Schedule::insert_thread ****************************************************/
+TEST_F(ScheduleTest, insert_thread)
 {
   create_dummy_schedule(2);
 
   for (const auto & [step, thread, _, __] : push_back_data)
-    schedule->push_back_thread(step, thread);
+    schedule->insert_thread(step, thread);
 
   ASSERT_EQ(push_back_data.size(), schedule->bound);
   ASSERT_EQ(
-    Schedule::Update_Map ({
+    Schedule::Updates ({
       {1,  0},
       {2,  1},
       {3,  0},
@@ -602,12 +601,8 @@ TEST_F(ScheduleTest, push_back_thread)
     schedule->thread_updates);
 }
 
-// void Schedule::push_back_pc (
-//                              const unsigned long step,
-//                              const word thread,
-//                              const word pc
-//                             )
-const vector<Schedule::Update_Map> push_back_expected {
+/* Schedule::insert_pc ********************************************************/
+const vector<Schedule::Updates> insert_expected {
   {{1, 0}, {5, 1}, {9, 0}, {13, 1}},
   {{2, 0}, {6, 1}, {10, 0}, {14, 1}}
 };
@@ -617,54 +612,43 @@ TEST_F(ScheduleTest, push_back_pc)
   create_dummy_schedule(2);
 
   for (const auto & [step, thread, pc, _] : push_back_data)
-    schedule->push_back_pc(step, thread, pc);
+    schedule->insert_pc(step, thread, pc);
 
   ASSERT_EQ(push_back_data.size(), schedule->bound);
-  ASSERT_EQ(push_back_expected, schedule->pc_updates);
+  ASSERT_EQ(insert_expected, schedule->pc_updates);
 }
 
-// void Schedule::push_back_accu (
-//                                const unsigned long step,
-//                                const word thread,
-//                                const word accu
-//                               )
-TEST_F(ScheduleTest, push_back_accu)
+/* Schedule::insert_accu ******************************************************/
+TEST_F(ScheduleTest, insert_accu)
 {
   create_dummy_schedule(2);
 
   for (const auto & [step, thread, accu, _] : push_back_data)
-    schedule->push_back_accu(step, thread, accu);
+    schedule->insert_accu(step, thread, accu);
 
   ASSERT_EQ(push_back_data.size(), schedule->bound);
-  ASSERT_EQ(push_back_expected, schedule->accu_updates);
+  ASSERT_EQ(insert_expected, schedule->accu_updates);
 }
 
-// void Schedule::push_back_mem (
-//                               const unsigned long step,
-//                               const word thread,
-//                               const word mem
-//                              )
-TEST_F(ScheduleTest, push_back_mem)
+/* Schedule::insert_mem *******************************************************/
+TEST_F(ScheduleTest, insert_mem)
 {
   create_dummy_schedule(2);
 
   for (const auto & [step, thread, mem, _] : push_back_data)
-    schedule->push_back_mem(step, thread, mem);
+    schedule->insert_mem(step, thread, mem);
 
   ASSERT_EQ(push_back_data.size(), schedule->bound);
-  ASSERT_EQ(push_back_expected, schedule->mem_updates);
+  ASSERT_EQ(insert_expected, schedule->mem_updates);
 }
 
-// void Schedule::push_back_heap (
-//                                const unsigned long step,
-//                                const Heap_Cell cell
-//                               )
-TEST_F(ScheduleTest, push_back_heap)
+/* Schedule::insert_heap ******************************************************/
+TEST_F(ScheduleTest, insert_heap)
 {
   create_dummy_schedule(2);
 
   for (const auto & [step, thread, idx, val] : push_back_data)
-    schedule->push_back_heap(step, {idx, val});
+    schedule->insert_heap(step, {idx, val});
 
   ASSERT_EQ(push_back_data.size(), schedule->bound);
   ASSERT_EQ(
@@ -675,7 +659,7 @@ TEST_F(ScheduleTest, push_back_heap)
     schedule->heap_updates);
 }
 
-// std::string Schedule::print ()
+/* Schedule::print ************************************************************/
 TEST_F(ScheduleTest, print)
 {
   schedule = create_from_file<Schedule>(schedule_path);
@@ -702,7 +686,7 @@ TEST_F(ScheduleTest, print_indirect_addressing)
   ASSERT_EQ(expected, schedule->print());
 }
 
-// Schedule::iterator
+/* Schedule::iterator *********************************************************/
 TEST_F(ScheduleTest, iterator)
 {
   schedule = create_from_file<Schedule>(schedule_path);
@@ -745,8 +729,8 @@ TEST_F(ScheduleTest, iterator)
   ASSERT_EQ(++it, end);
 }
 
-// bool operator == (const Schedule &, const Schedule &)
-// bool operator != (const Schedule &, const Schedule &)
+/* operator == ****************************************************************/
+/* operator != ****************************************************************/
 TEST_F(ScheduleTest, operator_equals)
 {
   Program_list_ptr p1 = make_shared<Program_list>();

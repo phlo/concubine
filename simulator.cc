@@ -91,6 +91,11 @@ Schedule_ptr Simulator::run (function<Thread *()> scheduler)
       if (thread->state == Thread::State::flushing)
         {
           thread->flush();
+
+          /* append state update to schedule */
+          schedule->push_back(
+            thread->id,
+            {thread->buffer.idx, thread->buffer.val});
         }
       /* execute instruction */
       else
@@ -134,7 +139,7 @@ Schedule_ptr Simulator::run (function<Thread *()> scheduler)
         /* keep 'em running */
         case Thread::State::running: break;
 
-        /* checkpoint reached - release if all other threads are waiting already */
+        /* checkpoint reached - release if all other threads are waiting */
         case Thread::State::waiting:
           {
             /* remove from active threads */

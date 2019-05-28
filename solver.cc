@@ -66,34 +66,34 @@ Schedule_ptr ExternalSolver::build_schedule (Program_list_ptr programs)
               switch (variable->type)
                 {
                 case Variable::Type::THREAD:
-                  schedule->push_back_thread(
+                  schedule->insert_thread(
                     variable->step,
                     variable->thread);
                   break;
 
                 case Variable::Type::EXEC:
-                  schedule->push_back_pc(
+                  schedule->insert_pc(
                     variable->step,
                     variable->thread,
                     variable->pc);
                   break;
 
                 case Variable::Type::ACCU:
-                  schedule->push_back_accu(
+                  schedule->insert_accu(
                     variable->step,
                     variable->thread,
                     variable->val);
                   break;
 
                 case Variable::Type::MEM:
-                  schedule->push_back_mem(
+                  schedule->insert_mem(
                     variable->step,
                     variable->thread,
                     variable->val);
                   break;
 
                 case Variable::Type::HEAP:
-                  schedule->push_back_heap(
+                  schedule->insert_heap(
                     variable->step,
                     {variable->idx, variable->val});
                   break;

@@ -8,14 +8,12 @@
 
 #include "program.hh"
 
-/*******************************************************************************
- * Schedule
- ******************************************************************************/
 struct Schedule
 {
-  using Update_Map      = std::map<unsigned long, word>; /* step -> state */
-  using Thread_Updates  = std::vector<Update_Map>;
-  using Heap_Updates    = std::unordered_map<word, Update_Map>;
+  using Flushes         = std::unordered_set<unsigned long>; // steps
+  using Updates         = std::map<unsigned long, word>; // step -> state
+  using Thread_Updates  = std::vector<Updates>;
+  using Heap_Updates    = std::unordered_map<word, Updates>;
 
   struct Heap_Cell
     {
@@ -26,6 +24,7 @@ struct Schedule
   /* state at a specific step */
   struct Step
     {
+      bool flush {false};
       word thread {0};
       word pc {0};
       word accu {0};
@@ -37,13 +36,13 @@ struct Schedule
   class iterator
     {
     private:
-      struct Update_Iterators
+      struct Iterators
         {
-          Update_Map::const_iterator cur;
-          Update_Map::const_iterator end;
+          Updates::const_iterator cur;
+          Updates::const_iterator end;
         };
-      using Thread_Iterators  = std::vector<Update_Iterators>;
-      using Heap_Iterators    = std::unordered_map<word, Update_Iterators>;
+      using Thread_Iterators  = std::vector<Iterators>;
+      using Heap_Iterators    = std::unordered_map<word, Iterators>;
 
       Schedule *        schedule;
 
@@ -51,14 +50,14 @@ struct Schedule
 
       Step              update;
 
-      Update_Iterators  thread;
+      Iterators         thread;
       Thread_Iterators  pc,
                         accu,
                         mem;
       Heap_Iterators    heap;
 
       /* return current thread state and advance */
-      word              next_thread_state (Update_Iterators & state);
+      word              next_thread_state (Iterators & state);
 
       /* return current heap state update and advance */
       std::optional<Heap_Cell> next_heap_state ();
@@ -103,8 +102,11 @@ struct Schedule
   /* exit code */
   word              exit;
 
+  /* store buffer flushes */
+  Flushes           flushes;
+
   /* thread sequence */
-  Update_Map        thread_updates;
+  Updates           thread_updates;
 
   /* register states */
   Thread_Updates    pc_updates,
@@ -117,42 +119,54 @@ struct Schedule
   /* initialize thread state update lists */
   void              init_state_update_lists ();
 
-  /* append state update */
+  /* append state update helper */
   void              push_back (
-                               Update_Map & updates,
+                               Updates & updates,
                                const unsigned long step,
                                const word val
                               );
+
+  /* append state update after executing an instruction */
   void              push_back (
                                const unsigned long thread,
                                const word pc,
                                const word accu,
                                const word mem,
-                               const std::optional<Heap_Cell> heap
+                               const std::optional<Heap_Cell> & heap
                               );
-  void              push_back_thread (
-                                      const unsigned long step,
-                                      const word thread
-                                     );
-  void              push_back_pc (
-                                  const unsigned long step,
-                                  const word thread,
-                                  const word pc
-                                 );
-  void              push_back_accu (
-                                    const unsigned long step,
-                                    const word thread,
-                                    const word accu
-                                   );
-  void              push_back_mem (
+
+  /* append state update after flushing the store buffer */
+  void              push_back (
+                               const unsigned long thread,
+                               const Heap_Cell & heap
+                              );
+
+  /* insert individual state updates */
+  /* NOTE: expects step to increase monotonically */
+  void              insert_thread (
                                    const unsigned long step,
-                                   const word thread,
-                                   const word mem
+                                   const word thread
                                   );
-  void              push_back_heap (
-                                    const unsigned long step,
-                                    const Heap_Cell cell
-                                   );
+  void              insert_pc (
+                               const unsigned long step,
+                               const word thread,
+                               const word pc
+                              );
+  void              insert_accu (
+                                 const unsigned long step,
+                                 const word thread,
+                                 const word accu
+                                );
+  void              insert_mem (
+                                const unsigned long step,
+                                const word thread,
+                                const word mem
+                               );
+  void              insert_heap (
+                                 const unsigned long step,
+                                 const Heap_Cell & cell
+                                );
+  void              insert_flush (const unsigned long step);
 
   /* return schedule size (bound) */
   size_t            size ();

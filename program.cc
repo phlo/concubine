@@ -159,7 +159,7 @@ Program::Program(istream & file, string & name) : path(name)
     }
 }
 
-/* Program::push_back (Instruction_ptr) ****************************************/
+/* Program::push_back (Instruction_ptr) ***************************************/
 void Program::push_back (Instruction_ptr i)
 {
   deque<Instruction_ptr>::push_back(i);
