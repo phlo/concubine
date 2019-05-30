@@ -17,8 +17,10 @@ struct Simulator
   /* list of programs */
   Program_list_ptr          programs;
 
+  Schedule_ptr              schedule;
+
   /* bounded execution */
-  uint64_t                  bound;
+  bound_t                   bound;
 
   /* seed used for thread scheduling */
   uint64_t                  seed;
@@ -53,7 +55,7 @@ struct Simulator
   Simulator ();
 
   /* constructs a new simulator for simulation */
-  Simulator (Program_list_ptr programs, uint64_t bound = 0, uint64_t seed = 0);
+  Simulator (Program_list_ptr programs, bound_t bound = 0, uint64_t seed = 0);
 
   /*****************************************************************************
    * private functions

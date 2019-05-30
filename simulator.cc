@@ -16,10 +16,17 @@ inline void erase (C & container, T & val)
 /*******************************************************************************
  * Simulator
  ******************************************************************************/
-Simulator::Simulator () : bound(0) {}
+Simulator::Simulator () :
+  programs(
+    make_shared<Program_list>(
+      initializer_list<Program_ptr>({make_shared<Program>()}))),
+  schedule(make_shared<Schedule>(programs)),
+  bound(0)
+{}
 
-Simulator::Simulator (Program_list_ptr p, uint64_t b, uint64_t s) :
+Simulator::Simulator (Program_list_ptr p, bound_t b, uint64_t s) :
   programs(p),
+  schedule(make_shared<Schedule>(p)),
   bound(b),
   seed(s)
 {
@@ -67,8 +74,6 @@ void Simulator::check_and_resume (word_t id)
 /* Simulator::run *************************************************************/
 Schedule_ptr Simulator::run (function<Thread *()> scheduler)
 {
-  Schedule_ptr schedule = make_shared<Schedule>(programs);
-
   assert(active.empty());
 
   /* activate threads */
@@ -84,53 +89,11 @@ Schedule_ptr Simulator::run (function<Thread *()> scheduler)
     {
       Thread * thread = scheduler();
 
-      /* flush store buffer */
+      /* flush store buffer or execute instruction */
       if (thread->state == Thread::State::flushing)
-        {
-          thread->flush();
-
-          /* append state update to schedule */
-          schedule->push_back(
-            thread->id,
-            {thread->buffer.address, thread->buffer.value});
-        }
-      /* execute instruction */
+        thread->flush();
       else
-        {
-          /* store current pc */
-          word_t pc = thread->pc;
-
-          thread->execute();
-
-          /* pointer to an eventual CAS instruction */
-          Cas_ptr cas = dynamic_pointer_cast<Cas>(thread->program[pc]);
-
-          /* optional heap update */
-          optional<Schedule::Heap> heap_update;
-
-          /* mind indirect stores: save address in case it is overwritten */
-          if (cas)
-            {
-              heap_update = {cas->indirect ? heap[cas->arg] : cas->arg, 0};
-
-              /* get eventual heap update (ignore failed CAS) */
-              if (thread->accu)
-                heap_update->val = heap[heap_update->adr];
-              else /* CAS failed */
-                heap_update = {};
-            }
-
-          /* append state update to schedule */
-          schedule->push_back(
-            thread->id,
-            pc,
-            thread->accu,
-            thread->mem,
-            thread->buffer.address,
-            thread->buffer.value,
-            thread->buffer.full,
-            heap_update);
-        }
+        thread->execute();
 
       /* handle state transitions */
       switch (thread->state)
@@ -318,6 +281,8 @@ void Thread::flush ()
   buffer.full = false;
   state = Thread::State::running;
   simulator.heap[buffer.address] = buffer.value;
+
+  simulator.schedule->push_back(id, {buffer.address, buffer.value});
 }
 
 /* Thread::execute ************************************************************/
@@ -334,60 +299,84 @@ void Thread::execute ()
     state = State::halted;
 }
 
+#define PUSH_BACK_ATOMIC(pc, heap) \
+  simulator.schedule->push_back( \
+    id, \
+    pc, \
+    accu, \
+    mem, \
+    buffer.address, \
+    buffer.value, \
+    buffer.full, \
+    heap)
+
+#define PUSH_BACK(pc) PUSH_BACK_ATOMIC(pc, {})
+
 void Thread::execute (Load & l)
 {
-  pc++;
   accu = load(l.arg, l.indirect);
+
+  PUSH_BACK(pc++);
 }
 
 void Thread::execute (Store & s)
 {
-  pc++;
   store(s.arg, accu, s.indirect);
+
+  PUSH_BACK(pc++);
 }
 
 void Thread::execute (Fence & f [[maybe_unused]])
 {
-  pc++;
+  PUSH_BACK(pc++);
 }
 
 void Thread::execute (Add & a)
 {
-  pc++;
   accu += load(a.arg, a.indirect);
+
+  PUSH_BACK(pc++);
 }
 
 void Thread::execute (Addi & a)
 {
-  pc++;
   accu += a.arg;
+
+  PUSH_BACK(pc++);
 }
 
 void Thread::execute (Sub & s)
 {
-  pc++;
   accu -= load(s.arg, s.indirect);
+
+  PUSH_BACK(pc++);
 }
 
 void Thread::execute (Subi & s)
 {
-  pc++;
   accu -= s.arg;
+
+  PUSH_BACK(pc++);
 }
 
 void Thread::execute (Cmp & c)
 {
-  pc++;
   accu -= load(c.arg, c.indirect);
+
+  PUSH_BACK(pc++);
 }
 
 void Thread::execute (Jmp & j)
 {
+  PUSH_BACK(pc);
+
   pc = j.arg;
 }
 
 void Thread::execute (Jz & j)
 {
+  PUSH_BACK(pc);
+
   if (accu)
     pc++;
   else
@@ -396,6 +385,8 @@ void Thread::execute (Jz & j)
 
 void Thread::execute (Jnz & j)
 {
+  PUSH_BACK(pc);
+
   if (accu)
     pc = j.arg;
   else
@@ -404,6 +395,8 @@ void Thread::execute (Jnz & j)
 
 void Thread::execute (Js & j)
 {
+  PUSH_BACK(pc);
+
   if (static_cast<sword_t>(accu) < 0)
     pc = j.arg;
   else
@@ -412,6 +405,8 @@ void Thread::execute (Js & j)
 
 void Thread::execute (Jns & j)
 {
+  PUSH_BACK(pc);
+
   if (static_cast<sword_t>(accu) >= 0)
     pc = j.arg;
   else
@@ -420,6 +415,8 @@ void Thread::execute (Jns & j)
 
 void Thread::execute (Jnzns & j)
 {
+  PUSH_BACK(pc);
+
   if (static_cast<sword_t>(accu) > 0)
     pc = j.arg;
   else
@@ -428,16 +425,19 @@ void Thread::execute (Jnzns & j)
 
 void Thread::execute (Mem & m)
 {
-  pc++;
   mem = accu = load(m.arg, m.indirect);
+
+  PUSH_BACK(pc++);
 }
 
 void Thread::execute (Cas & c)
 {
-  pc++;
+  optional<Schedule::Heap> heap;
 
   if (mem == load(c.arg, c.indirect))
     {
+      heap = {c.indirect ? load(c.arg) : c.arg, accu};
+
       store(c.arg, accu, c.indirect, true);
       accu = 1;
     }
@@ -445,25 +445,30 @@ void Thread::execute (Cas & c)
     {
       accu = 0;
     }
+
+  PUSH_BACK_ATOMIC(pc++, heap);
 }
 
 void Thread::execute (Check & c)
 {
-  pc++;
   check = c.arg;
   state = State::waiting;
+
+  PUSH_BACK(pc++);
 }
 
 // TODO
 void Thread::execute (Halt & h [[maybe_unused]])
 {
-  pc++;
+  PUSH_BACK(pc++);
 }
 
 void Thread::execute (Exit & e)
 {
   accu = e.arg;
   state = State::exited;
+
+  PUSH_BACK(pc);
 }
 
 std::ostream & operator << (std::ostream & os, Thread::State s)

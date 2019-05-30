@@ -8,9 +8,9 @@ using namespace std;
 
 struct ThreadTest : public ::testing::Test
 {
-  Program         program;
-  Simulator       simulator;
-  Thread          thread {simulator, 0, program};
+  Program   program;
+  Simulator simulator;
+  Thread    thread {simulator, 0, program};
 };
 
 /* Thread::load ***************************************************************/
