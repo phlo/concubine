@@ -6,7 +6,7 @@
 
 using namespace std;
 
-/* erases a given element from a <deque> container ****************************/
+/* erases a given element from a STL container ********************************/
 template<typename C, typename T>
 inline void erase (C & container, T & val)
 {
@@ -30,7 +30,7 @@ Simulator::Simulator (Program_list_ptr p, uint64_t b, uint64_t s) :
     create_thread(*program);
 }
 
-/* Simulator::create_thread (Program &) ***************************************/
+/* Simulator::create_thread ***************************************************/
 word Simulator::create_thread (Program & program)
 {
   /* determine thread id */
@@ -46,7 +46,7 @@ word Simulator::create_thread (Program & program)
   return id;
 }
 
-/* Simulator::check_and_resume (word) *****************************************/
+/* Simulator::check_and_resume ************************************************/
 void Simulator::check_and_resume (word id)
 {
   /* all other threads already at this checkpoint? */
@@ -64,7 +64,7 @@ void Simulator::check_and_resume (word id)
     }
 }
 
-/* Simulator::run (Scheduler *) ***********************************************/
+/* Simulator::run *************************************************************/
 Schedule_ptr Simulator::run (function<Thread *()> scheduler)
 {
   Schedule_ptr schedule = make_shared<Schedule>(programs);
@@ -80,11 +80,8 @@ Schedule_ptr Simulator::run (function<Thread *()> scheduler)
 
   bool done = active.empty();
 
-  unsigned long step = 0; // TODO: remove (debug)
   while (!done && (!bound || schedule->bound < bound))
     {
-      step++;
-
       Thread * thread = scheduler();
 
       /* flush store buffer */
@@ -95,7 +92,7 @@ Schedule_ptr Simulator::run (function<Thread *()> scheduler)
           /* append state update to schedule */
           schedule->push_back(
             thread->id,
-            {thread->buffer.idx, thread->buffer.val});
+            {thread->buffer.address, thread->buffer.value});
         }
       /* execute instruction */
       else
@@ -105,23 +102,22 @@ Schedule_ptr Simulator::run (function<Thread *()> scheduler)
 
           thread->execute();
 
-          /* pointer to an eventual store instruction */
-          Store_ptr store = dynamic_pointer_cast<Store>(thread->program[pc]);
+          /* pointer to an eventual CAS instruction */
+          Cas_ptr cas = dynamic_pointer_cast<Cas>(thread->program[pc]);
 
           /* optional heap update */
-          optional<Schedule::Heap_Cell> heap_cell;
+          optional<Schedule::Heap> heap_update;
 
           /* mind indirect stores: save address in case it is overwritten */
-          if (store)
-            heap_cell = {store->indirect ? heap[store->arg] : store->arg, 0};
-
-          /* get eventual heap update (ignore failed CAS) */
-          if (store)
+          if (cas)
             {
-              if (!(store->type() & Instruction::Types::atomic) || thread->accu)
-                heap_cell->val = heap[heap_cell->idx];
+              heap_update = {cas->indirect ? heap[cas->arg] : cas->arg, 0};
+
+              /* get eventual heap update (ignore failed CAS) */
+              if (thread->accu)
+                heap_update->val = heap[heap_update->adr];
               else /* CAS failed */
-                heap_cell = {};
+                heap_update = {};
             }
 
           /* append state update to schedule */
@@ -130,7 +126,10 @@ Schedule_ptr Simulator::run (function<Thread *()> scheduler)
             pc,
             thread->accu,
             thread->mem,
-            heap_cell);
+            thread->buffer.address,
+            thread->buffer.value,
+            thread->buffer.full,
+            heap_update);
         }
 
       /* handle state transitions */
@@ -229,9 +228,7 @@ Schedule_ptr Simulator::simulate (
 
         static const Type flush = Types::write | Types::barrier;
 
-        const Type type = t->program[t->pc]->type();
-
-        if (random() % 2 || type & flush)
+        if (random() % 2 || t->program[t->pc]->type() & flush)
           t->state = Thread::State::flushing;
       }
 
@@ -251,6 +248,9 @@ Schedule_ptr Simulator::replay (Schedule & schedule, unsigned long bound)
   Schedule::iterator iterator = schedule.begin();
 
   return simulator.run([&simulator, &iterator] {
+    if (iterator->flush)
+      simulator.threads[iterator->thread].state = Thread::State::flushing;
+
     return &simulator.threads[iterator++->thread];
   });
 }
@@ -270,18 +270,43 @@ Thread::Thread (Simulator & s, word i, Program & p) :
 {}
 
 /* Thread::load ***************************************************************/
-word Thread::load (word addr, bool indirect)
+word Thread::load (word address, const bool indirect)
 {
+  if (indirect)
+    address =
+      buffer.full && buffer.address == address
+        ? buffer.value
+        : simulator.heap[address];
+
   return
-    indirect
-      ? simulator.heap[simulator.heap[addr]]
-      : simulator.heap[addr];
+    buffer.full && buffer.address == address
+      ? buffer.value
+      : simulator.heap[address];
 }
 
 /* Thread::store **************************************************************/
-void Thread::store (word addr, word val, bool indirect)
+void Thread::store (
+                    word address,
+                    const word value,
+                    const bool indirect,
+                    const bool atomic
+                   )
 {
-  simulator.heap[indirect ? simulator.heap[addr] : addr] = val;
+  assert(!buffer.full);
+
+  if (indirect)
+    address = load(address);
+
+  if (atomic)
+    {
+      simulator.heap[address] = value;
+    }
+  else
+    {
+      buffer.full = true;
+      buffer.address = address;
+      buffer.value = value;
+    }
 }
 
 /* Thread::flush **************************************************************/
@@ -290,9 +315,9 @@ void Thread::flush ()
   assert(buffer.full);
   assert(state == Thread::State::flushing);
 
-  simulator.heap[buffer.idx] = buffer.val;
   buffer.full = false;
   state = Thread::State::running;
+  simulator.heap[buffer.address] = buffer.value;
 }
 
 /* Thread::execute ************************************************************/
@@ -321,7 +346,6 @@ void Thread::execute (Store & s)
   store(s.arg, accu, s.indirect);
 }
 
-// TODO
 void Thread::execute (Fence & f [[maybe_unused]])
 {
   pc++;
@@ -418,7 +442,7 @@ void Thread::execute (Cas & c)
 
   if (mem == load(c.arg, c.indirect))
     {
-      store(c.arg, accu, c.indirect);
+      store(c.arg, accu, c.indirect, true);
       accu = 1;
     }
   else

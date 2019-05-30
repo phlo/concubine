@@ -85,7 +85,7 @@ Schedule_ptr Z3::solve (Encoder & encoder, string & constraints)
                 word accu = eval_bv(c, m, symbol("accu", {step, thread}));
                 word mem = eval_bv(c, m, symbol("mem", {step, thread}));
 
-                optional<Schedule::Heap_Cell> heap;
+                optional<Schedule::Heap> heap;
 
                 /* get eventual heap update (ignore failed CAS) */
                 if (Store_ptr store = dynamic_pointer_cast<Store>(program[pc]))
@@ -99,7 +99,8 @@ Schedule_ptr Z3::solve (Encoder & encoder, string & constraints)
                       heap = {idx, eval_array(c, m, symbol("heap", {step}), idx)};
                     }
 
-                schedule->push_back(thread, pc, accu, mem, heap);
+                // TODO: store buffer
+                schedule->push_back(thread, pc, accu, mem, 0, 0, false, heap);
               }
         }
 

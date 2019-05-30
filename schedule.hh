@@ -10,60 +10,89 @@
 
 struct Schedule
 {
-  using Flushes         = std::unordered_set<unsigned long>; // steps
-  using Updates         = std::map<unsigned long, word>; // step -> state
-  using Thread_Updates  = std::vector<Updates>;
-  using Heap_Updates    = std::unordered_map<word, Updates>;
+  template <typename T>
+  using Updates = std::map<unsigned long, T>; // step -> state
 
-  struct Heap_Cell
+  template <typename T>
+  using Thread_Updates = std::vector<Updates<T>>;
+
+  using Heap_Updates = std::unordered_map<word, Updates<word>>;
+
+  using Flushes = std::unordered_set<unsigned long>; // steps
+
+  struct Heap
     {
-      word idx;
+      word adr;
       word val;
     };
 
   /* state at a specific step */
   struct Step
     {
-      bool flush {false};
-      word thread {0};
-      word pc {0};
-      word accu {0};
-      word mem {0};
-      std::optional<Heap_Cell> heap;
+      unsigned long step;
+      word thread;
+      word pc;
+      word accu;
+      word mem;
+      word sb_adr;
+      word sb_val;
+      bool sb_full;
+      bool flush;
+      std::optional<Heap> heap;
+
+      Step () = default;
+      Step (unsigned long step);
+
+      operator unsigned long () const;
+
+      Step & operator ++ ();
     };
 
   /* schedule iterator */
   class iterator
     {
     private:
+      template <typename T>
       struct Iterators
         {
-          Updates::const_iterator cur;
-          Updates::const_iterator end;
+          typename Updates<T>::const_iterator cur;
+          typename Updates<T>::const_iterator end;
         };
-      using Thread_Iterators  = std::vector<Iterators>;
-      using Heap_Iterators    = std::unordered_map<word, Iterators>;
 
-      Schedule *        schedule;
+      template <typename T>
+      using Thread_Iterators  = std::vector<Iterators<T>>;
 
-      unsigned long     step;
+      using Heap_Iterators    = std::unordered_map<word, Iterators<word>>;
 
-      Step              update;
+      const Schedule *        schedule;
 
-      Iterators         thread;
-      Thread_Iterators  pc,
-                        accu,
-                        mem;
-      Heap_Iterators    heap;
+      Step                    step;
+
+      Iterators<word>         thread;
+      Thread_Iterators<word>  pc,
+                              accu,
+                              mem,
+                              sb_adr,
+                              sb_val;
+      Thread_Iterators<bool>  sb_full;
+      Heap_Iterators          heap;
+
+      /* helper for initializing thread update iterators */
+      template <typename T>
+      void init_iterators (
+                           Thread_Iterators<T> & iterators,
+                           const Thread_Updates<T> & updates
+                          );
 
       /* return current thread state and advance */
-      word              next_thread_state (Iterators & state);
+      template <typename T>
+      const T & next_thread_state (Iterators<T> & state);
 
       /* return current heap state update and advance */
-      std::optional<Heap_Cell> next_heap_state ();
+      const std::optional<Heap> next_heap_state ();
 
       /* assign state update */
-      void              assign ();
+      void assign ();
 
     public:
       using difference_type   = std::ptrdiff_t; // size_t ?
@@ -72,9 +101,9 @@ struct Schedule
       using reference         = const Step &;
       using iterator_category = std::forward_iterator_tag;
 
-      iterator (Schedule *, unsigned long = 1);
+      iterator (const Schedule * schedule, unsigned long step = 1);
 
-      iterator &  operator ++ (void);
+      iterator &  operator ++ ();
       iterator    operator ++ (int);
 
       bool        operator == (const iterator &) const;
@@ -94,36 +123,40 @@ struct Schedule
   Schedule (std::istream & file, std::string & path);
 
   /* bound used == size() */
-  unsigned long     bound;
+  unsigned long         bound;
 
   /* programs used to generate the schedule */
-  Program_list_ptr  programs;
+  Program_list_ptr      programs;
 
   /* exit code */
-  word              exit;
+  word                  exit;
 
   /* store buffer flushes */
-  Flushes           flushes;
+  Flushes               flushes;
 
   /* thread sequence */
-  Updates           thread_updates;
+  Updates<word>         thread_updates;
 
-  /* register states */
-  Thread_Updates    pc_updates,
-                    accu_updates,
-                    mem_updates;
+  /* thread state updates */
+  Thread_Updates<word>  pc_updates,
+                        accu_updates,
+                        mem_updates,
+                        sb_adr_updates,
+                        sb_val_updates;
+  Thread_Updates<bool>  sb_full_updates;
 
   /* heap state updates (idx -> [(step, val), ...]) */
-  Heap_Updates      heap_updates;
+  Heap_Updates          heap_updates;
 
   /* initialize thread state update lists */
   void              init_state_update_lists ();
 
   /* append state update helper */
+  template <typename T>
   void              push_back (
-                               Updates & updates,
+                               Updates<T> & updates,
                                const unsigned long step,
-                               const word val
+                               const T val
                               );
 
   /* append state update after executing an instruction */
@@ -132,13 +165,16 @@ struct Schedule
                                const word pc,
                                const word accu,
                                const word mem,
-                               const std::optional<Heap_Cell> & heap
+                               const word sb_adr,
+                               const word sb_val,
+                               const word sb_full,
+                               const std::optional<Heap> & heap
                               );
 
   /* append state update after flushing the store buffer */
   void              push_back (
                                const unsigned long thread,
-                               const Heap_Cell & heap
+                               const Heap & heap
                               );
 
   /* insert individual state updates */
@@ -162,23 +198,38 @@ struct Schedule
                                 const word thread,
                                 const word mem
                                );
+  void              insert_sb_adr (
+                                   const unsigned long step,
+                                   const word thread,
+                                   const word adr
+                                  );
+  void              insert_sb_val (
+                                   const unsigned long step,
+                                   const word thread,
+                                   const word val
+                                  );
+  void              insert_sb_full (
+                                    const unsigned long step,
+                                    const word thread,
+                                    const bool full
+                                   );
   void              insert_heap (
                                  const unsigned long step,
-                                 const Heap_Cell & cell
+                                 const Heap & heap
                                 );
   void              insert_flush (const unsigned long step);
 
   /* return schedule size (bound) */
-  size_t            size ();
+  size_t            size () const;
 
   /* return an iterator to the beginning */
-  iterator          begin ();
+  iterator          begin () const;
 
   /* return an iterator to the end */
-  iterator          end ();
+  iterator          end () const;
 
   /* print schedule */
-  std::string       print ();
+  std::string       print () const;
 };
 
 /*******************************************************************************

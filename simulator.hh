@@ -93,8 +93,8 @@ struct Thread
   struct Buffer
     {
       bool full = false;
-      word idx = 0;
-      word val = 0;
+      word address = 0;
+      word value = 0;
     };
 
   enum class State : char
@@ -119,8 +119,13 @@ struct Thread
 
   Thread (Simulator & simulator, word id, Program & program);
 
-  word          load (word address, bool indirect);
-  void          store (word address, word value, bool indirect);
+  word          load (word address, const bool indirect = false);
+  void          store (
+                       word address,
+                       const word value,
+                       const bool indirect = false,
+                       const bool atomic = false
+                      );
 
   void          flush ();
   void          execute ();

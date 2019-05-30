@@ -1,5 +1,6 @@
 #include "schedule.hh"
 
+#include <cassert>
 #include <sstream>
 
 #include "instructionset.hh"
@@ -99,44 +100,34 @@ Schedule::Schedule(istream & file, string & path) :
       /* parse pc */
       word pc;
 
-      if (line >> pc)
-        {
-          if (pc >= program.size())
-              parser_error(
-                path,
-                line_num,
-                "illegal program counter [" + to_string(pc) + "]");
-        }
-      else
+      if (!(line >> pc))
         {
           line.clear();
 
           if (!(line >> token))
             parser_error(path, line_num, "missing program counter");
 
-          if (token != "-")
-            try
-              {
-                pc = program.get_pc(token);
-              }
-            catch (...)
-              {
-                parser_error(path, line_num, "unknown label [" + token + "]");
-              }
+          try
+            {
+              pc = program.get_pc(token);
+            }
+          catch (...)
+            {
+              parser_error(path, line_num, "unknown label [" + token + "]");
+            }
         }
+
+      if (pc >= program.size())
+          parser_error(
+            path,
+            line_num,
+            "illegal program counter [" + to_string(pc) + "]");
 
       /* parse instruction symbol */
       string symbol;
 
       if (!(line >> symbol))
-        {
-          line.clear();
-
-          if (!(line >> token))
-            parser_error(path, line_num, "missing instruction symbol");
-
-          parser_error(path, line_num, "unable to parse instruction symbol");
-        }
+        parser_error(path, line_num, "missing instruction symbol");
 
       bool flush = symbol == "FLUSH";
 
@@ -146,23 +137,30 @@ Schedule::Schedule(istream & file, string & path) :
       /* parse instruction argument */
       word arg;
 
-      if (!(line >> arg))
+      if (flush)
+        {
+          if (!(line >> token))
+            parser_error(path, line_num, "missing instruction argument");
+
+          if (token != "-")
+            parser_error(
+              path,
+              line_num,
+              "illegal instruction argument [" + token + "]");
+        }
+      else if (!(line >> arg))
         {
           line.clear();
 
           if (!(line >> token))
             parser_error(path, line_num, "missing instruction argument");
 
-          if (flush && token != "-")
-            parser_error(
-              path,
-              line_num,
-              "illegal accumulator register value [" + token + "]");
-
           const Instruction_ptr cmd = program.at(pc);
 
           /* arg is an indirect memory address */
-          if (token.front() == '[')
+          if (flush && token == "-")
+            ;
+          else if (token.front() == '[')
             {
               if (dynamic_pointer_cast<Memory>(cmd))
                 {
@@ -194,7 +192,10 @@ Schedule::Schedule(istream & file, string & path) :
                 }
             }
           else
-            parser_error(path, line_num, symbol + " does not support labels");
+            parser_error(
+              path,
+              line_num,
+              symbol + " does not support labels [" + token + "]");
         }
 
       /* parse accu */
@@ -207,11 +208,10 @@ Schedule::Schedule(istream & file, string & path) :
           if (!(line >> token))
             parser_error(path, line_num, "missing accumulator register value");
 
-          if (!flush || token != "-")
-            parser_error(
-              path,
-              line_num,
-              "illegal accumulator register value [" + token + "]");
+          parser_error(
+            path,
+            line_num,
+            "illegal accumulator register value [" + token + "]");
         }
 
       /* parse mem */
@@ -224,15 +224,62 @@ Schedule::Schedule(istream & file, string & path) :
           if (!(line >> token))
             parser_error(path, line_num, "missing CAS memory register value");
 
-          if (!flush || token != "-")
-            parser_error(
-              path,
-              line_num,
-              "illegal CAS memory register value [" + token + "]");
+          parser_error(
+            path,
+            line_num,
+            "illegal CAS memory register value [" + token + "]");
+        }
+
+      /* parse store buffer address */
+      word sb_adr;
+
+      if (!(line >> sb_adr))
+        {
+          line.clear();
+
+          if (!(line >> token))
+            parser_error(path, line_num, "missing store buffer address");
+
+          parser_error(
+            path,
+            line_num,
+            "illegal store buffer address [" + token + "]");
+        }
+
+      /* parse store buffer value */
+      word sb_val;
+
+      if (!(line >> sb_val))
+        {
+          line.clear();
+
+          if (!(line >> token))
+            parser_error(path, line_num, "missing store buffer value");
+
+          parser_error(
+            path,
+            line_num,
+            "illegal store buffer value [" + token + "]");
+        }
+
+      /* parse store buffer full flag */
+      bool sb_full;
+
+      if (!(line >> sb_full))
+        {
+          line.clear();
+
+          if (!(line >> token))
+            parser_error(path, line_num, "missing store buffer full flag");
+
+          parser_error(
+            path,
+            line_num,
+            "illegal store buffer full flag [" + token + "]");
         }
 
       /* parse heap cell */
-      optional<Heap_Cell> heap;
+      optional<Heap> heap;
 
       if (!(line >> token))
         parser_error(path, line_num, "missing heap update");
@@ -260,13 +307,11 @@ Schedule::Schedule(istream & file, string & path) :
             }
 
           /* only flushes and atomic operations may write to memory */
-          /* TODO: uncomment when updated
           if (!flush && !(program[pc]->type() & Instruction::Types::atomic))
             parser_error(
               path,
               line_num,
-              "illegal heap update [" + symbol + "]");
-          */
+              symbol + " can't perform heap updates");
         }
 
       /* append to schedule */
@@ -278,7 +323,7 @@ Schedule::Schedule(istream & file, string & path) :
           push_back(thread, *heap);
         }
       else
-        push_back(thread, pc, accu, mem, heap);
+        push_back(thread, pc, accu, mem, sb_adr, sb_val, sb_full, heap);
     }
 
   if (!bound)
@@ -292,12 +337,16 @@ void Schedule::init_state_update_lists ()
   pc_updates.resize(num_threads);
   accu_updates.resize(num_threads);
   mem_updates.resize(num_threads);
+  sb_adr_updates.resize(num_threads);
+  sb_val_updates.resize(num_threads);
+  sb_full_updates.resize(num_threads);
 }
 
+template <typename T>
 void Schedule::push_back (
-                          Schedule::Updates & updates,
+                          Schedule::Updates<T> & updates,
                           const unsigned long step,
-                          const word val
+                          const T val
                          )
 {
   if (updates.empty())
@@ -324,32 +373,39 @@ void Schedule::push_back (
                           const word pc,
                           const word accu,
                           const word mem,
-                          const optional<Heap_Cell> & heap
+                          const word buffer_adr,
+                          const word buffer_val,
+                          const word buffer_full,
+                          const optional<Heap> & heap
                          )
 {
   ++bound;
 
-  push_back(thread_updates, bound, thread);
-  push_back(pc_updates[thread], bound, pc);
-  push_back(accu_updates[thread], bound, accu);
-  push_back(mem_updates[thread], bound, mem);
+  push_back<word>(thread_updates, bound, thread);
+  push_back<word>(pc_updates[thread], bound, pc);
+  push_back<word>(accu_updates[thread], bound, accu);
+  push_back<word>(mem_updates[thread], bound, mem);
+  push_back<word>(sb_adr_updates[thread], bound, buffer_adr);
+  push_back<word>(sb_val_updates[thread], bound, buffer_val);
+  push_back<bool>(sb_full_updates[thread], bound, buffer_full);
 
   if (heap)
-    push_back(heap_updates[heap->idx], bound, heap->val);
+    push_back(heap_updates[heap->adr], bound, heap->val);
 }
 
-void Schedule::push_back (const unsigned long thread, const Heap_Cell & heap)
+void Schedule::push_back (const unsigned long thread, const Heap & heap)
 {
   ++bound;
 
   flushes.insert(bound);
-  push_back(thread_updates, bound, thread);
-  push_back(heap_updates[heap.idx], bound, heap.val);
+  push_back<word>(thread_updates, bound, thread);
+  push_back<bool>(sb_full_updates[thread], bound, false);
+  push_back<word>(heap_updates[heap.adr], bound, heap.val);
 }
 
 void Schedule::insert_thread (const unsigned long step, const word thread)
 {
-  push_back(thread_updates, step, thread);
+  push_back<word>(thread_updates, step, thread);
 
   if (step > bound)
     bound = step;
@@ -361,7 +417,7 @@ void Schedule::insert_pc (
                           const word pc
                          )
 {
-  push_back(pc_updates.at(thread), step, pc);
+  push_back<word>(pc_updates.at(thread), step, pc);
 
   if (step > bound)
     bound = step;
@@ -373,7 +429,7 @@ void Schedule::insert_accu (
                             const word accu
                            )
 {
-  push_back(accu_updates.at(thread), step, accu);
+  push_back<word>(accu_updates.at(thread), step, accu);
 
   if (step > bound)
     bound = step;
@@ -385,15 +441,51 @@ void Schedule::insert_mem (
                            const word mem
                           )
 {
-  push_back(mem_updates.at(thread), step, mem);
+  push_back<word>(mem_updates.at(thread), step, mem);
 
   if (step > bound)
     bound = step;
 }
 
-void Schedule::insert_heap (const unsigned long step, const Heap_Cell & heap)
+void Schedule::insert_sb_adr (
+                              const unsigned long step,
+                              const word thread,
+                              const word adr
+                             )
 {
-  push_back(heap_updates[heap.idx], step, heap.val);
+  push_back<word>(sb_adr_updates.at(thread), step, adr);
+
+  if (step > bound)
+    bound = step;
+}
+
+void Schedule::insert_sb_val (
+                              const unsigned long step,
+                              const word thread,
+                              const word val
+                             )
+{
+  push_back<word>(sb_val_updates.at(thread), step, val);
+
+  if (step > bound)
+    bound = step;
+}
+
+void Schedule::insert_sb_full (
+                               const unsigned long step,
+                               const word thread,
+                               const bool full
+                              )
+{
+  push_back<bool>(sb_full_updates.at(thread), step, full);
+
+  if (step > bound)
+    bound = step;
+}
+
+void Schedule::insert_heap (const unsigned long step, const Heap & heap)
+{
+  push_back<word>(heap_updates[heap.adr], step, heap.val);
 
   if (step > bound)
     bound = step;
@@ -407,19 +499,19 @@ void Schedule::insert_flush (const unsigned long step)
     bound = step;
 }
 
-size_t Schedule::size () { return bound; }
+size_t Schedule::size () const { return bound; }
 
-Schedule::iterator Schedule::begin ()
+Schedule::iterator Schedule::begin () const
 {
   return iterator(this);
 }
 
-Schedule::iterator Schedule::end ()
+Schedule::iterator Schedule::end () const
 {
   return iterator(this, bound + 1);
 }
 
-std::string Schedule::print ()
+std::string Schedule::print () const
 {
   ostringstream ss;
 
@@ -433,44 +525,38 @@ std::string Schedule::print ()
   ss << '.' << eol;
 
   /* column headers */
-  ss << "# tid\tpc\tcmd\targ\taccu\tmem\theap" << eol;
+  ss << "# tid\tpc\tcmd\targ\taccu\tmem\tadr\tval\tfull\theap" << eol;
 
   for (const auto & step : *this)
     {
       /* thread id */
       ss << step.thread << sep;
 
+      /* reference to program */
+      const Program & program = *programs->at(step.thread);
+
+      /* reference to current instruction */
+      const Instruction_ptr & op = program[step.pc];
+
+      /* program counter */
+      try
+        {
+          ss << program.get_label(step.pc) << sep;
+        }
+      catch (...)
+        {
+          ss << step.pc << sep;
+        }
+
+      /* instruction symbol / argument */
       if (step.flush)
         {
-          ss
-            << '-' << sep // program counter
-            << "FLUSH" << sep // instruction symbol
-            << '-' << sep // instruction argument
-            << '-' << sep // accumulator
-            << '-' << sep; // CAS memory register
+          ss << "FLUSH" << sep << '-' << sep;
         }
       else
         {
-          /* reference to program */
-          const Program & program = *programs->at(step.thread);
-
-          /* reference to current instruction */
-          const Instruction_ptr & op = program[step.pc];
-
-          /* program counter */
-          try
-            {
-              ss << program.get_label(step.pc) << sep;
-            }
-          catch (...)
-            {
-              ss << step.pc << sep;
-            }
-
-          /* instruction symbol */
           ss << op->symbol() << sep;
 
-          /* instruction argument */
           string arg {'-'};
 
           if (auto u = dynamic_pointer_cast<Unary>(op))
@@ -487,20 +573,23 @@ std::string Schedule::print ()
                   {
                     arg = program.get_label(u->arg);
                   }
-                catch (...) {}
+              catch (...) {}
             }
 
           ss << arg << sep;
-
-          /* accumulator / CAS memory register */
-          ss << step.accu << sep << step.mem << sep;
         }
+
+      /* accumulator / CAS memory register */
+      ss << step.accu << sep << step.mem << sep;
+
+      /* store buffer */
+      ss << step.sb_adr << sep << step.sb_val << sep << step.sb_full << sep;
 
       /* heap update */
       ss << '{';
 
       if (step.heap)
-        ss << '(' << step.heap->idx << ',' << step.heap->val << ')';
+        ss << '(' << step.heap->adr << ',' << step.heap->val << ')';
 
       ss << '}' << eol;
     }
@@ -508,28 +597,26 @@ std::string Schedule::print ()
   return ss.str();
 }
 
-Schedule::iterator::iterator (Schedule * _schedule, unsigned long _step) :
-  schedule(_schedule),
-  step(_step),
+Schedule::Step::Step (unsigned long s) : step(s) {}
+
+Schedule::Step::operator unsigned long () const { return step; }
+
+Schedule::Step & Schedule::Step::operator ++ () { step++; return *this; }
+
+Schedule::iterator::iterator (const Schedule * sc, unsigned long st) :
+  schedule(sc),
   thread({schedule->thread_updates.begin(), schedule->thread_updates.end()})
 {
-  if (step > schedule->bound)
+  if ((step = st) > schedule->bound)
     return;
 
-  size_t num_threads = schedule->programs->size();
-
   /* initialize state update iterator lists */
-  pc.reserve(num_threads);
-  for (const auto & updates : schedule->pc_updates)
-    pc.push_back({updates.begin(), updates.end()});
-
-  accu.reserve(num_threads);
-  for (const auto & updates : schedule->accu_updates)
-    accu.push_back({updates.begin(), updates.end()});
-
-  mem.reserve(num_threads);
-  for (const auto & updates : schedule->mem_updates)
-    mem.push_back({updates.begin(), updates.end()});
+  init_iterators(pc, schedule->pc_updates);
+  init_iterators(accu, schedule->accu_updates);
+  init_iterators(mem, schedule->mem_updates);
+  init_iterators(sb_adr, schedule->sb_adr_updates);
+  init_iterators(sb_val, schedule->sb_val_updates);
+  init_iterators(sb_full, schedule->sb_full_updates);
 
   heap.reserve(schedule->heap_updates.size());
   for (const auto & [idx, updates] : schedule->heap_updates)
@@ -538,7 +625,19 @@ Schedule::iterator::iterator (Schedule * _schedule, unsigned long _step) :
   assign();
 }
 
-word Schedule::iterator::next_thread_state (Iterators & state)
+template <typename T>
+void Schedule::iterator::init_iterators (
+                                         Thread_Iterators<T> & iterators,
+                                         const Thread_Updates<T> & updates
+                                        )
+{
+  iterators.reserve(schedule->programs->size());
+  for (const auto & u: updates)
+    iterators.push_back({u.begin(), u.end()});
+}
+
+template <typename T>
+const T & Schedule::iterator::next_thread_state (Iterators<T> & state)
 {
   auto next {std::next(state.cur)};
 
@@ -548,36 +647,56 @@ word Schedule::iterator::next_thread_state (Iterators & state)
   return state.cur->second;
 }
 
-optional<Schedule::Heap_Cell> Schedule::iterator::next_heap_state ()
+const optional<Schedule::Heap> Schedule::iterator::next_heap_state ()
 {
-  if (
-      Store_ptr store =
-        dynamic_pointer_cast<Store>(
-          schedule->programs->at(update.thread)->at(update.pc))
-     )
+  if (step.flush)
     {
-      word idx =
-        store->indirect
-          ? schedule->heap_updates[store->arg].rend()->second
-          : store->arg;
+      auto & cell = heap.at(step.sb_adr);
 
-      auto & cell = heap.at(idx);
-
+      /* mind subsequent writes of an equal value to the same address */
       if (cell.cur->first == step)
-        return {{idx, cell.cur++->second}};
+        {
+          assert(cell.cur->second == step.sb_val);
+          cell.cur++;
+        }
+
+      return {{step.sb_adr, step.sb_val}};
     }
+
+  const Instruction_ptr & op =
+    schedule->programs->at(step.thread)->at(step.pc);
+
+  if (op->type() & Instruction::Types::atomic)
+    if (Memory_ptr atomic = dynamic_pointer_cast<Cas>(op))
+      {
+        word address = atomic->indirect
+          ? schedule->heap_updates.at(atomic->arg).rend()->second
+          : atomic->arg;
+
+        auto & cell = heap.at(address);
+
+        /* mind subsequent writes of an equal value to the same address */
+        word value = cell.cur->first == step
+          ? cell.cur++->second
+          : (--cell.cur)++->second;
+
+        return {{address, value}};
+      }
 
   return {};
 }
 
 void Schedule::iterator::assign ()
 {
-  update.flush  = schedule->flushes.find(step) != schedule->flushes.end();
-  update.thread = next_thread_state(thread);
-  update.pc     = next_thread_state(pc[update.thread]);
-  update.accu   = next_thread_state(accu[update.thread]);
-  update.mem    = next_thread_state(mem[update.thread]);
-  update.heap   = next_heap_state();
+  step.thread   = next_thread_state(thread);
+  step.pc       = next_thread_state(pc[step.thread]);
+  step.accu     = next_thread_state(accu[step.thread]);
+  step.mem      = next_thread_state(mem[step.thread]);
+  step.sb_adr   = next_thread_state(sb_adr[step.thread]);
+  step.sb_val   = next_thread_state(sb_val[step.thread]);
+  step.sb_full  = next_thread_state(sb_full[step.thread]);
+  step.flush    = schedule->flushes.find(step) != schedule->flushes.end();
+  step.heap     = next_heap_state();
 }
 
 Schedule::iterator & Schedule::iterator::operator ++ ()
@@ -609,12 +728,12 @@ bool Schedule::iterator::operator != (const iterator & other) const
 
 Schedule::iterator::reference Schedule::iterator::operator * () const
 {
-  return update;
+  return step;
 }
 
 Schedule::iterator::pointer Schedule::iterator::operator -> () const
 {
-  return &update;
+  return &step;
 }
 
 bool operator == (const Schedule & a, const Schedule & b)

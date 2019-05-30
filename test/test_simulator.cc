@@ -6,9 +6,6 @@
 
 using namespace std;
 
-/*******************************************************************************
- * Test Case Fixture
-*******************************************************************************/
 struct SimulatorTest : public ::testing::Test
 {
   Program_ptr   program = make_shared<Program>();
@@ -120,22 +117,30 @@ TEST_F(SimulatorTest, run_simple)
   ASSERT_EQ(0, schedule->exit);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates({
-      {{1, 0}},
-      {{2, 0}}}),
+    Schedule::Thread_Updates<word>({{{1, 0}}, {{2, 0}}}),
     schedule->pc_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates({
-      {{1, 1}},
-      {{2, 1}}}),
+    Schedule::Thread_Updates<word>({{{1, 1}}, {{2, 1}}}),
     schedule->accu_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates({
-      {{1, 0}},
-      {{2, 0}}}),
+    Schedule::Thread_Updates<word>({{{1, 0}}, {{2, 0}}}),
     schedule->mem_updates);
+
+  ASSERT_EQ(
+    Schedule::Thread_Updates<word>({{{1, 0}}, {{2, 0}}}),
+    schedule->sb_adr_updates);
+
+  ASSERT_EQ(
+    Schedule::Thread_Updates<word>({{{1, 0}}, {{2, 0}}}),
+    schedule->sb_val_updates);
+
+  ASSERT_EQ(
+    Schedule::Thread_Updates<bool>({{{1, false}}, {{2, false}}}),
+    schedule->sb_full_updates);
+
+  ASSERT_EQ(Schedule::Flushes(), schedule->flushes);
 
   ASSERT_TRUE(schedule->heap_updates.empty());
 }
@@ -232,22 +237,32 @@ TEST_F(SimulatorTest, run_add_check_exit)
   ASSERT_EQ(1, schedule->exit);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates({
+    Schedule::Thread_Updates<word>({
       {{1, 0}, {3, 1}, {5, 2}},
       {{2, 0}, {4, 1}}}),
     schedule->pc_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates({
-      {{1, 1}},
-      {{2, 1}}}),
+    Schedule::Thread_Updates<word>({{{1, 1}}, {{2, 1}}}),
     schedule->accu_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates({
-      {{1, 0}},
-      {{2, 0}}}),
+    Schedule::Thread_Updates<word>({{{1, 0}}, {{2, 0}}}),
     schedule->mem_updates);
+
+  ASSERT_EQ(
+    Schedule::Thread_Updates<word>({{{1, 0}}, {{2, 0}}}),
+    schedule->sb_adr_updates);
+
+  ASSERT_EQ(
+    Schedule::Thread_Updates<word>({{{1, 0}}, {{2, 0}}}),
+    schedule->sb_val_updates);
+
+  ASSERT_EQ(
+    Schedule::Thread_Updates<bool>({{{1, false}}, {{2, false}}}),
+    schedule->sb_full_updates);
+
+  ASSERT_EQ(Schedule::Flushes(), schedule->flushes);
 
   ASSERT_TRUE(schedule->heap_updates.empty());
 }
@@ -365,11 +380,13 @@ TEST_F(SimulatorTest, run_race_condition)
               EXPECT_EQ(2, simulator->threads[2].pc);
               EXPECT_EQ(1, simulator->threads[2].accu);
 
-              EXPECT_EQ(1, simulator->heap[1]);
+              EXPECT_EQ(1, simulator->threads[1].buffer.address);
+              EXPECT_EQ(1, simulator->threads[1].buffer.value);
+              EXPECT_TRUE(simulator->threads[1].buffer.full);
 
               return &simulator->threads[2];
             }
-        case 7: /* prev = t2 [STORE 1] | next = t1 [CHECK 1] */
+        case 7: /* prev = t2 [STORE 1] | next = t1 [FLUSH] */
             {
               EXPECT_EQ(1, simulator->threads[0].pc);
               EXPECT_EQ(0, simulator->threads[0].accu);
@@ -378,11 +395,51 @@ TEST_F(SimulatorTest, run_race_condition)
               EXPECT_EQ(3, simulator->threads[2].pc);
               EXPECT_EQ(1, simulator->threads[2].accu);
 
-              EXPECT_EQ(1, simulator->heap[1]);
+              EXPECT_EQ(1, simulator->threads[2].buffer.address);
+              EXPECT_EQ(1, simulator->threads[2].buffer.value);
+              EXPECT_TRUE(simulator->threads[2].buffer.full);
+
+              simulator->threads[1].state = Thread::State::flushing;
 
               return &simulator->threads[1];
             }
-        case 8: /* prev = t1 [CHECK 1] | next = t2 [CHECK 1] */
+        case 8: /* prev = t1 [FLUSH] | next = t2 [FLUSH] */
+            {
+              EXPECT_EQ(1, simulator->threads[0].pc);
+              EXPECT_EQ(0, simulator->threads[0].accu);
+              EXPECT_EQ(3, simulator->threads[1].pc);
+              EXPECT_EQ(1, simulator->threads[1].accu);
+              EXPECT_EQ(3, simulator->threads[2].pc);
+              EXPECT_EQ(1, simulator->threads[2].accu);
+
+              EXPECT_FALSE(simulator->threads[1].buffer.full);
+
+              EXPECT_EQ(
+                simulator->threads[1].buffer.value,
+                simulator->heap[simulator->threads[1].buffer.address]);
+
+              simulator->threads[2].state = Thread::State::flushing;
+
+              return &simulator->threads[2];
+            }
+        case 9: /* prev = t2 [FLUSH] | next = t1 [CHECK 1] */
+            {
+              EXPECT_EQ(1, simulator->threads[0].pc);
+              EXPECT_EQ(0, simulator->threads[0].accu);
+              EXPECT_EQ(3, simulator->threads[1].pc);
+              EXPECT_EQ(1, simulator->threads[1].accu);
+              EXPECT_EQ(3, simulator->threads[2].pc);
+              EXPECT_EQ(1, simulator->threads[2].accu);
+
+              EXPECT_FALSE(simulator->threads[2].buffer.full);
+
+              EXPECT_EQ(
+                simulator->threads[2].buffer.value,
+                simulator->heap[simulator->threads[2].buffer.address]);
+
+              return &simulator->threads[1];
+            }
+        case 10: /* prev = t1 [CHECK 1] | next = t2 [CHECK 1] */
             {
               EXPECT_EQ(1, simulator->threads[0].pc);
               EXPECT_EQ(0, simulator->threads[0].accu);
@@ -398,7 +455,7 @@ TEST_F(SimulatorTest, run_race_condition)
 
               return &simulator->threads[2];
             }
-        case 9: /* prev = t2 [CHECK 1] | next = t0 [LOAD 1] */
+        case 11: /* prev = t2 [CHECK 1] | next = t0 [LOAD 1] */
             {
               EXPECT_EQ(1, simulator->threads[0].pc);
               EXPECT_EQ(0, simulator->threads[0].accu);
@@ -415,7 +472,7 @@ TEST_F(SimulatorTest, run_race_condition)
 
               return &simulator->threads[0];
             }
-        case 10: /* prev = t0 [LOAD 1] | next = t0 [SUBI 2] */
+        case 12: /* prev = t0 [LOAD 1] | next = t0 [SUBI 2] */
             {
               EXPECT_EQ(2, simulator->threads[0].pc);
               EXPECT_EQ(1, simulator->threads[0].accu);
@@ -426,7 +483,7 @@ TEST_F(SimulatorTest, run_race_condition)
 
               return &simulator->threads[0];
             }
-        case 11: /* prev = t0 [SUBI 2] | next = t0 [JZ 5] */
+        case 13: /* prev = t0 [SUBI 2] | next = t0 [JZ 5] */
             {
               EXPECT_EQ(3, simulator->threads[0].pc);
               EXPECT_EQ(word(-1), simulator->threads[0].accu);
@@ -437,7 +494,7 @@ TEST_F(SimulatorTest, run_race_condition)
 
               return &simulator->threads[0];
             }
-        case 12: /* prev = t0 [JZ 5] | next = t0 [EXIT 1] */
+        case 14: /* prev = t0 [JZ 5] | next = t0 [EXIT 1] */
             {
               EXPECT_EQ(4, simulator->threads[0].pc);
               EXPECT_EQ(word(-1), simulator->threads[0].accu);
@@ -448,7 +505,7 @@ TEST_F(SimulatorTest, run_race_condition)
 
               return &simulator->threads[0];
             }
-        case 13: /* last = t0 [EXIT 1] */
+        case 15: /* last = t0 [EXIT 1] */
             {
               EXPECT_EQ(4, simulator->threads[0].pc);
               EXPECT_EQ(word(-1), simulator->threads[0].accu);
@@ -472,7 +529,7 @@ TEST_F(SimulatorTest, run_race_condition)
   /* run it */
   schedule = simulator->run(scheduler);
 
-  EXPECT_EQ(13, step);
+  EXPECT_EQ(15, step);
 
   EXPECT_EQ(Thread::State::exited, simulator->threads[0].state);
   EXPECT_EQ(Thread::State::halted, simulator->threads[1].state);
@@ -482,25 +539,48 @@ TEST_F(SimulatorTest, run_race_condition)
   ASSERT_EQ(1, schedule->exit);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates({
-      {{1, 0}, {10, 1}, {11, 2}, {12, 3}, {13, 4}},
-      {{2, 0}, {4, 1}, {6, 2}, {8, 3}},
-      {{3, 0}, {5, 1}, {7, 2}, {9, 3}}}),
+    Schedule::Thread_Updates<word>({
+      {{1, 0}, {12, 1}, {13, 2}, {14, 3}, {15, 4}},
+      {{2, 0}, {4, 1}, {6, 2}, {10, 3}},
+      {{3, 0}, {5, 1}, {7, 2}, {11, 3}}}),
     schedule->pc_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates({
-      {{1, 0}, {10, 1}, {11, 65535}, {13, 1}},
+    Schedule::Thread_Updates<word>({
+      {{1, 0}, {12, 1}, {13, 65535}, {15, 1}},
       {{2, 0}, {4, 1}},
       {{3, 0}, {5, 1}}}),
     schedule->accu_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates({{{1, 0}}, {{2, 0}}, {{3, 0}}}),
+    Schedule::Thread_Updates<word>({{{1, 0}}, {{2, 0}}, {{3, 0}}}),
     schedule->mem_updates);
 
   ASSERT_EQ(
-    Schedule::Heap_Updates({{1, {{6, 1}}}}),
+    Schedule::Thread_Updates<word>({
+      {{1, 0}},
+      {{2, 0}, {6, 1}},
+      {{3, 0}, {7, 1}}}),
+    schedule->sb_adr_updates);
+
+  ASSERT_EQ(
+    Schedule::Thread_Updates<word>({
+      {{1, 0}},
+      {{2, 0}, {6, 1}},
+      {{3, 0}, {7, 1}}}),
+    schedule->sb_val_updates);
+
+  ASSERT_EQ(
+    Schedule::Thread_Updates<bool>({
+      {{1, false}},
+      {{2, false}, {6, true}, {8, false}},
+      {{3, false}, {7, true}, {9, false}}}),
+    schedule->sb_full_updates);
+
+  ASSERT_EQ(Schedule::Flushes({8, 9}), schedule->flushes);
+
+  ASSERT_EQ(
+    Schedule::Heap_Updates({{1, {{8, 1}}}}),
     schedule->heap_updates);
 }
 
@@ -555,16 +635,30 @@ TEST_F(SimulatorTest, run_zero_bound)
   ASSERT_EQ(0, schedule->exit);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates({{{1, 0}}}),
+    Schedule::Thread_Updates<word>({{{1, 0}}}),
     schedule->pc_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates({{{1, 0}}}),
+    Schedule::Thread_Updates<word>({{{1, 0}}}),
     schedule->accu_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates({{{1, 0}}}),
+    Schedule::Thread_Updates<word>({{{1, 0}}}),
     schedule->mem_updates);
+
+  ASSERT_EQ(
+    Schedule::Thread_Updates<word>({{{1, 0}}}),
+    schedule->sb_adr_updates);
+
+  ASSERT_EQ(
+    Schedule::Thread_Updates<word>({{{1, 0}}}),
+    schedule->sb_val_updates);
+
+  ASSERT_EQ(
+    Schedule::Thread_Updates<bool>({{{1, false}}}),
+    schedule->sb_full_updates);
+
+  ASSERT_EQ(Schedule::Flushes(), schedule->flushes);
 
   ASSERT_TRUE(schedule->heap_updates.empty());
 }

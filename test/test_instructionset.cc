@@ -150,13 +150,22 @@ TEST_F(InstructionSetTest, STORE)
   thread.accu = 1;
 
   ASSERT_EQ(0, thread.pc);
+
+  ASSERT_FALSE(thread.buffer.full);
+  ASSERT_EQ(0, thread.buffer.address);
+  ASSERT_EQ(0, thread.buffer.value);
+
   ASSERT_EQ(0, simulator.heap[0]);
 
   instruction->execute(thread);
 
   ASSERT_EQ(1, thread.pc);
-  ASSERT_EQ(1, thread.accu);
-  ASSERT_EQ(1, simulator.heap[0]);
+
+  ASSERT_TRUE(thread.buffer.full);
+  ASSERT_EQ(0, thread.buffer.address);
+  ASSERT_EQ(1, thread.buffer.value);
+
+  ASSERT_EQ(0, simulator.heap[0]);
 }
 
 /* FENCE **********************************************************************/
