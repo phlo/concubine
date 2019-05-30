@@ -775,7 +775,7 @@ TEST_F(ScheduleTest, parse_missing_heap)
 }
 
 /* Schedule::push_back ********************************************************/
-using Insert_Data = tuple<unsigned long, word_t, word_t, word_t>;
+using Insert_Data = tuple<bound_t, word_t, word_t, word_t>;
 
 const vector<Insert_Data> insert_data {
   {1,  0, 0, 0},
@@ -968,7 +968,7 @@ TEST_F(ScheduleTest, iterator_check)
 
   Schedule::iterator it = schedule->begin(), end = schedule->end();
 
-  for (unsigned long i = 0; it != end; i++, ++it)
+  for (size_t i = 0; it != end; i++, ++it)
     {
       ASSERT_EQ(tid[i], it->thread);
       ASSERT_EQ(pc[i], it->pc);
@@ -1016,7 +1016,7 @@ TEST_F(ScheduleTest, iterator_cas)
 
   Schedule::iterator it = schedule->begin(), end = schedule->end();
 
-  for (unsigned long i = 0; it != end; i++, ++it)
+  for (size_t i = 0; it != end; i++, ++it)
     {
       ASSERT_EQ(tid[i], it->thread);
       ASSERT_EQ(pc[i], it->pc);

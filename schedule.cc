@@ -23,7 +23,7 @@ Schedule::Schedule(istream & file, string & path) :
 {
   string token;
 
-  unsigned long line_num = 1;
+  size_t line_num = 1;
 
   /* parse programs */
   for (string line_buf; getline(file, line_buf); ++line_num)
@@ -64,7 +64,7 @@ Schedule::Schedule(istream & file, string & path) :
 
   /* parse body */
   line_num++;
-  unsigned long step = 0;
+  bound_t step = 0;
   for (string line_buf; getline(file, line_buf); ++line_num)
     {
       /* skip empty lines */
@@ -345,7 +345,7 @@ void Schedule::init_state_update_lists ()
 template <typename T>
 void Schedule::push_back (
                           Schedule::Updates<T> & updates,
-                          const unsigned long step,
+                          const bound_t step,
                           const T val
                          )
 {
@@ -369,7 +369,7 @@ void Schedule::push_back (
 }
 
 void Schedule::push_back (
-                          const unsigned long thread,
+                          const word_t thread,
                           const word_t pc,
                           const word_t accu,
                           const word_t mem,
@@ -393,7 +393,7 @@ void Schedule::push_back (
     push_back(heap_updates[heap->adr], bound, heap->val);
 }
 
-void Schedule::push_back (const unsigned long thread, const Heap & heap)
+void Schedule::push_back (const word_t thread, const Heap & heap)
 {
   ++bound;
 
@@ -403,7 +403,7 @@ void Schedule::push_back (const unsigned long thread, const Heap & heap)
   push_back<word_t>(heap_updates[heap.adr], bound, heap.val);
 }
 
-void Schedule::insert_thread (const unsigned long step, const word_t thread)
+void Schedule::insert_thread (const bound_t step, const word_t thread)
 {
   push_back<word_t>(thread_updates, step, thread);
 
@@ -412,7 +412,7 @@ void Schedule::insert_thread (const unsigned long step, const word_t thread)
 }
 
 void Schedule::insert_pc (
-                          const unsigned long step,
+                          const bound_t step,
                           const word_t thread,
                           const word_t pc
                          )
@@ -424,7 +424,7 @@ void Schedule::insert_pc (
 }
 
 void Schedule::insert_accu (
-                            const unsigned long step,
+                            const bound_t step,
                             const word_t thread,
                             const word_t accu
                            )
@@ -436,7 +436,7 @@ void Schedule::insert_accu (
 }
 
 void Schedule::insert_mem (
-                           const unsigned long step,
+                           const bound_t step,
                            const word_t thread,
                            const word_t mem
                           )
@@ -448,7 +448,7 @@ void Schedule::insert_mem (
 }
 
 void Schedule::insert_sb_adr (
-                              const unsigned long step,
+                              const bound_t step,
                               const word_t thread,
                               const word_t adr
                              )
@@ -460,7 +460,7 @@ void Schedule::insert_sb_adr (
 }
 
 void Schedule::insert_sb_val (
-                              const unsigned long step,
+                              const bound_t step,
                               const word_t thread,
                               const word_t val
                              )
@@ -472,7 +472,7 @@ void Schedule::insert_sb_val (
 }
 
 void Schedule::insert_sb_full (
-                               const unsigned long step,
+                               const bound_t step,
                                const word_t thread,
                                const bool full
                               )
@@ -483,7 +483,7 @@ void Schedule::insert_sb_full (
     bound = step;
 }
 
-void Schedule::insert_heap (const unsigned long step, const Heap & heap)
+void Schedule::insert_heap (const bound_t step, const Heap & heap)
 {
   push_back<word_t>(heap_updates[heap.adr], step, heap.val);
 
@@ -491,7 +491,7 @@ void Schedule::insert_heap (const unsigned long step, const Heap & heap)
     bound = step;
 }
 
-void Schedule::insert_flush (const unsigned long step)
+void Schedule::insert_flush (const bound_t step)
 {
   flushes.insert(step);
 
@@ -597,13 +597,13 @@ std::string Schedule::print () const
   return ss.str();
 }
 
-Schedule::Step::Step (unsigned long s) : step(s) {}
+Schedule::Step::Step (bound_t s) : step(s) {}
 
-Schedule::Step::operator unsigned long () const { return step; }
+Schedule::Step::operator bound_t () const { return step; }
 
 Schedule::Step & Schedule::Step::operator ++ () { step++; return *this; }
 
-Schedule::iterator::iterator (const Schedule * sc, unsigned long st) :
+Schedule::iterator::iterator (const Schedule * sc, bound_t st) :
   schedule(sc),
   thread({schedule->thread_updates.begin(), schedule->thread_updates.end()})
 {

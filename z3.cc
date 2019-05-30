@@ -20,13 +20,13 @@ bool Z3::sat (std::string & formula)
 
 // TODO: replace with SMTLibEncoder variable name generators
 inline
-string symbol (string type, initializer_list<unsigned long> attributes)
+string symbol (string type, initializer_list<bound_t> attributes)
 {
   ostringstream os;
 
   os << type;
 
-  for (const unsigned long a : attributes)
+  for (const bound_t a : attributes)
     os << '_' << a;
 
   return os.str();
@@ -73,8 +73,8 @@ Schedule_ptr Z3::solve (Encoder & encoder, string & constraints)
 
   Schedule_ptr schedule = make_shared<Schedule>(encoder.programs);
 
-  for (unsigned long step = 1; step <= encoder.bound; ++step)
-    for (unsigned long thread = 0; thread < encoder.programs->size(); ++thread)
+  for (bound_t step = 1; step <= encoder.bound; ++step)
+    for (word_t thread = 0; thread < encoder.programs->size(); ++thread)
       if (eval_bool(c, m, symbol("thread", {step, thread})))
         {
           Program & program = *(*encoder.programs)[thread];

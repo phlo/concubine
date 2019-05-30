@@ -4,7 +4,7 @@
 
 using namespace std;
 
-BtorMC::BtorMC(unsigned long b) : bound(b) {}
+BtorMC::BtorMC(bound_t b) : bound(b) {}
 
 string BtorMC::name () const { return "btormc"; }
 

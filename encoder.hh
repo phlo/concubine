@@ -16,16 +16,16 @@
 struct Encoder
 {
   /* constructs an Encoder for the given program and bound */
-  Encoder (const Program_list_ptr programs, unsigned long bound);
+  Encoder (const Program_list_ptr programs, bound_t bound);
 
   /* reference to the programs being verified (index == thread id) */
   const Program_list_ptr  programs;
 
   /* number of threads (short hand for programs->size()) */
-  const unsigned long     num_threads;
+  const size_t            num_threads;
 
   /* bound */
-  const unsigned long     bound;
+  const bound_t           bound;
 
   /* use Sinz's cardinality constraint (num_threads > 4) */
   const bool              use_sinz_constraint;
@@ -128,10 +128,10 @@ typedef std::shared_ptr<Encoder> EncoderPtr;
 struct SMTLibEncoder : public Encoder
 {
   /* constructs an SMTLibEncoder for the given program and bound */
-  SMTLibEncoder (const Program_list_ptr programs, unsigned long bound);
+  SMTLibEncoder (const Program_list_ptr programs, bound_t bound);
 
   /* encoder variables */
-  unsigned long             step;
+  bound_t                   step;
 
   /* string nids_const */
   static const std::string  bv_sort;
@@ -217,7 +217,7 @@ struct SMTLibEncoderFunctional : public SMTLibEncoder
   /* constructs an SMTLibEncoderFunctional for the given program and bound */
   SMTLibEncoderFunctional (
                            const Program_list_ptr programs,
-                           unsigned long bound,
+                           bound_t bound,
                            bool encode = true
                           );
 
@@ -281,7 +281,7 @@ struct SMTLibEncoderRelational : public SMTLibEncoder
   /* constructs an SMTLibEncoderRelational for the given program and bound */
   SMTLibEncoderRelational (
                            const Program_list_ptr programs,
-                           unsigned long bound,
+                           bound_t bound,
                            bool encode = true
                           );
 
@@ -353,7 +353,7 @@ struct Btor2Encoder : public Encoder
   /* constructs a Btor2Encoder for the given program and bound */
   Btor2Encoder (
                 const Program_list_ptr programs,
-                unsigned long bound,
+                bound_t bound,
                 bool encode = true
                );
 
@@ -370,7 +370,7 @@ struct Btor2Encoder : public Encoder
   bool                          update_accu;
 
   /* next node id */
-  unsigned long                 node;
+  uint64_t                      node;
 
   std::string                   sid_bool,
                                 sid_bv,

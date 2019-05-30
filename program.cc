@@ -22,7 +22,7 @@ Program::Program(istream & file, string & name) : path(name)
 
   Instruction_ptr cmd;
 
-  unsigned long line_num = 1;
+  size_t line_num = 1;
 
   /* list of jump instructions at pc referencing a certain label */
   vector<tuple<string, word_t, const string *>> labelled_jumps;

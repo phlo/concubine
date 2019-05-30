@@ -126,10 +126,10 @@ TEST_F(BtorMCTest, solve_check)
 
   Schedule_ptr parsed {create_from_file<Schedule>("/tmp/test.schedule")};
 
-  vector<vector<pair<unsigned long, word_t>>> pc_diff;
+  vector<vector<pair<bound_t, word_t>>> pc_diff;
   for (size_t t = 0; t < schedule->pc_updates.size(); t++)
     {
-      vector<pair<unsigned long, word_t>> diff;
+      vector<pair<bound_t, word_t>> diff;
 
       std::set_symmetric_difference(
         schedule->pc_updates[t].begin(), schedule->pc_updates[t].end(),
@@ -140,7 +140,7 @@ TEST_F(BtorMCTest, solve_check)
     }
 
   cout << "pc diff" << eol;
-  unsigned long thread = 0;
+  word_t thread = 0;
   for (const auto & updates : pc_diff)
     {
       for (const auto & [step, val] : updates)

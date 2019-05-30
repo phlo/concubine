@@ -5,11 +5,11 @@
 
 struct BtorMC : public Boolector
 {
-  BtorMC (unsigned long);
+  BtorMC (bound_t);
 
-  const unsigned long             bound;
+  const bound_t                   bound;
 
-  virtual std::string             build_command (void);
+  virtual std::string             build_command ();
 
   virtual std::string             build_formula (Encoder &, std::string &);
 
@@ -17,7 +17,7 @@ struct BtorMC : public Boolector
 
   virtual std::optional<Variable> parse_variable (std::istringstream &);
 
-  virtual std::string             name (void) const;
+  virtual std::string             name () const;
 };
 
 typedef std::shared_ptr<BtorMC> BtorMCPtr;

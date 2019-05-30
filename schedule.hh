@@ -11,14 +11,14 @@
 struct Schedule
 {
   template <typename T>
-  using Updates = std::map<unsigned long, T>; // step -> state
+  using Updates = std::map<bound_t, T>; // step -> state
 
   template <typename T>
   using Thread_Updates = std::vector<Updates<T>>;
 
   using Heap_Updates = std::unordered_map<word_t, Updates<word_t>>;
 
-  using Flushes = std::unordered_set<unsigned long>; // steps
+  using Flushes = std::unordered_set<bound_t>; // steps
 
   struct Heap
     {
@@ -29,7 +29,7 @@ struct Schedule
   /* state at a specific step */
   struct Step
     {
-      unsigned long step;
+      bound_t step;
       word_t thread;
       word_t pc;
       word_t accu;
@@ -41,9 +41,9 @@ struct Schedule
       std::optional<Heap> heap;
 
       Step () = default;
-      Step (unsigned long step);
+      Step (bound_t step);
 
-      operator unsigned long () const;
+      operator bound_t () const;
 
       Step & operator ++ ();
     };
@@ -101,7 +101,7 @@ struct Schedule
       using reference         = const Step &;
       using iterator_category = std::forward_iterator_tag;
 
-      iterator (const Schedule * schedule, unsigned long step = 1);
+      iterator (const Schedule * schedule, bound_t step = 1);
 
       iterator &  operator ++ ();
       iterator    operator ++ (int);
@@ -114,7 +114,7 @@ struct Schedule
     };
 
   /* initialize with given bound */
-  explicit Schedule (unsigned long bound);
+  explicit Schedule (bound_t bound);
 
   /* construct from simulator/solver */
   Schedule (Program_list_ptr programs);
@@ -123,7 +123,7 @@ struct Schedule
   Schedule (std::istream & file, std::string & path);
 
   /* bound used == size() */
-  unsigned long           bound;
+  bound_t                 bound;
 
   /* programs used to generate the schedule */
   Program_list_ptr        programs;
@@ -153,11 +153,11 @@ struct Schedule
 
   /* append state update helper */
   template <typename T>
-  void push_back (Updates<T> & updates, const unsigned long step, const T val);
+  void push_back (Updates<T> & updates, const bound_t step, const T val);
 
   /* append state update after executing an instruction */
   void push_back (
-                  const unsigned long thread,
+                  const word_t thread,
                   const word_t pc,
                   const word_t accu,
                   const word_t mem,
@@ -168,46 +168,46 @@ struct Schedule
                  );
 
   /* append state update after flushing the store buffer */
-  void push_back (const unsigned long thread, const Heap & heap);
+  void push_back (const word_t thread, const Heap & heap);
 
   /* insert individual state updates */
   /* NOTE: expects step to increase monotonically */
-  void insert_thread (const unsigned long step, const word_t thread);
+  void insert_thread (const bound_t step, const word_t thread);
   void insert_pc (
-                  const unsigned long step,
+                  const bound_t step,
                   const word_t thread,
                   const word_t pc
                  );
   void insert_accu (
-                    const unsigned long step,
+                    const bound_t step,
                     const word_t thread,
                     const word_t accu
                    );
   void insert_mem (
-                   const unsigned long step,
+                   const bound_t step,
                    const word_t thread,
                    const word_t mem
                   );
   void insert_sb_adr (
-                      const unsigned long step,
+                      const bound_t step,
                       const word_t thread,
                       const word_t adr
                      );
   void insert_sb_val (
-                      const unsigned long step,
+                      const bound_t step,
                       const word_t thread,
                       const word_t val
                      );
   void insert_sb_full (
-                       const unsigned long step,
+                       const bound_t step,
                        const word_t thread,
                        const bool full
                       );
   void insert_heap (
-                    const unsigned long step,
+                    const bound_t step,
                     const Heap & heap
                    );
-  void insert_flush (const unsigned long step);
+  void insert_flush (const bound_t step);
 
   /* return schedule size (bound) */
   size_t size () const;

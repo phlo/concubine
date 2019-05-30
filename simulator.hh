@@ -74,15 +74,15 @@ struct Simulator
 
   /* runs the simulator using a random schedule */
   static Schedule_ptr       simulate (
-                                      Program_list_ptr programs,
-                                      unsigned long bound = 0,
-                                      unsigned long seed = 0
+                                      const Program_list_ptr programs,
+                                      const bound_t bound = 0,
+                                      const uint64_t seed = 0
                                      );
 
   /* replay the given schedule (schedule must match simulator configuration) */
   static Schedule_ptr       replay (
-                                    Schedule &,
-                                    unsigned long bound = 0
+                                    const Schedule &,
+                                    const bound_t bound = 0
                                    );
 };
 

@@ -122,8 +122,8 @@ int help (char * name, int argc, char **argv)
 /* simulate *******************************************************************/
 int simulate (char * name, int argc, char ** argv)
 {
-  unsigned int      seed = time(NULL);
-  unsigned int      bound = 0;
+  bound_t           bound = 0;
+  uint64_t          seed = static_cast<uint64_t>(time(NULL));
   Program_list_ptr  programs(make_shared<Program_list>());
 
   for (int i = 0; i < argc; i++)
@@ -203,8 +203,8 @@ int simulate (char * name, int argc, char ** argv)
 /* replay *********************************************************************/
 int replay (char * name, int argc, char ** argv)
 {
-  unsigned int  bound = 0;
-  string        path2schedule;
+  bound_t bound = 0;
+  string  schedule_path;
 
   for (int i = 0; i < argc; i++)
     {
@@ -234,11 +234,11 @@ int replay (char * name, int argc, char ** argv)
         }
       else
         {
-          path2schedule = arg;
+          schedule_path = arg;
         }
     }
 
-  if (path2schedule.empty())
+  if (schedule_path.empty())
     {
       print_error("no schedule given");
       print_usage_replay(name);
@@ -248,7 +248,7 @@ int replay (char * name, int argc, char ** argv)
   try
     {
       /* create and parse schedule */
-      Schedule_ptr schedule(create_from_file<Schedule>(path2schedule));
+      Schedule_ptr schedule(create_from_file<Schedule>(schedule_path));
 
       /* run given schedule */
       schedule = Simulator::replay(*schedule, bound);
@@ -359,7 +359,7 @@ int solve (char * name, int argc, char ** argv)
         }
 
       /* parse bound */
-      unsigned long bound = 0;
+      bound_t bound = 0;
       try
         {
           bound = stoul(argv[i++], nullptr, 0);

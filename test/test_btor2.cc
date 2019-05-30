@@ -102,10 +102,10 @@ TEST(Btor2Test, constraint)
   ASSERT_EQ("13 constraint 3 foo\n", btor2::constraint("13", "3", "foo"));
 }
 
-// inline string constraint (unsigned long &)
+// inline string constraint (nid_t &)
 TEST(Btor2Test, constraint_prev)
 {
-  unsigned long nid = 11;
+  btor2::nid_t nid = 11;
 
   ASSERT_EQ("11 constraint 10\n", btor2::constraint(nid));
   ASSERT_EQ(12, nid);
@@ -125,10 +125,10 @@ TEST(Btor2Test, bad)
   ASSERT_EQ("13 bad 3 foo\n", btor2::bad("13", "3", "foo"));
 }
 
-// inline string bad (unsigned long &)
+// inline string bad (nid_t &)
 TEST(Btor2Test, bad_prev)
 {
-  unsigned long nid = 11;
+  btor2::nid_t nid = 11;
 
   ASSERT_EQ("11 bad 10\n", btor2::bad(nid));
   ASSERT_EQ(12, nid);
@@ -354,10 +354,10 @@ TEST(Btor2Test, land)
   ASSERT_EQ("13 and 3 4 5 foo\n", btor2::land("13", "3", "4", "5", "foo"));
 }
 
-// inline string land (unsigned long &, string, vector<string> const &)
+// inline string land (nid_t &, string, vector<string> const &)
 TEST(Btor2Test, land_variadic)
 {
-  unsigned long nid = 11;
+  btor2::nid_t nid = 11;
 
   /* 2 arguments */
   ASSERT_EQ("11 and 1 2 3\n", btor2::land(nid, "1", {"2", "3"}));
@@ -420,10 +420,10 @@ TEST(Btor2Test, lor)
   ASSERT_EQ("13 or 3 4 5 foo\n", btor2::lor("13", "3", "4", "5", "foo"));
 }
 
-// inline string lor (unsigned long &, string, vector<string> const &)
+// inline string lor (nid_t &, string, vector<string> const &)
 TEST(Btor2Test, lor_variadic)
 {
-  unsigned long nid = 11;
+  btor2::nid_t nid = 11;
 
   /* 2 arguments */
   ASSERT_EQ("11 or 1 2 3\n", btor2::lor(nid, "1", {"2", "3"}));
@@ -682,10 +682,10 @@ TEST(Btor2Test, write)
     btor2::write("13", "3", "4", "5", "6", "foo"));
 }
 
-// inline string card_constraint_naive (unsigned long &, vector<string> const &)
+// inline string card_constraint_naive (nid_t &, vector<string> const &)
 TEST(Btor2Test, cardinality_exactly_one_naive)
 {
-  unsigned long nid = 10;
+  btor2::nid_t nid = 10;
 
   ASSERT_EQ(
     "10 or 1 2 3\n"
@@ -743,7 +743,7 @@ TEST(Btor2Test, cardinality_exactly_one_naive_verify)
 
   vector<string> vars({"4", "5", "6", "7"});
 
-  unsigned long nid = 8;
+  btor2::nid_t nid = 8;
 
   for (const auto & v : vars)
     formula += btor2::state(v, "1");
@@ -776,10 +776,10 @@ TEST(Btor2Test, cardinality_exactly_one_naive_verify)
   ASSERT_FALSE(btormc.sat(spec));
 }
 
-// inline string card_constraint_sinz (unsigned long &, vector<string> const &)
+// inline string card_constraint_sinz (nid_t &, vector<string> const &)
 TEST(Btor2Test, cardinality_exactly_one_sinz)
 {
-  unsigned long nid = 10;
+  btor2::nid_t nid = 10;
 
   ASSERT_EQ(
     "10 or 1 2 3\n"
@@ -868,7 +868,7 @@ TEST(Btor2Test, cardinality_exactly_one_sinz_verify)
 
   vector<string> vars({"4", "5", "6", "7"});
 
-  unsigned long nid = 8;
+  btor2::nid_t nid = 8;
 
   for (const auto & v : vars)
     formula += btor2::state(v, "1");

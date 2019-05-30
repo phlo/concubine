@@ -18,7 +18,7 @@ optional<Boolector::Variable> Boolector::parse_line (istringstream & line)
 {
   string token;
 
-  unsigned long nid;
+  uint64_t nid;
 
   word_t adr = 0, val = 0;
 

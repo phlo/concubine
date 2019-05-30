@@ -65,7 +65,7 @@ TEST_F(SimulatorTest, run_simple)
   ASSERT_TRUE(simulator->threads_per_checkpoint.empty());
   ASSERT_TRUE(simulator->waiting_for_checkpoint.empty());
 
-  unsigned long step = 0;
+  bound_t step = 0;
 
   /* NOTE: EXPECT_* required by lambda function */
   function<Thread *()> scheduler = [&] () -> Thread *
@@ -159,7 +159,7 @@ TEST_F(SimulatorTest, run_add_check_exit)
   ASSERT_EQ(2, simulator->threads_per_checkpoint[1].size());
   ASSERT_EQ(0, simulator->waiting_for_checkpoint[1]);
 
-  unsigned long step = 0;
+  bound_t step = 0;
 
   function<Thread *()> scheduler = [&] () -> Thread *
     {
@@ -291,7 +291,7 @@ TEST_F(SimulatorTest, run_race_condition)
   ASSERT_EQ(3, simulator->threads_per_checkpoint[1].size());
   ASSERT_EQ(0, simulator->waiting_for_checkpoint[1]);
 
-  unsigned long step = 0;
+  bound_t step = 0;
 
   function<Thread *()> scheduler = [&] () -> Thread *
     {
@@ -591,7 +591,7 @@ TEST_F(SimulatorTest, run_zero_bound)
 
   create_simulator({program});
 
-  unsigned long step = 0;
+  bound_t step = 0;
 
   function<Thread *()> scheduler = [&] () -> Thread *
     {

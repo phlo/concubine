@@ -202,11 +202,11 @@ Schedule_ptr Simulator::run (function<Thread *()> scheduler)
   return schedule;
 }
 
-/* Simulator::simulate (unsigned long, unsigned long) *************************/
+/* Simulator::simulate ********************************************************/
 Schedule_ptr Simulator::simulate (
-                                  Program_list_ptr programs,
-                                  unsigned long bound,
-                                  unsigned long seed
+                                  const Program_list_ptr programs,
+                                  const bound_t bound,
+                                  const bound_t seed
                                  )
 {
   Simulator simulator {programs, bound, seed};
@@ -236,8 +236,8 @@ Schedule_ptr Simulator::simulate (
   });
 }
 
-/* Simulator::replay (Schedule &, unsigned long) ******************************/
-Schedule_ptr Simulator::replay (Schedule & schedule, unsigned long bound)
+/* Simulator::replay **********************************************************/
+Schedule_ptr Simulator::replay (const Schedule & schedule, const bound_t bound)
 {
   Simulator simulator {
     schedule.programs,

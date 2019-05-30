@@ -47,7 +47,7 @@ Schedule_ptr ExternalSolver::build_schedule (Program_list_ptr programs)
   Schedule_ptr schedule = make_shared<Schedule>(programs);
 
   /* current line number */
-  unsigned long lineno = 2;
+  size_t lineno = 2;
 
   for (string line_buf; getline(std_out >> std::ws, line_buf); lineno++)
     {
@@ -118,11 +118,11 @@ Schedule_ptr ExternalSolver::build_schedule (Program_list_ptr programs)
   return schedule;
 }
 
-unsigned long Solver::parse_attribute (
-                                       istringstream & line,
-                                       const string name,
-                                       const char delimiter
-                                      )
+bound_t Solver::parse_attribute (
+                                 istringstream & line,
+                                 const string name,
+                                 const char delimiter
+                                )
 {
   string token;
 

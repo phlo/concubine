@@ -17,7 +17,7 @@ struct SMTLibEncoderTest : public ::testing::Test
         false);
     }
 
-  void reset_encoder (const word_t bound, unsigned long step)
+  void reset_encoder (const word_t bound, bound_t step)
     {
       encoder = create_encoder(bound);
       encoder->step = step;

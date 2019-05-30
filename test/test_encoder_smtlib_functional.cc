@@ -23,7 +23,7 @@ struct SMTLibEncoderFunctionalTest : public ::testing::Test
       return e;
     }
 
-  void reset_encoder (const word_t bound, unsigned long step)
+  void reset_encoder (const word_t bound, bound_t step)
     {
       encoder = create_encoder(bound, step);
     }
@@ -59,7 +59,7 @@ struct SMTLibEncoderFunctionalTest : public ::testing::Test
 
 // SMTLibEncoderFunctional::SMTLibEncoderFunctional (
 //                                                   const Program_list_ptr,
-//                                                   unsigned long,
+//                                                   bound_t,
 //                                                   bool
 //                                                  );
 TEST_F(SMTLibEncoderFunctionalTest, constructor)

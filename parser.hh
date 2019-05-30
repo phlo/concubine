@@ -7,7 +7,7 @@
 
 /* error reporting helper *****************************************************/
 inline
-void parser_error (std::string file, unsigned long line, std::string && msg)
+void parser_error (std::string file, size_t line, std::string && msg)
 {
   throw std::runtime_error(file + ":" + std::to_string(line) + ": " + msg);
 }

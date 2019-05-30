@@ -16,6 +16,8 @@
 
 namespace btor2
 {
+  using nid_t = uint64_t;
+
   inline std::string comment (std::string comment)
     {
       return "; " + comment;
@@ -128,7 +130,7 @@ namespace btor2
       return line(nid + " constraint " + node, sym);
     }
 
-  inline std::string constraint (unsigned long & nid, std::string sym = "")
+  inline std::string constraint (nid_t & nid, std::string sym = "")
     {
       std::string prev = std::to_string(nid - 1);
       return line(std::to_string(nid++) + " constraint " + prev, sym);
@@ -143,7 +145,7 @@ namespace btor2
       return line(nid + " bad " + node, sym);
     }
 
-  inline std::string bad (unsigned long & nid, std::string sym = "")
+  inline std::string bad (nid_t & nid, std::string sym = "")
     {
       std::string prev = std::to_string(nid - 1);
       return line(std::to_string(nid++) + " bad " + prev, sym);
@@ -444,7 +446,7 @@ namespace btor2
 
   /* variadic conjunction */
   inline std::string land (
-                           unsigned long & nid,
+                           nid_t & nid,
                            std::string sid,
                            std::vector<std::string> const & args,
                            std::string sym = ""
@@ -508,7 +510,7 @@ namespace btor2
 
   /* variadic disjunction */
   inline std::string lor (
-                           unsigned long & nid,
+                           nid_t & nid,
                            std::string sid,
                            std::vector<std::string> const & args,
                            std::string sym = ""
@@ -841,7 +843,7 @@ namespace btor2
   /* boolean cardinality constraint =1: naive (pair wise) *********************/
   inline std::string
   card_constraint_naive (
-                         unsigned long & nid,
+                         nid_t & nid,
                          std::string sid,
                          std::vector<std::string> const & vars
                         )
@@ -880,7 +882,7 @@ namespace btor2
   /* boolean cardinality constraint =1: Carsten Sinz's sequential counter *****/
   inline std::string
   card_constraint_sinz (
-                        unsigned long & nid,
+                        nid_t & nid,
                         std::string sid,
                         std::vector<std::string> const & vars
                        )

@@ -38,7 +38,7 @@ struct EncoderTest : public ::testing::Test
     }
 };
 
-// Encoder::Encoder (const Program_list_ptr, unsigned long)
+// Encoder::Encoder (const Program_list_ptr, bound_t)
 TEST_F(EncoderTest, constructor)
 {
   for (size_t i = 0; i < 3; i++)
