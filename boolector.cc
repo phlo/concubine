@@ -20,7 +20,7 @@ optional<Boolector::Variable> Boolector::parse_line (istringstream & line)
 
   unsigned long nid;
 
-  word idx = 0, val = 0;
+  word_t adr = 0, val = 0;
 
   /* parse node id */
   if (!(line >> nid))
@@ -43,7 +43,7 @@ optional<Boolector::Variable> Boolector::parse_line (istringstream & line)
       try
         {
           token = token.substr(1, token.size() - 2);
-          idx = stoul(token, nullptr, 2);
+          adr = stoul(token, nullptr, 2);
         }
       catch (const logic_error &)
         {
@@ -111,7 +111,7 @@ optional<Boolector::Variable> Boolector::parse_line (istringstream & line)
         return variable;
 
       case Variable::Type::HEAP:
-        variable->idx = idx;
+        variable->adr = adr;
         variable->val = val;
         return variable;
 

@@ -32,18 +32,18 @@ struct Simulator
 
   /* main memory */
   std::unordered_map<
-    word,
-    word>                   heap;
+    word_t,
+    word_t>                 heap;
 
   /* number of threads containing calls to a specific checkpoint */
   std::unordered_map<
-    word,
+    word_t,
     std::vector<Thread *>>  threads_per_checkpoint;
 
   /* number of threads currently waiting for a specific checkpoint */
   std::unordered_map<
-    word,
-    word>                   waiting_for_checkpoint;
+    word_t,
+    word_t>                 waiting_for_checkpoint;
 
   /*****************************************************************************
    * constructors
@@ -60,10 +60,10 @@ struct Simulator
    ****************************************************************************/
 
   /* checks if all threads reached the given checkpoint and resumes them */
-  void                      check_and_resume (word id);
+  void                      check_and_resume (word_t id);
 
   /* creates a thread using the given program, thread id == number of threads*/
-  word                      create_thread (Program &);
+  word_t                    create_thread (Program &);
 
   /* run the simulator, using the specified scheduler */
   Schedule_ptr              run (std::function<Thread *()>);
@@ -93,8 +93,8 @@ struct Thread
   struct Buffer
     {
       bool full = false;
-      word address = 0;
-      word value = 0;
+      word_t address = 0;
+      word_t value = 0;
     };
 
   enum class State : char
@@ -107,22 +107,22 @@ struct Thread
     exited    = 'E'   // exit called
   };
 
-  word          id;         // thread id
-  word          pc;         // program counter
-  word          mem;        // special CAS register
-  word          accu;       // accumulator register
-  word          check;      // current (or previous) checkpoint's id
+  word_t        id;         // thread id
+  word_t        pc;         // program counter
+  word_t        mem;        // special CAS register
+  word_t        accu;       // accumulator register
+  word_t        check;      // current (or previous) checkpoint's id
   Buffer        buffer;     // store buffer
   State         state;      // thread state
   Simulator &   simulator;  // reference to the simulator owning the thread
   Program &     program;    // reference to the program being executed
 
-  Thread (Simulator & simulator, word id, Program & program);
+  Thread (Simulator & simulator, word_t id, Program & program);
 
-  word          load (word address, const bool indirect = false);
+  word_t        load (word_t address, const bool indirect = false);
   void          store (
-                       word address,
-                       const word value,
+                       word_t address,
+                       const word_t value,
                        const bool indirect = false,
                        const bool atomic = false
                       );

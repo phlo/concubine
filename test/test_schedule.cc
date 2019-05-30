@@ -42,7 +42,7 @@ TEST_F(ScheduleTest, parse_check)
     schedule->programs->at(1)->path);
 
   ASSERT_EQ(
-    Schedule::Updates<word>({
+    Schedule::Updates<word_t>({
       {1,  0},
       {2,  1},
       {3,  0},
@@ -52,7 +52,7 @@ TEST_F(ScheduleTest, parse_check)
     schedule->thread_updates);
 
   ASSERT_EQ(
-    Schedule::Updates<word>({
+    Schedule::Updates<word_t>({
       {1,  0},
       {4,  1},
       {5,  2},
@@ -63,7 +63,7 @@ TEST_F(ScheduleTest, parse_check)
       {12, 1}}),
     schedule->pc_updates[0]);
   ASSERT_EQ(
-    Schedule::Updates<word>({
+    Schedule::Updates<word_t>({
       {2,  0},
       {6,  1},
       {13,  2},
@@ -72,34 +72,34 @@ TEST_F(ScheduleTest, parse_check)
     schedule->pc_updates[1]);
 
   ASSERT_EQ(
-    Schedule::Updates<word>({
+    Schedule::Updates<word_t>({
       {1,  0},
       {7, 1}}),
     schedule->accu_updates[0]);
   ASSERT_EQ(
-    Schedule::Updates<word>({
+    Schedule::Updates<word_t>({
       {2,  0},
       {13, 1},
       {14, 2}}),
     schedule->accu_updates[1]);
 
   ASSERT_EQ(
-    Schedule::Updates<word>({
+    Schedule::Updates<word_t>({
       {1,  0}}),
     schedule->mem_updates[0]);
   ASSERT_EQ(
-    Schedule::Updates<word>({
+    Schedule::Updates<word_t>({
       {2, 0}}),
     schedule->mem_updates[1]);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word>({
+    Schedule::Thread_Updates<word_t>({
       {{1, 0}},
       {{2, 0}}}),
     schedule->sb_adr_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word>({
+    Schedule::Thread_Updates<word_t>({
       {{1, 0}, {8, 1}},
       {{2, 0}, {15, 2}}}),
     schedule->sb_val_updates);
@@ -130,7 +130,7 @@ TEST_F(ScheduleTest, parse_cas)
   ASSERT_EQ(program_path, schedule->programs->at(1)->path);
 
   ASSERT_EQ(
-    Schedule::Updates<word>({
+    Schedule::Updates<word_t>({
       {1,  0},
       {2,  1},
       {4,  0},
@@ -142,7 +142,7 @@ TEST_F(ScheduleTest, parse_cas)
     schedule->thread_updates);
 
   ASSERT_EQ(
-    Schedule::Updates<word>({
+    Schedule::Updates<word_t>({
       {1,  0},
       {6,  1},
       {7,  2},
@@ -152,7 +152,7 @@ TEST_F(ScheduleTest, parse_cas)
       {13, 2}}),
     schedule->pc_updates[0]);
   ASSERT_EQ(
-    Schedule::Updates<word>({
+    Schedule::Updates<word_t>({
       {2,  0},
       {5,  1},
       {8,  2},
@@ -163,12 +163,12 @@ TEST_F(ScheduleTest, parse_cas)
     schedule->pc_updates[1]);
 
   ASSERT_EQ(
-    Schedule::Updates<word>({
+    Schedule::Updates<word_t>({
       {1,  0},
       {10, 1}}),
     schedule->accu_updates[0]);
   ASSERT_EQ(
-    Schedule::Updates<word>({
+    Schedule::Updates<word_t>({
       {2,  0},
       {9,  1},
       {14, 0},
@@ -176,24 +176,24 @@ TEST_F(ScheduleTest, parse_cas)
     schedule->accu_updates[1]);
 
   ASSERT_EQ(
-    Schedule::Updates<word>({
+    Schedule::Updates<word_t>({
       {1,  0},
       {13, 1}}),
     schedule->mem_updates[0]);
   ASSERT_EQ(
-    Schedule::Updates<word>({
+    Schedule::Updates<word_t>({
       {2, 0},
       {16, 1}}),
     schedule->mem_updates[1]);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word>({
+    Schedule::Thread_Updates<word_t>({
       {{1, 0}},
       {{2, 0}}}),
     schedule->sb_adr_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word>({
+    Schedule::Thread_Updates<word_t>({
       {{1, 0}},
       {{2, 0}}}),
     schedule->sb_val_updates);
@@ -775,7 +775,7 @@ TEST_F(ScheduleTest, parse_missing_heap)
 }
 
 /* Schedule::push_back ********************************************************/
-using Insert_Data = tuple<unsigned long, word, word, word>;
+using Insert_Data = tuple<unsigned long, word_t, word_t, word_t>;
 
 const vector<Insert_Data> insert_data {
   {1,  0, 0, 0},
@@ -806,7 +806,7 @@ TEST_F(ScheduleTest, insert_thread)
 
   ASSERT_EQ(insert_data.size(), schedule->bound);
   ASSERT_EQ(
-    Schedule::Updates<word> ({
+    Schedule::Updates<word_t> ({
       {1,  0},
       {2,  1},
       {3,  0},
@@ -828,7 +828,7 @@ TEST_F(ScheduleTest, insert_thread)
 }
 
 /* Schedule::insert_pc ********************************************************/
-const vector<Schedule::Updates<word>> insert_expected {
+const vector<Schedule::Updates<word_t>> insert_expected {
   {{1, 0}, {5, 1}, {9, 0}, {13, 1}},
   {{2, 0}, {6, 1}, {10, 0}, {14, 1}}
 };
@@ -958,13 +958,13 @@ TEST_F(ScheduleTest, iterator_check)
 {
   schedule = create_from_file<Schedule>("data/increment.check.t2.k16.schedule");
 
-  word tid[]      = {0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1};
-  word pc[]       = {0, 0, 0, 1, 2, 1, 3, 4, 4, 5, 6, 1, 2, 3, 4, 4};
-  word accu[]     = {0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2};
-  word mem[]      = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  word sb_adr[]   = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  word sb_val[]   = {0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 2, 2};
-  word sb_full[]  = {1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0};
+  word_t tid[]      = {0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1};
+  word_t pc[]       = {0, 0, 0, 1, 2, 1, 3, 4, 4, 5, 6, 1, 2, 3, 4, 4};
+  word_t accu[]     = {0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2};
+  word_t mem[]      = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  word_t sb_adr[]   = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  word_t sb_val[]   = {0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 2, 2};
+  word_t sb_full[]  = {1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0};
 
   Schedule::iterator it = schedule->begin(), end = schedule->end();
 
@@ -1006,13 +1006,13 @@ TEST_F(ScheduleTest, iterator_cas)
 {
   schedule = create_from_file<Schedule>(schedule_path);
 
-  word tid[]      = {0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1};
-  word pc[]       = {0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 5, 2, 4, 5, 2};
-  word accu[]     = {0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1};
-  word mem[]      = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1};
-  word sb_adr[]   = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  word sb_val[]   = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  word sb_full[]  = {1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  word_t tid[]      = {0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1};
+  word_t pc[]       = {0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 5, 2, 4, 5, 2};
+  word_t accu[]     = {0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1};
+  word_t mem[]      = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1};
+  word_t sb_adr[]   = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  word_t sb_val[]   = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  word_t sb_full[]  = {1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
   Schedule::iterator it = schedule->begin(), end = schedule->end();
 

@@ -11,7 +11,10 @@ struct SMTLibEncoderRelationalTest : public ::testing::Test
   Program_list_ptr            programs {make_shared<Program_list>()};
   SMTLibEncoderRelationalPtr  encoder {create_encoder(2, 1)};
 
-  SMTLibEncoderRelationalPtr  create_encoder (const word bound, const word step)
+  SMTLibEncoderRelationalPtr  create_encoder (
+                                              const word_t bound,
+                                              const word_t step
+                                             )
     {
       SMTLibEncoderRelationalPtr e =
         make_shared<SMTLibEncoderRelational>(programs, bound, false);
@@ -23,7 +26,7 @@ struct SMTLibEncoderRelationalTest : public ::testing::Test
       return e;
     }
 
-  void reset_encoder (const word bound, unsigned long step)
+  void reset_encoder (const word_t bound, unsigned long step)
     {
       encoder = create_encoder(bound, step);
     }
@@ -129,7 +132,7 @@ TEST_F(SMTLibEncoderRelationalTest, preserve_mem)
     encoder->preserve_mem());
 }
 
-// std::string stmt_activation (word);
+// std::string stmt_activation (word_t);
 TEST_F(SMTLibEncoderRelationalTest, stmt_activation)
 {
   add_dummy_programs(1);
@@ -144,7 +147,7 @@ TEST_F(SMTLibEncoderRelationalTest, stmt_activation)
     encoder->stmt_activation(3));
 }
 
-// std::string activate_pc (word);
+// std::string activate_pc (word_t);
 TEST_F(SMTLibEncoderRelationalTest, activate_pc)
 {
   add_dummy_programs(1);
@@ -204,7 +207,7 @@ TEST_F(SMTLibEncoderRelationalTest, activate_next)
   ASSERT_EQ("", encoder->activate_next());
 }
 
-// std::string activate_jmp (std::string, word);
+// std::string activate_jmp (std::string, word_t);
 TEST_F(SMTLibEncoderRelationalTest, activate_jmp)
 {
   add_dummy_programs(1);

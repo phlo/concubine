@@ -195,7 +195,7 @@ const string SMTLibEncoder::exit_comment =
   "; exit flag - exit_<step>";
 
 /* state variable generators */
-string SMTLibEncoder::heap_var (const word k)
+string SMTLibEncoder::heap_var (const word_t k)
 {
   return "heap_" + to_string(k);
 }
@@ -205,7 +205,7 @@ string SMTLibEncoder::heap_var ()
   return heap_var(step);
 }
 
-string SMTLibEncoder::accu_var (const word k, const word t)
+string SMTLibEncoder::accu_var (const word_t k, const word_t t)
 {
   return "accu_" + to_string(k) + '_' + to_string(t);
 }
@@ -215,7 +215,7 @@ string SMTLibEncoder::accu_var ()
   return accu_var(step, thread);
 }
 
-string SMTLibEncoder::mem_var (const word k, const word t)
+string SMTLibEncoder::mem_var (const word_t k, const word_t t)
 {
   return "mem_" + to_string(k) + '_' + to_string(t);
 }
@@ -226,7 +226,7 @@ string SMTLibEncoder::mem_var ()
 }
 
 /* transition variable generators */
-string SMTLibEncoder::stmt_var (const word k, const word t, const word p)
+string SMTLibEncoder::stmt_var (const word_t k, const word_t t, const word_t p)
 {
   return "stmt_"
     + to_string(k)
@@ -239,7 +239,7 @@ string SMTLibEncoder::stmt_var ()
   return stmt_var(step, thread, pc);
 }
 
-string SMTLibEncoder::thread_var (const word k, const word t)
+string SMTLibEncoder::thread_var (const word_t k, const word_t t)
 {
   return "thread_" + to_string(k) + '_' + to_string(t);
 }
@@ -249,7 +249,7 @@ string SMTLibEncoder::thread_var ()
   return thread_var(step, thread);
 }
 
-string SMTLibEncoder::exec_var (const word k, const word t, const word p)
+string SMTLibEncoder::exec_var (const word_t k, const word_t t, const word_t p)
 {
   return "exec_"
     + to_string(k)
@@ -262,7 +262,7 @@ string SMTLibEncoder::exec_var ()
   return exec_var(step, thread, pc);
 }
 
-string SMTLibEncoder::cas_var (const word k, const word t)
+string SMTLibEncoder::cas_var (const word_t k, const word_t t)
 {
   return "cas_" + to_string(k) + '_' + to_string(t);
 }
@@ -272,17 +272,21 @@ string SMTLibEncoder::cas_var ()
   return cas_var(step, thread);
 }
 
-string SMTLibEncoder::block_var (const word k, const word id, const word tid)
+string SMTLibEncoder::block_var (
+                                 const word_t k,
+                                 const word_t id,
+                                 const word_t tid
+                                )
 {
   return "block_" + to_string(k) + '_' + to_string(id) + '_' + to_string(tid);
 }
 
-string SMTLibEncoder::check_var (const word k, const word id)
+string SMTLibEncoder::check_var (const word_t k, const word_t id)
 {
   return "check_" + to_string(k) + '_' + to_string(id);
 }
 
-string SMTLibEncoder::exit_var (const word k)
+string SMTLibEncoder::exit_var (const word_t k)
 {
   return "exit_" + to_string(k);
 }
@@ -483,7 +487,7 @@ void SMTLibEncoder::add_exit_flag ()
     args.push_back(exit_var(step - 1));
 
   iterate_threads([&] {
-    for (const word & exit_pc : exit_pcs[thread])
+    for (const word_t & exit_pc : exit_pcs[thread])
       args.push_back(exec_var(step - 1, thread, exit_pc));
   });
 
@@ -532,7 +536,7 @@ void SMTLibEncoder::add_checkpoint_constraints ()
 
         block_args.reserve(pcs.size() + 1);
 
-        for (const word p : pcs)
+        for (const word_t p : pcs)
           block_args.push_back(exec_var(step - 1, t, p));
 
         if (step > 2)
@@ -688,7 +692,7 @@ void SMTLibEncoderFunctional::add_statement_activation ()
               stmt_var(step - 1, thread, pc),
               smtlib::lnot(exec_var(step - 1, thread, pc))});
 
-          for (word prev : predecessors[thread][pc])
+          for (word_t prev : predecessors[thread][pc])
             {
               /* predecessor's execution variable */
               string val = exec_var(step - 1, thread, prev);
@@ -732,10 +736,10 @@ void SMTLibEncoderFunctional::add_state_update ()
   update_accu = true;
 
   iterate_threads([&] (Program & program) {
-    vector<word> & pcs = alters_accu[thread];
+    vector<word_t> & pcs = alters_accu[thread];
     string expr = accu_var(step - 1, thread);
 
-    // for (const word & _pc : alters_accu[thread])
+    // for (const word_t & _pc : alters_accu[thread])
     for (auto rit = pcs.rbegin(); rit != pcs.rend(); ++rit)
       expr =
         smtlib::ite(
@@ -754,10 +758,10 @@ void SMTLibEncoderFunctional::add_state_update ()
   declare_mem_vars();
 
   iterate_threads([&] (Program & program) {
-    vector<word> & pcs = alters_mem[thread];
+    vector<word_t> & pcs = alters_mem[thread];
     string expr = mem_var(step - 1, thread);
 
-    // for (const word & _pc : alters_mem[thread])
+    // for (const word_t & _pc : alters_mem[thread])
     for (auto rit = pcs.rbegin(); rit != pcs.rend(); ++rit)
       expr =
         smtlib::ite(
@@ -776,9 +780,9 @@ void SMTLibEncoderFunctional::add_state_update ()
   string expr = heap_var(step - 1);
 
   iterate_threads_reverse([&] (Program & program) {
-    vector<word> & pcs = alters_heap[thread];
+    vector<word_t> & pcs = alters_heap[thread];
 
-    // for (const word & _pc : alters_heap[thread])
+    // for (const word_t & _pc : alters_heap[thread])
     for (auto rit = pcs.rbegin(); rit != pcs.rend(); ++rit)
       expr =
         smtlib::ite(
@@ -803,7 +807,7 @@ void SMTLibEncoderFunctional::add_exit_code ()
 
   for (unsigned long k = step; k > 0; k--)
     iterate_threads_reverse([&] (Program & program) {
-      for (const word & exit_pc : exit_pcs[thread])
+      for (const word_t & exit_pc : exit_pcs[thread])
         exit_code_ite =
           smtlib::ite(
             exec_var(k, thread, exit_pc),
@@ -1079,11 +1083,11 @@ string SMTLibEncoderRelational::preserve_mem ()
       smtlib::equality({mem_var(), mem_var(step - 1, thread)}));
 }
 
-string SMTLibEncoderRelational::stmt_activation (word target)
+string SMTLibEncoderRelational::stmt_activation (word_t target)
 {
   vector<string> args;
 
-  for (word cur = 0; cur < programs->at(thread)->size(); cur++)
+  for (word_t cur = 0; cur < programs->at(thread)->size(); cur++)
     args.push_back(
       cur == target
         ? stmt_var(step + 1, thread, target)
@@ -1092,7 +1096,7 @@ string SMTLibEncoderRelational::stmt_activation (word target)
   return smtlib::land(args);
 }
 
-string SMTLibEncoderRelational::activate_pc (word target)
+string SMTLibEncoderRelational::activate_pc (word_t target)
 {
   return step < bound ? imply(exec_var(), stmt_activation(target)) : "";
 }
@@ -1102,7 +1106,7 @@ string SMTLibEncoderRelational::activate_next ()
   return step < bound ? activate_pc(pc + 1) : "";
 }
 
-string SMTLibEncoderRelational::activate_jmp (string condition, word target)
+string SMTLibEncoderRelational::activate_jmp (string condition, word_t target)
 {
   return step < bound
     ? imply(
@@ -1538,7 +1542,7 @@ string Btor2Encoder::nid (int offset)
   return to_string(static_cast<int>(node) + offset);
 }
 
-string Btor2Encoder::symbol (word p)
+string Btor2Encoder::symbol (word_t p)
 {
   Unary & op = *dynamic_pointer_cast<Unary>(programs->at(thread)->at(p));
 
@@ -1661,8 +1665,8 @@ void Btor2Encoder::define_state (
                                  string nid_init,
                                  string sym,
                                  unordered_map<
-                                 word,
-                                 vector<word>> & alters_state,
+                                 word_t,
+                                 vector<word_t>> & alters_state,
                                  const bool global
                                 )
 {
@@ -1678,15 +1682,15 @@ void Btor2Encoder::define_state (
   if (!nid_init.empty())
     formula << btor2::init(nid(), sid, nid_state, nid_init);
 
-  unordered_map<word, vector<word>>::iterator thread_it;
+  unordered_map<word_t, vector<word_t>>::iterator thread_it;
   do
     if ((thread_it = alters_state.find(thread)) != alters_state.end())
       {
         /* minimize lookups */
-        vector<word> & pcs = thread_it->second;
+        vector<word_t> & pcs = thread_it->second;
         vector<string> & exec = nids_exec[thread];
 
-        vector<word>::iterator pc_it = pcs.begin();
+        vector<word_t>::iterator pc_it = pcs.begin();
         for (pc = *pc_it; pc_it != pcs.end(); ++pc_it, pc = *pc_it)
           {
             Unary & op =
@@ -1788,7 +1792,7 @@ void Btor2Encoder::define_stmt ()
             btor2::lnot(nid_exec));
 
         /* add activation by predecessor's execution */
-        for (word prev : predecessors[thread][pc])
+        for (word_t prev : predecessors[thread][pc])
           {
             nid_exec = nids_exec_thread[prev];
 
@@ -2206,13 +2210,13 @@ string Btor2Encoder::store (Store & s)
         s.arg,
         bind(&Btor2Encoder::add_load, this, &nid_store));
 
-  map<word, string> & nids_thread_store =
+  map<word_t, string> & nids_thread_store =
     lookup(
       s.indirect
         ? nids_store_indirect
         : nids_store,
       thread,
-      [] () { return map<word, string>(); });
+      [] () { return map<word_t, string>(); });
 
   return
     lookup(

@@ -115,10 +115,10 @@ TEST_F(BoolectorTest, solve_check)
 
   Schedule_ptr parsed {create_from_file<Schedule>("/tmp/test.schedule")};
 
-  vector<vector<pair<unsigned long, word>>> pc_diff;
+  vector<vector<pair<unsigned long, word_t>>> pc_diff;
   for (size_t t = 0; t < schedule->pc_updates.size(); t++)
     {
-      vector<pair<unsigned long, word>> diff;
+      vector<pair<unsigned long, word_t>> diff;
 
       std::set_symmetric_difference(
         schedule->pc_updates[t].begin(), schedule->pc_updates[t].end(),

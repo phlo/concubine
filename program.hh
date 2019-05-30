@@ -27,17 +27,17 @@ struct Program : public std::deque<Instruction_ptr>
   std::string                     path;
 
   /* checkpoint ids */
-  std::unordered_set<word>        check_ids;
+  std::unordered_set<word_t>      check_ids;
 
   /* maps program counters to the label referencing it */
   std::unordered_map<
-    word,
+    word_t,
     const std::string *>          pc_to_label;
 
   /* maps labels to the corresponding program counter */
   std::unordered_map<
     const std::string *,
-    word>                         label_to_pc;
+    word_t>                       label_to_pc;
 
   /* jump labels */
   std::unordered_set<std::string> labels;
@@ -46,16 +46,16 @@ struct Program : public std::deque<Instruction_ptr>
   void                            push_back (Instruction_ptr);
 
   /* get pc corresponding to the given label */
-  word                            get_pc (const std::string label) const;
+  word_t                          get_pc (const std::string label) const;
 
   /* get label corresponding to the given pc */
-  std::string                     get_label (const word) const;
+  std::string                     get_label (const word_t) const;
 
   /* print whole program */
   std::string                     print (bool) const;
 
   /* print instruction at pc */
-  std::string                     print (bool, word) const;
+  std::string                     print (bool, word_t) const;
 };
 
 /*******************************************************************************

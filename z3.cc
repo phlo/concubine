@@ -39,13 +39,13 @@ bool eval_bool (z3::context & c, const z3::model & m, const string sym)
 }
 
 inline
-word eval_bv (z3::context & c, const z3::model & m, const string sym)
+word_t eval_bv (z3::context & c, const z3::model & m, const string sym)
 {
   return m.eval(c.bv_const(sym.c_str(), word_size)).get_numeral_uint();
 }
 
 inline
-word eval_array (z3::context & c, const z3::model & m, const string sym, const word idx)
+word_t eval_array (z3::context & c, const z3::model & m, const string sym, const word_t idx)
 {
   return
     m.eval(
@@ -79,11 +79,11 @@ Schedule_ptr Z3::solve (Encoder & encoder, string & constraints)
         {
           Program & program = *(*encoder.programs)[thread];
 
-          for (word pc = 0; pc < program.size(); ++pc)
+          for (word_t pc = 0; pc < program.size(); ++pc)
             if (eval_bool(c, m, symbol("exec", {step, thread, pc})))
               {
-                word accu = eval_bv(c, m, symbol("accu", {step, thread}));
-                word mem = eval_bv(c, m, symbol("mem", {step, thread}));
+                word_t accu = eval_bv(c, m, symbol("accu", {step, thread}));
+                word_t mem = eval_bv(c, m, symbol("mem", {step, thread}));
 
                 optional<Schedule::Heap> heap;
 
@@ -91,7 +91,7 @@ Schedule_ptr Z3::solve (Encoder & encoder, string & constraints)
                 if (Store_ptr store = dynamic_pointer_cast<Store>(program[pc]))
                   if (!(store->type() & Instruction::Types::atomic) || accu)
                     {
-                      word idx = store->arg;
+                      word_t idx = store->arg;
 
                       if (store->indirect)
                         idx = eval_array(c, m, symbol("heap", {step - 1}), idx);

@@ -80,7 +80,7 @@ Schedule::Schedule(istream & file, string & path) :
       step++;
 
       /* parse thread id */
-      word thread;
+      word_t thread;
 
       if (!(line >> thread))
         {
@@ -98,7 +98,7 @@ Schedule::Schedule(istream & file, string & path) :
       const Program & program = *programs->at(thread);
 
       /* parse pc */
-      word pc;
+      word_t pc;
 
       if (!(line >> pc))
         {
@@ -135,7 +135,7 @@ Schedule::Schedule(istream & file, string & path) :
         parser_error(path, line_num, "unknown instruction [" + symbol + "]");
 
       /* parse instruction argument */
-      word arg;
+      word_t arg;
 
       if (flush)
         {
@@ -199,7 +199,7 @@ Schedule::Schedule(istream & file, string & path) :
         }
 
       /* parse accu */
-      word accu;
+      word_t accu;
 
       if (!(line >> accu))
         {
@@ -215,7 +215,7 @@ Schedule::Schedule(istream & file, string & path) :
         }
 
       /* parse mem */
-      word mem;
+      word_t mem;
 
       if (!(line >> mem))
         {
@@ -231,7 +231,7 @@ Schedule::Schedule(istream & file, string & path) :
         }
 
       /* parse store buffer address */
-      word sb_adr;
+      word_t sb_adr;
 
       if (!(line >> sb_adr))
         {
@@ -247,7 +247,7 @@ Schedule::Schedule(istream & file, string & path) :
         }
 
       /* parse store buffer value */
-      word sb_val;
+      word_t sb_val;
 
       if (!(line >> sb_val))
         {
@@ -292,11 +292,11 @@ Schedule::Schedule(istream & file, string & path) :
             {
               cell = cell.substr(1, cell.size() - 2);
               size_t split = cell.find(',');
-              word idx = stoul(cell.substr(0, split));
-              word val = stoul(cell.substr(split + 1));
+              word_t adr = stoul(cell.substr(0, split));
+              word_t val = stoul(cell.substr(split + 1));
 
               /* heap cell update */
-              heap = {idx, val};
+              heap = {adr, val};
             }
           catch (const exception & e)
             {
@@ -370,23 +370,23 @@ void Schedule::push_back (
 
 void Schedule::push_back (
                           const unsigned long thread,
-                          const word pc,
-                          const word accu,
-                          const word mem,
-                          const word buffer_adr,
-                          const word buffer_val,
-                          const word buffer_full,
+                          const word_t pc,
+                          const word_t accu,
+                          const word_t mem,
+                          const word_t buffer_adr,
+                          const word_t buffer_val,
+                          const word_t buffer_full,
                           const optional<Heap> & heap
                          )
 {
   ++bound;
 
-  push_back<word>(thread_updates, bound, thread);
-  push_back<word>(pc_updates[thread], bound, pc);
-  push_back<word>(accu_updates[thread], bound, accu);
-  push_back<word>(mem_updates[thread], bound, mem);
-  push_back<word>(sb_adr_updates[thread], bound, buffer_adr);
-  push_back<word>(sb_val_updates[thread], bound, buffer_val);
+  push_back<word_t>(thread_updates, bound, thread);
+  push_back<word_t>(pc_updates[thread], bound, pc);
+  push_back<word_t>(accu_updates[thread], bound, accu);
+  push_back<word_t>(mem_updates[thread], bound, mem);
+  push_back<word_t>(sb_adr_updates[thread], bound, buffer_adr);
+  push_back<word_t>(sb_val_updates[thread], bound, buffer_val);
   push_back<bool>(sb_full_updates[thread], bound, buffer_full);
 
   if (heap)
@@ -398,14 +398,14 @@ void Schedule::push_back (const unsigned long thread, const Heap & heap)
   ++bound;
 
   flushes.insert(bound);
-  push_back<word>(thread_updates, bound, thread);
+  push_back<word_t>(thread_updates, bound, thread);
   push_back<bool>(sb_full_updates[thread], bound, false);
-  push_back<word>(heap_updates[heap.adr], bound, heap.val);
+  push_back<word_t>(heap_updates[heap.adr], bound, heap.val);
 }
 
-void Schedule::insert_thread (const unsigned long step, const word thread)
+void Schedule::insert_thread (const unsigned long step, const word_t thread)
 {
-  push_back<word>(thread_updates, step, thread);
+  push_back<word_t>(thread_updates, step, thread);
 
   if (step > bound)
     bound = step;
@@ -413,11 +413,11 @@ void Schedule::insert_thread (const unsigned long step, const word thread)
 
 void Schedule::insert_pc (
                           const unsigned long step,
-                          const word thread,
-                          const word pc
+                          const word_t thread,
+                          const word_t pc
                          )
 {
-  push_back<word>(pc_updates.at(thread), step, pc);
+  push_back<word_t>(pc_updates.at(thread), step, pc);
 
   if (step > bound)
     bound = step;
@@ -425,11 +425,11 @@ void Schedule::insert_pc (
 
 void Schedule::insert_accu (
                             const unsigned long step,
-                            const word thread,
-                            const word accu
+                            const word_t thread,
+                            const word_t accu
                            )
 {
-  push_back<word>(accu_updates.at(thread), step, accu);
+  push_back<word_t>(accu_updates.at(thread), step, accu);
 
   if (step > bound)
     bound = step;
@@ -437,11 +437,11 @@ void Schedule::insert_accu (
 
 void Schedule::insert_mem (
                            const unsigned long step,
-                           const word thread,
-                           const word mem
+                           const word_t thread,
+                           const word_t mem
                           )
 {
-  push_back<word>(mem_updates.at(thread), step, mem);
+  push_back<word_t>(mem_updates.at(thread), step, mem);
 
   if (step > bound)
     bound = step;
@@ -449,11 +449,11 @@ void Schedule::insert_mem (
 
 void Schedule::insert_sb_adr (
                               const unsigned long step,
-                              const word thread,
-                              const word adr
+                              const word_t thread,
+                              const word_t adr
                              )
 {
-  push_back<word>(sb_adr_updates.at(thread), step, adr);
+  push_back<word_t>(sb_adr_updates.at(thread), step, adr);
 
   if (step > bound)
     bound = step;
@@ -461,11 +461,11 @@ void Schedule::insert_sb_adr (
 
 void Schedule::insert_sb_val (
                               const unsigned long step,
-                              const word thread,
-                              const word val
+                              const word_t thread,
+                              const word_t val
                              )
 {
-  push_back<word>(sb_val_updates.at(thread), step, val);
+  push_back<word_t>(sb_val_updates.at(thread), step, val);
 
   if (step > bound)
     bound = step;
@@ -473,7 +473,7 @@ void Schedule::insert_sb_val (
 
 void Schedule::insert_sb_full (
                                const unsigned long step,
-                               const word thread,
+                               const word_t thread,
                                const bool full
                               )
 {
@@ -485,7 +485,7 @@ void Schedule::insert_sb_full (
 
 void Schedule::insert_heap (const unsigned long step, const Heap & heap)
 {
-  push_back<word>(heap_updates[heap.adr], step, heap.val);
+  push_back<word_t>(heap_updates[heap.adr], step, heap.val);
 
   if (step > bound)
     bound = step;
@@ -669,14 +669,14 @@ const optional<Schedule::Heap> Schedule::iterator::next_heap_state ()
   if (op->type() & Instruction::Types::atomic)
     if (Memory_ptr atomic = dynamic_pointer_cast<Cas>(op))
       {
-        word address = atomic->indirect
+        word_t address = atomic->indirect
           ? schedule->heap_updates.at(atomic->arg).rend()->second
           : atomic->arg;
 
         auto & cell = heap.at(address);
 
         /* mind subsequent writes of an equal value to the same address */
-        word value = cell.cur->first == step
+        word_t value = cell.cur->first == step
           ? cell.cur++->second
           : (--cell.cur)++->second;
 

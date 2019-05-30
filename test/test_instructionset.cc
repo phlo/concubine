@@ -32,14 +32,14 @@ TEST_F(InstructionSetTest, factory)
   ASSERT_EQ(0, dynamic_pointer_cast<Unary>(instruction)->arg);
 
   /* negative arg */
-  instruction = Instruction::Set::create("LOAD", static_cast<word>(-1));
+  instruction = Instruction::Set::create("LOAD", static_cast<word_t>(-1));
 
   ASSERT_EQ("LOAD", instruction->symbol());
   ASSERT_EQ(Types::accu | Types::read, instruction->type());
   ASSERT_EQ(word_max, dynamic_pointer_cast<Unary>(instruction)->arg);
 
   /* arg overflow */
-  instruction = Instruction::Set::create("LOAD", word(word_max + 1));
+  instruction = Instruction::Set::create("LOAD", word_t(word_max + 1));
 
   ASSERT_EQ("LOAD", instruction->symbol());
   ASSERT_EQ(Types::accu | Types::read, instruction->type());

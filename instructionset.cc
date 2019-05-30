@@ -13,10 +13,10 @@ using namespace std;
 unordered_map<string, Instruction *(*)()>
   Instruction::Set::nullary_factory;
 
-unordered_map<string, Instruction *(*)(const word)>
+unordered_map<string, Instruction *(*)(const word_t)>
   Instruction::Set::unary_factory;
 
-unordered_map<string, Instruction *(*)(const word, const bool)>
+unordered_map<string, Instruction *(*)(const word_t, const bool)>
   Instruction::Set::memory_factory;
 
 bool Instruction::Set::contains (const string name)
@@ -41,7 +41,7 @@ Instruction_ptr Instruction::Set::create (const string & name)
   return Instruction_ptr(nullary_factory[name]());
 }
 
-Instruction_ptr Instruction::Set::create (const string & name, const word arg)
+Instruction_ptr Instruction::Set::create (const string & name, const word_t arg)
 {
   if (unary_factory.find(name) == unary_factory.end())
     throw runtime_error("Instruction '" + name + "' unknown");
@@ -51,7 +51,7 @@ Instruction_ptr Instruction::Set::create (const string & name, const word arg)
 
 Instruction_ptr Instruction::Set::create (
                                           const string & name,
-                                          const word arg,
+                                          const word_t arg,
                                           const bool indirect
                                          )
 {
@@ -64,12 +64,12 @@ Instruction_ptr Instruction::Set::create (
 /*******************************************************************************
  * Unary
  ******************************************************************************/
-Unary::Unary (const word a) : arg(a) {}
+Unary::Unary (const word_t a) : arg(a) {}
 
 /*******************************************************************************
  * Memory
  ******************************************************************************/
-Memory::Memory (const word a, const bool i) : Unary(a), indirect(i) {}
+Memory::Memory (const word_t a, const bool i) : Unary(a), indirect(i) {}
 
 /*******************************************************************************
  * Operators
@@ -136,7 +136,7 @@ bool operator != (const Instruction & a, const Instruction & b)
   DEFINE_MEMBERS(classname, types) \
   const string classname::_symbol = [] (string sym) -> const string { \
     Instruction::Set::unary_factory[sym] = \
-      [] (const word a) -> Instruction * \
+      [] (const word_t a) -> Instruction * \
       { return new classname(a); }; \
     return sym; \
   }(symbol);
@@ -145,10 +145,10 @@ bool operator != (const Instruction & a, const Instruction & b)
   DEFINE_MEMBERS(classname, types) \
   const string classname::_symbol = [] (string sym) -> const string { \
     Instruction::Set::unary_factory[sym] = \
-      [] (const word a) -> Instruction * \
+      [] (const word_t a) -> Instruction * \
       { return new classname(a); }; \
     Instruction::Set::memory_factory[sym] = \
-      [] (const word a, const bool i) -> Instruction * \
+      [] (const word_t a, const bool i) -> Instruction * \
       { return new classname(a, i); }; \
     return sym; \
   }(symbol);

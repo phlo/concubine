@@ -16,7 +16,7 @@
 namespace smtlib
 {
   /* converts integer to its word sized SMT-Lib hex constant ******************/
-  inline std::string word2hex (word val)
+  inline std::string word2hex (word_t val)
     {
       std::ostringstream s;
       s << "#x"

@@ -9,7 +9,7 @@ struct SMTLibEncoderTest : public ::testing::Test
   Program_list      programs;
   SMTLibEncoderPtr  encoder = create_encoder(0);
 
-  SMTLibEncoderPtr create_encoder (const word bound)
+  SMTLibEncoderPtr create_encoder (const word_t bound)
     {
       return make_shared<SMTLibEncoderFunctional>(
         make_shared<Program_list>(programs),
@@ -17,7 +17,7 @@ struct SMTLibEncoderTest : public ::testing::Test
         false);
     }
 
-  void reset_encoder (const word bound, unsigned long step)
+  void reset_encoder (const word_t bound, unsigned long step)
     {
       encoder = create_encoder(bound);
       encoder->step = step;
@@ -37,7 +37,7 @@ struct SMTLibEncoderTest : public ::testing::Test
     }
 };
 
-// string heap_var (const word);
+// string heap_var (const word_t);
 TEST_F(SMTLibEncoderTest, heap_var_args)
 {
   ASSERT_EQ("heap_0", encoder->heap_var(0));
@@ -57,7 +57,7 @@ TEST_F(SMTLibEncoderTest, heap_var)
   ASSERT_EQ("heap_2", encoder->heap_var());
 }
 
-// string accu_var (const word, const word);
+// string accu_var (const word_t, const word_t);
 TEST_F(SMTLibEncoderTest, accu_var_args)
 {
   ASSERT_EQ("accu_0_1", encoder->accu_var(0, 1));
@@ -80,7 +80,7 @@ TEST_F(SMTLibEncoderTest, accu_var)
   ASSERT_EQ("accu_2_3", encoder->accu_var());
 }
 
-// string mem_var (const word, const word);
+// string mem_var (const word_t, const word_t);
 TEST_F(SMTLibEncoderTest, mem_var_args)
 {
   ASSERT_EQ("mem_0_1", encoder->mem_var(0, 1));
@@ -103,7 +103,7 @@ TEST_F(SMTLibEncoderTest, mem_var)
   ASSERT_EQ("mem_2_3", encoder->mem_var());
 }
 
-// string stmt_var (const word, const word, const word);
+// string stmt_var (const word_t, const word_t, const word_t);
 TEST_F(SMTLibEncoderTest, stmt_var_args)
 {
   ASSERT_EQ("stmt_0_1_2", encoder->stmt_var(0, 1, 2));
@@ -129,7 +129,7 @@ TEST_F(SMTLibEncoderTest, stmt_var)
   ASSERT_EQ("stmt_2_3_4", encoder->stmt_var());
 }
 
-// string thread_var (const word, const word);
+// string thread_var (const word_t, const word_t);
 TEST_F(SMTLibEncoderTest, thread_var_args)
 {
   ASSERT_EQ("thread_0_1", encoder->thread_var(0, 1));
@@ -152,7 +152,7 @@ TEST_F(SMTLibEncoderTest, thread_var)
   ASSERT_EQ("thread_2_3", encoder->thread_var());
 }
 
-// string exec_var (const word, const word, const word);
+// string exec_var (const word_t, const word_t, const word_t);
 TEST_F(SMTLibEncoderTest, exec_var_args)
 {
   ASSERT_EQ("exec_0_1_2", encoder->exec_var(0, 1, 2));
@@ -178,7 +178,7 @@ TEST_F(SMTLibEncoderTest, exec_var)
   ASSERT_EQ("exec_2_3_4", encoder->exec_var());
 }
 
-// string cas_var (const word, const word);
+// string cas_var (const word_t, const word_t);
 TEST_F(SMTLibEncoderTest, cas_var_args)
 {
   ASSERT_EQ("cas_0_1", encoder->cas_var(0, 1));
@@ -201,7 +201,7 @@ TEST_F(SMTLibEncoderTest, cas_var)
   ASSERT_EQ("cas_2_3", encoder->cas_var());
 }
 
-// std::string block_var (const word, const word, const word);
+// std::string block_var (const word_t, const word_t, const word_t);
 TEST_F(SMTLibEncoderTest, block_var_args)
 {
   ASSERT_EQ("block_6_3_0", encoder->block_var(6, 3, 0));
@@ -209,7 +209,7 @@ TEST_F(SMTLibEncoderTest, block_var_args)
   ASSERT_EQ("block_8_5_2", encoder->block_var(8, 5, 2));
 }
 
-// string check_var (const word, const word);
+// string check_var (const word_t, const word_t);
 TEST_F(SMTLibEncoderTest, check_var_args)
 {
   ASSERT_EQ("check_0_1", encoder->check_var(0, 1));
@@ -217,7 +217,7 @@ TEST_F(SMTLibEncoderTest, check_var_args)
   ASSERT_EQ("check_2_3", encoder->check_var(2, 3));
 }
 
-// string exit_var (const word);
+// string exit_var (const word_t);
 TEST_F(SMTLibEncoderTest, exit_var_args)
 {
   ASSERT_EQ("exit_0", encoder->exit_var(0));
@@ -631,7 +631,7 @@ TEST_F(SMTLibEncoderTest, declare_check_vars)
 {
   add_dummy_programs(3, 3);
 
-  word check_id = 1;
+  word_t check_id = 1;
 
   /* 3 different checkpoint ids */
   for (const auto & p : programs)

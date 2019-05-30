@@ -21,12 +21,12 @@ struct Btor2EncoderTest : public ::testing::Test
   Program_list_ptr  programs {make_shared<Program_list>()};
   Btor2EncoderPtr   encoder {create_encoder(1)};
 
-  Btor2EncoderPtr create_encoder (const word bound)
+  Btor2EncoderPtr create_encoder (const word_t bound)
     {
       return make_shared<Btor2Encoder>(programs, bound, false);
     }
 
-  void reset_encoder (const word bound)
+  void reset_encoder (const word_t bound)
     {
       encoder = create_encoder(bound);
     }
@@ -65,7 +65,7 @@ struct Btor2EncoderTest : public ::testing::Test
           (*programs)[i]->push_back(Instruction::Set::create("JNZNS", 1)); // 12
           (*programs)[i]->push_back(Instruction::Set::create("MEM", 1));   // 13
           (*programs)[i]->push_back(Instruction::Set::create("CAS", 1));   // 14
-          (*programs)[i]->push_back(Instruction::Set::create("CHECK", 1));  // 15
+          (*programs)[i]->push_back(Instruction::Set::create("CHECK", 1)); // 15
           (*programs)[i]->push_back(Instruction::Set::create("EXIT", 1));  // 16
         }
 

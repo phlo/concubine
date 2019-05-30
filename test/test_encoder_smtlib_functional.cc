@@ -10,7 +10,10 @@ struct SMTLibEncoderFunctionalTest : public ::testing::Test
   Program_list_ptr            programs {make_shared<Program_list>()};
   SMTLibEncoderFunctionalPtr  encoder {create_encoder(1, 1)};
 
-  SMTLibEncoderFunctionalPtr  create_encoder (const word bound, const word step)
+  SMTLibEncoderFunctionalPtr  create_encoder (
+                                              const word_t bound,
+                                              const word_t step
+                                             )
     {
       SMTLibEncoderFunctionalPtr e =
         make_shared<SMTLibEncoderFunctional>(programs, bound, false);
@@ -20,7 +23,7 @@ struct SMTLibEncoderFunctionalTest : public ::testing::Test
       return e;
     }
 
-  void reset_encoder (const word bound, unsigned long step)
+  void reset_encoder (const word_t bound, unsigned long step)
     {
       encoder = create_encoder(bound, step);
     }
@@ -66,7 +69,7 @@ TEST_F(SMTLibEncoderFunctionalTest, constructor)
   /* heap altering pcs */
   ASSERT_EQ(3, encoder->alters_heap.size());
 
-  vector<word> alters_heap({1, 14});
+  vector<word_t> alters_heap({1, 14});
 
   for (const auto & pcs: encoder->alters_heap)
     ASSERT_EQ(alters_heap, pcs.second);
@@ -74,7 +77,7 @@ TEST_F(SMTLibEncoderFunctionalTest, constructor)
   /* accu altering pcs */
   ASSERT_EQ(3, encoder->alters_accu.size());
 
-  vector<word> alters_accu({0, 2, 3, 4, 5, 6, 13, 14});
+  vector<word_t> alters_accu({0, 2, 3, 4, 5, 6, 13, 14});
 
   for (const auto & pcs: encoder->alters_accu)
     ASSERT_EQ(alters_accu, pcs.second);
@@ -82,7 +85,7 @@ TEST_F(SMTLibEncoderFunctionalTest, constructor)
   /* mem altering pcs */
   ASSERT_EQ(3, encoder->alters_mem.size());
 
-  vector<word> alters_mem({13});
+  vector<word_t> alters_mem({13});
 
   for (const auto & pcs: encoder->alters_mem)
     ASSERT_EQ(alters_mem, pcs.second);

@@ -117,23 +117,23 @@ TEST_F(SimulatorTest, run_simple)
   ASSERT_EQ(0, schedule->exit);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word>({{{1, 0}}, {{2, 0}}}),
+    Schedule::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
     schedule->pc_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word>({{{1, 1}}, {{2, 1}}}),
+    Schedule::Thread_Updates<word_t>({{{1, 1}}, {{2, 1}}}),
     schedule->accu_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word>({{{1, 0}}, {{2, 0}}}),
+    Schedule::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
     schedule->mem_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word>({{{1, 0}}, {{2, 0}}}),
+    Schedule::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
     schedule->sb_adr_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word>({{{1, 0}}, {{2, 0}}}),
+    Schedule::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
     schedule->sb_val_updates);
 
   ASSERT_EQ(
@@ -237,25 +237,25 @@ TEST_F(SimulatorTest, run_add_check_exit)
   ASSERT_EQ(1, schedule->exit);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word>({
+    Schedule::Thread_Updates<word_t>({
       {{1, 0}, {3, 1}, {5, 2}},
       {{2, 0}, {4, 1}}}),
     schedule->pc_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word>({{{1, 1}}, {{2, 1}}}),
+    Schedule::Thread_Updates<word_t>({{{1, 1}}, {{2, 1}}}),
     schedule->accu_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word>({{{1, 0}}, {{2, 0}}}),
+    Schedule::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
     schedule->mem_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word>({{{1, 0}}, {{2, 0}}}),
+    Schedule::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
     schedule->sb_adr_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word>({{{1, 0}}, {{2, 0}}}),
+    Schedule::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
     schedule->sb_val_updates);
 
   ASSERT_EQ(
@@ -486,7 +486,7 @@ TEST_F(SimulatorTest, run_race_condition)
         case 13: /* prev = t0 [SUBI 2] | next = t0 [JZ 5] */
             {
               EXPECT_EQ(3, simulator->threads[0].pc);
-              EXPECT_EQ(word(-1), simulator->threads[0].accu);
+              EXPECT_EQ(word_t(-1), simulator->threads[0].accu);
               EXPECT_EQ(4, simulator->threads[1].pc);
               EXPECT_EQ(1, simulator->threads[1].accu);
               EXPECT_EQ(4, simulator->threads[2].pc);
@@ -497,7 +497,7 @@ TEST_F(SimulatorTest, run_race_condition)
         case 14: /* prev = t0 [JZ 5] | next = t0 [EXIT 1] */
             {
               EXPECT_EQ(4, simulator->threads[0].pc);
-              EXPECT_EQ(word(-1), simulator->threads[0].accu);
+              EXPECT_EQ(word_t(-1), simulator->threads[0].accu);
               EXPECT_EQ(4, simulator->threads[1].pc);
               EXPECT_EQ(1, simulator->threads[1].accu);
               EXPECT_EQ(4, simulator->threads[2].pc);
@@ -508,7 +508,7 @@ TEST_F(SimulatorTest, run_race_condition)
         case 15: /* last = t0 [EXIT 1] */
             {
               EXPECT_EQ(4, simulator->threads[0].pc);
-              EXPECT_EQ(word(-1), simulator->threads[0].accu);
+              EXPECT_EQ(word_t(-1), simulator->threads[0].accu);
               EXPECT_EQ(4, simulator->threads[1].pc);
               EXPECT_EQ(1, simulator->threads[1].accu);
               EXPECT_EQ(4, simulator->threads[2].pc);
@@ -539,32 +539,32 @@ TEST_F(SimulatorTest, run_race_condition)
   ASSERT_EQ(1, schedule->exit);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word>({
+    Schedule::Thread_Updates<word_t>({
       {{1, 0}, {12, 1}, {13, 2}, {14, 3}, {15, 4}},
       {{2, 0}, {4, 1}, {6, 2}, {10, 3}},
       {{3, 0}, {5, 1}, {7, 2}, {11, 3}}}),
     schedule->pc_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word>({
+    Schedule::Thread_Updates<word_t>({
       {{1, 0}, {12, 1}, {13, 65535}, {15, 1}},
       {{2, 0}, {4, 1}},
       {{3, 0}, {5, 1}}}),
     schedule->accu_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word>({{{1, 0}}, {{2, 0}}, {{3, 0}}}),
+    Schedule::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}, {{3, 0}}}),
     schedule->mem_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word>({
+    Schedule::Thread_Updates<word_t>({
       {{1, 0}},
       {{2, 0}, {6, 1}},
       {{3, 0}, {7, 1}}}),
     schedule->sb_adr_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word>({
+    Schedule::Thread_Updates<word_t>({
       {{1, 0}},
       {{2, 0}, {6, 1}},
       {{3, 0}, {7, 1}}}),
@@ -635,23 +635,23 @@ TEST_F(SimulatorTest, run_zero_bound)
   ASSERT_EQ(0, schedule->exit);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word>({{{1, 0}}}),
+    Schedule::Thread_Updates<word_t>({{{1, 0}}}),
     schedule->pc_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word>({{{1, 0}}}),
+    Schedule::Thread_Updates<word_t>({{{1, 0}}}),
     schedule->accu_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word>({{{1, 0}}}),
+    Schedule::Thread_Updates<word_t>({{{1, 0}}}),
     schedule->mem_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word>({{{1, 0}}}),
+    Schedule::Thread_Updates<word_t>({{{1, 0}}}),
     schedule->sb_adr_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word>({{{1, 0}}}),
+    Schedule::Thread_Updates<word_t>({{{1, 0}}}),
     schedule->sb_val_updates);
 
   ASSERT_EQ(

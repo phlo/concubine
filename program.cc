@@ -25,7 +25,7 @@ Program::Program(istream & file, string & name) : path(name)
   unsigned long line_num = 1;
 
   /* list of jump instructions at pc referencing a certain label */
-  vector<tuple<string, word, const string *>> labelled_jumps;
+  vector<tuple<string, word_t, const string *>> labelled_jumps;
 
   for (string line_buf; getline(file, line_buf); line_num++)
     {
@@ -42,7 +42,7 @@ Program::Program(istream & file, string & name) : path(name)
       /* found label? */
       else if (token.back() == ':')
         {
-          word pc = size();
+          word_t pc = size();
 
           const string * label =
             &*labels.insert(token.substr(0, token.size() - 1)).first;
@@ -67,7 +67,7 @@ Program::Program(istream & file, string & name) : path(name)
         }
       else
         {
-          word arg;
+          word_t arg;
 
           /* try to parse the argument */
           if (line >> arg)
@@ -124,7 +124,7 @@ Program::Program(istream & file, string & name) : path(name)
                       line >> token;
 
                       /* get the program counter */
-                      word pc = size();
+                      word_t pc = size();
 
                       /* add tuple to the list of labelled jumps */
                       labelled_jumps.push_back(
@@ -159,7 +159,7 @@ Program::Program(istream & file, string & name) : path(name)
     }
 }
 
-/* Program::push_back (Instruction_ptr) ***************************************/
+/* Program::push_back *********************************************************/
 void Program::push_back (Instruction_ptr i)
 {
   deque<Instruction_ptr>::push_back(i);
@@ -169,8 +169,8 @@ void Program::push_back (Instruction_ptr i)
     check_ids.insert(c->arg);
 }
 
-/* Program::get_pc (const string label) const *********************************/
-word Program::get_pc (const string label) const
+/* Program::get_pc ************************************************************/
+word_t Program::get_pc (const string label) const
 {
   const auto it = labels.find(label);
 
@@ -180,8 +180,8 @@ word Program::get_pc (const string label) const
   return label_to_pc.at(&*it);
 }
 
-/* Program::get_label (const word) const **************************************/
-string Program::get_label (const word pc) const
+/* Program::get_label *********************************************************/
+string Program::get_label (const word_t pc) const
 {
   const auto it = pc_to_label.find(pc);
 
@@ -191,19 +191,19 @@ string Program::get_label (const word pc) const
   return *it->second;
 }
 
-/* Program::print (bool) const ************************************************/
+/* Program::print *************************************************************/
 string Program::print (bool include_pc) const
 {
   ostringstream ss;
 
-  for (word i = 0; i < size(); i++)
+  for (word_t i = 0; i < size(); i++)
     ss <<  print(include_pc, i) << eol;
 
   return ss.str();
 }
 
-/* Program::print (bool, word) const ******************************************/
-string Program::print (bool include_pc, word pc) const
+/* Program::print *************************************************************/
+string Program::print (bool include_pc, word_t pc) const
 {
   ostringstream ss;
 
@@ -240,7 +240,7 @@ string Program::print (bool include_pc, word pc) const
   return ss.str();
 }
 
-/* operator == (const Program &, const Program &) *****************************/
+/* operator == ****************************************************************/
 bool operator == (const Program & a, const Program & b)
 {
   if (a.size() != b.size())

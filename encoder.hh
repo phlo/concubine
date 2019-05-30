@@ -34,33 +34,33 @@ struct Encoder
   std::ostringstream      formula;
 
   /* current thread id */
-  word                    thread;
+  word_t                  thread;
 
   /* current pc */
-  word                    pc;
+  word_t                  pc;
 
   /* pcs of predecessor for each statement */
   std::map<
-    word,
+    word_t,
     std::map<
-      word,
-      std::set<word>>>    predecessors;
+      word_t,
+      std::set<word_t>>>  predecessors;
 
   /* pcs of checkpoint statements (checkpoint id -> thread -> pc) */
   std::map<
-    word,
+    word_t,
     std::map<
-      word,
-      std::set<word>>>    check_pcs;
+      word_t,
+      std::set<word_t>>>  check_pcs;
 
   /* pcs of exit calls */
   std::unordered_map<
-    word,
-    std::vector<word>>    exit_pcs;
+    word_t,
+    std::vector<word_t>>  exit_pcs;
 
   /* threads containing CAS statements */
   // TODO: really necessary?
-  std::set<word>          cas_threads;
+  std::set<word_t>        cas_threads;
 
   /*****************************************************************************
    * private functions
@@ -152,25 +152,25 @@ struct SMTLibEncoder : public Encoder
   static const std::string  exit_comment;
 
   /* state variable generators */
-  std::string               heap_var (const word);
+  std::string               heap_var (const word_t);
   std::string               heap_var ();
-  std::string               accu_var (const word, const word);
+  std::string               accu_var (const word_t, const word_t);
   std::string               accu_var ();
-  std::string               mem_var (const word, const word);
+  std::string               mem_var (const word_t, const word_t);
   std::string               mem_var ();
 
   /* transition variable generators */
-  std::string               stmt_var (const word, const word, const word);
+  std::string               stmt_var (const word_t, const word_t, const word_t);
   std::string               stmt_var ();
-  std::string               thread_var (const word, const word);
+  std::string               thread_var (const word_t, const word_t);
   std::string               thread_var ();
-  std::string               exec_var (const word, const word, const word);
+  std::string               exec_var (const word_t, const word_t, const word_t);
   std::string               exec_var ();
-  std::string               cas_var (const word, const word);
+  std::string               cas_var (const word_t, const word_t);
   std::string               cas_var ();
-  std::string               block_var (const word, const word, const word);
-  std::string               check_var (const word, const word);
-  std::string               exit_var (const word);
+  std::string               block_var (const word_t, const word_t, const word_t);
+  std::string               check_var (const word_t, const word_t);
+  std::string               exit_var (const word_t);
   std::string               exit_var ();
 
   /* variable declaration generators */
@@ -222,13 +222,13 @@ struct SMTLibEncoderFunctional : public SMTLibEncoder
                           );
 
   /* accumulator altering pcs */
-  std::unordered_map<word, std::vector<word>> alters_accu;
+  std::unordered_map<word_t, std::vector<word_t>> alters_accu;
 
   /* CAS memory register altering pcs */
-  std::unordered_map<word, std::vector<word>> alters_mem;
+  std::unordered_map<word_t, std::vector<word_t>> alters_mem;
 
   /* heap altering pcs */
-  std::unordered_map<word, std::vector<word>> alters_heap;
+  std::unordered_map<word_t, std::vector<word_t>> alters_heap;
 
   /* flag to distinguish between accu and heap updates when encoding CAS */
   bool                update_accu;
@@ -295,11 +295,11 @@ struct SMTLibEncoderRelational : public SMTLibEncoder
   std::string         preserve_accu ();
   std::string         preserve_mem ();
 
-  std::string         stmt_activation (word);
+  std::string         stmt_activation (word_t);
 
-  std::string         activate_pc (word);
+  std::string         activate_pc (word_t);
   std::string         activate_next ();
-  std::string         activate_jmp (std::string, word);
+  std::string         activate_jmp (std::string, word_t);
 
   void                add_exit_code ();
   void                add_statement_declaration ();
@@ -358,134 +358,134 @@ struct Btor2Encoder : public Encoder
                );
 
   /* accumulator altering pcs */
-  std::unordered_map<word, std::vector<word>> alters_accu;
+  std::unordered_map<word_t, std::vector<word_t>> alters_accu;
 
   /* CAS memory register altering pcs */
-  std::unordered_map<word, std::vector<word>> alters_mem;
+  std::unordered_map<word_t, std::vector<word_t>> alters_mem;
 
   /* heap altering pcs */
-  std::unordered_map<word, std::vector<word>> alters_heap;
+  std::unordered_map<word_t, std::vector<word_t>> alters_heap;
 
   /* flag to distinguish between accu and heap updates when encoding CAS */
-  bool                        update_accu;
+  bool                          update_accu;
 
   /* next node id */
-  unsigned long               node;
+  unsigned long                 node;
 
-  std::string                 sid_bool,
-                              sid_bv,
-                              sid_heap,
+  std::string                   sid_bool,
+                                sid_bv,
+                                sid_heap,
 
-                              nid_true,
-                              nid_false,
+                                nid_true,
+                                nid_false,
 
-                              nid_heap,
+                                nid_heap,
 
-                              nid_exit,
-                              nid_exit_code;
+                                nid_exit,
+                                nid_exit_code;
 
-  std::map<word, std::string> nids_const,
+  std::map<word_t, std::string> nids_const,
 
-                              nids_accu,
-                              nids_mem,
+                                nids_accu,
+                                nids_mem,
 
-                              nids_thread,
-                              nids_check,
+                                nids_thread,
+                                nids_check,
 
-                              nids_load,
-                              nids_load_indirect;
-
-  std::map<
-    word,
-    std::vector<std::string>> nids_stmt,
-                              nids_exec;
+                                nids_load,
+                                nids_load_indirect;
 
   std::map<
-    word,
+    word_t,
+    std::vector<std::string>>   nids_stmt,
+                                nids_exec;
+
+  std::map<
+    word_t,
     std::map<
-      word,
-      std::string>>           nids_block,
-                              nids_store,
-                              nids_store_indirect;
+      word_t,
+      std::string>>             nids_block,
+                                nids_store,
+                                nids_store_indirect;
 
-  std::string                 nid ();
-  std::string                 nid (int offset);
+  std::string                   nid ();
+  std::string                   nid (int offset);
 
-  std::string                 symbol (word pc);
+  std::string                   symbol (word_t pc);
 
-  void                        declare_heap ();
-  void                        declare_accu ();
-  void                        declare_mem ();
-  void                        declare_stmt ();
-  void                        declare_block ();
-  void                        declare_exit_flag ();
-  void                        declare_exit_code ();
+  void                          declare_heap ();
+  void                          declare_accu ();
+  void                          declare_mem ();
+  void                          declare_stmt ();
+  void                          declare_block ();
+  void                          declare_exit_flag ();
+  void                          declare_exit_code ();
 
-  void                        define_state (
-                                            std::string nid,
-                                            std::string sid,
-                                            std::string nid_init,
-                                            std::string symbol,
-                                            std::unordered_map<
-                                              word,
-                                              std::vector<word>> & alters_state,
-                                            const bool global = false
-                                           );
-  void                        define_accu ();
-  void                        define_mem ();
-  void                        define_heap ();
-  void                        define_stmt ();
-  void                        define_block ();
-  void                        define_check ();
-  void                        define_exit_flag ();
-  void                        define_exit_code ();
+  void                          define_state (
+                                              std::string nid,
+                                              std::string sid,
+                                              std::string nid_init,
+                                              std::string symbol,
+                                              std::unordered_map<
+                                                word_t,
+                                                std::vector<word_t>> & alters,
+                                              const bool global = false
+                                             );
+  void                          define_accu ();
+  void                          define_mem ();
+  void                          define_heap ();
+  void                          define_stmt ();
+  void                          define_block ();
+  void                          define_check ();
+  void                          define_exit_flag ();
+  void                          define_exit_code ();
 
-  void                        add_sorts ();
-  void                        add_constants ();
-  void                        add_machine_state_declarations ();
-  void                        add_thread_scheduling ();
-  void                        add_statement_execution ();
-  void                        add_statement_activation ();
-  void                        add_register_definitions ();
-  void                        add_heap_definition ();
-  void                        add_exit_definitions ();
-  void                        add_checkpoint_constraints ();
-  void                        add_bound ();
+  void                          add_sorts ();
+  void                          add_constants ();
+  void                          add_machine_state_declarations ();
+  void                          add_thread_scheduling ();
+  void                          add_statement_execution ();
+  void                          add_statement_activation ();
+  void                          add_register_definitions ();
+  void                          add_heap_definition ();
+  void                          add_exit_definitions ();
+  void                          add_checkpoint_constraints ();
+  void                          add_bound ();
 
-  std::string                 add_load(std::string *);
+  std::string                   add_load(std::string *);
 
-  std::string                 load(Load & l);
-  std::string                 store(Store & s);
+  std::string                   load(Load & l);
+  std::string                   store(Store & s);
 
   /* encodes the whole machine configuration */
-  virtual void                encode ();
+  virtual void                  encode ();
 
   /* double-dispatched instruction encoding functions */
-  virtual std::string         encode (Load &);
-  virtual std::string         encode (Store &);
+  virtual std::string           encode (Load &);
+  virtual std::string           encode (Store &);
 
-  virtual std::string         encode (Fence &);
+  virtual std::string           encode (Fence &);
 
-  virtual std::string         encode (Add &);
-  virtual std::string         encode (Addi &);
-  virtual std::string         encode (Sub &);
-  virtual std::string         encode (Subi &);
+  virtual std::string           encode (Add &);
+  virtual std::string           encode (Addi &);
+  virtual std::string           encode (Sub &);
+  virtual std::string           encode (Subi &);
 
-  virtual std::string         encode (Cmp &);
-  virtual std::string         encode (Jmp &);
-  virtual std::string         encode (Jz &);
-  virtual std::string         encode (Jnz &);
-  virtual std::string         encode (Js &);
-  virtual std::string         encode (Jns &);
-  virtual std::string         encode (Jnzns &);
+  virtual std::string           encode (Cmp &);
+  virtual std::string           encode (Jmp &);
+  virtual std::string           encode (Jz &);
+  virtual std::string           encode (Jnz &);
+  virtual std::string           encode (Js &);
+  virtual std::string           encode (Jns &);
+  virtual std::string           encode (Jnzns &);
 
-  virtual std::string         encode (Mem &);
-  virtual std::string         encode (Cas &);
+  virtual std::string           encode (Mem &);
+  virtual std::string           encode (Cas &);
 
-  virtual std::string         encode (Check &);
+  virtual std::string           encode (Check &);
 
-  virtual std::string         encode (Halt &);
-  virtual std::string         encode (Exit &);
+  virtual std::string           encode (Halt &);
+  virtual std::string           encode (Exit &);
 };
 
 /*******************************************************************************

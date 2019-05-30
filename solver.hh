@@ -45,10 +45,10 @@ struct ExternalSolver : public Solver
 
       Type          type;
       unsigned long step;
-      word          thread;
-      word          pc;
-      word          idx;
-      word          val;
+      word_t        thread;
+      word_t        pc;
+      word_t        adr;
+      word_t        val;
     };
 
   /* the solver's stdout */

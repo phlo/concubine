@@ -10,7 +10,7 @@ struct EncoderTest : public ::testing::Test
   Program_list       programs;
   EncoderPtr        encoder = create_encoder(0);
 
-  EncoderPtr create_encoder (const word bound)
+  EncoderPtr create_encoder (const word_t bound)
     {
       return make_shared<SMTLibEncoderFunctional>(
         make_shared<Program_list>(programs),
@@ -18,7 +18,7 @@ struct EncoderTest : public ::testing::Test
         false);
     }
 
-  void reset_encoder (const word bound)
+  void reset_encoder (const word_t bound)
     {
       encoder = create_encoder(bound);
       encoder->thread = 0;
@@ -60,22 +60,22 @@ TEST_F(EncoderTest, constructor)
     {
       ASSERT_EQ(thread, encoder->thread++);
       ASSERT_THROW(predecessors.at(0), out_of_range);
-      ASSERT_EQ(set<word>({0, 2}), predecessors.at(1));
-      ASSERT_EQ(set<word>({1}), predecessors.at(2));
-      ASSERT_EQ(set<word>({2}), predecessors.at(3));
-      ASSERT_EQ(set<word>({3}), predecessors.at(4));
+      ASSERT_EQ(set<word_t>({0, 2}), predecessors.at(1));
+      ASSERT_EQ(set<word_t>({1}), predecessors.at(2));
+      ASSERT_EQ(set<word_t>({2}), predecessors.at(3));
+      ASSERT_EQ(set<word_t>({3}), predecessors.at(4));
       ASSERT_THROW(predecessors.at(5), out_of_range);
-      ASSERT_EQ(set<word>({4}), predecessors.at(6));
+      ASSERT_EQ(set<word_t>({4}), predecessors.at(6));
     }
 
   for (const auto & [id, threads] : encoder->check_pcs)
     for (const auto & pcs : threads)
-      ASSERT_EQ(id == 1 ? set<word>({3}) : set<word>({6}), get<1>(pcs));
+      ASSERT_EQ(id == 1 ? set<word_t>({3}) : set<word_t>({6}), get<1>(pcs));
 
   for (const auto & pcs : encoder->exit_pcs)
-      ASSERT_EQ(vector<word>({5}), get<1>(pcs));
+      ASSERT_EQ(vector<word_t>({5}), get<1>(pcs));
 
-  ASSERT_EQ(set<word>({0, 1, 2}), encoder->cas_threads);
+  ASSERT_EQ(set<word_t>({0, 1, 2}), encoder->cas_threads);
 }
 
 TEST_F(EncoderTest, constructor_predecessors)
@@ -95,8 +95,8 @@ TEST_F(EncoderTest, constructor_predecessors)
     {
       ASSERT_EQ(thread, encoder->thread++);
       ASSERT_THROW(predecessors.at(0), out_of_range);
-      ASSERT_EQ(set<word>({0}), predecessors.at(1));
-      ASSERT_EQ(set<word>({1}), predecessors.at(2));
+      ASSERT_EQ(set<word_t>({0}), predecessors.at(1));
+      ASSERT_EQ(set<word_t>({1}), predecessors.at(2));
     }
 }
 
@@ -117,8 +117,8 @@ TEST_F(EncoderTest, constructor_predecessors_jump)
     {
       ASSERT_EQ(thread, encoder->thread++);
       ASSERT_THROW(predecessors.at(0), out_of_range);
-      ASSERT_EQ(set<word>({0, 2}), predecessors.at(1));
-      ASSERT_EQ(set<word>({1}), predecessors.at(2));
+      ASSERT_EQ(set<word_t>({0, 2}), predecessors.at(1));
+      ASSERT_EQ(set<word_t>({1}), predecessors.at(2));
     }
 
   /* jump to initial statement */
@@ -130,10 +130,10 @@ TEST_F(EncoderTest, constructor_predecessors_jump)
   for (const auto & [thread, predecessors] : encoder->predecessors)
     {
       ASSERT_EQ(thread, encoder->thread++);
-      ASSERT_EQ(set<word>({3}), predecessors.at(0));
-      ASSERT_EQ(set<word>({0, 2}), predecessors.at(1));
-      ASSERT_EQ(set<word>({1}), predecessors.at(2));
-      ASSERT_EQ(set<word>({2}), predecessors.at(3));
+      ASSERT_EQ(set<word_t>({3}), predecessors.at(0));
+      ASSERT_EQ(set<word_t>({0, 2}), predecessors.at(1));
+      ASSERT_EQ(set<word_t>({1}), predecessors.at(2));
+      ASSERT_EQ(set<word_t>({2}), predecessors.at(3));
     }
 }
 
@@ -169,8 +169,8 @@ TEST_F(EncoderTest, constructor_predecessors_extra)
     {
       ASSERT_EQ(thread, encoder->thread++);
       ASSERT_THROW(predecessors.at(0), out_of_range);
-      ASSERT_EQ(set<word>({0}), predecessors.at(1));
-      ASSERT_EQ(set<word>({1}), predecessors.at(2));
+      ASSERT_EQ(set<word_t>({0}), predecessors.at(1));
+      ASSERT_EQ(set<word_t>({1}), predecessors.at(2));
     }
 
   /* jump */
@@ -183,9 +183,9 @@ TEST_F(EncoderTest, constructor_predecessors_extra)
     {
       ASSERT_EQ(thread, encoder->thread++);
       ASSERT_THROW(predecessors.at(0), out_of_range);
-      ASSERT_EQ(set<word>({0, 3}), predecessors.at(1));
-      ASSERT_EQ(set<word>({1}), predecessors.at(2));
-      ASSERT_EQ(set<word>({2}), predecessors.at(3));
+      ASSERT_EQ(set<word_t>({0, 3}), predecessors.at(1));
+      ASSERT_EQ(set<word_t>({1}), predecessors.at(2));
+      ASSERT_EQ(set<word_t>({2}), predecessors.at(3));
     }
 
   /* jump to initial statement */
@@ -197,10 +197,10 @@ TEST_F(EncoderTest, constructor_predecessors_extra)
   for (const auto & [thread, predecessors] : encoder->predecessors)
     {
       ASSERT_EQ(thread, encoder->thread++);
-      ASSERT_EQ(set<word>({4}), predecessors.at(0));
-      ASSERT_EQ(set<word>({0, 3}), predecessors.at(1));
-      ASSERT_EQ(set<word>({1}), predecessors.at(2));
-      ASSERT_EQ(set<word>({2}), predecessors.at(3));
+      ASSERT_EQ(set<word_t>({4}), predecessors.at(0));
+      ASSERT_EQ(set<word_t>({0, 3}), predecessors.at(1));
+      ASSERT_EQ(set<word_t>({1}), predecessors.at(2));
+      ASSERT_EQ(set<word_t>({2}), predecessors.at(3));
       ASSERT_THROW(predecessors.at(4), out_of_range);
     }
 
@@ -213,11 +213,11 @@ TEST_F(EncoderTest, constructor_predecessors_extra)
   for (const auto & [thread, predecessors] : encoder->predecessors)
     {
       ASSERT_EQ(thread, encoder->thread++);
-      ASSERT_EQ(set<word>({5}), predecessors.at(0));
-      ASSERT_EQ(set<word>({0, 4}), predecessors.at(1));
+      ASSERT_EQ(set<word_t>({5}), predecessors.at(0));
+      ASSERT_EQ(set<word_t>({0, 4}), predecessors.at(1));
       ASSERT_THROW(predecessors.at(2), out_of_range);
-      ASSERT_EQ(set<word>({2}), predecessors.at(3));
-      ASSERT_EQ(set<word>({3}), predecessors.at(4));
+      ASSERT_EQ(set<word_t>({2}), predecessors.at(3));
+      ASSERT_EQ(set<word_t>({3}), predecessors.at(4));
       ASSERT_THROW(predecessors.at(5), out_of_range);
     }
 }
@@ -237,7 +237,7 @@ TEST_F(EncoderTest, constructor_check_pcs)
 
   for (const auto & [id, threads] : encoder->check_pcs)
     for (const auto & pcs : threads)
-      ASSERT_EQ(set<word>({static_cast<word>(id - 1)}), get<1>(pcs));
+      ASSERT_EQ(set<word_t>({static_cast<word_t>(id - 1)}), get<1>(pcs));
 }
 
 TEST_F(EncoderTest, constructor_exit_pcs)
@@ -254,7 +254,7 @@ TEST_F(EncoderTest, constructor_exit_pcs)
   reset_encoder(0);
 
   for (const auto & pcs : encoder->exit_pcs)
-    ASSERT_EQ(vector<word>({0, 1, 2}), get<1>(pcs));
+    ASSERT_EQ(vector<word_t>({0, 1, 2}), get<1>(pcs));
 }
 
 TEST_F(EncoderTest, constructor_cas_threads)
@@ -268,7 +268,7 @@ TEST_F(EncoderTest, constructor_cas_threads)
 
   reset_encoder(0);
 
-  ASSERT_EQ(set<word>({0, 1, 2}), encoder->cas_threads);
+  ASSERT_EQ(set<word_t>({0, 1, 2}), encoder->cas_threads);
 }
 
 // void iterate_threads (std::function<void(void)>)
@@ -276,7 +276,7 @@ TEST_F(EncoderTest, iterate_threads_void_void)
 {
   add_dummy_programs(3, 3);
 
-  word thread = 0;
+  word_t thread = 0;
 
   encoder->iterate_threads([&] { ASSERT_EQ(thread++, encoder->thread); });
 }
@@ -286,7 +286,7 @@ TEST_F(EncoderTest, iterate_threads_void_program)
 {
   add_dummy_programs(3, 3);
 
-  word thread = 0;
+  word_t thread = 0;
 
   encoder->iterate_threads([&] (Program & p) {
     ASSERT_EQ(thread, encoder->thread);
@@ -299,7 +299,7 @@ TEST_F(EncoderTest, iterate_threads_reverse_void_program)
 {
   add_dummy_programs(3, 3);
 
-  word thread = encoder->num_threads - 1;
+  word_t thread = encoder->num_threads - 1;
 
   encoder->iterate_threads_reverse([&] (Program & p) {
     ASSERT_EQ(thread, encoder->thread);

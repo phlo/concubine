@@ -31,23 +31,23 @@ Simulator::Simulator (Program_list_ptr p, uint64_t b, uint64_t s) :
 }
 
 /* Simulator::create_thread ***************************************************/
-word Simulator::create_thread (Program & program)
+word_t Simulator::create_thread (Program & program)
 {
   /* determine thread id */
-  word id = threads.size();
+  word_t id = threads.size();
 
   /* add thread to queue */
   threads.push_back({*this, id, program});
 
   /* add to checkpoint sets */
-  for (word i : program.check_ids)
+  for (word_t i : program.check_ids)
     threads_per_checkpoint[i].push_back(&threads.back());
 
   return id;
 }
 
 /* Simulator::check_and_resume ************************************************/
-void Simulator::check_and_resume (word id)
+void Simulator::check_and_resume (word_t id)
 {
   /* all other threads already at this checkpoint? */
   if (waiting_for_checkpoint[id] == threads_per_checkpoint[id].size())
@@ -98,7 +98,7 @@ Schedule_ptr Simulator::run (function<Thread *()> scheduler)
       else
         {
           /* store current pc */
-          word pc = thread->pc;
+          word_t pc = thread->pc;
 
           thread->execute();
 
@@ -258,7 +258,7 @@ Schedule_ptr Simulator::replay (Schedule & schedule, unsigned long bound)
 /*******************************************************************************
  * Thread
  ******************************************************************************/
-Thread::Thread (Simulator & s, word i, Program & p) :
+Thread::Thread (Simulator & s, word_t i, Program & p) :
   id(i),
   pc(0),
   mem(0),
@@ -270,7 +270,7 @@ Thread::Thread (Simulator & s, word i, Program & p) :
 {}
 
 /* Thread::load ***************************************************************/
-word Thread::load (word address, const bool indirect)
+word_t Thread::load (word_t address, const bool indirect)
 {
   if (indirect)
     address =
@@ -286,8 +286,8 @@ word Thread::load (word address, const bool indirect)
 
 /* Thread::store **************************************************************/
 void Thread::store (
-                    word address,
-                    const word value,
+                    word_t address,
+                    const word_t value,
                     const bool indirect,
                     const bool atomic
                    )
@@ -378,11 +378,7 @@ void Thread::execute (Subi & s)
 void Thread::execute (Cmp & c)
 {
   pc++;
-  accu =
-    static_cast<word>(
-      static_cast<signed_word>(accu) -
-      static_cast<signed_word>(load(c.arg, c.indirect))
-  );
+  accu -= load(c.arg, c.indirect);
 }
 
 void Thread::execute (Jmp & j)
@@ -408,7 +404,7 @@ void Thread::execute (Jnz & j)
 
 void Thread::execute (Js & j)
 {
-  if (static_cast<signed_word>(accu) < 0)
+  if (static_cast<sword_t>(accu) < 0)
     pc = j.arg;
   else
     pc++;
@@ -416,7 +412,7 @@ void Thread::execute (Js & j)
 
 void Thread::execute (Jns & j)
 {
-  if (static_cast<signed_word>(accu) >= 0)
+  if (static_cast<sword_t>(accu) >= 0)
     pc = j.arg;
   else
     pc++;
@@ -424,7 +420,7 @@ void Thread::execute (Jns & j)
 
 void Thread::execute (Jnzns & j)
 {
-  if (static_cast<signed_word>(accu) > 0)
+  if (static_cast<sword_t>(accu) > 0)
     pc = j.arg;
   else
     pc++;

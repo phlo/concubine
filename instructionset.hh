@@ -36,19 +36,19 @@ struct Instruction
   struct Set
     {
       /* map containing pointers to instruction object factories */
-      static
-      std::unordered_map<std::string, Instruction * (*)()>
-      nullary_factory;
+      static std::unordered_map<
+        std::string,
+        Instruction * (*)()> nullary_factory;
 
       /* map containing pointers to unary instruction object factories */
-      static
-      std::unordered_map<std::string, Instruction * (*)(const word)>
-      unary_factory;
+      static std::unordered_map<
+        std::string,
+        Instruction * (*)(const word_t)> unary_factory;
 
       /* map containing pointers to memory instruction object factories */
-      static
-      std::unordered_map<std::string, Instruction * (*)(const word, const bool)>
-      memory_factory;
+      static std::unordered_map<
+        std::string,
+        Instruction * (*)(const word_t, const bool)> memory_factory;
 
       virtual ~Set (void) = 0; // for a purely static class
 
@@ -58,10 +58,13 @@ struct Instruction
       typedef std::shared_ptr<Instruction> Instruction_ptr; // readability
 
       static Instruction_ptr create (const std::string & name);
-      static Instruction_ptr create (const std::string & name, const word arg);
       static Instruction_ptr create (
                                      const std::string & name,
-                                     const word arg,
+                                     const word_t arg
+                                    );
+      static Instruction_ptr create (
+                                     const std::string & name,
+                                     const word_t arg,
                                      const bool indirect
                                     );
     };
@@ -81,9 +84,9 @@ using Instruction_ptr = std::shared_ptr<Instruction>;
  ******************************************************************************/
 struct Unary : public Instruction
 {
-  const word arg;
+  const word_t arg;
 
-  Unary (const word);
+  Unary (const word_t);
 };
 
 using Unary_ptr = std::shared_ptr<Unary>;
@@ -95,7 +98,7 @@ struct Memory : public Unary
 {
   bool indirect;
 
-  Memory (const word, const bool = false);
+  Memory (const word_t, const bool = false);
 };
 
 using Memory_ptr = std::shared_ptr<Memory>;
@@ -130,7 +133,7 @@ bool operator != (const Instruction &, const Instruction &);
   struct classname : baseclass \
   { \
     DECLARE_MEMBERS \
-    classname (const word a) : baseclass(a) {}; \
+    classname (const word_t a) : baseclass(a) {}; \
   }; \
   using classname##_ptr = std::shared_ptr<classname>;
 
@@ -138,7 +141,7 @@ bool operator != (const Instruction &, const Instruction &);
   struct classname : baseclass \
   { \
     DECLARE_MEMBERS \
-    classname (const word a, const bool i = false) : baseclass(a, i) {}; \
+    classname (const word_t a, const bool i = false) : baseclass(a, i) {}; \
   }; \
   using classname##_ptr = std::shared_ptr<classname>;
 

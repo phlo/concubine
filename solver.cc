@@ -95,7 +95,7 @@ Schedule_ptr ExternalSolver::build_schedule (Program_list_ptr programs)
                 case Variable::Type::HEAP:
                   schedule->insert_heap(
                     variable->step,
-                    {variable->idx, variable->val});
+                    {variable->adr, variable->val});
                   break;
 
                 case Variable::Type::EXIT:
