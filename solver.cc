@@ -149,42 +149,42 @@ ExternalSolver::parse_variable (istringstream & line)
   if (!getline(line >> ws, name, '_'))
     throw runtime_error("missing variable");
 
-  if (name == "thread")
+  if (name == Encoder::thread_sym)
     {
       variable->type = Variable::Type::THREAD;
       variable->step = parse_attribute(line, "step");
       variable->thread = parse_attribute(line, "thread");
     }
-  else if (name == "exec")
+  else if (name == Encoder::exec_sym)
     {
       variable->type = Variable::Type::EXEC;
       variable->step = parse_attribute(line, "step");
       variable->thread = parse_attribute(line, "thread");
       variable->pc = parse_attribute(line, "pc");
     }
-  else if (name == "accu")
+  else if (name == Encoder::accu_sym)
     {
       variable->type = Variable::Type::ACCU;
       variable->step = parse_attribute(line, "step");
       variable->thread = parse_attribute(line, "thread");
     }
-  else if (name == "mem")
+  else if (name == Encoder::mem_sym)
     {
       variable->type = Variable::Type::MEM;
       variable->step = parse_attribute(line, "step");
       variable->thread = parse_attribute(line, "thread");
     }
-  else if (name == "heap")
+  else if (name == Encoder::heap_sym)
     {
       variable->type = Variable::Type::HEAP;
       variable->step = parse_attribute(line, "step");
     }
-  else if (name == "exit")
+  else if (name == Encoder::exit_sym)
     {
       variable->type = Variable::Type::EXIT;
       variable->step = parse_attribute(line, "step");
     }
-  else if (name == "exit-code")
+  else if (name == Encoder::exit_code_sym)
     variable->type = Variable::Type::EXIT_CODE;
   else
     return {};

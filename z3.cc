@@ -75,15 +75,17 @@ Schedule_ptr Z3::solve (Encoder & encoder, string & constraints)
 
   for (bound_t step = 1; step <= encoder.bound; ++step)
     for (word_t thread = 0; thread < encoder.programs->size(); ++thread)
-      if (eval_bool(c, m, symbol("thread", {step, thread})))
+      if (eval_bool(c, m, symbol(Encoder::thread_sym, {step, thread})))
         {
           Program & program = *(*encoder.programs)[thread];
 
           for (word_t pc = 0; pc < program.size(); ++pc)
-            if (eval_bool(c, m, symbol("exec", {step, thread, pc})))
+            if (eval_bool(c, m, symbol(Encoder::exec_sym, {step, thread, pc})))
               {
-                word_t accu = eval_bv(c, m, symbol("accu", {step, thread}));
-                word_t mem = eval_bv(c, m, symbol("mem", {step, thread}));
+                word_t accu =
+                  eval_bv(c, m, symbol(Encoder::accu_sym, {step, thread}));
+                word_t mem =
+                  eval_bv(c, m, symbol(Encoder::mem_sym, {step, thread}));
 
                 optional<Schedule::Heap> heap;
 
@@ -94,9 +96,17 @@ Schedule_ptr Z3::solve (Encoder & encoder, string & constraints)
                       word_t idx = store->arg;
 
                       if (store->indirect)
-                        idx = eval_array(c, m, symbol("heap", {step - 1}), idx);
+                        idx =
+                          eval_array(
+                            c,
+                            m,
+                            symbol(Encoder::heap_sym, {step - 1}),
+                            idx);
 
-                      heap = {idx, eval_array(c, m, symbol("heap", {step}), idx)};
+                      heap = {
+                        idx,
+                        eval_array(c, m, symbol(Encoder::heap_sym, {step}), idx)
+                      };
                     }
 
                 // TODO: store buffer
@@ -104,7 +114,7 @@ Schedule_ptr Z3::solve (Encoder & encoder, string & constraints)
               }
         }
 
-  schedule->exit = eval_bv(c, m, symbol("exit-code", {}));
+  schedule->exit = eval_bv(c, m, symbol(Encoder::exit_code_sym, {}));
 
   return schedule;
 }

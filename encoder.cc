@@ -31,6 +31,23 @@ V & lookup (map<K, V> & m, K k, F fun)
 /*******************************************************************************
  * Encoder Base Class
  ******************************************************************************/
+const string Encoder::accu_sym      = "accu";
+const string Encoder::mem_sym       = "mem";
+const string Encoder::sb_adr_sym    = "sb-adr";
+const string Encoder::sb_val_sym    = "sb-val";
+const string Encoder::sb_full_sym   = "sb-full";
+
+const string Encoder::heap_sym      = "heap";
+const string Encoder::exit_code_sym = "exit-code";
+
+const string Encoder::stmt_sym      = "stmt";
+const string Encoder::thread_sym    = "thread";
+const string Encoder::exec_sym      = "exec";
+const string Encoder::cas_sym       = "cas";
+const string Encoder::block_sym     = "block";
+const string Encoder::check_sym     = "check";
+const string Encoder::exit_sym      = "exit";
+
 Encoder::Encoder (const Program_list_ptr p, bound_t b) :
   programs(p),
   num_threads(p->size()),
@@ -161,113 +178,112 @@ SMTLibEncoder::SMTLibEncoder (const Program_list_ptr p, bound_t b) :
 const string SMTLibEncoder::bv_sort =
   smtlib::bitvector(word_size);
 
-const string SMTLibEncoder::exit_code_var =
-  "exit-code";
-
-const string SMTLibEncoder::heap_comment =
-  "; heap states - heap_<step>";
-
 const string SMTLibEncoder::accu_comment =
-  "; accu states - accu_<step>_<thread>";
+  "; accu states - " + accu_sym + "_<step>_<thread>";
 
 const string SMTLibEncoder::mem_comment =
-  "; mem states - mem_<step>_<thread>";
+  "; mem states - " + mem_sym + "_<step>_<thread>";
+
+const string SMTLibEncoder::heap_comment =
+  "; heap states - " + heap_sym + "_<step>";
 
 const string SMTLibEncoder::stmt_comment =
-  "; statement activation variables - stmt_<step>_<thread>_<pc>";
+  "; statement activation variables - " + stmt_sym + "_<step>_<thread>_<pc>";
 
 const string SMTLibEncoder::thread_comment =
-  "; thread activation variables - thread_<step>_<thread>";
+  "; thread activation variables - " + thread_sym + "_<step>_<thread>";
 
 const string SMTLibEncoder::exec_comment =
-  "; statement execution variables - exec_<step>_<thread>_<pc>";
+  "; statement execution variables - " + exec_sym + "_<step>_<thread>_<pc>";
 
 const string SMTLibEncoder::cas_comment =
-  "; CAS condition - cas_<step>_<thread>";
+  "; CAS condition - " + cas_sym + "_<step>_<thread>";
 
 const string SMTLibEncoder::block_comment =
-  "; blocking variables - block_<step>_<id>_<thread>";
+  "; blocking variables - " + block_sym + "_<step>_<id>_<thread>";
 
 const string SMTLibEncoder::check_comment =
-  "; check variables - check_<step>_<id>";
+  "; check variables - " + check_sym + "_<step>_<id>";
 
 const string SMTLibEncoder::exit_comment =
-  "; exit flag - exit_<step>";
+  "; exit flag - " + exit_sym + "_<step>";
 
-/* state variable generators */
-string SMTLibEncoder::heap_var (const word_t k)
-{
-  return "heap_" + to_string(k);
-}
-
-string SMTLibEncoder::heap_var ()
-{
-  return heap_var(step);
-}
-
+/* state variable name generators */
 string SMTLibEncoder::accu_var (const word_t k, const word_t t)
 {
-  return "accu_" + to_string(k) + '_' + to_string(t);
+  return accu_sym + '_' + to_string(k) + '_' + to_string(t);
 }
 
-string SMTLibEncoder::accu_var ()
+string SMTLibEncoder::accu_var () const
 {
   return accu_var(step, thread);
 }
 
 string SMTLibEncoder::mem_var (const word_t k, const word_t t)
 {
-  return "mem_" + to_string(k) + '_' + to_string(t);
+  return mem_sym + '_' + to_string(k) + '_' + to_string(t);
 }
 
-string SMTLibEncoder::mem_var ()
+string SMTLibEncoder::mem_var () const
 {
   return mem_var(step, thread);
+}
+
+string SMTLibEncoder::heap_var (const word_t k)
+{
+  return heap_sym + '_' + to_string(k);
+}
+
+string SMTLibEncoder::heap_var () const
+{
+  return heap_var(step);
 }
 
 /* transition variable generators */
 string SMTLibEncoder::stmt_var (const word_t k, const word_t t, const word_t p)
 {
-  return "stmt_"
-    + to_string(k)
-    + '_' + to_string(t)
-    + '_' + to_string(p);
+  return
+    stmt_sym + '_' +
+    to_string(k) + '_' +
+    to_string(t) + '_' +
+    to_string(p);
 }
 
-string SMTLibEncoder::stmt_var ()
+string SMTLibEncoder::stmt_var () const
 {
   return stmt_var(step, thread, pc);
 }
 
 string SMTLibEncoder::thread_var (const word_t k, const word_t t)
 {
-  return "thread_" + to_string(k) + '_' + to_string(t);
+  return thread_sym + '_' + to_string(k) + '_' + to_string(t);
 }
 
-string SMTLibEncoder::thread_var ()
+string SMTLibEncoder::thread_var () const
 {
   return thread_var(step, thread);
 }
 
 string SMTLibEncoder::exec_var (const word_t k, const word_t t, const word_t p)
 {
-  return "exec_"
-    + to_string(k)
-    + '_' + to_string(t)
-    + '_' + to_string(p);
+  return
+    exec_sym + '_' +
+    to_string(k) + '_' +
+    to_string(t) + '_' +
+    to_string(p);
 }
 
-string SMTLibEncoder::exec_var ()
+string SMTLibEncoder::exec_var () const
 {
   return exec_var(step, thread, pc);
 }
 
 string SMTLibEncoder::cas_var (const word_t k, const word_t t)
 {
-  return "cas_" + to_string(k) + '_' + to_string(t);
+  return cas_sym + '_' + to_string(k) + '_' + to_string(t);
 }
 
-string SMTLibEncoder::cas_var ()
+string SMTLibEncoder::cas_var () const
 {
   return cas_var(step, thread);
 }
@@ -278,20 +294,24 @@ string SMTLibEncoder::block_var (
                                  const word_t tid
                                 )
 {
-  return "block_" + to_string(k) + '_' + to_string(id) + '_' + to_string(tid);
+  return
+    block_sym + '_' +
+    to_string(k) + '_' +
+    to_string(id) + '_' +
+    to_string(tid);
 }
 
 string SMTLibEncoder::check_var (const word_t k, const word_t id)
 {
-  return "check_" + to_string(k) + '_' + to_string(id);
+  return check_sym + '_' + to_string(k) + '_' + to_string(id);
 }
 
 string SMTLibEncoder::exit_var (const word_t k)
 {
-  return "exit_" + to_string(k);
+  return exit_sym + '_' + to_string(k);
 }
 
-string SMTLibEncoder::exit_var ()
+string SMTLibEncoder::exit_var () const
 {
   return exit_var(step);
 }
@@ -418,7 +438,7 @@ void SMTLibEncoder::declare_exit_var ()
 
 void SMTLibEncoder::declare_exit_code ()
 {
-  formula << smtlib::declare_bv_var(exit_code_var, word_size) << eol << eol;
+  formula << smtlib::declare_bv_var(exit_code_sym, word_size) << eol << eol;
 }
 
 /* expression generators */
@@ -815,7 +835,7 @@ void SMTLibEncoderFunctional::add_exit_code ()
             exit_code_ite);
     });
 
-  formula << assign_var(exit_code_var, exit_code_ite) << eol;
+  formula << assign_var(exit_code_sym, exit_code_ite) << eol;
 }
 
 /* SMTLibEncoderFunctional::encode (void) *************************************/
@@ -1125,10 +1145,10 @@ void SMTLibEncoderRelational::add_exit_code ()
 
   formula <<
     (exit_pcs.empty()
-      ? assign_var(exit_code_var, smtlib::word2hex(0)) + eol
+      ? assign_var(exit_code_sym, smtlib::word2hex(0)) + eol
       : imply(
           smtlib::lnot(exit_var()),
-          smtlib::equality({exit_code_var, smtlib::word2hex(0)})));
+          smtlib::equality({exit_code_sym, smtlib::word2hex(0)})));
 }
 
 void SMTLibEncoderRelational::add_statement_declaration ()
@@ -1491,7 +1511,7 @@ string SMTLibEncoderRelational::encode (Exit & e)
     preserve_heap() +
     imply(
       exec_var(),
-      smtlib::equality({exit_code_var, smtlib::word2hex(e.arg)}));
+      smtlib::equality({exit_code_sym, smtlib::word2hex(e.arg)}));
 }
 
 /*******************************************************************************
@@ -1542,7 +1562,7 @@ string Btor2Encoder::nid (int offset)
   return to_string(static_cast<int>(node) + offset);
 }
 
-string Btor2Encoder::symbol (word_t p)
+string Btor2Encoder::debug_symbol (word_t p)
 {
   Unary & op = *dynamic_pointer_cast<Unary>(programs->at(thread)->at(p));
 
@@ -1556,25 +1576,93 @@ string Btor2Encoder::symbol (word_t p)
     to_string(op.arg);
 }
 
+string Btor2Encoder::accu_var (const word_t t)
+{
+  return accu_sym + '_' + to_string(t);
+}
+
+string Btor2Encoder::accu_var () const
+{
+  return accu_var(thread);
+}
+
+string Btor2Encoder::mem_var (const word_t t)
+{
+  return mem_sym + '_' + to_string(t);
+}
+
+string Btor2Encoder::mem_var () const
+{
+  return mem_var(thread);
+}
+
+string Btor2Encoder::stmt_var (const word_t t, const word_t pc)
+{
+  return stmt_sym + '_' + to_string(t) + '_' + to_string(pc);
+}
+
+string Btor2Encoder::stmt_var () const
+{
+  return stmt_var(thread, pc);
+}
+
+string Btor2Encoder::thread_var (const word_t t)
+{
+  return thread_sym + '_' + to_string(t);
+}
+
+string Btor2Encoder::thread_var () const
+{
+  return thread_var(thread);
+}
+
+string Btor2Encoder::exec_var (const word_t t, const word_t pc)
+{
+  return exec_sym + '_' + to_string(t) + '_' + to_string(pc);
+}
+
+string Btor2Encoder::exec_var () const
+{
+  return exec_var(thread, pc);
+}
+
+string Btor2Encoder::cas_var (const word_t t)
+{
+  return cas_sym + '_' + to_string(t);
+}
+
+string Btor2Encoder::cas_var () const
+{
+  return cas_var(thread);
+}
+
+string Btor2Encoder::block_var (const word_t t, const word_t id)
+{
+  return block_sym + '_' + to_string(t) + '_' + to_string(id);
+}
+
+string Btor2Encoder::check_var (const word_t id)
+{
+  return check_sym + '_' + to_string(id);
+}
+
 void Btor2Encoder::declare_heap ()
 {
   if (verbose)
-    formula << btor2::comment("heap") << eol;
+    formula << btor2::comment(heap_sym) << eol;
 
-  formula << btor2::state(nid_heap = nid(), sid_heap, "heap") << eol;
+  formula << btor2::state(nid_heap = nid(), sid_heap, heap_sym) << eol;
 }
 
 void Btor2Encoder::declare_accu ()
 {
   if (verbose)
-    formula << btor2::comment("accumulator registers - accu_<thread>") << eol;
+    formula
+      << btor2::comment("accumulator registers - " + accu_sym + "_<thread>")
+      << eol;
 
   ITERATE_THREADS
-    formula <<
-      btor2::state(
-        nids_accu[thread] = nid(),
-        sid_bv,
-        "accu_" + to_string(thread));
+    formula << btor2::state(nids_accu[thread] = nid(), sid_bv, accu_var());
 
   formula << eol;
 }
@@ -1582,14 +1670,12 @@ void Btor2Encoder::declare_accu ()
 void Btor2Encoder::declare_mem ()
 {
   if (verbose)
-    formula << btor2::comment("CAS memory registers - mem_<thread>") << eol;
+    formula
+      << btor2::comment("CAS memory registers - " + mem_sym + "_<thread>")
+      << eol;
 
   ITERATE_THREADS
-    formula <<
-      btor2::state(
-        nids_mem[thread] = nid(),
-        sid_bv,
-        "mem_" + to_string(thread));
+    formula << btor2::state(nids_mem[thread] = nid(), sid_bv, mem_var());
 
   formula << eol;
 }
@@ -1597,9 +1683,10 @@ void Btor2Encoder::declare_mem ()
 void Btor2Encoder::declare_stmt ()
 {
   if (verbose)
-    formula
-      << btor2::comment("statement activation flags - stmt_<thread>_<pc>")
-      << eol;
+    formula <<
+      btor2::comment(
+        "statement activation flags - " + stmt_sym + "_<thread>_<pc>") <<
+      eol;
 
   ITERATE_THREADS
     {
@@ -1612,7 +1699,7 @@ void Btor2Encoder::declare_stmt ()
           btor2::state(
             nids_stmt[thread].emplace_back(nid()),
             sid_bool,
-            "stmt_" + to_string(thread) + "_" + to_string(pc));
+            stmt_var());
 
       formula << eol;
     }
@@ -1621,9 +1708,10 @@ void Btor2Encoder::declare_stmt ()
 void Btor2Encoder::declare_block ()
 {
   if (verbose)
-    formula
-      << btor2::comment("thread blocking flags - block_<id>_<thread>")
-      << eol;
+    formula <<
+      btor2::comment(
+        "thread blocking flags - " + block_sym + "_<id>_<thread>") <<
+      eol;
 
   for (const auto & [s, threads] : check_pcs)
     {
@@ -1637,7 +1725,7 @@ void Btor2Encoder::declare_block ()
               btor2::state(
                 nids.emplace_hint(nids.end(), t.first, nid())->second,
                 sid_bool,
-                "block_" + to_string(s) + "_" + to_string(t.first));
+                block_var(s, t.first));
 
           formula << eol;
         }
@@ -1647,16 +1735,16 @@ void Btor2Encoder::declare_block ()
 void Btor2Encoder::declare_exit_flag ()
 {
   if (verbose)
-    formula << btor2::comment("exit flag") << eol;
+    formula << btor2::comment(exit_sym + " flag") << eol;
 
   formula <<
-    btor2::state(nid_exit = nid(), sid_bool, "exit") <<
+    btor2::state(nid_exit = nid(), sid_bool, exit_sym) <<
     eol;
 }
 
 void Btor2Encoder::declare_exit_code ()
 {
-  formula << btor2::state(nid_exit_code = nid(), sid_bv, "exit-code");
+  formula << btor2::state(nid_exit_code = nid(), sid_bv, exit_code_sym);
 }
 
 void Btor2Encoder::define_state (
@@ -1703,7 +1791,7 @@ void Btor2Encoder::define_state (
                 exec[pc],
                 op.encode(*this),
                 nid_next,
-                verbose ? symbol(pc) : "");
+                verbose ? debug_symbol(pc) : "");
           }
       }
   while (global && thread++ < num_threads);
@@ -1724,7 +1812,7 @@ void Btor2Encoder::define_accu ()
         nids_accu[thread],
         sid_bv,
         nids_const[0],
-        "accu_" + to_string(thread),
+        accu_var(),
         alters_accu);
     }
 
@@ -1743,14 +1831,14 @@ void Btor2Encoder::define_mem ()
         nids_mem[thread],
         sid_bv,
         nids_const[0],
-        "mem_" + to_string(thread),
+        mem_var(),
         alters_mem);
     }
 }
 
 void Btor2Encoder::define_heap ()
 {
-  define_state(nid_heap, sid_heap, "", "heap", alters_heap, true);
+  define_state(nid_heap, sid_heap, "", heap_sym, alters_heap, true);
 }
 
 void Btor2Encoder::define_stmt ()
@@ -1767,9 +1855,7 @@ void Btor2Encoder::define_stmt ()
     for (pc = 0; pc < program.size(); pc++)
       {
         if (verbose)
-          formula <<
-            btor2::comment("stmt_" + to_string(thread) + "_" + to_string(pc)) <<
-            eol;
+          formula << btor2::comment(stmt_var()) << eol;
 
         string nid_next = nid();
         string nid_exec = nids_exec_thread[pc];
@@ -1828,7 +1914,7 @@ void Btor2Encoder::define_stmt ()
                 nids_stmt_thread[prev],
                 nid_exec,
                 nid_next,
-                verbose ? symbol(prev) : "");
+                verbose ? debug_symbol(prev) : "");
           }
 
         formula <<
@@ -1837,7 +1923,7 @@ void Btor2Encoder::define_stmt ()
             sid_bool,
             nid_stmt,
             nid_next,
-            verbose ? symbol(pc) : "") <<
+            verbose ? debug_symbol(pc) : "") <<
           eol;
       }
   });
@@ -1863,7 +1949,6 @@ void Btor2Encoder::define_block ()
           for (const auto & [t, pcs] : threads)
             {
               string prev;
-              string sym = "block_" + to_string(s) + '_' + to_string(t);
 
               string & nid_block = nid_block_it++->second;
 
@@ -1882,7 +1967,12 @@ void Btor2Encoder::define_block ()
                   nid_check,
                   nid_false,
                   nid(-1)) <<
-                btor2::next(nid(), sid_bool, nid_block, prev, sym) <<
+                btor2::next(
+                  nid(),
+                  sid_bool,
+                  nid_block,
+                  prev,
+                  block_var(s, t)) <<
                 eol;
             }
         }
@@ -1892,7 +1982,8 @@ void Btor2Encoder::define_block ()
 void Btor2Encoder::define_check ()
 {
   if (verbose)
-    formula << btor2::comment("checkpoint flags - check_<id>") << eol;
+    formula <<
+      btor2::comment("checkpoint flags - " + check_sym + "_<id>") << eol;
 
   for (const auto & [s, blocks] : nids_block)
     {
@@ -1904,7 +1995,7 @@ void Btor2Encoder::define_check ()
           for (const auto & [t, nid_block] : blocks)
             args.push_back(nid_block);
 
-          formula << btor2::land(node, sid_bool, args, "check_" + to_string(s));
+          formula << btor2::land(node, sid_bool, args, check_var(s));
 
           nids_check.emplace_hint(nids_check.end(), s, nid(-1));
         }
@@ -1938,7 +2029,7 @@ void Btor2Encoder::define_exit_flag ()
       nid_cond = to_string(node - 1);
     }
 
-  formula << btor2::next(nid(), sid_bool, nid_exit, nid_cond, "exit") << eol;
+  formula << btor2::next(nid(), sid_bool, nid_exit, nid_cond, exit_sym) << eol;
 }
 
 void Btor2Encoder::define_exit_code ()
@@ -1952,7 +2043,7 @@ void Btor2Encoder::define_exit_code ()
     nid_exit_code,
     sid_bv,
     nids_const[0],
-    "exit-code",
+    exit_code_sym,
     exit_pcs,
     true);
 }
@@ -2014,7 +2105,7 @@ void Btor2Encoder::add_thread_scheduling ()
       btor2::input(
         nids_thread[thread] = nid(),
         sid_bool,
-        "thread_" + to_string(thread));
+        thread_var());
   });
 
   formula << eol;
@@ -2042,7 +2133,7 @@ void Btor2Encoder::add_statement_execution ()
   if (verbose)
     formula <<
       btor2::comment_section(
-        "statement execution - exec_<thread>_<pc>");
+        "statement execution - " + exec_sym + "_<thread>_<pc>");
 
   iterate_threads([this] (const Program & program) {
 
@@ -2051,17 +2142,13 @@ void Btor2Encoder::add_statement_execution ()
     nids_exec[thread].reserve(program_size);
 
     for (pc = 0; pc < program_size; pc++)
-      {
-        string sym = "exec_" + to_string(thread) + '_' + to_string(pc);
-
-        formula <<
-          btor2::land(
-            nids_exec[thread].emplace_back(nid()),
-            sid_bool,
-            nids_stmt[thread][pc],
-            nids_thread[thread],
-            sym);
-      }
+      formula <<
+        btor2::land(
+          nids_exec[thread].emplace_back(nid()),
+          sid_bool,
+          nids_stmt[thread][pc],
+          nids_thread[thread],
+          exec_var());
 
     formula << eol;
   });
@@ -2143,7 +2230,7 @@ void Btor2Encoder::add_checkpoint_constraints ()
                 btor2::constraint(
                   nid(),
                   prev,
-                  "block_" + to_string(s) + '_' + to_string(t)) <<
+                  block_var(s, t)) <<
                 eol;
             }
         }

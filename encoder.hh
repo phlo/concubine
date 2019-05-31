@@ -15,6 +15,25 @@
  ******************************************************************************/
 struct Encoder
 {
+  /* state symbols */
+  static const std::string accu_sym;
+  static const std::string mem_sym;
+  static const std::string sb_adr_sym;
+  static const std::string sb_val_sym;
+  static const std::string sb_full_sym;
+
+  static const std::string heap_sym;
+  static const std::string exit_code_sym;
+
+  /* transition symbols */
+  static const std::string stmt_sym;
+  static const std::string thread_sym;
+  static const std::string exec_sym;
+  static const std::string cas_sym;
+  static const std::string block_sym;
+  static const std::string check_sym;
+  static const std::string exit_sym;
+
   /* constructs an Encoder for the given program and bound */
   Encoder (const Program_list_ptr programs, bound_t bound);
 
@@ -151,27 +170,40 @@ struct SMTLibEncoder : public Encoder
   static const std::string  check_comment;
   static const std::string  exit_comment;
 
-  /* state variable generators */
-  std::string               heap_var (const word_t);
-  std::string               heap_var ();
-  std::string               accu_var (const word_t, const word_t);
-  std::string               accu_var ();
-  std::string               mem_var (const word_t, const word_t);
-  std::string               mem_var ();
+  /* state variable name generators */
+  static std::string        accu_var (const word_t k, const word_t t);
+  std::string               accu_var () const;
+  static std::string        mem_var (const word_t k, const word_t t);
+  std::string               mem_var () const;
 
-  /* transition variable generators */
-  std::string               stmt_var (const word_t, const word_t, const word_t);
-  std::string               stmt_var ();
-  std::string               thread_var (const word_t, const word_t);
-  std::string               thread_var ();
-  std::string               exec_var (const word_t, const word_t, const word_t);
-  std::string               exec_var ();
-  std::string               cas_var (const word_t, const word_t);
-  std::string               cas_var ();
-  std::string               block_var (const word_t, const word_t, const word_t);
-  std::string               check_var (const word_t, const word_t);
-  std::string               exit_var (const word_t);
-  std::string               exit_var ();
+  static std::string        heap_var (const word_t k);
+  std::string               heap_var () const;
+
+  /* transition variable name generators */
+  static std::string        stmt_var (
+                                      const word_t k,
+                                      const word_t t,
+                                      const word_t pc
+                                     );
+  std::string               stmt_var () const;
+  static std::string        thread_var (const word_t k, const word_t t);
+  std::string               thread_var () const;
+  static std::string        exec_var (
+                                      const word_t k,
+                                      const word_t t,
+                                      const word_t pc
+                                     );
+  std::string               exec_var () const;
+  static std::string        cas_var (const word_t k, const word_t t);
+  std::string               cas_var () const;
+  static std::string        block_var (
+                                       const word_t k,
+                                       const word_t t,
+                                       const word_t id
+                                      );
+  static std::string        check_var (const word_t k, const word_t id);
+  static std::string        exit_var (const word_t k);
+  std::string               exit_var () const;
 
   /* variable declaration generators */
   void                      declare_heap_var ();
@@ -411,7 +443,23 @@ struct Btor2Encoder : public Encoder
   std::string                   nid ();
   std::string                   nid (int offset);
 
-  std::string                   symbol (word_t pc);
+  std::string                   debug_symbol (word_t pc);
+
+  static std::string            accu_var (const word_t t);
+  std::string                   accu_var () const;
+  static std::string            mem_var (const word_t t);
+  std::string                   mem_var () const;
+
+  static std::string            stmt_var (const word_t t, const word_t pc);
+  std::string                   stmt_var () const;
+  static std::string            thread_var (const word_t t);
+  std::string                   thread_var () const;
+  static std::string            exec_var (const word_t t, const word_t pc);
+  std::string                   exec_var () const;
+  static std::string            cas_var (const word_t t); // unused
+  std::string                   cas_var () const; // unused
+  static std::string            block_var (const word_t t, const word_t id);
+  static std::string            check_var (const word_t id);
 
   void                          declare_heap ();
   void                          declare_accu ();
