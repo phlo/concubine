@@ -34,9 +34,6 @@ struct Encoder
   static const std::string check_sym;
   static const std::string exit_sym;
 
-  /* constructs an Encoder for the given program and bound */
-  Encoder (const Program_list_ptr programs, bound_t bound);
-
   /* reference to the programs being verified (index == thread id) */
   const Program_list_ptr  programs;
 
@@ -58,13 +55,6 @@ struct Encoder
   /* current pc */
   word_t                  pc;
 
-  /* pcs of predecessor for each statement */
-  std::map<
-    word_t,
-    std::map<
-      word_t,
-      std::set<word_t>>>  predecessors;
-
   /* pcs of checkpoint statements (checkpoint id -> thread -> pc) */
   std::map<
     word_t,
@@ -80,6 +70,9 @@ struct Encoder
   /* threads containing CAS statements */
   // TODO: really necessary?
   std::set<word_t>        cas_threads;
+
+  /* constructs an Encoder for the given program and bound */
+  Encoder (const Program_list_ptr programs, bound_t bound);
 
   /*****************************************************************************
    * private functions

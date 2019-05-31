@@ -12,25 +12,19 @@ using namespace std;
 *******************************************************************************/
 struct ProgramTest : public ::testing::Test
 {
-  string path = "dummy.asm";
+  using Predecessors = unordered_set<word_t>;
 
+  string path = "dummy.asm";
   Program_ptr program = make_shared<Program>();
+
+  void create_program (string code)
+    {
+      istringstream inbuf {code};
+      program = make_shared<Program>(inbuf, path);
+    }
 };
 
-/* add ************************************************************************/
-TEST_F(ProgramTest, add)
-{
-  program->push_back(Instruction::Set::create("ADD", 1));
-  ASSERT_EQ(1, program->size());
-  ASSERT_EQ(0, program->check_ids.size());
-
-  program->push_back(Instruction::Set::create("CHECK", 1));
-  ASSERT_EQ(2, program->size());
-  ASSERT_EQ(1, program->check_ids.size());
-  ASSERT_TRUE(program->check_ids.find(1) != program->check_ids.end());
-}
-
-/* parse **********************************************************************/
+/* constructor ****************************************************************/
 TEST_F(ProgramTest, parse)
 {
   program = create_from_file<Program>("data/increment.cas.asm");
@@ -65,15 +59,12 @@ TEST_F(ProgramTest, parse)
   ASSERT_EQ("5\tCMP\t[1]",    program->print(true, 5));
 }
 
-/* parse_empty_line ***********************************************************/
 TEST_F(ProgramTest, parse_empty_line)
 {
-  istringstream inbuf(
+  create_program(
     "ADDI 1\n"
     "\n"
     "EXIT 1\n");
-
-  program = make_shared<Program>(inbuf, path);
 
   ASSERT_EQ(2, program->size());
 
@@ -81,7 +72,6 @@ TEST_F(ProgramTest, parse_empty_line)
   ASSERT_EQ("1\tEXIT\t1",   program->print(true, 1));
 }
 
-/* parse_file_not_found *******************************************************/
 TEST_F(ProgramTest, parse_file_not_found)
 {
   string file = "file_not_found";
@@ -97,17 +87,12 @@ TEST_F(ProgramTest, parse_file_not_found)
     }
 }
 
-/* parse_illegal_instruction **************************************************/
 TEST_F(ProgramTest, parse_illegal_instruction)
 {
-  istringstream inbuf;
-
   /* illegal instruction */
-  inbuf.str("NOP\n");
-
   try
     {
-      program = make_shared<Program>(inbuf, path);
+      create_program("NOP\n");
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -116,11 +101,9 @@ TEST_F(ProgramTest, parse_illegal_instruction)
     }
 
   /* illegal instruction argument (label) */
-  inbuf.str("ADD nothing\n");
-
   try
     {
-      program = make_shared<Program>(inbuf, path);
+      create_program("ADD nothing\n");
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -129,11 +112,9 @@ TEST_F(ProgramTest, parse_illegal_instruction)
     }
 
   /* illegal instruction argument (indirect addressing) */
-  inbuf.str("CHECK [0]\n");
-
   try
     {
-      program = make_shared<Program>(inbuf, path);
+      create_program("CHECK [0]\n");
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -144,11 +125,9 @@ TEST_F(ProgramTest, parse_illegal_instruction)
     }
 
   /* illegal instruction argument (label in indirect address) */
-  inbuf.str("STORE [me]\n");
-
   try
     {
-      program = make_shared<Program>(inbuf, path);
+      create_program("STORE [me]\n");
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -159,35 +138,27 @@ TEST_F(ProgramTest, parse_illegal_instruction)
     }
 }
 
-/* parse_missing_label ********************************************************/
 TEST_F(ProgramTest, parse_missing_label)
 {
-  istringstream inbuf;
-
   /* missing label */
-  inbuf.str(
-    "ADDI 1\n"
-    "JMP LABEL\n");
-
   try
     {
-      program = make_shared<Program>(inbuf, path);
+      create_program(
+        "ADDI 1\n"
+        "JMP LABEL\n");
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
     {
       ASSERT_EQ(path + ":1: unknown label [LABEL]", e.what());
-      inbuf.clear(); // eof - program fully parsed!
     }
 
   /* misspelled label */
-  inbuf.str(
-    "LABEL: ADDI 1\n"
-    "JMP LABERL\n");
-
   try
     {
-      program = make_shared<Program>(inbuf, path);
+      create_program(
+        "LABEL: ADDI 1\n"
+        "JMP LABERL\n");
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -196,7 +167,117 @@ TEST_F(ProgramTest, parse_missing_label)
     }
 }
 
-/* get_pc *********************************************************************/
+TEST_F(ProgramTest, parse_illegal_jump)
+{
+  try
+    {
+      create_program("JMP 1\n");
+      FAIL() << "should throw an exception";
+    }
+  catch (const exception & e)
+    {
+      ASSERT_EQ(path + ": illegal jump [0]", e.what());
+    }
+}
+
+TEST_F(ProgramTest, parse_predecessors)
+{
+  create_program(
+    "ADDI 1\n"
+    "ADDI 1\n"
+    "ADDI 1\n");
+
+  ASSERT_THROW(program->predecessors.at(0), out_of_range);
+  ASSERT_EQ(Predecessors({0}), program->predecessors.at(1));
+  ASSERT_EQ(Predecessors({1}), program->predecessors.at(2));
+}
+
+TEST_F(ProgramTest, parse_predecessors_jnz)
+{
+  create_program(
+    "ADDI 1\n"
+    "ADDI 1\n"
+    "JNZ 1\n");
+
+  ASSERT_THROW(program->predecessors.at(0), out_of_range);
+  ASSERT_EQ(Predecessors({0, 2}), program->predecessors.at(1));
+  ASSERT_EQ(Predecessors({1}), program->predecessors.at(2));
+}
+
+TEST_F(ProgramTest, parse_predecessors_jnz_initial)
+{
+  create_program(
+    "ADDI 1\n"
+    "ADDI 1\n"
+    "JNZ 0\n");
+
+  ASSERT_EQ(Predecessors({2}), program->predecessors.at(0));
+  ASSERT_EQ(Predecessors({0}), program->predecessors.at(1));
+  ASSERT_EQ(Predecessors({1}), program->predecessors.at(2));
+}
+
+TEST_F(ProgramTest, parse_predecessors_jmp)
+{
+  try
+    {
+      create_program(
+        "JMP 2\n"
+        "ADDI 1\n"
+        "ADDI 1\n");
+      FAIL() << "should throw an exception";
+    }
+  catch (const exception & e)
+    {
+      ASSERT_EQ(path + ": unreachable instruction [1]", e.what());
+    }
+}
+
+TEST_F(ProgramTest, parse_predecessors_exit)
+{
+  try
+    {
+      create_program(
+        "ADDI 1\n"
+        "EXIT 1\n"
+        "ADDI 1\n");
+      FAIL() << "should throw an exception";
+    }
+  catch (const exception & e)
+    {
+      ASSERT_EQ(path + ": unreachable instruction [2]", e.what());
+    }
+}
+
+TEST_F(ProgramTest, parse_predecessors_halt)
+{
+  try
+    {
+      create_program(
+        "ADDI 1\n"
+        "HALT\n"
+        "ADDI 1\n");
+      FAIL() << "should throw an exception";
+    }
+  catch (const exception & e)
+    {
+      ASSERT_EQ(path + ": unreachable instruction [2]", e.what());
+    }
+}
+
+/* Program::push_back *********************************************************/
+TEST_F(ProgramTest, push_back)
+{
+  program->push_back(Instruction::Set::create("ADD", 1));
+  ASSERT_EQ(1, program->size());
+  ASSERT_EQ(0, program->check_ids.size());
+
+  program->push_back(Instruction::Set::create("CHECK", 1));
+  ASSERT_EQ(2, program->size());
+  ASSERT_EQ(1, program->check_ids.size());
+  ASSERT_TRUE(program->check_ids.find(1) != program->check_ids.end());
+}
+
+/* Program::get_pc ************************************************************/
 TEST_F(ProgramTest, get_pc)
 {
   istringstream inbuf(
@@ -219,7 +300,7 @@ TEST_F(ProgramTest, get_pc)
     }
 }
 
-/* get_label ******************************************************************/
+/* Program::get_label *********************************************************/
 TEST_F(ProgramTest, get_label)
 {
   istringstream inbuf(

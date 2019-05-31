@@ -1,7 +1,6 @@
 #include "program.hh"
 
 #include <sstream>
-#include <vector>
 
 #include "instructionset.hh"
 #include "parser.hh"
@@ -16,7 +15,7 @@ Program::Program() {}
 #define INSTRUCTION_ERROR(msg) PARSER_ERROR("'" + symbol + "' " + msg)
 #define UNKNOWN_INSTRUCTION_ERROR() INSTRUCTION_ERROR("unknown instruction")
 
-Program::Program(istream & file, string & name) : path(name)
+Program::Program(istream & f, string & p) : path(p)
 {
   string token;
 
@@ -25,9 +24,9 @@ Program::Program(istream & file, string & name) : path(name)
   size_t line_num = 1;
 
   /* list of jump instructions at pc referencing a certain label */
-  vector<tuple<string, word_t, const string *>> labelled_jumps;
+  deque<tuple<string, word_t, const string *>> labelled_jumps;
 
-  for (string line_buf; getline(file, line_buf); line_num++)
+  for (string line_buf; getline(f, line_buf); line_num++)
     {
       /* skip empty lines */
       if (line_buf.empty())
@@ -145,27 +144,52 @@ Program::Program(istream & file, string & name) : path(name)
 
   /* replace labelled dummy instructions */
   for (const auto & [sym, pc, label] : labelled_jumps)
+    try
+      {
+        /* check if label exists and replace dummy */
+        (*this)[pc] = Instruction::Set::create(sym, label_to_pc.at(label));
+      }
+    catch (...)
+      {
+        parser_error(path, pc, "unknown label [" + *label + "]");
+      }
+
+  /* collect predecessors */
+  for (word_t pc = 0, last = size() - 1; pc <= last; pc++)
     {
-      /* check if label exists */
-      try
+      const Instruction_ptr & op = (*this)[pc];
+
+      if (Jmp_ptr j = dynamic_pointer_cast<Jmp>(op))
         {
-          /* create actual instruction and replace dummy */
-          at(pc) = Instruction::Set::create(sym, label_to_pc.at(label));
+          if (j->arg >= size())
+            throw runtime_error(
+              path + ": illegal jump [" + to_string(pc) + "]");
+
+          if (j->symbol() != Jmp::_symbol || j->arg == pc + 1)
+            predecessors[pc + 1].insert(pc);
+
+          predecessors[j->arg].insert(pc);
         }
-      catch (...)
-        {
-          parser_error(path, pc, "unknown label [" + *label + "]");
-        }
+      else if (pc < last)
+        if (!dynamic_pointer_cast<Exit>(op))
+          if (!dynamic_pointer_cast<Halt>(op))
+            predecessors[pc + 1].insert(pc);
     }
+
+  /* check for unreachable instructions */
+  for (word_t pc = 1; pc < size(); pc++)
+    if (predecessors.find(pc) == predecessors.end())
+      throw runtime_error(
+        path + ": unreachable instruction [" + to_string(pc) + "]");
 }
 
 /* Program::push_back *********************************************************/
-void Program::push_back (Instruction_ptr i)
+void Program::push_back (Instruction_ptr op)
 {
-  deque<Instruction_ptr>::push_back(i);
+  deque<Instruction_ptr>::push_back(op);
 
   /* collect checkpoint ids */
-  if (Check_ptr c = dynamic_pointer_cast<Check>(i))
+  if (Check_ptr c = dynamic_pointer_cast<Check>(op))
     check_ids.insert(c->arg);
 }
 
@@ -192,7 +216,7 @@ string Program::get_label (const word_t pc) const
 }
 
 /* Program::print *************************************************************/
-string Program::print (bool include_pc) const
+string Program::print (const bool include_pc) const
 {
   ostringstream ss;
 
@@ -203,7 +227,7 @@ string Program::print (bool include_pc) const
 }
 
 /* Program::print *************************************************************/
-string Program::print (bool include_pc, word_t pc) const
+string Program::print (const bool include_pc, const word_t pc) const
 {
   ostringstream ss;
 

@@ -17,14 +17,13 @@ using Instruction_ptr = std::shared_ptr<Instruction>;
  ******************************************************************************/
 struct Program : public std::deque<Instruction_ptr>
 {
-  /* default constructor (for testing) */
-  Program (void);
-
-  /* construct from file */
-  Program (std::istream & file, std::string & name);
+  using Predecessors = std::unordered_map<word_t, std::unordered_set<word_t>>;
 
   /* path to program file */
   std::string                     path;
+
+  /* pc of predecessors for each statement */
+  Predecessors                    predecessors;
 
   /* checkpoint ids */
   std::unordered_set<word_t>      check_ids;
@@ -42,20 +41,26 @@ struct Program : public std::deque<Instruction_ptr>
   /* jump labels */
   std::unordered_set<std::string> labels;
 
+  /* default constructor (testing only) */
+  Program ();
+
+  /* construct from file */
+  Program (std::istream & file, std::string & path);
+
   /* appends instruction to the program */
-  void                            push_back (Instruction_ptr);
+  void                            push_back (Instruction_ptr op);
 
   /* get pc corresponding to the given label */
-  word_t                          get_pc (const std::string label) const;
+  word_t                          get_pc (std::string label) const;
 
   /* get label corresponding to the given pc */
-  std::string                     get_label (const word_t) const;
+  std::string                     get_label (word_t pc) const;
 
   /* print whole program */
-  std::string                     print (bool) const;
+  std::string                     print (bool include_pc = false) const;
 
   /* print instruction at pc */
-  std::string                     print (bool, word_t) const;
+  std::string                     print (bool include_pc, word_t pc) const;
 };
 
 /*******************************************************************************

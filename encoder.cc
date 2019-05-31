@@ -57,15 +57,6 @@ Encoder::Encoder (const Program_list_ptr p, bound_t b) :
   iterate_threads([&] (Program & program) {
     for (pc = 0; pc < program.size(); pc++)
       {
-        /* collect predecessors */
-        if (pc > 0)
-          if (!dynamic_pointer_cast<Exit>(program[pc - 1u]))
-            if (program[pc - 1u]->symbol() != "JMP")
-              predecessors[thread][pc].insert(pc - 1u);
-
-        if (Jmp_ptr j = dynamic_pointer_cast<Jmp>(program[pc]))
-          predecessors[thread][j->arg].insert(pc);
-
         /* collect CAS statemets */
         if (Cas_ptr c = dynamic_pointer_cast<Cas>(program[pc]))
           cas_threads.insert(thread);
@@ -120,10 +111,10 @@ string Encoder::predecessors_to_string ()
 {
   ostringstream ss;
 
-  for (const auto & [_thread, _pcs] : predecessors)
-    for (const auto & [_pc, _predecessors] : _pcs)
+  for (word_t tid = 0; tid < programs->size(); tid++)
+    for (const auto & [_pc, _predecessors] : programs->at(tid)->predecessors)
       {
-        ss << "thread " << _thread << " @ " << _pc << " :";
+        ss << "thread " << tid << " @ " << _pc << " :";
         for (const auto & prev : _predecessors)
           ss << " " << prev;
         ss << eol;
@@ -712,7 +703,7 @@ void SMTLibEncoderFunctional::add_statement_activation ()
               stmt_var(step - 1, thread, pc),
               smtlib::lnot(exec_var(step - 1, thread, pc))});
 
-          for (word_t prev : predecessors[thread][pc])
+          for (word_t prev : program.predecessors[pc])
             {
               /* predecessor's execution variable */
               string val = exec_var(step - 1, thread, prev);
@@ -1878,7 +1869,7 @@ void Btor2Encoder::define_stmt ()
             btor2::lnot(nid_exec));
 
         /* add activation by predecessor's execution */
-        for (word_t prev : predecessors[thread][pc])
+        for (word_t prev : program.predecessors[pc])
           {
             nid_exec = nids_exec_thread[prev];
 
