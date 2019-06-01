@@ -1,7 +1,6 @@
 #ifndef ENCODER_HH_
 #define ENCODER_HH_
 
-#include <functional>
 #include <sstream>
 #include <map>
 #include <set>
@@ -26,8 +25,9 @@ struct Encoder
   static const std::string exit_code_sym;
 
   /* transition symbols */
-  static const std::string stmt_sym;
   static const std::string thread_sym;
+  static const std::string flush_sym;
+  static const std::string stmt_sym;
   static const std::string exec_sym;
   static const std::string cas_sym;
   static const std::string block_sym;
@@ -77,9 +77,34 @@ struct Encoder
   /*****************************************************************************
    * private functions
   *****************************************************************************/
-  void iterate_threads (std::function<void()>);
-  void iterate_threads (std::function<void(Program &)>);
-  void iterate_threads_reverse (std::function<void(Program &)>);
+  template<class Functor>
+  void iterate_threads (const Functor fun)
+    {
+      for (thread = 0; thread < num_threads; thread++)
+        fun();
+    }
+
+  template<class Functor>
+  void iterate_programs (const Functor fun)
+    {
+      thread = 0;
+      for (const Program_ptr & program : *programs)
+        {
+          fun(*program);
+          thread++;
+        }
+    }
+
+  template<class Functor>
+  void iterate_programs_reverse (const Functor fun)
+    {
+      thread = num_threads - 1;
+      for (auto rit = programs->rbegin(); rit != programs->rend(); ++rit)
+        {
+          fun(**rit);
+          thread--;
+        }
+    }
 
   /* double-dispatched instruction encoding functions */
   virtual std::string encode (Load &) = 0;
@@ -151,12 +176,16 @@ struct SMTLibEncoder : public Encoder
   static const std::string  exit_code_var;
 
   /* variable comments */
-  static const std::string  heap_comment;
   static const std::string  accu_comment;
   static const std::string  mem_comment;
+  static const std::string  sb_adr_comment;
+  static const std::string  sb_val_comment;
+  static const std::string  sb_full_comment;
+  static const std::string  heap_comment;
 
-  static const std::string  stmt_comment;
   static const std::string  thread_comment;
+  static const std::string  flush_comment;
+  static const std::string  stmt_comment;
   static const std::string  exec_comment;
   static const std::string  cas_comment;
   static const std::string  block_comment;
@@ -168,19 +197,27 @@ struct SMTLibEncoder : public Encoder
   std::string               accu_var () const;
   static std::string        mem_var (const word_t k, const word_t t);
   std::string               mem_var () const;
+  static std::string        sb_adr_var (const word_t k, const word_t t);
+  std::string               sb_adr_var () const;
+  static std::string        sb_val_var (const word_t k, const word_t t);
+  std::string               sb_val_var () const;
+  static std::string        sb_full_var (const word_t k, const word_t t);
+  std::string               sb_full_var () const;
 
   static std::string        heap_var (const word_t k);
   std::string               heap_var () const;
 
   /* transition variable name generators */
+  static std::string        thread_var (const word_t k, const word_t t);
+  std::string               thread_var () const;
+  static std::string        flush_var (const word_t k, const word_t t);
+  std::string               flush_var () const;
   static std::string        stmt_var (
                                       const word_t k,
                                       const word_t t,
                                       const word_t pc
                                      );
   std::string               stmt_var () const;
-  static std::string        thread_var (const word_t k, const word_t t);
-  std::string               thread_var () const;
   static std::string        exec_var (
                                       const word_t k,
                                       const word_t t,
@@ -199,12 +236,17 @@ struct SMTLibEncoder : public Encoder
   std::string               exit_var () const;
 
   /* variable declaration generators */
-  void                      declare_heap_var ();
   void                      declare_accu_vars ();
   void                      declare_mem_vars ();
+  void                      declare_sb_adr_vars ();
+  void                      declare_sb_val_vars ();
+  void                      declare_sb_full_vars ();
 
-  void                      declare_stmt_vars ();
+  void                      declare_heap_var ();
+
   void                      declare_thread_vars ();
+  void                      declare_flush_vars ();
+  void                      declare_stmt_vars ();
   void                      declare_exec_vars ();
   void                      declare_cas_vars ();
   void                      declare_block_vars ();

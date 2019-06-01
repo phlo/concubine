@@ -1,5 +1,6 @@
 #include "encoder.hh"
 
+#include <functional>
 #include <iostream>
 
 #include "btor2.hh"
@@ -33,6 +34,7 @@ V & lookup (map<K, V> & m, K k, F fun)
  ******************************************************************************/
 const string Encoder::accu_sym      = "accu";
 const string Encoder::mem_sym       = "mem";
+
 const string Encoder::sb_adr_sym    = "sb-adr";
 const string Encoder::sb_val_sym    = "sb-val";
 const string Encoder::sb_full_sym   = "sb-full";
@@ -40,8 +42,9 @@ const string Encoder::sb_full_sym   = "sb-full";
 const string Encoder::heap_sym      = "heap";
 const string Encoder::exit_code_sym = "exit-code";
 
-const string Encoder::stmt_sym      = "stmt";
 const string Encoder::thread_sym    = "thread";
+const string Encoder::flush_sym     = "flush";
+const string Encoder::stmt_sym      = "stmt";
 const string Encoder::exec_sym      = "exec";
 const string Encoder::cas_sym       = "cas";
 const string Encoder::block_sym     = "block";
@@ -54,7 +57,7 @@ Encoder::Encoder (const Program_list_ptr p, bound_t b) :
   bound(b),
   use_sinz_constraint(num_threads > 4)
 {
-  iterate_threads([&] (Program & program) {
+  iterate_programs([this] (const Program & program) {
     for (pc = 0; pc < program.size(); pc++)
       {
         /* collect CAS statemets */
@@ -70,34 +73,6 @@ Encoder::Encoder (const Program_list_ptr p, bound_t b) :
           exit_pcs[thread].push_back(pc);
       }
   });
-}
-
-#define ITERATE_THREADS for (thread = 0; thread < num_threads; thread++)
-
-void Encoder::iterate_threads (function<void()> fun)
-{
-  for (thread = 0; thread < num_threads; thread++)
-    fun();
-}
-
-void Encoder::iterate_threads (function<void(Program &)> fun)
-{
-  thread = 0;
-  for (const auto & p_ptr : *programs)
-    {
-      fun(*p_ptr);
-      thread++;
-    }
-}
-
-void Encoder::iterate_threads_reverse (function<void(Program &)> fun)
-{
-  thread = num_threads - 1;
-  for (auto rit = programs->rbegin(); rit != programs->rend(); ++rit)
-    {
-      fun(**rit);
-      thread--;
-    }
 }
 
 /* Encoder::print (void) ******************************************************/
@@ -166,8 +141,7 @@ SMTLibEncoder::SMTLibEncoder (const Program_list_ptr p, bound_t b) :
 {}
 
 /* string constants ***********************************************************/
-const string SMTLibEncoder::bv_sort =
-  smtlib::bitvector(word_size);
+const string SMTLibEncoder::bv_sort = smtlib::bitvector(word_size);
 
 const string SMTLibEncoder::accu_comment =
   "; accu states - " + accu_sym + "_<step>_<thread>";
@@ -175,14 +149,26 @@ const string SMTLibEncoder::accu_comment =
 const string SMTLibEncoder::mem_comment =
   "; mem states - " + mem_sym + "_<step>_<thread>";
 
+const string SMTLibEncoder::sb_adr_comment =
+  "; store buffer address states - " + sb_adr_sym + "_<step>_<thread>";
+
+const string SMTLibEncoder::sb_val_comment =
+  "; store buffer value states - " + sb_val_sym + "_<step>_<thread>";
+
+const string SMTLibEncoder::sb_full_comment =
+  "; store buffer full states - " + sb_val_sym + "_<step>_<thread>";
+
 const string SMTLibEncoder::heap_comment =
   "; heap states - " + heap_sym + "_<step>";
 
-const string SMTLibEncoder::stmt_comment =
-  "; statement activation variables - " + stmt_sym + "_<step>_<thread>_<pc>";
-
 const string SMTLibEncoder::thread_comment =
   "; thread activation variables - " + thread_sym + "_<step>_<thread>";
+
+const string SMTLibEncoder::flush_comment =
+  "; store buffer flush variables - " + flush_sym + "_<step>_<thread>";
+
+const string SMTLibEncoder::stmt_comment =
+  "; statement activation variables - " + stmt_sym + "_<step>_<thread>_<pc>";
 
 const string SMTLibEncoder::exec_comment =
   "; statement execution variables - " + exec_sym + "_<step>_<thread>_<pc>";
@@ -194,7 +180,7 @@ const string SMTLibEncoder::block_comment =
   "; blocking variables - " + block_sym + "_<step>_<id>_<thread>";
 
 const string SMTLibEncoder::check_comment =
-  "; check variables - " + check_sym + "_<step>_<id>";
+  "; checkpoint variables - " + check_sym + "_<step>_<id>";
 
 const string SMTLibEncoder::exit_comment =
   "; exit flag - " + exit_sym + "_<step>";
@@ -220,6 +206,36 @@ string SMTLibEncoder::mem_var () const
   return mem_var(step, thread);
 }
 
+string SMTLibEncoder::sb_adr_var (const word_t k, const word_t t)
+{
+  return sb_adr_sym + '_' + to_string(k) + '_' + to_string(t);
+}
+
+string SMTLibEncoder::sb_adr_var () const
+{
+  return sb_adr_var(step, thread);
+}
+
+string SMTLibEncoder::sb_val_var (const word_t k, const word_t t)
+{
+  return sb_val_sym + '_' + to_string(k) + '_' + to_string(t);
+}
+
+string SMTLibEncoder::sb_val_var () const
+{
+  return sb_val_var(step, thread);
+}
+
+string SMTLibEncoder::sb_full_var (const word_t k, const word_t t)
+{
+  return sb_full_sym + '_' + to_string(k) + '_' + to_string(t);
+}
+
+string SMTLibEncoder::sb_full_var () const
+{
+  return sb_full_var(step, thread);
+}
+
 string SMTLibEncoder::heap_var (const word_t k)
 {
   return heap_sym + '_' + to_string(k);
@@ -231,6 +247,26 @@ string SMTLibEncoder::heap_var () const
 }
 
 /* transition variable generators */
+string SMTLibEncoder::thread_var (const word_t k, const word_t t)
+{
+  return thread_sym + '_' + to_string(k) + '_' + to_string(t);
+}
+
+string SMTLibEncoder::thread_var () const
+{
+  return thread_var(step, thread);
+}
+
+string SMTLibEncoder::flush_var (const word_t k, const word_t t)
+{
+  return flush_sym + '_' + to_string(k) + '_' + to_string(t);
+}
+
+string SMTLibEncoder::flush_var () const
+{
+  return flush_var(step, thread);
+}
+
 string SMTLibEncoder::stmt_var (const word_t k, const word_t t, const word_t p)
 {
   return
@@ -243,16 +279,6 @@ string SMTLibEncoder::stmt_var (const word_t k, const word_t t, const word_t p)
 string SMTLibEncoder::stmt_var () const
 {
   return stmt_var(step, thread, pc);
-}
-
-string SMTLibEncoder::thread_var (const word_t k, const word_t t)
-{
-  return thread_sym + '_' + to_string(k) + '_' + to_string(t);
-}
-
-string SMTLibEncoder::thread_var () const
-{
-  return thread_var(step, thread);
 }
 
 string SMTLibEncoder::exec_var (const word_t k, const word_t t, const word_t p)
@@ -308,22 +334,12 @@ string SMTLibEncoder::exit_var () const
 }
 
 /* variable declaration generators */
-void SMTLibEncoder::declare_heap_var ()
-{
-  if (verbose)
-    formula << heap_comment << eol;
-
-  formula
-    << smtlib::declare_array_var(heap_var(), bv_sort, bv_sort)
-    << eol << eol;
-}
-
 void SMTLibEncoder::declare_accu_vars ()
 {
   if (verbose)
     formula << accu_comment << eol;
 
-  iterate_threads([&] {
+  iterate_threads([this] {
     formula << smtlib::declare_bv_var(accu_var(), word_size) << eol;
   });
 
@@ -335,24 +351,57 @@ void SMTLibEncoder::declare_mem_vars ()
   if (verbose)
     formula << mem_comment << eol;
 
-  iterate_threads([&] {
+  iterate_threads([this] {
     formula << smtlib::declare_bv_var(mem_var(), word_size) << eol;
   });
 
   formula << eol;
 }
 
-void SMTLibEncoder::declare_stmt_vars ()
+void SMTLibEncoder::declare_sb_adr_vars ()
 {
   if (verbose)
-    formula << stmt_comment << eol;
+    formula << sb_adr_comment << eol;
 
-  iterate_threads([&] (Program & program) {
-    for (pc = 0; pc < program.size(); pc++)
-      formula << smtlib::declare_bool_var(stmt_var()) << eol;
-
-    formula << eol;
+  iterate_threads([this] {
+    formula << smtlib::declare_bv_var(sb_adr_var(), word_size) << eol;
   });
+
+  formula << eol;
+}
+
+void SMTLibEncoder::declare_sb_val_vars ()
+{
+  if (verbose)
+    formula << sb_val_comment << eol;
+
+  iterate_threads([this] {
+    formula << smtlib::declare_bv_var(sb_val_var(), word_size) << eol;
+  });
+
+  formula << eol;
+}
+
+void SMTLibEncoder::declare_sb_full_vars ()
+{
+  if (verbose)
+    formula << sb_full_comment << eol;
+
+  iterate_threads([this] {
+    formula << smtlib::declare_bool_var(sb_full_var()) << eol;
+  });
+
+  formula << eol;
+}
+
+void SMTLibEncoder::declare_heap_var ()
+{
+  if (verbose)
+    formula << heap_comment << eol;
+
+  formula
+    << smtlib::declare_array_var(heap_var(), bv_sort, bv_sort)
+    << eol << eol;
 }
 
 void SMTLibEncoder::declare_thread_vars ()
@@ -360,8 +409,31 @@ void SMTLibEncoder::declare_thread_vars ()
   if (verbose)
     formula << thread_comment << eol;
 
-  iterate_threads([&] {
+  iterate_threads([this] {
     formula << smtlib::declare_bool_var(thread_var()) << eol;
+  });
+}
+
+void SMTLibEncoder::declare_flush_vars ()
+{
+  if (verbose)
+    formula << flush_comment << eol;
+
+  iterate_threads([this] {
+    formula << smtlib::declare_bool_var(flush_var()) << eol;
+  });
+}
+
+void SMTLibEncoder::declare_stmt_vars ()
+{
+  if (verbose)
+    formula << stmt_comment << eol;
+
+  iterate_programs([this] (const Program & program) {
+    for (pc = 0; pc < program.size(); pc++)
+      formula << smtlib::declare_bool_var(stmt_var()) << eol;
+
+    formula << eol;
   });
 }
 
@@ -370,7 +442,7 @@ void SMTLibEncoder::declare_exec_vars ()
   if (verbose)
     formula << exec_comment << eol;
 
-  iterate_threads([&] (Program & program) {
+  iterate_programs([this] (const Program & program) {
     for (pc = 0; pc < program.size(); pc++)
       formula << smtlib::declare_bool_var(exec_var()) << eol;
 
@@ -386,7 +458,7 @@ void SMTLibEncoder::declare_cas_vars ()
   if (verbose)
     formula << cas_comment << eol;
 
-  iterate_threads([&] {
+  iterate_threads([this] {
     if (cas_threads.find(thread) != cas_threads.end())
       formula << smtlib::declare_bool_var(cas_var()) << eol;
   });
@@ -447,7 +519,7 @@ void SMTLibEncoder::add_initial_state ()
   /* accu */
   declare_accu_vars();
 
-  iterate_threads([&] {
+  iterate_threads([this] {
     formula << assign_var(accu_var(), smtlib::word2hex(0)) << eol;
   });
 
@@ -456,8 +528,35 @@ void SMTLibEncoder::add_initial_state ()
   /* CAS memory register */
   declare_mem_vars();
 
-  iterate_threads([&] {
+  iterate_threads([this] {
     formula << assign_var(mem_var(), smtlib::word2hex(0)) << eol;
+  });
+
+  formula << eol;
+
+  /* store buffer address */
+  declare_sb_adr_vars();
+
+  iterate_threads([this] {
+    formula << assign_var(sb_adr_var(), smtlib::word2hex(0)) << eol;
+  });
+
+  formula << eol;
+
+  /* store buffer value */
+  declare_sb_val_vars();
+
+  iterate_threads([this] {
+    formula << assign_var(sb_val_var(), smtlib::word2hex(0)) << eol;
+  });
+
+  formula << eol;
+
+  /* store buffer full flag */
+  declare_sb_full_vars();
+
+  iterate_threads([this] {
+    formula << assign_var(sb_full_var(), "false") << eol;
   });
 
   formula << eol;
@@ -471,7 +570,7 @@ void SMTLibEncoder::add_initial_statement_activation ()
   if (verbose)
     formula << "; initial statement activation" << eol;
 
-  iterate_threads([&] (Program & program) {
+  iterate_programs([this] (const Program & program) {
     for (pc = 0; pc < program.size(); pc++)
       formula
         << smtlib::assertion(pc ? smtlib::lnot(stmt_var()) : stmt_var())
@@ -497,7 +596,7 @@ void SMTLibEncoder::add_exit_flag ()
   if (step > 2)
     args.push_back(exit_var(step - 1));
 
-  iterate_threads([&] {
+  iterate_threads([this, &args] {
     for (const word_t & exit_pc : exit_pcs[thread])
       args.push_back(exec_var(step - 1, thread, exit_pc));
   });
@@ -507,19 +606,40 @@ void SMTLibEncoder::add_exit_flag ()
 
 void SMTLibEncoder::add_thread_scheduling ()
 {
-  vector<string> variables;
-
-  /* add thread activation variables */
-  iterate_threads([&] { variables.push_back(thread_var()); });
-
-  /* add exit flag */
-  if (step > 1 && !exit_pcs.empty())
-    variables.push_back(exit_var());
-
   if (verbose)
     formula << smtlib::comment_subsection("thread scheduling");
 
   declare_thread_vars();
+  declare_flush_vars();
+
+  /* prevent flushing an empty store buffer */
+  iterate_threads([this] {
+    formula <<
+      smtlib::implication(
+        smtlib::lnot(sb_full_var()),
+        smtlib::lnot(flush_var()));
+  });
+
+  // TODO
+  /* block threads requiring a store buffer flush */
+  iterate_threads([this] {
+    formula <<
+      smtlib::implication(
+        smtlib::land({"", ""}),
+        "");
+  });
+
+  /* cardinality constraint */
+  vector<string> variables;
+
+  iterate_threads([this, &variables] {
+    variables.push_back(thread_var());
+    variables.push_back(flush_var());
+  });
+
+  /* add exit flag */
+  if (step > 1 && !exit_pcs.empty())
+    variables.push_back(exit_var());
 
   formula
     << eol
@@ -595,6 +715,7 @@ void SMTLibEncoder::add_checkpoint_constraints ()
 
   formula << eol;
 
+  // TODO: remove
   if (verbose)
     formula << "; prevent scheduling of waiting threads" << eol;
 
@@ -626,7 +747,7 @@ void SMTLibEncoder::add_statement_execution ()
 
   declare_exec_vars();
 
-  iterate_threads([&] (Program & program) {
+  iterate_programs([this] (const Program & program) {
     for (pc = 0; pc < program.size(); pc++)
       formula
         << assign_var(exec_var(), smtlib::land({stmt_var(), thread_var()}))
@@ -665,7 +786,7 @@ SMTLibEncoderFunctional::SMTLibEncoderFunctional (
                                                  ) : SMTLibEncoder(p, b)
 {
   /* initialize state update maps */
-  iterate_threads([&] (Program & program) {
+  iterate_programs([this] (const Program & program) {
     for (pc = 0; pc < program.size(); pc++)
       {
         const Instruction::Type type = program[pc]->type();
@@ -694,7 +815,7 @@ void SMTLibEncoderFunctional::add_statement_activation ()
   if (step == 1)
     add_initial_statement_activation();
   else
-    iterate_threads([&] (Program & program) {
+    iterate_programs([this] (const Program & program) {
       for (pc = 0; pc < program.size(); pc++)
         {
           /* statement reactivation */
@@ -703,7 +824,7 @@ void SMTLibEncoderFunctional::add_statement_activation ()
               stmt_var(step - 1, thread, pc),
               smtlib::lnot(exec_var(step - 1, thread, pc))});
 
-          for (word_t prev : program.predecessors[pc])
+          for (word_t prev : program.predecessors.at(pc))
             {
               /* predecessor's execution variable */
               string val = exec_var(step - 1, thread, prev);
@@ -746,7 +867,7 @@ void SMTLibEncoderFunctional::add_state_update ()
 
   update_accu = true;
 
-  iterate_threads([&] (Program & program) {
+  iterate_programs([this] (const Program & program) {
     vector<word_t> & pcs = alters_accu[thread];
     string expr = accu_var(step - 1, thread);
 
@@ -768,7 +889,7 @@ void SMTLibEncoderFunctional::add_state_update ()
   /* CAS memory register */
   declare_mem_vars();
 
-  iterate_threads([&] (Program & program) {
+  iterate_programs([this] (const Program & program) {
     vector<word_t> & pcs = alters_mem[thread];
     string expr = mem_var(step - 1, thread);
 
@@ -790,7 +911,7 @@ void SMTLibEncoderFunctional::add_state_update ()
 
   string expr = heap_var(step - 1);
 
-  iterate_threads_reverse([&] (Program & program) {
+  iterate_programs_reverse([this, &expr] (const Program & program) {
     vector<word_t> & pcs = alters_heap[thread];
 
     // for (const word_t & _pc : alters_heap[thread])
@@ -814,19 +935,19 @@ void SMTLibEncoderFunctional::add_exit_code ()
 
   declare_exit_code();
 
-  string exit_code_ite = smtlib::word2hex(0);
+  string ite = smtlib::word2hex(0);
 
   for (bound_t k = step; k > 0; k--)
-    iterate_threads_reverse([&] (Program & program) {
+    iterate_programs_reverse([this, &ite, k] (const Program & program) {
       for (const word_t & exit_pc : exit_pcs[thread])
-        exit_code_ite =
+        ite =
           smtlib::ite(
             exec_var(k, thread, exit_pc),
             program[exit_pc]->encode(*this),
-            exit_code_ite);
+            ite);
     });
 
-  formula << assign_var(exit_code_sym, exit_code_ite) << eol;
+  formula << assign_var(exit_code_sym, ite) << eol;
 }
 
 /* SMTLibEncoderFunctional::encode (void) *************************************/
@@ -1170,7 +1291,7 @@ void SMTLibEncoderRelational::add_state_update ()
   declare_mem_vars();
   declare_heap_var();
 
-  iterate_threads([&] (Program & program) {
+  iterate_programs([this] (const Program & program) {
     for (pc = 0; pc < program.size(); pc++)
       formula
         << (verbose
@@ -1192,7 +1313,7 @@ void SMTLibEncoderRelational::add_state_preservation ()
   if (verbose)
     formula << smtlib::comment_subsection("state preservation");
 
-  iterate_threads([&] (Program & program) {
+  iterate_programs([this] (const Program & program) {
 
     /* define waiting variable */
     string preserve = "preserve_" + to_string(step) + "_" + to_string(thread);
@@ -1517,7 +1638,7 @@ Btor2Encoder::Btor2Encoder (const Program_list_ptr p, bound_t b, bool e) :
   nids_const[0] = "";
   nids_const[bound] = "";
 
-  iterate_threads([&] (Program & program) {
+  iterate_programs([this] (const Program & program) {
     for (pc = 0; pc < program.size(); pc++)
       {
         const Instruction_ptr & op = program[pc];
@@ -1652,8 +1773,9 @@ void Btor2Encoder::declare_accu ()
       << btor2::comment("accumulator registers - " + accu_sym + "_<thread>")
       << eol;
 
-  ITERATE_THREADS
+  iterate_threads([this] {
     formula << btor2::state(nids_accu[thread] = nid(), sid_bv, accu_var());
+  });
 
   formula << eol;
 }
@@ -1665,8 +1787,9 @@ void Btor2Encoder::declare_mem ()
       << btor2::comment("CAS memory registers - " + mem_sym + "_<thread>")
       << eol;
 
-  ITERATE_THREADS
+  iterate_threads([this] {
     formula << btor2::state(nids_mem[thread] = nid(), sid_bv, mem_var());
+  });
 
   formula << eol;
 }
@@ -1679,21 +1802,18 @@ void Btor2Encoder::declare_stmt ()
         "statement activation flags - " + stmt_sym + "_<thread>_<pc>") <<
       eol;
 
-  ITERATE_THREADS
-    {
-      auto program_size = (*programs)[thread]->size();
+  iterate_programs([this] (const Program & program) {
+    nids_stmt[thread].reserve(program.size());
 
-      nids_stmt[thread].reserve(program_size);
+    for (pc = 0; pc < program.size(); pc++)
+      formula <<
+        btor2::state(
+          nids_stmt[thread].emplace_back(nid()),
+          sid_bool,
+          stmt_var());
 
-      for (pc = 0; pc < program_size; pc++)
-        formula <<
-          btor2::state(
-            nids_stmt[thread].emplace_back(nid()),
-            sid_bool,
-            stmt_var());
-
-      formula << eol;
-    }
+    formula << eol;
+  });
 }
 
 void Btor2Encoder::declare_block ()
@@ -1797,15 +1917,14 @@ void Btor2Encoder::define_accu ()
 
   update_accu = true;
 
-  ITERATE_THREADS
-    {
-      define_state(
-        nids_accu[thread],
-        sid_bv,
-        nids_const[0],
-        accu_var(),
-        alters_accu);
-    }
+  iterate_threads([this] {
+    define_state(
+      nids_accu[thread],
+      sid_bv,
+      nids_const[0],
+      accu_var(),
+      alters_accu);
+  });
 
   update_accu = false;
 }
@@ -1816,15 +1935,14 @@ void Btor2Encoder::define_mem ()
     formula
       << btor2::comment_subsection("CAS memory register definitions");
 
-  ITERATE_THREADS
-    {
-      define_state(
-        nids_mem[thread],
-        sid_bv,
-        nids_const[0],
-        mem_var(),
-        alters_mem);
-    }
+  iterate_threads([this] {
+    define_state(
+      nids_mem[thread],
+      sid_bv,
+      nids_const[0],
+      mem_var(),
+      alters_mem);
+  });
 }
 
 void Btor2Encoder::define_heap ()
@@ -1834,7 +1952,7 @@ void Btor2Encoder::define_heap ()
 
 void Btor2Encoder::define_stmt ()
 {
-  iterate_threads([&] (Program & program) {
+  iterate_programs([this] (const Program & program) {
 
     /* map storing nids of jump conditions */
     map<Jmp_ptr, string> nid_jmp;
@@ -1869,7 +1987,7 @@ void Btor2Encoder::define_stmt ()
             btor2::lnot(nid_exec));
 
         /* add activation by predecessor's execution */
-        for (word_t prev : program.predecessors[pc])
+        for (word_t prev : program.predecessors.at(pc))
           {
             nid_exec = nids_exec_thread[prev];
 
@@ -2126,7 +2244,7 @@ void Btor2Encoder::add_statement_execution ()
       btor2::comment_section(
         "statement execution - " + exec_sym + "_<thread>_<pc>");
 
-  iterate_threads([this] (const Program & program) {
+  iterate_programs([this] (const Program & program) {
 
     auto program_size = program.size();
 
