@@ -61,6 +61,11 @@ Instruction_ptr Instruction::Set::create (
   return Instruction_ptr(memory_factory[name](arg, indirect));
 }
 
+bool Instruction::requires_flush ()
+{
+  return type() & (Types::write | Types::barrier);
+}
+
 /*******************************************************************************
  * Unary
  ******************************************************************************/

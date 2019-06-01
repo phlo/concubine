@@ -50,12 +50,12 @@ struct Instruction
         std::string,
         Instruction * (*)(const word_t, const bool)> memory_factory;
 
-      virtual ~Set (void) = 0; // for a purely static class
+      virtual ~Set () = 0; // for a purely static class
 
       // NOTE: really needed?
       static bool contains (std::string);
 
-      typedef std::shared_ptr<Instruction> Instruction_ptr; // readability
+      using Instruction_ptr = std::shared_ptr<Instruction>; // readability
 
       static Instruction_ptr create (const std::string & name);
       static Instruction_ptr create (
@@ -70,6 +70,8 @@ struct Instruction
     };
 
   /* Instruction Members ******************************************************/
+  bool                        requires_flush ();
+
   virtual const std::string & symbol (void) const = 0;
   virtual Type                type   (void) const = 0;
 

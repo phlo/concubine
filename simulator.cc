@@ -185,15 +185,8 @@ Schedule_ptr Simulator::simulate (
 
     /* rule 2, 5, 7: store buffer may be flushed at any time or must be empty */
     if (t->buffer.full)
-      {
-        using Type = Instruction::Type;
-        using Types = Instruction::Types;
-
-        static const Type flush = Types::write | Types::barrier;
-
-        if (random() % 2 || t->program[t->pc]->type() & flush)
-          t->state = Thread::State::flushing;
-      }
+      if (random() % 2 || t->program[t->pc]->requires_flush())
+        t->state = Thread::State::flushing;
 
     return t;
   });
