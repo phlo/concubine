@@ -1,6 +1,8 @@
 #ifndef ENCODER_HH_
 #define ENCODER_HH_
 
+#include <map>
+#include <set>
 #include <sstream>
 #include <vector>
 
@@ -12,6 +14,7 @@
  ******************************************************************************/
 struct Encoder
 {
+  // TODO: change back to using {unordered_}{map,set} directly
   template <class K, class V>
   using Map = std::unordered_map<K, V>;
 
@@ -59,12 +62,17 @@ struct Encoder
   /* current pc */
   word_t                  pc;
 
-  /* pcs of checkpoint statements (checkpoint id -> thread -> pc) */
+  /* pcs of statements requiring an empty store buffer */
   Map<
     word_t,
-    Map<
+    std::set<word_t>>     flush_pcs;
+
+  /* pcs of checkpoint statements (checkpoint id -> thread -> pc) */
+  std::map<
+    word_t,
+    std::map<
       word_t,
-      Set<word_t>>>       check_pcs;
+      std::set<word_t>>>  check_pcs;
 
   /* pcs of exit calls */
   Map<

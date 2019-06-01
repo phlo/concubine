@@ -19,7 +19,7 @@ const string SMTLibEncoder::sb_val_comment =
   "; store buffer value states - " + sb_val_sym + "_<step>_<thread>";
 
 const string SMTLibEncoder::sb_full_comment =
-  "; store buffer full states - " + sb_val_sym + "_<step>_<thread>";
+  "; store buffer full states - " + sb_full_sym + "_<step>_<thread>";
 
 const string SMTLibEncoder::heap_comment =
   "; heap states - " + heap_sym + "_<step>";
@@ -473,39 +473,58 @@ void SMTLibEncoder::add_thread_scheduling ()
     formula << smtlib::comment_subsection("thread scheduling");
 
   declare_thread_vars();
-  declare_flush_vars();
+  formula << eol;
 
-  /* prevent flushing an empty store buffer */
-  iterate_threads([this] {
-    formula <<
-      smtlib::implication(
-        smtlib::lnot(sb_full_var()),
-        smtlib::lnot(flush_var()));
-  });
-
-  // TODO
-  /* block threads requiring a store buffer flush */
-  iterate_threads([this] {
-    formula <<
-      smtlib::implication(
-        smtlib::land({"", ""}),
-        "");
-  });
-
-  /* cardinality constraint */
+  /* cardinality constraint variables */
   vector<string> variables;
 
   iterate_threads([this, &variables] {
     variables.push_back(thread_var());
-    variables.push_back(flush_var());
   });
+
+  /* store buffer constraints */
+  if (step > 1 && !flush_pcs.empty())
+    {
+      declare_flush_vars();
+      formula << eol;
+
+      if (verbose)
+        formula << smtlib::comment("store buffer constraints") << eol;
+
+      iterate_threads([this, &variables] {
+        vector<string> stmts;
+
+        if (flush_pcs.find(thread) != flush_pcs.end())
+          for (const word_t p : flush_pcs.at(thread))
+            stmts.push_back(stmt_var(step, thread, p));
+
+        formula <<
+          smtlib::assertion(
+            smtlib::ite(
+              sb_full_var(),
+              stmts.empty()
+                ? "true"
+                : smtlib::implication(
+                    smtlib::lor(stmts),
+                    smtlib::lnot(thread_var())),
+              smtlib::lnot(flush_var()))) <<
+          eol;
+
+        variables.push_back(flush_var());
+      });
+
+      formula << eol;
+    }
 
   /* add exit flag */
   if (step > 1 && !exit_pcs.empty())
     variables.push_back(exit_var());
 
+  /* cardinality constraint */
+  if (verbose)
+    formula << smtlib::comment("cardinality constraint") << eol;
+
   formula
-    << eol
     << (use_sinz_constraint
       ? smtlib::card_constraint_sinz(variables)
       : smtlib::card_constraint_naive(variables))

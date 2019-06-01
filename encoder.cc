@@ -30,17 +30,23 @@ Encoder::Encoder (const Program_list_ptr p, bound_t b) :
   iterate_programs([this] (const Program & program) {
     for (pc = 0; pc < program.size(); pc++)
       {
-        /* collect CAS statemets */
-        if (Cas_ptr c = dynamic_pointer_cast<Cas>(program[pc]))
-          cas_threads.insert(thread);
+        const Instruction_ptr & op = program[pc];
+
+        /* collect statements requiring an empty store buffer */
+        if (op->requires_flush())
+          flush_pcs[thread].insert(pc);
 
         /* collect CHECK statemets */
-        if (Check_ptr s = dynamic_pointer_cast<Check>(program[pc]))
+        if (Check_ptr s = dynamic_pointer_cast<Check>(op))
           check_pcs[s->arg][thread].insert(pc);
 
         /* collect exit calls */
-        if (Exit_ptr e = dynamic_pointer_cast<Exit>(program[pc]))
+        if (Exit_ptr e = dynamic_pointer_cast<Exit>(op))
           exit_pcs[thread].push_back(pc);
+
+        /* collect CAS statemets */
+        if (Cas_ptr c = dynamic_pointer_cast<Cas>(op))
+          cas_threads.insert(thread);
       }
   });
 }
