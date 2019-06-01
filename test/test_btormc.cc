@@ -10,7 +10,7 @@ using namespace std;
 struct BtorMCTest : public ::testing::Test
 {
   BtorMC            btormc = BtorMC(16);
-  EncoderPtr        encoder;
+  Encoder_ptr       encoder;
   Program_list_ptr  programs = make_shared<Program_list>();
   Schedule_ptr      schedule;
 };

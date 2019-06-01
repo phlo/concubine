@@ -8,14 +8,14 @@ using namespace std;
 struct SMTLibEncoderFunctionalTest : public ::testing::Test
 {
   Program_list_ptr            programs {make_shared<Program_list>()};
-  SMTLibEncoderFunctionalPtr  encoder {create_encoder(1, 1)};
+  SMTLibEncoderFunctional_ptr encoder {create_encoder(1, 1)};
 
-  SMTLibEncoderFunctionalPtr  create_encoder (
+  SMTLibEncoderFunctional_ptr create_encoder (
                                               const word_t bound,
                                               const word_t step
                                              )
     {
-      SMTLibEncoderFunctionalPtr e =
+      SMTLibEncoderFunctional_ptr e =
         make_shared<SMTLibEncoderFunctional>(programs, bound, false);
 
       e->step = step;

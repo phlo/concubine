@@ -6,11 +6,11 @@ using namespace std;
 
 struct EncoderTest : public ::testing::Test
 {
-  const char *      expected;
-  Program_list      programs;
-  EncoderPtr        encoder = create_encoder(0);
+  const char *  expected;
+  Program_list  programs;
+  Encoder_ptr   encoder = create_encoder(0);
 
-  EncoderPtr create_encoder (const word_t bound)
+  Encoder_ptr create_encoder (const word_t bound)
     {
       return make_shared<SMTLibEncoderFunctional>(
         make_shared<Program_list>(programs),
@@ -58,12 +58,14 @@ TEST_F(EncoderTest, constructor)
 
   for (const auto & [id, threads] : encoder->check_pcs)
     for (const auto & pcs : threads)
-      ASSERT_EQ(id == 1 ? set<word_t>({3}) : set<word_t>({6}), get<1>(pcs));
+      ASSERT_EQ(
+        id == 1 ? Encoder::Set<word_t>({3}) : Encoder::Set<word_t>({6}),
+        get<1>(pcs));
 
   for (const auto & pcs : encoder->exit_pcs)
       ASSERT_EQ(vector<word_t>({5}), get<1>(pcs));
 
-  ASSERT_EQ(set<word_t>({0, 1, 2}), encoder->cas_threads);
+  ASSERT_EQ(Encoder::Set<word_t>({0, 1, 2}), encoder->cas_threads);
 }
 
 TEST_F(EncoderTest, constructor_check_pcs)
@@ -81,7 +83,9 @@ TEST_F(EncoderTest, constructor_check_pcs)
 
   for (const auto & [id, threads] : encoder->check_pcs)
     for (const auto & pcs : threads)
-      ASSERT_EQ(set<word_t>({static_cast<word_t>(id - 1)}), get<1>(pcs));
+      ASSERT_EQ(
+        Encoder::Set<word_t>({static_cast<word_t>(id - 1)}),
+        get<1>(pcs));
 }
 
 TEST_F(EncoderTest, constructor_exit_pcs)
@@ -112,7 +116,7 @@ TEST_F(EncoderTest, constructor_cas_threads)
 
   reset_encoder(0);
 
-  ASSERT_EQ(set<word_t>({0, 1, 2}), encoder->cas_threads);
+  ASSERT_EQ(Encoder::Set<word_t>({0, 1, 2}), encoder->cas_threads);
 }
 
 /* Encoder::iterate_threads ***************************************************/

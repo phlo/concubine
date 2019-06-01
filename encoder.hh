@@ -2,8 +2,6 @@
 #define ENCODER_HH_
 
 #include <sstream>
-#include <map>
-#include <set>
 #include <vector>
 
 #include "instructionset.hh"
@@ -14,6 +12,12 @@
  ******************************************************************************/
 struct Encoder
 {
+  template <class K, class V>
+  using Map = std::unordered_map<K, V>;
+
+  template <class V>
+  using Set = std::unordered_set<V>;
+
   /* state symbols */
   static const std::string accu_sym;
   static const std::string mem_sym;
@@ -56,20 +60,20 @@ struct Encoder
   word_t                  pc;
 
   /* pcs of checkpoint statements (checkpoint id -> thread -> pc) */
-  std::map<
+  Map<
     word_t,
-    std::map<
+    Map<
       word_t,
-      std::set<word_t>>>  check_pcs;
+      Set<word_t>>>       check_pcs;
 
   /* pcs of exit calls */
-  std::unordered_map<
+  Map<
     word_t,
     std::vector<word_t>>  exit_pcs;
 
   /* threads containing CAS statements */
   // TODO: really necessary?
-  std::set<word_t>        cas_threads;
+  Set<word_t>             cas_threads;
 
   /* constructs an Encoder for the given program and bound */
   Encoder (const Program_list_ptr programs, bound_t bound);
@@ -140,9 +144,6 @@ struct Encoder
   /* encodes the whole machine configuration */
   virtual void        encode () = 0;
 
-  /* print the SMT formula to stdout */
-  void                print ();
-
   /* returns the SMT formula as string */
   std::string         str ();
 
@@ -155,9 +156,9 @@ struct Encoder
 };
 
 /*******************************************************************************
- * EncoderPtr
+ * Encoder_ptr
  ******************************************************************************/
-typedef std::shared_ptr<Encoder> EncoderPtr;
+using Encoder_ptr = std::shared_ptr<Encoder>;
 
 /*******************************************************************************
  * SMT-Lib v2.5 Encoder Base Class
@@ -272,9 +273,9 @@ struct SMTLibEncoder : public Encoder
 };
 
 /*******************************************************************************
- * SMTLibEncoderPtr
+ * SMTLibEncoder_ptr
  ******************************************************************************/
-typedef std::shared_ptr<SMTLibEncoder> SMTLibEncoderPtr;
+using SMTLibEncoder_ptr = std::shared_ptr<SMTLibEncoder>;
 
 /*******************************************************************************
  * SMT-Lib v2.5 Functional Encoder Class
@@ -289,13 +290,13 @@ struct SMTLibEncoderFunctional : public SMTLibEncoder
                           );
 
   /* accumulator altering pcs */
-  std::unordered_map<word_t, std::vector<word_t>> alters_accu;
+  Map<word_t, std::vector<word_t>> alters_accu;
 
   /* CAS memory register altering pcs */
-  std::unordered_map<word_t, std::vector<word_t>> alters_mem;
+  Map<word_t, std::vector<word_t>> alters_mem;
 
   /* heap altering pcs */
-  std::unordered_map<word_t, std::vector<word_t>> alters_heap;
+  Map<word_t, std::vector<word_t>> alters_heap;
 
   /* flag to distinguish between accu and heap updates when encoding CAS */
   bool                update_accu;
@@ -336,9 +337,9 @@ struct SMTLibEncoderFunctional : public SMTLibEncoder
 };
 
 /*******************************************************************************
- * SMTLibEncoderFunctionalPtr
+ * SMTLibEncoderFunctional_ptr
  ******************************************************************************/
-typedef std::shared_ptr<SMTLibEncoderFunctional> SMTLibEncoderFunctionalPtr;
+using SMTLibEncoderFunctional_ptr = std::shared_ptr<SMTLibEncoderFunctional>;
 
 /*******************************************************************************
  * SMT-Lib v2.5 Relational Encoder Class
@@ -405,9 +406,9 @@ struct SMTLibEncoderRelational : public SMTLibEncoder
 };
 
 /*******************************************************************************
- * SMTLibEncoderRelationalPtr
+ * SMTLibEncoderRelational_ptr
  ******************************************************************************/
-typedef std::shared_ptr<SMTLibEncoderRelational> SMTLibEncoderRelationalPtr;
+using SMTLibEncoderRelational_ptr = std::shared_ptr<SMTLibEncoderRelational>;
 
 /*******************************************************************************
  * Btor2 Encoder Class
@@ -425,13 +426,13 @@ struct Btor2Encoder : public Encoder
                );
 
   /* accumulator altering pcs */
-  std::unordered_map<word_t, std::vector<word_t>> alters_accu;
+  Map<word_t, std::vector<word_t>> alters_accu;
 
   /* CAS memory register altering pcs */
-  std::unordered_map<word_t, std::vector<word_t>> alters_mem;
+  Map<word_t, std::vector<word_t>> alters_mem;
 
   /* heap altering pcs */
-  std::unordered_map<word_t, std::vector<word_t>> alters_heap;
+  Map<word_t, std::vector<word_t>> alters_heap;
 
   /* flag to distinguish between accu and heap updates when encoding CAS */
   bool                          update_accu;
@@ -451,7 +452,7 @@ struct Btor2Encoder : public Encoder
                                 nid_exit,
                                 nid_exit_code;
 
-  std::map<word_t, std::string> nids_const,
+  Map<word_t, std::string>      nids_const,
 
                                 nids_accu,
                                 nids_mem,
@@ -462,14 +463,14 @@ struct Btor2Encoder : public Encoder
                                 nids_load,
                                 nids_load_indirect;
 
-  std::map<
+  Map<
     word_t,
     std::vector<std::string>>   nids_stmt,
                                 nids_exec;
 
-  std::map<
+  Map<
     word_t,
-    std::map<
+    Map<
       word_t,
       std::string>>             nids_block,
                                 nids_store,
@@ -509,7 +510,7 @@ struct Btor2Encoder : public Encoder
                                               std::string sid,
                                               std::string nid_init,
                                               std::string symbol,
-                                              std::unordered_map<
+                                              Map<
                                                 word_t,
                                                 std::vector<word_t>> & alters,
                                               const bool global = false
@@ -572,8 +573,8 @@ struct Btor2Encoder : public Encoder
 };
 
 /*******************************************************************************
- * Btor2EncoderPtr
+ * Btor2Encoder_ptr
  ******************************************************************************/
-typedef std::shared_ptr<Btor2Encoder> Btor2EncoderPtr;
+using Btor2Encoder_ptr = std::shared_ptr<Btor2Encoder>;
 
 #endif

@@ -7,9 +7,9 @@ using namespace std;
 struct SMTLibEncoderTest : public ::testing::Test
 {
   Program_list      programs;
-  SMTLibEncoderPtr  encoder = create_encoder(0);
+  SMTLibEncoder_ptr encoder = create_encoder(0);
 
-  SMTLibEncoderPtr create_encoder (const word_t bound)
+  SMTLibEncoder_ptr create_encoder (const word_t bound)
     {
       return make_shared<SMTLibEncoderFunctional>(
         make_shared<Program_list>(programs),

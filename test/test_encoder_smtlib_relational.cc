@@ -9,14 +9,14 @@ using namespace std;
 struct SMTLibEncoderRelationalTest : public ::testing::Test
 {
   Program_list_ptr            programs {make_shared<Program_list>()};
-  SMTLibEncoderRelationalPtr  encoder {create_encoder(2, 1)};
+  SMTLibEncoderRelational_ptr encoder {create_encoder(2, 1)};
 
-  SMTLibEncoderRelationalPtr  create_encoder (
+  SMTLibEncoderRelational_ptr create_encoder (
                                               const word_t bound,
                                               const word_t step
                                              )
     {
-      SMTLibEncoderRelationalPtr e =
+      SMTLibEncoderRelational_ptr e =
         make_shared<SMTLibEncoderRelational>(programs, bound, false);
 
       e->step = step;

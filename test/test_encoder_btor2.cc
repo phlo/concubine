@@ -19,9 +19,9 @@ struct Btor2EncoderTest : public ::testing::Test
 {
   string            nid;
   Program_list_ptr  programs {make_shared<Program_list>()};
-  Btor2EncoderPtr   encoder {create_encoder(1)};
+  Btor2Encoder_ptr  encoder {create_encoder(1)};
 
-  Btor2EncoderPtr create_encoder (const word_t bound)
+  Btor2Encoder_ptr create_encoder (const word_t bound)
     {
       return make_shared<Btor2Encoder>(programs, bound, false);
     }

@@ -380,17 +380,14 @@ int solve (char * name, int argc, char ** argv)
         programs->push_back(create_from_file<Program>(argv[i++]));
 
       /* encode program */
-      EncoderPtr encoder;
+      Encoder_ptr encoder;
 
       if (encoder_name == "smtlib-functional")
-        encoder = SMTLibEncoderFunctionalPtr(
-          new SMTLibEncoderFunctional(programs, bound));
+        encoder = make_shared<SMTLibEncoderFunctional>(programs, bound);
       else if (encoder_name == "smtlib-relational")
-        encoder = SMTLibEncoderRelationalPtr(
-          new SMTLibEncoderRelational(programs, bound));
+        encoder = make_shared<SMTLibEncoderRelational>(programs, bound);
       else if (encoder_name == "btor2")
-        encoder = Btor2EncoderPtr(
-          new Btor2Encoder(programs, bound));
+        encoder = make_shared<Btor2Encoder>(programs, bound);
       else
         {
           print_error("unknown encoder [" + encoder_name + "]");

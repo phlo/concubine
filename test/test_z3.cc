@@ -9,7 +9,7 @@ using namespace std;
 struct Z3Test : public ::testing::Test
 {
   Z3                z3;
-  EncoderPtr        encoder;
+  Encoder_ptr       encoder;
   Program_list_ptr  programs = make_shared<Program_list>();
   Schedule_ptr      schedule;
 };

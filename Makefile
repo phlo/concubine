@@ -29,6 +29,10 @@ SRC = boolector.cc \
       btormc.cc \
       cvc4.cc \
       encoder.cc \
+      encoder_btor2.cc \
+      encoder_smtlib.cc \
+      encoder_smtlib_functional.cc \
+      encoder_smtlib_relational.cc \
       instructionset.cc \
       program.cc \
       schedule.cc \
