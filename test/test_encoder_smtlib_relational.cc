@@ -392,7 +392,7 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_update)
 {
   add_dummy_programs(3);
 
-  encoder->add_state_update();
+  encoder->add_state_updates();
 
   ASSERT_EQ(
     "; state update ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
@@ -504,7 +504,7 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_update)
   /* step == bound */
   reset_encoder(2, 2);
 
-  encoder->add_state_update();
+  encoder->add_state_updates();
 
   ASSERT_EQ(
     "; state update ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
@@ -572,7 +572,7 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_update)
   reset_encoder(2, 1);
 
   verbose = false;
-  encoder->add_state_update();
+  encoder->add_state_updates();
   verbose = true;
 
   ASSERT_EQ(

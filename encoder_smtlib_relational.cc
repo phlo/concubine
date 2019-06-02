@@ -124,10 +124,10 @@ void SMTLibEncoderRelational::add_statement_declaration ()
   step--;
 }
 
-void SMTLibEncoderRelational::add_state_update ()
+void SMTLibEncoderRelational::add_state_updates ()
 {
   if (verbose)
-    formula << smtlib::comment_subsection("state update");
+    formula << smtlib::comment_subsection("state updates");
 
   declare_accu_vars();
   declare_mem_vars();
@@ -229,7 +229,7 @@ void SMTLibEncoderRelational::encode ()
       add_statement_declaration();
 
       /* encode instructions */
-      add_state_update();
+      add_state_updates();
 
       /* preserve thread's state if it wasn't executed */
       add_state_preservation();
@@ -244,7 +244,7 @@ void SMTLibEncoderRelational::encode ()
 string SMTLibEncoderRelational::encode (Load & l)
 {
   return
-    assign_accu(load(l)) +
+    assign_accu(load(l.arg, l.indirect)) +
     preserve_mem() +
     preserve_heap() +
     activate_next();
@@ -277,7 +277,8 @@ string SMTLibEncoderRelational::encode (Fence & f [[maybe_unused]])
 string SMTLibEncoderRelational::encode (Add & a)
 {
   return
-    assign_accu(smtlib::bvadd({accu_var(step - 1, thread), load(a)})) +
+    assign_accu(
+      smtlib::bvadd({accu_var(step - 1, thread), load(a.arg, a.indirect)})) +
     preserve_mem() +
     preserve_heap() +
     activate_next();
@@ -296,7 +297,8 @@ string SMTLibEncoderRelational::encode (Addi & a)
 string SMTLibEncoderRelational::encode (Sub & s)
 {
   return
-    assign_accu(smtlib::bvsub({accu_var(step - 1, thread), load(s)})) +
+    assign_accu(
+      smtlib::bvsub({accu_var(step - 1, thread), load(s.arg, s.indirect)})) +
     preserve_mem() +
     preserve_heap() +
     activate_next();
@@ -315,7 +317,8 @@ string SMTLibEncoderRelational::encode (Subi & s)
 string SMTLibEncoderRelational::encode (Cmp & c)
 {
   return
-    assign_accu(smtlib::bvsub({accu_var(step - 1, thread), load(c)})) +
+    assign_accu(
+      smtlib::bvsub({accu_var(step - 1, thread), load(c.arg, c.indirect)})) +
     preserve_mem() +
     preserve_heap() +
     activate_next();
@@ -405,7 +408,7 @@ string SMTLibEncoderRelational::encode (Jnzns & j)
 string SMTLibEncoderRelational::encode (Mem & m)
 {
   return
-    assign_accu(load(m)) +
+    assign_accu(load(m.arg, m.indirect)) +
     assign_mem(accu_var()) +
     preserve_heap() +
     activate_next();

@@ -28,6 +28,7 @@ struct SMTLibEncoderTest : public ::testing::Test
     {
       encoder = create_encoder(bound);
       encoder->step = step;
+      encoder->prev = step - 1;
     }
 
   void add_dummy_programs (unsigned num, unsigned size)
@@ -1082,9 +1083,9 @@ TEST_F(SMTLibEncoderTest, add_initial_state)
     "(declare-fun sb-full_0_1 () Bool)\n"
     "(declare-fun sb-full_0_2 () Bool)\n"
     "\n"
-    "(assert (= sb-full_0_0 false))\n"
-    "(assert (= sb-full_0_1 false))\n"
-    "(assert (= sb-full_0_2 false))\n"
+    "(assert (not sb-full_0_0))\n"
+    "(assert (not sb-full_0_1))\n"
+    "(assert (not sb-full_0_2))\n"
     "\n"
     "; heap states - heap_<step>\n"
     "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n"
@@ -1135,9 +1136,9 @@ TEST_F(SMTLibEncoderTest, add_initial_state)
     "(declare-fun sb-full_0_1 () Bool)\n"
     "(declare-fun sb-full_0_2 () Bool)\n"
     "\n"
-    "(assert (= sb-full_0_0 false))\n"
-    "(assert (= sb-full_0_1 false))\n"
-    "(assert (= sb-full_0_2 false))\n"
+    "(assert (not sb-full_0_0))\n"
+    "(assert (not sb-full_0_1))\n"
+    "(assert (not sb-full_0_2))\n"
     "\n"
     "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n"
     "\n",
@@ -1422,15 +1423,15 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_store_buffer_constraints)
     "\n"
     "; store buffer constraints\n"
     "(assert "
-      "(ite sb-full_2_0 "
+      "(ite sb-full_1_0 "
         "(=> (or stmt_2_0_0 stmt_2_0_1 stmt_2_0_2) (not thread_2_0)) "
         "(not flush_2_0)))\n"
     "(assert "
-      "(ite sb-full_2_1 "
+      "(ite sb-full_1_1 "
         "(=> (or stmt_2_1_0 stmt_2_1_1 stmt_2_1_2) (not thread_2_1)) "
         "(not flush_2_1)))\n"
     "(assert "
-      "(ite sb-full_2_2 "
+      "(ite sb-full_1_2 "
         "(=> (or stmt_2_2_0 stmt_2_2_1 stmt_2_2_2) (not thread_2_2)) "
         "(not flush_2_2)))\n"
     "\n"
@@ -1471,15 +1472,15 @@ TEST_F(SMTLibEncoderTest, add_thread_scheduling_store_buffer_constraints)
     "(declare-fun flush_2_2 () Bool)\n"
     "\n"
     "(assert "
-      "(ite sb-full_2_0 "
+      "(ite sb-full_1_0 "
         "(=> (or stmt_2_0_0 stmt_2_0_1 stmt_2_0_2) (not thread_2_0)) "
         "(not flush_2_0)))\n"
     "(assert "
-      "(ite sb-full_2_1 "
+      "(ite sb-full_1_1 "
         "(=> (or stmt_2_1_0 stmt_2_1_1 stmt_2_1_2) (not thread_2_1)) "
         "(not flush_2_1)))\n"
     "(assert "
-      "(ite sb-full_2_2 "
+      "(ite sb-full_1_2 "
         "(=> (or stmt_2_2_0 stmt_2_2_1 stmt_2_2_2) (not thread_2_2)) "
         "(not flush_2_2)))\n"
     "\n"
@@ -1753,16 +1754,45 @@ TEST_F(SMTLibEncoderTest, add_statement_execution)
 /* SMTLibEncoder::load ********************************************************/
 TEST_F(SMTLibEncoderTest, load)
 {
-  Load l = Load(1);
+  encoder->step = 2;
+  encoder->prev = 1;
+  encoder->thread = 0;
 
-  encoder->step = 1;
-
-  ASSERT_EQ("(select heap_0 #x0001)", encoder->load(l));
+  ASSERT_EQ(
+    "(ite (and sb-full_1_0 (= sb-adr_1_0 #x0001)) "
+      "sb-val_1_0 "
+      "(select heap_1 #x0001))",
+    encoder->load(1));
 
   // indirect
-  l.indirect = true;
+  ASSERT_EQ(
+    "(ite "
+      "(and "
+        "sb-full_1_0 "
+        "(= "
+          "sb-adr_1_0 "
+          "(ite (and sb-full_1_0 (= sb-adr_1_0 #x0001)) "
+            "sb-val_1_0 "
+            "(select heap_1 #x0001)))) "
+      "sb-val_1_0 "
+      "(select "
+        "heap_1 "
+        "(ite (and sb-full_1_0 (= sb-adr_1_0 #x0001)) "
+          "sb-val_1_0 "
+          "(select heap_1 #x0001))))",
+    encoder->load(1, true));
+}
 
-  ASSERT_EQ("(select heap_0 (select heap_0 #x0001))", encoder->load(l));
+TEST_F(SMTLibEncoderTest, load_initial)
+{
+  encoder->step = 1;
+  encoder->prev = 0;
+  encoder->thread = 0;
+
+  ASSERT_EQ("(select heap_0 #x0001)", encoder->load(1));
+
+  // indirect
+  ASSERT_EQ("(select heap_0 (select heap_0 #x0001))", encoder->load(1, true));
 }
 
 /* SMTLibEncoder::encode ******************************************************/
@@ -1820,9 +1850,9 @@ TEST_F(SMTLibEncoderTest, encode)
     "(declare-fun sb-full_0_1 () Bool)\n"
     "(declare-fun sb-full_0_2 () Bool)\n"
     "\n"
-    "(assert (= sb-full_0_0 false))\n"
-    "(assert (= sb-full_0_1 false))\n"
-    "(assert (= sb-full_0_2 false))\n"
+    "(assert (not sb-full_0_0))\n"
+    "(assert (not sb-full_0_1))\n"
+    "(assert (not sb-full_0_2))\n"
     "\n"
     "; heap states - heap_<step>\n"
     "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n"
@@ -1875,9 +1905,9 @@ TEST_F(SMTLibEncoderTest, encode)
     "(declare-fun sb-full_0_1 () Bool)\n"
     "(declare-fun sb-full_0_2 () Bool)\n"
     "\n"
-    "(assert (= sb-full_0_0 false))\n"
-    "(assert (= sb-full_0_1 false))\n"
-    "(assert (= sb-full_0_2 false))\n"
+    "(assert (not sb-full_0_0))\n"
+    "(assert (not sb-full_0_1))\n"
+    "(assert (not sb-full_0_2))\n"
     "\n"
     "(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))\n"
     "\n",

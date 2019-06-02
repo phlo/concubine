@@ -450,7 +450,7 @@ TEST_F(InstructionSetTest, CAS)
 
   ASSERT_EQ("CAS", instruction->symbol());
   ASSERT_EQ(
-    Types::accu | Types::read | Types::write | Types::atomic,
+    Types::accu | Types::read | Types::atomic | Types::barrier,
     instruction->type());
 
   thread.accu = 0;

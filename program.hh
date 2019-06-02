@@ -4,6 +4,7 @@
 #include <deque>
 #include <istream>
 #include <memory>
+#include <set>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -17,7 +18,7 @@ using Instruction_ptr = std::shared_ptr<Instruction>;
  ******************************************************************************/
 struct Program : public std::deque<Instruction_ptr>
 {
-  using Predecessors = std::unordered_map<word_t, std::unordered_set<word_t>>;
+  using Predecessors = std::unordered_map<word_t, std::set<word_t>>;
 
   /* path to program file */
   std::string                     path;

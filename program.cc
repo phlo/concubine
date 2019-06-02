@@ -155,6 +155,7 @@ Program::Program(istream & f, string & p) : path(p)
       }
 
   /* collect predecessors */
+  predecessors[0]; // explicitly add initial instruction
   for (word_t pc = 0, last = size() - 1; pc <= last; pc++)
     {
       const Instruction_ptr & op = (*this)[pc];

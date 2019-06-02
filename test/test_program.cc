@@ -12,7 +12,7 @@ using namespace std;
 *******************************************************************************/
 struct ProgramTest : public ::testing::Test
 {
-  using Predecessors = unordered_set<word_t>;
+  using Predecessors = set<word_t>;
 
   string path = "dummy.asm";
   Program_ptr program = make_shared<Program>();
@@ -187,7 +187,7 @@ TEST_F(ProgramTest, parse_predecessors)
     "ADDI 1\n"
     "ADDI 1\n");
 
-  ASSERT_THROW(program->predecessors.at(0), out_of_range);
+  ASSERT_EQ(Predecessors(), program->predecessors.at(0));
   ASSERT_EQ(Predecessors({0}), program->predecessors.at(1));
   ASSERT_EQ(Predecessors({1}), program->predecessors.at(2));
 }
@@ -199,7 +199,7 @@ TEST_F(ProgramTest, parse_predecessors_jnz)
     "ADDI 1\n"
     "JNZ 1\n");
 
-  ASSERT_THROW(program->predecessors.at(0), out_of_range);
+  ASSERT_EQ(Predecessors(), program->predecessors.at(0));
   ASSERT_EQ(Predecessors({0, 2}), program->predecessors.at(1));
   ASSERT_EQ(Predecessors({1}), program->predecessors.at(2));
 }

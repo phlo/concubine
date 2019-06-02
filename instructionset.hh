@@ -27,8 +27,8 @@ struct Instruction
       modify  = accu | mem, // modifies a register
       read    = 1 << 2, // reads from memory
       write   = 1 << 3, // writes to memory
-      barrier = 1 << 4, // memory barrier
-      atomic  = 1 << 5 | barrier, // atomic instruction
+      atomic  = 1 << 4, // atomic instruction
+      barrier = 1 << 5, // memory barrier
       control = 1 << 6  // control flow
     };
 

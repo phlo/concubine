@@ -21,6 +21,9 @@ struct Encoder
   template <class V>
   using Set = std::unordered_set<V>;
 
+  using Type = Instruction::Type;
+  using Types = Instruction::Types;
+
   /* state symbols */
   static const std::string accu_sym;
   static const std::string mem_sym;
@@ -61,6 +64,18 @@ struct Encoder
 
   /* current pc */
   word_t                  pc;
+
+  /* state being updated (for being able to distinguish in Encoder::encode) */
+  enum class Update
+    {
+      accu,
+      mem,
+      sb_adr,
+      sb_val,
+      heap // TODO: really necessary?
+    };
+
+  Update update;
 
   /* pcs of statements requiring an empty store buffer */
   Map<
@@ -177,7 +192,8 @@ struct SMTLibEncoder : public Encoder
   SMTLibEncoder (const Program_list_ptr programs, bound_t bound);
 
   /* encoder variables */
-  bound_t                   step;
+  bound_t                   step,
+                            prev;
 
   /* string nids_const */
   static const std::string  bv_sort;
@@ -275,7 +291,7 @@ struct SMTLibEncoder : public Encoder
   void                      add_checkpoint_constraints ();
   void                      add_statement_execution ();
 
-  std::string               load(Load &);
+  std::string               load(word_t address, bool indirect = false);
 
   virtual void              encode ();
 };
@@ -297,20 +313,15 @@ struct SMTLibEncoderFunctional : public SMTLibEncoder
                            bool encode = true
                           );
 
-  /* accumulator altering pcs */
-  Map<word_t, std::vector<word_t>> alters_accu;
-
-  /* CAS memory register altering pcs */
-  Map<word_t, std::vector<word_t>> alters_mem;
-
-  /* heap altering pcs */
-  Map<word_t, std::vector<word_t>> alters_heap;
-
-  /* flag to distinguish between accu and heap updates when encoding CAS */
-  bool                update_accu;
-
   void                add_statement_activation ();
-  void                add_state_update ();
+  void                add_state_update (Update state);
+  void                add_accu_update ();
+  void                add_mem_update ();
+  void                add_sb_adr_update ();
+  void                add_sb_val_update ();
+  void                add_sb_full_update ();
+  void                add_heap_update ();
+  void                add_state_updates ();
   void                add_exit_code ();
 
   /* encodes the whole machine configuration */
@@ -379,7 +390,7 @@ struct SMTLibEncoderRelational : public SMTLibEncoder
 
   void                add_exit_code ();
   void                add_statement_declaration ();
-  void                add_state_update ();
+  void                add_state_updates ();
   void                add_state_preservation ();
 
   /* encodes the whole machine configuration */

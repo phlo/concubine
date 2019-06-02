@@ -419,7 +419,7 @@ void SMTLibEncoder::add_initial_state ()
   declare_sb_full_vars();
 
   iterate_threads([this] {
-    formula << assign_var(sb_full_var(), "false") << eol;
+    formula << smtlib::assertion(smtlib::lnot(sb_full_var())) << eol;
   });
 
   formula << eol;
@@ -457,11 +457,11 @@ void SMTLibEncoder::add_exit_flag ()
   vector<string> args;
 
   if (step > 2)
-    args.push_back(exit_var(step - 1));
+    args.push_back(exit_var(prev));
 
   iterate_threads([this, &args] {
     for (const word_t & exit_pc : exit_pcs[thread])
-      args.push_back(exec_var(step - 1, thread, exit_pc));
+      args.push_back(exec_var(prev, thread, exit_pc));
   });
 
   formula << assign_var(exit_var(), smtlib::lor(args)) << eol << eol;
@@ -501,7 +501,7 @@ void SMTLibEncoder::add_thread_scheduling ()
         formula <<
           smtlib::assertion(
             smtlib::ite(
-              sb_full_var(),
+              sb_full_var(prev, thread),
               stmts.empty()
                 ? "true"
                 : smtlib::implication(
@@ -639,14 +639,18 @@ void SMTLibEncoder::add_statement_execution ()
   });
 }
 
-string SMTLibEncoder::load (Load & l)
+string SMTLibEncoder::load (const word_t adr, const bool indirect)
 {
-  string heap = heap_var(step - 1);
+  string address = indirect ? load(adr) : smtlib::word2hex(adr);
 
-  if (l.indirect)
-    return smtlib::select(heap, smtlib::select(heap, smtlib::word2hex(l.arg)));
-  else
-    return smtlib::select(heap, smtlib::word2hex(l.arg));
+  return step > 1
+    ? smtlib::ite(
+        smtlib::land({
+          sb_full_var(prev, thread),
+          smtlib::equality({sb_adr_var(prev, thread), address})}),
+        sb_val_var(prev, thread),
+        smtlib::select(heap_var(prev), address))
+    : smtlib::select(heap_var(prev), address);
 }
 
 void SMTLibEncoder::encode ()
