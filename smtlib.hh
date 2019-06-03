@@ -16,7 +16,7 @@
 namespace smtlib
 {
   /* converts integer to its word sized SMT-Lib hex constant ******************/
-  inline std::string word2hex (word_t val)
+  inline std::string word2hex (const word_t val)
     {
       std::ostringstream s;
       s << "#x"
@@ -27,11 +27,36 @@ namespace smtlib
       return s.str();
     }
 
-  /* n-ary expression *********************************************************/
+  /* unary expression *********************************************************/
+  inline std::string expr (const char * op, const std::string arg)
+    {
+      return '(' + (op + (' ' + arg + ')'));
+    }
+
+  /* binary expression ********************************************************/
   inline std::string expr (
                            const char * op,
-                           std::vector<std::string> const & args
+                           const std::string arg1,
+                           const std::string arg2
                           )
+    {
+      return '(' + (op + (' ' + arg1 + ' ' + arg2 + ')'));
+    }
+
+  /* ternary expression *******************************************************/
+  inline std::string expr (
+                           const char * op,
+                           const std::string arg1,
+                           const std::string arg2,
+                           const std::string arg3
+                          )
+    {
+      return '(' + (op + (' ' + arg1 + ' ' + arg2 + ' ' + arg3 + ')'));
+    }
+
+  /* n-ary expression *********************************************************/
+  template <template<class, class...> class C>
+  inline std::string expr (const char * op, const C<std::string> & args)
     {
       std::ostringstream sb;
       sb << '(' << op;
@@ -41,8 +66,48 @@ namespace smtlib
       return sb.str();
     }
 
+  // allows mixing const char and strings in init list
+  inline std::string expr (
+                           const char * op,
+                           const std::initializer_list<std::string> & args
+                          )
+    {
+      return expr<std::initializer_list>(op, args);
+    }
+
+#define EXPR_SIGNATURE(name) \
+  template <template<class, class...> class C> \
+  inline std::string name (const C<std::string> & args) \
+
+#define EXPR_INIIIALIZER_LIST(name) \
+  inline std::string name (const std::initializer_list<std::string> & args) \
+    { \
+      return name<std::initializer_list>(args); \
+    }
+
+#define EXPR_UNARY_OR_MORE(name, op) \
+  EXPR_SIGNATURE(name) \
+    { \
+      size_t nargs = args.size(); \
+      if (!nargs) throw std::runtime_error("no arguments"); \
+      return nargs < 2 \
+        ? *args.begin() \
+        : expr(op, args); \
+    } \
+  EXPR_INIIIALIZER_LIST(name)
+
+#define EXPR_BINARY_OR_MORE(name, op) \
+  EXPR_SIGNATURE(name) \
+    { \
+      size_t nargs = args.size(); \
+      if (!nargs) throw std::runtime_error("no arguments"); \
+      else if (nargs < 2) throw std::runtime_error("single argument"); \
+      return expr(op, args); \
+    } \
+  EXPR_INIIIALIZER_LIST(name)
+
   /* comment ******************************************************************/
-  inline std::string comment (std::string comment)
+  inline std::string comment (const std::string comment)
     {
       return "; " + comment;
     }
@@ -53,169 +118,134 @@ namespace smtlib
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n";
 
   /* comment section **********************************************************/
-  inline std::string comment_section (std::string comment)
+  inline std::string comment_section (const std::string comment)
     {
       return comment_line + "; " + comment + eol + comment_line + eol;
     }
 
   /* comment subsection *******************************************************/
-  inline std::string comment_subsection (std::string comment)
+  inline std::string comment_subsection (const std::string comment)
     {
       std::string c = comment_line + eol;
       return c.replace(1, 2 + comment.size(), " " + comment + " ");
     }
 
   /* assertion ****************************************************************/
-  inline std::string assertion (std::string arg)
+  inline std::string assertion (const std::string arg)
     {
-      return expr("assert", {arg});
+      return expr("assert", arg);
     }
 
   /* logical not **************************************************************/
-  inline std::string lnot (std::string arg)
+  inline std::string lnot (const std::string arg)
     {
-      return expr("not", {arg});
+      return expr("not", arg);
     }
 
   /* logical and **************************************************************/
-  inline std::string land (std::vector<std::string> const & args)
-    {
-      if (args.empty())
-        throw std::runtime_error("no arguments");
-
-      return args.size() < 2
-        ? args.front()
-        : expr("and", args);
-    }
+  EXPR_UNARY_OR_MORE(land, "and")
 
   /* logical or ***************************************************************/
-  inline std::string lor (std::vector<std::string> const & args)
-    {
-      if (args.empty())
-        throw std::runtime_error("no arguments");
-
-      return args.size() < 2
-        ? args.front()
-        : expr("or", args);
-    }
+  EXPR_UNARY_OR_MORE(lor, "or")
 
   /* logical xor **************************************************************/
-  inline std::string lxor (std::vector<std::string> const & args)
-    {
-      if (args.empty())
-        throw std::runtime_error("no arguments");
-
-      return args.size() < 2
-        ? args.front()
-        : expr("xor", args);
-    }
+  EXPR_UNARY_OR_MORE(lxor, "xor")
 
   /* implication **************************************************************/
-  inline std::string implication (std::string arg1, std::string arg2)
+  inline std::string implication (
+                                  const std::string antecedent,
+                                  const std::string consequent
+                                 )
     {
-      return expr("=>", {arg1, arg2});
+      return expr("=>", antecedent, consequent);
     }
 
   /* equality *****************************************************************/
-  inline std::string equality (std::vector<std::string> const & args)
-    {
-      if (args.empty())
-        throw std::runtime_error("no arguments");
-      else if (args.size() < 2)
-        throw std::runtime_error("single argument");
-
-      return expr("=", args);
-    }
+  EXPR_BINARY_OR_MORE(equality, "=")
 
   /* if-then-else *************************************************************/
-  inline std::string ite (std::string cond, std::string t, std::string f)
+  inline std::string ite (
+                          const std::string condition,
+                          const std::string t,
+                          const std::string f
+                         )
     {
-      return expr("ite", {cond, t, f});
+      return expr("ite", condition, t, f);
     }
 
   /* bit-vector add ***********************************************************/
-  inline std::string bvadd (std::vector<std::string> const & args)
-    {
-      if (args.empty())
-        throw std::runtime_error("no arguments");
-      else if (args.size() < 2)
-        throw std::runtime_error("single argument");
-
-      return expr("bvadd", args);
-    }
+  EXPR_BINARY_OR_MORE(bvadd, "bvadd")
 
   /* bit-vector sub ***********************************************************/
-  inline std::string bvsub (std::vector<std::string> const & args)
-    {
-      if (args.empty())
-        throw std::runtime_error("no arguments");
-      else if (args.size() < 2)
-        throw std::runtime_error("single argument");
-
-      return expr("bvsub", args);
-    }
+  EXPR_BINARY_OR_MORE(bvsub, "bvsub")
 
   /* array select *************************************************************/
-  inline std::string select (std::string array, std::string index)
+  inline std::string select (const std::string array, const std::string index)
     {
-      return expr("select", {array, index});
+      return expr("select", array, index);
     }
 
   /* array store **************************************************************/
   inline std::string store (
-                            std::string array,
-                            std::string index,
-                            std::string value
+                            const std::string array,
+                            const std::string index,
+                            const std::string value
                            )
     {
-      return expr("store", {array, index, value});
+      return expr("store", array, index, value);
     }
 
   /* bit-vector extract *******************************************************/
   inline std::string extract (
-                              std::string msb,
-                              std::string lsb,
-                              std::string bitvec
+                              const std::string msb,
+                              const std::string lsb,
+                              const std::string bitvec
                              )
     {
-      return expr(expr("_ extract", {msb, lsb}).c_str(), {bitvec});
+      return expr(expr("_ extract", msb, lsb).c_str(), bitvec);
     }
 
   /* bit-vector sort **********************************************************/
-  inline std::string bitvector (unsigned size)
+  inline std::string bitvector (const unsigned size)
     {
-      return expr("_ BitVec", {std::to_string(size)});
+      return expr("_ BitVec", std::to_string(size));
     }
 
   /* array sort ***************************************************************/
-  inline std::string array (std::string idx_t, std::string val_t)
+  inline std::string array (const std::string idx_t, const std::string val_t)
     {
-      return expr("Array", {idx_t, val_t});
+      return expr("Array", idx_t, val_t);
     }
 
   /* variable declaration *****************************************************/
-  inline std::string declare_var (std::string name, std::string type)
+  inline std::string declare_var (
+                                  const std::string name,
+                                  const std::string sort
+                                 )
     {
-      return expr("declare-fun", {name, "()", type});
+      return expr("declare-fun", name, "()", sort);
     }
 
   /* boolean variable declaration *********************************************/
-  inline std::string declare_bool_var (std::string name)
+  inline std::string declare_bool_var (const std::string name)
     {
       return declare_var(name, "Bool");
     }
 
   /* bitvector variable declaration *******************************************/
-  inline std::string declare_bv_var (std::string name, unsigned size)
+  inline std::string declare_bv_var (
+                                     const std::string name,
+                                     const unsigned size
+                                    )
     {
       return declare_var(name, bitvector(size));
     }
 
   /* array variable declaration ***********************************************/
   inline std::string declare_array_var (
-                                        std::string name,
-                                        std::string idx_t,
-                                        std::string val_t
+                                        const std::string name,
+                                        const std::string idx_t,
+                                        const std::string val_t
                                        )
     {
       return declare_var(name, array(idx_t, val_t));
@@ -247,7 +277,7 @@ namespace smtlib
 
   /* boolean cardinality constraint =1: naive (pair wise) *********************/
   inline std::string
-  card_constraint_naive (std::vector<std::string> const & vars)
+  card_constraint_naive (const std::vector<std::string> & vars)
     {
       switch (vars.size())
         {
@@ -280,7 +310,7 @@ namespace smtlib
 
   /* boolean cardinality constraint =1: Carsten Sinz's sequential counter *****/
   inline std::string
-  card_constraint_sinz (std::vector<std::string> const & vars)
+  card_constraint_sinz (const std::vector<std::string> & vars)
     {
       size_t n = vars.size();
 
