@@ -179,7 +179,7 @@ DEFINE_UNARY    (Jnzns, "JNZNS",  control)
 DEFINE_MEMORY   (Mem,   "MEM",    accu | mem | read)
 DEFINE_MEMORY   (Cas,   "CAS",    accu | read | atomic | barrier)
 
-DEFINE_UNARY    (Check, "CHECK",  barrier | control)
+DEFINE_UNARY    (Check, "CHECK",  control)
 
 DEFINE_NULLARY  (Halt,  "HALT",   control)
 DEFINE_UNARY    (Exit,  "EXIT",   control)
