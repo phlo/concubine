@@ -37,9 +37,9 @@ GTEST_FILTER = --gtest_filter=
 
 # GTEST_FILTER += "*"
 # GTEST_FILTER += *Encoder*
-# GTEST_FILTER += EncoderTest.*
+GTEST_FILTER += EncoderTest.*
 # GTEST_FILTER += SMTLibTest.*
-# GTEST_FILTER += SMTLibEncoderTest.*
+GTEST_FILTER += SMTLibEncoderTest.*
 GTEST_FILTER += SMTLibEncoderFunctionalTest.*
 # GTEST_FILTER += SMTLibEncoderRelationalTest.*
 # GTEST_FILTER += Btor2EncoderTest.*

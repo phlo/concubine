@@ -1,6 +1,7 @@
 #include "encoder.hh"
 
 #include <cassert>
+#include <deque>
 
 #include "smtlib.hh"
 
@@ -15,179 +16,204 @@ SMTLibEncoderFunctional::SMTLibEncoderFunctional (
   if (e) encode();
 }
 
-void SMTLibEncoderFunctional::add_statement_activation ()
+#define DEFINE_STATE(_update, _type, _var) \
+  do { \
+    update = _update; \
+    iterate_programs([this] (const Program & program) { \
+      if (step) \
+        { \
+          string expr = _var(prev, thread); \
+          pc = program.size() - 1; \
+          for (auto rit = program.rbegin(); rit != program.rend(); ++rit, pc--) \
+            { \
+              const Instruction_ptr & op = *rit; \
+              if (op->type() & _type) \
+                expr = \
+                  smtlib::ite( \
+                    exec_var(prev, thread, pc), \
+                    op->encode(*this), \
+                    expr); \
+            } \
+          formula << assign_var(_var(step, thread), expr) << eol; \
+        } \
+      else \
+        { \
+          formula << assign_var(_var(step, thread), smtlib::word2hex(0)) << eol; \
+        } \
+    }); \
+    formula << eol; \
+  } while (0)
+
+void SMTLibEncoderFunctional::define_accu ()
 {
   if (verbose)
-    formula << smtlib::comment_subsection("statement activation");
+    formula << accu_comment << eol;
 
-  declare_stmt_vars();
+  DEFINE_STATE(Update::accu, Types::accu, accu_var);
+}
 
-  if (step == 1)
-    add_initial_statement_activation();
-  else
-    iterate_programs([this] (const Program & program) {
-      for (pc = 0; pc < program.size(); pc++)
+void SMTLibEncoderFunctional::define_mem ()
+{
+  if (verbose)
+    formula << mem_comment << eol;
+
+  DEFINE_STATE(Update::mem, Types::mem, mem_var);
+}
+
+void SMTLibEncoderFunctional::define_sb_adr ()
+{
+  if (verbose)
+    formula << sb_adr_comment << eol;
+
+  DEFINE_STATE(Update::sb_adr, Types::write, sb_adr_var);
+}
+
+void SMTLibEncoderFunctional::define_sb_val ()
+{
+  if (verbose)
+    formula << sb_val_comment << eol;
+
+  DEFINE_STATE(Update::sb_val, Types::write, sb_val_var);
+}
+
+void SMTLibEncoderFunctional::define_sb_full ()
+{
+  if (verbose)
+    formula << sb_full_comment << eol;
+
+  iterate_programs([this] (const Program & program) {
+    if (step)
+      {
+        vector<string> args;
+        pc = program.size() - 1;
+
+        for (auto rit = program.rbegin(); rit != program.rend(); ++rit, pc--)
+          if ((*rit)->type() & Types::write)
+            args.push_back(exec_var(prev, thread, pc));
+
+        args.push_back(sb_full_var(prev, thread));
+
+        formula <<
+          assign_var(
+            sb_full_var(),
+              smtlib::ite(
+                flush_var(prev, thread),
+                "false",
+                smtlib::lor(args))) << eol;
+      }
+    else
+      {
+        formula << smtlib::assertion(smtlib::lnot((sb_full_var()))) << eol;
+      }
+  });
+
+  formula << eol;
+}
+
+void SMTLibEncoderFunctional::define_stmt ()
+{
+  if (verbose)
+    formula << stmt_comment << eol;
+
+  iterate_programs([this] (const Program & program) {
+    for (pc = 0; pc < program.size(); pc++)
+      if (step)
         {
-          /* statement reactivation */
+          // statement reactivation
           string expr =
             smtlib::land({
               stmt_var(prev, thread, pc),
               smtlib::lnot(exec_var(prev, thread, pc))});
 
-          const auto & predecessors = program.predecessors.at(pc);
+          const auto & pred = program.predecessors.at(pc);
 
-          for (auto p = predecessors.rbegin(); p != predecessors.rend(); ++p)
+          for (auto p = pred.rbegin(); p != pred.rend(); ++p)
             {
-              /* predecessor's execution variable */
+              // predecessor's execution variable
               string val = exec_var(prev, thread, *p);
 
-              /* build conjunction of execution variable and jump condition */
+              // build conjunction of execution variable and jump condition
               if (Jmp_ptr j = dynamic_pointer_cast<Jmp>(program[*p]))
                 {
                   string cond = j->encode(*this);
 
-                  /* JMP has no condition and returns an empty string */
-                  val = cond.empty()
-                    ? val
-                    : smtlib::land({
+                  // JMP has no condition and returns an empty string
+                  if (!cond.empty())
+                    val =
+                      smtlib::land({
                         val,
-                        /* only activate successor if jump condition failed */
+                        // only activate successor if jump condition failed
                         *p == pc - 1 && j->arg != pc
                           ? smtlib::lnot(cond)
-                          : cond
-                      });
+                          : cond});
                 }
 
-              /* add predecessor to the activation */
+              // add predecessor to the activation
               expr = smtlib::ite(stmt_var(prev, thread, *p), val, expr);
             }
 
           formula << assign_var(stmt_var(), expr) << eol;
         }
+      else
+        {
+          formula
+            << smtlib::assertion(pc ? smtlib::lnot(stmt_var()) : stmt_var())
+            << eol;
+        }
 
-      formula << eol;
-    });
+    formula << eol;
+  });
 }
 
-#include <iostream>
-#include <bitset>
-void SMTLibEncoderFunctional::add_state_update (const Update u)
+void SMTLibEncoderFunctional::define_block ()
 {
-  Type type;
-  string (*var) (word_t, word_t);
+  if (check_pcs.empty())
+    return;
 
-  switch (update = u)
-    {
-    case Update::accu:
-      type = Types::accu;
-      var = accu_var;
-      break;
-    case Update::mem:
-      type = Types::mem;
-      var = mem_var;
-      break;
-    case Update::sb_adr:
-      type = Types::write;
-      var = sb_adr_var;
-      break;
-    case Update::sb_val:
-      type = Types::write;
-      var = sb_val_var;
-      break;
-    default:
-      throw runtime_error("illegal state update");
-    }
+  if (verbose)
+    formula << block_comment << eol;
 
-  iterate_programs([this, type, var] (const Program & program) {
-    string expr = var(prev, thread);
-    pc = program.size() - 1;
+  for (const auto & [c, threads] : check_pcs)
+    for (const auto & [t, pcs] : threads)
+      if (step)
+        {
+          vector<string> block_args;
 
-    for (auto rit = program.rbegin(); rit != program.rend(); ++rit, pc--)
-      {
-        const Instruction_ptr & op = *rit;
+          block_args.reserve(pcs.size() + 1);
 
-        if (op->type() & type)
-          cout
-            << "  " << op->symbol()
-            << "\t" << bitset<8>(op->type())
-            << "\t" << bitset<8>(type)
-            << "\t" << bitset<8>(op->type() & type) << eol;
+          for (const word_t p : pcs)
+            block_args.push_back(exec_var(prev, t, p));
 
-        if (op->type() & type)
-          expr =
-            smtlib::ite(
-              exec_var(step, thread, pc),
-              op->encode(*this),
-              expr);
-      }
+          block_args.push_back(block_var(prev, c, t));
 
-    formula << assign_var(var(step, thread), expr) << eol;
-  });
+          formula <<
+            assign_var(
+              block_var(step, c, t),
+              smtlib::ite(
+                check_var(prev, c),
+                "false",
+                smtlib::lor(block_args))) <<
+            eol;
+        }
+      else
+        {
+          formula
+            << smtlib::assertion(smtlib::lnot(block_var(step, c, t)))
+            << eol;
+        }
 
   formula << eol;
 }
 
-void SMTLibEncoderFunctional::add_accu_update ()
+void SMTLibEncoderFunctional::define_heap ()
 {
-  declare_accu_vars();
-  cout << accu_sym << eol;
-  add_state_update(Update::accu);
-}
+  if (!step)
+    return;
 
-void SMTLibEncoderFunctional::add_mem_update ()
-{
-  declare_mem_vars();
-  cout << mem_sym << eol;
-  add_state_update(Update::mem);
-}
+  if (verbose)
+    formula << heap_comment << eol;
 
-void SMTLibEncoderFunctional::add_sb_adr_update ()
-{
-  declare_sb_adr_vars();
-  cout << sb_adr_sym << eol;
-  add_state_update(Update::sb_adr);
-}
-
-void SMTLibEncoderFunctional::add_sb_val_update ()
-{
-  declare_sb_val_vars();
-  cout << sb_val_sym << eol;
-  add_state_update(Update::sb_val);
-}
-
-void SMTLibEncoderFunctional::add_sb_full_update ()
-{
-  declare_sb_full_vars();
-  cout << sb_full_sym << eol;
-
-  iterate_programs([this] (const Program & program) {
-    vector<string> args {sb_full_var(prev, thread)};
-    pc = program.size() - 1;
-    for (auto rit = program.rbegin(); rit != program.rend(); ++rit, pc--)
-      {
-        const Instruction_ptr & op = *rit;
-
-        if (op->type() & Types::write)
-          args.push_back(exec_var(step, thread, pc));
-      }
-
-    formula <<
-      assign_var(
-        sb_full_var(),
-        step > 1
-          ? smtlib::ite(
-              flush_var(),
-              "false",
-              smtlib::lor(args))
-          : smtlib::lor(args)) << eol;
-  });
-  formula << eol;
-}
-
-void SMTLibEncoderFunctional::add_heap_update ()
-{
-  declare_heap_var();
-  cout << heap_sym << eol;
+  update = Update::heap;
 
   const string heap_prev = heap_var(prev);
   string expr = heap_prev;
@@ -200,29 +226,21 @@ void SMTLibEncoderFunctional::add_heap_update ()
         const Instruction_ptr & op = *rit;
 
         if (op->type() & Types::atomic)
-          cout
-            << "  " << op->symbol()
-            << "\t" << bitset<8>(op->type())
-            << "\t" << bitset<8>(Types::atomic)
-            << "\t" << bitset<8>(op->type() & Types::atomic) << eol;
-
-        if (op->type() & Types::atomic)
           expr =
             smtlib::ite(
-              exec_var(step, thread, pc),
+              exec_var(prev, thread, pc),
               op->encode(*this),
               expr);
       }
 
-    if (step > 1)
-      expr =
-        smtlib::ite(
-          flush_var(),
-          smtlib::store(
-            heap_prev,
-            sb_adr_var(prev, thread),
-            sb_val_var(prev, thread)),
-          expr);
+    expr =
+      smtlib::ite(
+        flush_var(prev, thread),
+        smtlib::store(
+          heap_prev,
+          sb_adr_var(prev, thread),
+          sb_val_var(prev, thread)),
+        expr);
   });
 
   formula << assign_var(heap_var(), expr) << eol;
@@ -230,74 +248,77 @@ void SMTLibEncoderFunctional::add_heap_update ()
   formula << eol;
 }
 
-void SMTLibEncoderFunctional::add_state_updates ()
+void SMTLibEncoderFunctional::define_exit ()
 {
-  if (verbose)
-    formula << smtlib::comment_subsection("state updates");
+  if (exit_pcs.empty())
+    return;
 
-  add_accu_update();
-  add_mem_update();
-  add_sb_adr_update();
-  add_sb_val_update();
-  add_sb_full_update();
-  add_heap_update();
+  if (verbose)
+    formula << exit_comment << eol;
+
+  if (step)
+    {
+      vector<string> args {exit_var(prev)};
+
+      iterate_threads([this, &args] {
+        for (const word_t & exit_pc : exit_pcs[thread])
+          args.push_back(exec_var(prev, thread, exit_pc));
+      });
+
+      formula << assign_var(exit_var(), smtlib::lor(args));
+    }
+  else
+    {
+      formula << smtlib::assertion(smtlib::lnot(exit_var()));
+    }
+
+  formula << eol << eol;
 }
 
-void SMTLibEncoderFunctional::add_exit_code ()
+// TODO
+void SMTLibEncoderFunctional::define_exit_code ()
 {
   if (verbose)
     formula << smtlib::comment_section("exit code");
 
-  declare_exit_code();
-
   string ite = smtlib::word2hex(0);
 
-  for (bound_t k = step; k > 0; k--)
-    iterate_programs_reverse([this, &ite, k] (const Program & program) {
-      for (const word_t & exit_pc : exit_pcs[thread])
-        ite =
-          smtlib::ite(
-            exec_var(k, thread, exit_pc),
-            program[exit_pc]->encode(*this),
-            ite);
-    });
+  if (!exit_pcs.empty())
+    for (bound_t k = step = bound; k > 0; k--)
+      iterate_programs_reverse([this, &ite, k] (const Program & program) {
+        for (const word_t & exit_pc : exit_pcs[thread])
+          ite =
+            smtlib::ite(
+              exec_var(k, thread, exit_pc),
+              program[exit_pc]->encode(*this),
+              ite);
+      });
 
   formula << assign_var(exit_code_sym, ite) << eol;
 }
 
+void SMTLibEncoderFunctional::define_states ()
+{
+  if (verbose)
+    formula << smtlib::comment_subsection("state variable definitions");
+
+  define_accu();
+  define_mem();
+  define_sb_adr();
+  define_sb_val();
+  define_sb_full();
+  define_stmt();
+  define_block();
+
+  define_heap();
+  define_exit();
+}
+
 void SMTLibEncoderFunctional::encode ()
 {
-  /* set logic and add common variable declarations */
   SMTLibEncoder::encode();
 
-  for (step = 1, prev = 0; step <= bound; step++, prev++)
-    {
-      if (verbose)
-        formula << smtlib::comment_section("step " + to_string(step));
-
-      /* exit flag */
-      add_exit_flag();
-
-      /* statement activation */
-      add_statement_activation();
-
-      /* thread scheduling */
-      add_thread_scheduling();
-
-      /* checkpoint constraints */
-      add_checkpoint_constraints();
-
-      /* statement execution */
-      add_statement_execution();
-
-      /* state update */
-      add_state_updates();
-    }
-
-  step--;
-
-  /* assign exit code */
-  add_exit_code();
+  define_exit_code();
 }
 
 string SMTLibEncoderFunctional::encode (Load & l)
@@ -315,15 +336,13 @@ string SMTLibEncoderFunctional::encode (Store & s)
     case Update::sb_val:
       return accu_var(prev, thread);
 
-    default:
-      throw runtime_error("illegal state update");
+    default: throw runtime_error("illegal state update");
     }
 }
 
-// TODO
 string SMTLibEncoderFunctional::encode (Fence & f [[maybe_unused]])
 {
-  throw runtime_error("not implemented");
+  return "";
 }
 
 string SMTLibEncoderFunctional::encode (Add & a)
@@ -372,28 +391,28 @@ string SMTLibEncoderFunctional::encode (Jnz & j [[maybe_unused]])
 
 string SMTLibEncoderFunctional::encode (Js & j [[maybe_unused]])
 {
+  static const string bw = to_string(word_size - 1);
+
   return
       smtlib::equality({
         "#b1",
-        smtlib::extract(
-          to_string(word_size - 1),
-          to_string(word_size - 1),
-          accu_var(prev, thread))});
+        smtlib::extract(bw, bw, accu_var(prev, thread))});
 }
 
 string SMTLibEncoderFunctional::encode (Jns & j [[maybe_unused]])
 {
+  static const string bw = to_string(word_size - 1);
+
   return
       smtlib::equality({
         "#b0",
-        smtlib::extract(
-          to_string(word_size - 1),
-          to_string(word_size - 1),
-          accu_var(prev, thread))});
+        smtlib::extract(bw, bw, accu_var(prev, thread))});
 }
 
 string SMTLibEncoderFunctional::encode (Jnzns & j [[maybe_unused]])
 {
+  static const string bw = to_string(word_size - 1);
+
   return
     smtlib::land({
       smtlib::lnot(
@@ -402,10 +421,7 @@ string SMTLibEncoderFunctional::encode (Jnzns & j [[maybe_unused]])
           smtlib::word2hex(0)})),
       smtlib::equality({
         "#b0",
-        smtlib::extract(
-          to_string(word_size - 1),
-          to_string(word_size - 1),
-          accu_var(prev, thread))})});
+        smtlib::extract(bw, bw, accu_var(prev, thread))})});
 }
 
 string SMTLibEncoderFunctional::encode (Mem & m)
@@ -426,18 +442,25 @@ string SMTLibEncoderFunctional::encode (Cas & c)
       mem_var(prev, thread),
       smtlib::select(heap, addr)});
 
-  return update == Update::accu
-    ? smtlib::ite(
-        condition,
-        smtlib::word2hex(1),
-        smtlib::word2hex(0))
-    : smtlib::ite(
-        condition,
-        smtlib::store(
-          heap,
-          addr,
-          accu_var(prev, thread)),
-        heap);
+  switch (update)
+    {
+    case Update::accu:
+      return
+        smtlib::ite(
+          condition,
+          smtlib::word2hex(1),
+          smtlib::word2hex(0));
+    case Update::heap:
+      return
+        smtlib::ite(
+          condition,
+          smtlib::store(
+            heap,
+            addr,
+            accu_var(prev, thread)),
+          heap);
+    default: throw runtime_error("illegal state update");
+    }
 }
 
 string SMTLibEncoderFunctional::encode (Check & s [[maybe_unused]])

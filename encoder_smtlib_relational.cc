@@ -10,7 +10,7 @@ SMTLibEncoderRelational::SMTLibEncoderRelational (
                                                   bool e
                                                  ) : SMTLibEncoder(p, b)
 {
-  if (e) encode();
+  if (e) SMTLibEncoder::encode();
 }
 
 string SMTLibEncoderRelational::imply (string antecedent, string consequent)
@@ -92,6 +92,29 @@ string SMTLibEncoderRelational::activate_jmp (string condition, word_t target)
     : "";
 }
 
+void SMTLibEncoderRelational::define_states ()
+{
+  if (verbose)
+    formula << smtlib::comment_subsection("state updates");
+
+  iterate_programs([this] (const Program & program) {
+    for (pc = 0; pc < program.size(); pc++)
+      formula
+        << (verbose
+          ? "; thread " +
+            to_string(thread) +
+            "@" +
+            to_string(pc) +
+            ": " +
+            program.print(false, pc) +
+            eol
+          : "")
+        << program[pc]->encode(*this)
+        << eol;
+  });
+}
+
+/*
 void SMTLibEncoderRelational::add_exit_code ()
 {
   if (verbose)
@@ -157,28 +180,28 @@ void SMTLibEncoderRelational::add_state_preservation ()
 
   iterate_programs([this] (const Program & program) {
 
-    /* define waiting variable */
+    // define waiting variable
     string preserve = "preserve_" + to_string(step) + "_" + to_string(thread);
 
-    /* waiting condition - thread not scheduled */
+    // waiting condition - thread not scheduled
     formula
       << smtlib::declare_bool_var(preserve) << eol
       << assign_var(preserve, smtlib::lnot(thread_var())) << eol
       << eol;
 
-    /* preserver accu */
+    // preserver accu
     formula <<
       imply(
         preserve,
         smtlib::equality({accu_var(), accu_var(step - 1, thread)}));
 
-    /* preserve CAS memory register */
+    // preserve CAS memory register
     formula <<
       imply(
         preserve,
         smtlib::equality({mem_var(), mem_var(step - 1, thread)}));
 
-    /* preserver statement activation */
+    // preserver statement activation
     if (step < bound)
       {
         formula << eol;
@@ -196,16 +219,16 @@ void SMTLibEncoderRelational::add_state_preservation ()
 
 void SMTLibEncoderRelational::encode ()
 {
-  /* set logic and add common variable declarations */
+  // set logic and add common variable declarations
   SMTLibEncoder::encode();
 
-  /* declare exit code variable */
+  // declare exit code variable
   if (verbose)
     formula << "; exit code" << eol;
 
   declare_exit_code();
 
-  /* declare 1st step's statement activation variables */
+  // declare 1st step's statement activation variables
   add_statement_declaration();
 
   for (step = 1; step <= bound; step++)
@@ -213,33 +236,34 @@ void SMTLibEncoderRelational::encode ()
       if (verbose)
         formula << smtlib::comment_section("step " + to_string(step));
 
-      /* exit flag */
+      // exit flag
       add_exit_flag();
 
-      /* thread scheduling */
+      // thread scheduling
       add_thread_scheduling();
 
-      /* checkpoint constraints */
+      // checkpoint constraints
       add_checkpoint_constraints();
 
-      /* statement execution */
+      // statement execution
       add_statement_execution();
 
-      /* add forward declaration of statement activation variables */
+      // add forward declaration of statement activation variables
       add_statement_declaration();
 
-      /* encode instructions */
+      // encode instructions
       add_state_updates();
 
-      /* preserve thread's state if it wasn't executed */
+      // preserve thread's state if it wasn't executed
       add_state_preservation();
     }
 
   step--;
 
-  /* ensure exit code assignment */
+  // ensure exit code assignment
   add_exit_code();
 }
+*/
 
 string SMTLibEncoderRelational::encode (Load & l)
 {

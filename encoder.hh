@@ -24,25 +24,26 @@ struct Encoder
   using Type = Instruction::Type;
   using Types = Instruction::Types;
 
-  /* state symbols */
+  /* thread state symbols */
   static const std::string accu_sym;
   static const std::string mem_sym;
   static const std::string sb_adr_sym;
   static const std::string sb_val_sym;
   static const std::string sb_full_sym;
+  static const std::string stmt_sym;
+  static const std::string block_sym;
 
+  /* machine state symbols */
   static const std::string heap_sym;
+  static const std::string exit_sym;
   static const std::string exit_code_sym;
 
   /* transition symbols */
   static const std::string thread_sym;
   static const std::string flush_sym;
-  static const std::string stmt_sym;
-  static const std::string exec_sym;
-  static const std::string cas_sym;
-  static const std::string block_sym;
   static const std::string check_sym;
-  static const std::string exit_sym;
+  static const std::string exec_sym;
+  static const std::string cas_sym; // TODO: really needed?
 
   /* reference to the programs being verified (index == thread id) */
   const Program_list_ptr  programs;
@@ -195,7 +196,6 @@ struct SMTLibEncoder : public Encoder
   bound_t                   step,
                             prev;
 
-  /* string nids_const */
   static const std::string  bv_sort;
 
   static const std::string  exit_code_var;
@@ -206,18 +206,19 @@ struct SMTLibEncoder : public Encoder
   static const std::string  sb_adr_comment;
   static const std::string  sb_val_comment;
   static const std::string  sb_full_comment;
+  static const std::string  stmt_comment;
+  static const std::string  block_comment;
+
+  static const std::string  exit_comment;
   static const std::string  heap_comment;
 
   static const std::string  thread_comment;
   static const std::string  flush_comment;
-  static const std::string  stmt_comment;
+  static const std::string  check_comment;
   static const std::string  exec_comment;
   static const std::string  cas_comment;
-  static const std::string  block_comment;
-  static const std::string  check_comment;
-  static const std::string  exit_comment;
 
-  /* state variable name generators */
+  /* thread state variable generators */
   static std::string        accu_var (const word_t k, const word_t t);
   std::string               accu_var () const;
   static std::string        mem_var (const word_t k, const word_t t);
@@ -228,71 +229,87 @@ struct SMTLibEncoder : public Encoder
   std::string               sb_val_var () const;
   static std::string        sb_full_var (const word_t k, const word_t t);
   std::string               sb_full_var () const;
-
-  static std::string        heap_var (const word_t k);
-  std::string               heap_var () const;
-
-  /* transition variable name generators */
-  static std::string        thread_var (const word_t k, const word_t t);
-  std::string               thread_var () const;
-  static std::string        flush_var (const word_t k, const word_t t);
-  std::string               flush_var () const;
   static std::string        stmt_var (
                                       const word_t k,
                                       const word_t t,
                                       const word_t pc
                                      );
   std::string               stmt_var () const;
+  static std::string        block_var (
+                                       const word_t k,
+                                       const word_t t,
+                                       const word_t id
+                                      );
+
+  /* machine state variable generators */
+  static std::string        heap_var (const word_t k);
+  std::string               heap_var () const;
+  static std::string        exit_var (const word_t k);
+  std::string               exit_var () const;
+
+  /* transition variable name generators */
+  static std::string        thread_var (const word_t k, const word_t t);
+  std::string               thread_var () const;
+  static std::string        flush_var (const word_t k, const word_t t);
+  std::string               flush_var () const;
+  static std::string        check_var (const word_t k, const word_t id);
   static std::string        exec_var (
                                       const word_t k,
                                       const word_t t,
                                       const word_t pc
                                      );
   std::string               exec_var () const;
+
+  /*
   static std::string        cas_var (const word_t k, const word_t t);
   std::string               cas_var () const;
-  static std::string        block_var (
-                                       const word_t k,
-                                       const word_t t,
-                                       const word_t id
-                                      );
-  static std::string        check_var (const word_t k, const word_t id);
-  static std::string        exit_var (const word_t k);
-  std::string               exit_var () const;
-
-  /* variable declaration generators */
-  void                      declare_accu_vars ();
-  void                      declare_mem_vars ();
-  void                      declare_sb_adr_vars ();
-  void                      declare_sb_val_vars ();
-  void                      declare_sb_full_vars ();
-
-  void                      declare_heap_var ();
-
-  void                      declare_thread_vars ();
-  void                      declare_flush_vars ();
-  void                      declare_stmt_vars ();
-  void                      declare_exec_vars ();
-  void                      declare_cas_vars ();
-  void                      declare_block_vars ();
-  void                      declare_check_vars ();
-  void                      declare_exit_var ();
-  void                      declare_exit_code ();
+  */
 
   /* expression generators */
   std::string               assign_var (std::string, std::string);
-
-  /* common encodings */
-  void                      add_initial_state ();
-  void                      add_initial_statement_activation ();
-
-  void                      add_exit_flag ();
-  void                      add_thread_scheduling ();
-  void                      add_checkpoint_constraints ();
-  void                      add_statement_execution ();
-
   std::string               load(word_t address, bool indirect = false);
 
+  /* state variable declarations */
+  void                      declare_accu ();
+  void                      declare_mem ();
+  void                      declare_sb_adr ();
+  void                      declare_sb_val ();
+  void                      declare_sb_full ();
+  void                      declare_stmt ();
+  void                      declare_block ();
+
+  void                      declare_heap ();
+  void                      declare_exit ();
+  void                      declare_exit_code ();
+
+  void                      declare_states ();
+
+  /* transition variable declarations */
+  void                      declare_thread ();
+  void                      declare_flush ();
+  void                      declare_check ();
+  void                      declare_exec ();
+  // void                      declare_cas ();
+
+  void                      declare_transitions ();
+
+  /* state variable definitions */
+  virtual void              define_states () = 0;
+
+  /* transition variable definitions */
+  void                      define_check ();
+  void                      define_exec ();
+  // void                      define_cas ();
+
+  void                      define_transitions ();
+
+  /* constraint definitions */
+  void                      define_store_buffer_constraints ();
+  void                      define_checkpoint_contraints ();
+  void                      define_scheduling_constraints ();
+  void                      define_constraints ();
+
+  /* main encoding function */
   virtual void              encode ();
 };
 
@@ -313,18 +330,23 @@ struct SMTLibEncoderFunctional : public SMTLibEncoder
                            bool encode = true
                           );
 
-  void                add_statement_activation ();
-  void                add_state_update (Update state);
-  void                add_accu_update ();
-  void                add_mem_update ();
-  void                add_sb_adr_update ();
-  void                add_sb_val_update ();
-  void                add_sb_full_update ();
-  void                add_heap_update ();
-  void                add_state_updates ();
-  void                add_exit_code ();
+  /* thread state definitions */
+  void                define_accu ();
+  void                define_mem ();
+  void                define_sb_adr ();
+  void                define_sb_val ();
+  void                define_sb_full ();
+  void                define_stmt ();
+  void                define_block ();
 
-  /* encodes the whole machine configuration */
+  /* machine state definitions */
+  void                define_heap ();
+  void                define_exit ();
+  void                define_exit_code ();
+
+  virtual void        define_states ();
+
+  /* main encoding function */
   virtual void        encode ();
 
   /* double-dispatched instruction encoding functions */
@@ -388,15 +410,19 @@ struct SMTLibEncoderRelational : public SMTLibEncoder
   std::string         activate_next ();
   std::string         activate_jmp (std::string, word_t);
 
+  /*
   void                add_exit_code ();
   void                add_statement_declaration ();
   void                add_state_updates ();
   void                add_state_preservation ();
+  */
 
-  /* encodes the whole machine configuration */
-  virtual void        encode ();
+  /* state variable definitions */
+  virtual void        define_states ();
 
   /* double-dispatched instruction encoding functions */
+  using SMTLibEncoder::encode;
+
   virtual std::string encode (Load &);
   virtual std::string encode (Store &);
 
@@ -511,8 +537,8 @@ struct Btor2Encoder : public Encoder
   std::string                   thread_var () const;
   static std::string            exec_var (const word_t t, const word_t pc);
   std::string                   exec_var () const;
-  static std::string            cas_var (const word_t t); // unused
-  std::string                   cas_var () const; // unused
+  static std::string            cas_var (const word_t t); // TODO: remove (unused)
+  std::string                   cas_var () const; // TODO: remove (unused)
   static std::string            block_var (const word_t t, const word_t id);
   static std::string            check_var (const word_t id);
 
@@ -560,7 +586,7 @@ struct Btor2Encoder : public Encoder
   std::string                   load(Load & l);
   std::string                   store(Store & s);
 
-  /* encodes the whole machine configuration */
+  /* main encoding function */
   virtual void                  encode ();
 
   /* double-dispatched instruction encoding functions */

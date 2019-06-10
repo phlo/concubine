@@ -63,7 +63,7 @@ TEST_F(EncoderTest, constructor)
   reset_encoder(0);
 
   for (const auto & pcs : encoder->flush_pcs)
-    ASSERT_EQ(set<word_t>({0, 3, 5}), pcs.second);
+    ASSERT_EQ(set<word_t>({0}), pcs.second);
 
   for (const auto & [id, threads] : encoder->check_pcs)
     for (const auto & pcs : threads)

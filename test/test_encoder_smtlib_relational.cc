@@ -249,6 +249,7 @@ TEST_F(SMTLibEncoderRelationalTest, activate_jmp)
   ASSERT_EQ("", encoder->activate_jmp("foo", 0));
 }
 
+#ifdef NIGNORE
 // void add_exit_code (void);
 TEST_F(SMTLibEncoderRelationalTest, add_exit_code)
 {
@@ -386,30 +387,16 @@ TEST_F(SMTLibEncoderRelationalTest, add_statement_declaration)
     "(assert (not stmt_1_2_2))\n\n",
     encoder->formula.str());
 }
+#endif
 
-// void add_state_update (void);
-TEST_F(SMTLibEncoderRelationalTest, add_state_update)
+/* SMTLibEncoderRelational::define_states *************************************/
+TEST_F(SMTLibEncoderRelationalTest, define_states)
 {
   add_dummy_programs(3);
 
-  encoder->add_state_updates();
+  encoder->define_states();
 
   ASSERT_EQ(
-    "; state update ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    "; accu states - accu_<step>_<thread>\n"
-    "(declare-fun accu_1_0 () (_ BitVec 16))\n"
-    "(declare-fun accu_1_1 () (_ BitVec 16))\n"
-    "(declare-fun accu_1_2 () (_ BitVec 16))\n"
-    "\n"
-    "; mem states - mem_<step>_<thread>\n"
-    "(declare-fun mem_1_0 () (_ BitVec 16))\n"
-    "(declare-fun mem_1_1 () (_ BitVec 16))\n"
-    "(declare-fun mem_1_2 () (_ BitVec 16))\n"
-    "\n"
-    "; heap states - heap_<step>\n"
-    "(declare-fun heap_1 () (Array (_ BitVec 16) (_ BitVec 16)))\n"
-    "\n"
     "; thread 0@0: LOAD\t1\n"
     "(assert (=> exec_1_0_0 (= accu_1_0 (select heap_0 #x0001))))\n"
     "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n"
@@ -504,24 +491,9 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_update)
   /* step == bound */
   reset_encoder(2, 2);
 
-  encoder->add_state_updates();
+  encoder->define_states();
 
   ASSERT_EQ(
-    "; state update ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    "; accu states - accu_<step>_<thread>\n"
-    "(declare-fun accu_2_0 () (_ BitVec 16))\n"
-    "(declare-fun accu_2_1 () (_ BitVec 16))\n"
-    "(declare-fun accu_2_2 () (_ BitVec 16))\n"
-    "\n"
-    "; mem states - mem_<step>_<thread>\n"
-    "(declare-fun mem_2_0 () (_ BitVec 16))\n"
-    "(declare-fun mem_2_1 () (_ BitVec 16))\n"
-    "(declare-fun mem_2_2 () (_ BitVec 16))\n"
-    "\n"
-    "; heap states - heap_<step>\n"
-    "(declare-fun heap_2 () (Array (_ BitVec 16) (_ BitVec 16)))\n"
-    "\n"
     "; thread 0@0: LOAD\t1\n"
     "(assert (=> exec_2_0_0 (= accu_2_0 (select heap_1 #x0001))))\n"
     "(assert (=> exec_2_0_0 (= mem_2_0 mem_1_0)))\n"
@@ -572,20 +544,10 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_update)
   reset_encoder(2, 1);
 
   verbose = false;
-  encoder->add_state_updates();
+  encoder->define_states();
   verbose = true;
 
   ASSERT_EQ(
-    "(declare-fun accu_1_0 () (_ BitVec 16))\n"
-    "(declare-fun accu_1_1 () (_ BitVec 16))\n"
-    "(declare-fun accu_1_2 () (_ BitVec 16))\n"
-    "\n"
-    "(declare-fun mem_1_0 () (_ BitVec 16))\n"
-    "(declare-fun mem_1_1 () (_ BitVec 16))\n"
-    "(declare-fun mem_1_2 () (_ BitVec 16))\n"
-    "\n"
-    "(declare-fun heap_1 () (Array (_ BitVec 16) (_ BitVec 16)))\n"
-    "\n"
     "(assert (=> exec_1_0_0 (= accu_1_0 (select heap_0 #x0001))))\n"
     "(assert (=> exec_1_0_0 (= mem_1_0 mem_0_0)))\n"
     "(assert (=> exec_1_0_0 (= heap_1 heap_0)))\n"
@@ -669,6 +631,7 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_update)
     encoder->formula.str());
 }
 
+#ifdef NIGNORE
 // void add_state_preservation (void);
 TEST_F(SMTLibEncoderRelationalTest, add_state_preservation)
 {
@@ -806,6 +769,7 @@ TEST_F(SMTLibEncoderRelationalTest, add_state_preservation)
     "(assert (=> preserve_2_2 (= mem_2_2 mem_1_2)))\n\n",
     encoder->formula.str());
 }
+#endif
 
 // virtual void encode (void);
 TEST_F(SMTLibEncoderRelationalTest, encode_check)
