@@ -16,21 +16,23 @@ struct SMTLibEncoderTest : public ::testing::Test
       return make_shared<Program>(inbuf, path);
     }
 
-  SMTLibEncoder_ptr create_encoder (const word_t bound = 0)
+  SMTLibEncoder_ptr create_encoder (const bound_t bound = 1)
     {
-      SMTLibEncoder_ptr e = make_shared<SMTLibEncoderFunctional>(
-        make_shared<Program_list>(programs),
-        bound,
-        false);
+      SMTLibEncoder_ptr e =
+        make_shared<SMTLibEncoderFunctional>(
+          make_shared<Program_list>(programs),
+          bound,
+          false);
+
+      e->step = bound;
+      e->prev = bound - 1;
 
       return e;
     }
 
-  void reset_encoder (bound_t step = 0)
+  void reset_encoder (const bound_t step = 0)
     {
       encoder = create_encoder(step);
-      encoder->step = step;
-      encoder->prev = step - 1;
     }
 
   void add_dummy_programs (unsigned num, unsigned size)
@@ -637,6 +639,8 @@ TEST_F(SMTLibEncoderTest, declare_block)
 /* SMTLibEncoder::declare_heap ************************************************/
 TEST_F(SMTLibEncoderTest, declare_heap)
 {
+  encoder->step = 0;
+
   encoder->declare_heap();
 
   ASSERT_EQ(
@@ -1217,4 +1221,238 @@ TEST_F(SMTLibEncoderTest, define_scheduling_constraints_single_thread)
     "(assert (or (not flush_0_0) (not exit_0)))\n"
     "\n",
     encoder->str());
+}
+
+TEST_F(SMTLibEncoderTest, LOAD)
+{
+  Load load = Load(1);
+
+  ASSERT_EQ(encoder->load(load.arg), encoder->encode(load));
+}
+
+TEST_F(SMTLibEncoderTest, LOAD_indirect)
+{
+  Load load = Load(1, true);
+
+  ASSERT_EQ(encoder->load(load.arg, load.indirect), encoder->encode(load));
+}
+
+TEST_F(SMTLibEncoderTest, STORE)
+{
+  Store store = Store(1);
+
+  encoder->update = Encoder::Update::sb_adr;
+  ASSERT_EQ("#x0001", encoder->encode(store));
+
+  encoder->update = Encoder::Update::sb_val;
+  ASSERT_EQ("accu_0_0", encoder->encode(store));
+}
+
+TEST_F(SMTLibEncoderTest, STORE_indirect)
+{
+  Store store = Store(1, true);
+
+  encoder->update = Encoder::Update::sb_adr;
+  ASSERT_EQ(encoder->load(store.arg), encoder->encode(store));
+
+  encoder->update = Encoder::Update::sb_val;
+  ASSERT_EQ("accu_0_0", encoder->encode(store));
+}
+
+TEST_F(SMTLibEncoderTest, ADD)
+{
+  Add add = Add(1);
+
+  ASSERT_EQ(
+    "(bvadd accu_0_0 " + encoder->load(add.arg) + ")",
+    encoder->encode(add));
+}
+
+TEST_F(SMTLibEncoderTest, ADD_indirect)
+{
+  Add add = Add(1, true);
+
+  ASSERT_EQ(
+    "(bvadd accu_0_0 " + encoder->load(add.arg, add.indirect) + ")",
+    encoder->encode(add));
+}
+
+TEST_F(SMTLibEncoderTest, ADDI)
+{
+  Addi addi = Addi(1);
+
+  ASSERT_EQ("(bvadd accu_0_0 #x0001)", encoder->encode(addi));
+}
+
+TEST_F(SMTLibEncoderTest, SUB)
+{
+  Sub sub = Sub(1);
+
+  ASSERT_EQ(
+    "(bvsub accu_0_0 " + encoder->load(sub.arg) + ")",
+    encoder->encode(sub));
+}
+
+TEST_F(SMTLibEncoderTest, SUB_indirect)
+{
+  Sub sub = Sub(1, true);
+
+  ASSERT_EQ(
+    "(bvsub accu_0_0 " + encoder->load(sub.arg, sub.indirect) + ")",
+    encoder->encode(sub));
+}
+
+TEST_F(SMTLibEncoderTest, SUBI)
+{
+  Subi subi = Subi(1);
+
+  ASSERT_EQ("(bvsub accu_0_0 #x0001)", encoder->encode(subi));
+}
+
+TEST_F(SMTLibEncoderTest, CMP)
+{
+  Cmp cmp = Cmp(1);
+
+  ASSERT_EQ(
+    "(bvsub accu_0_0 " + encoder->load(cmp.arg) + ")",
+    encoder->encode(cmp));
+}
+
+TEST_F(SMTLibEncoderTest, CMP_indirect)
+{
+  Cmp cmp = Cmp(1, true);
+
+  ASSERT_EQ(
+    "(bvsub accu_0_0 " + encoder->load(cmp.arg, cmp.indirect) + ")",
+    encoder->encode(cmp));
+}
+
+TEST_F(SMTLibEncoderTest, JMP)
+{
+  Jmp jmp = Jmp(1);
+
+  ASSERT_TRUE(encoder->encode(jmp).empty());
+}
+
+TEST_F(SMTLibEncoderTest, JZ)
+{
+  Jz jz = Jz(1);
+
+  ASSERT_EQ("(= accu_0_0 #x0000)", encoder->encode(jz));
+}
+
+TEST_F(SMTLibEncoderTest, JNZ)
+{
+  Jnz jnz = Jnz(1);
+
+  ASSERT_EQ("(not (= accu_0_0 #x0000))", encoder->encode(jnz));
+}
+
+TEST_F(SMTLibEncoderTest, JS)
+{
+  Js js = Js(1);
+
+  ASSERT_EQ(
+    "(= #b1 ((_ extract " +
+      to_string(word_size - 1) +
+      " " +
+      to_string(word_size - 1) +
+      ") " +
+      "accu_0_0))",
+    encoder->encode(js));
+}
+
+TEST_F(SMTLibEncoderTest, JNS)
+{
+  Jns jns = Jns(1);
+
+  ASSERT_EQ(
+    "(= #b0 ((_ extract " +
+      to_string(word_size - 1) +
+      " " +
+      to_string(word_size - 1) +
+      ") " +
+      "accu_0_0))",
+    encoder->encode(jns));
+}
+
+TEST_F(SMTLibEncoderTest, JNZNS)
+{
+  Jnzns jnzns = Jnzns(1);
+
+  ASSERT_EQ(
+    "(and (not (= accu_0_0 #x0000)) (= #b0 ((_ extract " +
+      to_string(word_size - 1) +
+      " " +
+      to_string(word_size - 1) +
+      ") accu_0_0)))",
+    encoder->encode(jnzns));
+}
+
+TEST_F(SMTLibEncoderTest, MEM)
+{
+  Mem mem = Mem(1);
+
+  ASSERT_EQ(encoder->load(mem.arg), encoder->encode(mem));
+}
+
+TEST_F(SMTLibEncoderTest, MEM_indirect)
+{
+  Mem mem = Mem(1, true);
+
+  ASSERT_EQ(encoder->load(mem.arg, mem.indirect), encoder->encode(mem));
+}
+
+TEST_F(SMTLibEncoderTest, CAS)
+{
+  Cas cas = Cas(1);
+
+  encoder->update = Encoder::Update::accu;
+
+  ASSERT_EQ(
+    "(ite (= mem_0_0 (select heap_0 #x0001)) #x0001 #x0000)",
+    encoder->encode(cas));
+
+  encoder->update = Encoder::Update::heap;
+
+  ASSERT_EQ(
+    "(ite "
+      "(= mem_0_0 (select heap_0 #x0001)) "
+      "(store heap_0 #x0001 accu_0_0) "
+      "heap_0)",
+    encoder->encode(cas));
+}
+
+TEST_F(SMTLibEncoderTest, CAS_indirect)
+{
+  Cas cas = Cas(1, true);
+
+  encoder->update = Encoder::Update::accu;
+
+  ASSERT_EQ(
+    "(ite (= mem_0_0 (select heap_0 (select heap_0 #x0001))) #x0001 #x0000)",
+    encoder->encode(cas));
+
+  encoder->update = Encoder::Update::heap;
+
+  ASSERT_EQ(
+    "(ite "
+      "(= mem_0_0 (select heap_0 (select heap_0 #x0001))) "
+      "(store heap_0 (select heap_0 #x0001) accu_0_0) "
+      "heap_0)",
+    encoder->encode(cas));
+}
+
+TEST_F(SMTLibEncoderTest, CHECK)
+{
+  Check check = Check(1);
+
+  ASSERT_TRUE(encoder->encode(check).empty());
+}
+
+TEST_F(SMTLibEncoderTest, EXIT)
+{
+  Exit exit = Exit(1);
+
+  ASSERT_EQ("#x0001", encoder->encode(exit));
 }

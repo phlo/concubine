@@ -6,7 +6,6 @@ using namespace std;
 
 struct EncoderTest : public ::testing::Test
 {
-  const char *  expected;
   Program_list  programs;
   Encoder_ptr   encoder = create_encoder(0);
 
@@ -17,7 +16,7 @@ struct EncoderTest : public ::testing::Test
       return make_shared<Program>(inbuf, path);
     }
 
-  Encoder_ptr create_encoder (const word_t bound)
+  Encoder_ptr create_encoder (const bound_t bound)
     {
       return make_shared<SMTLibEncoderFunctional>(
         make_shared<Program_list>(programs),
@@ -25,7 +24,7 @@ struct EncoderTest : public ::testing::Test
         false);
     }
 
-  void reset_encoder (const word_t bound)
+  void reset_encoder (const bound_t bound)
     {
       encoder = create_encoder(bound);
       encoder->thread = 0;

@@ -685,3 +685,161 @@ void SMTLibEncoder::encode ()
       define_constraints ();
     }
 }
+
+string SMTLibEncoder::encode (Load & l)
+{
+  return load(l.arg, l.indirect);
+}
+
+string SMTLibEncoder::encode (Store & s)
+{
+  switch (update)
+    {
+    case Update::sb_adr:
+      return s.indirect ? load(s.arg) : smtlib::word2hex(s.arg);
+
+    case Update::sb_val:
+      return accu_var(prev, thread);
+
+    default: throw runtime_error("illegal state update");
+    }
+}
+
+string SMTLibEncoder::encode (Fence & f [[maybe_unused]])
+{
+  return "";
+}
+
+string SMTLibEncoder::encode (Add & a)
+{
+  return smtlib::bvadd({accu_var(prev, thread), load(a.arg, a.indirect)});
+}
+
+string SMTLibEncoder::encode (Addi & a)
+{
+  return smtlib::bvadd({accu_var(prev, thread), smtlib::word2hex(a.arg)});
+}
+
+string SMTLibEncoder::encode (Sub & s)
+{
+  return smtlib::bvsub({accu_var(prev, thread), load(s.arg, s.indirect)});
+}
+
+string SMTLibEncoder::encode (Subi & s)
+{
+  return smtlib::bvsub({accu_var(prev, thread), smtlib::word2hex(s.arg)});
+}
+
+string SMTLibEncoder::encode (Cmp & c)
+{
+  return smtlib::bvsub({accu_var(prev, thread), load(c.arg, c.indirect)});
+}
+
+string SMTLibEncoder::encode (Jmp & j [[maybe_unused]])
+{
+  return "";
+}
+
+string SMTLibEncoder::encode (Jz & j [[maybe_unused]])
+{
+  return smtlib::equality({accu_var(prev, thread), smtlib::word2hex(0)});
+}
+
+string SMTLibEncoder::encode (Jnz & j [[maybe_unused]])
+{
+  return
+    smtlib::lnot(
+      smtlib::equality({
+        accu_var(prev, thread),
+        smtlib::word2hex(0)}));
+}
+
+string SMTLibEncoder::encode (Js & j [[maybe_unused]])
+{
+  static const string bw = to_string(word_size - 1);
+
+  return
+      smtlib::equality({
+        "#b1",
+        smtlib::extract(bw, bw, accu_var(prev, thread))});
+}
+
+string SMTLibEncoder::encode (Jns & j [[maybe_unused]])
+{
+  static const string bw = to_string(word_size - 1);
+
+  return
+      smtlib::equality({
+        "#b0",
+        smtlib::extract(bw, bw, accu_var(prev, thread))});
+}
+
+string SMTLibEncoder::encode (Jnzns & j [[maybe_unused]])
+{
+  static const string bw = to_string(word_size - 1);
+
+  return
+    smtlib::land({
+      smtlib::lnot(
+        smtlib::equality({
+          accu_var(prev, thread),
+          smtlib::word2hex(0)})),
+      smtlib::equality({
+        "#b0",
+        smtlib::extract(bw, bw, accu_var(prev, thread))})});
+}
+
+string SMTLibEncoder::encode (Mem & m)
+{
+  return load(m.arg, m.indirect);
+}
+
+string SMTLibEncoder::encode (Cas & c)
+{
+  string heap = heap_var(prev);
+
+  string addr = c.indirect
+    ? smtlib::select(heap, smtlib::word2hex(c.arg))
+    : smtlib::word2hex(c.arg);
+
+  string condition =
+    smtlib::equality({
+      mem_var(prev, thread),
+      smtlib::select(heap, addr)});
+
+  switch (update)
+    {
+    case Update::accu:
+      return
+        smtlib::ite(
+          condition,
+          smtlib::word2hex(1),
+          smtlib::word2hex(0));
+    case Update::heap:
+      return
+        smtlib::ite(
+          condition,
+          smtlib::store(
+            heap,
+            addr,
+            accu_var(prev, thread)),
+          heap);
+    default: throw runtime_error("illegal state update");
+    }
+}
+
+string SMTLibEncoder::encode (Check & s [[maybe_unused]])
+{
+  return "";
+}
+
+// TODO
+string SMTLibEncoder::encode (Halt & h [[maybe_unused]])
+{
+  throw runtime_error("not implemented");
+}
+
+string SMTLibEncoder::encode (Exit & e)
+{
+  return smtlib::word2hex(e.arg);
+}

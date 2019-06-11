@@ -311,6 +311,33 @@ struct SMTLibEncoder : public Encoder
 
   /* main encoding function */
   virtual void              encode ();
+
+  /* double-dispatched instruction encoding functions */
+  virtual std::string       encode (Load &);
+  virtual std::string       encode (Store &);
+
+  virtual std::string       encode (Fence &);
+
+  virtual std::string       encode (Add &);
+  virtual std::string       encode (Addi &);
+  virtual std::string       encode (Sub &);
+  virtual std::string       encode (Subi &);
+
+  virtual std::string       encode (Cmp &);
+  virtual std::string       encode (Jmp &);
+  virtual std::string       encode (Jz &);
+  virtual std::string       encode (Jnz &);
+  virtual std::string       encode (Js &);
+  virtual std::string       encode (Jns &);
+  virtual std::string       encode (Jnzns &);
+
+  virtual std::string       encode (Mem &);
+  virtual std::string       encode (Cas &);
+
+  virtual std::string       encode (Check &);
+
+  virtual std::string       encode (Halt &);
+  virtual std::string       encode (Exit &);
 };
 
 /*******************************************************************************
@@ -348,33 +375,6 @@ struct SMTLibEncoderFunctional : public SMTLibEncoder
 
   /* main encoding function */
   virtual void        encode ();
-
-  /* double-dispatched instruction encoding functions */
-  virtual std::string encode (Load &);
-  virtual std::string encode (Store &);
-
-  virtual std::string encode (Fence &);
-
-  virtual std::string encode (Add &);
-  virtual std::string encode (Addi &);
-  virtual std::string encode (Sub &);
-  virtual std::string encode (Subi &);
-
-  virtual std::string encode (Cmp &);
-  virtual std::string encode (Jmp &);
-  virtual std::string encode (Jz &);
-  virtual std::string encode (Jnz &);
-  virtual std::string encode (Js &);
-  virtual std::string encode (Jns &);
-  virtual std::string encode (Jnzns &);
-
-  virtual std::string encode (Mem &);
-  virtual std::string encode (Cas &);
-
-  virtual std::string encode (Check &);
-
-  virtual std::string encode (Halt &);
-  virtual std::string encode (Exit &);
 };
 
 /*******************************************************************************

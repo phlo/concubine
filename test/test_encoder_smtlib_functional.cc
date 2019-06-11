@@ -7,8 +7,8 @@ using namespace std;
 
 struct SMTLibEncoderFunctionalTest : public ::testing::Test
 {
-  Program_list_ptr            programs {make_shared<Program_list>()};
-  SMTLibEncoderFunctional_ptr encoder {create_encoder()};
+  Program_list                programs;
+  SMTLibEncoderFunctional_ptr encoder = create_encoder();
 
   Program_ptr create_program (string code)
     {
@@ -17,18 +17,21 @@ struct SMTLibEncoderFunctionalTest : public ::testing::Test
       return make_shared<Program>(inbuf, path);
     }
 
-  SMTLibEncoderFunctional_ptr create_encoder (word_t bound = 1)
+  SMTLibEncoderFunctional_ptr create_encoder (const bound_t bound = 1)
     {
       SMTLibEncoderFunctional_ptr e =
-        make_shared<SMTLibEncoderFunctional>(programs, bound, false);
+        make_shared<SMTLibEncoderFunctional>(
+          make_shared<Program_list>(programs),
+          bound,
+          false);
 
       e->step = bound;
-      e->prev = bound - 1u;
+      e->prev = bound - 1;
 
       return e;
     }
 
-  void reset_encoder (const word_t step = 0)
+  void reset_encoder (const bound_t step = 0)
     {
       encoder = create_encoder(step);
     }
@@ -36,7 +39,7 @@ struct SMTLibEncoderFunctionalTest : public ::testing::Test
   void add_instruction_set (unsigned num)
     {
       for (size_t i = 0; i < num; i++)
-        programs->push_back(create_program(
+        programs.push_back(create_program(
           "LOAD 1\n"  // 0
           "STORE 1\n" // 1
           "ADD 1\n"   // 2
@@ -403,7 +406,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_sb_full)
 TEST_F(SMTLibEncoderFunctionalTest, define_stmt)
 {
   for (size_t i = 0; i < 3; i++)
-    programs->push_back(create_program(
+    programs.push_back(create_program(
       "ADDI 1\n"
       "STORE 1\n"
     ));
@@ -476,7 +479,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_stmt)
 TEST_F(SMTLibEncoderFunctionalTest, define_stmt_jmp)
 {
   for (size_t i = 0; i < 3; i++)
-    programs->push_back(create_program(
+    programs.push_back(create_program(
       "ADDI 1\n"
       "STORE 1\n"
       "JMP 1\n"
@@ -530,7 +533,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_stmt_jmp)
 TEST_F(SMTLibEncoderFunctionalTest, define_stmt_jmp_conditional)
 {
   for (size_t i = 0; i < 3; i++)
-    programs->push_back(create_program(
+    programs.push_back(create_program(
       "ADDI 1\n"
       "STORE 1\n"
       "JNZ 1\n"
@@ -597,7 +600,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_stmt_jmp_conditional)
 TEST_F(SMTLibEncoderFunctionalTest, define_stmt_jmp_start)
 {
   for (size_t i = 0; i < 3; i++)
-    programs->push_back(create_program(
+    programs.push_back(create_program(
       "ADDI 1\n"
       "STORE 1\n"
       "JNZ 0\n"
@@ -667,7 +670,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_stmt_jmp_start)
 TEST_F(SMTLibEncoderFunctionalTest, define_stmt_jmp_twice)
 {
   for (size_t i = 0; i < 3; i++)
-    programs->push_back(create_program(
+    programs.push_back(create_program(
       "ADDI 1\n"
       "STORE 1\n"
       "JZ 1\n"
@@ -797,7 +800,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_block)
 TEST_F(SMTLibEncoderFunctionalTest, define_block_no_check)
 {
   for (size_t i = 0; i < 3; i++)
-    programs->push_back(create_program("ADDI " + to_string(i)));
+    programs.push_back(create_program("ADDI " + to_string(i)));
 
   reset_encoder();
 
@@ -882,7 +885,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_heap)
 TEST_F(SMTLibEncoderFunctionalTest, define_exit)
 {
   for (size_t i = 0; i < 3; i++)
-    programs->push_back(create_program("EXIT " + to_string(i) + "\n"));
+    programs.push_back(create_program("EXIT " + to_string(i) + "\n"));
 
   // initial step
   reset_encoder();
@@ -926,7 +929,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_exit_no_exit)
 TEST_F(SMTLibEncoderFunctionalTest, define_exit_code)
 {
   for (size_t i = 0; i < 3; i++)
-    programs->push_back(create_program("EXIT " + to_string(i)));
+    programs.push_back(create_program("EXIT " + to_string(i)));
 
   // bound = step = 0
   reset_encoder();
@@ -976,7 +979,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_exit_code)
 TEST_F(SMTLibEncoderFunctionalTest, define_exit_code_no_exit)
 {
   for (size_t i = 0; i < 3; i++)
-    programs->push_back(create_program("ADDI " + to_string(i)));
+    programs.push_back(create_program("ADDI " + to_string(i)));
 
   reset_encoder(1);
 
@@ -995,12 +998,15 @@ TEST_F(SMTLibEncoderFunctionalTest, define_exit_code_no_exit)
 TEST_F(SMTLibEncoderFunctionalTest, encode_check)
 {
   // concurrent increment using CHECK
-  programs->push_back(
+  programs.push_back(
     create_from_file<Program>("data/increment.check.thread.0.asm"));
-  programs->push_back(
+  programs.push_back(
     create_from_file<Program>("data/increment.check.thread.n.asm"));
 
-  encoder = make_shared<SMTLibEncoderFunctional>(programs, 16);
+  encoder =
+    make_shared<SMTLibEncoderFunctional>(
+      make_shared<Program_list>(programs),
+      16);
 
   ifstream ifs("data/increment.check.functional.t2.k16.smt2");
 
@@ -1016,10 +1022,13 @@ TEST_F(SMTLibEncoderFunctionalTest, encode_check)
 TEST_F(SMTLibEncoderFunctionalTest, encode_cas)
 {
   // concurrent increment using CAS
-  programs->push_back(create_from_file<Program>("data/increment.cas.asm"));
-  programs->push_back(create_from_file<Program>("data/increment.cas.asm"));
+  programs.push_back(create_from_file<Program>("data/increment.cas.asm"));
+  programs.push_back(create_from_file<Program>("data/increment.cas.asm"));
 
-  encoder = make_shared<SMTLibEncoderFunctional>(programs, 16);
+  encoder =
+    make_shared<SMTLibEncoderFunctional>(
+      make_shared<Program_list>(programs),
+      16);
 
   ifstream ifs("data/increment.cas.functional.t2.k16.smt2");
 
@@ -1030,238 +1039,4 @@ TEST_F(SMTLibEncoderFunctionalTest, encode_cas)
   tmp << encoder->str();
 
   ASSERT_EQ(expected, encoder->str());
-}
-
-TEST_F(SMTLibEncoderFunctionalTest, LOAD)
-{
-  Load load = Load(1);
-
-  ASSERT_EQ(encoder->load(load.arg), encoder->encode(load));
-}
-
-TEST_F(SMTLibEncoderFunctionalTest, LOAD_indirect)
-{
-  Load load = Load(1, true);
-
-  ASSERT_EQ(encoder->load(load.arg, load.indirect), encoder->encode(load));
-}
-
-TEST_F(SMTLibEncoderFunctionalTest, STORE)
-{
-  Store store = Store(1);
-
-  encoder->update = Encoder::Update::sb_adr;
-  ASSERT_EQ("#x0001", encoder->encode(store));
-
-  encoder->update = Encoder::Update::sb_val;
-  ASSERT_EQ("accu_0_0", encoder->encode(store));
-}
-
-TEST_F(SMTLibEncoderFunctionalTest, STORE_indirect)
-{
-  Store store = Store(1, true);
-
-  encoder->update = Encoder::Update::sb_adr;
-  ASSERT_EQ(encoder->load(store.arg), encoder->encode(store));
-
-  encoder->update = Encoder::Update::sb_val;
-  ASSERT_EQ("accu_0_0", encoder->encode(store));
-}
-
-TEST_F(SMTLibEncoderFunctionalTest, ADD)
-{
-  Add add = Add(1);
-
-  ASSERT_EQ(
-    "(bvadd accu_0_0 " + encoder->load(add.arg) + ")",
-    encoder->encode(add));
-}
-
-TEST_F(SMTLibEncoderFunctionalTest, ADD_indirect)
-{
-  Add add = Add(1, true);
-
-  ASSERT_EQ(
-    "(bvadd accu_0_0 " + encoder->load(add.arg, add.indirect) + ")",
-    encoder->encode(add));
-}
-
-TEST_F(SMTLibEncoderFunctionalTest, ADDI)
-{
-  Addi addi = Addi(1);
-
-  ASSERT_EQ("(bvadd accu_0_0 #x0001)", encoder->encode(addi));
-}
-
-TEST_F(SMTLibEncoderFunctionalTest, SUB)
-{
-  Sub sub = Sub(1);
-
-  ASSERT_EQ(
-    "(bvsub accu_0_0 " + encoder->load(sub.arg) + ")",
-    encoder->encode(sub));
-}
-
-TEST_F(SMTLibEncoderFunctionalTest, SUB_indirect)
-{
-  Sub sub = Sub(1, true);
-
-  ASSERT_EQ(
-    "(bvsub accu_0_0 " + encoder->load(sub.arg, sub.indirect) + ")",
-    encoder->encode(sub));
-}
-
-TEST_F(SMTLibEncoderFunctionalTest, SUBI)
-{
-  Subi subi = Subi(1);
-
-  ASSERT_EQ("(bvsub accu_0_0 #x0001)", encoder->encode(subi));
-}
-
-TEST_F(SMTLibEncoderFunctionalTest, CMP)
-{
-  Cmp cmp = Cmp(1);
-
-  ASSERT_EQ(
-    "(bvsub accu_0_0 " + encoder->load(cmp.arg) + ")",
-    encoder->encode(cmp));
-}
-
-TEST_F(SMTLibEncoderFunctionalTest, CMP_indirect)
-{
-  Cmp cmp = Cmp(1, true);
-
-  ASSERT_EQ(
-    "(bvsub accu_0_0 " + encoder->load(cmp.arg, cmp.indirect) + ")",
-    encoder->encode(cmp));
-}
-
-TEST_F(SMTLibEncoderFunctionalTest, JMP)
-{
-  Jmp jmp = Jmp(1);
-
-  ASSERT_TRUE(encoder->encode(jmp).empty());
-}
-
-TEST_F(SMTLibEncoderFunctionalTest, JZ)
-{
-  Jz jz = Jz(1);
-
-  ASSERT_EQ("(= accu_0_0 #x0000)", encoder->encode(jz));
-}
-
-TEST_F(SMTLibEncoderFunctionalTest, JNZ)
-{
-  Jnz jnz = Jnz(1);
-
-  ASSERT_EQ("(not (= accu_0_0 #x0000))", encoder->encode(jnz));
-}
-
-TEST_F(SMTLibEncoderFunctionalTest, JS)
-{
-  Js js = Js(1);
-
-  ASSERT_EQ(
-    "(= #b1 ((_ extract " +
-      to_string(word_size - 1) +
-      " " +
-      to_string(word_size - 1) +
-      ") " +
-      "accu_0_0))",
-    encoder->encode(js));
-}
-
-TEST_F(SMTLibEncoderFunctionalTest, JNS)
-{
-  Jns jns = Jns(1);
-
-  ASSERT_EQ(
-    "(= #b0 ((_ extract " +
-      to_string(word_size - 1) +
-      " " +
-      to_string(word_size - 1) +
-      ") " +
-      "accu_0_0))",
-    encoder->encode(jns));
-}
-
-TEST_F(SMTLibEncoderFunctionalTest, JNZNS)
-{
-  Jnzns jnzns = Jnzns(1);
-
-  ASSERT_EQ(
-    "(and (not (= accu_0_0 #x0000)) (= #b0 ((_ extract " +
-      to_string(word_size - 1) +
-      " " +
-      to_string(word_size - 1) +
-      ") accu_0_0)))",
-    encoder->encode(jnzns));
-}
-
-TEST_F(SMTLibEncoderFunctionalTest, MEM)
-{
-  Mem mem = Mem(1);
-
-  ASSERT_EQ(encoder->load(mem.arg), encoder->encode(mem));
-}
-
-TEST_F(SMTLibEncoderFunctionalTest, MEM_indirect)
-{
-  Mem mem = Mem(1, true);
-
-  ASSERT_EQ(encoder->load(mem.arg, mem.indirect), encoder->encode(mem));
-}
-
-TEST_F(SMTLibEncoderFunctionalTest, CAS)
-{
-  Cas cas = Cas(1);
-
-  encoder->update = Encoder::Update::accu;
-
-  ASSERT_EQ(
-    "(ite (= mem_0_0 (select heap_0 #x0001)) #x0001 #x0000)",
-    encoder->encode(cas));
-
-  encoder->update = Encoder::Update::heap;
-
-  ASSERT_EQ(
-    "(ite "
-      "(= mem_0_0 (select heap_0 #x0001)) "
-      "(store heap_0 #x0001 accu_0_0) "
-      "heap_0)",
-    encoder->encode(cas));
-}
-
-TEST_F(SMTLibEncoderFunctionalTest, CAS_indirect)
-{
-  Cas cas = Cas(1, true);
-
-  encoder->update = Encoder::Update::accu;
-
-  ASSERT_EQ(
-    "(ite (= mem_0_0 (select heap_0 (select heap_0 #x0001))) #x0001 #x0000)",
-    encoder->encode(cas));
-
-  encoder->update = Encoder::Update::heap;
-
-  ASSERT_EQ(
-    "(ite "
-      "(= mem_0_0 (select heap_0 (select heap_0 #x0001))) "
-      "(store heap_0 (select heap_0 #x0001) accu_0_0) "
-      "heap_0)",
-    encoder->encode(cas));
-}
-
-TEST_F(SMTLibEncoderFunctionalTest, CHECK)
-{
-  Check check = Check(1);
-
-  ASSERT_TRUE(encoder->encode(check).empty());
-}
-
-TEST_F(SMTLibEncoderFunctionalTest, EXIT)
-{
-  Exit exit = Exit(1);
-
-  ASSERT_EQ("#x0001", encoder->encode(exit));
 }
