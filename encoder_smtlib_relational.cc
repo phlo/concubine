@@ -13,48 +13,256 @@ SMTLibEncoderRelational::SMTLibEncoderRelational (
   if (e) SMTLibEncoder::encode();
 }
 
-string SMTLibEncoderRelational::imply (string antecedent, string consequent)
+string SMTLibEncoderRelational::imply (const string ante, const string cons)
 {
-  return smtlib::assertion(smtlib::implication(antecedent, consequent)) + eol;
+  return smtlib::assertion(smtlib::implication(ante, cons)) + eol;
 }
 
-string SMTLibEncoderRelational::assign_heap (string exp)
+string SMTLibEncoderRelational::assign_accu (string expr)
 {
-  return imply(exec_var(), smtlib::equality({heap_var(), exp}));
-}
-
-string SMTLibEncoderRelational::assign_accu (string val)
-{
-  return imply(exec_var(), smtlib::equality({accu_var(), val}));
-}
-
-string SMTLibEncoderRelational::assign_mem (string val)
-{
-  return imply(exec_var(), smtlib::equality({mem_var(), val}));
-}
-
-string SMTLibEncoderRelational::preserve_heap ()
-{
-  return
-    imply(
-      exec_var(),
-      smtlib::equality({heap_var(), heap_var(step - 1)}));
+  return smtlib::equality({accu_var(), expr});
 }
 
 string SMTLibEncoderRelational::preserve_accu ()
 {
-  return
-    imply(
-      exec_var(),
-      smtlib::equality({accu_var(), accu_var(step - 1, thread)}));
+  return assign_accu(accu_var(prev, thread));
+}
+
+string SMTLibEncoderRelational::assign_mem (const string expr)
+{
+  return smtlib::equality({mem_var(), expr});
 }
 
 string SMTLibEncoderRelational::preserve_mem ()
 {
-  return
-    imply(
-      exec_var(),
-      smtlib::equality({mem_var(), mem_var(step - 1, thread)}));
+  return assign_mem(mem_var(prev, thread));
+}
+
+string SMTLibEncoderRelational::assign_sb_adr (const string expr)
+{
+  return smtlib::equality({sb_adr_var(), expr});
+}
+
+string SMTLibEncoderRelational::preserve_sb_adr ()
+{
+  return assign_sb_adr(sb_adr_var(prev, thread));
+}
+
+string SMTLibEncoderRelational::assign_sb_val (const string expr)
+{
+  return smtlib::equality({sb_val_var(), expr});
+}
+
+string SMTLibEncoderRelational::preserve_sb_val ()
+{
+  return assign_sb_val(sb_val_var(prev, thread));
+}
+
+string SMTLibEncoderRelational::assign_sb_full (const bool val)
+{
+  return val ? sb_full_var() : smtlib::lnot(sb_full_var());
+}
+
+string SMTLibEncoderRelational::preserve_sb_full ()
+{
+  return smtlib::equality({sb_full_var(), sb_full_var(prev, thread)});
+}
+
+string SMTLibEncoderRelational::assign_stmt (const word_t target, const optional<string> condition)
+{
+  vector<string> stmts;
+
+  const word_t next = target + 1;
+
+  const Program & program = *(*programs)[thread];
+
+  for (pc = 0; pc < program.size(); pc++)
+    {
+      const string stmt = stmt_var();
+
+      if (condition)
+        {
+          if (pc == target)
+            stmts.push_back(smtlib::ite(*condition, stmt, smtlib::lnot(stmt)));
+          else if (pc == next)
+            stmts.push_back(smtlib::ite(*condition, smtlib::lnot(stmt), stmt));
+          else
+            stmts.push_back(smtlib::lnot(stmt));
+        }
+      else
+        {
+          if (pc == target)
+            stmts.push_back(stmt);
+          else
+            stmts.push_back(smtlib::lnot(stmt));
+        }
+
+      stmts.push_back(
+        pc == target
+          ? condition
+            ? smtlib::ite(*condition, stmt_var(), smtlib::lnot(stmt_var()))
+            : stmt_var()
+          : smtlib::lnot(stmt_var()));
+    }
+
+  return smtlib::land(stmts);
+}
+
+string SMTLibEncoderRelational::preserve_stmt ()
+{
+  const Program & program = *(*programs)[thread];
+
+  vector<string> stmts;
+  stmts.reserve(program.size());
+
+  for (pc = 0; pc < program.size(); pc++)
+    stmts.push_back(
+      smtlib::equality({
+        stmt_var(step, thread, pc),
+        stmt_var(prev, thread, pc)}));
+
+  return smtlib::land(stmts);
+}
+
+string SMTLibEncoderRelational::assign_block (const word_t id)
+{
+  vector<string> block_vars;
+
+  for (const auto & [c, threads] : check_pcs)
+    if (threads.find(thread) != threads.end())
+      block_vars.push_back(
+        c == id
+          ? block_var(step, id, thread)
+          : smtlib::equality({
+              block_var(step, id, thread),
+              block_var(prev, id, thread)}));
+
+  return smtlib::land(block_vars);
+}
+
+string SMTLibEncoderRelational::preserve_block ()
+{
+  ostringstream expr;
+
+  vector<string> block_vars;
+
+  for (const auto & [c, threads] : check_pcs)
+    if (threads.find(thread) != threads.end())
+      block_vars.push_back(
+        smtlib::equality({
+          block_var(step, c, thread),
+          block_var(prev, c, thread)}));
+
+  return smtlib::land(block_vars);
+
+  /*
+  for (const auto & [c, threads] : check_pcs)
+    for (const auto & [t, pcs] : threads)
+      if (step)
+        {
+          vector<string> block_args;
+
+          block_args.reserve(pcs.size() + 1);
+
+          for (const word_t p : pcs)
+            block_args.push_back(exec_var(prev, t, p));
+
+          block_args.push_back(block_var(prev, c, t));
+
+          formula <<
+            assign_var(
+              block_var(step, c, t),
+              smtlib::ite(
+                check_var(prev, c),
+                "false",
+                smtlib::lor(block_args))) <<
+            eol;
+        }
+      else
+        {
+          formula
+            << smtlib::assertion(smtlib::lnot(block_var(step, c, t)))
+            << eol;
+        }
+
+  formula << eol;
+  */
+}
+
+string SMTLibEncoderRelational::assign_heap (const string expr)
+{
+  return smtlib::equality({heap_var(), expr});
+}
+
+string SMTLibEncoderRelational::preserve_heap ()
+{
+  return assign_heap(heap_var(prev));
+}
+
+/*
+string SMTLibEncoderRelational::preserve_accu ()
+{
+  return assign(accu_var(), accu_var(prev, thread));
+}
+
+string SMTLibEncoderRelational::preserve_mem ()
+{
+  return assign(mem_var(), mem_var(prev, thread));
+}
+
+string SMTLibEncoderRelational::preserve_sb_adr ()
+{
+  return assign(sb_adr_var(), sb_adr_var(prev, thread));
+}
+
+string SMTLibEncoderRelational::preserve_sb_val ()
+{
+  return assign(sb_val_var(), sb_val_var(prev, thread));
+}
+
+string SMTLibEncoderRelational::preserve_sb_full ()
+{
+  return assign(sb_full_var(), sb_full_var(prev, thread));
+}
+
+string SMTLibEncoderRelational::preserve_block ()
+{
+  ostringstream expr;
+
+  return assign(sb_full_var(), sb_full_var(prev, thread));
+
+  for (const auto & [c, threads] : check_pcs)
+    for (const auto & [t, pcs] : threads)
+      if (step)
+        {
+          vector<string> block_args;
+
+          block_args.reserve(pcs.size() + 1);
+
+          for (const word_t p : pcs)
+            block_args.push_back(exec_var(prev, t, p));
+
+          block_args.push_back(block_var(prev, c, t));
+
+          expr <<
+            assign(
+              block_var(step, c, t),
+              smtlib::ite(
+                check_var(prev, c),
+                "false",
+                smtlib::lor(block_args))) <<
+            eol;
+        }
+      else
+        {
+          formula
+            << smtlib::assertion(smtlib::lnot(block_var(step, c, t)))
+            << eol;
+        }
+
+  formula << eol;
+
+  return expr.str();
 }
 
 string SMTLibEncoderRelational::stmt_activation (word_t target)
@@ -90,6 +298,46 @@ string SMTLibEncoderRelational::activate_jmp (string condition, word_t target)
           stmt_activation(target),
           stmt_activation(pc + 1)))
     : "";
+}
+
+string SMTLibEncoderRelational::preserve_heap ()
+{
+  return
+    imply(
+      exec_var(),
+      smtlib::equality({heap_var(), heap_var(step - 1)}));
+}
+*/
+
+string SMTLibEncoderRelational::imply_state (
+                                             string antecedent,
+                                             string accu,
+                                             string mem,
+                                             string sb_adr,
+                                             string sb_val,
+                                             string sb_full,
+                                             string stmt,
+                                             string block,
+                                             string heap,
+                                             string exit,
+                                             string exit_code
+                                            )
+{
+  return
+    imply(
+      antecedent,
+      smtlib::land({
+        accu,
+        mem,
+        sb_adr,
+        sb_val,
+        sb_full,
+        stmt,
+        block,
+        heap,
+        exit,
+        exit_code
+      }));
 }
 
 void SMTLibEncoderRelational::define_states ()
@@ -268,14 +516,23 @@ void SMTLibEncoderRelational::encode ()
 string SMTLibEncoderRelational::encode (Load & l)
 {
   return
-    assign_accu(load(l.arg, l.indirect)) +
-    preserve_mem() +
-    preserve_heap() +
-    activate_next();
+    imply_state(
+      exec_var(),
+      assign_accu(SMTLibEncoder::encode(l)),
+      preserve_mem(),
+      preserve_sb_adr(),
+      preserve_sb_val(),
+      preserve_sb_full(),
+      assign_stmt(pc + 1),
+      preserve_block(),
+      preserve_heap(),
+      preserve_exit(),
+      preserve_exit_code());
 }
 
 string SMTLibEncoderRelational::encode (Store & s)
 {
+  /*
   string addr(
     s.indirect
       ? smtlib::select(heap_var(step - 1), smtlib::word2hex(s.arg))
@@ -290,32 +547,81 @@ string SMTLibEncoderRelational::encode (Store & s)
         addr,
         accu_var(step - 1, thread))) +
     activate_next();
+  */
+
+  string adr = smtlib::word2hex(s.arg);
+
+  if (s.indirect)
+    adr = smtlib::select(heap_var(prev), adr);
+
+  return
+    imply_state(
+      exec_var(),
+      preserve_accu(),
+      preserve_mem(),
+      assign_sb_adr((update = Update::sb_adr, SMTLibEncoder::encode(s))),
+      assign_sb_val((update = Update::sb_val, SMTLibEncoder::encode(s))),
+      assign_sb_full(true),
+      assign_stmt(pc + 1),
+      preserve_block(),
+      preserve_heap(),
+      preserve_exit(),
+      preserve_exit_code());
 }
 
 // TODO
 string SMTLibEncoderRelational::encode (Fence & f [[maybe_unused]])
 {
-  throw runtime_error("not implemented");
+  return
+    imply_state(
+      exec_var(),
+      preserve_accu(),
+      preserve_mem(),
+      preserve_sb_adr(),
+      preserve_sb_val(),
+      preserve_sb_full(),
+      assign_stmt(pc + 1),
+      preserve_block(),
+      preserve_heap(),
+      preserve_exit(),
+      preserve_exit_code());
 }
 
 string SMTLibEncoderRelational::encode (Add & a)
 {
   return
-    assign_accu(
-      smtlib::bvadd({accu_var(step - 1, thread), load(a.arg, a.indirect)})) +
-    preserve_mem() +
-    preserve_heap() +
-    activate_next();
+    imply_state(
+      exec_var(),
+      assign_accu(
+        smtlib::bvadd({
+          accu_var(prev, thread), load(a.arg, a.indirect)})),
+      preserve_mem(),
+      preserve_sb_adr(),
+      preserve_sb_val(),
+      preserve_sb_full(),
+      assign_stmt(pc + 1),
+      preserve_block(),
+      preserve_heap(),
+      preserve_exit(),
+      preserve_exit_code());
 }
 
 string SMTLibEncoderRelational::encode (Addi & a)
 {
   return
-    assign_accu(
-      smtlib::bvadd({accu_var(step - 1, thread), smtlib::word2hex(a.arg)})) +
-    preserve_mem() +
-    preserve_heap() +
-    activate_next();
+    imply_state(
+      exec_var(),
+      assign_accu(
+        smtlib::bvadd({accu_var(prev, thread), smtlib::word2hex(a.arg)})),
+      preserve_mem(),
+      preserve_sb_adr(),
+      preserve_sb_val(),
+      preserve_sb_full(),
+      assign_stmt(pc + 1),
+      preserve_block(),
+      preserve_heap(),
+      preserve_exit(),
+      preserve_exit_code());
 }
 
 string SMTLibEncoderRelational::encode (Sub & s)

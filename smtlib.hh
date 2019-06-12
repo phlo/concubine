@@ -15,6 +15,10 @@
  ******************************************************************************/
 namespace smtlib
 {
+  /* constants */
+  static std::string TRUE = "true";
+  static std::string FALSE = "false";
+
   /* converts integer to its word sized SMT-Lib hex constant ******************/
   inline std::string word2hex (const word_t val)
     {
