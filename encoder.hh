@@ -417,36 +417,46 @@ struct SMTLibEncoderRelational : public SMTLibEncoder
 
   std::string         imply (std::string, std::string);
 
-  std::string         assign_accu (std::string expr);
+  template <class T>
+  std::string         update_accu (T & op);
+  std::string         update_accu (std::string expr);
   std::string         preserve_accu ();
 
-  std::string         assign_mem (std::string expr);
+  template <class T>
+  std::string         update_mem (T & op);
+  std::string         update_mem (std::string expr);
   std::string         preserve_mem ();
 
-  std::string         assign_sb_adr (std::string expr);
+  template <class T>
+  std::string         update_sb_adr (T & op);
+  std::string         update_sb_adr (std::string expr);
   std::string         preserve_sb_adr ();
 
-  std::string         assign_sb_val (std::string expr);
+  template <class T>
+  std::string         update_sb_val (T & op);
+  std::string         update_sb_val (std::string expr);
   std::string         preserve_sb_val ();
 
-  std::string         assign_sb_full (bool val);
+  std::string         update_sb_full (bool val);
   std::string         preserve_sb_full ();
 
-  std::string         assign_stmt (word_t target);
-  std::string         assign_stmt (word_t target, std::string condition);
+  template <class T>
+  std::string         update_stmt (T & op);
+  std::string         update_stmt ();
   std::string         preserve_stmt ();
 
-  std::string         assign_block (word_t id);
+  std::string         update_block (word_t id);
   std::string         preserve_block ();
 
-  std::string         assign_heap (std::string expr);
+  template <class T>
+  std::string         update_heap (T & op);
+  std::string         update_heap (std::string expr);
   std::string         preserve_heap ();
 
-  std::string         assign_exit (std::string expr);
-  std::string         preserve_exit ();
+  std::string         set_exit ();
+  std::string         unset_exit ();
 
-  std::string         assign_exit_code (std::string);
-  std::string         preserve_exit_code ();
+  std::string         set_exit_code (Exit & e);
 
   /*
   template <std::string (*var)(const word_t)>
@@ -465,7 +475,7 @@ struct SMTLibEncoderRelational : public SMTLibEncoder
   std::string         preserve_block ();
 
   std::string         preserve_heap ();
-  std::string         preserve_exit ();
+  std::string         unset_exit ();
   std::string         preserve_exit_code ();
 
   std::string         activate_stmt (word_t pc, std::string condition = "");
@@ -484,20 +494,8 @@ struct SMTLibEncoderRelational : public SMTLibEncoder
   void                add_state_preservation ();
   */
 
-  std::string         imply_state (
-                                   std::string antecedent,
-                                   std::string accu,
-                                   std::string mem,
-                                   std::string sb_adr,
-                                   std::string sb_val,
-                                   std::string sb_full,
-                                   std::string stmt,
-                                   std::string block,
-                                   std::string heap,
-                                   std::string exit,
-                                   std::string exit_code
-                                  );
-
+  std::string         assign_state (std::initializer_list<std::string> && args);
+  std::string         preserve_state ();
 
   /* state variable definitions */
   virtual void        define_states ();

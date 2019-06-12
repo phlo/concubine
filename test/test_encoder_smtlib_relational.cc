@@ -8,78 +8,102 @@ using namespace std;
 
 struct SMTLibEncoderRelationalTest : public ::testing::Test
 {
-  Program_list_ptr            programs {make_shared<Program_list>()};
-  SMTLibEncoderRelational_ptr encoder {create_encoder(2, 1)};
+  Program_list                programs;
+  SMTLibEncoderRelational_ptr encoder = create_encoder();
 
-  SMTLibEncoderRelational_ptr create_encoder (
-                                              const word_t bound,
-                                              const word_t step
-                                             )
+  Program_ptr create_program (string code)
+    {
+      string path = "dummy.asm";
+      istringstream inbuf {code};
+      return make_shared<Program>(inbuf, path);
+    }
+
+  SMTLibEncoderRelational_ptr create_encoder (const bound_t bound = 1)
     {
       SMTLibEncoderRelational_ptr e =
-        make_shared<SMTLibEncoderRelational>(programs, bound, false);
+        make_shared<SMTLibEncoderRelational>(
+          make_shared<Program_list>(programs),
+          bound,
+          false);
 
-      e->step = step;
-      e->thread = 0;
-      e->pc = 0;
+      e->step = bound;
+      e->prev = bound - 1;
 
       return e;
     }
 
-  void reset_encoder (const word_t bound, bound_t step)
+  void reset_encoder (const bound_t step = 1)
     {
-      encoder = create_encoder(bound, step);
+      encoder = create_encoder(step);
     }
 
-  void add_dummy_programs (unsigned num_threads)
+  void add_dummy_programs (unsigned num, unsigned size)
     {
-      for (size_t i = 0; i < num_threads; i++)
-        {
-          programs->push_back(make_shared<Program>());
+      ostringstream code;
+      const char * op = "ADDI 1\n";
 
-          (*programs)[i]->push_back(Instruction::Set::create("LOAD", 1));
-          (*programs)[i]->push_back(Instruction::Set::create("ADDI", 1));
-          (*programs)[i]->push_back(Instruction::Set::create("STORE", 1));
-        }
+      for (size_t i = 0; i < size; i++)
+        code << op;
 
-      reset_encoder(2, 1);
+      for (size_t i = 0; i < num; i++)
+        programs.push_back(create_program(code.str()));
+
+      encoder = create_encoder();
     }
 
-  void add_instruction_set (unsigned num_threads)
+  void add_instruction_set (unsigned num)
     {
-      for (size_t i = 0; i < num_threads; i++)
-        {
-          programs->push_back(shared_ptr<Program>(new Program()));
+      for (size_t i = 0; i < num; i++)
+        programs.push_back(create_program(
+          "LOAD 1\n"  // 0
+          "STORE 1\n" // 1
+          "ADD 1\n"   // 2
+          "ADDI 1\n"  // 3
+          "SUB 1\n"   // 4
+          "SUBI 1\n"  // 5
+          "CMP 1\n"   // 6
+          "JMP 8\n"   // 7
+          "JZ 1\n"    // 8
+          "JNZ 1\n"   // 9
+          "JS 1\n"    // 10
+          "JNS 1\n"   // 11
+          "JNZNS 1\n" // 12
+          "MEM 1\n"   // 13
+          "CAS 1\n"   // 14
+          "CHECK 1\n" // 15
+          "EXIT 1\n"  // 16
+        ));
 
-          (*programs)[i]->push_back(Instruction::Set::create("LOAD", 1));  // 0
-          (*programs)[i]->push_back(Instruction::Set::create("STORE", 1)); // 1
-          (*programs)[i]->push_back(Instruction::Set::create("ADD", 1));   // 2
-          (*programs)[i]->push_back(Instruction::Set::create("ADDI", 1));  // 3
-          (*programs)[i]->push_back(Instruction::Set::create("SUB", 1));   // 4
-          (*programs)[i]->push_back(Instruction::Set::create("SUBI", 1));  // 5
-          (*programs)[i]->push_back(Instruction::Set::create("CMP", 1));   // 6
-          (*programs)[i]->push_back(Instruction::Set::create("JMP", 1));   // 7
-          (*programs)[i]->push_back(Instruction::Set::create("JZ", 1));    // 8
-          (*programs)[i]->push_back(Instruction::Set::create("JNZ", 1));   // 9
-          (*programs)[i]->push_back(Instruction::Set::create("JS", 1));    // 10
-          (*programs)[i]->push_back(Instruction::Set::create("JNS", 1));   // 11
-          (*programs)[i]->push_back(Instruction::Set::create("JNZNS", 1)); // 12
-          (*programs)[i]->push_back(Instruction::Set::create("MEM", 1));   // 13
-          (*programs)[i]->push_back(Instruction::Set::create("CAS", 1));   // 14
-          (*programs)[i]->push_back(Instruction::Set::create("CHECK", 1)); // 15
-          (*programs)[i]->push_back(Instruction::Set::create("EXIT", 1));  // 16
-        }
-
-      reset_encoder(2, 1);
+      reset_encoder();
     }
 };
 
-// std::string imply (std::string, std::string);
+/* SMTLibEncoderRelational::imply *********************************************/
 TEST_F(SMTLibEncoderRelationalTest, imply)
 {
   ASSERT_EQ("(assert (=> foo bar))\n", encoder->imply("foo", "bar"));
 }
 
+/* SMTLibEncoderRelational::update_accu ***************************************/
+TEST_F(SMTLibEncoderRelationalTest, update_accu)
+{
+  ASSERT_EQ("(= accu_1_0 foo)", encoder->update_accu("foo"s));
+}
+
+TEST_F(SMTLibEncoderRelationalTest, update_accu_encode)
+{
+  Addi a {1};
+
+  ASSERT_EQ("(= accu_1_0 (bvadd accu_0_0 #x0001))", encoder->update_accu(a));
+}
+
+/* SMTLibEncoderRelational::preserve_accu *************************************/
+TEST_F(SMTLibEncoderRelationalTest, preserve_accu)
+{
+  ASSERT_EQ("(= accu_1_0 accu_0_0)", encoder->preserve_accu());
+}
+
+#ifdef NIGNORE
 // std::string assign_heap (std::string);
 TEST_F(SMTLibEncoderRelationalTest, assign_heap)
 {
@@ -249,7 +273,6 @@ TEST_F(SMTLibEncoderRelationalTest, activate_jmp)
   ASSERT_EQ("", encoder->activate_jmp("foo", 0));
 }
 
-#ifdef NIGNORE
 // void add_exit_code (void);
 TEST_F(SMTLibEncoderRelationalTest, add_exit_code)
 {
@@ -387,8 +410,159 @@ TEST_F(SMTLibEncoderRelationalTest, add_statement_declaration)
     "(assert (not stmt_1_2_2))\n\n",
     encoder->formula.str());
 }
+
+// void add_state_preservation (void);
+TEST_F(SMTLibEncoderRelationalTest, add_state_preservation)
+{
+  add_instruction_set(3);
+
+  encoder->add_state_preservation();
+
+  ASSERT_EQ(
+    "; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "(declare-fun preserve_1_0 () Bool)\n"
+    "(assert (= preserve_1_0 (not thread_1_0)))\n"
+    "\n"
+    "(assert (=> preserve_1_0 (= accu_1_0 accu_0_0)))\n"
+    "(assert (=> preserve_1_0 (= mem_1_0 mem_0_0)))\n"
+    "\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_0 stmt_1_0_0)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_1 stmt_1_0_1)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_2 stmt_1_0_2)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_3 stmt_1_0_3)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_4 stmt_1_0_4)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_5 stmt_1_0_5)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_6 stmt_1_0_6)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_7 stmt_1_0_7)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_8 stmt_1_0_8)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_9 stmt_1_0_9)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_10 stmt_1_0_10)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_11 stmt_1_0_11)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_12 stmt_1_0_12)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_13 stmt_1_0_13)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_14 stmt_1_0_14)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_15 stmt_1_0_15)))\n"
+    "(assert (=> preserve_1_0 (= stmt_2_0_16 stmt_1_0_16)))\n"
+    "\n"
+    "(declare-fun preserve_1_1 () Bool)\n"
+    "(assert (= preserve_1_1 (not thread_1_1)))\n"
+    "\n"
+    "(assert (=> preserve_1_1 (= accu_1_1 accu_0_1)))\n"
+    "(assert (=> preserve_1_1 (= mem_1_1 mem_0_1)))\n"
+    "\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_0 stmt_1_1_0)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_1 stmt_1_1_1)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_2 stmt_1_1_2)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_3 stmt_1_1_3)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_4 stmt_1_1_4)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_5 stmt_1_1_5)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_6 stmt_1_1_6)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_7 stmt_1_1_7)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_8 stmt_1_1_8)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_9 stmt_1_1_9)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_10 stmt_1_1_10)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_11 stmt_1_1_11)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_12 stmt_1_1_12)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_13 stmt_1_1_13)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_14 stmt_1_1_14)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_15 stmt_1_1_15)))\n"
+    "(assert (=> preserve_1_1 (= stmt_2_1_16 stmt_1_1_16)))\n"
+    "\n"
+    "(declare-fun preserve_1_2 () Bool)\n"
+    "(assert (= preserve_1_2 (not thread_1_2)))\n"
+    "\n"
+    "(assert (=> preserve_1_2 (= accu_1_2 accu_0_2)))\n"
+    "(assert (=> preserve_1_2 (= mem_1_2 mem_0_2)))\n"
+    "\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_0 stmt_1_2_0)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_1 stmt_1_2_1)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_2 stmt_1_2_2)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_3 stmt_1_2_3)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_4 stmt_1_2_4)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_5 stmt_1_2_5)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_6 stmt_1_2_6)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_7 stmt_1_2_7)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_8 stmt_1_2_8)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_9 stmt_1_2_9)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_10 stmt_1_2_10)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_11 stmt_1_2_11)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_12 stmt_1_2_12)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_13 stmt_1_2_13)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_14 stmt_1_2_14)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_15 stmt_1_2_15)))\n"
+    "(assert (=> preserve_1_2 (= stmt_2_2_16 stmt_1_2_16)))\n\n",
+    encoder->formula.str());
+
+  /* step == bound */
+  reset_encoder(2, 2);
+
+  encoder->add_state_preservation();
+
+  ASSERT_EQ(
+    "; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "(declare-fun preserve_2_0 () Bool)\n"
+    "(assert (= preserve_2_0 (not thread_2_0)))\n"
+    "\n"
+    "(assert (=> preserve_2_0 (= accu_2_0 accu_1_0)))\n"
+    "(assert (=> preserve_2_0 (= mem_2_0 mem_1_0)))\n"
+    "\n"
+    "(declare-fun preserve_2_1 () Bool)\n"
+    "(assert (= preserve_2_1 (not thread_2_1)))\n"
+    "\n"
+    "(assert (=> preserve_2_1 (= accu_2_1 accu_1_1)))\n"
+    "(assert (=> preserve_2_1 (= mem_2_1 mem_1_1)))\n"
+    "\n"
+    "(declare-fun preserve_2_2 () Bool)\n"
+    "(assert (= preserve_2_2 (not thread_2_2)))\n"
+    "\n"
+    "(assert (=> preserve_2_2 (= accu_2_2 accu_1_2)))\n"
+    "(assert (=> preserve_2_2 (= mem_2_2 mem_1_2)))\n\n",
+    encoder->formula.str());
+
+  /* verbosity */
+  reset_encoder(2, 2);
+
+  verbose = false;
+  encoder->add_state_preservation();
+  verbose = true;
+
+  ASSERT_EQ(
+    "(declare-fun preserve_2_0 () Bool)\n"
+    "(assert (= preserve_2_0 (not thread_2_0)))\n"
+    "\n"
+    "(assert (=> preserve_2_0 (= accu_2_0 accu_1_0)))\n"
+    "(assert (=> preserve_2_0 (= mem_2_0 mem_1_0)))\n"
+    "\n"
+    "(declare-fun preserve_2_1 () Bool)\n"
+    "(assert (= preserve_2_1 (not thread_2_1)))\n"
+    "\n"
+    "(assert (=> preserve_2_1 (= accu_2_1 accu_1_1)))\n"
+    "(assert (=> preserve_2_1 (= mem_2_1 mem_1_1)))\n"
+    "\n"
+    "(declare-fun preserve_2_2 () Bool)\n"
+    "(assert (= preserve_2_2 (not thread_2_2)))\n"
+    "\n"
+    "(assert (=> preserve_2_2 (= accu_2_2 accu_1_2)))\n"
+    "(assert (=> preserve_2_2 (= mem_2_2 mem_1_2)))\n\n",
+    encoder->formula.str());
+}
 #endif
 
+/* SMTLibEncoderRelational::define_states *************************************/
+TEST_F(SMTLibEncoderRelationalTest, define_states)
+{
+  add_instruction_set(3);
+
+  encoder->define_states();
+
+  ASSERT_EQ(
+    "",
+    encoder->str());
+}
+
+#ifdef NIGNORE
 /* SMTLibEncoderRelational::define_states *************************************/
 TEST_F(SMTLibEncoderRelationalTest, define_states)
 {
@@ -630,162 +804,29 @@ TEST_F(SMTLibEncoderRelationalTest, define_states)
         "(not stmt_2_2_2))))\n\n",
     encoder->formula.str());
 }
-
-#ifdef NIGNORE
-// void add_state_preservation (void);
-TEST_F(SMTLibEncoderRelationalTest, add_state_preservation)
-{
-  add_instruction_set(3);
-
-  encoder->add_state_preservation();
-
-  ASSERT_EQ(
-    "; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    "(declare-fun preserve_1_0 () Bool)\n"
-    "(assert (= preserve_1_0 (not thread_1_0)))\n"
-    "\n"
-    "(assert (=> preserve_1_0 (= accu_1_0 accu_0_0)))\n"
-    "(assert (=> preserve_1_0 (= mem_1_0 mem_0_0)))\n"
-    "\n"
-    "(assert (=> preserve_1_0 (= stmt_2_0_0 stmt_1_0_0)))\n"
-    "(assert (=> preserve_1_0 (= stmt_2_0_1 stmt_1_0_1)))\n"
-    "(assert (=> preserve_1_0 (= stmt_2_0_2 stmt_1_0_2)))\n"
-    "(assert (=> preserve_1_0 (= stmt_2_0_3 stmt_1_0_3)))\n"
-    "(assert (=> preserve_1_0 (= stmt_2_0_4 stmt_1_0_4)))\n"
-    "(assert (=> preserve_1_0 (= stmt_2_0_5 stmt_1_0_5)))\n"
-    "(assert (=> preserve_1_0 (= stmt_2_0_6 stmt_1_0_6)))\n"
-    "(assert (=> preserve_1_0 (= stmt_2_0_7 stmt_1_0_7)))\n"
-    "(assert (=> preserve_1_0 (= stmt_2_0_8 stmt_1_0_8)))\n"
-    "(assert (=> preserve_1_0 (= stmt_2_0_9 stmt_1_0_9)))\n"
-    "(assert (=> preserve_1_0 (= stmt_2_0_10 stmt_1_0_10)))\n"
-    "(assert (=> preserve_1_0 (= stmt_2_0_11 stmt_1_0_11)))\n"
-    "(assert (=> preserve_1_0 (= stmt_2_0_12 stmt_1_0_12)))\n"
-    "(assert (=> preserve_1_0 (= stmt_2_0_13 stmt_1_0_13)))\n"
-    "(assert (=> preserve_1_0 (= stmt_2_0_14 stmt_1_0_14)))\n"
-    "(assert (=> preserve_1_0 (= stmt_2_0_15 stmt_1_0_15)))\n"
-    "(assert (=> preserve_1_0 (= stmt_2_0_16 stmt_1_0_16)))\n"
-    "\n"
-    "(declare-fun preserve_1_1 () Bool)\n"
-    "(assert (= preserve_1_1 (not thread_1_1)))\n"
-    "\n"
-    "(assert (=> preserve_1_1 (= accu_1_1 accu_0_1)))\n"
-    "(assert (=> preserve_1_1 (= mem_1_1 mem_0_1)))\n"
-    "\n"
-    "(assert (=> preserve_1_1 (= stmt_2_1_0 stmt_1_1_0)))\n"
-    "(assert (=> preserve_1_1 (= stmt_2_1_1 stmt_1_1_1)))\n"
-    "(assert (=> preserve_1_1 (= stmt_2_1_2 stmt_1_1_2)))\n"
-    "(assert (=> preserve_1_1 (= stmt_2_1_3 stmt_1_1_3)))\n"
-    "(assert (=> preserve_1_1 (= stmt_2_1_4 stmt_1_1_4)))\n"
-    "(assert (=> preserve_1_1 (= stmt_2_1_5 stmt_1_1_5)))\n"
-    "(assert (=> preserve_1_1 (= stmt_2_1_6 stmt_1_1_6)))\n"
-    "(assert (=> preserve_1_1 (= stmt_2_1_7 stmt_1_1_7)))\n"
-    "(assert (=> preserve_1_1 (= stmt_2_1_8 stmt_1_1_8)))\n"
-    "(assert (=> preserve_1_1 (= stmt_2_1_9 stmt_1_1_9)))\n"
-    "(assert (=> preserve_1_1 (= stmt_2_1_10 stmt_1_1_10)))\n"
-    "(assert (=> preserve_1_1 (= stmt_2_1_11 stmt_1_1_11)))\n"
-    "(assert (=> preserve_1_1 (= stmt_2_1_12 stmt_1_1_12)))\n"
-    "(assert (=> preserve_1_1 (= stmt_2_1_13 stmt_1_1_13)))\n"
-    "(assert (=> preserve_1_1 (= stmt_2_1_14 stmt_1_1_14)))\n"
-    "(assert (=> preserve_1_1 (= stmt_2_1_15 stmt_1_1_15)))\n"
-    "(assert (=> preserve_1_1 (= stmt_2_1_16 stmt_1_1_16)))\n"
-    "\n"
-    "(declare-fun preserve_1_2 () Bool)\n"
-    "(assert (= preserve_1_2 (not thread_1_2)))\n"
-    "\n"
-    "(assert (=> preserve_1_2 (= accu_1_2 accu_0_2)))\n"
-    "(assert (=> preserve_1_2 (= mem_1_2 mem_0_2)))\n"
-    "\n"
-    "(assert (=> preserve_1_2 (= stmt_2_2_0 stmt_1_2_0)))\n"
-    "(assert (=> preserve_1_2 (= stmt_2_2_1 stmt_1_2_1)))\n"
-    "(assert (=> preserve_1_2 (= stmt_2_2_2 stmt_1_2_2)))\n"
-    "(assert (=> preserve_1_2 (= stmt_2_2_3 stmt_1_2_3)))\n"
-    "(assert (=> preserve_1_2 (= stmt_2_2_4 stmt_1_2_4)))\n"
-    "(assert (=> preserve_1_2 (= stmt_2_2_5 stmt_1_2_5)))\n"
-    "(assert (=> preserve_1_2 (= stmt_2_2_6 stmt_1_2_6)))\n"
-    "(assert (=> preserve_1_2 (= stmt_2_2_7 stmt_1_2_7)))\n"
-    "(assert (=> preserve_1_2 (= stmt_2_2_8 stmt_1_2_8)))\n"
-    "(assert (=> preserve_1_2 (= stmt_2_2_9 stmt_1_2_9)))\n"
-    "(assert (=> preserve_1_2 (= stmt_2_2_10 stmt_1_2_10)))\n"
-    "(assert (=> preserve_1_2 (= stmt_2_2_11 stmt_1_2_11)))\n"
-    "(assert (=> preserve_1_2 (= stmt_2_2_12 stmt_1_2_12)))\n"
-    "(assert (=> preserve_1_2 (= stmt_2_2_13 stmt_1_2_13)))\n"
-    "(assert (=> preserve_1_2 (= stmt_2_2_14 stmt_1_2_14)))\n"
-    "(assert (=> preserve_1_2 (= stmt_2_2_15 stmt_1_2_15)))\n"
-    "(assert (=> preserve_1_2 (= stmt_2_2_16 stmt_1_2_16)))\n\n",
-    encoder->formula.str());
-
-  /* step == bound */
-  reset_encoder(2, 2);
-
-  encoder->add_state_preservation();
-
-  ASSERT_EQ(
-    "; state preservation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    "(declare-fun preserve_2_0 () Bool)\n"
-    "(assert (= preserve_2_0 (not thread_2_0)))\n"
-    "\n"
-    "(assert (=> preserve_2_0 (= accu_2_0 accu_1_0)))\n"
-    "(assert (=> preserve_2_0 (= mem_2_0 mem_1_0)))\n"
-    "\n"
-    "(declare-fun preserve_2_1 () Bool)\n"
-    "(assert (= preserve_2_1 (not thread_2_1)))\n"
-    "\n"
-    "(assert (=> preserve_2_1 (= accu_2_1 accu_1_1)))\n"
-    "(assert (=> preserve_2_1 (= mem_2_1 mem_1_1)))\n"
-    "\n"
-    "(declare-fun preserve_2_2 () Bool)\n"
-    "(assert (= preserve_2_2 (not thread_2_2)))\n"
-    "\n"
-    "(assert (=> preserve_2_2 (= accu_2_2 accu_1_2)))\n"
-    "(assert (=> preserve_2_2 (= mem_2_2 mem_1_2)))\n\n",
-    encoder->formula.str());
-
-  /* verbosity */
-  reset_encoder(2, 2);
-
-  verbose = false;
-  encoder->add_state_preservation();
-  verbose = true;
-
-  ASSERT_EQ(
-    "(declare-fun preserve_2_0 () Bool)\n"
-    "(assert (= preserve_2_0 (not thread_2_0)))\n"
-    "\n"
-    "(assert (=> preserve_2_0 (= accu_2_0 accu_1_0)))\n"
-    "(assert (=> preserve_2_0 (= mem_2_0 mem_1_0)))\n"
-    "\n"
-    "(declare-fun preserve_2_1 () Bool)\n"
-    "(assert (= preserve_2_1 (not thread_2_1)))\n"
-    "\n"
-    "(assert (=> preserve_2_1 (= accu_2_1 accu_1_1)))\n"
-    "(assert (=> preserve_2_1 (= mem_2_1 mem_1_1)))\n"
-    "\n"
-    "(declare-fun preserve_2_2 () Bool)\n"
-    "(assert (= preserve_2_2 (not thread_2_2)))\n"
-    "\n"
-    "(assert (=> preserve_2_2 (= accu_2_2 accu_1_2)))\n"
-    "(assert (=> preserve_2_2 (= mem_2_2 mem_1_2)))\n\n",
-    encoder->formula.str());
-}
 #endif
 
 // virtual void encode (void);
 TEST_F(SMTLibEncoderRelationalTest, encode_check)
 {
   /* concurrent increment using CHECK */
-  programs->push_back(
+  programs.push_back(
     create_from_file<Program>("data/increment.check.thread.0.asm"));
-  programs->push_back(
+  programs.push_back(
     create_from_file<Program>("data/increment.check.thread.n.asm"));
 
-  encoder = make_shared<SMTLibEncoderRelational>(programs, 16);
+  encoder =
+    make_shared<SMTLibEncoderRelational>(
+      make_shared<Program_list>(programs),
+      16);
 
   ifstream ifs("data/increment.check.relational.t2.k16.smt2");
 
   string expected;
   expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
+
+  ofstream tmp("/tmp/increment.check.relational.t2.k16.smt2");
+  tmp << encoder->str();
 
   ASSERT_EQ(expected, encoder->formula.str());
 }
@@ -793,19 +834,26 @@ TEST_F(SMTLibEncoderRelationalTest, encode_check)
 TEST_F(SMTLibEncoderRelationalTest, encode_cas)
 {
   /* concurrent increment using CAS */
-  programs->push_back(create_from_file<Program>("data/increment.cas.asm"));
-  programs->push_back(create_from_file<Program>("data/increment.cas.asm"));
+  programs.push_back(create_from_file<Program>("data/increment.cas.asm"));
+  programs.push_back(create_from_file<Program>("data/increment.cas.asm"));
 
-  encoder = make_shared<SMTLibEncoderRelational>(programs, 16);
+  encoder =
+    make_shared<SMTLibEncoderRelational>(
+      make_shared<Program_list>(programs),
+      16);
 
   ifstream ifs("data/increment.cas.relational.t2.k16.smt2");
 
   string expected;
   expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
 
+  ofstream tmp("/tmp/increment.cas.relational.t2.k16.smt2");
+  tmp << encoder->str();
+
   ASSERT_EQ(expected, encoder->formula.str());
 }
 
+#ifdef NIGNORE
 // virtual std::string encode (Load &);
 TEST_F(SMTLibEncoderRelationalTest, LOAD)
 {
@@ -1296,3 +1344,4 @@ TEST_F(SMTLibEncoderRelationalTest, EXIT)
     "(assert (=> exec_1_0_0 (= exit-code #x0001)))\n",
     encoder->encode(exit));
 }
+#endif

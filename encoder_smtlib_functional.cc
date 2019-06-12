@@ -89,7 +89,7 @@ void SMTLibEncoderFunctional::define_sb_full ()
         sb_full_var(),
           smtlib::ite(
             flush_var(prev, thread),
-            "false",
+            smtlib::FALSE,
             smtlib::lor(args))) << eol;
   });
 
@@ -169,7 +169,7 @@ void SMTLibEncoderFunctional::define_block ()
             block_var(step, c, t),
             smtlib::ite(
               check_var(prev, c),
-              "false",
+              smtlib::FALSE,
               smtlib::lor(block_args))) <<
           eol;
       }
