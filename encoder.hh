@@ -294,6 +294,18 @@ struct SMTLibEncoder : public Encoder
   void                      declare_transitions ();
 
   /* state variable definitions */
+  void                      init_accu ();
+  void                      init_mem ();
+  void                      init_sb_adr ();
+  void                      init_sb_val ();
+  void                      init_sb_full ();
+  void                      init_stmt ();
+  void                      init_block ();
+
+  void                      init_exit ();
+
+  void                      init_states ();
+
   virtual void              define_states () = 0;
 
   /* transition variable definitions */

@@ -83,7 +83,7 @@
 (declare-fun exec_0_1_5 () Bool)
 (declare-fun exec_0_1_6 () Bool)
 
-; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; state variable initializations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; accu states - accu_<step>_<thread>
 (assert (= accu_0_0 #x0000))
@@ -2861,3 +2861,4 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (assert (= exit-code #x0000))
+

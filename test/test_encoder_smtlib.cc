@@ -35,7 +35,7 @@ struct SMTLibEncoderTest : public ::testing::Test
       encoder = create_encoder(step);
     }
 
-  void add_dummy_programs (unsigned num, unsigned size)
+  void add_dummy_programs (word_t num, word_t size = 1)
     {
       ostringstream code;
       const char * op = "ADDI 1\n";
@@ -383,7 +383,7 @@ TEST_F(SMTLibEncoderTest, load)
 /* SMTLibEncoder::declare_accu ************************************************/
 TEST_F(SMTLibEncoderTest, declare_accu)
 {
-  add_dummy_programs(3, 3);
+  add_dummy_programs(3);
 
   encoder->declare_accu();
 
@@ -413,7 +413,7 @@ TEST_F(SMTLibEncoderTest, declare_accu)
 /* SMTLibEncoder::declare_mem *************************************************/
 TEST_F(SMTLibEncoderTest, declare_mem)
 {
-  add_dummy_programs(3, 3);
+  add_dummy_programs(3);
 
   encoder->declare_mem();
 
@@ -443,7 +443,7 @@ TEST_F(SMTLibEncoderTest, declare_mem)
 /* SMTLibEncoder::declare_sb_adr **********************************************/
 TEST_F(SMTLibEncoderTest, declare_sb_adr)
 {
-  add_dummy_programs(3, 3);
+  add_dummy_programs(3);
 
   encoder->declare_sb_adr();
 
@@ -473,7 +473,7 @@ TEST_F(SMTLibEncoderTest, declare_sb_adr)
 /* SMTLibEncoder::declare_sb_val *********************************************/
 TEST_F(SMTLibEncoderTest, declare_sb_val)
 {
-  add_dummy_programs(3, 3);
+  add_dummy_programs(3);
 
   encoder->declare_sb_val();
 
@@ -503,7 +503,7 @@ TEST_F(SMTLibEncoderTest, declare_sb_val)
 /* SMTLibEncoder::declare_sb_full *********************************************/
 TEST_F(SMTLibEncoderTest, declare_sb_full)
 {
-  add_dummy_programs(3, 3);
+  add_dummy_programs(3);
 
   encoder->declare_sb_full();
 
@@ -581,27 +581,12 @@ TEST_F(SMTLibEncoderTest, declare_stmt)
 /* SMTLibEncoder::declare_block ***********************************************/
 TEST_F(SMTLibEncoderTest, declare_block)
 {
-  add_dummy_programs(3, 3);
-
-  // single checkpoint id
-  for (auto & p : programs)
-    p = create_program(p->print() + "CHECK 0\n");
-
-  reset_encoder();
-
-  encoder->declare_block();
-
-  ASSERT_EQ(
-    "; blocking variables - block_<step>_<id>_<thread>\n"
-    "(declare-fun block_0_0_0 () Bool)\n"
-    "(declare-fun block_0_0_1 () Bool)\n"
-    "(declare-fun block_0_0_2 () Bool)\n"
-    "\n",
-    encoder->str());
-
-  // two checkpoint ids
-  for (auto & p : programs)
-    p = create_program(p->print() + "CHECK 1\n");
+  for (size_t i = 0; i < 3; i++)
+    programs.push_back(
+      create_program(
+        "CHECK 0\n"
+        "CHECK 1\n"
+      ));
 
   reset_encoder();
 
@@ -634,6 +619,15 @@ TEST_F(SMTLibEncoderTest, declare_block)
     "(declare-fun block_0_1_2 () Bool)\n"
     "\n",
     encoder->str());
+}
+
+TEST_F(SMTLibEncoderTest, declare_block_empty)
+{
+  add_dummy_programs(1);
+
+  encoder->declare_block();
+
+  ASSERT_EQ("", encoder->str());
 }
 
 /* SMTLibEncoder::declare_heap ************************************************/
@@ -686,6 +680,15 @@ TEST_F(SMTLibEncoderTest, declare_exit)
   ASSERT_EQ("(declare-fun exit_0 () Bool)\n\n", encoder->str());
 }
 
+TEST_F(SMTLibEncoderTest, declare_exit_empty)
+{
+  add_dummy_programs(1);
+
+  encoder->declare_exit();
+
+  ASSERT_EQ("", encoder->str());
+}
+
 /* SMTLibEncoder::declare_exit_code *******************************************/
 TEST_F(SMTLibEncoderTest, declare_exit_code)
 {
@@ -733,7 +736,7 @@ TEST_F(SMTLibEncoderTest, declare_thread)
 /* SMTLibEncoder::declare_flush ***********************************************/
 TEST_F(SMTLibEncoderTest, declare_flush)
 {
-  add_dummy_programs(3, 3);
+  add_dummy_programs(3);
 
   reset_encoder();
 
@@ -765,7 +768,7 @@ TEST_F(SMTLibEncoderTest, declare_flush)
 /* SMTLibEncoder::declare_check ***********************************************/
 TEST_F(SMTLibEncoderTest, declare_check)
 {
-  add_dummy_programs(3, 3);
+  add_dummy_programs(3);
 
   word_t check_id = 1;
 
@@ -816,6 +819,15 @@ TEST_F(SMTLibEncoderTest, declare_check)
     "(declare-fun check_0_4 () Bool)\n"
     "\n",
     encoder->str());
+}
+
+TEST_F(SMTLibEncoderTest, declare_check_empty)
+{
+  add_dummy_programs(1);
+
+  encoder->declare_check();
+
+  ASSERT_EQ("", encoder->str());
 }
 
 /* SMTLibEncoder::declare_exec ************************************************/
@@ -870,7 +882,7 @@ TEST_F(SMTLibEncoderTest, declare_exec)
 /* SMTLibEncoder::declare_cas_vars ********************************************/
 TEST_F(SMTLibEncoderTest, declare_cas_vars)
 {
-  add_dummy_programs(3, 3);
+  add_dummy_programs(3);
 
   // no CAS statement
   encoder->declare_cas_vars();
@@ -922,6 +934,340 @@ TEST_F(SMTLibEncoderTest, declare_cas_vars)
 }
 #endif
 
+/* SMTLibEncoder::init_accu ***************************************************/
+TEST_F(SMTLibEncoderTest, init_accu)
+{
+  add_dummy_programs(3);
+
+  encoder->init_accu();
+
+  ASSERT_EQ(
+    "; accu states - accu_<step>_<thread>\n"
+    "(assert (= accu_0_0 #x0000))\n"
+    "(assert (= accu_0_1 #x0000))\n"
+    "(assert (= accu_0_2 #x0000))\n"
+    "\n",
+    encoder->str());
+
+  // verbosity
+  reset_encoder();
+
+  verbose = false;
+  encoder->init_accu();
+  verbose = true;
+
+  ASSERT_EQ(
+    "(assert (= accu_0_0 #x0000))\n"
+    "(assert (= accu_0_1 #x0000))\n"
+    "(assert (= accu_0_2 #x0000))\n"
+    "\n",
+    encoder->str());
+}
+
+/* SMTLibEncoder::init_mem ****************************************************/
+TEST_F(SMTLibEncoderTest, init_mem)
+{
+  add_dummy_programs(3);
+
+  encoder->init_mem();
+
+  ASSERT_EQ(
+    "; mem states - mem_<step>_<thread>\n"
+    "(assert (= mem_0_0 #x0000))\n"
+    "(assert (= mem_0_1 #x0000))\n"
+    "(assert (= mem_0_2 #x0000))\n"
+    "\n",
+    encoder->str());
+
+  // verbosity
+  reset_encoder();
+
+  verbose = false;
+  encoder->init_mem();
+  verbose = true;
+
+  ASSERT_EQ(
+    "(assert (= mem_0_0 #x0000))\n"
+    "(assert (= mem_0_1 #x0000))\n"
+    "(assert (= mem_0_2 #x0000))\n"
+    "\n",
+    encoder->str());
+}
+
+/* SMTLibEncoder::init_sb_adr *************************************************/
+TEST_F(SMTLibEncoderTest, init_sb_adr)
+{
+  add_dummy_programs(3);
+
+  encoder->init_sb_adr();
+
+  ASSERT_EQ(
+    "; store buffer address states - sb-adr_<step>_<thread>\n"
+    "(assert (= sb-adr_0_0 #x0000))\n"
+    "(assert (= sb-adr_0_1 #x0000))\n"
+    "(assert (= sb-adr_0_2 #x0000))\n"
+    "\n",
+    encoder->str());
+
+  // verbosity
+  reset_encoder();
+
+  verbose = false;
+  encoder->init_sb_adr();
+  verbose = true;
+
+  ASSERT_EQ(
+    "(assert (= sb-adr_0_0 #x0000))\n"
+    "(assert (= sb-adr_0_1 #x0000))\n"
+    "(assert (= sb-adr_0_2 #x0000))\n"
+    "\n",
+    encoder->str());
+}
+
+/* SMTLibEncoder::init_sb_val *************************************************/
+TEST_F(SMTLibEncoderTest, init_sb_val)
+{
+  add_dummy_programs(3);
+
+  encoder->init_sb_val();
+
+  ASSERT_EQ(
+    "; store buffer value states - sb-val_<step>_<thread>\n"
+    "(assert (= sb-val_0_0 #x0000))\n"
+    "(assert (= sb-val_0_1 #x0000))\n"
+    "(assert (= sb-val_0_2 #x0000))\n"
+    "\n",
+    encoder->str());
+
+  // verbosity
+  reset_encoder();
+
+  verbose = false;
+  encoder->init_sb_val();
+  verbose = true;
+
+  ASSERT_EQ(
+    "(assert (= sb-val_0_0 #x0000))\n"
+    "(assert (= sb-val_0_1 #x0000))\n"
+    "(assert (= sb-val_0_2 #x0000))\n"
+    "\n",
+    encoder->str());
+}
+
+/* SMTLibEncoder::init_sb_full ************************************************/
+TEST_F(SMTLibEncoderTest, init_sb_full)
+{
+  add_dummy_programs(3);
+
+  encoder->init_sb_full();
+
+  ASSERT_EQ(
+    "; store buffer full states - sb-full_<step>_<thread>\n"
+    "(assert (not sb-full_0_0))\n"
+    "(assert (not sb-full_0_1))\n"
+    "(assert (not sb-full_0_2))\n"
+    "\n",
+    encoder->str());
+
+  // verbosity
+  reset_encoder();
+
+  verbose = false;
+  encoder->init_sb_full();
+  verbose = true;
+
+  ASSERT_EQ(
+    "(assert (not sb-full_0_0))\n"
+    "(assert (not sb-full_0_1))\n"
+    "(assert (not sb-full_0_2))\n"
+    "\n",
+    encoder->str());
+}
+
+/* SMTLibEncoder::init_block **************************************************/
+TEST_F(SMTLibEncoderTest, init_block)
+{
+  for (size_t i = 0; i < 3; i++)
+    programs.push_back(
+      create_program(
+        "CHECK 0\n"
+        "CHECK 1\n"
+      ));
+
+  reset_encoder();
+
+  encoder->init_block();
+
+  ASSERT_EQ(
+    "; blocking variables - block_<step>_<id>_<thread>\n"
+    "(assert (not block_0_0_0))\n"
+    "(assert (not block_0_0_1))\n"
+    "(assert (not block_0_0_2))\n"
+    "(assert (not block_0_1_0))\n"
+    "(assert (not block_0_1_1))\n"
+    "(assert (not block_0_1_2))\n"
+    "\n",
+    encoder->str());
+
+  // verbosity
+  reset_encoder();
+
+  verbose = false;
+  encoder->init_block();
+  verbose = true;
+
+  ASSERT_EQ(
+    "(assert (not block_0_0_0))\n"
+    "(assert (not block_0_0_1))\n"
+    "(assert (not block_0_0_2))\n"
+    "(assert (not block_0_1_0))\n"
+    "(assert (not block_0_1_1))\n"
+    "(assert (not block_0_1_2))\n"
+    "\n",
+    encoder->str());
+}
+
+TEST_F(SMTLibEncoderTest, init_block_empty)
+{
+  add_dummy_programs(1);
+
+  encoder->init_block();
+
+  ASSERT_EQ("", encoder->str());
+}
+
+/* SMTLibEncoder::init_exit ***************************************************/
+TEST_F(SMTLibEncoderTest, init_exit)
+{
+  programs.push_back(create_program("EXIT 1\n"));
+
+  reset_encoder();
+
+  encoder->init_exit();
+
+  ASSERT_EQ(
+    "; exit flag - exit_<step>\n"
+    "(assert (not exit_0))\n"
+    "\n",
+    encoder->str());
+
+  // verbosity
+  reset_encoder();
+
+  verbose = false;
+  encoder->init_exit();
+  verbose = true;
+
+  ASSERT_EQ("(assert (not exit_0))\n\n", encoder->str());
+}
+
+TEST_F(SMTLibEncoderTest, init_exit_empty)
+{
+  add_dummy_programs(1);
+
+  encoder->init_exit();
+
+  ASSERT_EQ("", encoder->str());
+}
+
+/* SMTLibEncoder::init_states *************************************************/
+TEST_F(SMTLibEncoderTest, init_states)
+{
+  programs.push_back(create_program("JMP 0\n"));
+
+  reset_encoder();
+
+  encoder->init_states();
+
+  ASSERT_EQ(
+    "; state variable initializations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; accu states - accu_<step>_<thread>\n"
+    "(assert (= accu_0_0 #x0000))\n"
+    "\n"
+    "; mem states - mem_<step>_<thread>\n"
+    "(assert (= mem_0_0 #x0000))\n"
+    "\n"
+    "; store buffer address states - sb-adr_<step>_<thread>\n"
+    "(assert (= sb-adr_0_0 #x0000))\n"
+    "\n"
+    "; store buffer value states - sb-val_<step>_<thread>\n"
+    "(assert (= sb-val_0_0 #x0000))\n"
+    "\n"
+    "; store buffer full states - sb-full_<step>_<thread>\n"
+    "(assert (not sb-full_0_0))\n"
+    "\n"
+    "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
+    "(assert stmt_0_0_0)\n"
+    "\n",
+    encoder->str());
+
+  // verbosity
+  reset_encoder();
+
+  verbose = false;
+  encoder->init_states();
+  verbose = true;
+
+  ASSERT_EQ(
+    "(assert (= accu_0_0 #x0000))\n"
+    "\n"
+    "(assert (= mem_0_0 #x0000))\n"
+    "\n"
+    "(assert (= sb-adr_0_0 #x0000))\n"
+    "\n"
+    "(assert (= sb-val_0_0 #x0000))\n"
+    "\n"
+    "(assert (not sb-full_0_0))\n"
+    "\n"
+    "(assert stmt_0_0_0)\n"
+    "\n",
+    encoder->str());
+}
+
+TEST_F(SMTLibEncoderTest, init_states_check_exit)
+{
+  programs.push_back(
+    create_program(
+      "CHECK 0\n"
+      "EXIT 1\n"
+    ));
+
+  reset_encoder();
+
+  encoder->init_states();
+
+  ASSERT_EQ(
+    "; state variable initializations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; accu states - accu_<step>_<thread>\n"
+    "(assert (= accu_0_0 #x0000))\n"
+    "\n"
+    "; mem states - mem_<step>_<thread>\n"
+    "(assert (= mem_0_0 #x0000))\n"
+    "\n"
+    "; store buffer address states - sb-adr_<step>_<thread>\n"
+    "(assert (= sb-adr_0_0 #x0000))\n"
+    "\n"
+    "; store buffer value states - sb-val_<step>_<thread>\n"
+    "(assert (= sb-val_0_0 #x0000))\n"
+    "\n"
+    "; store buffer full states - sb-full_<step>_<thread>\n"
+    "(assert (not sb-full_0_0))\n"
+    "\n"
+    "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
+    "(assert stmt_0_0_0)\n"
+    "(assert (not stmt_0_0_1))\n"
+    "\n"
+    "; blocking variables - block_<step>_<id>_<thread>\n"
+    "(assert (not block_0_0_0))\n"
+    "\n"
+    "; exit flag - exit_<step>\n"
+    "(assert (not exit_0))\n"
+    "\n",
+    encoder->str());
+}
+
 /* SMTLibEncoder::define_check ************************************************/
 TEST_F(SMTLibEncoderTest, define_check)
 {
@@ -958,6 +1304,15 @@ TEST_F(SMTLibEncoderTest, define_check)
   verbose = true;
 
   ASSERT_EQ("(assert (not check_0_1))\n\n", encoder->str());
+}
+
+TEST_F(SMTLibEncoderTest, define_check_empty)
+{
+  add_dummy_programs(1);
+
+  encoder->define_check();
+
+  ASSERT_EQ("", encoder->str());
 }
 
 /* SMTLibEncoder::define_exec *************************************************/
@@ -1139,9 +1494,54 @@ TEST_F(SMTLibEncoderTest, define_checkpoint_contraints)
     encoder->str());
 }
 
+TEST_F(SMTLibEncoderTest, define_checkpoint_contraints_empty)
+{
+  encoder->define_checkpoint_contraints();
+
+  ASSERT_EQ("", encoder->str());
+}
+
 /* SMTLibEncoder::define_scheduling_constraints *******************************/
 TEST_F(SMTLibEncoderTest, define_scheduling_constraints)
 {
+  add_dummy_programs(2);
+
+  encoder->define_scheduling_constraints();
+
+  ASSERT_EQ(
+    "; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "(assert (or thread_0_0 flush_0_0 thread_0_1 flush_0_1))\n"
+    "(assert (or (not thread_0_0) (not flush_0_0)))\n"
+    "(assert (or (not thread_0_0) (not thread_0_1)))\n"
+    "(assert (or (not thread_0_0) (not flush_0_1)))\n"
+    "(assert (or (not flush_0_0) (not thread_0_1)))\n"
+    "(assert (or (not flush_0_0) (not flush_0_1)))\n"
+    "(assert (or (not thread_0_1) (not flush_0_1)))\n"
+    "\n",
+    encoder->str());
+
+  // verbosity
+  reset_encoder();
+
+  verbose = false;
+  encoder->define_scheduling_constraints();
+  verbose = true;
+
+  ASSERT_EQ(
+    "(assert (or thread_0_0 flush_0_0 thread_0_1 flush_0_1))\n"
+    "(assert (or (not thread_0_0) (not flush_0_0)))\n"
+    "(assert (or (not thread_0_0) (not thread_0_1)))\n"
+    "(assert (or (not thread_0_0) (not flush_0_1)))\n"
+    "(assert (or (not flush_0_0) (not thread_0_1)))\n"
+    "(assert (or (not flush_0_0) (not flush_0_1)))\n"
+    "(assert (or (not thread_0_1) (not flush_0_1)))\n"
+    "\n",
+    encoder->str());
+}
+
+TEST_F(SMTLibEncoderTest, define_scheduling_constraints_exit)
+{
   programs.push_back(create_program("EXIT 1"));
   programs.push_back(create_program("EXIT 1"));
 
@@ -1188,22 +1588,18 @@ TEST_F(SMTLibEncoderTest, define_scheduling_constraints)
     "\n",
     encoder->str());
 }
+
 
 TEST_F(SMTLibEncoderTest, define_scheduling_constraints_single_thread)
 {
-  programs.push_back(create_program("EXIT 1"));
-
-  reset_encoder();
+  add_dummy_programs(1);
 
   encoder->define_scheduling_constraints();
 
   ASSERT_EQ(
     "; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "(assert (or thread_0_0 flush_0_0 exit_0))\n"
-    "(assert (or (not thread_0_0) (not flush_0_0)))\n"
-    "(assert (or (not thread_0_0) (not exit_0)))\n"
-    "(assert (or (not flush_0_0) (not exit_0)))\n"
+    "(assert (xor thread_0_0 flush_0_0))\n"
     "\n",
     encoder->str());
 
@@ -1214,15 +1610,10 @@ TEST_F(SMTLibEncoderTest, define_scheduling_constraints_single_thread)
   encoder->define_scheduling_constraints();
   verbose = true;
 
-  ASSERT_EQ(
-    "(assert (or thread_0_0 flush_0_0 exit_0))\n"
-    "(assert (or (not thread_0_0) (not flush_0_0)))\n"
-    "(assert (or (not thread_0_0) (not exit_0)))\n"
-    "(assert (or (not flush_0_0) (not exit_0)))\n"
-    "\n",
-    encoder->str());
+  ASSERT_EQ("(assert (xor thread_0_0 flush_0_0))\n\n", encoder->str());
 }
 
+/* SMTLibEncoder::encode ******************************************************/
 TEST_F(SMTLibEncoderTest, LOAD)
 {
   Load load = Load(1);

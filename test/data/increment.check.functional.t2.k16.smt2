@@ -93,7 +93,7 @@
 (declare-fun exec_0_1_5 () Bool)
 (declare-fun exec_0_1_6 () Bool)
 
-; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; state variable initializations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; accu states - accu_<step>_<thread>
 (assert (= accu_0_0 #x0000))
@@ -3303,3 +3303,4 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (assert (= exit-code (ite exec_1_0_8 #x0001 (ite exec_1_1_6 #x0001 (ite exec_2_0_8 #x0001 (ite exec_2_1_6 #x0001 (ite exec_3_0_8 #x0001 (ite exec_3_1_6 #x0001 (ite exec_4_0_8 #x0001 (ite exec_4_1_6 #x0001 (ite exec_5_0_8 #x0001 (ite exec_5_1_6 #x0001 (ite exec_6_0_8 #x0001 (ite exec_6_1_6 #x0001 (ite exec_7_0_8 #x0001 (ite exec_7_1_6 #x0001 (ite exec_8_0_8 #x0001 (ite exec_8_1_6 #x0001 (ite exec_9_0_8 #x0001 (ite exec_9_1_6 #x0001 (ite exec_10_0_8 #x0001 (ite exec_10_1_6 #x0001 (ite exec_11_0_8 #x0001 (ite exec_11_1_6 #x0001 (ite exec_12_0_8 #x0001 (ite exec_12_1_6 #x0001 (ite exec_13_0_8 #x0001 (ite exec_13_1_6 #x0001 (ite exec_14_0_8 #x0001 (ite exec_14_1_6 #x0001 (ite exec_15_0_8 #x0001 (ite exec_15_1_6 #x0001 (ite exec_16_0_8 #x0001 (ite exec_16_1_6 #x0001 #x0000))))))))))))))))))))))))))))))))))
+

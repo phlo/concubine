@@ -31,7 +31,7 @@ struct SMTLibEncoderFunctionalTest : public ::testing::Test
       return e;
     }
 
-  void reset_encoder (const bound_t step = 0)
+  void reset_encoder (const bound_t step = 1)
     {
       encoder = create_encoder(step);
     }
@@ -61,26 +61,26 @@ struct SMTLibEncoderFunctionalTest : public ::testing::Test
 
       reset_encoder();
     }
+
+  void add_dummy_programs (word_t num, word_t size = 1)
+    {
+      ostringstream code;
+      const char * op = "ADDI 1\n";
+
+      for (size_t i = 0; i < size; i++)
+        code << op;
+
+      for (size_t i = 0; i < num; i++)
+        programs.push_back(create_program(code.str()));
+
+      encoder = create_encoder();
+    }
 };
 
 /* SMTLibEncoderFunctional::define_accu ***************************************/
 TEST_F(SMTLibEncoderFunctionalTest, define_accu)
 {
   add_instruction_set(3);
-
-  // initial state
-  encoder->define_accu();
-
-  ASSERT_EQ(
-    "; accu states - accu_<step>_<thread>\n"
-    "(assert (= accu_0_0 #x0000))\n"
-    "(assert (= accu_0_1 #x0000))\n"
-    "(assert (= accu_0_2 #x0000))\n"
-    "\n",
-    encoder->str());
-
-  // step 1
-  reset_encoder(1);
 
   encoder->define_accu();
 
@@ -198,16 +198,15 @@ TEST_F(SMTLibEncoderFunctionalTest, define_accu)
     encoder->str());
 
   // verbosity
-  reset_encoder();
+  programs.clear();
+  add_dummy_programs(1);
 
   verbose = false;
   encoder->define_accu();
   verbose = true;
 
   ASSERT_EQ(
-    "(assert (= accu_0_0 #x0000))\n"
-    "(assert (= accu_0_1 #x0000))\n"
-    "(assert (= accu_0_2 #x0000))\n"
+    "(assert (= accu_1_0 (ite exec_0_0_0 (bvadd accu_0_0 #x0001) accu_0_0)))\n"
     "\n",
     encoder->str());
 }
@@ -216,20 +215,6 @@ TEST_F(SMTLibEncoderFunctionalTest, define_accu)
 TEST_F(SMTLibEncoderFunctionalTest, define_mem)
 {
   add_instruction_set(3);
-
-  // initial state
-  encoder->define_mem();
-
-  ASSERT_EQ(
-    "; mem states - mem_<step>_<thread>\n"
-    "(assert (= mem_0_0 #x0000))\n"
-    "(assert (= mem_0_1 #x0000))\n"
-    "(assert (= mem_0_2 #x0000))\n"
-    "\n",
-    encoder->str());
-
-  // step 1
-  reset_encoder(1);
 
   encoder->define_mem();
 
@@ -264,9 +249,24 @@ TEST_F(SMTLibEncoderFunctionalTest, define_mem)
   verbose = true;
 
   ASSERT_EQ(
-    "(assert (= mem_0_0 #x0000))\n"
-    "(assert (= mem_0_1 #x0000))\n"
-    "(assert (= mem_0_2 #x0000))\n"
+    "(assert (= mem_1_0 "
+      "(ite exec_0_0_13 "
+        "(ite (and sb-full_0_0 (= sb-adr_0_0 #x0001)) "
+          "sb-val_0_0 "
+          "(select heap_0 #x0001)) "
+        "mem_0_0)))\n"
+    "(assert (= mem_1_1 "
+      "(ite exec_0_1_13 "
+        "(ite (and sb-full_0_1 (= sb-adr_0_1 #x0001)) "
+          "sb-val_0_1 "
+          "(select heap_0 #x0001)) "
+        "mem_0_1)))\n"
+    "(assert (= mem_1_2 "
+      "(ite exec_0_2_13 "
+        "(ite (and sb-full_0_2 (= sb-adr_0_2 #x0001)) "
+          "sb-val_0_2 "
+          "(select heap_0 #x0001)) "
+        "mem_0_2)))\n"
     "\n",
     encoder->str());
 }
@@ -275,20 +275,6 @@ TEST_F(SMTLibEncoderFunctionalTest, define_mem)
 TEST_F(SMTLibEncoderFunctionalTest, define_sb_adr)
 {
   add_instruction_set(3);
-
-  // initial state
-  encoder->define_sb_adr();
-
-  ASSERT_EQ(
-    "; store buffer address states - sb-adr_<step>_<thread>\n"
-    "(assert (= sb-adr_0_0 #x0000))\n"
-    "(assert (= sb-adr_0_1 #x0000))\n"
-    "(assert (= sb-adr_0_2 #x0000))\n"
-    "\n",
-    encoder->str());
-
-  // step 1
-  reset_encoder(1);
 
   encoder->define_sb_adr();
 
@@ -308,9 +294,9 @@ TEST_F(SMTLibEncoderFunctionalTest, define_sb_adr)
   verbose = true;
 
   ASSERT_EQ(
-    "(assert (= sb-adr_0_0 #x0000))\n"
-    "(assert (= sb-adr_0_1 #x0000))\n"
-    "(assert (= sb-adr_0_2 #x0000))\n"
+    "(assert (= sb-adr_1_0 (ite exec_0_0_1 #x0001 sb-adr_0_0)))\n"
+    "(assert (= sb-adr_1_1 (ite exec_0_1_1 #x0001 sb-adr_0_1)))\n"
+    "(assert (= sb-adr_1_2 (ite exec_0_2_1 #x0001 sb-adr_0_2)))\n"
     "\n",
     encoder->str());
 }
@@ -319,20 +305,6 @@ TEST_F(SMTLibEncoderFunctionalTest, define_sb_adr)
 TEST_F(SMTLibEncoderFunctionalTest, define_sb_val)
 {
   add_instruction_set(3);
-
-  // initial state
-  encoder->define_sb_val();
-
-  ASSERT_EQ(
-    "; store buffer value states - sb-val_<step>_<thread>\n"
-    "(assert (= sb-val_0_0 #x0000))\n"
-    "(assert (= sb-val_0_1 #x0000))\n"
-    "(assert (= sb-val_0_2 #x0000))\n"
-    "\n",
-    encoder->str());
-
-  // step 1
-  reset_encoder(1);
 
   encoder->define_sb_val();
 
@@ -352,9 +324,9 @@ TEST_F(SMTLibEncoderFunctionalTest, define_sb_val)
   verbose = true;
 
   ASSERT_EQ(
-    "(assert (= sb-val_0_0 #x0000))\n"
-    "(assert (= sb-val_0_1 #x0000))\n"
-    "(assert (= sb-val_0_2 #x0000))\n"
+    "(assert (= sb-val_1_0 (ite exec_0_0_1 accu_0_0 sb-val_0_0)))\n"
+    "(assert (= sb-val_1_1 (ite exec_0_1_1 accu_0_1 sb-val_0_1)))\n"
+    "(assert (= sb-val_1_2 (ite exec_0_2_1 accu_0_2 sb-val_0_2)))\n"
     "\n",
     encoder->str());
 }
@@ -363,20 +335,6 @@ TEST_F(SMTLibEncoderFunctionalTest, define_sb_val)
 TEST_F(SMTLibEncoderFunctionalTest, define_sb_full)
 {
   add_instruction_set(3);
-
-  // initial state
-  encoder->define_sb_full();
-
-  ASSERT_EQ(
-    "; store buffer full states - sb-full_<step>_<thread>\n"
-    "(assert (not sb-full_0_0))\n"
-    "(assert (not sb-full_0_1))\n"
-    "(assert (not sb-full_0_2))\n"
-    "\n",
-    encoder->str());
-
-  // step 1
-  reset_encoder(1);
 
   encoder->define_sb_full();
 
@@ -396,9 +354,9 @@ TEST_F(SMTLibEncoderFunctionalTest, define_sb_full)
   verbose = true;
 
   ASSERT_EQ(
-    "(assert (not sb-full_0_0))\n"
-    "(assert (not sb-full_0_1))\n"
-    "(assert (not sb-full_0_2))\n"
+    "(assert (= sb-full_1_0 (ite flush_0_0 false (or exec_0_0_1 sb-full_0_0))))\n"
+    "(assert (= sb-full_1_1 (ite flush_0_1 false (or exec_0_1_1 sb-full_0_1))))\n"
+    "(assert (= sb-full_1_2 (ite flush_0_2 false (or exec_0_2_1 sb-full_0_2))))\n"
     "\n",
     encoder->str());
 }
@@ -412,25 +370,6 @@ TEST_F(SMTLibEncoderFunctionalTest, define_stmt)
     ));
 
   reset_encoder();
-
-  // initial step
-  encoder->define_stmt();
-
-  ASSERT_EQ(
-    "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
-    "(assert stmt_0_0_0)\n"
-    "(assert (not stmt_0_0_1))\n"
-    "\n"
-    "(assert stmt_0_1_0)\n"
-    "(assert (not stmt_0_1_1))\n"
-    "\n"
-    "(assert stmt_0_2_0)\n"
-    "(assert (not stmt_0_2_1))\n"
-    "\n",
-    encoder->str());
-
-  // step 1
-  reset_encoder(1);
 
   encoder->define_stmt();
 
@@ -464,14 +403,23 @@ TEST_F(SMTLibEncoderFunctionalTest, define_stmt)
   verbose = true;
 
   ASSERT_EQ(
-    "(assert stmt_0_0_0)\n"
-    "(assert (not stmt_0_0_1))\n"
+    "(assert (= stmt_1_0_0 (and stmt_0_0_0 (not exec_0_0_0))))\n"
+    "(assert (= stmt_1_0_1 "
+      "(ite stmt_0_0_0 "
+        "exec_0_0_0 "
+        "(and stmt_0_0_1 (not exec_0_0_1)))))\n"
     "\n"
-    "(assert stmt_0_1_0)\n"
-    "(assert (not stmt_0_1_1))\n"
+    "(assert (= stmt_1_1_0 (and stmt_0_1_0 (not exec_0_1_0))))\n"
+    "(assert (= stmt_1_1_1 "
+      "(ite stmt_0_1_0 "
+        "exec_0_1_0 "
+        "(and stmt_0_1_1 (not exec_0_1_1)))))\n"
     "\n"
-    "(assert stmt_0_2_0)\n"
-    "(assert (not stmt_0_2_1))\n"
+    "(assert (= stmt_1_2_0 (and stmt_0_2_0 (not exec_0_2_0))))\n"
+    "(assert (= stmt_1_2_1 "
+      "(ite stmt_0_2_0 "
+        "exec_0_2_0 "
+        "(and stmt_0_2_1 (not exec_0_2_1)))))\n"
     "\n",
     encoder->str());
 }
@@ -485,7 +433,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_stmt_jmp)
       "JMP 1\n"
     ));
 
-  reset_encoder(1);
+  reset_encoder();
 
   encoder->define_stmt();
 
@@ -540,7 +488,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_stmt_jmp_conditional)
       "EXIT 1\n"
     ));
 
-  reset_encoder(1);
+  reset_encoder();
 
   encoder->define_stmt();
 
@@ -607,7 +555,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_stmt_jmp_start)
       "EXIT 1\n"
     ));
 
-  reset_encoder(1);
+  reset_encoder();
 
   encoder->define_stmt();
 
@@ -678,7 +626,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_stmt_jmp_twice)
       "EXIT 1\n"
     ));
 
-  reset_encoder(1);
+  reset_encoder();
 
   encoder->define_stmt();
 
@@ -758,20 +706,6 @@ TEST_F(SMTLibEncoderFunctionalTest, define_block)
 {
   add_instruction_set(3);
 
-  // initial step
-  encoder->define_block();
-
-  ASSERT_EQ(
-    "; blocking variables - block_<step>_<id>_<thread>\n"
-    "(assert (not block_0_1_0))\n"
-    "(assert (not block_0_1_1))\n"
-    "(assert (not block_0_1_2))\n"
-    "\n",
-    encoder->str());
-
-  // step 1
-  reset_encoder(1);
-
   encoder->define_block();
 
   ASSERT_EQ(
@@ -790,9 +724,9 @@ TEST_F(SMTLibEncoderFunctionalTest, define_block)
   verbose = true;
 
   ASSERT_EQ(
-    "(assert (not block_0_1_0))\n"
-    "(assert (not block_0_1_1))\n"
-    "(assert (not block_0_1_2))\n"
+    "(assert (= block_1_1_0 (ite check_0_1 false (or exec_0_0_15 block_0_1_0))))\n"
+    "(assert (= block_1_1_1 (ite check_0_1 false (or exec_0_1_15 block_0_1_1))))\n"
+    "(assert (= block_1_1_2 (ite check_0_1 false (or exec_0_2_15 block_0_1_2))))\n"
     "\n",
     encoder->str());
 }
@@ -813,14 +747,6 @@ TEST_F(SMTLibEncoderFunctionalTest, define_block_no_check)
 TEST_F(SMTLibEncoderFunctionalTest, define_heap)
 {
   add_instruction_set(3);
-
-  // initial step
-  encoder->define_heap();
-
-  ASSERT_EQ("", encoder->str());
-
-  // step 1
-  reset_encoder(1);
 
   encoder->define_heap();
 
@@ -850,7 +776,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_heap)
     encoder->str());
 
   // verbosity
-  reset_encoder(1);
+  reset_encoder();
 
   verbose = false;
   encoder->define_heap();
@@ -887,19 +813,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_exit)
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program("EXIT " + to_string(i) + "\n"));
 
-  // initial step
   reset_encoder();
-
-  encoder->define_exit();
-
-  ASSERT_EQ(
-    "; exit flag - exit_<step>\n"
-    "(assert (not exit_0))\n"
-    "\n",
-    encoder->str());
-
-  // step 1
-  reset_encoder(1);
 
   encoder->define_exit();
 
@@ -916,7 +830,10 @@ TEST_F(SMTLibEncoderFunctionalTest, define_exit)
   encoder->define_exit();
   verbose = true;
 
-  ASSERT_EQ("(assert (not exit_0))\n\n", encoder->str());
+  ASSERT_EQ(
+    "(assert (= exit_1 (or exit_0 exec_0_0_0 exec_0_1_0 exec_0_2_0)))\n"
+    "\n",
+    encoder->str());
 }
 
 TEST_F(SMTLibEncoderFunctionalTest, define_exit_no_exit)
@@ -931,21 +848,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_exit_code)
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program("EXIT " + to_string(i)));
 
-  // bound = step = 0
   reset_encoder();
-
-  encoder->define_exit_code();
-
-  ASSERT_EQ(
-    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "; exit code\n"
-    ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
-    "\n"
-    "(assert (= exit-code #x0000))\n",
-    encoder->str());
-
-  // bound = step = 1
-  reset_encoder(1);
 
   encoder->define_exit_code();
 
@@ -961,7 +864,8 @@ TEST_F(SMTLibEncoderFunctionalTest, define_exit_code)
           "#x0001 "
           "(ite exec_1_2_0 "
             "#x0002 "
-            "#x0000)))))\n",
+            "#x0000)))))\n"
+    "\n",
     encoder->str());
 
   // verbosity
@@ -972,7 +876,15 @@ TEST_F(SMTLibEncoderFunctionalTest, define_exit_code)
   verbose = true;
 
   ASSERT_EQ(
-    "(assert (= exit-code #x0000))\n",
+    "(assert (= exit-code "
+      "(ite exec_1_0_0 "
+        "#x0000 "
+        "(ite exec_1_1_0 "
+          "#x0001 "
+          "(ite exec_1_2_0 "
+            "#x0002 "
+            "#x0000)))))\n"
+    "\n",
     encoder->str());
 }
 
@@ -981,7 +893,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_exit_code_no_exit)
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program("ADDI " + to_string(i)));
 
-  reset_encoder(1);
+  reset_encoder();
 
   encoder->define_exit_code();
 
@@ -990,7 +902,114 @@ TEST_F(SMTLibEncoderFunctionalTest, define_exit_code_no_exit)
     "; exit code\n"
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "(assert (= exit-code #x0000))\n",
+    "(assert (= exit-code #x0000))\n"
+    "\n",
+    encoder->str());
+}
+
+/* SMTLibEncoderFunctional::define_states *************************************/
+TEST_F(SMTLibEncoderFunctionalTest, define_states)
+{
+  programs.push_back(create_program("JMP 0\n"));
+
+  reset_encoder();
+
+  encoder->define_states();
+
+  ASSERT_EQ(
+    "; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; accu states - accu_<step>_<thread>\n"
+    "(assert (= accu_1_0 accu_0_0))\n"
+    "\n"
+    "; mem states - mem_<step>_<thread>\n"
+    "(assert (= mem_1_0 mem_0_0))\n"
+    "\n"
+    "; store buffer address states - sb-adr_<step>_<thread>\n"
+    "(assert (= sb-adr_1_0 sb-adr_0_0))\n"
+    "\n"
+    "; store buffer value states - sb-val_<step>_<thread>\n"
+    "(assert (= sb-val_1_0 sb-val_0_0))\n"
+    "\n"
+    "; store buffer full states - sb-full_<step>_<thread>\n"
+    "(assert (= sb-full_1_0 (ite flush_0_0 false sb-full_0_0)))\n"
+    "\n"
+    "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
+    "(assert (= stmt_1_0_0 (ite stmt_0_0_0 exec_0_0_0 (and stmt_0_0_0 (not exec_0_0_0)))))\n"
+    "\n"
+    "; heap state - heap_<step>\n"
+    "(assert (= heap_1 (ite flush_0_0 (store heap_0 sb-adr_0_0 sb-val_0_0) heap_0)))\n"
+    "\n",
+    encoder->str());
+
+  // verbosity
+  reset_encoder();
+
+  verbose = false;
+  encoder->define_states();
+  verbose = true;
+
+  ASSERT_EQ(
+    "(assert (= accu_1_0 accu_0_0))\n"
+    "\n"
+    "(assert (= mem_1_0 mem_0_0))\n"
+    "\n"
+    "(assert (= sb-adr_1_0 sb-adr_0_0))\n"
+    "\n"
+    "(assert (= sb-val_1_0 sb-val_0_0))\n"
+    "\n"
+    "(assert (= sb-full_1_0 (ite flush_0_0 false sb-full_0_0)))\n"
+    "\n"
+    "(assert (= stmt_1_0_0 (ite stmt_0_0_0 exec_0_0_0 (and stmt_0_0_0 (not exec_0_0_0)))))\n"
+    "\n"
+    "(assert (= heap_1 (ite flush_0_0 (store heap_0 sb-adr_0_0 sb-val_0_0) heap_0)))\n"
+    "\n",
+    encoder->str());
+}
+
+TEST_F(SMTLibEncoderFunctionalTest, define_states_check_exit)
+{
+  programs.push_back(
+    create_program(
+      "CHECK 0\n"
+      "EXIT 1\n"
+    ));
+
+  reset_encoder();
+
+  encoder->define_states();
+
+  ASSERT_EQ(
+    "; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "; accu states - accu_<step>_<thread>\n"
+    "(assert (= accu_1_0 accu_0_0))\n"
+    "\n"
+    "; mem states - mem_<step>_<thread>\n"
+    "(assert (= mem_1_0 mem_0_0))\n"
+    "\n"
+    "; store buffer address states - sb-adr_<step>_<thread>\n"
+    "(assert (= sb-adr_1_0 sb-adr_0_0))\n"
+    "\n"
+    "; store buffer value states - sb-val_<step>_<thread>\n"
+    "(assert (= sb-val_1_0 sb-val_0_0))\n"
+    "\n"
+    "; store buffer full states - sb-full_<step>_<thread>\n"
+    "(assert (= sb-full_1_0 (ite flush_0_0 false sb-full_0_0)))\n"
+    "\n"
+    "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
+    "(assert (= stmt_1_0_0 (and stmt_0_0_0 (not exec_0_0_0))))\n"
+    "(assert (= stmt_1_0_1 (ite stmt_0_0_0 exec_0_0_0 (and stmt_0_0_1 (not exec_0_0_1)))))\n"
+    "\n"
+    "; blocking variables - block_<step>_<id>_<thread>\n"
+    "(assert (= block_1_0_0 (ite check_0_0 false (or exec_0_0_0 block_0_0_0))))\n"
+    "\n"
+    "; heap state - heap_<step>\n"
+    "(assert (= heap_1 (ite flush_0_0 (store heap_0 sb-adr_0_0 sb-val_0_0) heap_0)))\n"
+    "\n"
+    "; exit flag - exit_<step>\n"
+    "(assert (= exit_1 (or exit_0 exec_0_0_1)))\n"
+    "\n",
     encoder->str());
 }
 

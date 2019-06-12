@@ -1,5 +1,7 @@
 #include "encoder.hh"
 
+#include <cassert>
+
 #include "smtlib.hh"
 
 using namespace std;
@@ -504,6 +506,116 @@ void SMTLibEncoder::declare_transitions ()
   declare_exec();
 }
 
+#define INIT_STATE(_var) \
+  do { \
+    iterate_threads([this] { \
+      formula << assign_var(_var(step, thread), smtlib::word2hex(0)) << eol; \
+    }); \
+    formula << eol; \
+  } while (0)
+
+void SMTLibEncoder::init_accu ()
+{
+  if (verbose)
+    formula << accu_comment << eol;
+
+  INIT_STATE(accu_var);
+}
+
+void SMTLibEncoder::init_mem ()
+{
+  if (verbose)
+    formula << mem_comment << eol;
+
+  INIT_STATE(mem_var);
+}
+
+void SMTLibEncoder::init_sb_adr ()
+{
+  if (verbose)
+    formula << sb_adr_comment << eol;
+
+  INIT_STATE(sb_adr_var);
+}
+
+void SMTLibEncoder::init_sb_val ()
+{
+  if (verbose)
+    formula << sb_val_comment << eol;
+
+  INIT_STATE(sb_val_var);
+}
+
+void SMTLibEncoder::init_sb_full ()
+{
+  if (verbose)
+    formula << sb_full_comment << eol;
+
+  iterate_threads([this] {
+    formula << smtlib::assertion(smtlib::lnot(sb_full_var())) << eol;
+  });
+
+  formula << eol;
+}
+
+void SMTLibEncoder::init_stmt ()
+{
+  if (verbose)
+    formula << stmt_comment << eol;
+
+  iterate_programs([this] (const Program & program) {
+    for (pc = 0; pc < program.size(); pc++)
+      formula
+        << smtlib::assertion(pc ? smtlib::lnot(stmt_var()) : stmt_var())
+        << eol;
+
+    formula << eol;
+  });
+}
+
+void SMTLibEncoder::init_block ()
+{
+  if (check_pcs.empty())
+    return;
+
+  if (verbose)
+    formula << block_comment << eol;
+
+  for (const auto & [c, threads] : check_pcs)
+    for (const auto & [t, pcs] : threads)
+      formula << smtlib::assertion(smtlib::lnot(block_var(step, c, t))) << eol;
+
+  formula << eol;
+}
+
+void SMTLibEncoder::init_exit ()
+{
+  if (exit_pcs.empty())
+    return;
+
+  if (verbose)
+    formula << exit_comment << eol;
+
+  formula << smtlib::assertion(smtlib::lnot(exit_var())) << eol << eol;
+}
+
+void SMTLibEncoder::init_states ()
+{
+  assert(!step);
+
+  if (verbose)
+    formula << smtlib::comment_subsection("state variable initializations");
+
+  init_accu();
+  init_mem();
+  init_sb_adr();
+  init_sb_val();
+  init_sb_full();
+  init_stmt();
+  init_block();
+  init_exit();
+}
+
 void SMTLibEncoder::define_check ()
 {
   if (check_pcs.empty())
@@ -679,7 +791,11 @@ void SMTLibEncoder::encode ()
       declare_states();
       declare_transitions();
 
-      define_states();
+      if (step)
+        define_states();
+      else
+        init_states();
+
       define_transitions();
 
       define_constraints ();
