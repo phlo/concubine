@@ -399,105 +399,82 @@ using SMTLibEncoderFunctional_ptr = std::shared_ptr<SMTLibEncoderFunctional>;
  ******************************************************************************/
 struct SMTLibEncoderRelational : public SMTLibEncoder
 {
-  /* constructs an SMTLibEncoderRelational for the given program and bound */
+  // State object for capturing frequently used expressions
+  struct State {
+    std::shared_ptr<std::string> accu;
+    std::shared_ptr<std::string> mem;
+    std::shared_ptr<std::string> sb_adr;
+    std::shared_ptr<std::string> sb_val;
+    std::shared_ptr<std::string> sb_full;
+    std::shared_ptr<std::string> stmt;
+    std::shared_ptr<std::string> block;
+    std::shared_ptr<std::string> heap;
+    std::shared_ptr<std::string> exit;
+    std::shared_ptr<std::string> exit_code;
+
+    State () = default;
+    State (SMTLibEncoderRelational & encoder);
+
+    operator std::string () const;
+  };
+
+  State               state;
+
+  // constructs an SMTLibEncoderRelational for the given program and bound
   SMTLibEncoderRelational (
                            const Program_list_ptr programs,
                            bound_t bound,
                            bool encode = true
                           );
 
-  /*
-  template <std::string (*var) (const word_t)>
-  std::string         assign (std::string expr);
-  template <std::string (*var) (const word_t, const word_t)>
-  std::string         assign (std::string expr);
-  template <std::string (*var) (const word_t, const word_t, const word_t)>
-  std::string         assign (std::string expr);
-  */
-
-  std::string         imply (std::string, std::string);
+  std::string         imply (std::string ante, std::string cons) const;
 
   template <class T>
-  std::string         update_accu (T & op);
-  std::string         update_accu (std::string expr);
-  std::string         preserve_accu ();
+  std::shared_ptr<std::string>  set_accu (T & op);
+  std::shared_ptr<std::string>  restore_accu () const;
 
   template <class T>
-  std::string         update_mem (T & op);
-  std::string         update_mem (std::string expr);
-  std::string         preserve_mem ();
+  std::shared_ptr<std::string>  set_mem (T & op);
+  std::shared_ptr<std::string>  restore_mem () const;
 
   template <class T>
-  std::string         update_sb_adr (T & op);
-  std::string         update_sb_adr (std::string expr);
-  std::string         preserve_sb_adr ();
+  std::shared_ptr<std::string>  set_sb_adr (T & op);
+  std::shared_ptr<std::string>  restore_sb_adr () const;
 
   template <class T>
-  std::string         update_sb_val (T & op);
-  std::string         update_sb_val (std::string expr);
-  std::string         preserve_sb_val ();
+  std::shared_ptr<std::string>  set_sb_val (T & op);
+  std::shared_ptr<std::string>  restore_sb_val () const;
 
-  std::string         update_sb_full (bool val);
-  std::string         preserve_sb_full ();
+  std::shared_ptr<std::string>  set_sb_full () const;
+  std::shared_ptr<std::string>  reset_sb_full () const;
+  std::shared_ptr<std::string>  restore_sb_full () const;
+
+  std::shared_ptr<std::string>  set_stmt (word_t pc);
+  std::shared_ptr<std::string>  set_stmt_next ();
+  template <class T>
+  std::shared_ptr<std::string>  set_stmt (T & op);
+  std::shared_ptr<std::string>  restore_stmt ();
+
+  std::string                   reset_block (word_t id) const;
+  template <class T>
+  std::shared_ptr<std::string>  set_block (T & j) const;
+  std::shared_ptr<std::string>  restore_block () const;
 
   template <class T>
-  std::string         update_stmt (T & op);
-  std::string         update_stmt ();
-  std::string         preserve_stmt ();
+  std::shared_ptr<std::string>  set_heap (T & op);
+  std::shared_ptr<std::string>  restore_heap () const;
 
-  std::string         update_block (word_t id);
-  std::string         preserve_block ();
+  std::shared_ptr<std::string>  set_exit () const;
+  std::shared_ptr<std::string>  unset_exit () const;
 
-  template <class T>
-  std::string         update_heap (T & op);
-  std::string         update_heap (std::string expr);
-  std::string         preserve_heap ();
-
-  std::string         set_exit ();
-  std::string         unset_exit ();
-
-  std::string         set_exit_code (Exit & e);
-
-  /*
-  template <std::string (*var)(const word_t)>
-  std::string         preserve ();
-  template <std::string (*var)(const word_t, const word_t)>
-  std::string         preserve ();
-  template <std::string (*var)(const word_t, const word_t, const word_t)>
-  std::string         preserve ();
-
-  std::string         preserve_accu ();
-  std::string         preserve_mem ();
-  std::string         preserve_sb_adr ();
-  std::string         preserve_sb_val ();
-  std::string         preserve_sb_full ();
-  std::string         preserve_stmt (); // TODO: really needed?
-  std::string         preserve_block ();
-
-  std::string         preserve_heap ();
-  std::string         unset_exit ();
-  std::string         preserve_exit_code ();
-
-  std::string         activate_stmt (word_t pc, std::string condition = "");
-
-  std::string         stmt_activation (word_t);
-
-  std::string         activate_pc (word_t);
-  std::string         activate_next ();
-  std::string         activate_jmp (std::string, word_t);
-  */
-
-  /*
-  void                add_exit_code ();
-  void                add_statement_declaration ();
-  void                add_state_updates ();
-  void                add_state_preservation ();
-  */
-
-  std::string         assign_state (std::initializer_list<std::string> && args);
-  std::string         preserve_state ();
+  std::shared_ptr<std::string>  set_exit_code (word_t e) const;
 
   /* state variable definitions */
+  void                imply_thread_executed ();
+  void                imply_thread_not_executed ();
+  void                imply_thread_flushed ();
+  void                imply_machine_exited ();
+
   virtual void        define_states ();
 
   /* double-dispatched instruction encoding functions */

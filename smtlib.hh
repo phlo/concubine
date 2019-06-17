@@ -65,8 +65,7 @@ namespace smtlib
       std::ostringstream sb;
       sb << '(' << op;
       for (const auto & a : args)
-        if (!a.empty())
-          sb << ' ' << a;
+        sb << ' ' << a;
       sb << ')';
       return sb.str();
     }

@@ -731,7 +731,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_block)
     encoder->str());
 }
 
-TEST_F(SMTLibEncoderFunctionalTest, define_block_no_check)
+TEST_F(SMTLibEncoderFunctionalTest, define_block_empty)
 {
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program("ADDI " + to_string(i)));
@@ -836,7 +836,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_exit)
     encoder->str());
 }
 
-TEST_F(SMTLibEncoderFunctionalTest, define_exit_no_exit)
+TEST_F(SMTLibEncoderFunctionalTest, define_exit_empty)
 {
   encoder->define_exit();
   ASSERT_EQ("", encoder->str());
@@ -888,7 +888,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_exit_code)
     encoder->str());
 }
 
-TEST_F(SMTLibEncoderFunctionalTest, define_exit_code_no_exit)
+TEST_F(SMTLibEncoderFunctionalTest, define_exit_code_empty)
 {
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program("ADDI " + to_string(i)));

@@ -914,14 +914,14 @@ string SMTLibEncoder::encode (Cas & c)
 {
   string heap = heap_var(prev);
 
-  string addr = c.indirect
+  string address = c.indirect
     ? smtlib::select(heap, smtlib::word2hex(c.arg))
     : smtlib::word2hex(c.arg);
 
   string condition =
     smtlib::equality({
       mem_var(prev, thread),
-      smtlib::select(heap, addr)});
+      smtlib::select(heap, address)});
 
   switch (update)
     {
@@ -937,7 +937,7 @@ string SMTLibEncoder::encode (Cas & c)
           condition,
           smtlib::store(
             heap,
-            addr,
+            address,
             accu_var(prev, thread)),
           heap);
     default: throw runtime_error("illegal state update");
