@@ -7,7 +7,7 @@
 using namespace std;
 
 /* word2hex *******************************************************************/
-TEST(SMTLibTest, word2hex)
+TEST(SMTLib_Test, word2hex)
 {
   ASSERT_EQ("#x0000", smtlib::word2hex(0));
   ASSERT_EQ("#x0001", smtlib::word2hex(1));
@@ -17,19 +17,19 @@ TEST(SMTLibTest, word2hex)
 }
 
 /* expr ***********************************************************************/
-TEST(SMTLibTest, expr)
+TEST(SMTLib_Test, expr)
 {
   ASSERT_EQ("(op x1 x2 x3)", smtlib::expr("op", {"x1", "x2", "x3"}));
 }
 
 /* comment ******************************************************************/
-TEST(SMTLibTest, comment)
+TEST(SMTLib_Test, comment)
 {
   ASSERT_EQ("; foo", smtlib::comment("foo"));
 }
 
 /* comment section **********************************************************/
-TEST(SMTLibTest, comment_section)
+TEST(SMTLib_Test, comment_section)
 {
   ASSERT_EQ(
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"
@@ -41,7 +41,7 @@ TEST(SMTLibTest, comment_section)
 }
 
 /* comment subsection *******************************************************/
-TEST(SMTLibTest, comment_subsection)
+TEST(SMTLib_Test, comment_subsection)
 {
   ASSERT_EQ(
     "; foo ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"
@@ -50,19 +50,19 @@ TEST(SMTLibTest, comment_subsection)
 }
 
 /* assertion ******************************************************************/
-TEST(SMTLibTest, assert)
+TEST(SMTLib_Test, assert)
 {
   ASSERT_EQ("(assert true)", smtlib::assertion("true"));
 }
 
 /* lnot ***********************************************************************/
-TEST(SMTLibTest, lnot)
+TEST(SMTLib_Test, lnot)
 {
   ASSERT_EQ("(not x1)", smtlib::lnot("x1"));
 }
 
 /* land ***********************************************************************/
-TEST(SMTLibTest, land)
+TEST(SMTLib_Test, land)
 {
   ASSERT_THROW(smtlib::land({}), runtime_error);
 
@@ -72,7 +72,7 @@ TEST(SMTLibTest, land)
 }
 
 /* lor ************************************************************************/
-TEST(SMTLibTest, lor)
+TEST(SMTLib_Test, lor)
 {
   ASSERT_THROW(smtlib::lor({}), runtime_error);
 
@@ -82,7 +82,7 @@ TEST(SMTLibTest, lor)
 }
 
 /* lxor ***********************************************************************/
-TEST(SMTLibTest, lxor)
+TEST(SMTLib_Test, lxor)
 {
   ASSERT_THROW(smtlib::lxor({}), runtime_error);
 
@@ -92,13 +92,13 @@ TEST(SMTLibTest, lxor)
 }
 
 /* implication ****************************************************************/
-TEST(SMTLibTest, implication)
+TEST(SMTLib_Test, implication)
 {
   ASSERT_EQ("(=> x1 x2)", smtlib::implication("x1", "x2"));
 }
 
 /* equality *******************************************************************/
-TEST(SMTLibTest, equality)
+TEST(SMTLib_Test, equality)
 {
   ASSERT_THROW(smtlib::equality({}), runtime_error);
 
@@ -108,13 +108,13 @@ TEST(SMTLibTest, equality)
 }
 
 /* if-then-else ***************************************************************/
-TEST(SMTLibTest, ite)
+TEST(SMTLib_Test, ite)
 {
   ASSERT_EQ("(ite x1 x2 x3)", smtlib::ite("x1", "x2", "x3"));
 }
 
 /* bvadd **********************************************************************/
-TEST(SMTLibTest, bvadd)
+TEST(SMTLib_Test, bvadd)
 {
   ASSERT_THROW(smtlib::bvadd({}), runtime_error);
 
@@ -124,7 +124,7 @@ TEST(SMTLibTest, bvadd)
 }
 
 /* bvsub **********************************************************************/
-TEST(SMTLibTest, bvsub)
+TEST(SMTLib_Test, bvsub)
 {
   ASSERT_THROW(smtlib::bvsub({}), runtime_error);
 
@@ -134,13 +134,13 @@ TEST(SMTLibTest, bvsub)
 }
 
 /* select *********************************************************************/
-TEST(SMTLibTest, select)
+TEST(SMTLib_Test, select)
 {
   ASSERT_EQ("(select array index)", smtlib::select("array", "index"));
 }
 
 /* store **********************************************************************/
-TEST(SMTLibTest, store)
+TEST(SMTLib_Test, store)
 {
   ASSERT_EQ(
     "(store array index value)",
@@ -148,19 +148,19 @@ TEST(SMTLibTest, store)
 }
 
 /* extract ********************************************************************/
-TEST(SMTLibTest, extract)
+TEST(SMTLib_Test, extract)
 {
   ASSERT_EQ("((_ extract msb lsb) bv)", smtlib::extract("msb", "lsb", "bv"));
 }
 
 /* bitvector ******************************************************************/
-TEST(SMTLibTest, bitvector)
+TEST(SMTLib_Test, bitvector)
 {
   ASSERT_EQ("(_ BitVec 16)", smtlib::bitvector(16));
 }
 
 /* array **********************************************************************/
-TEST(SMTLibTest, array)
+TEST(SMTLib_Test, array)
 {
   std::string bv = smtlib::bitvector(16);
 
@@ -168,19 +168,19 @@ TEST(SMTLibTest, array)
 }
 
 /* declare_var ****************************************************************/
-TEST(SMTLibTest, declare_var)
+TEST(SMTLib_Test, declare_var)
 {
   ASSERT_EQ("(declare-fun x1 () Bool)", smtlib::declare_var("x1", "Bool"));
 }
 
 /* declare_bool_var ***********************************************************/
-TEST(SMTLibTest, declare_bool_var)
+TEST(SMTLib_Test, declare_bool_var)
 {
   ASSERT_EQ("(declare-fun x1 () Bool)", smtlib::declare_bool_var("x1"));
 }
 
 /* declare_bv_var *************************************************************/
-TEST(SMTLibTest, declare_bv_var)
+TEST(SMTLib_Test, declare_bv_var)
 {
   ASSERT_EQ(
     "(declare-fun x1 () (_ BitVec 16))",
@@ -188,7 +188,7 @@ TEST(SMTLibTest, declare_bv_var)
 }
 
 /* declare_array_var **********************************************************/
-TEST(SMTLibTest, declare_array_var)
+TEST(SMTLib_Test, declare_array_var)
 {
   const string bv16 = smtlib::bitvector(16);
 
@@ -198,7 +198,7 @@ TEST(SMTLibTest, declare_array_var)
 }
 
 /* card_constraint_naive ******************************************************/
-TEST(SMTLibTest, cardinality_exactly_one_naive)
+TEST(SMTLib_Test, cardinality_exactly_one_naive)
 {
   ASSERT_THROW(smtlib::card_constraint_naive({}), runtime_error);
 
@@ -226,7 +226,7 @@ TEST(SMTLibTest, cardinality_exactly_one_naive)
     smtlib::card_constraint_naive({"x1", "x2", "x3", "x4"}));
 }
 
-TEST(SMTLibTest, cardinality_exactly_one_naive_verify)
+TEST(SMTLib_Test, cardinality_exactly_one_naive_verify)
 {
   Boolector btor;
 
@@ -273,7 +273,7 @@ TEST(SMTLibTest, cardinality_exactly_one_naive_verify)
 }
 
 /* card_constraint_sinz *******************************************************/
-TEST(SMTLibTest, cardinality_exactly_one_sinz)
+TEST(SMTLib_Test, cardinality_exactly_one_sinz)
 {
   ASSERT_THROW(smtlib::card_constraint_sinz({}), runtime_error);
 
@@ -317,7 +317,7 @@ TEST(SMTLibTest, cardinality_exactly_one_sinz)
     smtlib::card_constraint_sinz({"x1", "x2", "x3", "x4"}));
 }
 
-TEST(SMTLibTest, cardinality_exactly_one_sinz_verify)
+TEST(SMTLib_Test, cardinality_exactly_one_sinz_verify)
 {
   Boolector btor;
 

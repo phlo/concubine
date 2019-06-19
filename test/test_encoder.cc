@@ -1,52 +1,14 @@
-#include <gtest/gtest.h>
-
-#include "encoder.hh"
+#include "test_encoder.hh"
 
 using namespace std;
 
-struct EncoderTest : public ::testing::Test
-{
-  Program_list  programs;
-  Encoder_ptr   encoder = create_encoder(0);
+using E = Encoder;
+using Impl = SMTLibEncoderFunctional;
 
-  Program_ptr create_program (string code)
-    {
-      string path = "dummy.asm";
-      istringstream inbuf {code};
-      return make_shared<Program>(inbuf, path);
-    }
-
-  Encoder_ptr create_encoder (const bound_t bound)
-    {
-      return make_shared<SMTLibEncoderFunctional>(
-        make_shared<Program_list>(programs),
-        bound,
-        false);
-    }
-
-  void reset_encoder (const bound_t bound)
-    {
-      encoder = create_encoder(bound);
-      encoder->thread = 0;
-    }
-
-  void add_dummy_programs (unsigned num, unsigned size)
-    {
-      ostringstream code;
-      const char * op = "ADDI 1\n";
-
-      for (size_t i = 0; i < size; i++)
-        code << op;
-
-      for (size_t i = 0; i < num; i++)
-        programs.push_back(create_program(code.str()));
-
-      encoder = create_encoder(0);
-    }
-};
+using Encoder_Test = Test::Encoder<E, Impl>;
 
 /* Encoder::Encoder ***********************************************************/
-TEST_F(EncoderTest, constructor)
+TEST_F(Encoder_Test, constructor)
 {
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program(
@@ -59,7 +21,7 @@ TEST_F(EncoderTest, constructor)
       "EXIT 1\n"  // 6
     ));
 
-  reset_encoder(0);
+  reset_encoder();
 
   for (const auto & pcs : encoder->flush_pcs)
     ASSERT_EQ(set<word_t>({0}), pcs.second);
@@ -74,10 +36,10 @@ TEST_F(EncoderTest, constructor)
       ASSERT_EQ(vector<word_t>({6}), pcs);
     }
 
-  ASSERT_EQ(Encoder::Set<word_t>({0, 1, 2}), encoder->cas_threads);
+  ASSERT_EQ(unordered_set<word_t>({0, 1, 2}), encoder->cas_threads);
 }
 
-TEST_F(EncoderTest, constructor_flush_pcs)
+TEST_F(Encoder_Test, constructor_flush_pcs)
 {
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program(
@@ -86,13 +48,13 @@ TEST_F(EncoderTest, constructor_flush_pcs)
       "CAS 1\n"
     ));
 
-  reset_encoder(0);
+  reset_encoder();
 
   for (const auto & pcs : encoder->flush_pcs)
     ASSERT_EQ(set<word_t>({0, 1, 2}), pcs.second);
 }
 
-TEST_F(EncoderTest, constructor_check_pcs)
+TEST_F(Encoder_Test, constructor_check_pcs)
 {
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program(
@@ -101,7 +63,7 @@ TEST_F(EncoderTest, constructor_check_pcs)
       "CHECK 3\n"
     ));
 
-  reset_encoder(0);
+  reset_encoder();
 
   for (const auto & [id, threads] : encoder->check_pcs)
     for (const auto & pcs : threads)
@@ -111,7 +73,7 @@ TEST_F(EncoderTest, constructor_check_pcs)
       }
 }
 
-TEST_F(EncoderTest, constructor_exit_pcs)
+TEST_F(Encoder_Test, constructor_exit_pcs)
 {
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program(
@@ -128,18 +90,18 @@ TEST_F(EncoderTest, constructor_exit_pcs)
     ASSERT_EQ(vector<word_t>({1, 3, 4}), pcs.second);
 }
 
-TEST_F(EncoderTest, constructor_cas_threads)
+TEST_F(Encoder_Test, constructor_cas_threads)
 {
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program("CAS 1"));
 
-  reset_encoder(0);
+  reset_encoder();
 
-  ASSERT_EQ(Encoder::Set<word_t>({0, 1, 2}), encoder->cas_threads);
+  ASSERT_EQ(unordered_set<word_t>({0, 1, 2}), encoder->cas_threads);
 }
 
 /* Encoder::iterate_threads ***************************************************/
-TEST_F(EncoderTest, iterate_threads)
+TEST_F(Encoder_Test, iterate_threads)
 {
   add_dummy_programs(3, 3);
 
@@ -149,7 +111,7 @@ TEST_F(EncoderTest, iterate_threads)
 }
 
 /* Encoder::iterate_programs **************************************************/
-TEST_F(EncoderTest, iterate_programs)
+TEST_F(Encoder_Test, iterate_programs)
 {
   add_dummy_programs(3, 3);
 
@@ -162,7 +124,7 @@ TEST_F(EncoderTest, iterate_programs)
 }
 
 /* Encoder::iterate_programs_reverse ******************************************/
-TEST_F(EncoderTest, iterate_programs_reverse)
+TEST_F(Encoder_Test, iterate_programs_reverse)
 {
   add_dummy_programs(3, 3);
 
@@ -175,7 +137,7 @@ TEST_F(EncoderTest, iterate_programs_reverse)
 }
 
 /* Encoder::str ***************************************************************/
-TEST_F(EncoderTest, str)
+TEST_F(Encoder_Test, str)
 {
   encoder->formula << "foo";
 

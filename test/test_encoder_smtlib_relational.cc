@@ -1,33 +1,15 @@
-#include <gtest/gtest.h>
-
-#include "encoder.hh"
-#include "parser.hh"
-#include "smtlib.hh"
+#include "test_encoder_smtlib.hh"
 
 using namespace std;
 
-struct SMTLibEncoderRelationalTest : public ::testing::Test
+using E = SMTLibEncoderRelational;
+
+struct SMTLib_Encoder_Relational_Test : Test::SMTLib_Encoder<E>
 {
-  Program_list                programs;
-  SMTLibEncoderRelational_ptr encoder = create_encoder();
-
-  Program_ptr create_program (string code)
+  virtual std::unique_ptr<E> init_encoder (std::unique_ptr<E> e)
     {
-      string path = "dummy.asm";
-      istringstream inbuf {code};
-      return make_shared<Program>(inbuf, path);
-    }
-
-  SMTLibEncoderRelational_ptr create_encoder (const bound_t bound = 1)
-    {
-      SMTLibEncoderRelational_ptr e =
-        make_shared<SMTLibEncoderRelational>(
-          make_shared<Program_list>(programs),
-          bound,
-          false);
-
-      e->step = bound;
-      e->prev = bound - 1;
+      e->step = e->bound;
+      e->prev = e->step - 1;
 
       e->thread = 0;
       e->pc = 0;
@@ -35,61 +17,16 @@ struct SMTLibEncoderRelationalTest : public ::testing::Test
 
       return e;
     }
-
-  void reset_encoder (const bound_t step = 1)
-    {
-      encoder = create_encoder(step);
-    }
-
-  void add_dummy_programs (unsigned num, unsigned size = 1)
-    {
-      ostringstream code;
-      const char * op = "ADDI 1\n";
-
-      for (size_t i = 0; i < size; i++)
-        code << op;
-
-      for (size_t i = 0; i < num; i++)
-        programs.push_back(create_program(code.str()));
-
-      encoder = create_encoder();
-    }
-
-  void add_instruction_set (unsigned num)
-    {
-      for (size_t i = 0; i < num; i++)
-        programs.push_back(create_program(
-          "LOAD 1\n"  // 0
-          "STORE 1\n" // 1
-          "ADD 1\n"   // 2
-          "ADDI 1\n"  // 3
-          "SUB 1\n"   // 4
-          "SUBI 1\n"  // 5
-          "CMP 1\n"   // 6
-          "JMP 8\n"   // 7
-          "JZ 1\n"    // 8
-          "JNZ 1\n"   // 9
-          "JS 1\n"    // 10
-          "JNS 1\n"   // 11
-          "JNZNS 1\n" // 12
-          "MEM 1\n"   // 13
-          "CAS 1\n"   // 14
-          "CHECK 1\n" // 15
-          "EXIT 1\n"  // 16
-        ));
-
-      reset_encoder();
-    }
 };
 
 /* SMTLibEncoderRelational::imply *********************************************/
-TEST_F(SMTLibEncoderRelationalTest, imply)
+TEST_F(SMTLib_Encoder_Relational_Test, imply)
 {
   ASSERT_EQ("(assert (=> foo bar))\n", encoder->imply("foo", "bar"));
 }
 
 /* SMTLibEncoderRelational::imply_thread_executed *****************************/
-TEST_F(SMTLibEncoderRelationalTest, imply_thread_executed)
+TEST_F(SMTLib_Encoder_Relational_Test, imply_thread_executed)
 {
   programs.push_back(
     create_program(
@@ -152,7 +89,7 @@ TEST_F(SMTLibEncoderRelationalTest, imply_thread_executed)
 }
 
 /* SMTLibEncoderRelational::imply_thread_not_executed *************************/
-TEST_F(SMTLibEncoderRelationalTest, imply_thread_not_executed)
+TEST_F(SMTLib_Encoder_Relational_Test, imply_thread_not_executed)
 {
   programs.push_back(
     create_program(
@@ -182,9 +119,10 @@ TEST_F(SMTLibEncoderRelationalTest, imply_thread_not_executed)
 }
 
 /* SMTLibEncoderRelational::imply_thread_flushed ******************************/
-TEST_F(SMTLibEncoderRelationalTest, imply_thread_flushed)
+TEST_F(SMTLib_Encoder_Relational_Test, imply_thread_flushed)
 {
   add_instruction_set(1);
+  reset_encoder();
 
   encoder->imply_thread_flushed();
 
@@ -199,9 +137,10 @@ TEST_F(SMTLibEncoderRelationalTest, imply_thread_flushed)
 }
 
 /* SMTLibEncoderRelational::imply_machine_exited ******************************/
-TEST_F(SMTLibEncoderRelationalTest, imply_machine_exited)
+TEST_F(SMTLib_Encoder_Relational_Test, imply_machine_exited)
 {
   add_instruction_set(1);
+  reset_encoder();
 
   encoder->imply_machine_exited();
 
@@ -215,10 +154,9 @@ TEST_F(SMTLibEncoderRelationalTest, imply_machine_exited)
 }
 
 /* SMTLibEncoderRelational::define_states *************************************/
-TEST_F(SMTLibEncoderRelationalTest, define_states)
+TEST_F(SMTLib_Encoder_Relational_Test, define_states)
 {
   programs.push_back(create_program("JMP 0\n"));
-
   reset_encoder();
 
   encoder->define_states();
@@ -288,13 +226,12 @@ TEST_F(SMTLibEncoderRelationalTest, define_states)
     encoder->str());
 }
 
-TEST_F(SMTLibEncoderRelationalTest, define_states_check_exit)
+TEST_F(SMTLib_Encoder_Relational_Test, define_states_check_exit)
 {
   programs.push_back(
     create_program(
       "CHECK 0\n"
-      "EXIT 1\n"
-    ));
+      "EXIT 1\n"));
 
   reset_encoder();
 
@@ -354,55 +291,28 @@ TEST_F(SMTLibEncoderRelationalTest, define_states_check_exit)
 }
 
 /* SMTLibEncoderRelational::encode ********************************************/
-TEST_F(SMTLibEncoderRelationalTest, encode_check)
+TEST_F(SMTLib_Encoder_Relational_Test, encode_check)
 {
   /* concurrent increment using CHECK */
-  programs.push_back(
-    create_from_file<Program>("data/increment.check.thread.0.asm"));
-  programs.push_back(
-    create_from_file<Program>("data/increment.check.thread.n.asm"));
-
-  encoder =
-    make_shared<SMTLibEncoderRelational>(
-      make_shared<Program_list>(programs),
-      16);
-
-  ifstream ifs("data/increment.check.relational.t2.k16.smt2");
-
-  string expected;
-  expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
-
-  ofstream tmp("/tmp/increment.check.relational.t2.k16.smt2");
-  tmp << encoder->str();
-
-  ASSERT_EQ(expected, encoder->formula.str());
+  encode(
+    {"increment.check.thread.0.asm", "increment.check.thread.n.asm"},
+    "increment.check.relational.t2.k16.smt2",
+    16);
 }
 
-TEST_F(SMTLibEncoderRelationalTest, encode_cas)
+TEST_F(SMTLib_Encoder_Relational_Test, encode_cas)
 {
   /* concurrent increment using CAS */
-  programs.push_back(create_from_file<Program>("data/increment.cas.asm"));
-  programs.push_back(create_from_file<Program>("data/increment.cas.asm"));
-
-  encoder =
-    make_shared<SMTLibEncoderRelational>(
-      make_shared<Program_list>(programs),
-      16);
-
-  ifstream ifs("data/increment.cas.relational.t2.k16.smt2");
-
-  string expected;
-  expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
-
-  ofstream tmp("/tmp/increment.cas.relational.t2.k16.smt2");
-  tmp << encoder->str();
-
-  ASSERT_EQ(expected, encoder->formula.str());
+  encode(
+    {"increment.cas.asm", "increment.cas.asm"},
+    "increment.cas.relational.t2.k16.smt2",
+    16);
 }
 
-TEST_F(SMTLibEncoderRelationalTest, LOAD)
+TEST_F(SMTLib_Encoder_Relational_Test, LOAD)
 {
   add_instruction_set(1);
+  reset_encoder();
 
   Load load {1};
 
@@ -440,9 +350,10 @@ TEST_F(SMTLibEncoderRelationalTest, LOAD)
     encoder->encode(load));
 }
 
-TEST_F(SMTLibEncoderRelationalTest, LOAD_indirect)
+TEST_F(SMTLib_Encoder_Relational_Test, LOAD_indirect)
 {
   add_instruction_set(1);
+  reset_encoder();
 
   Load load {1, true};
 
@@ -488,9 +399,10 @@ TEST_F(SMTLibEncoderRelationalTest, LOAD_indirect)
     encoder->encode(load));
 }
 
-TEST_F(SMTLibEncoderRelationalTest, STORE)
+TEST_F(SMTLib_Encoder_Relational_Test, STORE)
 {
   add_instruction_set(1);
+  reset_encoder();
 
   encoder->pc = 1;
 
@@ -527,9 +439,10 @@ TEST_F(SMTLibEncoderRelationalTest, STORE)
     encoder->encode(store));
 }
 
-TEST_F(SMTLibEncoderRelationalTest, STORE_indirect)
+TEST_F(SMTLib_Encoder_Relational_Test, STORE_indirect)
 {
   add_instruction_set(1);
+  reset_encoder();
 
   encoder->pc = 1;
 
@@ -569,9 +482,10 @@ TEST_F(SMTLibEncoderRelationalTest, STORE_indirect)
     encoder->encode(store));
 }
 
-TEST_F(SMTLibEncoderRelationalTest, ADD)
+TEST_F(SMTLib_Encoder_Relational_Test, ADD)
 {
   add_instruction_set(1);
+  reset_encoder();
 
   encoder->pc = 2;
 
@@ -613,9 +527,10 @@ TEST_F(SMTLibEncoderRelationalTest, ADD)
     encoder->encode(add));
 }
 
-TEST_F(SMTLibEncoderRelationalTest, ADD_indirect)
+TEST_F(SMTLib_Encoder_Relational_Test, ADD_indirect)
 {
   add_instruction_set(1);
+  reset_encoder();
 
   encoder->pc = 2;
 
@@ -665,9 +580,10 @@ TEST_F(SMTLibEncoderRelationalTest, ADD_indirect)
     encoder->encode(add));
 }
 
-TEST_F(SMTLibEncoderRelationalTest, ADDI)
+TEST_F(SMTLib_Encoder_Relational_Test, ADDI)
 {
   add_instruction_set(1);
+  reset_encoder();
 
   encoder->pc = 3;
 
@@ -704,9 +620,10 @@ TEST_F(SMTLibEncoderRelationalTest, ADDI)
     encoder->encode(addi));
 }
 
-TEST_F(SMTLibEncoderRelationalTest, SUB)
+TEST_F(SMTLib_Encoder_Relational_Test, SUB)
 {
   add_instruction_set(1);
+  reset_encoder();
 
   encoder->pc = 4;
 
@@ -748,9 +665,10 @@ TEST_F(SMTLibEncoderRelationalTest, SUB)
     encoder->encode(sub));
 }
 
-TEST_F(SMTLibEncoderRelationalTest, SUB_indirect)
+TEST_F(SMTLib_Encoder_Relational_Test, SUB_indirect)
 {
   add_instruction_set(1);
+  reset_encoder();
 
   encoder->pc = 4;
 
@@ -800,9 +718,10 @@ TEST_F(SMTLibEncoderRelationalTest, SUB_indirect)
     encoder->encode(sub));
 }
 
-TEST_F(SMTLibEncoderRelationalTest, SUBI)
+TEST_F(SMTLib_Encoder_Relational_Test, SUBI)
 {
   add_instruction_set(1);
+  reset_encoder();
 
   encoder->pc = 5;
 
@@ -839,9 +758,10 @@ TEST_F(SMTLibEncoderRelationalTest, SUBI)
     encoder->encode(subi));
 }
 
-TEST_F(SMTLibEncoderRelationalTest, CMP)
+TEST_F(SMTLib_Encoder_Relational_Test, CMP)
 {
   add_instruction_set(1);
+  reset_encoder();
 
   encoder->pc = 6;
 
@@ -883,9 +803,10 @@ TEST_F(SMTLibEncoderRelationalTest, CMP)
     encoder->encode(cmp));
 }
 
-TEST_F(SMTLibEncoderRelationalTest, CMP_indirect)
+TEST_F(SMTLib_Encoder_Relational_Test, CMP_indirect)
 {
   add_instruction_set(1);
+  reset_encoder();
 
   encoder->pc = 6;
 
@@ -935,9 +856,10 @@ TEST_F(SMTLibEncoderRelationalTest, CMP_indirect)
     encoder->encode(cmp));
 }
 
-TEST_F(SMTLibEncoderRelationalTest, JMP)
+TEST_F(SMTLib_Encoder_Relational_Test, JMP)
 {
   add_instruction_set(1);
+  reset_encoder();
 
   encoder->pc = 7;
 
@@ -974,9 +896,10 @@ TEST_F(SMTLibEncoderRelationalTest, JMP)
     encoder->encode(jmp));
 }
 
-TEST_F(SMTLibEncoderRelationalTest, JZ)
+TEST_F(SMTLib_Encoder_Relational_Test, JZ)
 {
   add_instruction_set(1);
+  reset_encoder();
 
   encoder->pc = 8;
 
@@ -1017,9 +940,10 @@ TEST_F(SMTLibEncoderRelationalTest, JZ)
     encoder->encode(jz));
 }
 
-TEST_F(SMTLibEncoderRelationalTest, JNZ)
+TEST_F(SMTLib_Encoder_Relational_Test, JNZ)
 {
   add_instruction_set(1);
+  reset_encoder();
 
   encoder->pc = 9;
 
@@ -1060,9 +984,10 @@ TEST_F(SMTLibEncoderRelationalTest, JNZ)
     encoder->encode(jnz));
 }
 
-TEST_F(SMTLibEncoderRelationalTest, JS)
+TEST_F(SMTLib_Encoder_Relational_Test, JS)
 {
   add_instruction_set(1);
+  reset_encoder();
 
   encoder->pc = 10;
 
@@ -1103,9 +1028,10 @@ TEST_F(SMTLibEncoderRelationalTest, JS)
     encoder->encode(js));
 }
 
-TEST_F(SMTLibEncoderRelationalTest, JNS)
+TEST_F(SMTLib_Encoder_Relational_Test, JNS)
 {
   add_instruction_set(1);
+  reset_encoder();
 
   encoder->pc = 11;
 
@@ -1146,9 +1072,10 @@ TEST_F(SMTLibEncoderRelationalTest, JNS)
     encoder->encode(jns));
 }
 
-TEST_F(SMTLibEncoderRelationalTest, JNZNS)
+TEST_F(SMTLib_Encoder_Relational_Test, JNZNS)
 {
   add_instruction_set(1);
+  reset_encoder();
 
   encoder->pc = 12;
 
@@ -1195,9 +1122,10 @@ TEST_F(SMTLibEncoderRelationalTest, JNZNS)
     encoder->encode(jnzns));
 }
 
-TEST_F(SMTLibEncoderRelationalTest, MEM)
+TEST_F(SMTLib_Encoder_Relational_Test, MEM)
 {
   add_instruction_set(1);
+  reset_encoder();
 
   encoder->pc = 13;
 
@@ -1240,9 +1168,10 @@ TEST_F(SMTLibEncoderRelationalTest, MEM)
     encoder->encode(mem));
 }
 
-TEST_F(SMTLibEncoderRelationalTest, MEM_indirect)
+TEST_F(SMTLib_Encoder_Relational_Test, MEM_indirect)
 {
   add_instruction_set(1);
+  reset_encoder();
 
   encoder->pc = 13;
 
@@ -1301,9 +1230,10 @@ TEST_F(SMTLibEncoderRelationalTest, MEM_indirect)
     encoder->encode(mem));
 }
 
-TEST_F(SMTLibEncoderRelationalTest, CAS)
+TEST_F(SMTLib_Encoder_Relational_Test, CAS)
 {
   add_instruction_set(1);
+  reset_encoder();
 
   encoder->pc = 14;
 
@@ -1346,9 +1276,10 @@ TEST_F(SMTLibEncoderRelationalTest, CAS)
     encoder->encode(cas));
 }
 
-TEST_F(SMTLibEncoderRelationalTest, CAS_indirect)
+TEST_F(SMTLib_Encoder_Relational_Test, CAS_indirect)
 {
   add_instruction_set(1);
+  reset_encoder();
 
   encoder->pc = 14;
 
@@ -1391,9 +1322,10 @@ TEST_F(SMTLibEncoderRelationalTest, CAS_indirect)
     encoder->encode(cas));
 }
 
-TEST_F(SMTLibEncoderRelationalTest, CHECK)
+TEST_F(SMTLib_Encoder_Relational_Test, CHECK)
 {
   add_instruction_set(1);
+  reset_encoder();
 
   encoder->pc = 15;
 
@@ -1430,14 +1362,15 @@ TEST_F(SMTLibEncoderRelationalTest, CHECK)
     encoder->encode(check));
 }
 
-TEST_F(SMTLibEncoderRelationalTest, HALT)
+TEST_F(SMTLib_Encoder_Relational_Test, HALT)
 {
   // TODO
 }
 
-TEST_F(SMTLibEncoderRelationalTest, EXIT)
+TEST_F(SMTLib_Encoder_Relational_Test, EXIT)
 {
   add_instruction_set(1);
+  reset_encoder();
 
   encoder->pc = 16;
 

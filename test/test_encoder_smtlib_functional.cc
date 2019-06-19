@@ -1,86 +1,16 @@
-#include <gtest/gtest.h>
-
-#include "encoder.hh"
-#include "parser.hh"
+#include "test_encoder_smtlib.hh"
 
 using namespace std;
 
-struct SMTLibEncoderFunctionalTest : public ::testing::Test
-{
-  Program_list                programs;
-  SMTLibEncoderFunctional_ptr encoder = create_encoder();
+using E = SMTLibEncoderFunctional;
 
-  Program_ptr create_program (string code)
-    {
-      string path = "dummy.asm";
-      istringstream inbuf {code};
-      return make_shared<Program>(inbuf, path);
-    }
-
-  SMTLibEncoderFunctional_ptr create_encoder (const bound_t bound = 1)
-    {
-      SMTLibEncoderFunctional_ptr e =
-        make_shared<SMTLibEncoderFunctional>(
-          make_shared<Program_list>(programs),
-          bound,
-          false);
-
-      e->step = bound;
-      e->prev = bound - 1;
-
-      return e;
-    }
-
-  void reset_encoder (const bound_t step = 1)
-    {
-      encoder = create_encoder(step);
-    }
-
-  void add_instruction_set (unsigned num)
-    {
-      for (size_t i = 0; i < num; i++)
-        programs.push_back(create_program(
-          "LOAD 1\n"  // 0
-          "STORE 1\n" // 1
-          "ADD 1\n"   // 2
-          "ADDI 1\n"  // 3
-          "SUB 1\n"   // 4
-          "SUBI 1\n"  // 5
-          "CMP 1\n"   // 6
-          "JMP 8\n"   // 7
-          "JZ 1\n"    // 8
-          "JNZ 1\n"   // 9
-          "JS 1\n"    // 10
-          "JNS 1\n"   // 11
-          "JNZNS 1\n" // 12
-          "MEM 1\n"   // 13
-          "CAS 1\n"   // 14
-          "CHECK 1\n" // 15
-          "EXIT 1\n"  // 16
-        ));
-
-      reset_encoder();
-    }
-
-  void add_dummy_programs (word_t num, word_t size = 1)
-    {
-      ostringstream code;
-      const char * op = "ADDI 1\n";
-
-      for (size_t i = 0; i < size; i++)
-        code << op;
-
-      for (size_t i = 0; i < num; i++)
-        programs.push_back(create_program(code.str()));
-
-      encoder = create_encoder();
-    }
-};
+using SMTLib_Encoder_Functional_Test = Test::SMTLib_Encoder<E>;
 
 /* SMTLibEncoderFunctional::define_accu ***************************************/
-TEST_F(SMTLibEncoderFunctionalTest, define_accu)
+TEST_F(SMTLib_Encoder_Functional_Test, define_accu)
 {
   add_instruction_set(3);
+  reset_encoder();
 
   encoder->define_accu();
 
@@ -200,6 +130,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_accu)
   // verbosity
   programs.clear();
   add_dummy_programs(1);
+  reset_encoder();
 
   verbose = false;
   encoder->define_accu();
@@ -212,9 +143,10 @@ TEST_F(SMTLibEncoderFunctionalTest, define_accu)
 }
 
 /* SMTLibEncoderFunctional::define_mem ****************************************/
-TEST_F(SMTLibEncoderFunctionalTest, define_mem)
+TEST_F(SMTLib_Encoder_Functional_Test, define_mem)
 {
   add_instruction_set(3);
+  reset_encoder();
 
   encoder->define_mem();
 
@@ -272,9 +204,10 @@ TEST_F(SMTLibEncoderFunctionalTest, define_mem)
 }
 
 /* SMTLibEncoderFunctional::define_sb_adr *************************************/
-TEST_F(SMTLibEncoderFunctionalTest, define_sb_adr)
+TEST_F(SMTLib_Encoder_Functional_Test, define_sb_adr)
 {
   add_instruction_set(3);
+  reset_encoder();
 
   encoder->define_sb_adr();
 
@@ -302,9 +235,10 @@ TEST_F(SMTLibEncoderFunctionalTest, define_sb_adr)
 }
 
 /* SMTLibEncoderFunctional::define_sb_val *************************************/
-TEST_F(SMTLibEncoderFunctionalTest, define_sb_val)
+TEST_F(SMTLib_Encoder_Functional_Test, define_sb_val)
 {
   add_instruction_set(3);
+  reset_encoder();
 
   encoder->define_sb_val();
 
@@ -332,9 +266,10 @@ TEST_F(SMTLibEncoderFunctionalTest, define_sb_val)
 }
 
 /* SMTLibEncoderFunctional::define_sb_full ************************************/
-TEST_F(SMTLibEncoderFunctionalTest, define_sb_full)
+TEST_F(SMTLib_Encoder_Functional_Test, define_sb_full)
 {
   add_instruction_set(3);
+  reset_encoder();
 
   encoder->define_sb_full();
 
@@ -361,7 +296,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_sb_full)
     encoder->str());
 }
 
-TEST_F(SMTLibEncoderFunctionalTest, define_stmt)
+TEST_F(SMTLib_Encoder_Functional_Test, define_stmt)
 {
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program(
@@ -424,7 +359,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_stmt)
     encoder->str());
 }
 
-TEST_F(SMTLibEncoderFunctionalTest, define_stmt_jmp)
+TEST_F(SMTLib_Encoder_Functional_Test, define_stmt_jmp)
 {
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program(
@@ -478,7 +413,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_stmt_jmp)
     encoder->str());
 }
 
-TEST_F(SMTLibEncoderFunctionalTest, define_stmt_jmp_conditional)
+TEST_F(SMTLib_Encoder_Functional_Test, define_stmt_jmp_conditional)
 {
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program(
@@ -545,7 +480,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_stmt_jmp_conditional)
     encoder->str());
 }
 
-TEST_F(SMTLibEncoderFunctionalTest, define_stmt_jmp_start)
+TEST_F(SMTLib_Encoder_Functional_Test, define_stmt_jmp_start)
 {
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program(
@@ -615,7 +550,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_stmt_jmp_start)
     encoder->str());
 }
 
-TEST_F(SMTLibEncoderFunctionalTest, define_stmt_jmp_twice)
+TEST_F(SMTLib_Encoder_Functional_Test, define_stmt_jmp_twice)
 {
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program(
@@ -702,9 +637,10 @@ TEST_F(SMTLibEncoderFunctionalTest, define_stmt_jmp_twice)
 }
 
 /* SMTLibEncoderFunctional::define_block **************************************/
-TEST_F(SMTLibEncoderFunctionalTest, define_block)
+TEST_F(SMTLib_Encoder_Functional_Test, define_block)
 {
   add_instruction_set(3);
+  reset_encoder();
 
   encoder->define_block();
 
@@ -731,22 +667,18 @@ TEST_F(SMTLibEncoderFunctionalTest, define_block)
     encoder->str());
 }
 
-TEST_F(SMTLibEncoderFunctionalTest, define_block_empty)
+TEST_F(SMTLib_Encoder_Functional_Test, define_block_empty)
 {
-  for (size_t i = 0; i < 3; i++)
-    programs.push_back(create_program("ADDI " + to_string(i)));
-
-  reset_encoder();
-
   encoder->define_block();
 
   ASSERT_EQ("", encoder->str());
 }
 
 /* SMTLibEncoderFunctional::define_heap ***************************************/
-TEST_F(SMTLibEncoderFunctionalTest, define_heap)
+TEST_F(SMTLib_Encoder_Functional_Test, define_heap)
 {
   add_instruction_set(3);
+  reset_encoder();
 
   encoder->define_heap();
 
@@ -808,7 +740,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_heap)
 }
 
 /* SMTLibEncoderFunctional::define_exit ***************************************/
-TEST_F(SMTLibEncoderFunctionalTest, define_exit)
+TEST_F(SMTLib_Encoder_Functional_Test, define_exit)
 {
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program("EXIT " + to_string(i) + "\n"));
@@ -836,14 +768,15 @@ TEST_F(SMTLibEncoderFunctionalTest, define_exit)
     encoder->str());
 }
 
-TEST_F(SMTLibEncoderFunctionalTest, define_exit_empty)
+TEST_F(SMTLib_Encoder_Functional_Test, define_exit_empty)
 {
   encoder->define_exit();
+
   ASSERT_EQ("", encoder->str());
 }
 
 /* SMTLibEncoderFunctional::define_exit_code **********************************/
-TEST_F(SMTLibEncoderFunctionalTest, define_exit_code)
+TEST_F(SMTLib_Encoder_Functional_Test, define_exit_code)
 {
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program("EXIT " + to_string(i)));
@@ -888,13 +821,8 @@ TEST_F(SMTLibEncoderFunctionalTest, define_exit_code)
     encoder->str());
 }
 
-TEST_F(SMTLibEncoderFunctionalTest, define_exit_code_empty)
+TEST_F(SMTLib_Encoder_Functional_Test, define_exit_code_empty)
 {
-  for (size_t i = 0; i < 3; i++)
-    programs.push_back(create_program("ADDI " + to_string(i)));
-
-  reset_encoder();
-
   encoder->define_exit_code();
 
   ASSERT_EQ(
@@ -908,10 +836,9 @@ TEST_F(SMTLibEncoderFunctionalTest, define_exit_code_empty)
 }
 
 /* SMTLibEncoderFunctional::define_states *************************************/
-TEST_F(SMTLibEncoderFunctionalTest, define_states)
+TEST_F(SMTLib_Encoder_Functional_Test, define_states)
 {
   programs.push_back(create_program("JMP 0\n"));
-
   reset_encoder();
 
   encoder->define_states();
@@ -967,7 +894,7 @@ TEST_F(SMTLibEncoderFunctionalTest, define_states)
     encoder->str());
 }
 
-TEST_F(SMTLibEncoderFunctionalTest, define_states_check_exit)
+TEST_F(SMTLib_Encoder_Functional_Test, define_states_check_exit)
 {
   programs.push_back(
     create_program(
@@ -1014,48 +941,20 @@ TEST_F(SMTLibEncoderFunctionalTest, define_states_check_exit)
 }
 
 /* SMTLibEncoderFunctional::encode ********************************************/
-TEST_F(SMTLibEncoderFunctionalTest, encode_check)
+TEST_F(SMTLib_Encoder_Functional_Test, encode_check)
 {
   // concurrent increment using CHECK
-  programs.push_back(
-    create_from_file<Program>("data/increment.check.thread.0.asm"));
-  programs.push_back(
-    create_from_file<Program>("data/increment.check.thread.n.asm"));
-
-  encoder =
-    make_shared<SMTLibEncoderFunctional>(
-      make_shared<Program_list>(programs),
-      16);
-
-  ifstream ifs("data/increment.check.functional.t2.k16.smt2");
-
-  string expected;
-  expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
-
-  ofstream tmp("/tmp/increment.check.functional.t2.k16.smt2");
-  tmp << encoder->str();
-
-  ASSERT_EQ(expected, encoder->str());
+  encode(
+    {"increment.check.thread.0.asm", "increment.check.thread.n.asm"},
+    "increment.check.functional.t2.k16.smt2",
+    16);
 }
 
-TEST_F(SMTLibEncoderFunctionalTest, encode_cas)
+TEST_F(SMTLib_Encoder_Functional_Test, encode_cas)
 {
   // concurrent increment using CAS
-  programs.push_back(create_from_file<Program>("data/increment.cas.asm"));
-  programs.push_back(create_from_file<Program>("data/increment.cas.asm"));
-
-  encoder =
-    make_shared<SMTLibEncoderFunctional>(
-      make_shared<Program_list>(programs),
-      16);
-
-  ifstream ifs("data/increment.cas.functional.t2.k16.smt2");
-
-  string expected;
-  expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
-
-  ofstream tmp("/tmp/increment.cas.functional.t2.k16.smt2");
-  tmp << encoder->str();
-
-  ASSERT_EQ(expected, encoder->str());
+  encode(
+    {"increment.cas.asm", "increment.cas.asm"},
+    "increment.cas.functional.t2.k16.smt2",
+    16);
 }
