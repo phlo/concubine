@@ -10,7 +10,7 @@ using namespace std;
 /*******************************************************************************
  * Test Case Fixture
 *******************************************************************************/
-struct InstructionSetTest : public ::testing::Test
+struct Instruction_Test : public ::testing::Test
 {
   using Type = Instruction::Type;
   using Types = Instruction::Types;
@@ -22,7 +22,7 @@ struct InstructionSetTest : public ::testing::Test
 };
 
 /* Instruction::Set::create (factory) *****************************************/
-TEST_F(InstructionSetTest, factory)
+TEST_F(Instruction_Test, factory)
 {
   /* normal */
   instruction = Instruction::Set::create("EXIT", 0);
@@ -51,7 +51,7 @@ TEST_F(InstructionSetTest, factory)
 }
 
 /* InstructionSet::contains (std::string) *************************************/
-TEST_F(InstructionSetTest, contains)
+TEST_F(Instruction_Test, contains)
 {
   ASSERT_EQ(true, Instruction::Set::contains("LOAD"));
   ASSERT_EQ(true, Instruction::Set::contains("STORE"));
@@ -77,7 +77,7 @@ TEST_F(InstructionSetTest, contains)
 }
 
 /* operators ******************************************************************/
-TEST_F(InstructionSetTest, operator_equals)
+TEST_F(Instruction_Test, operator_equals)
 {
   /* Nullary */
   ASSERT_EQ(
@@ -120,7 +120,7 @@ TEST_F(InstructionSetTest, operator_equals)
 }
 
 /* LOAD ***********************************************************************/
-TEST_F(InstructionSetTest, LOAD)
+TEST_F(Instruction_Test, LOAD)
 {
   instruction = Instruction::Set::create("LOAD", 0);
 
@@ -140,7 +140,7 @@ TEST_F(InstructionSetTest, LOAD)
 }
 
 /* STORE **********************************************************************/
-TEST_F(InstructionSetTest, STORE)
+TEST_F(Instruction_Test, STORE)
 {
   instruction = Instruction::Set::create("STORE", 0);
 
@@ -169,7 +169,7 @@ TEST_F(InstructionSetTest, STORE)
 }
 
 /* FENCE **********************************************************************/
-TEST_F(InstructionSetTest, FENCE)
+TEST_F(Instruction_Test, FENCE)
 {
   instruction = Instruction::Set::create("FENCE");
 
@@ -184,7 +184,7 @@ TEST_F(InstructionSetTest, FENCE)
 }
 
 /* ADD ************************************************************************/
-TEST_F(InstructionSetTest, ADD)
+TEST_F(Instruction_Test, ADD)
 {
   instruction = Instruction::Set::create("ADD", 0);
 
@@ -204,7 +204,7 @@ TEST_F(InstructionSetTest, ADD)
 }
 
 /* ADDI ***********************************************************************/
-TEST_F(InstructionSetTest, ADDI)
+TEST_F(Instruction_Test, ADDI)
 {
   instruction = Instruction::Set::create("ADDI", 1);
 
@@ -221,7 +221,7 @@ TEST_F(InstructionSetTest, ADDI)
 }
 
 /* SUB ************************************************************************/
-TEST_F(InstructionSetTest, SUB)
+TEST_F(Instruction_Test, SUB)
 {
   instruction = Instruction::Set::create("SUB", 0);
 
@@ -241,7 +241,7 @@ TEST_F(InstructionSetTest, SUB)
 }
 
 /* SUBI ***********************************************************************/
-TEST_F(InstructionSetTest, SUBI)
+TEST_F(Instruction_Test, SUBI)
 {
   instruction = Instruction::Set::create("SUBI", 1);
 
@@ -259,7 +259,7 @@ TEST_F(InstructionSetTest, SUBI)
 }
 
 /* CMP ************************************************************************/
-TEST_F(InstructionSetTest, CMP)
+TEST_F(Instruction_Test, CMP)
 {
   instruction = Instruction::Set::create("CMP", 0);
 
@@ -285,7 +285,7 @@ TEST_F(InstructionSetTest, CMP)
 }
 
 /* JMP ************************************************************************/
-TEST_F(InstructionSetTest, JMP)
+TEST_F(Instruction_Test, JMP)
 {
   instruction = Instruction::Set::create("JMP", word_max);
 
@@ -306,7 +306,7 @@ TEST_F(InstructionSetTest, JMP)
 }
 
 /* JZ *************************************************************************/
-TEST_F(InstructionSetTest, JZ)
+TEST_F(Instruction_Test, JZ)
 {
   instruction = Instruction::Set::create("JZ", 0);
 
@@ -328,7 +328,7 @@ TEST_F(InstructionSetTest, JZ)
 }
 
 /* JNZ ************************************************************************/
-TEST_F(InstructionSetTest, JNZ)
+TEST_F(Instruction_Test, JNZ)
 {
   instruction = Instruction::Set::create("JNZ", 0);
 
@@ -350,7 +350,7 @@ TEST_F(InstructionSetTest, JNZ)
 }
 
 /* JS *************************************************************************/
-TEST_F(InstructionSetTest, JS)
+TEST_F(Instruction_Test, JS)
 {
   instruction = Instruction::Set::create("JS", 0);
 
@@ -372,7 +372,7 @@ TEST_F(InstructionSetTest, JS)
 }
 
 /* JNS ************************************************************************/
-TEST_F(InstructionSetTest, JNS)
+TEST_F(Instruction_Test, JNS)
 {
   instruction = Instruction::Set::create("JNS", 0);
 
@@ -394,7 +394,7 @@ TEST_F(InstructionSetTest, JNS)
 }
 
 /* JNZNS **********************************************************************/
-TEST_F(InstructionSetTest, JNZNS)
+TEST_F(Instruction_Test, JNZNS)
 {
   instruction = Instruction::Set::create("JNZNS", 0);
 
@@ -422,7 +422,7 @@ TEST_F(InstructionSetTest, JNZNS)
 }
 
 /* MEM ************************************************************************/
-TEST_F(InstructionSetTest, MEM)
+TEST_F(Instruction_Test, MEM)
 {
   instruction = Instruction::Set::create("MEM", 0);
 
@@ -444,7 +444,7 @@ TEST_F(InstructionSetTest, MEM)
 }
 
 /* CAS ************************************************************************/
-TEST_F(InstructionSetTest, CAS)
+TEST_F(Instruction_Test, CAS)
 {
   instruction = Instruction::Set::create("CAS", 0);
 
@@ -475,12 +475,12 @@ TEST_F(InstructionSetTest, CAS)
 }
 
 /* CHECK **********************************************************************/
-TEST_F(InstructionSetTest, CHECK)
+TEST_F(Instruction_Test, CHECK)
 {
   instruction = Instruction::Set::create("CHECK", 1);
 
   ASSERT_EQ("CHECK", instruction->symbol());
-  ASSERT_EQ(Types::barrier | Types::control, instruction->type());
+  ASSERT_EQ(Types::control, instruction->type());
 
   ASSERT_EQ(0, thread.pc);
   ASSERT_EQ(0, thread.check);
@@ -494,7 +494,7 @@ TEST_F(InstructionSetTest, CHECK)
 }
 
 /* HALT ***********************************************************************/
-TEST_F(InstructionSetTest, HALT)
+TEST_F(Instruction_Test, HALT)
 {
   // TODO
   instruction = Instruction::Set::create("HALT");
@@ -504,7 +504,7 @@ TEST_F(InstructionSetTest, HALT)
 }
 
 /* EXIT ***********************************************************************/
-TEST_F(InstructionSetTest, EXIT)
+TEST_F(Instruction_Test, EXIT)
 {
   instruction = Instruction::Set::create("EXIT", 1);
 

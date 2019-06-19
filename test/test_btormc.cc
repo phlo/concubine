@@ -7,7 +7,7 @@
 
 using namespace std;
 
-struct BtorMCTest : public ::testing::Test
+struct BtorMC_Test : public ::testing::Test
 {
   BtorMC            btormc = BtorMC(16);
   Encoder_ptr       encoder;
@@ -15,7 +15,7 @@ struct BtorMCTest : public ::testing::Test
   Schedule_ptr      schedule;
 };
 
-TEST_F(BtorMCTest, sat)
+TEST_F(BtorMC_Test, sat)
 {
   string formula =
     "1 sort bitvec 1\n"
@@ -33,7 +33,7 @@ TEST_F(BtorMCTest, sat)
     btormc.std_out.str());
 }
 
-TEST_F(BtorMCTest, unsat)
+TEST_F(BtorMC_Test, unsat)
 {
   string formula =
     "1 sort bitvec 1\n"
@@ -43,7 +43,7 @@ TEST_F(BtorMCTest, unsat)
   ASSERT_EQ("", btormc.std_out.str());
 }
 
-TEST_F(BtorMCTest, solve_check)
+TEST_F(BtorMC_Test, solve_check)
 {
   /* concurrent increment using CHECK */
   string constraints;
@@ -55,7 +55,7 @@ TEST_F(BtorMCTest, solve_check)
   programs->push_back(create_from_file<Program>(increment_0));
   programs->push_back(create_from_file<Program>(increment_n));
 
-  encoder = make_shared<Btor2Encoder>(programs, 16);
+  encoder = make_unique<Btor2_Encoder>(programs, 16);
 
   schedule = btormc.solve(*encoder, constraints);
 
@@ -157,7 +157,7 @@ TEST_F(BtorMCTest, solve_check)
   ASSERT_EQ(*simulated, *schedule);
 }
 
-TEST_F(BtorMCTest, DISABLED_solve_cas)
+TEST_F(BtorMC_Test, DISABLED_solve_cas)
 {
   /* concurrent increment using CAS */
   string constraints;
@@ -168,7 +168,7 @@ TEST_F(BtorMCTest, DISABLED_solve_cas)
   programs->push_back(create_from_file<Program>(increment));
   programs->push_back(create_from_file<Program>(increment));
 
-  encoder = make_shared<Btor2Encoder>(programs, 16);
+  encoder = make_unique<Btor2_Encoder>(programs, 16);
 
   schedule = btormc.solve(*encoder, constraints);
 

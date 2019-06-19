@@ -182,15 +182,15 @@ struct Encoder
 /*******************************************************************************
  * Encoder_ptr
  ******************************************************************************/
-using Encoder_ptr = std::shared_ptr<Encoder>;
+using Encoder_ptr = std::unique_ptr<Encoder>;
 
 /*******************************************************************************
  * SMT-Lib v2.5 Encoder Base Class
  ******************************************************************************/
-struct SMTLibEncoder : public Encoder
+struct SMTLib_Encoder : public Encoder
 {
   /* constructs an SMTLibEncoder for the given program and bound */
-  SMTLibEncoder (const Program_list_ptr programs, bound_t bound);
+  SMTLib_Encoder (const Program_list_ptr programs, bound_t bound);
 
   /* encoder variables */
   bound_t                   step,
@@ -355,19 +355,19 @@ struct SMTLibEncoder : public Encoder
 /*******************************************************************************
  * SMTLibEncoder_ptr
  ******************************************************************************/
-using SMTLibEncoder_ptr = std::shared_ptr<SMTLibEncoder>;
+using SMTLib_Encoder_ptr = std::unique_ptr<SMTLib_Encoder>;
 
 /*******************************************************************************
  * SMT-Lib v2.5 Functional Encoder Class
  ******************************************************************************/
-struct SMTLibEncoderFunctional : public SMTLibEncoder
+struct SMTLib_Encoder_Functional : public SMTLib_Encoder
 {
   /* constructs an SMTLibEncoderFunctional for the given program and bound */
-  SMTLibEncoderFunctional (
-                           const Program_list_ptr programs,
-                           bound_t bound,
-                           bool encode = true
-                          );
+  SMTLib_Encoder_Functional (
+                             const Program_list_ptr programs,
+                             bound_t bound,
+                             bool encode = true
+                            );
 
   /* thread state definitions */
   void                define_accu ();
@@ -392,12 +392,13 @@ struct SMTLibEncoderFunctional : public SMTLibEncoder
 /*******************************************************************************
  * SMTLibEncoderFunctional_ptr
  ******************************************************************************/
-using SMTLibEncoderFunctional_ptr = std::shared_ptr<SMTLibEncoderFunctional>;
+using SMTLib_Encoder_Functional_ptr =
+  std::unique_ptr<SMTLib_Encoder_Functional>;
 
 /*******************************************************************************
  * SMT-Lib v2.5 Relational Encoder Class
  ******************************************************************************/
-struct SMTLibEncoderRelational : public SMTLibEncoder
+struct SMTLib_Encoder_Relational : public SMTLib_Encoder
 {
   // State object for capturing frequently used expressions
   struct State {
@@ -413,7 +414,7 @@ struct SMTLibEncoderRelational : public SMTLibEncoder
     std::shared_ptr<std::string> exit_code;
 
     State () = default;
-    State (SMTLibEncoderRelational & encoder);
+    State (SMTLib_Encoder_Relational & encoder);
 
     operator std::string () const;
   };
@@ -421,11 +422,11 @@ struct SMTLibEncoderRelational : public SMTLibEncoder
   State               state;
 
   // constructs an SMTLibEncoderRelational for the given program and bound
-  SMTLibEncoderRelational (
-                           const Program_list_ptr programs,
-                           bound_t bound,
-                           bool encode = true
-                          );
+  SMTLib_Encoder_Relational (
+                             const Program_list_ptr programs,
+                             bound_t bound,
+                             bool encode = true
+                            );
 
   std::string         imply (std::string ante, std::string cons) const;
 
@@ -478,7 +479,7 @@ struct SMTLibEncoderRelational : public SMTLibEncoder
   virtual void        define_states ();
 
   /* double-dispatched instruction encoding functions */
-  using SMTLibEncoder::encode;
+  using SMTLib_Encoder::encode;
 
   virtual std::string encode (Load &);
   virtual std::string encode (Store &);
@@ -510,22 +511,23 @@ struct SMTLibEncoderRelational : public SMTLibEncoder
 /*******************************************************************************
  * SMTLibEncoderRelational_ptr
  ******************************************************************************/
-using SMTLibEncoderRelational_ptr = std::shared_ptr<SMTLibEncoderRelational>;
+using SMTLib_Encoder_Relational_ptr =
+  std::unique_ptr<SMTLib_Encoder_Relational>;
 
 /*******************************************************************************
  * Btor2 Encoder Class
  ******************************************************************************/
-struct Btor2Encoder : public Encoder
+struct Btor2_Encoder : public Encoder
 {
   /* most significant bit */
   static std::string          msb;
 
   /* constructs a Btor2Encoder for the given program and bound */
-  Btor2Encoder (
-                const Program_list_ptr programs,
-                bound_t bound,
-                bool encode = true
-               );
+  Btor2_Encoder (
+                 const Program_list_ptr programs,
+                 bound_t bound,
+                 bool encode = true
+                );
 
   /* accumulator altering pcs */
   Map<word_t, std::vector<word_t>> alters_accu;
@@ -677,6 +679,6 @@ struct Btor2Encoder : public Encoder
 /*******************************************************************************
  * Btor2Encoder_ptr
  ******************************************************************************/
-using Btor2Encoder_ptr = std::shared_ptr<Btor2Encoder>;
+using Btor2_Encoder_ptr = std::unique_ptr<Btor2_Encoder>;
 
 #endif

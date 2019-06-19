@@ -383,11 +383,11 @@ int solve (char * name, int argc, char ** argv)
       Encoder_ptr encoder;
 
       if (encoder_name == "smtlib-functional")
-        encoder = make_shared<SMTLibEncoderFunctional>(programs, bound);
+        encoder = make_unique<SMTLib_Encoder_Functional>(programs, bound);
       else if (encoder_name == "smtlib-relational")
-        encoder = make_shared<SMTLibEncoderRelational>(programs, bound);
+        encoder = make_unique<SMTLib_Encoder_Relational>(programs, bound);
       else if (encoder_name == "btor2")
-        encoder = make_shared<Btor2Encoder>(programs, bound);
+        encoder = make_unique<Btor2_Encoder>(programs, bound);
       else
         {
           print_error("unknown encoder [" + encoder_name + "]");

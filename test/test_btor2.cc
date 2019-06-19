@@ -6,13 +6,13 @@
 using namespace std;
 
 // inline string comment (string)
-TEST(Btor2Test, comment)
+TEST(Btor2_Test, comment)
 {
   ASSERT_EQ("; foo", btor2::comment("foo"));
 }
 
 // inline string comment_section (string)
-TEST(Btor2Test, comment_section)
+TEST(Btor2_Test, comment_section)
 {
   ASSERT_EQ(
     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"
@@ -24,7 +24,7 @@ TEST(Btor2Test, comment_section)
 }
 
 // inline string declare_subsection (string, string, string)
-TEST(Btor2Test, comment_subsection)
+TEST(Btor2_Test, comment_subsection)
 {
   ASSERT_EQ(
     "; foo ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"
@@ -33,7 +33,7 @@ TEST(Btor2Test, comment_subsection)
 }
 
 // inline string declare_sort (string, string)
-TEST(Btor2Test, declare_sort)
+TEST(Btor2_Test, declare_sort)
 {
   ASSERT_EQ("1 sort bitvec 1\n", btor2::declare_sort("1", "1"));
   ASSERT_EQ("2 sort bitvec 16\n", btor2::declare_sort("2", "16"));
@@ -41,7 +41,7 @@ TEST(Btor2Test, declare_sort)
 }
 
 // inline string declare_array (string, string, string)
-TEST(Btor2Test, declare_array)
+TEST(Btor2_Test, declare_array)
 {
   ASSERT_EQ("1 sort array 2 2\n", btor2::declare_array("1", "2", "2"));
   ASSERT_EQ("2 sort array 16 16\n", btor2::declare_array("2", "16", "16"));
@@ -51,7 +51,7 @@ TEST(Btor2Test, declare_array)
 }
 
 // inline string constd (string, string, string)
-TEST(Btor2Test, constd)
+TEST(Btor2_Test, constd)
 {
   ASSERT_EQ("12 constd 2 2\n", btor2::constd("12", "2", "2"));
   ASSERT_EQ("13 constd 3 3\n", btor2::constd("13", "3", "3"));
@@ -63,7 +63,7 @@ TEST(Btor2Test, constd)
 }
 
 // inline string input (string, string)
-TEST(Btor2Test, input)
+TEST(Btor2_Test, input)
 {
   ASSERT_EQ("11 input 1\n", btor2::input("11", "1"));
   ASSERT_EQ("12 input 2\n", btor2::input("12", "2"));
@@ -71,7 +71,7 @@ TEST(Btor2Test, input)
 }
 
 // inline string state (string, string)
-TEST(Btor2Test, state)
+TEST(Btor2_Test, state)
 {
   ASSERT_EQ("11 state 1\n", btor2::state("11", "1"));
   ASSERT_EQ("12 state 2\n", btor2::state("12", "2"));
@@ -79,7 +79,7 @@ TEST(Btor2Test, state)
 }
 
 // inline string init (string, string, string, string)
-TEST(Btor2Test, init)
+TEST(Btor2_Test, init)
 {
   ASSERT_EQ("11 init 1 2 3\n", btor2::init("11", "1", "2", "3"));
   ASSERT_EQ("12 init 4 5 6\n", btor2::init("12", "4", "5", "6"));
@@ -87,7 +87,7 @@ TEST(Btor2Test, init)
 }
 
 // inline string next (string, string, string, string)
-TEST(Btor2Test, next)
+TEST(Btor2_Test, next)
 {
   ASSERT_EQ("11 next 1 2 3\n", btor2::next("11", "1", "2", "3"));
   ASSERT_EQ("12 next 4 5 6\n", btor2::next("12", "4", "5", "6"));
@@ -95,7 +95,7 @@ TEST(Btor2Test, next)
 }
 
 // inline string constraint (string, string)
-TEST(Btor2Test, constraint)
+TEST(Btor2_Test, constraint)
 {
   ASSERT_EQ("11 constraint 1\n", btor2::constraint("11", "1"));
   ASSERT_EQ("12 constraint 2\n", btor2::constraint("12", "2"));
@@ -103,7 +103,7 @@ TEST(Btor2Test, constraint)
 }
 
 // inline string constraint (nid_t &)
-TEST(Btor2Test, constraint_prev)
+TEST(Btor2_Test, constraint_prev)
 {
   btor2::nid_t nid = 11;
 
@@ -118,7 +118,7 @@ TEST(Btor2Test, constraint_prev)
 }
 
 // inline string bad (string, string)
-TEST(Btor2Test, bad)
+TEST(Btor2_Test, bad)
 {
   ASSERT_EQ("11 bad 1\n", btor2::bad("11", "1"));
   ASSERT_EQ("12 bad 2\n", btor2::bad("12", "2"));
@@ -126,7 +126,7 @@ TEST(Btor2Test, bad)
 }
 
 // inline string bad (nid_t &)
-TEST(Btor2Test, bad_prev)
+TEST(Btor2_Test, bad_prev)
 {
   btor2::nid_t nid = 11;
 
@@ -141,7 +141,7 @@ TEST(Btor2Test, bad_prev)
 }
 
 // inline string fair (string, string)
-TEST(Btor2Test, fair)
+TEST(Btor2_Test, fair)
 {
   ASSERT_EQ("11 fair 1\n", btor2::fair("11", "1"));
   ASSERT_EQ("12 fair 2\n", btor2::fair("12", "2"));
@@ -149,7 +149,7 @@ TEST(Btor2Test, fair)
 }
 
 // inline string output (string, string)
-TEST(Btor2Test, output)
+TEST(Btor2_Test, output)
 {
   ASSERT_EQ("11 output 1\n", btor2::output("11", "1"));
   ASSERT_EQ("12 output 2\n", btor2::output("12", "2"));
@@ -157,7 +157,7 @@ TEST(Btor2Test, output)
 }
 
 // inline string justice (string, string, vector<string>)
-TEST(Btor2Test, justice)
+TEST(Btor2_Test, justice)
 {
   ASSERT_EQ("11 justice 1 1\n", btor2::justice("11", "1", {"1"}));
   ASSERT_EQ("12 justice 2 1 2\n", btor2::justice("12", "2", {"1", "2"}));
@@ -167,7 +167,7 @@ TEST(Btor2Test, justice)
 }
 
 // inline string sext (string, string, string)
-TEST(Btor2Test, sext)
+TEST(Btor2_Test, sext)
 {
   ASSERT_EQ("11 sext 1 2 3\n", btor2::sext("11", "1", "2", "3"));
   ASSERT_EQ("12 sext 2 3 4\n", btor2::sext("12", "2", "3", "4"));
@@ -175,7 +175,7 @@ TEST(Btor2Test, sext)
 }
 
 // inline string uext (string, string, string)
-TEST(Btor2Test, uext)
+TEST(Btor2_Test, uext)
 {
   ASSERT_EQ("11 uext 1 2 3\n", btor2::uext("11", "1", "2", "3"));
   ASSERT_EQ("12 uext 2 3 4\n", btor2::uext("12", "2", "3", "4"));
@@ -183,7 +183,7 @@ TEST(Btor2Test, uext)
 }
 
 // inline string slice (string, string, string, string)
-TEST(Btor2Test, slice)
+TEST(Btor2_Test, slice)
 {
   ASSERT_EQ("11 slice 1 3 2 3\n", btor2::slice("11", "1", "3", "2", "3"));
   ASSERT_EQ("12 slice 2 4 3 4\n", btor2::slice("12", "2", "4", "3", "4"));
@@ -193,7 +193,7 @@ TEST(Btor2Test, slice)
 }
 
 // inline string lnot (string, string, string)
-TEST(Btor2Test, lnot)
+TEST(Btor2_Test, lnot)
 {
   ASSERT_EQ("11 not 1 2\n", btor2::lnot("11", "1", "2"));
   ASSERT_EQ("12 not 2 3\n", btor2::lnot("12", "2", "3"));
@@ -201,7 +201,7 @@ TEST(Btor2Test, lnot)
 }
 
 // inline string inc (string nid, string sid, string node)
-TEST(Btor2Test, inc)
+TEST(Btor2_Test, inc)
 {
   ASSERT_EQ("11 inc 1 2\n", btor2::inc("11", "1", "2"));
   ASSERT_EQ("12 inc 2 3\n", btor2::inc("12", "2", "3"));
@@ -209,7 +209,7 @@ TEST(Btor2Test, inc)
 }
 
 // inline string dec (string nid, string sid, string node)
-TEST(Btor2Test, dec)
+TEST(Btor2_Test, dec)
 {
   ASSERT_EQ("11 dec 1 2\n", btor2::dec("11", "1", "2"));
   ASSERT_EQ("12 dec 2 3\n", btor2::dec("12", "2", "3"));
@@ -217,7 +217,7 @@ TEST(Btor2Test, dec)
 }
 
 // inline string neg (string nid, string sid, string node)
-TEST(Btor2Test, neg)
+TEST(Btor2_Test, neg)
 {
   ASSERT_EQ("11 neg 1 2\n", btor2::neg("11", "1", "2"));
   ASSERT_EQ("12 neg 2 3\n", btor2::neg("12", "2", "3"));
@@ -225,7 +225,7 @@ TEST(Btor2Test, neg)
 }
 
 // inline string redand (string nid, string sid, string node)
-TEST(Btor2Test, redand)
+TEST(Btor2_Test, redand)
 {
   ASSERT_EQ("11 redand 1 2\n", btor2::redand("11", "1", "2"));
   ASSERT_EQ("12 redand 2 3\n", btor2::redand("12", "2", "3"));
@@ -233,7 +233,7 @@ TEST(Btor2Test, redand)
 }
 
 // inline string redor (string nid, string sid, string node)
-TEST(Btor2Test, redor)
+TEST(Btor2_Test, redor)
 {
   ASSERT_EQ("11 redor 1 2\n", btor2::redor("11", "1", "2"));
   ASSERT_EQ("12 redor 2 3\n", btor2::redor("12", "2", "3"));
@@ -241,7 +241,7 @@ TEST(Btor2Test, redor)
 }
 
 // inline string redxor (string nid, string sid, string node)
-TEST(Btor2Test, redxor)
+TEST(Btor2_Test, redxor)
 {
   ASSERT_EQ("11 redxor 1 2\n", btor2::redxor("11", "1", "2"));
   ASSERT_EQ("12 redxor 2 3\n", btor2::redxor("12", "2", "3"));
@@ -249,7 +249,7 @@ TEST(Btor2Test, redxor)
 }
 
 // inline string iff (string, string, string, string)
-TEST(Btor2Test, iff)
+TEST(Btor2_Test, iff)
 {
   ASSERT_EQ("11 iff 1 2 3\n", btor2::iff("11", "1", "2", "3"));
   ASSERT_EQ("12 iff 2 3 4\n", btor2::iff("12", "2", "3", "4"));
@@ -257,7 +257,7 @@ TEST(Btor2Test, iff)
 }
 
 // inline string implies (string, string, string, string)
-TEST(Btor2Test, implies)
+TEST(Btor2_Test, implies)
 {
   ASSERT_EQ("11 implies 1 2 3\n", btor2::implies("11", "1", "2", "3"));
   ASSERT_EQ("12 implies 2 3 4\n", btor2::implies("12", "2", "3", "4"));
@@ -267,7 +267,7 @@ TEST(Btor2Test, implies)
 }
 
 // inline string eq (string, string, string, string)
-TEST(Btor2Test, eq)
+TEST(Btor2_Test, eq)
 {
   ASSERT_EQ("11 eq 1 2 3\n", btor2::eq("11", "1", "2", "3"));
   ASSERT_EQ("12 eq 2 3 4\n", btor2::eq("12", "2", "3", "4"));
@@ -275,7 +275,7 @@ TEST(Btor2Test, eq)
 }
 
 // inline string ne (string, string, string, string)
-TEST(Btor2Test, ne)
+TEST(Btor2_Test, ne)
 {
   ASSERT_EQ("11 ne 1 2 3\n", btor2::ne("11", "1", "2", "3"));
   ASSERT_EQ("12 ne 2 3 4\n", btor2::ne("12", "2", "3", "4"));
@@ -283,7 +283,7 @@ TEST(Btor2Test, ne)
 }
 
 // inline string sgt (string, string, string, string)
-TEST(Btor2Test, sgt)
+TEST(Btor2_Test, sgt)
 {
   ASSERT_EQ("11 sgt 1 2 3\n", btor2::sgt("11", "1", "2", "3"));
   ASSERT_EQ("12 sgt 2 3 4\n", btor2::sgt("12", "2", "3", "4"));
@@ -291,7 +291,7 @@ TEST(Btor2Test, sgt)
 }
 
 // inline string ugt (string, string, string, string)
-TEST(Btor2Test, ugt)
+TEST(Btor2_Test, ugt)
 {
   ASSERT_EQ("11 ugt 1 2 3\n", btor2::ugt("11", "1", "2", "3"));
   ASSERT_EQ("12 ugt 2 3 4\n", btor2::ugt("12", "2", "3", "4"));
@@ -299,7 +299,7 @@ TEST(Btor2Test, ugt)
 }
 
 // inline string sgte (string, string, string, string)
-TEST(Btor2Test, sgte)
+TEST(Btor2_Test, sgte)
 {
   ASSERT_EQ("11 sgte 1 2 3\n", btor2::sgte("11", "1", "2", "3"));
   ASSERT_EQ("12 sgte 2 3 4\n", btor2::sgte("12", "2", "3", "4"));
@@ -307,7 +307,7 @@ TEST(Btor2Test, sgte)
 }
 
 // inline string ugte (string, string, string, string)
-TEST(Btor2Test, ugte)
+TEST(Btor2_Test, ugte)
 {
   ASSERT_EQ("11 ugte 1 2 3\n", btor2::ugte("11", "1", "2", "3"));
   ASSERT_EQ("12 ugte 2 3 4\n", btor2::ugte("12", "2", "3", "4"));
@@ -315,7 +315,7 @@ TEST(Btor2Test, ugte)
 }
 
 // inline string slt (string, string, string, string)
-TEST(Btor2Test, slt)
+TEST(Btor2_Test, slt)
 {
   ASSERT_EQ("11 slt 1 2 3\n", btor2::slt("11", "1", "2", "3"));
   ASSERT_EQ("12 slt 2 3 4\n", btor2::slt("12", "2", "3", "4"));
@@ -323,7 +323,7 @@ TEST(Btor2Test, slt)
 }
 
 // inline string ult (string, string, string, string)
-TEST(Btor2Test, ult)
+TEST(Btor2_Test, ult)
 {
   ASSERT_EQ("11 ult 1 2 3\n", btor2::ult("11", "1", "2", "3"));
   ASSERT_EQ("12 ult 2 3 4\n", btor2::ult("12", "2", "3", "4"));
@@ -331,7 +331,7 @@ TEST(Btor2Test, ult)
 }
 
 // inline string slte (string, string, string, string)
-TEST(Btor2Test, slte)
+TEST(Btor2_Test, slte)
 {
   ASSERT_EQ("11 slte 1 2 3\n", btor2::slte("11", "1", "2", "3"));
   ASSERT_EQ("12 slte 2 3 4\n", btor2::slte("12", "2", "3", "4"));
@@ -339,7 +339,7 @@ TEST(Btor2Test, slte)
 }
 
 // inline string ulte (string, string, string, string)
-TEST(Btor2Test, ulte)
+TEST(Btor2_Test, ulte)
 {
   ASSERT_EQ("11 ulte 1 2 3\n", btor2::ulte("11", "1", "2", "3"));
   ASSERT_EQ("12 ulte 2 3 4\n", btor2::ulte("12", "2", "3", "4"));
@@ -347,7 +347,7 @@ TEST(Btor2Test, ulte)
 }
 
 // inline string land (string, string, string, string)
-TEST(Btor2Test, land)
+TEST(Btor2_Test, land)
 {
   ASSERT_EQ("11 and 1 2 3\n", btor2::land("11", "1", "2", "3"));
   ASSERT_EQ("12 and 2 3 4\n", btor2::land("12", "2", "3", "4"));
@@ -355,7 +355,7 @@ TEST(Btor2Test, land)
 }
 
 // inline string land (nid_t &, string, vector<string> const &)
-TEST(Btor2Test, land_variadic)
+TEST(Btor2_Test, land_variadic)
 {
   btor2::nid_t nid = 11;
 
@@ -397,7 +397,7 @@ TEST(Btor2Test, land_variadic)
 }
 
 // inline string nand (string, string, string, string)
-TEST(Btor2Test, nand)
+TEST(Btor2_Test, nand)
 {
   ASSERT_EQ("11 nand 1 2 3\n", btor2::nand("11", "1", "2", "3"));
   ASSERT_EQ("12 nand 2 3 4\n", btor2::nand("12", "2", "3", "4"));
@@ -405,7 +405,7 @@ TEST(Btor2Test, nand)
 }
 
 // inline string nor (string, string, string, string)
-TEST(Btor2Test, nor)
+TEST(Btor2_Test, nor)
 {
   ASSERT_EQ("11 nor 1 2 3\n", btor2::nor("11", "1", "2", "3"));
   ASSERT_EQ("12 nor 2 3 4\n", btor2::nor("12", "2", "3", "4"));
@@ -413,7 +413,7 @@ TEST(Btor2Test, nor)
 }
 
 // inline string lor (string, string, string, string)
-TEST(Btor2Test, lor)
+TEST(Btor2_Test, lor)
 {
   ASSERT_EQ("11 or 1 2 3\n", btor2::lor("11", "1", "2", "3"));
   ASSERT_EQ("12 or 2 3 4\n", btor2::lor("12", "2", "3", "4"));
@@ -421,7 +421,7 @@ TEST(Btor2Test, lor)
 }
 
 // inline string lor (nid_t &, string, vector<string> const &)
-TEST(Btor2Test, lor_variadic)
+TEST(Btor2_Test, lor_variadic)
 {
   btor2::nid_t nid = 11;
 
@@ -463,7 +463,7 @@ TEST(Btor2Test, lor_variadic)
 }
 
 // inline string xnor (string, string, string, string)
-TEST(Btor2Test, xnor)
+TEST(Btor2_Test, xnor)
 {
   ASSERT_EQ("11 xnor 1 2 3\n", btor2::xnor("11", "1", "2", "3"));
   ASSERT_EQ("12 xnor 2 3 4\n", btor2::xnor("12", "2", "3", "4"));
@@ -471,7 +471,7 @@ TEST(Btor2Test, xnor)
 }
 
 // inline string lxor (string, string, string, string)
-TEST(Btor2Test, lxor)
+TEST(Btor2_Test, lxor)
 {
   ASSERT_EQ("11 xor 1 2 3\n", btor2::lxor("11", "1", "2", "3"));
   ASSERT_EQ("12 xor 2 3 4\n", btor2::lxor("12", "2", "3", "4"));
@@ -479,7 +479,7 @@ TEST(Btor2Test, lxor)
 }
 
 // inline string rol (string, string, string, string)
-TEST(Btor2Test, rol)
+TEST(Btor2_Test, rol)
 {
   ASSERT_EQ("11 rol 1 2 3\n", btor2::rol("11", "1", "2", "3"));
   ASSERT_EQ("12 rol 2 3 4\n", btor2::rol("12", "2", "3", "4"));
@@ -487,7 +487,7 @@ TEST(Btor2Test, rol)
 }
 
 // inline string ror (string, string, string, string)
-TEST(Btor2Test, ror)
+TEST(Btor2_Test, ror)
 {
   ASSERT_EQ("11 ror 1 2 3\n", btor2::ror("11", "1", "2", "3"));
   ASSERT_EQ("12 ror 2 3 4\n", btor2::ror("12", "2", "3", "4"));
@@ -495,7 +495,7 @@ TEST(Btor2Test, ror)
 }
 
 // inline string sll (string, string, string, string)
-TEST(Btor2Test, sll)
+TEST(Btor2_Test, sll)
 {
   ASSERT_EQ("11 sll 1 2 3\n", btor2::sll("11", "1", "2", "3"));
   ASSERT_EQ("12 sll 2 3 4\n", btor2::sll("12", "2", "3", "4"));
@@ -503,7 +503,7 @@ TEST(Btor2Test, sll)
 }
 
 // inline string sra (string, string, string, string)
-TEST(Btor2Test, sra)
+TEST(Btor2_Test, sra)
 {
   ASSERT_EQ("11 sra 1 2 3\n", btor2::sra("11", "1", "2", "3"));
   ASSERT_EQ("12 sra 2 3 4\n", btor2::sra("12", "2", "3", "4"));
@@ -511,7 +511,7 @@ TEST(Btor2Test, sra)
 }
 
 // inline string srl (string, string, string, string)
-TEST(Btor2Test, srl)
+TEST(Btor2_Test, srl)
 {
   ASSERT_EQ("11 srl 1 2 3\n", btor2::srl("11", "1", "2", "3"));
   ASSERT_EQ("12 srl 2 3 4\n", btor2::srl("12", "2", "3", "4"));
@@ -519,7 +519,7 @@ TEST(Btor2Test, srl)
 }
 
 // inline string add (string, string, string, string)
-TEST(Btor2Test, add)
+TEST(Btor2_Test, add)
 {
   ASSERT_EQ("11 add 1 2 3\n", btor2::add("11", "1", "2", "3"));
   ASSERT_EQ("12 add 2 3 4\n", btor2::add("12", "2", "3", "4"));
@@ -527,7 +527,7 @@ TEST(Btor2Test, add)
 }
 
 // inline string mul (string, string, string, string)
-TEST(Btor2Test, mul)
+TEST(Btor2_Test, mul)
 {
   ASSERT_EQ("11 mul 1 2 3\n", btor2::mul("11", "1", "2", "3"));
   ASSERT_EQ("12 mul 2 3 4\n", btor2::mul("12", "2", "3", "4"));
@@ -535,7 +535,7 @@ TEST(Btor2Test, mul)
 }
 
 // inline string sdiv (string, string, string, string)
-TEST(Btor2Test, sdiv)
+TEST(Btor2_Test, sdiv)
 {
   ASSERT_EQ("11 sdiv 1 2 3\n", btor2::sdiv("11", "1", "2", "3"));
   ASSERT_EQ("12 sdiv 2 3 4\n", btor2::sdiv("12", "2", "3", "4"));
@@ -543,7 +543,7 @@ TEST(Btor2Test, sdiv)
 }
 
 // inline string udiv (string, string, string, string)
-TEST(Btor2Test, udiv)
+TEST(Btor2_Test, udiv)
 {
   ASSERT_EQ("11 udiv 1 2 3\n", btor2::udiv("11", "1", "2", "3"));
   ASSERT_EQ("12 udiv 2 3 4\n", btor2::udiv("12", "2", "3", "4"));
@@ -551,7 +551,7 @@ TEST(Btor2Test, udiv)
 }
 
 // inline string smod (string, string, string, string)
-TEST(Btor2Test, smod)
+TEST(Btor2_Test, smod)
 {
   ASSERT_EQ("11 smod 1 2 3\n", btor2::smod("11", "1", "2", "3"));
   ASSERT_EQ("12 smod 2 3 4\n", btor2::smod("12", "2", "3", "4"));
@@ -559,7 +559,7 @@ TEST(Btor2Test, smod)
 }
 
 // inline string srem (string, string, string, string)
-TEST(Btor2Test, srem)
+TEST(Btor2_Test, srem)
 {
   ASSERT_EQ("11 srem 1 2 3\n", btor2::srem("11", "1", "2", "3"));
   ASSERT_EQ("12 srem 2 3 4\n", btor2::srem("12", "2", "3", "4"));
@@ -567,7 +567,7 @@ TEST(Btor2Test, srem)
 }
 
 // inline string urem (string, string, string, string)
-TEST(Btor2Test, urem)
+TEST(Btor2_Test, urem)
 {
   ASSERT_EQ("11 urem 1 2 3\n", btor2::urem("11", "1", "2", "3"));
   ASSERT_EQ("12 urem 2 3 4\n", btor2::urem("12", "2", "3", "4"));
@@ -575,7 +575,7 @@ TEST(Btor2Test, urem)
 }
 
 // inline string sub (string, string, string, string)
-TEST(Btor2Test, sub)
+TEST(Btor2_Test, sub)
 {
   ASSERT_EQ("11 sub 1 2 3\n", btor2::sub("11", "1", "2", "3"));
   ASSERT_EQ("12 sub 2 3 4\n", btor2::sub("12", "2", "3", "4"));
@@ -583,7 +583,7 @@ TEST(Btor2Test, sub)
 }
 
 // inline string saddo (string, string, string, string)
-TEST(Btor2Test, saddo)
+TEST(Btor2_Test, saddo)
 {
   ASSERT_EQ("11 saddo 1 2 3\n", btor2::saddo("11", "1", "2", "3"));
   ASSERT_EQ("12 saddo 2 3 4\n", btor2::saddo("12", "2", "3", "4"));
@@ -591,7 +591,7 @@ TEST(Btor2Test, saddo)
 }
 
 // inline string uaddo (string, string, string, string)
-TEST(Btor2Test, uaddo)
+TEST(Btor2_Test, uaddo)
 {
   ASSERT_EQ("11 uaddo 1 2 3\n", btor2::uaddo("11", "1", "2", "3"));
   ASSERT_EQ("12 uaddo 2 3 4\n", btor2::uaddo("12", "2", "3", "4"));
@@ -599,7 +599,7 @@ TEST(Btor2Test, uaddo)
 }
 
 // inline string sdivo (string, string, string, string)
-TEST(Btor2Test, sdivo)
+TEST(Btor2_Test, sdivo)
 {
   ASSERT_EQ("11 sdivo 1 2 3\n", btor2::sdivo("11", "1", "2", "3"));
   ASSERT_EQ("12 sdivo 2 3 4\n", btor2::sdivo("12", "2", "3", "4"));
@@ -607,7 +607,7 @@ TEST(Btor2Test, sdivo)
 }
 
 // inline string udivo (string, string, string, string)
-TEST(Btor2Test, udivo)
+TEST(Btor2_Test, udivo)
 {
   ASSERT_EQ("11 udivo 1 2 3\n", btor2::udivo("11", "1", "2", "3"));
   ASSERT_EQ("12 udivo 2 3 4\n", btor2::udivo("12", "2", "3", "4"));
@@ -615,7 +615,7 @@ TEST(Btor2Test, udivo)
 }
 
 // inline string smulo (string, string, string, string)
-TEST(Btor2Test, smulo)
+TEST(Btor2_Test, smulo)
 {
   ASSERT_EQ("11 smulo 1 2 3\n", btor2::smulo("11", "1", "2", "3"));
   ASSERT_EQ("12 smulo 2 3 4\n", btor2::smulo("12", "2", "3", "4"));
@@ -623,7 +623,7 @@ TEST(Btor2Test, smulo)
 }
 
 // inline string umulo (string, string, string, string)
-TEST(Btor2Test, umulo)
+TEST(Btor2_Test, umulo)
 {
   ASSERT_EQ("11 umulo 1 2 3\n", btor2::umulo("11", "1", "2", "3"));
   ASSERT_EQ("12 umulo 2 3 4\n", btor2::umulo("12", "2", "3", "4"));
@@ -631,7 +631,7 @@ TEST(Btor2Test, umulo)
 }
 
 // inline string ssubo (string, string, string, string)
-TEST(Btor2Test, ssubo)
+TEST(Btor2_Test, ssubo)
 {
   ASSERT_EQ("11 ssubo 1 2 3\n", btor2::ssubo("11", "1", "2", "3"));
   ASSERT_EQ("12 ssubo 2 3 4\n", btor2::ssubo("12", "2", "3", "4"));
@@ -639,7 +639,7 @@ TEST(Btor2Test, ssubo)
 }
 
 // inline string usubo (string, string, string, string)
-TEST(Btor2Test, usubo)
+TEST(Btor2_Test, usubo)
 {
   ASSERT_EQ("11 usubo 1 2 3\n", btor2::usubo("11", "1", "2", "3"));
   ASSERT_EQ("12 usubo 2 3 4\n", btor2::usubo("12", "2", "3", "4"));
@@ -647,7 +647,7 @@ TEST(Btor2Test, usubo)
 }
 
 // inline string concat (string, string, string, string)
-TEST(Btor2Test, concat)
+TEST(Btor2_Test, concat)
 {
   ASSERT_EQ("11 concat 1 2 3\n", btor2::concat("11", "1", "2", "3"));
   ASSERT_EQ("12 concat 2 3 4\n", btor2::concat("12", "2", "3", "4"));
@@ -655,7 +655,7 @@ TEST(Btor2Test, concat)
 }
 
 // inline string read (string, string, string, string)
-TEST(Btor2Test, read)
+TEST(Btor2_Test, read)
 {
   ASSERT_EQ("11 read 1 2 3\n", btor2::read("11", "1", "2", "3"));
   ASSERT_EQ("12 read 2 3 4\n", btor2::read("12", "2", "3", "4"));
@@ -663,7 +663,7 @@ TEST(Btor2Test, read)
 }
 
 // inline string ite (string, string, string, string, string)
-TEST(Btor2Test, ite)
+TEST(Btor2_Test, ite)
 {
   ASSERT_EQ("11 ite 1 2 3 4\n", btor2::ite("11", "1", "2", "3", "4"));
   ASSERT_EQ("12 ite 2 3 4 5\n", btor2::ite("12", "2", "3", "4", "5"));
@@ -673,7 +673,7 @@ TEST(Btor2Test, ite)
 }
 
 // inline string write (string, string, string, string, string)
-TEST(Btor2Test, write)
+TEST(Btor2_Test, write)
 {
   ASSERT_EQ("11 write 1 2 3 4\n", btor2::write("11", "1", "2", "3", "4"));
   ASSERT_EQ("12 write 2 3 4 5\n", btor2::write("12", "2", "3", "4", "5"));
@@ -683,7 +683,7 @@ TEST(Btor2Test, write)
 }
 
 // inline string card_constraint_naive (nid_t &, vector<string> const &)
-TEST(Btor2Test, cardinality_exactly_one_naive)
+TEST(Btor2_Test, cardinality_exactly_one_naive)
 {
   btor2::nid_t nid = 10;
 
@@ -732,7 +732,7 @@ TEST(Btor2Test, cardinality_exactly_one_naive)
   ASSERT_EQ(nid, 26);
 }
 
-TEST(Btor2Test, cardinality_exactly_one_naive_verify)
+TEST(Btor2_Test, cardinality_exactly_one_naive_verify)
 {
   BtorMC btormc(1);
 
@@ -777,7 +777,7 @@ TEST(Btor2Test, cardinality_exactly_one_naive_verify)
 }
 
 // inline string card_constraint_sinz (nid_t &, vector<string> const &)
-TEST(Btor2Test, cardinality_exactly_one_sinz)
+TEST(Btor2_Test, cardinality_exactly_one_sinz)
 {
   btor2::nid_t nid = 10;
 
@@ -857,7 +857,7 @@ TEST(Btor2Test, cardinality_exactly_one_sinz)
   ASSERT_EQ(nid, 40);
 }
 
-TEST(Btor2Test, cardinality_exactly_one_sinz_verify)
+TEST(Btor2_Test, cardinality_exactly_one_sinz_verify)
 {
   BtorMC btormc(1);
 

@@ -6,7 +6,7 @@
 
 using namespace std;
 
-struct Z3Test : public ::testing::Test
+struct Z3_Test : public ::testing::Test
 {
   Z3                z3;
   Encoder_ptr       encoder;
@@ -14,21 +14,21 @@ struct Z3Test : public ::testing::Test
   Schedule_ptr      schedule;
 };
 
-TEST_F(Z3Test, sat)
+TEST_F(Z3_Test, sat)
 {
   string formula = "(assert true)(check-sat)";
 
   ASSERT_TRUE(z3.sat(formula));
 }
 
-TEST_F(Z3Test, unsat)
+TEST_F(Z3_Test, unsat)
 {
   string formula = "(assert false)(check-sat)";
 
   ASSERT_FALSE(z3.sat(formula));
 }
 
-TEST_F(Z3Test, solve_check)
+TEST_F(Z3_Test, solve_check)
 {
   /* concurrent increment using CHECK */
   string constraints;
@@ -40,7 +40,7 @@ TEST_F(Z3Test, solve_check)
   programs->push_back(create_from_file<Program>(increment_0));
   programs->push_back(create_from_file<Program>(increment_n));
 
-  encoder = make_shared<SMTLibEncoderFunctional>(programs, 16);
+  encoder = make_unique<SMTLib_Encoder_Functional>(programs, 16);
 
   schedule = z3.solve(*encoder, constraints);
 
@@ -68,7 +68,7 @@ TEST_F(Z3Test, solve_check)
     schedule->print());
 }
 
-TEST_F(Z3Test, solve_cas)
+TEST_F(Z3_Test, solve_cas)
 {
   /* concurrent increment using CAS */
   string constraints;
@@ -79,7 +79,7 @@ TEST_F(Z3Test, solve_cas)
   programs->push_back(create_from_file<Program>(increment));
   programs->push_back(create_from_file<Program>(increment));
 
-  encoder = make_shared<SMTLibEncoderFunctional>(programs, 16);
+  encoder = make_unique<SMTLib_Encoder_Functional>(programs, 16);
 
   schedule = z3.solve(*encoder, constraints);
 

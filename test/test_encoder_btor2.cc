@@ -1,7 +1,4 @@
-#include <gtest/gtest.h>
-
-#include "encoder.hh"
-#include "parser.hh"
+#include "test_encoder.hh"
 
 using namespace std;
 
@@ -15,62 +12,62 @@ void evaluate (string & formula)
   btormc.sat(formula);
 }
 
-struct Btor2EncoderTest : public ::testing::Test
+struct Btor2_Encoder_Test : public Test::Encoder<Btor2_Encoder>
 {
   string            nid;
-  Program_list_ptr  programs {make_shared<Program_list>()};
-  Btor2Encoder_ptr  encoder {create_encoder(1)};
+  // Program_list_ptr  programs {make_shared<Program_list>()};
+  // Btor2Encoder_ptr  encoder {create_encoder(1)};
 
-  Btor2Encoder_ptr create_encoder (const word_t bound)
-    {
-      return make_shared<Btor2Encoder>(programs, bound, false);
-    }
-
-  void reset_encoder (const word_t bound)
-    {
-      encoder = create_encoder(bound);
-    }
-
-  void add_dummy_programs (unsigned num, unsigned size)
-    {
-      for (size_t i = 0; i < num; i++)
-        {
-          Instruction_ptr op = Instruction::Set::create("ADDI", i + 1);
-          programs->push_back(shared_ptr<Program>(new Program()));
-          for (size_t j = 0; j < size; j++)
-            (*programs)[i]->push_back(op);
-        }
-
-      encoder = create_encoder(1);
-    }
-
-  void add_instruction_set (unsigned num)
-    {
-      for (size_t i = 0; i < num; i++)
-        {
-          programs->push_back(shared_ptr<Program>(new Program()));
-
-          (*programs)[i]->push_back(Instruction::Set::create("LOAD", 1));  // 0
-          (*programs)[i]->push_back(Instruction::Set::create("STORE", 1)); // 1
-          (*programs)[i]->push_back(Instruction::Set::create("ADD", 1));   // 2
-          (*programs)[i]->push_back(Instruction::Set::create("ADDI", 1));  // 3
-          (*programs)[i]->push_back(Instruction::Set::create("SUB", 1));   // 4
-          (*programs)[i]->push_back(Instruction::Set::create("SUBI", 1));  // 5
-          (*programs)[i]->push_back(Instruction::Set::create("CMP", 1));   // 6
-          (*programs)[i]->push_back(Instruction::Set::create("JMP", 1));   // 7
-          (*programs)[i]->push_back(Instruction::Set::create("JZ", 1));    // 8
-          (*programs)[i]->push_back(Instruction::Set::create("JNZ", 1));   // 9
-          (*programs)[i]->push_back(Instruction::Set::create("JS", 1));    // 10
-          (*programs)[i]->push_back(Instruction::Set::create("JNS", 1));   // 11
-          (*programs)[i]->push_back(Instruction::Set::create("JNZNS", 1)); // 12
-          (*programs)[i]->push_back(Instruction::Set::create("MEM", 1));   // 13
-          (*programs)[i]->push_back(Instruction::Set::create("CAS", 1));   // 14
-          (*programs)[i]->push_back(Instruction::Set::create("CHECK", 1)); // 15
-          (*programs)[i]->push_back(Instruction::Set::create("EXIT", 1));  // 16
-        }
-
-      reset_encoder(1);
-    }
+  // Btor2Encoder_ptr create_encoder (const word_t bound)
+    // {
+      // return make_shared<Btor2_Encoder>(programs, bound, false);
+    // }
+//
+  // void reset_encoder (const word_t bound)
+    // {
+      // encoder = create_encoder(bound);
+    // }
+//
+  // void add_dummy_programs (unsigned num, unsigned size)
+    // {
+      // for (size_t i = 0; i < num; i++)
+        // {
+          // Instruction_ptr op = Instruction::Set::create("ADDI", i + 1);
+          // programs->push_back(shared_ptr<Program>(new Program()));
+          // for (size_t j = 0; j < size; j++)
+            // (*programs)[i]->push_back(op);
+        // }
+//
+      // encoder = create_encoder(1);
+    // }
+//
+  // void add_instruction_set (unsigned num)
+    // {
+      // for (size_t i = 0; i < num; i++)
+        // {
+          // programs->push_back(shared_ptr<Program>(new Program()));
+//
+          // (*programs)[i]->push_back(Instruction::Set::create("LOAD", 1));  // 0
+          // (*programs)[i]->push_back(Instruction::Set::create("STORE", 1)); // 1
+          // (*programs)[i]->push_back(Instruction::Set::create("ADD", 1));   // 2
+          // (*programs)[i]->push_back(Instruction::Set::create("ADDI", 1));  // 3
+          // (*programs)[i]->push_back(Instruction::Set::create("SUB", 1));   // 4
+          // (*programs)[i]->push_back(Instruction::Set::create("SUBI", 1));  // 5
+          // (*programs)[i]->push_back(Instruction::Set::create("CMP", 1));   // 6
+          // (*programs)[i]->push_back(Instruction::Set::create("JMP", 1));   // 7
+          // (*programs)[i]->push_back(Instruction::Set::create("JZ", 1));    // 8
+          // (*programs)[i]->push_back(Instruction::Set::create("JNZ", 1));   // 9
+          // (*programs)[i]->push_back(Instruction::Set::create("JS", 1));    // 10
+          // (*programs)[i]->push_back(Instruction::Set::create("JNS", 1));   // 11
+          // (*programs)[i]->push_back(Instruction::Set::create("JNZNS", 1)); // 12
+          // (*programs)[i]->push_back(Instruction::Set::create("MEM", 1));   // 13
+          // (*programs)[i]->push_back(Instruction::Set::create("CAS", 1));   // 14
+          // (*programs)[i]->push_back(Instruction::Set::create("CHECK", 1)); // 15
+          // (*programs)[i]->push_back(Instruction::Set::create("EXIT", 1));  // 16
+        // }
+//
+      // reset_encoder(1);
+    // }
 
   void init_machine_state_declarations (bool clear_formula)
     {
@@ -152,8 +149,8 @@ struct Btor2EncoderTest : public ::testing::Test
     }
 };
 
-// void Btor2Encoder::add_sorts ()
-TEST_F(Btor2EncoderTest, add_sorts)
+// void Btor2_Encoder::add_sorts ()
+TEST_F(Btor2_Encoder_Test, add_sorts)
 {
   encoder->add_sorts();
 
@@ -168,7 +165,7 @@ TEST_F(Btor2EncoderTest, add_sorts)
     encoder->str());
 
   /* verbosity */
-  reset_encoder(1);
+  reset_encoder();
 
   verbose = false;
   encoder->add_sorts();
@@ -181,20 +178,20 @@ TEST_F(Btor2EncoderTest, add_sorts)
     encoder->str());
 }
 
-// void Btor2Encoder::add_constants ()
-TEST_F(Btor2EncoderTest, add_constants)
+// void Btor2_Encoder::add_constants ()
+TEST_F(Btor2_Encoder_Test, add_constants)
 {
   for (size_t thread = 0; thread < 3; thread++)
     {
       Program_ptr program = make_shared<Program>();
 
-      programs->push_back(program);
+      programs.push_back(program);
 
       for (size_t pc = 0; pc < 3; pc++)
         program->push_back(Instruction::Set::create("ADDI", thread + pc + 1));
     }
 
-  reset_encoder(1);
+  reset_encoder();
 
   encoder->add_sorts();
 
@@ -220,7 +217,7 @@ TEST_F(Btor2EncoderTest, add_constants)
     encoder->str());
 
   /* verbosity */
-  reset_encoder(1);
+  reset_encoder();
 
   encoder->add_sorts();
 
@@ -244,10 +241,11 @@ TEST_F(Btor2EncoderTest, add_constants)
     encoder->str());
 }
 
-// void Btor2Encoder::add_machine_state_declarations ()
-TEST_F(Btor2EncoderTest, add_machine_state_declarations)
+// void Btor2_Encoder::add_machine_state_declarations ()
+TEST_F(Btor2_Encoder_Test, add_machine_state_declarations)
 {
   add_dummy_programs(2, 3);
+  reset_encoder();
 
   init_machine_state_declarations(true);
 
@@ -284,7 +282,7 @@ TEST_F(Btor2EncoderTest, add_machine_state_declarations)
     encoder->str());
 
   /* verbosity */
-  reset_encoder(1);
+  reset_encoder();
 
   init_machine_state_declarations(true);
 
@@ -314,10 +312,11 @@ TEST_F(Btor2EncoderTest, add_machine_state_declarations)
     encoder->str());
 }
 
-// void Btor2Encoder::add_thread_scheduling ()
-TEST_F(Btor2EncoderTest, add_thread_scheduling)
+// void Btor2_Encoder::add_thread_scheduling ()
+TEST_F(Btor2_Encoder_Test, add_thread_scheduling)
 {
   add_dummy_programs(3, 3);
+  reset_encoder();
 
   init_thread_scheduling(true);
 
@@ -352,7 +351,7 @@ TEST_F(Btor2EncoderTest, add_thread_scheduling)
     encoder->str());
 
   /* verbosity */
-  reset_encoder(1);
+  reset_encoder();
 
   init_thread_scheduling(true);
 
@@ -384,12 +383,11 @@ TEST_F(Btor2EncoderTest, add_thread_scheduling)
     encoder->str());
 }
 
-// void Btor2Encoder::add_statement_execution ()
-TEST_F(Btor2EncoderTest, add_statement_execution)
+// void Btor2_Encoder::add_statement_execution ()
+TEST_F(Btor2_Encoder_Test, add_statement_execution)
 {
   add_dummy_programs(3, 3);
-
-  reset_encoder(1);
+  reset_encoder();
 
   init_statement_execution(true);
 
@@ -415,7 +413,7 @@ TEST_F(Btor2EncoderTest, add_statement_execution)
     encoder->str());
 
   /* verbosity */
-  reset_encoder(1);
+  reset_encoder();
 
   init_statement_execution(true);
 
@@ -439,10 +437,11 @@ TEST_F(Btor2EncoderTest, add_statement_execution)
     encoder->str());
 }
 
-// void Btor2Encoder::add_statement_activation ()
-TEST_F(Btor2EncoderTest, add_statement_activation)
+// void Btor2_Encoder::add_statement_activation ()
+TEST_F(Btor2_Encoder_Test, add_statement_activation)
 {
   add_dummy_programs(3, 2);
+  reset_encoder();
 
   init_statement_activation(true);
 
@@ -528,19 +527,17 @@ TEST_F(Btor2EncoderTest, add_statement_activation)
     encoder->str());
 }
 
-TEST_F(Btor2EncoderTest, add_statement_activation_jmp)
+TEST_F(Btor2_Encoder_Test, add_statement_activation_jmp)
 {
   for (size_t i = 0; i < 3; i++)
-    {
-      programs->push_back(make_shared<Program>());
+    programs.push_back(
+      create_program(
+        "ADDI 1\n"
+        "STORE 1\n"
+        "JMP 1\n"
+        "EXIT 1\n"));
 
-      (*programs)[i]->push_back(Instruction::Set::create("ADDI", 1));
-      (*programs)[i]->push_back(Instruction::Set::create("STORE", 1));
-      (*programs)[i]->push_back(Instruction::Set::create("JMP", 1));
-      (*programs)[i]->push_back(Instruction::Set::create("EXIT", 1));
-    }
-
-  reset_encoder(1);
+  reset_encoder();
 
   init_statement_activation(true);
 
@@ -623,17 +620,15 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp)
     encoder->str());
 }
 
-TEST_F(Btor2EncoderTest, add_statement_activation_jmp_conditional)
+TEST_F(Btor2_Encoder_Test, add_statement_activation_jmp_conditional)
 {
   for (size_t i = 0; i < 3; i++)
-    {
-      programs->push_back(make_shared<Program>());
-
-      (*programs)[i]->push_back(Instruction::Set::create("ADDI", 1));
-      (*programs)[i]->push_back(Instruction::Set::create("STORE", 1));
-      (*programs)[i]->push_back(Instruction::Set::create("JNZ", 1));
-      (*programs)[i]->push_back(Instruction::Set::create("EXIT", 1));
-    }
+    programs.push_back(
+      create_program(
+        "ADDI 1\n"
+        "STORE 1\n"
+        "JNZ 1\n"
+        "EXIT 1\n"));
 
   reset_encoder(3);
 
@@ -758,17 +753,15 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_conditional)
   */
 }
 
-TEST_F(Btor2EncoderTest, add_statement_activation_jmp_start)
+TEST_F(Btor2_Encoder_Test, add_statement_activation_jmp_start)
 {
   for (size_t i = 0; i < 3; i++)
-    {
-      programs->push_back(make_shared<Program>());
-
-      (*programs)[i]->push_back(Instruction::Set::create("ADDI", 1));
-      (*programs)[i]->push_back(Instruction::Set::create("STORE", 1));
-      (*programs)[i]->push_back(Instruction::Set::create("JNZ", 0));
-      (*programs)[i]->push_back(Instruction::Set::create("EXIT", 1));
-    }
+    programs.push_back(
+      create_program(
+        "ADDI 1\n"
+        "STORE 1\n"
+        "JNZ 0\n"
+        "EXIT 1\n"));
 
   reset_encoder(3);
 
@@ -893,18 +886,16 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_start)
   */
 }
 
-TEST_F(Btor2EncoderTest, add_statement_activation_jmp_twice)
+TEST_F(Btor2_Encoder_Test, add_statement_activation_jmp_twice)
 {
   for (size_t i = 0; i < 3; i++)
-    {
-      programs->push_back(make_shared<Program>());
-
-      (*programs)[i]->push_back(Instruction::Set::create("ADDI", 1));
-      (*programs)[i]->push_back(Instruction::Set::create("STORE", 1));
-      (*programs)[i]->push_back(Instruction::Set::create("JZ", 1));
-      (*programs)[i]->push_back(Instruction::Set::create("JNZ", 1));
-      (*programs)[i]->push_back(Instruction::Set::create("EXIT", 1));
-    }
+    programs.push_back(
+      create_program(
+        "ADDI 1\n"
+        "STORE 1\n"
+        "JZ 1\n"
+        "JNZ 1\n"
+        "EXIT 1\n"));
 
   reset_encoder(3);
 
@@ -1059,10 +1050,11 @@ TEST_F(Btor2EncoderTest, add_statement_activation_jmp_twice)
   */
 }
 
-// void Btor2Encoder::add_register_definitions ()
-TEST_F(Btor2EncoderTest, add_register_definitions)
+// void Btor2_Encoder::add_register_definitions ()
+TEST_F(Btor2_Encoder_Test, add_register_definitions)
 {
   add_instruction_set(3);
+  reset_encoder();
 
   init_register_definitions(true);
 
@@ -1153,7 +1145,7 @@ TEST_F(Btor2EncoderTest, add_register_definitions)
     encoder->str());
 
   /* verbosity */
-  reset_encoder(1);
+  reset_encoder();
 
   init_register_definitions(true);
 
@@ -1232,10 +1224,11 @@ TEST_F(Btor2EncoderTest, add_register_definitions)
     encoder->str());
 }
 
-// void Btor2Encoder::add_heap_definition ()
-TEST_F(Btor2EncoderTest, add_heap_definition)
+// void Btor2_Encoder::add_heap_definition ()
+TEST_F(Btor2_Encoder_Test, add_heap_definition)
 {
   add_instruction_set(3);
+  reset_encoder();
 
   init_heap_definition(true);
 
@@ -1266,7 +1259,7 @@ TEST_F(Btor2EncoderTest, add_heap_definition)
     encoder->str());
 
   /* verbosity */
-  reset_encoder(1);
+  reset_encoder();
 
   init_heap_definition(true);
 
@@ -1295,10 +1288,11 @@ TEST_F(Btor2EncoderTest, add_heap_definition)
     encoder->str());
 }
 
-// void Btor2Encoder::add_exit_definitions ()
-TEST_F(Btor2EncoderTest, add_exit_definitions)
+// void Btor2_Encoder::add_exit_definitions ()
+TEST_F(Btor2_Encoder_Test, add_exit_definitions)
 {
   add_instruction_set(3);
+  reset_encoder();
 
   init_exit_definitions(true);
 
@@ -1327,7 +1321,7 @@ TEST_F(Btor2EncoderTest, add_exit_definitions)
     encoder->str());
 
   /* verbosity */
-  reset_encoder(1);
+  reset_encoder();
 
   init_exit_definitions(true);
 
@@ -1352,9 +1346,10 @@ TEST_F(Btor2EncoderTest, add_exit_definitions)
     encoder->str());
 }
 
-TEST_F(Btor2EncoderTest, add_exit_definitions_no_exit)
+TEST_F(Btor2_Encoder_Test, add_exit_definitions_no_exit)
 {
-  add_dummy_programs(1, 1);
+  add_dummy_programs(1);
+  reset_encoder();
 
   init_exit_definitions(true);
 
@@ -1377,20 +1372,20 @@ TEST_F(Btor2EncoderTest, add_exit_definitions_no_exit)
     encoder->str());
 }
 
-// void Btor2Encoder::add_checkpoint_constraints ()
-TEST_F(Btor2EncoderTest, add_checkpoint_constraints)
+// void Btor2_Encoder::add_checkpoint_constraints ()
+TEST_F(Btor2_Encoder_Test, add_checkpoint_constraints)
 {
   for (size_t thread = 0; thread < 3; thread++)
     {
       Program_ptr program = make_shared<Program>();
 
-      programs->push_back(program);
+      programs.push_back(program);
 
       for (size_t id = 1; id < 3; id++)
         program->push_back(Instruction::Set::create("CHECK", id));
     }
 
-  reset_encoder(1);
+  reset_encoder();
 
   init_checkpoint_constraints(true);
 
@@ -1475,11 +1470,11 @@ TEST_F(Btor2EncoderTest, add_checkpoint_constraints)
     encoder->str());
 
   /* multiple calls to the same checkpoint */
-  for (const auto & program : *programs)
+  for (const auto & program : programs)
     for (size_t pc = 0; pc < 4; pc++)
       program->push_back(Instruction::Set::create("CHECK", pc % 2 + 1));
 
-  reset_encoder(1);
+  reset_encoder();
 
   init_checkpoint_constraints(true);
 
@@ -1576,10 +1571,10 @@ TEST_F(Btor2EncoderTest, add_checkpoint_constraints)
     encoder->str());
 
   /* checkpoint only for a subset of threads */
-  for (size_t i = 0; i < programs->size() - 1; i++)
-    (*programs)[i]->push_back(Instruction::Set::create("CHECK", 3));
+  for (size_t i = 0; i < programs.size() - 1; i++)
+    programs[i]->push_back(Instruction::Set::create("CHECK", 3));
 
-  reset_encoder(1);
+  reset_encoder();
 
   init_checkpoint_constraints(true);
 
@@ -1698,7 +1693,7 @@ TEST_F(Btor2EncoderTest, add_checkpoint_constraints)
     encoder->str());
 
   /* verbosity */
-  reset_encoder(1);
+  reset_encoder();
 
   init_checkpoint_constraints(true);
 
@@ -1811,13 +1806,10 @@ TEST_F(Btor2EncoderTest, add_checkpoint_constraints)
     encoder->str());
 }
 
-TEST_F(Btor2EncoderTest, add_checkpoint_constraints_single_thread)
+TEST_F(Btor2_Encoder_Test, add_checkpoint_constraints_single_thread)
 {
-  Program_ptr program = make_shared<Program>();
-  programs->push_back(program);
-  program->push_back(Instruction::Set::create("CHECK", 1));
-
-  reset_encoder(1);
+  programs.push_back(create_program("CHECK 1\n"));
+  reset_encoder();
 
   init_checkpoint_constraints(true);
 
@@ -1837,9 +1829,10 @@ TEST_F(Btor2EncoderTest, add_checkpoint_constraints_single_thread)
     encoder->str());
 }
 
-TEST_F(Btor2EncoderTest, add_checkpoint_constraints_no_check)
+TEST_F(Btor2_Encoder_Test, add_checkpoint_constraints_no_check)
 {
   add_dummy_programs(3, 3);
+  reset_encoder();
 
   init_checkpoint_constraints(true);
 
@@ -1848,8 +1841,8 @@ TEST_F(Btor2EncoderTest, add_checkpoint_constraints_no_check)
   ASSERT_EQ("", encoder->str());
 }
 
-// void Btor2Encoder::add_bound ()
-TEST_F(Btor2EncoderTest, add_bound)
+// void Btor2_Encoder::add_bound ()
+TEST_F(Btor2_Encoder_Test, add_bound)
 {
   init_machine_state_declarations(true);
 
@@ -1891,10 +1884,11 @@ TEST_F(Btor2EncoderTest, add_bound)
     encoder->str());
 }
 
-// std::string Btor2Encoder::load(Load & l)
-TEST_F(Btor2EncoderTest, load)
+// std::string Btor2_Encoder::load(Load & l)
+TEST_F(Btor2_Encoder_Test, load)
 {
-  add_dummy_programs(1, 1);
+  add_dummy_programs(1);
+  reset_encoder();
 
   init_register_definitions(true);
 
@@ -1912,9 +1906,10 @@ TEST_F(Btor2EncoderTest, load)
   ASSERT_EQ("", encoder->str());
 }
 
-TEST_F(Btor2EncoderTest, load_indirect)
+TEST_F(Btor2_Encoder_Test, load_indirect)
 {
-  add_dummy_programs(1, 1);
+  add_dummy_programs(1);
+  reset_encoder();
 
   init_register_definitions(true);
 
@@ -1933,10 +1928,11 @@ TEST_F(Btor2EncoderTest, load_indirect)
   ASSERT_EQ("", encoder->str());
 }
 
-// std::string Btor2Encoder::store(Store & s)
-TEST_F(Btor2EncoderTest, store)
+// std::string Btor2_Encoder::store(Store & s)
+TEST_F(Btor2_Encoder_Test, store)
 {
-  add_dummy_programs(2, 1);
+  add_dummy_programs(2);
+  reset_encoder();
 
   init_register_definitions(true);
 
@@ -1968,9 +1964,10 @@ TEST_F(Btor2EncoderTest, store)
   ASSERT_EQ("", encoder->str());
 }
 
-TEST_F(Btor2EncoderTest, store_indirect)
+TEST_F(Btor2_Encoder_Test, store_indirect)
 {
-  add_dummy_programs(2, 1);
+  add_dummy_programs(2);
+  reset_encoder();
 
   init_register_definitions(true);
 
@@ -2003,73 +2000,51 @@ TEST_F(Btor2EncoderTest, store_indirect)
   ASSERT_EQ("", encoder->str());
 }
 
-// virtual void Btor2Encoder::encode ()
-TEST_F(Btor2EncoderTest, encode_check)
+// virtual void Btor2_Encoder::encode ()
+TEST_F(Btor2_Encoder_Test, encode_check)
 {
   /* concurrent increment using CHECK */
-  programs->push_back(
-    create_from_file<Program>("data/increment.check.thread.0.asm"));
-  programs->push_back(
-    create_from_file<Program>("data/increment.check.thread.n.asm"));
-
-  encoder = make_shared<Btor2Encoder>(programs, 16);
-
-  string formula = "increment.check.t2.k16.btor2";
-
-  ofstream tmp("/tmp/" + formula);
-  tmp << encoder->str();
-
-  string expected;
-  ifstream ifs("data/" + formula);
-  expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
-  ASSERT_EQ(expected, encoder->str());
+  encode(
+    {"increment.check.thread.0.asm", "increment.check.thread.n.asm"},
+    "increment.check.t2.k16.btor2",
+    16);
 }
 
-TEST_F(Btor2EncoderTest, encode_cas)
+TEST_F(Btor2_Encoder_Test, encode_cas)
 {
   /* concurrent increment using CAS */
-  programs->push_back(create_from_file<Program>("data/increment.cas.asm"));
-  programs->push_back(create_from_file<Program>("data/increment.cas.asm"));
-
-  encoder = make_shared<Btor2Encoder>(programs, 16);
-
-  string formula = "increment.cas.t2.k16.btor2";
-
-  ofstream tmp("/tmp/" + formula);
-  tmp << encoder->str();
-
-  string expected;
-  ifstream ifs("data/" + formula);
-  expected.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
-  ASSERT_EQ(expected, encoder->str());
+  encode(
+    {"increment.cas.asm", "increment.cas.asm"},
+    "increment.cas.t2.k16.btor2",
+    16);
 }
 
-// virtual std::string Btor2Encoder::encode (Load & l)
-TEST_F(Btor2EncoderTest, LOAD)
+// virtual std::string Btor2_Encoder::encode (Load & l)
+TEST_F(Btor2_Encoder_Test, LOAD)
 {
-  Btor2EncoderTest_load_Test();
+  Btor2_Encoder_Test_load_Test();
 }
 
-TEST_F(Btor2EncoderTest, LOAD_indirect)
+TEST_F(Btor2_Encoder_Test, LOAD_indirect)
 {
-  Btor2EncoderTest_load_indirect_Test();
+  Btor2_Encoder_Test_load_indirect_Test();
 }
 
-// virtual std::string Btor2Encoder::encode (Store & s)
-TEST_F(Btor2EncoderTest, STORE)
+// virtual std::string Btor2_Encoder::encode (Store & s)
+TEST_F(Btor2_Encoder_Test, STORE)
 {
-  Btor2EncoderTest_store_Test();
+  Btor2_Encoder_Test_store_Test();
 }
 
-TEST_F(Btor2EncoderTest, STORE_indirect)
+TEST_F(Btor2_Encoder_Test, STORE_indirect)
 {
-  Btor2EncoderTest_store_indirect_Test();
+  Btor2_Encoder_Test_store_indirect_Test();
 }
 
-// virtual std::string Btor2Encoder::encode (Add & a)
-TEST_F(Btor2EncoderTest, ADD)
+// virtual std::string Btor2_Encoder::encode (Add & a)
+TEST_F(Btor2_Encoder_Test, ADD)
 {
-  add_dummy_programs(2, 1);
+  add_dummy_programs(2);
 
   init_register_definitions(true);
 
@@ -2092,9 +2067,9 @@ TEST_F(Btor2EncoderTest, ADD)
     encoder->str());
 }
 
-TEST_F(Btor2EncoderTest, ADD_indirect)
+TEST_F(Btor2_Encoder_Test, ADD_indirect)
 {
-  add_dummy_programs(2, 1);
+  add_dummy_programs(2);
 
   init_register_definitions(true);
 
@@ -2118,10 +2093,10 @@ TEST_F(Btor2EncoderTest, ADD_indirect)
     encoder->str());
 }
 
-// virtual std::string Btor2Encoder::encode (Addi & a)
-TEST_F(Btor2EncoderTest, ADDI)
+// virtual std::string Btor2_Encoder::encode (Addi & a)
+TEST_F(Btor2_Encoder_Test, ADDI)
 {
-  add_dummy_programs(2, 1);
+  add_dummy_programs(2);
 
   init_register_definitions(true);
 
@@ -2143,10 +2118,10 @@ TEST_F(Btor2EncoderTest, ADDI)
     encoder->str());
 }
 
-// virtual std::string Btor2Encoder::encode (Sub & s)
-TEST_F(Btor2EncoderTest, SUB)
+// virtual std::string Btor2_Encoder::encode (Sub & s)
+TEST_F(Btor2_Encoder_Test, SUB)
 {
-  add_dummy_programs(2, 1);
+  add_dummy_programs(2);
 
   init_register_definitions(true);
 
@@ -2169,9 +2144,9 @@ TEST_F(Btor2EncoderTest, SUB)
     encoder->str());
 }
 
-TEST_F(Btor2EncoderTest, SUB_indirect)
+TEST_F(Btor2_Encoder_Test, SUB_indirect)
 {
-  add_dummy_programs(2, 1);
+  add_dummy_programs(2);
 
   init_register_definitions(true);
 
@@ -2195,10 +2170,10 @@ TEST_F(Btor2EncoderTest, SUB_indirect)
     encoder->str());
 }
 
-// virtual std::string Btor2Encoder::encode (Subi & s)
-TEST_F(Btor2EncoderTest, SUBI)
+// virtual std::string Btor2_Encoder::encode (Subi & s)
+TEST_F(Btor2_Encoder_Test, SUBI)
 {
-  add_dummy_programs(2, 1);
+  add_dummy_programs(2);
 
   init_register_definitions(true);
 
@@ -2220,10 +2195,10 @@ TEST_F(Btor2EncoderTest, SUBI)
     encoder->str());
 }
 
-// virtual std::string Btor2Encoder::encode (Cmp & c)
-TEST_F(Btor2EncoderTest, CMP)
+// virtual std::string Btor2_Encoder::encode (Cmp & c)
+TEST_F(Btor2_Encoder_Test, CMP)
 {
-  add_dummy_programs(2, 1);
+  add_dummy_programs(2);
 
   init_register_definitions(true);
 
@@ -2246,9 +2221,9 @@ TEST_F(Btor2EncoderTest, CMP)
     encoder->str());
 }
 
-TEST_F(Btor2EncoderTest, CMP_indirect)
+TEST_F(Btor2_Encoder_Test, CMP_indirect)
 {
-  add_dummy_programs(2, 1);
+  add_dummy_programs(2);
 
   init_register_definitions(true);
 
@@ -2272,8 +2247,8 @@ TEST_F(Btor2EncoderTest, CMP_indirect)
     encoder->str());
 }
 
-// virtual std::string Btor2Encoder::encode (Jmp & j)
-TEST_F(Btor2EncoderTest, JMP)
+// virtual std::string Btor2_Encoder::encode (Jmp & j)
+TEST_F(Btor2_Encoder_Test, JMP)
 {
   Jmp j(1);
 
@@ -2281,10 +2256,10 @@ TEST_F(Btor2EncoderTest, JMP)
   ASSERT_EQ("", encoder->str());
 }
 
-// virtual std::string Btor2Encoder::encode (Jz & j)
-TEST_F(Btor2EncoderTest, JZ)
+// virtual std::string Btor2_Encoder::encode (Jz & j)
+TEST_F(Btor2_Encoder_Test, JZ)
 {
-  add_dummy_programs(2, 1);
+  add_dummy_programs(2);
 
   init_register_definitions(true);
 
@@ -2306,10 +2281,10 @@ TEST_F(Btor2EncoderTest, JZ)
     encoder->str());
 }
 
-// virtual std::string Btor2Encoder::encode (Jnz & j)
-TEST_F(Btor2EncoderTest, JNZ)
+// virtual std::string Btor2_Encoder::encode (Jnz & j)
+TEST_F(Btor2_Encoder_Test, JNZ)
 {
-  add_dummy_programs(2, 1);
+  add_dummy_programs(2);
 
   init_register_definitions(true);
 
@@ -2331,10 +2306,10 @@ TEST_F(Btor2EncoderTest, JNZ)
     encoder->str());
 }
 
-// virtual std::string Btor2Encoder::encode (Js & j)
-TEST_F(Btor2EncoderTest, JS)
+// virtual std::string Btor2_Encoder::encode (Js & j)
+TEST_F(Btor2_Encoder_Test, JS)
 {
-  add_dummy_programs(2, 1);
+  add_dummy_programs(2);
 
   init_register_definitions(true);
 
@@ -2356,10 +2331,10 @@ TEST_F(Btor2EncoderTest, JS)
     encoder->str());
 }
 
-// virtual std::string Btor2Encoder::encode (Jns & j)
-TEST_F(Btor2EncoderTest, JNS)
+// virtual std::string Btor2_Encoder::encode (Jns & j)
+TEST_F(Btor2_Encoder_Test, JNS)
 {
-  add_dummy_programs(2, 1);
+  add_dummy_programs(2);
 
   init_register_definitions(true);
 
@@ -2383,10 +2358,10 @@ TEST_F(Btor2EncoderTest, JNS)
     encoder->str());
 }
 
-// virtual std::string Btor2Encoder::encode (Jnzns & j)
-TEST_F(Btor2EncoderTest, JNZNS)
+// virtual std::string Btor2_Encoder::encode (Jnzns & j)
+TEST_F(Btor2_Encoder_Test, JNZNS)
 {
-  add_dummy_programs(2, 1);
+  add_dummy_programs(2);
 
   init_register_definitions(true);
 
@@ -2414,21 +2389,21 @@ TEST_F(Btor2EncoderTest, JNZNS)
     encoder->str());
 }
 
-// virtual std::string Btor2Encoder::encode (Mem & m)
-TEST_F(Btor2EncoderTest, MEM)
+// virtual std::string Btor2_Encoder::encode (Mem & m)
+TEST_F(Btor2_Encoder_Test, MEM)
 {
-  Btor2EncoderTest_LOAD_Test();
+  Btor2_Encoder_Test_LOAD_Test();
 }
 
-TEST_F(Btor2EncoderTest, MEM_indirect)
+TEST_F(Btor2_Encoder_Test, MEM_indirect)
 {
-  Btor2EncoderTest_LOAD_indirect_Test();
+  Btor2_Encoder_Test_LOAD_indirect_Test();
 }
 
-// virtual std::string Btor2Encoder::encode (Cas & c)
-TEST_F(Btor2EncoderTest, CAS_accu)
+// virtual std::string Btor2_Encoder::encode (Cas & c)
+TEST_F(Btor2_Encoder_Test, CAS_accu)
 {
-  add_dummy_programs(2, 1);
+  add_dummy_programs(2);
 
   init_register_definitions(true);
 
@@ -2455,9 +2430,9 @@ TEST_F(Btor2EncoderTest, CAS_accu)
     encoder->str());
 }
 
-TEST_F(Btor2EncoderTest, CAS_accu_indirect)
+TEST_F(Btor2_Encoder_Test, CAS_accu_indirect)
 {
-  add_dummy_programs(2, 1);
+  add_dummy_programs(2);
 
   init_register_definitions(true);
 
@@ -2485,9 +2460,9 @@ TEST_F(Btor2EncoderTest, CAS_accu_indirect)
     encoder->str());
 }
 
-TEST_F(Btor2EncoderTest, CAS_heap)
+TEST_F(Btor2_Encoder_Test, CAS_heap)
 {
-  add_dummy_programs(2, 1);
+  add_dummy_programs(2);
 
   init_register_definitions(true);
 
@@ -2516,9 +2491,9 @@ TEST_F(Btor2EncoderTest, CAS_heap)
     encoder->str());
 }
 
-TEST_F(Btor2EncoderTest, CAS_heap_indirect)
+TEST_F(Btor2_Encoder_Test, CAS_heap_indirect)
 {
-  add_dummy_programs(2, 1);
+  add_dummy_programs(2);
 
   init_register_definitions(true);
 
@@ -2548,8 +2523,8 @@ TEST_F(Btor2EncoderTest, CAS_heap_indirect)
     encoder->str());
 }
 
-// virtual std::string Btor2Encoder::encode (Check & c)
-TEST_F(Btor2EncoderTest, CHECK)
+// virtual std::string Btor2_Encoder::encode (Check & c)
+TEST_F(Btor2_Encoder_Test, CHECK)
 {
   Check c(1);
 
@@ -2557,8 +2532,8 @@ TEST_F(Btor2EncoderTest, CHECK)
   ASSERT_EQ("", encoder->str());
 }
 
-// virtual std::string Btor2Encoder::encode (Exit & e)
-TEST_F(Btor2EncoderTest, EXIT)
+// virtual std::string Btor2_Encoder::encode (Exit & e)
+TEST_F(Btor2_Encoder_Test, EXIT)
 {
   Exit e(1);
 

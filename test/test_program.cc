@@ -10,7 +10,7 @@ using namespace std;
 /*******************************************************************************
  * Test Case Fixture
 *******************************************************************************/
-struct ProgramTest : public ::testing::Test
+struct Program_Test : public ::testing::Test
 {
   using Predecessors = set<word_t>;
 
@@ -25,24 +25,25 @@ struct ProgramTest : public ::testing::Test
 };
 
 /* constructor ****************************************************************/
-TEST_F(ProgramTest, parse)
+TEST_F(Program_Test, parse)
 {
   program = create_from_file<Program>("data/increment.cas.asm");
 
-  ASSERT_EQ(6, program->size());
+  ASSERT_EQ(7, program->size());
   ASSERT_EQ(1, program->check_ids.size());
   ASSERT_EQ(1, program->labels.size());
   ASSERT_EQ(1, program->pc_to_label.size());
-  ASSERT_EQ("LOOP", *program->pc_to_label[2]);
+  ASSERT_EQ("LOOP", *program->pc_to_label[3]);
   ASSERT_EQ(1, program->label_to_pc.size());
-  ASSERT_EQ(2, program->label_to_pc[program->pc_to_label[2]]);
+  ASSERT_EQ(3, program->label_to_pc[program->pc_to_label[3]]);
 
   ASSERT_EQ("0\tSTORE\t0",  program->print(true, 0));
-  ASSERT_EQ("1\tCHECK\t0",  program->print(true, 1));
-  ASSERT_EQ("LOOP\tMEM\t0", program->print(true, 2));
-  ASSERT_EQ("3\tADDI\t1",   program->print(true, 3));
-  ASSERT_EQ("4\tCAS\t0",    program->print(true, 4));
-  ASSERT_EQ("5\tJMP\tLOOP", program->print(true, 5));
+  ASSERT_EQ("1\tFENCE\t",   program->print(true, 1));
+  ASSERT_EQ("2\tCHECK\t0",  program->print(true, 2));
+  ASSERT_EQ("LOOP\tMEM\t0", program->print(true, 3));
+  ASSERT_EQ("4\tADDI\t1",   program->print(true, 4));
+  ASSERT_EQ("5\tCAS\t0",    program->print(true, 5));
+  ASSERT_EQ("6\tJMP\tLOOP", program->print(true, 6));
 
   /* indirect addressing */
   program = create_from_file<Program>("data/indirect.addressing.asm");
@@ -59,7 +60,7 @@ TEST_F(ProgramTest, parse)
   ASSERT_EQ("5\tCMP\t[1]",    program->print(true, 5));
 }
 
-TEST_F(ProgramTest, parse_empty_line)
+TEST_F(Program_Test, parse_empty_line)
 {
   create_program(
     "ADDI 1\n"
@@ -72,7 +73,7 @@ TEST_F(ProgramTest, parse_empty_line)
   ASSERT_EQ("1\tEXIT\t1",   program->print(true, 1));
 }
 
-TEST_F(ProgramTest, parse_file_not_found)
+TEST_F(Program_Test, parse_file_not_found)
 {
   string file = "file_not_found";
 
@@ -87,7 +88,7 @@ TEST_F(ProgramTest, parse_file_not_found)
     }
 }
 
-TEST_F(ProgramTest, parse_illegal_instruction)
+TEST_F(Program_Test, parse_illegal_instruction)
 {
   /* illegal instruction */
   try
@@ -138,7 +139,7 @@ TEST_F(ProgramTest, parse_illegal_instruction)
     }
 }
 
-TEST_F(ProgramTest, parse_missing_label)
+TEST_F(Program_Test, parse_missing_label)
 {
   /* missing label */
   try
@@ -167,7 +168,7 @@ TEST_F(ProgramTest, parse_missing_label)
     }
 }
 
-TEST_F(ProgramTest, parse_illegal_jump)
+TEST_F(Program_Test, parse_illegal_jump)
 {
   try
     {
@@ -180,7 +181,7 @@ TEST_F(ProgramTest, parse_illegal_jump)
     }
 }
 
-TEST_F(ProgramTest, parse_predecessors)
+TEST_F(Program_Test, parse_predecessors)
 {
   create_program(
     "ADDI 1\n"
@@ -192,7 +193,7 @@ TEST_F(ProgramTest, parse_predecessors)
   ASSERT_EQ(Predecessors({1}), program->predecessors.at(2));
 }
 
-TEST_F(ProgramTest, parse_predecessors_jnz)
+TEST_F(Program_Test, parse_predecessors_jnz)
 {
   create_program(
     "ADDI 1\n"
@@ -204,7 +205,7 @@ TEST_F(ProgramTest, parse_predecessors_jnz)
   ASSERT_EQ(Predecessors({1}), program->predecessors.at(2));
 }
 
-TEST_F(ProgramTest, parse_predecessors_jnz_initial)
+TEST_F(Program_Test, parse_predecessors_jnz_initial)
 {
   create_program(
     "ADDI 1\n"
@@ -216,7 +217,7 @@ TEST_F(ProgramTest, parse_predecessors_jnz_initial)
   ASSERT_EQ(Predecessors({1}), program->predecessors.at(2));
 }
 
-TEST_F(ProgramTest, parse_predecessors_jmp)
+TEST_F(Program_Test, parse_predecessors_jmp)
 {
   try
     {
@@ -232,7 +233,7 @@ TEST_F(ProgramTest, parse_predecessors_jmp)
     }
 }
 
-TEST_F(ProgramTest, parse_predecessors_exit)
+TEST_F(Program_Test, parse_predecessors_exit)
 {
   try
     {
@@ -248,7 +249,7 @@ TEST_F(ProgramTest, parse_predecessors_exit)
     }
 }
 
-TEST_F(ProgramTest, parse_predecessors_halt)
+TEST_F(Program_Test, parse_predecessors_halt)
 {
   try
     {
@@ -265,7 +266,7 @@ TEST_F(ProgramTest, parse_predecessors_halt)
 }
 
 /* Program::push_back *********************************************************/
-TEST_F(ProgramTest, push_back)
+TEST_F(Program_Test, push_back)
 {
   program->push_back(Instruction::Set::create("ADD", 1));
   ASSERT_EQ(1, program->size());
@@ -278,7 +279,7 @@ TEST_F(ProgramTest, push_back)
 }
 
 /* Program::get_pc ************************************************************/
-TEST_F(ProgramTest, get_pc)
+TEST_F(Program_Test, get_pc)
 {
   istringstream inbuf(
     "LABEL: ADDI 1\n"
@@ -301,7 +302,7 @@ TEST_F(ProgramTest, get_pc)
 }
 
 /* Program::get_label *********************************************************/
-TEST_F(ProgramTest, get_label)
+TEST_F(Program_Test, get_label)
 {
   istringstream inbuf(
     "LABEL: ADDI 1\n"
@@ -326,7 +327,7 @@ TEST_F(ProgramTest, get_label)
 }
 
 /* operator_equals ************************************************************/
-TEST_F(ProgramTest, operator_equals)
+TEST_F(Program_Test, operator_equals)
 {
   Program p1, p2;
 

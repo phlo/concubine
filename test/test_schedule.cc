@@ -7,7 +7,7 @@
 
 using namespace std;
 
-struct ScheduleTest : public ::testing::Test
+struct Schedule_Test : public ::testing::Test
 {
   string dummy_path = "dummy.schedule";
   string program_path = "data/increment.cas.asm";
@@ -27,7 +27,7 @@ struct ScheduleTest : public ::testing::Test
 };
 
 /* Schedule::Schedule *********************************************************/
-TEST_F(ScheduleTest, parse_check)
+TEST_F(Schedule_Test, parse_check)
 {
   schedule = create_from_file<Schedule>("data/increment.check.t2.k16.schedule");
 
@@ -117,7 +117,7 @@ TEST_F(ScheduleTest, parse_check)
     schedule->heap_updates);
 }
 
-TEST_F(ScheduleTest, parse_cas)
+TEST_F(Schedule_Test, parse_cas)
 {
   schedule_path = "data/increment.cas.t2.k16.schedule";
 
@@ -211,7 +211,7 @@ TEST_F(ScheduleTest, parse_cas)
     schedule->heap_updates);
 }
 
-TEST_F(ScheduleTest, parse_empty_line)
+TEST_F(Schedule_Test, parse_empty_line)
 {
   istringstream inbuf(
     program_path + "\n"
@@ -226,7 +226,7 @@ TEST_F(ScheduleTest, parse_empty_line)
   ASSERT_EQ(program_path, schedule->programs->at(0)->path);
 }
 
-TEST_F(ScheduleTest, parse_file_not_found)
+TEST_F(Schedule_Test, parse_file_not_found)
 {
   try
     {
@@ -239,7 +239,7 @@ TEST_F(ScheduleTest, parse_file_not_found)
     }
 }
 
-TEST_F(ScheduleTest, parse_no_program)
+TEST_F(Schedule_Test, parse_no_program)
 {
   istringstream inbuf(
     ".\n"
@@ -257,7 +257,7 @@ TEST_F(ScheduleTest, parse_no_program)
     }
 }
 
-TEST_F(ScheduleTest, parse_program_not_found)
+TEST_F(Schedule_Test, parse_program_not_found)
 {
   istringstream inbuf(
     dummy_path + "\n"
@@ -276,7 +276,7 @@ TEST_F(ScheduleTest, parse_program_not_found)
     }
 }
 
-TEST_F(ScheduleTest, parse_missing_separator)
+TEST_F(Schedule_Test, parse_missing_separator)
 {
   istringstream inbuf(
     program_path + "\n" +
@@ -295,7 +295,7 @@ TEST_F(ScheduleTest, parse_missing_separator)
     }
 }
 
-TEST_F(ScheduleTest, parse_missing_trace)
+TEST_F(Schedule_Test, parse_missing_trace)
 {
   istringstream inbuf(
     program_path + "\n"
@@ -312,7 +312,7 @@ TEST_F(ScheduleTest, parse_missing_trace)
     }
 }
 
-TEST_F(ScheduleTest, parse_unknown_thread_id)
+TEST_F(Schedule_Test, parse_unknown_thread_id)
 {
   istringstream inbuf(
     program_path + "\n"
@@ -330,7 +330,7 @@ TEST_F(ScheduleTest, parse_unknown_thread_id)
     }
 }
 
-TEST_F(ScheduleTest, parse_illegal_thread_id)
+TEST_F(Schedule_Test, parse_illegal_thread_id)
 {
   istringstream inbuf(
     program_path + "\n"
@@ -348,7 +348,7 @@ TEST_F(ScheduleTest, parse_illegal_thread_id)
     }
 }
 
-TEST_F(ScheduleTest, parse_illegal_pc)
+TEST_F(Schedule_Test, parse_illegal_pc)
 {
   istringstream inbuf(
     program_path + "\n"
@@ -366,7 +366,7 @@ TEST_F(ScheduleTest, parse_illegal_pc)
     }
 }
 
-TEST_F(ScheduleTest, parse_unknown_label)
+TEST_F(Schedule_Test, parse_unknown_label)
 {
   istringstream inbuf(
     program_path + "\n"
@@ -384,7 +384,7 @@ TEST_F(ScheduleTest, parse_unknown_label)
     }
 }
 
-TEST_F(ScheduleTest, parse_unknown_instruction)
+TEST_F(Schedule_Test, parse_unknown_instruction)
 {
   istringstream inbuf(
     program_path + "\n"
@@ -402,7 +402,7 @@ TEST_F(ScheduleTest, parse_unknown_instruction)
     }
 }
 
-TEST_F(ScheduleTest, parse_illegal_argument_label_not_supported)
+TEST_F(Schedule_Test, parse_illegal_argument_label_not_supported)
 {
   istringstream inbuf(
     program_path + "\n"
@@ -422,7 +422,7 @@ TEST_F(ScheduleTest, parse_illegal_argument_label_not_supported)
     }
 }
 
-TEST_F(ScheduleTest, parse_illegal_argument_unknown_label)
+TEST_F(Schedule_Test, parse_illegal_argument_unknown_label)
 {
   istringstream inbuf(
     program_path + "\n"
@@ -440,7 +440,7 @@ TEST_F(ScheduleTest, parse_illegal_argument_unknown_label)
     }
 }
 
-TEST_F(ScheduleTest, parse_illegal_accu)
+TEST_F(Schedule_Test, parse_illegal_accu)
 {
   istringstream inbuf(
     program_path + "\n"
@@ -460,7 +460,7 @@ TEST_F(ScheduleTest, parse_illegal_accu)
     }
 }
 
-TEST_F(ScheduleTest, parse_illegal_mem)
+TEST_F(Schedule_Test, parse_illegal_mem)
 {
   istringstream inbuf(
     program_path + "\n"
@@ -480,7 +480,7 @@ TEST_F(ScheduleTest, parse_illegal_mem)
     }
 }
 
-TEST_F(ScheduleTest, parse_illegal_store_buffer_address)
+TEST_F(Schedule_Test, parse_illegal_store_buffer_address)
 {
   istringstream inbuf(
     program_path + "\n"
@@ -500,7 +500,7 @@ TEST_F(ScheduleTest, parse_illegal_store_buffer_address)
     }
 }
 
-TEST_F(ScheduleTest, parse_illegal_store_buffer_value)
+TEST_F(Schedule_Test, parse_illegal_store_buffer_value)
 {
   istringstream inbuf(
     program_path + "\n"
@@ -520,7 +520,7 @@ TEST_F(ScheduleTest, parse_illegal_store_buffer_value)
     }
 }
 
-TEST_F(ScheduleTest, parse_illegal_store_buffer_full)
+TEST_F(Schedule_Test, parse_illegal_store_buffer_full)
 {
   istringstream inbuf(
     program_path + "\n"
@@ -540,7 +540,7 @@ TEST_F(ScheduleTest, parse_illegal_store_buffer_full)
     }
 }
 
-TEST_F(ScheduleTest, parse_illegal_heap)
+TEST_F(Schedule_Test, parse_illegal_heap)
 {
   istringstream inbuf(
     program_path + "\n"
@@ -610,7 +610,7 @@ TEST_F(ScheduleTest, parse_illegal_heap)
     }
 }
 
-TEST_F(ScheduleTest, parse_missing_pc)
+TEST_F(Schedule_Test, parse_missing_pc)
 {
   istringstream inbuf(
     program_path + "\n"
@@ -628,7 +628,7 @@ TEST_F(ScheduleTest, parse_missing_pc)
     }
 }
 
-TEST_F(ScheduleTest, parse_missing_instruction_symbol)
+TEST_F(Schedule_Test, parse_missing_instruction_symbol)
 {
   istringstream inbuf(
     program_path + "\n"
@@ -646,7 +646,7 @@ TEST_F(ScheduleTest, parse_missing_instruction_symbol)
     }
 }
 
-TEST_F(ScheduleTest, parse_missing_instruction_argument)
+TEST_F(Schedule_Test, parse_missing_instruction_argument)
 {
   istringstream inbuf(
     program_path + "\n"
@@ -664,7 +664,7 @@ TEST_F(ScheduleTest, parse_missing_instruction_argument)
     }
 }
 
-TEST_F(ScheduleTest, parse_missing_accu)
+TEST_F(Schedule_Test, parse_missing_accu)
 {
   istringstream inbuf(
     program_path + "\n"
@@ -684,7 +684,7 @@ TEST_F(ScheduleTest, parse_missing_accu)
     }
 }
 
-TEST_F(ScheduleTest, parse_missing_mem)
+TEST_F(Schedule_Test, parse_missing_mem)
 {
   istringstream inbuf(
     program_path + "\n"
@@ -702,7 +702,7 @@ TEST_F(ScheduleTest, parse_missing_mem)
     }
 }
 
-TEST_F(ScheduleTest, parse_missing_store_buffer_address)
+TEST_F(Schedule_Test, parse_missing_store_buffer_address)
 {
   istringstream inbuf(
     program_path + "\n"
@@ -720,7 +720,7 @@ TEST_F(ScheduleTest, parse_missing_store_buffer_address)
     }
 }
 
-TEST_F(ScheduleTest, parse_missing_store_buffer_value)
+TEST_F(Schedule_Test, parse_missing_store_buffer_value)
 {
   istringstream inbuf(
     program_path + "\n"
@@ -738,7 +738,7 @@ TEST_F(ScheduleTest, parse_missing_store_buffer_value)
     }
 }
 
-TEST_F(ScheduleTest, parse_missing_store_buffer_full)
+TEST_F(Schedule_Test, parse_missing_store_buffer_full)
 {
   istringstream inbuf(
     program_path + "\n"
@@ -756,7 +756,7 @@ TEST_F(ScheduleTest, parse_missing_store_buffer_full)
     }
 }
 
-TEST_F(ScheduleTest, parse_missing_heap)
+TEST_F(Schedule_Test, parse_missing_heap)
 {
   istringstream inbuf(
     program_path + "\n"
@@ -797,7 +797,7 @@ const vector<Insert_Data> insert_data {
 };
 
 /* Schedule::insert_thread ****************************************************/
-TEST_F(ScheduleTest, insert_thread)
+TEST_F(Schedule_Test, insert_thread)
 {
   create_dummy_schedule(2);
 
@@ -833,7 +833,7 @@ const vector<Schedule::Updates<word_t>> insert_expected {
   {{2, 0}, {6, 1}, {10, 0}, {14, 1}}
 };
 
-TEST_F(ScheduleTest, insert_pc)
+TEST_F(Schedule_Test, insert_pc)
 {
   create_dummy_schedule(2);
 
@@ -845,7 +845,7 @@ TEST_F(ScheduleTest, insert_pc)
 }
 
 /* Schedule::insert_accu ******************************************************/
-TEST_F(ScheduleTest, insert_accu)
+TEST_F(Schedule_Test, insert_accu)
 {
   create_dummy_schedule(2);
 
@@ -857,7 +857,7 @@ TEST_F(ScheduleTest, insert_accu)
 }
 
 /* Schedule::insert_mem *******************************************************/
-TEST_F(ScheduleTest, insert_mem)
+TEST_F(Schedule_Test, insert_mem)
 {
   create_dummy_schedule(2);
 
@@ -869,7 +869,7 @@ TEST_F(ScheduleTest, insert_mem)
 }
 
 /* Schedule::insert_sb_adr ****************************************************/
-TEST_F(ScheduleTest, insert_sb_adr)
+TEST_F(Schedule_Test, insert_sb_adr)
 {
   create_dummy_schedule(2);
 
@@ -881,7 +881,7 @@ TEST_F(ScheduleTest, insert_sb_adr)
 }
 
 /* Schedule::insert_sb_val ****************************************************/
-TEST_F(ScheduleTest, insert_sb_val)
+TEST_F(Schedule_Test, insert_sb_val)
 {
   create_dummy_schedule(2);
 
@@ -893,7 +893,7 @@ TEST_F(ScheduleTest, insert_sb_val)
 }
 
 /* Schedule::insert_sb_full ***************************************************/
-TEST_F(ScheduleTest, insert_sb_full)
+TEST_F(Schedule_Test, insert_sb_full)
 {
   create_dummy_schedule(2);
 
@@ -910,7 +910,7 @@ TEST_F(ScheduleTest, insert_sb_full)
 }
 
 /* Schedule::insert_heap ******************************************************/
-TEST_F(ScheduleTest, insert_heap)
+TEST_F(Schedule_Test, insert_heap)
 {
   create_dummy_schedule(2);
 
@@ -927,7 +927,7 @@ TEST_F(ScheduleTest, insert_heap)
 }
 
 /* Schedule::print ************************************************************/
-TEST_F(ScheduleTest, print)
+TEST_F(Schedule_Test, print)
 {
   schedule = create_from_file<Schedule>(schedule_path);
 
@@ -939,7 +939,7 @@ TEST_F(ScheduleTest, print)
   ASSERT_EQ(expected, schedule->print());
 }
 
-TEST_F(ScheduleTest, print_indirect_addressing)
+TEST_F(Schedule_Test, print_indirect_addressing)
 {
   schedule_path = "data/indirect.addressing.schedule";
 
@@ -954,7 +954,7 @@ TEST_F(ScheduleTest, print_indirect_addressing)
 }
 
 /* Schedule::iterator *********************************************************/
-TEST_F(ScheduleTest, iterator_check)
+TEST_F(Schedule_Test, iterator_check)
 {
   schedule = create_from_file<Schedule>("data/increment.check.t2.k16.schedule");
 
@@ -1002,7 +1002,7 @@ TEST_F(ScheduleTest, iterator_check)
   ASSERT_EQ(++it, end);
 }
 
-TEST_F(ScheduleTest, iterator_cas)
+TEST_F(Schedule_Test, iterator_cas)
 {
   schedule = create_from_file<Schedule>(schedule_path);
 
@@ -1047,7 +1047,7 @@ TEST_F(ScheduleTest, iterator_cas)
 
 /* operator == ****************************************************************/
 /* operator != ****************************************************************/
-TEST_F(ScheduleTest, operator_equals)
+TEST_F(Schedule_Test, operator_equals)
 {
   Program_list_ptr p1 = make_shared<Program_list>();
   Program_list_ptr p2 = make_shared<Program_list>();

@@ -7,7 +7,7 @@
 
 using namespace std;
 
-struct BoolectorTest : public ::testing::Test
+struct Boolector_Test : public ::testing::Test
 {
   string            constraints;
   Boolector         boolector;
@@ -16,7 +16,7 @@ struct BoolectorTest : public ::testing::Test
   Schedule_ptr      schedule;
 };
 
-TEST_F(BoolectorTest, sat)
+TEST_F(Boolector_Test, sat)
 {
   string formula = "(assert true)(check-sat)";
 
@@ -25,7 +25,7 @@ TEST_F(BoolectorTest, sat)
   ASSERT_EQ("sat\n", boolector.std_out.str());
 }
 
-TEST_F(BoolectorTest, unsat)
+TEST_F(Boolector_Test, unsat)
 {
   string formula = "(assert false)(check-sat)";
 
@@ -34,7 +34,7 @@ TEST_F(BoolectorTest, unsat)
   ASSERT_EQ("unsat\n", boolector.std_out.str());
 }
 
-TEST_F(BoolectorTest, solve_check)
+TEST_F(Boolector_Test, solve_check)
 {
   /* concurrent increment using CHECK */
   string increment_0 = "data/increment.check.thread.0.asm";
@@ -45,7 +45,7 @@ TEST_F(BoolectorTest, solve_check)
   programs->push_back(create_from_file<Program>(increment_0));
   programs->push_back(create_from_file<Program>(increment_n));
 
-  encoder = make_shared<SMTLibEncoderFunctional>(programs, 16);
+  encoder = make_unique<SMTLib_Encoder_Functional>(programs, 16);
 
   schedule = boolector.solve(*encoder, constraints);
 
@@ -146,7 +146,7 @@ TEST_F(BoolectorTest, solve_check)
   ASSERT_EQ(*simulated, *schedule);
 }
 
-TEST_F(BoolectorTest, DISABLED_solve_cas)
+TEST_F(Boolector_Test, DISABLED_solve_cas)
 {
   /* concurrent increment using CAS */
   string increment = "data/increment.cas.asm";
@@ -156,7 +156,7 @@ TEST_F(BoolectorTest, DISABLED_solve_cas)
   programs->push_back(create_from_file<Program>(increment));
   programs->push_back(create_from_file<Program>(increment));
 
-  encoder = make_shared<SMTLibEncoderFunctional>(programs, 16);
+  encoder = make_unique<SMTLib_Encoder_Functional>(programs, 16);
 
   schedule = boolector.solve(*encoder, constraints);
 
@@ -184,13 +184,13 @@ TEST_F(BoolectorTest, DISABLED_solve_cas)
     schedule->print());
 }
 
-TEST_F(BoolectorTest, encode_deadlock)
+TEST_F(Boolector_Test, encode_deadlock)
 {
   /* deadlock after 3 steps -> unsat */
   programs->push_back(create_from_file<Program>("data/deadlock.thread.0.asm"));
   programs->push_back(create_from_file<Program>("data/deadlock.thread.1.asm"));
 
-  encoder = make_shared<SMTLibEncoderFunctional>(programs, 3);
+  encoder = make_unique<SMTLib_Encoder_Functional>(programs, 3);
 
   string formula = encoder->str();
 

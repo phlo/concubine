@@ -6,7 +6,7 @@
 
 using namespace std;
 
-struct ThreadTest : public ::testing::Test
+struct Thread_Test : public ::testing::Test
 {
   Program   program;
   Simulator simulator;
@@ -14,7 +14,7 @@ struct ThreadTest : public ::testing::Test
 };
 
 /* Thread::load ***************************************************************/
-TEST_F(ThreadTest, load)
+TEST_F(Thread_Test, load)
 {
   /* direct */
   simulator.heap[0] = 1;
@@ -39,7 +39,7 @@ TEST_F(ThreadTest, load)
 }
 
 /* Thread::store **************************************************************/
-TEST_F(ThreadTest, store)
+TEST_F(Thread_Test, store)
 {
   /* store direct */
   ASSERT_EQ(0, thread.buffer.address);
@@ -77,7 +77,7 @@ TEST_F(ThreadTest, store)
   ASSERT_EQ(1, simulator.heap[1]);
 }
 
-TEST_F(ThreadTest, store_atomic)
+TEST_F(Thread_Test, store_atomic)
 {
   /* store direct */
   ASSERT_EQ(0, thread.buffer.address);
@@ -100,7 +100,7 @@ TEST_F(ThreadTest, store_atomic)
 }
 
 /* Thread::flush **************************************************************/
-TEST_F(ThreadTest, flush)
+TEST_F(Thread_Test, flush)
 {
   thread.buffer.address = 0;
   thread.buffer.value = 1;
@@ -115,7 +115,7 @@ TEST_F(ThreadTest, flush)
 }
 
 /* Thread::execute ************************************************************/
-TEST_F(ThreadTest, execute)
+TEST_F(Thread_Test, execute)
 {
   /* success */
   ASSERT_EQ(0, thread.pc);

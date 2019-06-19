@@ -2,7 +2,7 @@
 
 using namespace std;
 
-using E = SMTLibEncoderRelational;
+using E = SMTLib_Encoder_Relational;
 
 struct SMTLib_Encoder_Relational_Test : Test::SMTLib_Encoder<E>
 {
@@ -19,13 +19,13 @@ struct SMTLib_Encoder_Relational_Test : Test::SMTLib_Encoder<E>
     }
 };
 
-/* SMTLibEncoderRelational::imply *********************************************/
+/* SMTLib_Encoder_Relational::imply *******************************************/
 TEST_F(SMTLib_Encoder_Relational_Test, imply)
 {
   ASSERT_EQ("(assert (=> foo bar))\n", encoder->imply("foo", "bar"));
 }
 
-/* SMTLibEncoderRelational::imply_thread_executed *****************************/
+/* SMTLib_Encoder_Relational::imply_thread_executed ***************************/
 TEST_F(SMTLib_Encoder_Relational_Test, imply_thread_executed)
 {
   programs.push_back(
@@ -88,7 +88,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, imply_thread_executed)
     encoder->str());
 }
 
-/* SMTLibEncoderRelational::imply_thread_not_executed *************************/
+/* SMTLib_Encoder_Relational::imply_thread_not_executed ***********************/
 TEST_F(SMTLib_Encoder_Relational_Test, imply_thread_not_executed)
 {
   programs.push_back(
@@ -118,7 +118,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, imply_thread_not_executed)
     encoder->str());
 }
 
-/* SMTLibEncoderRelational::imply_thread_flushed ******************************/
+/* SMTLib_Encoder_Relational::imply_thread_flushed ****************************/
 TEST_F(SMTLib_Encoder_Relational_Test, imply_thread_flushed)
 {
   add_instruction_set(1);
@@ -136,7 +136,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, imply_thread_flushed)
     encoder->str());
 }
 
-/* SMTLibEncoderRelational::imply_machine_exited ******************************/
+/* SMTLib_Encoder_Relational::imply_machine_exited ****************************/
 TEST_F(SMTLib_Encoder_Relational_Test, imply_machine_exited)
 {
   add_instruction_set(1);
@@ -153,7 +153,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, imply_machine_exited)
     encoder->str());
 }
 
-/* SMTLibEncoderRelational::define_states *************************************/
+/* SMTLib_Encoder_Relational::define_states ***********************************/
 TEST_F(SMTLib_Encoder_Relational_Test, define_states)
 {
   programs.push_back(create_program("JMP 0\n"));
@@ -290,7 +290,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, define_states_check_exit)
     encoder->str());
 }
 
-/* SMTLibEncoderRelational::encode ********************************************/
+/* SMTLib_Encoder_Relational::encode ******************************************/
 TEST_F(SMTLib_Encoder_Relational_Test, encode_check)
 {
   /* concurrent increment using CHECK */

@@ -9,12 +9,12 @@
 
 using namespace std;
 
-struct CVC4Test : public ::testing::Test
+struct CVC4_Test : public ::testing::Test
 {
   CVC4 cvc4;
 };
 
-TEST_F(CVC4Test, sat)
+TEST_F(CVC4_Test, sat)
 {
   string formula = "(set-logic QF_AUFBV)(assert true)(check-sat)";
 
@@ -30,7 +30,7 @@ TEST_F(CVC4Test, sat)
   ASSERT_EQ("sat\n", cvc4.std_out.str());
 }
 
-TEST_F(CVC4Test, unsat)
+TEST_F(CVC4_Test, unsat)
 {
   string formula = "(set-logic QF_AUFBV)(assert false)(check-sat)";
 
@@ -47,7 +47,7 @@ TEST_F(CVC4Test, unsat)
 }
 
 // TODO: remove
-TEST_F(CVC4Test, print_model)
+TEST_F(CVC4_Test, print_model)
 {
   /* concurrent increment using CHECK */
   string constraints;
@@ -59,7 +59,7 @@ TEST_F(CVC4Test, print_model)
   programs->push_back(create_from_file<Program>(increment_0));
   programs->push_back(create_from_file<Program>(increment_n));
 
-  Encoder_ptr encoder = make_shared<SMTLibEncoderFunctional>(programs, 12);
+  Encoder_ptr encoder = make_unique<SMTLib_Encoder_Functional>(programs, 12);
 
   string formula = cvc4.build_formula(*encoder, constraints);
 

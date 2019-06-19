@@ -6,7 +6,7 @@
 
 using namespace std;
 
-struct SimulatorTest : public ::testing::Test
+struct Simulator_Test : public ::testing::Test
 {
   Program_ptr   program = make_shared<Program>();
   Schedule_ptr  schedule;
@@ -19,7 +19,7 @@ struct SimulatorTest : public ::testing::Test
 };
 
 /* create_thread **************************************************************/
-TEST_F(SimulatorTest, create_thread)
+TEST_F(Simulator_Test, create_thread)
 {
   simulator = make_shared<Simulator>();
 
@@ -54,7 +54,7 @@ TEST_F(SimulatorTest, create_thread)
 }
 
 /* run_simple *****************************************************************/
-TEST_F(SimulatorTest, run_simple)
+TEST_F(Simulator_Test, run_simple)
 {
   program->push_back(Instruction::Set::create("ADDI", 1));
 
@@ -146,7 +146,7 @@ TEST_F(SimulatorTest, run_simple)
 }
 
 /* run_add_check_exit *********************************************************/
-TEST_F(SimulatorTest, run_add_check_exit)
+TEST_F(Simulator_Test, run_add_check_exit)
 {
   program->push_back(Instruction::Set::create("ADDI", 1));
   program->push_back(Instruction::Set::create("CHECK", 1));
@@ -268,7 +268,7 @@ TEST_F(SimulatorTest, run_add_check_exit)
 }
 
 /* run_race_condition *********************************************************/
-TEST_F(SimulatorTest, run_race_condition)
+TEST_F(Simulator_Test, run_race_condition)
 {
   program->push_back(Instruction::Set::create("LOAD", 1));
   program->push_back(Instruction::Set::create("ADDI", 1));
@@ -585,7 +585,7 @@ TEST_F(SimulatorTest, run_race_condition)
 }
 
 /* run_zero_bound *************************************************************/
-TEST_F(SimulatorTest, run_zero_bound)
+TEST_F(Simulator_Test, run_zero_bound)
 {
   program->push_back(Instruction::Set::create("JMP", 0));
 
@@ -664,7 +664,7 @@ TEST_F(SimulatorTest, run_zero_bound)
 }
 
 /* simulate_increment_check ***************************************************/
-TEST_F(SimulatorTest, simulate_increment_check)
+TEST_F(Simulator_Test, simulate_increment_check)
 {
   ifstream schedule_file("data/increment.check.t2.k16.schedule");
   string expected((istreambuf_iterator<char>(schedule_file)),
@@ -684,7 +684,7 @@ TEST_F(SimulatorTest, simulate_increment_check)
 }
 
 /* simulate_increment_cas *****************************************************/
-TEST_F(SimulatorTest, simulate_increment_cas)
+TEST_F(Simulator_Test, simulate_increment_cas)
 {
   ifstream schedule_file("data/increment.cas.t2.k16.schedule");
   string expected((istreambuf_iterator<char>(schedule_file)),
@@ -704,7 +704,7 @@ TEST_F(SimulatorTest, simulate_increment_cas)
 }
 
 /* replay_increment_check *****************************************************/
-TEST_F(SimulatorTest, replay_increment_check)
+TEST_F(Simulator_Test, replay_increment_check)
 {
   string schedule_file = "data/increment.check.t2.k16.schedule";
 
@@ -724,7 +724,7 @@ TEST_F(SimulatorTest, replay_increment_check)
 }
 
 /* replay_increment_cas *******************************************************/
-TEST_F(SimulatorTest, replay_increment_cas)
+TEST_F(Simulator_Test, replay_increment_cas)
 {
   string schedule_file = "data/increment.cas.t2.k16.schedule";
 

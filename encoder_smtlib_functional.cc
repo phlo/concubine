@@ -7,11 +7,11 @@
 
 using namespace std;
 
-SMTLibEncoderFunctional::SMTLibEncoderFunctional (
-                                                  const Program_list_ptr p,
-                                                  bound_t b,
-                                                  bool e
-                                                 ) : SMTLibEncoder(p, b)
+SMTLib_Encoder_Functional::SMTLib_Encoder_Functional (
+                                                      const Program_list_ptr p,
+                                                      bound_t b,
+                                                      bool e
+                                                     ) : SMTLib_Encoder(p, b)
 {
   if (e) encode();
 }
@@ -37,7 +37,7 @@ SMTLibEncoderFunctional::SMTLibEncoderFunctional (
     formula << eol; \
   } while (0)
 
-void SMTLibEncoderFunctional::define_accu ()
+void SMTLib_Encoder_Functional::define_accu ()
 {
   if (verbose)
     formula << accu_comment << eol;
@@ -45,7 +45,7 @@ void SMTLibEncoderFunctional::define_accu ()
   DEFINE_STATE(Update::accu, Types::accu, accu_var);
 }
 
-void SMTLibEncoderFunctional::define_mem ()
+void SMTLib_Encoder_Functional::define_mem ()
 {
   if (verbose)
     formula << mem_comment << eol;
@@ -53,7 +53,7 @@ void SMTLibEncoderFunctional::define_mem ()
   DEFINE_STATE(Update::mem, Types::mem, mem_var);
 }
 
-void SMTLibEncoderFunctional::define_sb_adr ()
+void SMTLib_Encoder_Functional::define_sb_adr ()
 {
   if (verbose)
     formula << sb_adr_comment << eol;
@@ -61,7 +61,7 @@ void SMTLibEncoderFunctional::define_sb_adr ()
   DEFINE_STATE(Update::sb_adr, Types::write, sb_adr_var);
 }
 
-void SMTLibEncoderFunctional::define_sb_val ()
+void SMTLib_Encoder_Functional::define_sb_val ()
 {
   if (verbose)
     formula << sb_val_comment << eol;
@@ -69,7 +69,7 @@ void SMTLibEncoderFunctional::define_sb_val ()
   DEFINE_STATE(Update::sb_val, Types::write, sb_val_var);
 }
 
-void SMTLibEncoderFunctional::define_sb_full ()
+void SMTLib_Encoder_Functional::define_sb_full ()
 {
   if (verbose)
     formula << sb_full_comment << eol;
@@ -96,7 +96,7 @@ void SMTLibEncoderFunctional::define_sb_full ()
   formula << eol;
 }
 
-void SMTLibEncoderFunctional::define_stmt ()
+void SMTLib_Encoder_Functional::define_stmt ()
 {
   if (verbose)
     formula << stmt_comment << eol;
@@ -144,7 +144,7 @@ void SMTLibEncoderFunctional::define_stmt ()
   });
 }
 
-void SMTLibEncoderFunctional::define_block ()
+void SMTLib_Encoder_Functional::define_block ()
 {
   if (check_pcs.empty())
     return;
@@ -177,7 +177,7 @@ void SMTLibEncoderFunctional::define_block ()
   formula << eol;
 }
 
-void SMTLibEncoderFunctional::define_heap ()
+void SMTLib_Encoder_Functional::define_heap ()
 {
   if (verbose)
     formula << heap_comment << eol;
@@ -217,7 +217,7 @@ void SMTLibEncoderFunctional::define_heap ()
   formula << eol;
 }
 
-void SMTLibEncoderFunctional::define_exit ()
+void SMTLib_Encoder_Functional::define_exit ()
 {
   if (exit_pcs.empty())
     return;
@@ -236,7 +236,7 @@ void SMTLibEncoderFunctional::define_exit ()
 }
 
 // TODO
-void SMTLibEncoderFunctional::define_exit_code ()
+void SMTLib_Encoder_Functional::define_exit_code ()
 {
   if (verbose)
     formula << smtlib::comment_section("exit code");
@@ -257,7 +257,7 @@ void SMTLibEncoderFunctional::define_exit_code ()
   formula << assign_var(exit_code_sym, ite) << eol << eol;
 }
 
-void SMTLibEncoderFunctional::define_states ()
+void SMTLib_Encoder_Functional::define_states ()
 {
   assert(step);
 
@@ -276,9 +276,9 @@ void SMTLibEncoderFunctional::define_states ()
   define_exit();
 }
 
-void SMTLibEncoderFunctional::encode ()
+void SMTLib_Encoder_Functional::encode ()
 {
-  SMTLibEncoder::encode();
+  SMTLib_Encoder::encode();
 
   define_exit_code();
 }

@@ -3,7 +3,7 @@
 using namespace std;
 
 using E = Encoder;
-using Impl = SMTLibEncoderFunctional;
+using Impl = SMTLib_Encoder_Functional;
 
 using Encoder_Test = Test::Encoder<E, Impl>;
 

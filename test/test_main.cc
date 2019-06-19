@@ -9,7 +9,7 @@ using namespace std;
 /*******************************************************************************
  * Test Case Fixture
 *******************************************************************************/
-struct MainTest : public ::testing::Test
+struct Main_Test : public ::testing::Test
 {
   Shell shell;
 
@@ -18,7 +18,7 @@ struct MainTest : public ::testing::Test
 };
 
 /* illegal_commands ***********************************************************/
-TEST_F(MainTest, illegal_commands)
+TEST_F(Main_Test, illegal_commands)
 {
   string cmd = executable;
 
@@ -42,7 +42,7 @@ TEST_F(MainTest, illegal_commands)
 }
 
 /* simulate_increment_check ***************************************************/
-TEST_F(MainTest, simulate_increment_check)
+TEST_F(Main_Test, simulate_increment_check)
 {
   /* read expected schedule from file */
   ifstream schedule_file("data/increment.check.t2.k16.schedule");
@@ -62,7 +62,7 @@ TEST_F(MainTest, simulate_increment_check)
 }
 
 /* simulate_increment_cas *****************************************************/
-TEST_F(MainTest, simulate_increment_cas)
+TEST_F(Main_Test, simulate_increment_cas)
 {
   /* read expected schedule from file */
   ifstream schedule_file("data/increment.cas.t2.k16.schedule");
@@ -81,7 +81,7 @@ TEST_F(MainTest, simulate_increment_cas)
 }
 
 /* simulate_missing_args ******************************************************/
-TEST_F(MainTest, simulate_missing_args)
+TEST_F(Main_Test, simulate_missing_args)
 {
   string args = " simulate";
 
@@ -113,7 +113,7 @@ TEST_F(MainTest, simulate_missing_args)
 }
 
 /* simulate_file_not_found ****************************************************/
-TEST_F(MainTest, simulate_file_not_found)
+TEST_F(Main_Test, simulate_file_not_found)
 {
   string args = " simulate ";
 
@@ -130,7 +130,7 @@ TEST_F(MainTest, simulate_file_not_found)
 }
 
 /* simulate_illegal_seed ******************************************************/
-TEST_F(MainTest, simulate_illegal_seed)
+TEST_F(Main_Test, simulate_illegal_seed)
 {
   string args = " simulate -s WRONG ";
 
@@ -145,7 +145,7 @@ TEST_F(MainTest, simulate_illegal_seed)
 }
 
 /* simulate_illegal_bound *****************************************************/
-TEST_F(MainTest, simulate_illegal_bound)
+TEST_F(Main_Test, simulate_illegal_bound)
 {
   string args = " simulate -k WRONG ";
 
@@ -160,7 +160,7 @@ TEST_F(MainTest, simulate_illegal_bound)
 }
 
 /* replay_increment_check *****************************************************/
-TEST_F(MainTest, replay_increment_check)
+TEST_F(Main_Test, replay_increment_check)
 {
   string schedule_file = "data/increment.check.t2.k16.schedule";
 
@@ -180,7 +180,7 @@ TEST_F(MainTest, replay_increment_check)
 }
 
 /* replay_increment_cas *******************************************************/
-TEST_F(MainTest, replay_increment_cas)
+TEST_F(Main_Test, replay_increment_cas)
 {
   string schedule_file = "data/increment.cas.t2.k16.schedule";
 
@@ -200,7 +200,7 @@ TEST_F(MainTest, replay_increment_cas)
 }
 
 /* replay_missing_args ********************************************************/
-TEST_F(MainTest, replay_missing_args)
+TEST_F(Main_Test, replay_missing_args)
 {
   string args = " replay";
 
@@ -225,7 +225,7 @@ TEST_F(MainTest, replay_missing_args)
 }
 
 /* replay_file_not_found ******************************************************/
-TEST_F(MainTest, replay_file_not_found)
+TEST_F(Main_Test, replay_file_not_found)
 {
   string args = " replay ";
 
@@ -242,7 +242,7 @@ TEST_F(MainTest, replay_file_not_found)
 }
 
 /* replay_illegal_bound *******************************************************/
-TEST_F(MainTest, replay_illegal_bound)
+TEST_F(Main_Test, replay_illegal_bound)
 {
   string args = " replay -k WRONG ";
 
@@ -257,7 +257,7 @@ TEST_F(MainTest, replay_illegal_bound)
 }
 
 /* solve_pretend_functional_cas ***********************************************/
-TEST_F(MainTest, solve_pretend_functional_cas)
+TEST_F(Main_Test, solve_pretend_functional_cas)
 {
   string args = " solve -v -p 12 ";
   string program_file = "data/increment.cas.asm";
@@ -276,7 +276,7 @@ TEST_F(MainTest, solve_pretend_functional_cas)
 }
 
 /* solve_cas ******************************************************************/
-TEST_F(MainTest, solve_cas)
+TEST_F(Main_Test, solve_cas)
 {
   string args = " solve -v 8 ";
   string program = "data/increment.cas.asm";
@@ -292,7 +292,7 @@ TEST_F(MainTest, solve_cas)
 }
 
 /* solve_illegal_args *********************************************************/
-TEST_F(MainTest, solve_illegal_args)
+TEST_F(Main_Test, solve_illegal_args)
 {
   executable = executable + " solve ";
   string program = "data/increment.cas.asm";
@@ -386,7 +386,7 @@ TEST_F(MainTest, solve_illegal_args)
 }
 
 /* solve_file_not_found *******************************************************/
-TEST_F(MainTest, solve_file_not_found)
+TEST_F(Main_Test, solve_file_not_found)
 {
   string args = " solve 1 ";
   string cmd = executable + args;

@@ -6,106 +6,106 @@
 
 using namespace std;
 
-const string SMTLibEncoder::bv_sort = smtlib::bitvector(word_size);
+const string SMTLib_Encoder::bv_sort = smtlib::bitvector(word_size);
 
-const string SMTLibEncoder::accu_comment =
+const string SMTLib_Encoder::accu_comment =
   "; accu states - " + accu_sym + "_<step>_<thread>";
 
-const string SMTLibEncoder::mem_comment =
+const string SMTLib_Encoder::mem_comment =
   "; mem states - " + mem_sym + "_<step>_<thread>";
 
-const string SMTLibEncoder::sb_adr_comment =
+const string SMTLib_Encoder::sb_adr_comment =
   "; store buffer address states - " + sb_adr_sym + "_<step>_<thread>";
 
-const string SMTLibEncoder::sb_val_comment =
+const string SMTLib_Encoder::sb_val_comment =
   "; store buffer value states - " + sb_val_sym + "_<step>_<thread>";
 
-const string SMTLibEncoder::sb_full_comment =
+const string SMTLib_Encoder::sb_full_comment =
   "; store buffer full states - " + sb_full_sym + "_<step>_<thread>";
 
-const string SMTLibEncoder::stmt_comment =
+const string SMTLib_Encoder::stmt_comment =
   "; statement activation variables - " + stmt_sym + "_<step>_<thread>_<pc>";
 
-const string SMTLibEncoder::block_comment =
+const string SMTLib_Encoder::block_comment =
   "; blocking variables - " + block_sym + "_<step>_<id>_<thread>";
 
-const string SMTLibEncoder::heap_comment =
+const string SMTLib_Encoder::heap_comment =
   "; heap state - " + heap_sym + "_<step>";
 
-const string SMTLibEncoder::exit_comment =
+const string SMTLib_Encoder::exit_comment =
   "; exit flag - " + exit_sym + "_<step>";
 
-const string SMTLibEncoder::thread_comment =
+const string SMTLib_Encoder::thread_comment =
   "; thread activation variables - " + thread_sym + "_<step>_<thread>";
 
-const string SMTLibEncoder::flush_comment =
+const string SMTLib_Encoder::flush_comment =
   "; store buffer flush variables - " + flush_sym + "_<step>_<thread>";
 
-const string SMTLibEncoder::check_comment =
+const string SMTLib_Encoder::check_comment =
   "; checkpoint variables - " + check_sym + "_<step>_<id>";
 
-const string SMTLibEncoder::exec_comment =
+const string SMTLib_Encoder::exec_comment =
   "; statement execution variables - " + exec_sym + "_<step>_<thread>_<pc>";
 
-const string SMTLibEncoder::cas_comment =
+const string SMTLib_Encoder::cas_comment =
   "; CAS condition - " + cas_sym + "_<step>_<thread>";
 
-SMTLibEncoder::SMTLibEncoder (const Program_list_ptr p, bound_t b) :
+SMTLib_Encoder::SMTLib_Encoder (const Program_list_ptr p, bound_t b) :
   Encoder(p, b),
   step(0)
 {}
 
-string SMTLibEncoder::accu_var (const word_t k, const word_t t)
+string SMTLib_Encoder::accu_var (const word_t k, const word_t t)
 {
   return accu_sym + '_' + to_string(k) + '_' + to_string(t);
 }
 
-string SMTLibEncoder::accu_var () const
+string SMTLib_Encoder::accu_var () const
 {
   return accu_var(step, thread);
 }
 
-string SMTLibEncoder::mem_var (const word_t k, const word_t t)
+string SMTLib_Encoder::mem_var (const word_t k, const word_t t)
 {
   return mem_sym + '_' + to_string(k) + '_' + to_string(t);
 }
 
-string SMTLibEncoder::mem_var () const
+string SMTLib_Encoder::mem_var () const
 {
   return mem_var(step, thread);
 }
 
-string SMTLibEncoder::sb_adr_var (const word_t k, const word_t t)
+string SMTLib_Encoder::sb_adr_var (const word_t k, const word_t t)
 {
   return sb_adr_sym + '_' + to_string(k) + '_' + to_string(t);
 }
 
-string SMTLibEncoder::sb_adr_var () const
+string SMTLib_Encoder::sb_adr_var () const
 {
   return sb_adr_var(step, thread);
 }
 
-string SMTLibEncoder::sb_val_var (const word_t k, const word_t t)
+string SMTLib_Encoder::sb_val_var (const word_t k, const word_t t)
 {
   return sb_val_sym + '_' + to_string(k) + '_' + to_string(t);
 }
 
-string SMTLibEncoder::sb_val_var () const
+string SMTLib_Encoder::sb_val_var () const
 {
   return sb_val_var(step, thread);
 }
 
-string SMTLibEncoder::sb_full_var (const word_t k, const word_t t)
+string SMTLib_Encoder::sb_full_var (const word_t k, const word_t t)
 {
   return sb_full_sym + '_' + to_string(k) + '_' + to_string(t);
 }
 
-string SMTLibEncoder::sb_full_var () const
+string SMTLib_Encoder::sb_full_var () const
 {
   return sb_full_var(step, thread);
 }
 
-string SMTLibEncoder::stmt_var (const word_t k, const word_t t, const word_t p)
+string SMTLib_Encoder::stmt_var (const word_t k, const word_t t, const word_t p)
 {
   return
     stmt_sym + '_' +
@@ -114,12 +114,12 @@ string SMTLibEncoder::stmt_var (const word_t k, const word_t t, const word_t p)
     to_string(p);
 }
 
-string SMTLibEncoder::stmt_var () const
+string SMTLib_Encoder::stmt_var () const
 {
   return stmt_var(step, thread, pc);
 }
 
-string SMTLibEncoder::block_var (
+string SMTLib_Encoder::block_var (
                                  const word_t k,
                                  const word_t id,
                                  const word_t tid
@@ -132,52 +132,52 @@ string SMTLibEncoder::block_var (
     to_string(tid);
 }
 
-string SMTLibEncoder::heap_var (const word_t k)
+string SMTLib_Encoder::heap_var (const word_t k)
 {
   return heap_sym + '_' + to_string(k);
 }
 
-string SMTLibEncoder::heap_var () const
+string SMTLib_Encoder::heap_var () const
 {
   return heap_var(step);
 }
 
-string SMTLibEncoder::exit_var (const word_t k)
+string SMTLib_Encoder::exit_var (const word_t k)
 {
   return exit_sym + '_' + to_string(k);
 }
 
-string SMTLibEncoder::exit_var () const
+string SMTLib_Encoder::exit_var () const
 {
   return exit_var(step);
 }
 
-string SMTLibEncoder::thread_var (const word_t k, const word_t t)
+string SMTLib_Encoder::thread_var (const word_t k, const word_t t)
 {
   return thread_sym + '_' + to_string(k) + '_' + to_string(t);
 }
 
-string SMTLibEncoder::thread_var () const
+string SMTLib_Encoder::thread_var () const
 {
   return thread_var(step, thread);
 }
 
-string SMTLibEncoder::flush_var (const word_t k, const word_t t)
+string SMTLib_Encoder::flush_var (const word_t k, const word_t t)
 {
   return flush_sym + '_' + to_string(k) + '_' + to_string(t);
 }
 
-string SMTLibEncoder::flush_var () const
+string SMTLib_Encoder::flush_var () const
 {
   return flush_var(step, thread);
 }
 
-string SMTLibEncoder::check_var (const word_t k, const word_t id)
+string SMTLib_Encoder::check_var (const word_t k, const word_t id)
 {
   return check_sym + '_' + to_string(k) + '_' + to_string(id);
 }
 
-string SMTLibEncoder::exec_var (const word_t k, const word_t t, const word_t p)
+string SMTLib_Encoder::exec_var (const word_t k, const word_t t, const word_t p)
 {
   return
     exec_sym + '_' +
@@ -186,29 +186,29 @@ string SMTLibEncoder::exec_var (const word_t k, const word_t t, const word_t p)
     to_string(p);
 }
 
-string SMTLibEncoder::exec_var () const
+string SMTLib_Encoder::exec_var () const
 {
   return exec_var(step, thread, pc);
 }
 
 /* TODO: really needed?
-string SMTLibEncoder::cas_var (const word_t k, const word_t t)
+string SMTLib_Encoder::cas_var (const word_t k, const word_t t)
 {
   return cas_sym + '_' + to_string(k) + '_' + to_string(t);
 }
 
-string SMTLibEncoder::cas_var () const
+string SMTLib_Encoder::cas_var () const
 {
   return cas_var(step, thread);
 }
 */
 
-string SMTLibEncoder::assign_var (string var, string exp)
+string SMTLib_Encoder::assign_var (string var, string exp)
 {
   return smtlib::assertion(smtlib::equality({var, exp}));
 }
 
-string SMTLibEncoder::load (const word_t adr, const bool indirect)
+string SMTLib_Encoder::load (const word_t adr, const bool indirect)
 {
   /*
   (ite sb-full
@@ -287,7 +287,7 @@ string SMTLibEncoder::load (const word_t adr, const bool indirect)
   */
 }
 
-void SMTLibEncoder::declare_accu ()
+void SMTLib_Encoder::declare_accu ()
 {
   if (verbose)
     formula << accu_comment << eol;
@@ -299,7 +299,7 @@ void SMTLibEncoder::declare_accu ()
   formula << eol;
 }
 
-void SMTLibEncoder::declare_mem ()
+void SMTLib_Encoder::declare_mem ()
 {
   if (verbose)
     formula << mem_comment << eol;
@@ -311,7 +311,7 @@ void SMTLibEncoder::declare_mem ()
   formula << eol;
 }
 
-void SMTLibEncoder::declare_sb_adr ()
+void SMTLib_Encoder::declare_sb_adr ()
 {
   if (verbose)
     formula << sb_adr_comment << eol;
@@ -323,7 +323,7 @@ void SMTLibEncoder::declare_sb_adr ()
   formula << eol;
 }
 
-void SMTLibEncoder::declare_sb_val ()
+void SMTLib_Encoder::declare_sb_val ()
 {
   if (verbose)
     formula << sb_val_comment << eol;
@@ -335,7 +335,7 @@ void SMTLibEncoder::declare_sb_val ()
   formula << eol;
 }
 
-void SMTLibEncoder::declare_sb_full ()
+void SMTLib_Encoder::declare_sb_full ()
 {
   if (verbose)
     formula << sb_full_comment << eol;
@@ -347,7 +347,7 @@ void SMTLibEncoder::declare_sb_full ()
   formula << eol;
 }
 
-void SMTLibEncoder::declare_stmt ()
+void SMTLib_Encoder::declare_stmt ()
 {
   if (verbose)
     formula << stmt_comment << eol;
@@ -360,7 +360,7 @@ void SMTLibEncoder::declare_stmt ()
   });
 }
 
-void SMTLibEncoder::declare_block ()
+void SMTLib_Encoder::declare_block ()
 {
   if (check_pcs.empty())
     return;
@@ -377,7 +377,7 @@ void SMTLibEncoder::declare_block ()
   formula << eol;
 }
 
-void SMTLibEncoder::declare_heap ()
+void SMTLib_Encoder::declare_heap ()
 {
   if (verbose)
     formula << heap_comment << eol;
@@ -387,7 +387,7 @@ void SMTLibEncoder::declare_heap ()
     << eol << eol;
 }
 
-void SMTLibEncoder::declare_exit ()
+void SMTLib_Encoder::declare_exit ()
 {
   if (exit_pcs.empty())
     return;
@@ -398,7 +398,7 @@ void SMTLibEncoder::declare_exit ()
   formula << smtlib::declare_bool_var(exit_var()) << eol << eol;
 }
 
-void SMTLibEncoder::declare_exit_code ()
+void SMTLib_Encoder::declare_exit_code ()
 {
   if (verbose)
     formula << smtlib::comment("exit code") << eol;
@@ -406,7 +406,7 @@ void SMTLibEncoder::declare_exit_code ()
   formula << smtlib::declare_bv_var(exit_code_sym, word_size) << eol << eol;
 }
 
-void SMTLibEncoder::declare_states ()
+void SMTLib_Encoder::declare_states ()
 {
   if (verbose)
     formula << smtlib::comment_subsection("state variable declarations");
@@ -426,7 +426,7 @@ void SMTLibEncoder::declare_states ()
     declare_exit_code();
 }
 
-void SMTLibEncoder::declare_thread ()
+void SMTLib_Encoder::declare_thread ()
 {
   if (verbose)
     formula << thread_comment << eol;
@@ -438,7 +438,7 @@ void SMTLibEncoder::declare_thread ()
   formula << eol;
 }
 
-void SMTLibEncoder::declare_flush ()
+void SMTLib_Encoder::declare_flush ()
 {
   if (verbose)
     formula << flush_comment << eol;
@@ -450,7 +450,7 @@ void SMTLibEncoder::declare_flush ()
   formula << eol;
 }
 
-void SMTLibEncoder::declare_check ()
+void SMTLib_Encoder::declare_check ()
 {
   if (check_pcs.empty())
     return;
@@ -464,7 +464,7 @@ void SMTLibEncoder::declare_check ()
   formula << eol;
 }
 
-void SMTLibEncoder::declare_exec ()
+void SMTLib_Encoder::declare_exec ()
 {
   if (verbose)
     formula << exec_comment << eol;
@@ -478,7 +478,7 @@ void SMTLibEncoder::declare_exec ()
 }
 
 /* TODO: really needed?
-void SMTLibEncoder::declare_cas_vars ()
+void SMTLib_Encoder::declare_cas_vars ()
 {
   if (cas_threads.empty())
     return;
@@ -495,7 +495,7 @@ void SMTLibEncoder::declare_cas_vars ()
 }
 */
 
-void SMTLibEncoder::declare_transitions ()
+void SMTLib_Encoder::declare_transitions ()
 {
   if (verbose)
     formula << smtlib::comment_subsection("transition variable declarations");
@@ -514,7 +514,7 @@ void SMTLibEncoder::declare_transitions ()
     formula << eol; \
   } while (0)
 
-void SMTLibEncoder::init_accu ()
+void SMTLib_Encoder::init_accu ()
 {
   if (verbose)
     formula << accu_comment << eol;
@@ -522,7 +522,7 @@ void SMTLibEncoder::init_accu ()
   INIT_STATE(accu_var);
 }
 
-void SMTLibEncoder::init_mem ()
+void SMTLib_Encoder::init_mem ()
 {
   if (verbose)
     formula << mem_comment << eol;
@@ -530,7 +530,7 @@ void SMTLibEncoder::init_mem ()
   INIT_STATE(mem_var);
 }
 
-void SMTLibEncoder::init_sb_adr ()
+void SMTLib_Encoder::init_sb_adr ()
 {
   if (verbose)
     formula << sb_adr_comment << eol;
@@ -538,7 +538,7 @@ void SMTLibEncoder::init_sb_adr ()
   INIT_STATE(sb_adr_var);
 }
 
-void SMTLibEncoder::init_sb_val ()
+void SMTLib_Encoder::init_sb_val ()
 {
   if (verbose)
     formula << sb_val_comment << eol;
@@ -546,7 +546,7 @@ void SMTLibEncoder::init_sb_val ()
   INIT_STATE(sb_val_var);
 }
 
-void SMTLibEncoder::init_sb_full ()
+void SMTLib_Encoder::init_sb_full ()
 {
   if (verbose)
     formula << sb_full_comment << eol;
@@ -558,7 +558,7 @@ void SMTLibEncoder::init_sb_full ()
   formula << eol;
 }
 
-void SMTLibEncoder::init_stmt ()
+void SMTLib_Encoder::init_stmt ()
 {
   if (verbose)
     formula << stmt_comment << eol;
@@ -573,7 +573,7 @@ void SMTLibEncoder::init_stmt ()
   });
 }
 
-void SMTLibEncoder::init_block ()
+void SMTLib_Encoder::init_block ()
 {
   if (check_pcs.empty())
     return;
@@ -588,7 +588,7 @@ void SMTLibEncoder::init_block ()
   formula << eol;
 }
 
-void SMTLibEncoder::init_exit ()
+void SMTLib_Encoder::init_exit ()
 {
   if (exit_pcs.empty())
     return;
@@ -599,7 +599,7 @@ void SMTLibEncoder::init_exit ()
   formula << smtlib::assertion(smtlib::lnot(exit_var())) << eol << eol;
 }
 
-void SMTLibEncoder::init_states ()
+void SMTLib_Encoder::init_states ()
 {
   assert(!step);
 
@@ -616,7 +616,7 @@ void SMTLibEncoder::init_states ()
   init_exit();
 }
 
-void SMTLibEncoder::define_check ()
+void SMTLib_Encoder::define_check ()
 {
   if (check_pcs.empty())
     return;
@@ -651,7 +651,7 @@ void SMTLibEncoder::define_check ()
   formula << eol;
 }
 
-void SMTLibEncoder::define_exec ()
+void SMTLib_Encoder::define_exec ()
 {
   if (verbose)
     formula << exec_comment << eol;
@@ -666,7 +666,7 @@ void SMTLibEncoder::define_exec ()
   });
 }
 
-void SMTLibEncoder::define_transitions ()
+void SMTLib_Encoder::define_transitions ()
 {
   if (verbose)
     formula << smtlib::comment_subsection("transition variable definitions");
@@ -675,7 +675,7 @@ void SMTLibEncoder::define_transitions ()
   define_exec();
 }
 
-void SMTLibEncoder::define_store_buffer_constraints ()
+void SMTLib_Encoder::define_store_buffer_constraints ()
 {
   if (flush_pcs.empty())
     return;
@@ -720,7 +720,7 @@ void SMTLibEncoder::define_store_buffer_constraints ()
   formula << eol;
 }
 
-void SMTLibEncoder::define_checkpoint_contraints ()
+void SMTLib_Encoder::define_checkpoint_contraints ()
 {
   if (check_pcs.empty())
     return;
@@ -748,7 +748,7 @@ void SMTLibEncoder::define_checkpoint_contraints ()
   formula << eol;
 }
 
-void SMTLibEncoder::define_scheduling_constraints ()
+void SMTLib_Encoder::define_scheduling_constraints ()
 {
   if (verbose)
     formula << smtlib::comment_subsection("scheduling constraints");
@@ -772,14 +772,14 @@ void SMTLibEncoder::define_scheduling_constraints ()
     << eol;
 }
 
-void SMTLibEncoder::define_constraints ()
+void SMTLib_Encoder::define_constraints ()
 {
   define_store_buffer_constraints();
   define_checkpoint_contraints();
   define_scheduling_constraints();
 }
 
-void SMTLibEncoder::encode ()
+void SMTLib_Encoder::encode ()
 {
   formula << smtlib::set_logic() << eol << eol;
 
@@ -802,12 +802,12 @@ void SMTLibEncoder::encode ()
     }
 }
 
-string SMTLibEncoder::encode (Load & l)
+string SMTLib_Encoder::encode (Load & l)
 {
   return load(l.arg, l.indirect);
 }
 
-string SMTLibEncoder::encode (Store & s)
+string SMTLib_Encoder::encode (Store & s)
 {
   switch (update)
     {
@@ -821,47 +821,47 @@ string SMTLibEncoder::encode (Store & s)
     }
 }
 
-string SMTLibEncoder::encode (Fence & f [[maybe_unused]])
+string SMTLib_Encoder::encode (Fence & f [[maybe_unused]])
 {
   return "";
 }
 
-string SMTLibEncoder::encode (Add & a)
+string SMTLib_Encoder::encode (Add & a)
 {
   return smtlib::bvadd({accu_var(prev, thread), load(a.arg, a.indirect)});
 }
 
-string SMTLibEncoder::encode (Addi & a)
+string SMTLib_Encoder::encode (Addi & a)
 {
   return smtlib::bvadd({accu_var(prev, thread), smtlib::word2hex(a.arg)});
 }
 
-string SMTLibEncoder::encode (Sub & s)
+string SMTLib_Encoder::encode (Sub & s)
 {
   return smtlib::bvsub({accu_var(prev, thread), load(s.arg, s.indirect)});
 }
 
-string SMTLibEncoder::encode (Subi & s)
+string SMTLib_Encoder::encode (Subi & s)
 {
   return smtlib::bvsub({accu_var(prev, thread), smtlib::word2hex(s.arg)});
 }
 
-string SMTLibEncoder::encode (Cmp & c)
+string SMTLib_Encoder::encode (Cmp & c)
 {
   return smtlib::bvsub({accu_var(prev, thread), load(c.arg, c.indirect)});
 }
 
-string SMTLibEncoder::encode (Jmp & j [[maybe_unused]])
+string SMTLib_Encoder::encode (Jmp & j [[maybe_unused]])
 {
   return "";
 }
 
-string SMTLibEncoder::encode (Jz & j [[maybe_unused]])
+string SMTLib_Encoder::encode (Jz & j [[maybe_unused]])
 {
   return smtlib::equality({accu_var(prev, thread), smtlib::word2hex(0)});
 }
 
-string SMTLibEncoder::encode (Jnz & j [[maybe_unused]])
+string SMTLib_Encoder::encode (Jnz & j [[maybe_unused]])
 {
   return
     smtlib::lnot(
@@ -870,7 +870,7 @@ string SMTLibEncoder::encode (Jnz & j [[maybe_unused]])
         smtlib::word2hex(0)}));
 }
 
-string SMTLibEncoder::encode (Js & j [[maybe_unused]])
+string SMTLib_Encoder::encode (Js & j [[maybe_unused]])
 {
   static const string bw = to_string(word_size - 1);
 
@@ -880,7 +880,7 @@ string SMTLibEncoder::encode (Js & j [[maybe_unused]])
         smtlib::extract(bw, bw, accu_var(prev, thread))});
 }
 
-string SMTLibEncoder::encode (Jns & j [[maybe_unused]])
+string SMTLib_Encoder::encode (Jns & j [[maybe_unused]])
 {
   static const string bw = to_string(word_size - 1);
 
@@ -890,7 +890,7 @@ string SMTLibEncoder::encode (Jns & j [[maybe_unused]])
         smtlib::extract(bw, bw, accu_var(prev, thread))});
 }
 
-string SMTLibEncoder::encode (Jnzns & j [[maybe_unused]])
+string SMTLib_Encoder::encode (Jnzns & j [[maybe_unused]])
 {
   static const string bw = to_string(word_size - 1);
 
@@ -905,12 +905,12 @@ string SMTLibEncoder::encode (Jnzns & j [[maybe_unused]])
         smtlib::extract(bw, bw, accu_var(prev, thread))})});
 }
 
-string SMTLibEncoder::encode (Mem & m)
+string SMTLib_Encoder::encode (Mem & m)
 {
   return load(m.arg, m.indirect);
 }
 
-string SMTLibEncoder::encode (Cas & c)
+string SMTLib_Encoder::encode (Cas & c)
 {
   string heap = heap_var(prev);
 
@@ -944,18 +944,18 @@ string SMTLibEncoder::encode (Cas & c)
     }
 }
 
-string SMTLibEncoder::encode (Check & s [[maybe_unused]])
+string SMTLib_Encoder::encode (Check & s [[maybe_unused]])
 {
   return "";
 }
 
 // TODO
-string SMTLibEncoder::encode (Halt & h [[maybe_unused]])
+string SMTLib_Encoder::encode (Halt & h [[maybe_unused]])
 {
   throw runtime_error("not implemented");
 }
 
-string SMTLibEncoder::encode (Exit & e)
+string SMTLib_Encoder::encode (Exit & e)
 {
   return smtlib::word2hex(e.arg);
 }

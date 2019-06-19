@@ -18,9 +18,9 @@ V & lookup (Encoder::Map<K, V> & m, K k, F fun)
     : m.insert(it, {k, fun()})->second;
 }
 
-string Btor2Encoder::msb = to_string(word_size - 1);
+string Btor2_Encoder::msb = to_string(word_size - 1);
 
-Btor2Encoder::Btor2Encoder (const Program_list_ptr p, bound_t b, bool e) :
+Btor2_Encoder::Btor2_Encoder (const Program_list_ptr p, bound_t b, bool e) :
   Encoder(p, b), node(1)
 {
   /* collect constants */
@@ -53,17 +53,17 @@ Btor2Encoder::Btor2Encoder (const Program_list_ptr p, bound_t b, bool e) :
   if (e) encode();
 }
 
-string Btor2Encoder::nid ()
+string Btor2_Encoder::nid ()
 {
   return to_string(node++);
 }
 
-string Btor2Encoder::nid (int offset)
+string Btor2_Encoder::nid (int offset)
 {
   return to_string(static_cast<int>(node) + offset);
 }
 
-string Btor2Encoder::debug_symbol (word_t p)
+string Btor2_Encoder::debug_symbol (word_t p)
 {
   Unary & op = *dynamic_pointer_cast<Unary>(programs->at(thread)->at(p));
 
@@ -77,77 +77,77 @@ string Btor2Encoder::debug_symbol (word_t p)
     to_string(op.arg);
 }
 
-string Btor2Encoder::accu_var (const word_t t)
+string Btor2_Encoder::accu_var (const word_t t)
 {
   return accu_sym + '_' + to_string(t);
 }
 
-string Btor2Encoder::accu_var () const
+string Btor2_Encoder::accu_var () const
 {
   return accu_var(thread);
 }
 
-string Btor2Encoder::mem_var (const word_t t)
+string Btor2_Encoder::mem_var (const word_t t)
 {
   return mem_sym + '_' + to_string(t);
 }
 
-string Btor2Encoder::mem_var () const
+string Btor2_Encoder::mem_var () const
 {
   return mem_var(thread);
 }
 
-string Btor2Encoder::stmt_var (const word_t t, const word_t pc)
+string Btor2_Encoder::stmt_var (const word_t t, const word_t pc)
 {
   return stmt_sym + '_' + to_string(t) + '_' + to_string(pc);
 }
 
-string Btor2Encoder::stmt_var () const
+string Btor2_Encoder::stmt_var () const
 {
   return stmt_var(thread, pc);
 }
 
-string Btor2Encoder::thread_var (const word_t t)
+string Btor2_Encoder::thread_var (const word_t t)
 {
   return thread_sym + '_' + to_string(t);
 }
 
-string Btor2Encoder::thread_var () const
+string Btor2_Encoder::thread_var () const
 {
   return thread_var(thread);
 }
 
-string Btor2Encoder::exec_var (const word_t t, const word_t pc)
+string Btor2_Encoder::exec_var (const word_t t, const word_t pc)
 {
   return exec_sym + '_' + to_string(t) + '_' + to_string(pc);
 }
 
-string Btor2Encoder::exec_var () const
+string Btor2_Encoder::exec_var () const
 {
   return exec_var(thread, pc);
 }
 
-string Btor2Encoder::cas_var (const word_t t)
+string Btor2_Encoder::cas_var (const word_t t)
 {
   return cas_sym + '_' + to_string(t);
 }
 
-string Btor2Encoder::cas_var () const
+string Btor2_Encoder::cas_var () const
 {
   return cas_var(thread);
 }
 
-string Btor2Encoder::block_var (const word_t t, const word_t id)
+string Btor2_Encoder::block_var (const word_t t, const word_t id)
 {
   return block_sym + '_' + to_string(t) + '_' + to_string(id);
 }
 
-string Btor2Encoder::check_var (const word_t id)
+string Btor2_Encoder::check_var (const word_t id)
 {
   return check_sym + '_' + to_string(id);
 }
 
-void Btor2Encoder::declare_heap ()
+void Btor2_Encoder::declare_heap ()
 {
   if (verbose)
     formula << btor2::comment(heap_sym) << eol;
@@ -155,7 +155,7 @@ void Btor2Encoder::declare_heap ()
   formula << btor2::state(nid_heap = nid(), sid_heap, heap_sym) << eol;
 }
 
-void Btor2Encoder::declare_accu ()
+void Btor2_Encoder::declare_accu ()
 {
   if (verbose)
     formula
@@ -169,7 +169,7 @@ void Btor2Encoder::declare_accu ()
   formula << eol;
 }
 
-void Btor2Encoder::declare_mem ()
+void Btor2_Encoder::declare_mem ()
 {
   if (verbose)
     formula
@@ -183,7 +183,7 @@ void Btor2Encoder::declare_mem ()
   formula << eol;
 }
 
-void Btor2Encoder::declare_stmt ()
+void Btor2_Encoder::declare_stmt ()
 {
   if (verbose)
     formula <<
@@ -205,7 +205,7 @@ void Btor2Encoder::declare_stmt ()
   });
 }
 
-void Btor2Encoder::declare_block ()
+void Btor2_Encoder::declare_block ()
 {
   if (verbose)
     formula <<
@@ -232,7 +232,7 @@ void Btor2Encoder::declare_block ()
     }
 }
 
-void Btor2Encoder::declare_exit_flag ()
+void Btor2_Encoder::declare_exit_flag ()
 {
   if (verbose)
     formula << btor2::comment(exit_sym + " flag") << eol;
@@ -242,12 +242,12 @@ void Btor2Encoder::declare_exit_flag ()
     eol;
 }
 
-void Btor2Encoder::declare_exit_code ()
+void Btor2_Encoder::declare_exit_code ()
 {
   formula << btor2::state(nid_exit_code = nid(), sid_bv, exit_code_sym);
 }
 
-void Btor2Encoder::define_state (
+void Btor2_Encoder::define_state (
                                  string nid_state,
                                  string sid,
                                  string nid_init,
@@ -297,7 +297,7 @@ void Btor2Encoder::define_state (
   formula << btor2::next(nid(), sid, nid_state, nid_next, sym) << eol;
 }
 
-void Btor2Encoder::define_accu ()
+void Btor2_Encoder::define_accu ()
 {
   if (verbose)
     formula << btor2::comment_subsection("accumulator definitions");
@@ -316,7 +316,7 @@ void Btor2Encoder::define_accu ()
   update_accu = false;
 }
 
-void Btor2Encoder::define_mem ()
+void Btor2_Encoder::define_mem ()
 {
   if (verbose)
     formula
@@ -332,12 +332,12 @@ void Btor2Encoder::define_mem ()
   });
 }
 
-void Btor2Encoder::define_heap ()
+void Btor2_Encoder::define_heap ()
 {
   define_state(nid_heap, sid_heap, "", heap_sym, alters_heap, true);
 }
 
-void Btor2Encoder::define_stmt ()
+void Btor2_Encoder::define_stmt ()
 {
   iterate_programs([this] (const Program & program) {
 
@@ -425,7 +425,7 @@ void Btor2Encoder::define_stmt ()
   });
 }
 
-void Btor2Encoder::define_block ()
+void Btor2_Encoder::define_block ()
 {
   if (verbose)
     formula << btor2::comment("thread blocking flag definitions") << eol;
@@ -475,7 +475,7 @@ void Btor2Encoder::define_block ()
     }
 }
 
-void Btor2Encoder::define_check ()
+void Btor2_Encoder::define_check ()
 {
   if (verbose)
     formula <<
@@ -504,7 +504,7 @@ void Btor2Encoder::define_check ()
   formula << eol;
 }
 
-void Btor2Encoder::define_exit_flag ()
+void Btor2_Encoder::define_exit_flag ()
 {
   if (verbose)
     formula << btor2::comment("exit flag") << eol;
@@ -528,7 +528,7 @@ void Btor2Encoder::define_exit_flag ()
   formula << btor2::next(nid(), sid_bool, nid_exit, nid_cond, exit_sym) << eol;
 }
 
-void Btor2Encoder::define_exit_code ()
+void Btor2_Encoder::define_exit_code ()
 {
   if (verbose)
     formula << btor2::comment("exit code") << eol;
@@ -544,7 +544,7 @@ void Btor2Encoder::define_exit_code ()
     true);
 }
 
-void Btor2Encoder::add_sorts ()
+void Btor2_Encoder::add_sorts ()
 {
   if (verbose)
     formula << btor2::comment_section("sorts");
@@ -556,7 +556,7 @@ void Btor2Encoder::add_sorts ()
     eol;
 }
 
-void Btor2Encoder::add_constants ()
+void Btor2_Encoder::add_constants ()
 {
   if (verbose)
     formula << btor2::comment_section("constants");
@@ -578,7 +578,7 @@ void Btor2Encoder::add_constants ()
   formula << eol;
 }
 
-void Btor2Encoder::add_machine_state_declarations ()
+void Btor2_Encoder::add_machine_state_declarations ()
 {
   if (verbose)
     formula << btor2::comment_section("machine state declarations");
@@ -590,7 +590,7 @@ void Btor2Encoder::add_machine_state_declarations ()
   declare_exit_flag();
 }
 
-void Btor2Encoder::add_thread_scheduling ()
+void Btor2_Encoder::add_thread_scheduling ()
 {
   if (verbose)
     formula << btor2::comment_section("thread scheduling");
@@ -624,7 +624,7 @@ void Btor2Encoder::add_thread_scheduling ()
     eol;
 }
 
-void Btor2Encoder::add_statement_execution ()
+void Btor2_Encoder::add_statement_execution ()
 {
   if (verbose)
     formula <<
@@ -650,7 +650,7 @@ void Btor2Encoder::add_statement_execution ()
   });
 }
 
-void Btor2Encoder::add_statement_activation ()
+void Btor2_Encoder::add_statement_activation ()
 {
   if (verbose)
     formula <<
@@ -659,7 +659,7 @@ void Btor2Encoder::add_statement_activation ()
   define_stmt();
 }
 
-void Btor2Encoder::add_register_definitions ()
+void Btor2_Encoder::add_register_definitions ()
 {
   if (verbose)
     formula << btor2::comment_section("register state definitions");
@@ -668,7 +668,7 @@ void Btor2Encoder::add_register_definitions ()
   define_mem();
 }
 
-void Btor2Encoder::add_heap_definition ()
+void Btor2_Encoder::add_heap_definition ()
 {
   if (verbose)
     formula << btor2::comment_section("heap state definition");
@@ -676,7 +676,7 @@ void Btor2Encoder::add_heap_definition ()
   define_heap();
 }
 
-void Btor2Encoder::add_exit_definitions ()
+void Btor2_Encoder::add_exit_definitions ()
 {
   if (verbose)
     formula << btor2::comment_section("exit state definitions");
@@ -685,7 +685,7 @@ void Btor2Encoder::add_exit_definitions ()
   define_exit_code();
 }
 
-void Btor2Encoder::add_checkpoint_constraints ()
+void Btor2_Encoder::add_checkpoint_constraints ()
 {
   /* skip if there is no call to CHECK */
   if (check_pcs.empty())
@@ -733,7 +733,7 @@ void Btor2Encoder::add_checkpoint_constraints ()
     }
 }
 
-void Btor2Encoder::add_bound ()
+void Btor2_Encoder::add_bound ()
 {
   if (verbose)
     formula << btor2::comment_section("bound");
@@ -761,18 +761,18 @@ void Btor2Encoder::add_bound ()
     btor2::bad(nid(), nid_prev);
 }
 
-string Btor2Encoder::add_load (string * nid_idx)
+string Btor2_Encoder::add_load (string * nid_idx)
 {
   formula << btor2::read(*nid_idx = nid(), sid_bv, nid_heap, *nid_idx);
 
   return *nid_idx;
 }
 
-string Btor2Encoder::load (Load & l)
+string Btor2_Encoder::load (Load & l)
 {
   string nid_load = nids_const[l.arg];
 
-  auto add_load = bind(&Btor2Encoder::add_load, this, &nid_load);
+  auto add_load = bind(&Btor2_Encoder::add_load, this, &nid_load);
 
   nid_load = lookup(nids_load, l.arg, add_load);
 
@@ -782,7 +782,7 @@ string Btor2Encoder::load (Load & l)
 }
 
 /* requires thread to be set */
-string Btor2Encoder::store (Store & s)
+string Btor2_Encoder::store (Store & s)
 {
   string nid_store = nids_const[s.arg];
 
@@ -791,7 +791,7 @@ string Btor2Encoder::store (Store & s)
       lookup(
         nids_load,
         s.arg,
-        bind(&Btor2Encoder::add_load, this, &nid_store));
+        bind(&Btor2_Encoder::add_load, this, &nid_store));
 
   Map<word_t, string> & nids_thread_store =
     lookup(
@@ -818,7 +818,7 @@ string Btor2Encoder::store (Store & s)
       });
 }
 
-void Btor2Encoder::encode ()
+void Btor2_Encoder::encode ()
 {
   add_sorts();
   add_constants();
@@ -833,23 +833,23 @@ void Btor2Encoder::encode ()
   add_bound();
 }
 
-string Btor2Encoder::encode (Load & l)
+string Btor2_Encoder::encode (Load & l)
 {
   return load(l);
 }
 
-string Btor2Encoder::encode (Store & s)
+string Btor2_Encoder::encode (Store & s)
 {
   return store(s);
 }
 
 // TODO
-string Btor2Encoder::encode (Fence & f [[maybe_unused]])
+string Btor2_Encoder::encode (Fence & f [[maybe_unused]])
 {
   throw runtime_error("not implemented");
 }
 
-string Btor2Encoder::encode (Add & a)
+string Btor2_Encoder::encode (Add & a)
 {
   string nid_add = load(a);
 
@@ -858,7 +858,7 @@ string Btor2Encoder::encode (Add & a)
   return nid_add;
 }
 
-string Btor2Encoder::encode (Addi & a)
+string Btor2_Encoder::encode (Addi & a)
 {
   string nid_addi = nids_const[a.arg];
 
@@ -867,7 +867,7 @@ string Btor2Encoder::encode (Addi & a)
   return nid_addi;
 }
 
-string Btor2Encoder::encode (Sub & s)
+string Btor2_Encoder::encode (Sub & s)
 {
   string nid_sub = load(s);
 
@@ -876,7 +876,7 @@ string Btor2Encoder::encode (Sub & s)
   return nid_sub;
 }
 
-string Btor2Encoder::encode (Subi & s)
+string Btor2_Encoder::encode (Subi & s)
 {
   string nid_subi = nids_const[s.arg];
 
@@ -885,7 +885,7 @@ string Btor2Encoder::encode (Subi & s)
   return nid_subi;
 }
 
-string Btor2Encoder::encode (Cmp & c)
+string Btor2_Encoder::encode (Cmp & c)
 {
   string nid_sub = load(c);
 
@@ -894,12 +894,12 @@ string Btor2Encoder::encode (Cmp & c)
   return nid_sub;
 }
 
-string Btor2Encoder::encode (Jmp & j [[maybe_unused]])
+string Btor2_Encoder::encode (Jmp & j [[maybe_unused]])
 {
   return "";
 }
 
-string Btor2Encoder::encode (Jz & j [[maybe_unused]])
+string Btor2_Encoder::encode (Jz & j [[maybe_unused]])
 {
   string ret = nid();
 
@@ -908,7 +908,7 @@ string Btor2Encoder::encode (Jz & j [[maybe_unused]])
   return ret;
 }
 
-string Btor2Encoder::encode (Jnz & j [[maybe_unused]])
+string Btor2_Encoder::encode (Jnz & j [[maybe_unused]])
 {
   string ret = nid();
 
@@ -917,7 +917,7 @@ string Btor2Encoder::encode (Jnz & j [[maybe_unused]])
   return ret;
 }
 
-string Btor2Encoder::encode (Js & j [[maybe_unused]])
+string Btor2_Encoder::encode (Js & j [[maybe_unused]])
 {
   string ret = nid();
 
@@ -926,7 +926,7 @@ string Btor2Encoder::encode (Js & j [[maybe_unused]])
   return ret;
 }
 
-string Btor2Encoder::encode (Jns & j [[maybe_unused]])
+string Btor2_Encoder::encode (Jns & j [[maybe_unused]])
 {
   string ret = nid();
 
@@ -937,7 +937,7 @@ string Btor2Encoder::encode (Jns & j [[maybe_unused]])
   return ret;
 }
 
-string Btor2Encoder::encode (Jnzns & j [[maybe_unused]])
+string Btor2_Encoder::encode (Jnzns & j [[maybe_unused]])
 {
   string nid_nz = nid();
 
@@ -956,12 +956,12 @@ string Btor2Encoder::encode (Jnzns & j [[maybe_unused]])
   return nid_nzns;
 }
 
-string Btor2Encoder::encode (Mem & m)
+string Btor2_Encoder::encode (Mem & m)
 {
   return load(m);
 }
 
-string Btor2Encoder::encode (Cas & c)
+string Btor2_Encoder::encode (Cas & c)
 {
   Load l(c.arg, c.indirect);
 
@@ -990,18 +990,18 @@ string Btor2Encoder::encode (Cas & c)
   return nid_cas;
 }
 
-string Btor2Encoder::encode (Check & s [[maybe_unused]])
+string Btor2_Encoder::encode (Check & s [[maybe_unused]])
 {
   return "";
 }
 
 // TODO
-string Btor2Encoder::encode (Halt & h [[maybe_unused]])
+string Btor2_Encoder::encode (Halt & h [[maybe_unused]])
 {
   throw runtime_error("not implemented");
 }
 
-string Btor2Encoder::encode (Exit & e [[maybe_unused]])
+string Btor2_Encoder::encode (Exit & e [[maybe_unused]])
 {
   return nids_const[e.arg];
 }

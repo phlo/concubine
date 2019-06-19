@@ -7,13 +7,13 @@ using namespace std;
 /*******************************************************************************
  * Test Case Fixture
 *******************************************************************************/
-struct ShellTest : public ::testing::Test
+struct Shell_Test : public ::testing::Test
 {
   Shell shell;
 };
 
 /* return_code ****************************************************************/
-TEST_F(ShellTest, return_code)
+TEST_F(Shell_Test, return_code)
 {
   shell.run("exit 0");
   ASSERT_EQ(0, shell.last_exit_code());
@@ -26,7 +26,7 @@ TEST_F(ShellTest, return_code)
 }
 
 /* output *********************************************************************/
-TEST_F(ShellTest, ouput)
+TEST_F(Shell_Test, ouput)
 {
   string expected = "hello shell";
 
@@ -37,7 +37,7 @@ TEST_F(ShellTest, ouput)
 }
 
 /* input_output ***************************************************************/
-TEST_F(ShellTest, input_output)
+TEST_F(Shell_Test, input_output)
 {
   string expected = "hello shell";
 
@@ -48,7 +48,7 @@ TEST_F(ShellTest, input_output)
 }
 
 /* pipe_in_pipe ***************************************************************/
-TEST_F(ShellTest, pipe_in_pipe)
+TEST_F(Shell_Test, pipe_in_pipe)
 {
   string input = "3\n2\n4\n5\n1\n3\n2\n4\n5\n1\n";
   string expected = "1\n2\n3\n4\n5\n";
@@ -60,7 +60,7 @@ TEST_F(ShellTest, pipe_in_pipe)
 }
 
 /* abuse **********************************************************************/
-TEST_F(ShellTest, abuse)
+TEST_F(Shell_Test, abuse)
 {
   string expected = "bash: unknown: command not found\n";
   string actual = shell.run("unknown").str();
