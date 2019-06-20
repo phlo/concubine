@@ -83,7 +83,7 @@ optional<BtorMC::Variable> BtorMC::parse_variable (istringstream & line)
       variable->type = Variable::Type::HEAP;
       variable->step = parse_attribute(line, "step", '@');
     }
-  else if (name == Encoder::exit_sym)
+  else if (name == Encoder::exit_flag_sym)
     {
       variable->type = Variable::Type::EXIT;
       variable->step = parse_attribute(line, "step", '#');

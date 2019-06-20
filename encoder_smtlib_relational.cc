@@ -14,7 +14,7 @@ SMTLib_Encoder_Relational::State::State (SMTLib_Encoder_Relational & e) :
   sb_full(e.restore_sb_full()),
   block(e.restore_block()),
   heap(e.restore_heap()),
-  exit(e.unset_exit())
+  exit_flag(e.unset_exit_flag())
 {
   assert(!stmt);
   assert(!exit_code);
@@ -41,8 +41,8 @@ SMTLib_Encoder_Relational::State::operator string () const
   if (heap)
     args.push_back(*heap);
 
-  if (exit)
-    args.push_back(*exit);
+  if (exit_flag)
+    args.push_back(*exit_flag);
 
   if (exit_code)
     args.push_back(*exit_code);
@@ -290,20 +290,20 @@ shared_ptr<string> SMTLib_Encoder_Relational::restore_heap () const
       smtlib::equality({heap_var(), heap_var(prev)}));
 }
 
-shared_ptr<string> SMTLib_Encoder_Relational::set_exit () const
+shared_ptr<string> SMTLib_Encoder_Relational::set_exit_flag () const
 {
   if (exit_pcs.empty())
     return {};
 
-  return make_shared<string>(exit_var());
+  return make_shared<string>(exit_flag_var());
 }
 
-shared_ptr<string> SMTLib_Encoder_Relational::unset_exit () const
+shared_ptr<string> SMTLib_Encoder_Relational::unset_exit_flag () const
 {
   if (exit_pcs.empty())
     return {};
 
-  return make_shared<string>(smtlib::lnot(exit_var()));
+  return make_shared<string>(smtlib::lnot(exit_flag_var()));
 }
 
 shared_ptr<string>
@@ -338,7 +338,7 @@ void SMTLib_Encoder_Relational::imply_thread_not_executed ()
   state.sb_full = reset_sb_full();
   state.stmt = restore_stmt();
   state.heap = {};
-  state.exit = {};
+  state.exit_flag = {};
 
   formula << imply(smtlib::lnot(thread_var(prev, thread)), state) << eol;
 }
@@ -358,7 +358,7 @@ void SMTLib_Encoder_Relational::imply_thread_flushed ()
         sb_val_var(prev, thread))})};
 
   if (!exit_pcs.empty())
-    args.push_back(smtlib::lnot(exit_var()));
+    args.push_back(smtlib::lnot(exit_flag_var()));
 
   formula << imply(flush_var(prev, thread), smtlib::land(args)) << eol;
 }
@@ -377,18 +377,18 @@ void SMTLib_Encoder_Relational::imply_machine_exited ()
 
   formula <<
     imply(
-      exit_var(prev),
+      exit_flag_var(prev),
       smtlib::land({
         smtlib::equality({
           heap_var(),
           heap_var(prev)}),
-        exit_var()})) <<
+        exit_flag_var()})) <<
     eol;
 
   if (step == bound)
     formula <<
       imply(
-        smtlib::lnot(exit_var()),
+        smtlib::lnot(exit_flag_var()),
         smtlib::equality({
           exit_code_sym,
           smtlib::word2hex(0)})) <<
@@ -556,7 +556,7 @@ string SMTLib_Encoder_Relational::encode (Halt & h [[maybe_unused]])
 string SMTLib_Encoder_Relational::encode (Exit & e)
 {
   state.stmt = set_stmt(pc);
-  state.exit = set_exit();
+  state.exit_flag = set_exit_flag();
   state.exit_code = set_exit_code(e.arg);
 
   return state;

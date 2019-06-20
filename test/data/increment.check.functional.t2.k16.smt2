@@ -66,14 +66,6 @@
 (declare-fun thread_0_0 () Bool)
 (declare-fun thread_0_1 () Bool)
 
-; store buffer flush variables - flush_<step>_<thread>
-(declare-fun flush_0_0 () Bool)
-(declare-fun flush_0_1 () Bool)
-
-; checkpoint variables - check_<step>_<id>
-(declare-fun check_0_0 () Bool)
-(declare-fun check_0_1 () Bool)
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (declare-fun exec_0_0_0 () Bool)
 (declare-fun exec_0_0_1 () Bool)
@@ -92,6 +84,14 @@
 (declare-fun exec_0_1_4 () Bool)
 (declare-fun exec_0_1_5 () Bool)
 (declare-fun exec_0_1_6 () Bool)
+
+; store buffer flush variables - flush_<step>_<thread>
+(declare-fun flush_0_0 () Bool)
+(declare-fun flush_0_1 () Bool)
+
+; checkpoint variables - check_<step>_<id>
+(declare-fun check_0_0 () Bool)
+(declare-fun check_0_1 () Bool)
 
 ; state variable initializations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -145,10 +145,6 @@
 
 ; transition variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; checkpoint variables - check_<step>_<id>
-(assert (not check_0_0))
-(assert (not check_0_1))
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (assert (= exec_0_0_0 (and stmt_0_0_0 thread_0_0)))
 (assert (= exec_0_0_1 (and stmt_0_0_1 thread_0_0)))
@@ -168,17 +164,9 @@
 (assert (= exec_0_1_5 (and stmt_0_1_5 thread_0_1)))
 (assert (= exec_0_1_6 (and stmt_0_1_6 thread_0_1)))
 
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_0_0 (=> (or stmt_0_0_0 stmt_0_0_1 stmt_0_0_5) (not thread_0_0)) (not flush_0_0)))
-(assert (ite sb-full_0_1 (=> stmt_0_1_4 (not thread_0_1)) (not flush_0_1)))
-
-; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> (and block_0_0_0 (not check_0_0)) (not thread_0_0))) ; checkpoint 0: thread 0
-(assert (=> (and block_0_0_1 (not check_0_0)) (not thread_0_1))) ; checkpoint 0: thread 1
-(assert (=> (and block_0_1_0 (not check_0_1)) (not thread_0_0))) ; checkpoint 1: thread 0
-(assert (=> (and block_0_1_1 (not check_0_1)) (not thread_0_1))) ; checkpoint 1: thread 1
+; checkpoint variables - check_<step>_<id>
+(assert (not check_0_0))
+(assert (not check_0_1))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -193,6 +181,18 @@
 (assert (or (not thread_0_1) (not flush_0_1)))
 (assert (or (not thread_0_1) (not exit_0)))
 (assert (or (not flush_0_1) (not exit_0)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_0_0 (=> (or stmt_0_0_0 stmt_0_0_1 stmt_0_0_5) (not thread_0_0)) (not flush_0_0)))
+(assert (ite sb-full_0_1 (=> stmt_0_1_4 (not thread_0_1)) (not flush_0_1)))
+
+; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> (and block_0_0_0 (not check_0_0)) (not thread_0_0))) ; checkpoint 0: thread 0
+(assert (=> (and block_0_0_1 (not check_0_0)) (not thread_0_1))) ; checkpoint 0: thread 1
+(assert (=> (and block_0_1_0 (not check_0_1)) (not thread_0_0))) ; checkpoint 1: thread 0
+(assert (=> (and block_0_1_1 (not check_0_1)) (not thread_0_1))) ; checkpoint 1: thread 1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 1
@@ -257,14 +257,6 @@
 (declare-fun thread_1_0 () Bool)
 (declare-fun thread_1_1 () Bool)
 
-; store buffer flush variables - flush_<step>_<thread>
-(declare-fun flush_1_0 () Bool)
-(declare-fun flush_1_1 () Bool)
-
-; checkpoint variables - check_<step>_<id>
-(declare-fun check_1_0 () Bool)
-(declare-fun check_1_1 () Bool)
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (declare-fun exec_1_0_0 () Bool)
 (declare-fun exec_1_0_1 () Bool)
@@ -283,6 +275,14 @@
 (declare-fun exec_1_1_4 () Bool)
 (declare-fun exec_1_1_5 () Bool)
 (declare-fun exec_1_1_6 () Bool)
+
+; store buffer flush variables - flush_<step>_<thread>
+(declare-fun flush_1_0 () Bool)
+(declare-fun flush_1_1 () Bool)
+
+; checkpoint variables - check_<step>_<id>
+(declare-fun check_1_0 () Bool)
+(declare-fun check_1_1 () Bool)
 
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -339,10 +339,6 @@
 
 ; transition variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; checkpoint variables - check_<step>_<id>
-(assert (= check_1_0 (and block_1_0_0 block_1_0_1)))
-(assert (= check_1_1 (and block_1_1_0 block_1_1_1)))
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (assert (= exec_1_0_0 (and stmt_1_0_0 thread_1_0)))
 (assert (= exec_1_0_1 (and stmt_1_0_1 thread_1_0)))
@@ -362,17 +358,9 @@
 (assert (= exec_1_1_5 (and stmt_1_1_5 thread_1_1)))
 (assert (= exec_1_1_6 (and stmt_1_1_6 thread_1_1)))
 
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_1_0 (=> (or stmt_1_0_0 stmt_1_0_1 stmt_1_0_5) (not thread_1_0)) (not flush_1_0)))
-(assert (ite sb-full_1_1 (=> stmt_1_1_4 (not thread_1_1)) (not flush_1_1)))
-
-; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> (and block_1_0_0 (not check_1_0)) (not thread_1_0))) ; checkpoint 0: thread 0
-(assert (=> (and block_1_0_1 (not check_1_0)) (not thread_1_1))) ; checkpoint 0: thread 1
-(assert (=> (and block_1_1_0 (not check_1_1)) (not thread_1_0))) ; checkpoint 1: thread 0
-(assert (=> (and block_1_1_1 (not check_1_1)) (not thread_1_1))) ; checkpoint 1: thread 1
+; checkpoint variables - check_<step>_<id>
+(assert (= check_1_0 (and block_1_0_0 block_1_0_1)))
+(assert (= check_1_1 (and block_1_1_0 block_1_1_1)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -387,6 +375,18 @@
 (assert (or (not thread_1_1) (not flush_1_1)))
 (assert (or (not thread_1_1) (not exit_1)))
 (assert (or (not flush_1_1) (not exit_1)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_1_0 (=> (or stmt_1_0_0 stmt_1_0_1 stmt_1_0_5) (not thread_1_0)) (not flush_1_0)))
+(assert (ite sb-full_1_1 (=> stmt_1_1_4 (not thread_1_1)) (not flush_1_1)))
+
+; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> (and block_1_0_0 (not check_1_0)) (not thread_1_0))) ; checkpoint 0: thread 0
+(assert (=> (and block_1_0_1 (not check_1_0)) (not thread_1_1))) ; checkpoint 0: thread 1
+(assert (=> (and block_1_1_0 (not check_1_1)) (not thread_1_0))) ; checkpoint 1: thread 0
+(assert (=> (and block_1_1_1 (not check_1_1)) (not thread_1_1))) ; checkpoint 1: thread 1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 2
@@ -451,14 +451,6 @@
 (declare-fun thread_2_0 () Bool)
 (declare-fun thread_2_1 () Bool)
 
-; store buffer flush variables - flush_<step>_<thread>
-(declare-fun flush_2_0 () Bool)
-(declare-fun flush_2_1 () Bool)
-
-; checkpoint variables - check_<step>_<id>
-(declare-fun check_2_0 () Bool)
-(declare-fun check_2_1 () Bool)
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (declare-fun exec_2_0_0 () Bool)
 (declare-fun exec_2_0_1 () Bool)
@@ -477,6 +469,14 @@
 (declare-fun exec_2_1_4 () Bool)
 (declare-fun exec_2_1_5 () Bool)
 (declare-fun exec_2_1_6 () Bool)
+
+; store buffer flush variables - flush_<step>_<thread>
+(declare-fun flush_2_0 () Bool)
+(declare-fun flush_2_1 () Bool)
+
+; checkpoint variables - check_<step>_<id>
+(declare-fun check_2_0 () Bool)
+(declare-fun check_2_1 () Bool)
 
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -533,10 +533,6 @@
 
 ; transition variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; checkpoint variables - check_<step>_<id>
-(assert (= check_2_0 (and block_2_0_0 block_2_0_1)))
-(assert (= check_2_1 (and block_2_1_0 block_2_1_1)))
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (assert (= exec_2_0_0 (and stmt_2_0_0 thread_2_0)))
 (assert (= exec_2_0_1 (and stmt_2_0_1 thread_2_0)))
@@ -556,17 +552,9 @@
 (assert (= exec_2_1_5 (and stmt_2_1_5 thread_2_1)))
 (assert (= exec_2_1_6 (and stmt_2_1_6 thread_2_1)))
 
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_2_0 (=> (or stmt_2_0_0 stmt_2_0_1 stmt_2_0_5) (not thread_2_0)) (not flush_2_0)))
-(assert (ite sb-full_2_1 (=> stmt_2_1_4 (not thread_2_1)) (not flush_2_1)))
-
-; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> (and block_2_0_0 (not check_2_0)) (not thread_2_0))) ; checkpoint 0: thread 0
-(assert (=> (and block_2_0_1 (not check_2_0)) (not thread_2_1))) ; checkpoint 0: thread 1
-(assert (=> (and block_2_1_0 (not check_2_1)) (not thread_2_0))) ; checkpoint 1: thread 0
-(assert (=> (and block_2_1_1 (not check_2_1)) (not thread_2_1))) ; checkpoint 1: thread 1
+; checkpoint variables - check_<step>_<id>
+(assert (= check_2_0 (and block_2_0_0 block_2_0_1)))
+(assert (= check_2_1 (and block_2_1_0 block_2_1_1)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -581,6 +569,18 @@
 (assert (or (not thread_2_1) (not flush_2_1)))
 (assert (or (not thread_2_1) (not exit_2)))
 (assert (or (not flush_2_1) (not exit_2)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_2_0 (=> (or stmt_2_0_0 stmt_2_0_1 stmt_2_0_5) (not thread_2_0)) (not flush_2_0)))
+(assert (ite sb-full_2_1 (=> stmt_2_1_4 (not thread_2_1)) (not flush_2_1)))
+
+; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> (and block_2_0_0 (not check_2_0)) (not thread_2_0))) ; checkpoint 0: thread 0
+(assert (=> (and block_2_0_1 (not check_2_0)) (not thread_2_1))) ; checkpoint 0: thread 1
+(assert (=> (and block_2_1_0 (not check_2_1)) (not thread_2_0))) ; checkpoint 1: thread 0
+(assert (=> (and block_2_1_1 (not check_2_1)) (not thread_2_1))) ; checkpoint 1: thread 1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 3
@@ -645,14 +645,6 @@
 (declare-fun thread_3_0 () Bool)
 (declare-fun thread_3_1 () Bool)
 
-; store buffer flush variables - flush_<step>_<thread>
-(declare-fun flush_3_0 () Bool)
-(declare-fun flush_3_1 () Bool)
-
-; checkpoint variables - check_<step>_<id>
-(declare-fun check_3_0 () Bool)
-(declare-fun check_3_1 () Bool)
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (declare-fun exec_3_0_0 () Bool)
 (declare-fun exec_3_0_1 () Bool)
@@ -671,6 +663,14 @@
 (declare-fun exec_3_1_4 () Bool)
 (declare-fun exec_3_1_5 () Bool)
 (declare-fun exec_3_1_6 () Bool)
+
+; store buffer flush variables - flush_<step>_<thread>
+(declare-fun flush_3_0 () Bool)
+(declare-fun flush_3_1 () Bool)
+
+; checkpoint variables - check_<step>_<id>
+(declare-fun check_3_0 () Bool)
+(declare-fun check_3_1 () Bool)
 
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -727,10 +727,6 @@
 
 ; transition variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; checkpoint variables - check_<step>_<id>
-(assert (= check_3_0 (and block_3_0_0 block_3_0_1)))
-(assert (= check_3_1 (and block_3_1_0 block_3_1_1)))
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (assert (= exec_3_0_0 (and stmt_3_0_0 thread_3_0)))
 (assert (= exec_3_0_1 (and stmt_3_0_1 thread_3_0)))
@@ -750,17 +746,9 @@
 (assert (= exec_3_1_5 (and stmt_3_1_5 thread_3_1)))
 (assert (= exec_3_1_6 (and stmt_3_1_6 thread_3_1)))
 
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_3_0 (=> (or stmt_3_0_0 stmt_3_0_1 stmt_3_0_5) (not thread_3_0)) (not flush_3_0)))
-(assert (ite sb-full_3_1 (=> stmt_3_1_4 (not thread_3_1)) (not flush_3_1)))
-
-; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> (and block_3_0_0 (not check_3_0)) (not thread_3_0))) ; checkpoint 0: thread 0
-(assert (=> (and block_3_0_1 (not check_3_0)) (not thread_3_1))) ; checkpoint 0: thread 1
-(assert (=> (and block_3_1_0 (not check_3_1)) (not thread_3_0))) ; checkpoint 1: thread 0
-(assert (=> (and block_3_1_1 (not check_3_1)) (not thread_3_1))) ; checkpoint 1: thread 1
+; checkpoint variables - check_<step>_<id>
+(assert (= check_3_0 (and block_3_0_0 block_3_0_1)))
+(assert (= check_3_1 (and block_3_1_0 block_3_1_1)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -775,6 +763,18 @@
 (assert (or (not thread_3_1) (not flush_3_1)))
 (assert (or (not thread_3_1) (not exit_3)))
 (assert (or (not flush_3_1) (not exit_3)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_3_0 (=> (or stmt_3_0_0 stmt_3_0_1 stmt_3_0_5) (not thread_3_0)) (not flush_3_0)))
+(assert (ite sb-full_3_1 (=> stmt_3_1_4 (not thread_3_1)) (not flush_3_1)))
+
+; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> (and block_3_0_0 (not check_3_0)) (not thread_3_0))) ; checkpoint 0: thread 0
+(assert (=> (and block_3_0_1 (not check_3_0)) (not thread_3_1))) ; checkpoint 0: thread 1
+(assert (=> (and block_3_1_0 (not check_3_1)) (not thread_3_0))) ; checkpoint 1: thread 0
+(assert (=> (and block_3_1_1 (not check_3_1)) (not thread_3_1))) ; checkpoint 1: thread 1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 4
@@ -839,14 +839,6 @@
 (declare-fun thread_4_0 () Bool)
 (declare-fun thread_4_1 () Bool)
 
-; store buffer flush variables - flush_<step>_<thread>
-(declare-fun flush_4_0 () Bool)
-(declare-fun flush_4_1 () Bool)
-
-; checkpoint variables - check_<step>_<id>
-(declare-fun check_4_0 () Bool)
-(declare-fun check_4_1 () Bool)
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (declare-fun exec_4_0_0 () Bool)
 (declare-fun exec_4_0_1 () Bool)
@@ -865,6 +857,14 @@
 (declare-fun exec_4_1_4 () Bool)
 (declare-fun exec_4_1_5 () Bool)
 (declare-fun exec_4_1_6 () Bool)
+
+; store buffer flush variables - flush_<step>_<thread>
+(declare-fun flush_4_0 () Bool)
+(declare-fun flush_4_1 () Bool)
+
+; checkpoint variables - check_<step>_<id>
+(declare-fun check_4_0 () Bool)
+(declare-fun check_4_1 () Bool)
 
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -921,10 +921,6 @@
 
 ; transition variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; checkpoint variables - check_<step>_<id>
-(assert (= check_4_0 (and block_4_0_0 block_4_0_1)))
-(assert (= check_4_1 (and block_4_1_0 block_4_1_1)))
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (assert (= exec_4_0_0 (and stmt_4_0_0 thread_4_0)))
 (assert (= exec_4_0_1 (and stmt_4_0_1 thread_4_0)))
@@ -944,17 +940,9 @@
 (assert (= exec_4_1_5 (and stmt_4_1_5 thread_4_1)))
 (assert (= exec_4_1_6 (and stmt_4_1_6 thread_4_1)))
 
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_4_0 (=> (or stmt_4_0_0 stmt_4_0_1 stmt_4_0_5) (not thread_4_0)) (not flush_4_0)))
-(assert (ite sb-full_4_1 (=> stmt_4_1_4 (not thread_4_1)) (not flush_4_1)))
-
-; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> (and block_4_0_0 (not check_4_0)) (not thread_4_0))) ; checkpoint 0: thread 0
-(assert (=> (and block_4_0_1 (not check_4_0)) (not thread_4_1))) ; checkpoint 0: thread 1
-(assert (=> (and block_4_1_0 (not check_4_1)) (not thread_4_0))) ; checkpoint 1: thread 0
-(assert (=> (and block_4_1_1 (not check_4_1)) (not thread_4_1))) ; checkpoint 1: thread 1
+; checkpoint variables - check_<step>_<id>
+(assert (= check_4_0 (and block_4_0_0 block_4_0_1)))
+(assert (= check_4_1 (and block_4_1_0 block_4_1_1)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -969,6 +957,18 @@
 (assert (or (not thread_4_1) (not flush_4_1)))
 (assert (or (not thread_4_1) (not exit_4)))
 (assert (or (not flush_4_1) (not exit_4)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_4_0 (=> (or stmt_4_0_0 stmt_4_0_1 stmt_4_0_5) (not thread_4_0)) (not flush_4_0)))
+(assert (ite sb-full_4_1 (=> stmt_4_1_4 (not thread_4_1)) (not flush_4_1)))
+
+; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> (and block_4_0_0 (not check_4_0)) (not thread_4_0))) ; checkpoint 0: thread 0
+(assert (=> (and block_4_0_1 (not check_4_0)) (not thread_4_1))) ; checkpoint 0: thread 1
+(assert (=> (and block_4_1_0 (not check_4_1)) (not thread_4_0))) ; checkpoint 1: thread 0
+(assert (=> (and block_4_1_1 (not check_4_1)) (not thread_4_1))) ; checkpoint 1: thread 1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 5
@@ -1033,14 +1033,6 @@
 (declare-fun thread_5_0 () Bool)
 (declare-fun thread_5_1 () Bool)
 
-; store buffer flush variables - flush_<step>_<thread>
-(declare-fun flush_5_0 () Bool)
-(declare-fun flush_5_1 () Bool)
-
-; checkpoint variables - check_<step>_<id>
-(declare-fun check_5_0 () Bool)
-(declare-fun check_5_1 () Bool)
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (declare-fun exec_5_0_0 () Bool)
 (declare-fun exec_5_0_1 () Bool)
@@ -1059,6 +1051,14 @@
 (declare-fun exec_5_1_4 () Bool)
 (declare-fun exec_5_1_5 () Bool)
 (declare-fun exec_5_1_6 () Bool)
+
+; store buffer flush variables - flush_<step>_<thread>
+(declare-fun flush_5_0 () Bool)
+(declare-fun flush_5_1 () Bool)
+
+; checkpoint variables - check_<step>_<id>
+(declare-fun check_5_0 () Bool)
+(declare-fun check_5_1 () Bool)
 
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1115,10 +1115,6 @@
 
 ; transition variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; checkpoint variables - check_<step>_<id>
-(assert (= check_5_0 (and block_5_0_0 block_5_0_1)))
-(assert (= check_5_1 (and block_5_1_0 block_5_1_1)))
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (assert (= exec_5_0_0 (and stmt_5_0_0 thread_5_0)))
 (assert (= exec_5_0_1 (and stmt_5_0_1 thread_5_0)))
@@ -1138,17 +1134,9 @@
 (assert (= exec_5_1_5 (and stmt_5_1_5 thread_5_1)))
 (assert (= exec_5_1_6 (and stmt_5_1_6 thread_5_1)))
 
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_5_0 (=> (or stmt_5_0_0 stmt_5_0_1 stmt_5_0_5) (not thread_5_0)) (not flush_5_0)))
-(assert (ite sb-full_5_1 (=> stmt_5_1_4 (not thread_5_1)) (not flush_5_1)))
-
-; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> (and block_5_0_0 (not check_5_0)) (not thread_5_0))) ; checkpoint 0: thread 0
-(assert (=> (and block_5_0_1 (not check_5_0)) (not thread_5_1))) ; checkpoint 0: thread 1
-(assert (=> (and block_5_1_0 (not check_5_1)) (not thread_5_0))) ; checkpoint 1: thread 0
-(assert (=> (and block_5_1_1 (not check_5_1)) (not thread_5_1))) ; checkpoint 1: thread 1
+; checkpoint variables - check_<step>_<id>
+(assert (= check_5_0 (and block_5_0_0 block_5_0_1)))
+(assert (= check_5_1 (and block_5_1_0 block_5_1_1)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1163,6 +1151,18 @@
 (assert (or (not thread_5_1) (not flush_5_1)))
 (assert (or (not thread_5_1) (not exit_5)))
 (assert (or (not flush_5_1) (not exit_5)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_5_0 (=> (or stmt_5_0_0 stmt_5_0_1 stmt_5_0_5) (not thread_5_0)) (not flush_5_0)))
+(assert (ite sb-full_5_1 (=> stmt_5_1_4 (not thread_5_1)) (not flush_5_1)))
+
+; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> (and block_5_0_0 (not check_5_0)) (not thread_5_0))) ; checkpoint 0: thread 0
+(assert (=> (and block_5_0_1 (not check_5_0)) (not thread_5_1))) ; checkpoint 0: thread 1
+(assert (=> (and block_5_1_0 (not check_5_1)) (not thread_5_0))) ; checkpoint 1: thread 0
+(assert (=> (and block_5_1_1 (not check_5_1)) (not thread_5_1))) ; checkpoint 1: thread 1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 6
@@ -1227,14 +1227,6 @@
 (declare-fun thread_6_0 () Bool)
 (declare-fun thread_6_1 () Bool)
 
-; store buffer flush variables - flush_<step>_<thread>
-(declare-fun flush_6_0 () Bool)
-(declare-fun flush_6_1 () Bool)
-
-; checkpoint variables - check_<step>_<id>
-(declare-fun check_6_0 () Bool)
-(declare-fun check_6_1 () Bool)
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (declare-fun exec_6_0_0 () Bool)
 (declare-fun exec_6_0_1 () Bool)
@@ -1253,6 +1245,14 @@
 (declare-fun exec_6_1_4 () Bool)
 (declare-fun exec_6_1_5 () Bool)
 (declare-fun exec_6_1_6 () Bool)
+
+; store buffer flush variables - flush_<step>_<thread>
+(declare-fun flush_6_0 () Bool)
+(declare-fun flush_6_1 () Bool)
+
+; checkpoint variables - check_<step>_<id>
+(declare-fun check_6_0 () Bool)
+(declare-fun check_6_1 () Bool)
 
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1309,10 +1309,6 @@
 
 ; transition variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; checkpoint variables - check_<step>_<id>
-(assert (= check_6_0 (and block_6_0_0 block_6_0_1)))
-(assert (= check_6_1 (and block_6_1_0 block_6_1_1)))
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (assert (= exec_6_0_0 (and stmt_6_0_0 thread_6_0)))
 (assert (= exec_6_0_1 (and stmt_6_0_1 thread_6_0)))
@@ -1332,17 +1328,9 @@
 (assert (= exec_6_1_5 (and stmt_6_1_5 thread_6_1)))
 (assert (= exec_6_1_6 (and stmt_6_1_6 thread_6_1)))
 
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_6_0 (=> (or stmt_6_0_0 stmt_6_0_1 stmt_6_0_5) (not thread_6_0)) (not flush_6_0)))
-(assert (ite sb-full_6_1 (=> stmt_6_1_4 (not thread_6_1)) (not flush_6_1)))
-
-; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> (and block_6_0_0 (not check_6_0)) (not thread_6_0))) ; checkpoint 0: thread 0
-(assert (=> (and block_6_0_1 (not check_6_0)) (not thread_6_1))) ; checkpoint 0: thread 1
-(assert (=> (and block_6_1_0 (not check_6_1)) (not thread_6_0))) ; checkpoint 1: thread 0
-(assert (=> (and block_6_1_1 (not check_6_1)) (not thread_6_1))) ; checkpoint 1: thread 1
+; checkpoint variables - check_<step>_<id>
+(assert (= check_6_0 (and block_6_0_0 block_6_0_1)))
+(assert (= check_6_1 (and block_6_1_0 block_6_1_1)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1357,6 +1345,18 @@
 (assert (or (not thread_6_1) (not flush_6_1)))
 (assert (or (not thread_6_1) (not exit_6)))
 (assert (or (not flush_6_1) (not exit_6)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_6_0 (=> (or stmt_6_0_0 stmt_6_0_1 stmt_6_0_5) (not thread_6_0)) (not flush_6_0)))
+(assert (ite sb-full_6_1 (=> stmt_6_1_4 (not thread_6_1)) (not flush_6_1)))
+
+; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> (and block_6_0_0 (not check_6_0)) (not thread_6_0))) ; checkpoint 0: thread 0
+(assert (=> (and block_6_0_1 (not check_6_0)) (not thread_6_1))) ; checkpoint 0: thread 1
+(assert (=> (and block_6_1_0 (not check_6_1)) (not thread_6_0))) ; checkpoint 1: thread 0
+(assert (=> (and block_6_1_1 (not check_6_1)) (not thread_6_1))) ; checkpoint 1: thread 1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 7
@@ -1421,14 +1421,6 @@
 (declare-fun thread_7_0 () Bool)
 (declare-fun thread_7_1 () Bool)
 
-; store buffer flush variables - flush_<step>_<thread>
-(declare-fun flush_7_0 () Bool)
-(declare-fun flush_7_1 () Bool)
-
-; checkpoint variables - check_<step>_<id>
-(declare-fun check_7_0 () Bool)
-(declare-fun check_7_1 () Bool)
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (declare-fun exec_7_0_0 () Bool)
 (declare-fun exec_7_0_1 () Bool)
@@ -1447,6 +1439,14 @@
 (declare-fun exec_7_1_4 () Bool)
 (declare-fun exec_7_1_5 () Bool)
 (declare-fun exec_7_1_6 () Bool)
+
+; store buffer flush variables - flush_<step>_<thread>
+(declare-fun flush_7_0 () Bool)
+(declare-fun flush_7_1 () Bool)
+
+; checkpoint variables - check_<step>_<id>
+(declare-fun check_7_0 () Bool)
+(declare-fun check_7_1 () Bool)
 
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1503,10 +1503,6 @@
 
 ; transition variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; checkpoint variables - check_<step>_<id>
-(assert (= check_7_0 (and block_7_0_0 block_7_0_1)))
-(assert (= check_7_1 (and block_7_1_0 block_7_1_1)))
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (assert (= exec_7_0_0 (and stmt_7_0_0 thread_7_0)))
 (assert (= exec_7_0_1 (and stmt_7_0_1 thread_7_0)))
@@ -1526,17 +1522,9 @@
 (assert (= exec_7_1_5 (and stmt_7_1_5 thread_7_1)))
 (assert (= exec_7_1_6 (and stmt_7_1_6 thread_7_1)))
 
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_7_0 (=> (or stmt_7_0_0 stmt_7_0_1 stmt_7_0_5) (not thread_7_0)) (not flush_7_0)))
-(assert (ite sb-full_7_1 (=> stmt_7_1_4 (not thread_7_1)) (not flush_7_1)))
-
-; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> (and block_7_0_0 (not check_7_0)) (not thread_7_0))) ; checkpoint 0: thread 0
-(assert (=> (and block_7_0_1 (not check_7_0)) (not thread_7_1))) ; checkpoint 0: thread 1
-(assert (=> (and block_7_1_0 (not check_7_1)) (not thread_7_0))) ; checkpoint 1: thread 0
-(assert (=> (and block_7_1_1 (not check_7_1)) (not thread_7_1))) ; checkpoint 1: thread 1
+; checkpoint variables - check_<step>_<id>
+(assert (= check_7_0 (and block_7_0_0 block_7_0_1)))
+(assert (= check_7_1 (and block_7_1_0 block_7_1_1)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1551,6 +1539,18 @@
 (assert (or (not thread_7_1) (not flush_7_1)))
 (assert (or (not thread_7_1) (not exit_7)))
 (assert (or (not flush_7_1) (not exit_7)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_7_0 (=> (or stmt_7_0_0 stmt_7_0_1 stmt_7_0_5) (not thread_7_0)) (not flush_7_0)))
+(assert (ite sb-full_7_1 (=> stmt_7_1_4 (not thread_7_1)) (not flush_7_1)))
+
+; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> (and block_7_0_0 (not check_7_0)) (not thread_7_0))) ; checkpoint 0: thread 0
+(assert (=> (and block_7_0_1 (not check_7_0)) (not thread_7_1))) ; checkpoint 0: thread 1
+(assert (=> (and block_7_1_0 (not check_7_1)) (not thread_7_0))) ; checkpoint 1: thread 0
+(assert (=> (and block_7_1_1 (not check_7_1)) (not thread_7_1))) ; checkpoint 1: thread 1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 8
@@ -1615,14 +1615,6 @@
 (declare-fun thread_8_0 () Bool)
 (declare-fun thread_8_1 () Bool)
 
-; store buffer flush variables - flush_<step>_<thread>
-(declare-fun flush_8_0 () Bool)
-(declare-fun flush_8_1 () Bool)
-
-; checkpoint variables - check_<step>_<id>
-(declare-fun check_8_0 () Bool)
-(declare-fun check_8_1 () Bool)
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (declare-fun exec_8_0_0 () Bool)
 (declare-fun exec_8_0_1 () Bool)
@@ -1641,6 +1633,14 @@
 (declare-fun exec_8_1_4 () Bool)
 (declare-fun exec_8_1_5 () Bool)
 (declare-fun exec_8_1_6 () Bool)
+
+; store buffer flush variables - flush_<step>_<thread>
+(declare-fun flush_8_0 () Bool)
+(declare-fun flush_8_1 () Bool)
+
+; checkpoint variables - check_<step>_<id>
+(declare-fun check_8_0 () Bool)
+(declare-fun check_8_1 () Bool)
 
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1697,10 +1697,6 @@
 
 ; transition variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; checkpoint variables - check_<step>_<id>
-(assert (= check_8_0 (and block_8_0_0 block_8_0_1)))
-(assert (= check_8_1 (and block_8_1_0 block_8_1_1)))
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (assert (= exec_8_0_0 (and stmt_8_0_0 thread_8_0)))
 (assert (= exec_8_0_1 (and stmt_8_0_1 thread_8_0)))
@@ -1720,17 +1716,9 @@
 (assert (= exec_8_1_5 (and stmt_8_1_5 thread_8_1)))
 (assert (= exec_8_1_6 (and stmt_8_1_6 thread_8_1)))
 
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_8_0 (=> (or stmt_8_0_0 stmt_8_0_1 stmt_8_0_5) (not thread_8_0)) (not flush_8_0)))
-(assert (ite sb-full_8_1 (=> stmt_8_1_4 (not thread_8_1)) (not flush_8_1)))
-
-; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> (and block_8_0_0 (not check_8_0)) (not thread_8_0))) ; checkpoint 0: thread 0
-(assert (=> (and block_8_0_1 (not check_8_0)) (not thread_8_1))) ; checkpoint 0: thread 1
-(assert (=> (and block_8_1_0 (not check_8_1)) (not thread_8_0))) ; checkpoint 1: thread 0
-(assert (=> (and block_8_1_1 (not check_8_1)) (not thread_8_1))) ; checkpoint 1: thread 1
+; checkpoint variables - check_<step>_<id>
+(assert (= check_8_0 (and block_8_0_0 block_8_0_1)))
+(assert (= check_8_1 (and block_8_1_0 block_8_1_1)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1745,6 +1733,18 @@
 (assert (or (not thread_8_1) (not flush_8_1)))
 (assert (or (not thread_8_1) (not exit_8)))
 (assert (or (not flush_8_1) (not exit_8)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_8_0 (=> (or stmt_8_0_0 stmt_8_0_1 stmt_8_0_5) (not thread_8_0)) (not flush_8_0)))
+(assert (ite sb-full_8_1 (=> stmt_8_1_4 (not thread_8_1)) (not flush_8_1)))
+
+; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> (and block_8_0_0 (not check_8_0)) (not thread_8_0))) ; checkpoint 0: thread 0
+(assert (=> (and block_8_0_1 (not check_8_0)) (not thread_8_1))) ; checkpoint 0: thread 1
+(assert (=> (and block_8_1_0 (not check_8_1)) (not thread_8_0))) ; checkpoint 1: thread 0
+(assert (=> (and block_8_1_1 (not check_8_1)) (not thread_8_1))) ; checkpoint 1: thread 1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 9
@@ -1809,14 +1809,6 @@
 (declare-fun thread_9_0 () Bool)
 (declare-fun thread_9_1 () Bool)
 
-; store buffer flush variables - flush_<step>_<thread>
-(declare-fun flush_9_0 () Bool)
-(declare-fun flush_9_1 () Bool)
-
-; checkpoint variables - check_<step>_<id>
-(declare-fun check_9_0 () Bool)
-(declare-fun check_9_1 () Bool)
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (declare-fun exec_9_0_0 () Bool)
 (declare-fun exec_9_0_1 () Bool)
@@ -1835,6 +1827,14 @@
 (declare-fun exec_9_1_4 () Bool)
 (declare-fun exec_9_1_5 () Bool)
 (declare-fun exec_9_1_6 () Bool)
+
+; store buffer flush variables - flush_<step>_<thread>
+(declare-fun flush_9_0 () Bool)
+(declare-fun flush_9_1 () Bool)
+
+; checkpoint variables - check_<step>_<id>
+(declare-fun check_9_0 () Bool)
+(declare-fun check_9_1 () Bool)
 
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1891,10 +1891,6 @@
 
 ; transition variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; checkpoint variables - check_<step>_<id>
-(assert (= check_9_0 (and block_9_0_0 block_9_0_1)))
-(assert (= check_9_1 (and block_9_1_0 block_9_1_1)))
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (assert (= exec_9_0_0 (and stmt_9_0_0 thread_9_0)))
 (assert (= exec_9_0_1 (and stmt_9_0_1 thread_9_0)))
@@ -1914,17 +1910,9 @@
 (assert (= exec_9_1_5 (and stmt_9_1_5 thread_9_1)))
 (assert (= exec_9_1_6 (and stmt_9_1_6 thread_9_1)))
 
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_9_0 (=> (or stmt_9_0_0 stmt_9_0_1 stmt_9_0_5) (not thread_9_0)) (not flush_9_0)))
-(assert (ite sb-full_9_1 (=> stmt_9_1_4 (not thread_9_1)) (not flush_9_1)))
-
-; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> (and block_9_0_0 (not check_9_0)) (not thread_9_0))) ; checkpoint 0: thread 0
-(assert (=> (and block_9_0_1 (not check_9_0)) (not thread_9_1))) ; checkpoint 0: thread 1
-(assert (=> (and block_9_1_0 (not check_9_1)) (not thread_9_0))) ; checkpoint 1: thread 0
-(assert (=> (and block_9_1_1 (not check_9_1)) (not thread_9_1))) ; checkpoint 1: thread 1
+; checkpoint variables - check_<step>_<id>
+(assert (= check_9_0 (and block_9_0_0 block_9_0_1)))
+(assert (= check_9_1 (and block_9_1_0 block_9_1_1)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1939,6 +1927,18 @@
 (assert (or (not thread_9_1) (not flush_9_1)))
 (assert (or (not thread_9_1) (not exit_9)))
 (assert (or (not flush_9_1) (not exit_9)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_9_0 (=> (or stmt_9_0_0 stmt_9_0_1 stmt_9_0_5) (not thread_9_0)) (not flush_9_0)))
+(assert (ite sb-full_9_1 (=> stmt_9_1_4 (not thread_9_1)) (not flush_9_1)))
+
+; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> (and block_9_0_0 (not check_9_0)) (not thread_9_0))) ; checkpoint 0: thread 0
+(assert (=> (and block_9_0_1 (not check_9_0)) (not thread_9_1))) ; checkpoint 0: thread 1
+(assert (=> (and block_9_1_0 (not check_9_1)) (not thread_9_0))) ; checkpoint 1: thread 0
+(assert (=> (and block_9_1_1 (not check_9_1)) (not thread_9_1))) ; checkpoint 1: thread 1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 10
@@ -2003,14 +2003,6 @@
 (declare-fun thread_10_0 () Bool)
 (declare-fun thread_10_1 () Bool)
 
-; store buffer flush variables - flush_<step>_<thread>
-(declare-fun flush_10_0 () Bool)
-(declare-fun flush_10_1 () Bool)
-
-; checkpoint variables - check_<step>_<id>
-(declare-fun check_10_0 () Bool)
-(declare-fun check_10_1 () Bool)
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (declare-fun exec_10_0_0 () Bool)
 (declare-fun exec_10_0_1 () Bool)
@@ -2029,6 +2021,14 @@
 (declare-fun exec_10_1_4 () Bool)
 (declare-fun exec_10_1_5 () Bool)
 (declare-fun exec_10_1_6 () Bool)
+
+; store buffer flush variables - flush_<step>_<thread>
+(declare-fun flush_10_0 () Bool)
+(declare-fun flush_10_1 () Bool)
+
+; checkpoint variables - check_<step>_<id>
+(declare-fun check_10_0 () Bool)
+(declare-fun check_10_1 () Bool)
 
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -2085,10 +2085,6 @@
 
 ; transition variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; checkpoint variables - check_<step>_<id>
-(assert (= check_10_0 (and block_10_0_0 block_10_0_1)))
-(assert (= check_10_1 (and block_10_1_0 block_10_1_1)))
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (assert (= exec_10_0_0 (and stmt_10_0_0 thread_10_0)))
 (assert (= exec_10_0_1 (and stmt_10_0_1 thread_10_0)))
@@ -2108,17 +2104,9 @@
 (assert (= exec_10_1_5 (and stmt_10_1_5 thread_10_1)))
 (assert (= exec_10_1_6 (and stmt_10_1_6 thread_10_1)))
 
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_10_0 (=> (or stmt_10_0_0 stmt_10_0_1 stmt_10_0_5) (not thread_10_0)) (not flush_10_0)))
-(assert (ite sb-full_10_1 (=> stmt_10_1_4 (not thread_10_1)) (not flush_10_1)))
-
-; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> (and block_10_0_0 (not check_10_0)) (not thread_10_0))) ; checkpoint 0: thread 0
-(assert (=> (and block_10_0_1 (not check_10_0)) (not thread_10_1))) ; checkpoint 0: thread 1
-(assert (=> (and block_10_1_0 (not check_10_1)) (not thread_10_0))) ; checkpoint 1: thread 0
-(assert (=> (and block_10_1_1 (not check_10_1)) (not thread_10_1))) ; checkpoint 1: thread 1
+; checkpoint variables - check_<step>_<id>
+(assert (= check_10_0 (and block_10_0_0 block_10_0_1)))
+(assert (= check_10_1 (and block_10_1_0 block_10_1_1)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -2133,6 +2121,18 @@
 (assert (or (not thread_10_1) (not flush_10_1)))
 (assert (or (not thread_10_1) (not exit_10)))
 (assert (or (not flush_10_1) (not exit_10)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_10_0 (=> (or stmt_10_0_0 stmt_10_0_1 stmt_10_0_5) (not thread_10_0)) (not flush_10_0)))
+(assert (ite sb-full_10_1 (=> stmt_10_1_4 (not thread_10_1)) (not flush_10_1)))
+
+; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> (and block_10_0_0 (not check_10_0)) (not thread_10_0))) ; checkpoint 0: thread 0
+(assert (=> (and block_10_0_1 (not check_10_0)) (not thread_10_1))) ; checkpoint 0: thread 1
+(assert (=> (and block_10_1_0 (not check_10_1)) (not thread_10_0))) ; checkpoint 1: thread 0
+(assert (=> (and block_10_1_1 (not check_10_1)) (not thread_10_1))) ; checkpoint 1: thread 1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 11
@@ -2197,14 +2197,6 @@
 (declare-fun thread_11_0 () Bool)
 (declare-fun thread_11_1 () Bool)
 
-; store buffer flush variables - flush_<step>_<thread>
-(declare-fun flush_11_0 () Bool)
-(declare-fun flush_11_1 () Bool)
-
-; checkpoint variables - check_<step>_<id>
-(declare-fun check_11_0 () Bool)
-(declare-fun check_11_1 () Bool)
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (declare-fun exec_11_0_0 () Bool)
 (declare-fun exec_11_0_1 () Bool)
@@ -2223,6 +2215,14 @@
 (declare-fun exec_11_1_4 () Bool)
 (declare-fun exec_11_1_5 () Bool)
 (declare-fun exec_11_1_6 () Bool)
+
+; store buffer flush variables - flush_<step>_<thread>
+(declare-fun flush_11_0 () Bool)
+(declare-fun flush_11_1 () Bool)
+
+; checkpoint variables - check_<step>_<id>
+(declare-fun check_11_0 () Bool)
+(declare-fun check_11_1 () Bool)
 
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -2279,10 +2279,6 @@
 
 ; transition variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; checkpoint variables - check_<step>_<id>
-(assert (= check_11_0 (and block_11_0_0 block_11_0_1)))
-(assert (= check_11_1 (and block_11_1_0 block_11_1_1)))
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (assert (= exec_11_0_0 (and stmt_11_0_0 thread_11_0)))
 (assert (= exec_11_0_1 (and stmt_11_0_1 thread_11_0)))
@@ -2302,17 +2298,9 @@
 (assert (= exec_11_1_5 (and stmt_11_1_5 thread_11_1)))
 (assert (= exec_11_1_6 (and stmt_11_1_6 thread_11_1)))
 
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_11_0 (=> (or stmt_11_0_0 stmt_11_0_1 stmt_11_0_5) (not thread_11_0)) (not flush_11_0)))
-(assert (ite sb-full_11_1 (=> stmt_11_1_4 (not thread_11_1)) (not flush_11_1)))
-
-; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> (and block_11_0_0 (not check_11_0)) (not thread_11_0))) ; checkpoint 0: thread 0
-(assert (=> (and block_11_0_1 (not check_11_0)) (not thread_11_1))) ; checkpoint 0: thread 1
-(assert (=> (and block_11_1_0 (not check_11_1)) (not thread_11_0))) ; checkpoint 1: thread 0
-(assert (=> (and block_11_1_1 (not check_11_1)) (not thread_11_1))) ; checkpoint 1: thread 1
+; checkpoint variables - check_<step>_<id>
+(assert (= check_11_0 (and block_11_0_0 block_11_0_1)))
+(assert (= check_11_1 (and block_11_1_0 block_11_1_1)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -2327,6 +2315,18 @@
 (assert (or (not thread_11_1) (not flush_11_1)))
 (assert (or (not thread_11_1) (not exit_11)))
 (assert (or (not flush_11_1) (not exit_11)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_11_0 (=> (or stmt_11_0_0 stmt_11_0_1 stmt_11_0_5) (not thread_11_0)) (not flush_11_0)))
+(assert (ite sb-full_11_1 (=> stmt_11_1_4 (not thread_11_1)) (not flush_11_1)))
+
+; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> (and block_11_0_0 (not check_11_0)) (not thread_11_0))) ; checkpoint 0: thread 0
+(assert (=> (and block_11_0_1 (not check_11_0)) (not thread_11_1))) ; checkpoint 0: thread 1
+(assert (=> (and block_11_1_0 (not check_11_1)) (not thread_11_0))) ; checkpoint 1: thread 0
+(assert (=> (and block_11_1_1 (not check_11_1)) (not thread_11_1))) ; checkpoint 1: thread 1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 12
@@ -2391,14 +2391,6 @@
 (declare-fun thread_12_0 () Bool)
 (declare-fun thread_12_1 () Bool)
 
-; store buffer flush variables - flush_<step>_<thread>
-(declare-fun flush_12_0 () Bool)
-(declare-fun flush_12_1 () Bool)
-
-; checkpoint variables - check_<step>_<id>
-(declare-fun check_12_0 () Bool)
-(declare-fun check_12_1 () Bool)
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (declare-fun exec_12_0_0 () Bool)
 (declare-fun exec_12_0_1 () Bool)
@@ -2417,6 +2409,14 @@
 (declare-fun exec_12_1_4 () Bool)
 (declare-fun exec_12_1_5 () Bool)
 (declare-fun exec_12_1_6 () Bool)
+
+; store buffer flush variables - flush_<step>_<thread>
+(declare-fun flush_12_0 () Bool)
+(declare-fun flush_12_1 () Bool)
+
+; checkpoint variables - check_<step>_<id>
+(declare-fun check_12_0 () Bool)
+(declare-fun check_12_1 () Bool)
 
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -2473,10 +2473,6 @@
 
 ; transition variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; checkpoint variables - check_<step>_<id>
-(assert (= check_12_0 (and block_12_0_0 block_12_0_1)))
-(assert (= check_12_1 (and block_12_1_0 block_12_1_1)))
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (assert (= exec_12_0_0 (and stmt_12_0_0 thread_12_0)))
 (assert (= exec_12_0_1 (and stmt_12_0_1 thread_12_0)))
@@ -2496,17 +2492,9 @@
 (assert (= exec_12_1_5 (and stmt_12_1_5 thread_12_1)))
 (assert (= exec_12_1_6 (and stmt_12_1_6 thread_12_1)))
 
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_12_0 (=> (or stmt_12_0_0 stmt_12_0_1 stmt_12_0_5) (not thread_12_0)) (not flush_12_0)))
-(assert (ite sb-full_12_1 (=> stmt_12_1_4 (not thread_12_1)) (not flush_12_1)))
-
-; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> (and block_12_0_0 (not check_12_0)) (not thread_12_0))) ; checkpoint 0: thread 0
-(assert (=> (and block_12_0_1 (not check_12_0)) (not thread_12_1))) ; checkpoint 0: thread 1
-(assert (=> (and block_12_1_0 (not check_12_1)) (not thread_12_0))) ; checkpoint 1: thread 0
-(assert (=> (and block_12_1_1 (not check_12_1)) (not thread_12_1))) ; checkpoint 1: thread 1
+; checkpoint variables - check_<step>_<id>
+(assert (= check_12_0 (and block_12_0_0 block_12_0_1)))
+(assert (= check_12_1 (and block_12_1_0 block_12_1_1)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -2521,6 +2509,18 @@
 (assert (or (not thread_12_1) (not flush_12_1)))
 (assert (or (not thread_12_1) (not exit_12)))
 (assert (or (not flush_12_1) (not exit_12)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_12_0 (=> (or stmt_12_0_0 stmt_12_0_1 stmt_12_0_5) (not thread_12_0)) (not flush_12_0)))
+(assert (ite sb-full_12_1 (=> stmt_12_1_4 (not thread_12_1)) (not flush_12_1)))
+
+; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> (and block_12_0_0 (not check_12_0)) (not thread_12_0))) ; checkpoint 0: thread 0
+(assert (=> (and block_12_0_1 (not check_12_0)) (not thread_12_1))) ; checkpoint 0: thread 1
+(assert (=> (and block_12_1_0 (not check_12_1)) (not thread_12_0))) ; checkpoint 1: thread 0
+(assert (=> (and block_12_1_1 (not check_12_1)) (not thread_12_1))) ; checkpoint 1: thread 1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 13
@@ -2585,14 +2585,6 @@
 (declare-fun thread_13_0 () Bool)
 (declare-fun thread_13_1 () Bool)
 
-; store buffer flush variables - flush_<step>_<thread>
-(declare-fun flush_13_0 () Bool)
-(declare-fun flush_13_1 () Bool)
-
-; checkpoint variables - check_<step>_<id>
-(declare-fun check_13_0 () Bool)
-(declare-fun check_13_1 () Bool)
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (declare-fun exec_13_0_0 () Bool)
 (declare-fun exec_13_0_1 () Bool)
@@ -2611,6 +2603,14 @@
 (declare-fun exec_13_1_4 () Bool)
 (declare-fun exec_13_1_5 () Bool)
 (declare-fun exec_13_1_6 () Bool)
+
+; store buffer flush variables - flush_<step>_<thread>
+(declare-fun flush_13_0 () Bool)
+(declare-fun flush_13_1 () Bool)
+
+; checkpoint variables - check_<step>_<id>
+(declare-fun check_13_0 () Bool)
+(declare-fun check_13_1 () Bool)
 
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -2667,10 +2667,6 @@
 
 ; transition variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; checkpoint variables - check_<step>_<id>
-(assert (= check_13_0 (and block_13_0_0 block_13_0_1)))
-(assert (= check_13_1 (and block_13_1_0 block_13_1_1)))
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (assert (= exec_13_0_0 (and stmt_13_0_0 thread_13_0)))
 (assert (= exec_13_0_1 (and stmt_13_0_1 thread_13_0)))
@@ -2690,17 +2686,9 @@
 (assert (= exec_13_1_5 (and stmt_13_1_5 thread_13_1)))
 (assert (= exec_13_1_6 (and stmt_13_1_6 thread_13_1)))
 
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_13_0 (=> (or stmt_13_0_0 stmt_13_0_1 stmt_13_0_5) (not thread_13_0)) (not flush_13_0)))
-(assert (ite sb-full_13_1 (=> stmt_13_1_4 (not thread_13_1)) (not flush_13_1)))
-
-; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> (and block_13_0_0 (not check_13_0)) (not thread_13_0))) ; checkpoint 0: thread 0
-(assert (=> (and block_13_0_1 (not check_13_0)) (not thread_13_1))) ; checkpoint 0: thread 1
-(assert (=> (and block_13_1_0 (not check_13_1)) (not thread_13_0))) ; checkpoint 1: thread 0
-(assert (=> (and block_13_1_1 (not check_13_1)) (not thread_13_1))) ; checkpoint 1: thread 1
+; checkpoint variables - check_<step>_<id>
+(assert (= check_13_0 (and block_13_0_0 block_13_0_1)))
+(assert (= check_13_1 (and block_13_1_0 block_13_1_1)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -2715,6 +2703,18 @@
 (assert (or (not thread_13_1) (not flush_13_1)))
 (assert (or (not thread_13_1) (not exit_13)))
 (assert (or (not flush_13_1) (not exit_13)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_13_0 (=> (or stmt_13_0_0 stmt_13_0_1 stmt_13_0_5) (not thread_13_0)) (not flush_13_0)))
+(assert (ite sb-full_13_1 (=> stmt_13_1_4 (not thread_13_1)) (not flush_13_1)))
+
+; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> (and block_13_0_0 (not check_13_0)) (not thread_13_0))) ; checkpoint 0: thread 0
+(assert (=> (and block_13_0_1 (not check_13_0)) (not thread_13_1))) ; checkpoint 0: thread 1
+(assert (=> (and block_13_1_0 (not check_13_1)) (not thread_13_0))) ; checkpoint 1: thread 0
+(assert (=> (and block_13_1_1 (not check_13_1)) (not thread_13_1))) ; checkpoint 1: thread 1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 14
@@ -2779,14 +2779,6 @@
 (declare-fun thread_14_0 () Bool)
 (declare-fun thread_14_1 () Bool)
 
-; store buffer flush variables - flush_<step>_<thread>
-(declare-fun flush_14_0 () Bool)
-(declare-fun flush_14_1 () Bool)
-
-; checkpoint variables - check_<step>_<id>
-(declare-fun check_14_0 () Bool)
-(declare-fun check_14_1 () Bool)
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (declare-fun exec_14_0_0 () Bool)
 (declare-fun exec_14_0_1 () Bool)
@@ -2805,6 +2797,14 @@
 (declare-fun exec_14_1_4 () Bool)
 (declare-fun exec_14_1_5 () Bool)
 (declare-fun exec_14_1_6 () Bool)
+
+; store buffer flush variables - flush_<step>_<thread>
+(declare-fun flush_14_0 () Bool)
+(declare-fun flush_14_1 () Bool)
+
+; checkpoint variables - check_<step>_<id>
+(declare-fun check_14_0 () Bool)
+(declare-fun check_14_1 () Bool)
 
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -2861,10 +2861,6 @@
 
 ; transition variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; checkpoint variables - check_<step>_<id>
-(assert (= check_14_0 (and block_14_0_0 block_14_0_1)))
-(assert (= check_14_1 (and block_14_1_0 block_14_1_1)))
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (assert (= exec_14_0_0 (and stmt_14_0_0 thread_14_0)))
 (assert (= exec_14_0_1 (and stmt_14_0_1 thread_14_0)))
@@ -2884,17 +2880,9 @@
 (assert (= exec_14_1_5 (and stmt_14_1_5 thread_14_1)))
 (assert (= exec_14_1_6 (and stmt_14_1_6 thread_14_1)))
 
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_14_0 (=> (or stmt_14_0_0 stmt_14_0_1 stmt_14_0_5) (not thread_14_0)) (not flush_14_0)))
-(assert (ite sb-full_14_1 (=> stmt_14_1_4 (not thread_14_1)) (not flush_14_1)))
-
-; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> (and block_14_0_0 (not check_14_0)) (not thread_14_0))) ; checkpoint 0: thread 0
-(assert (=> (and block_14_0_1 (not check_14_0)) (not thread_14_1))) ; checkpoint 0: thread 1
-(assert (=> (and block_14_1_0 (not check_14_1)) (not thread_14_0))) ; checkpoint 1: thread 0
-(assert (=> (and block_14_1_1 (not check_14_1)) (not thread_14_1))) ; checkpoint 1: thread 1
+; checkpoint variables - check_<step>_<id>
+(assert (= check_14_0 (and block_14_0_0 block_14_0_1)))
+(assert (= check_14_1 (and block_14_1_0 block_14_1_1)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -2909,6 +2897,18 @@
 (assert (or (not thread_14_1) (not flush_14_1)))
 (assert (or (not thread_14_1) (not exit_14)))
 (assert (or (not flush_14_1) (not exit_14)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_14_0 (=> (or stmt_14_0_0 stmt_14_0_1 stmt_14_0_5) (not thread_14_0)) (not flush_14_0)))
+(assert (ite sb-full_14_1 (=> stmt_14_1_4 (not thread_14_1)) (not flush_14_1)))
+
+; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> (and block_14_0_0 (not check_14_0)) (not thread_14_0))) ; checkpoint 0: thread 0
+(assert (=> (and block_14_0_1 (not check_14_0)) (not thread_14_1))) ; checkpoint 0: thread 1
+(assert (=> (and block_14_1_0 (not check_14_1)) (not thread_14_0))) ; checkpoint 1: thread 0
+(assert (=> (and block_14_1_1 (not check_14_1)) (not thread_14_1))) ; checkpoint 1: thread 1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 15
@@ -2973,14 +2973,6 @@
 (declare-fun thread_15_0 () Bool)
 (declare-fun thread_15_1 () Bool)
 
-; store buffer flush variables - flush_<step>_<thread>
-(declare-fun flush_15_0 () Bool)
-(declare-fun flush_15_1 () Bool)
-
-; checkpoint variables - check_<step>_<id>
-(declare-fun check_15_0 () Bool)
-(declare-fun check_15_1 () Bool)
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (declare-fun exec_15_0_0 () Bool)
 (declare-fun exec_15_0_1 () Bool)
@@ -2999,6 +2991,14 @@
 (declare-fun exec_15_1_4 () Bool)
 (declare-fun exec_15_1_5 () Bool)
 (declare-fun exec_15_1_6 () Bool)
+
+; store buffer flush variables - flush_<step>_<thread>
+(declare-fun flush_15_0 () Bool)
+(declare-fun flush_15_1 () Bool)
+
+; checkpoint variables - check_<step>_<id>
+(declare-fun check_15_0 () Bool)
+(declare-fun check_15_1 () Bool)
 
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -3055,10 +3055,6 @@
 
 ; transition variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; checkpoint variables - check_<step>_<id>
-(assert (= check_15_0 (and block_15_0_0 block_15_0_1)))
-(assert (= check_15_1 (and block_15_1_0 block_15_1_1)))
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (assert (= exec_15_0_0 (and stmt_15_0_0 thread_15_0)))
 (assert (= exec_15_0_1 (and stmt_15_0_1 thread_15_0)))
@@ -3078,17 +3074,9 @@
 (assert (= exec_15_1_5 (and stmt_15_1_5 thread_15_1)))
 (assert (= exec_15_1_6 (and stmt_15_1_6 thread_15_1)))
 
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_15_0 (=> (or stmt_15_0_0 stmt_15_0_1 stmt_15_0_5) (not thread_15_0)) (not flush_15_0)))
-(assert (ite sb-full_15_1 (=> stmt_15_1_4 (not thread_15_1)) (not flush_15_1)))
-
-; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> (and block_15_0_0 (not check_15_0)) (not thread_15_0))) ; checkpoint 0: thread 0
-(assert (=> (and block_15_0_1 (not check_15_0)) (not thread_15_1))) ; checkpoint 0: thread 1
-(assert (=> (and block_15_1_0 (not check_15_1)) (not thread_15_0))) ; checkpoint 1: thread 0
-(assert (=> (and block_15_1_1 (not check_15_1)) (not thread_15_1))) ; checkpoint 1: thread 1
+; checkpoint variables - check_<step>_<id>
+(assert (= check_15_0 (and block_15_0_0 block_15_0_1)))
+(assert (= check_15_1 (and block_15_1_0 block_15_1_1)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -3103,6 +3091,18 @@
 (assert (or (not thread_15_1) (not flush_15_1)))
 (assert (or (not thread_15_1) (not exit_15)))
 (assert (or (not flush_15_1) (not exit_15)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_15_0 (=> (or stmt_15_0_0 stmt_15_0_1 stmt_15_0_5) (not thread_15_0)) (not flush_15_0)))
+(assert (ite sb-full_15_1 (=> stmt_15_1_4 (not thread_15_1)) (not flush_15_1)))
+
+; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> (and block_15_0_0 (not check_15_0)) (not thread_15_0))) ; checkpoint 0: thread 0
+(assert (=> (and block_15_0_1 (not check_15_0)) (not thread_15_1))) ; checkpoint 0: thread 1
+(assert (=> (and block_15_1_0 (not check_15_1)) (not thread_15_0))) ; checkpoint 1: thread 0
+(assert (=> (and block_15_1_1 (not check_15_1)) (not thread_15_1))) ; checkpoint 1: thread 1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 16
@@ -3167,14 +3167,6 @@
 (declare-fun thread_16_0 () Bool)
 (declare-fun thread_16_1 () Bool)
 
-; store buffer flush variables - flush_<step>_<thread>
-(declare-fun flush_16_0 () Bool)
-(declare-fun flush_16_1 () Bool)
-
-; checkpoint variables - check_<step>_<id>
-(declare-fun check_16_0 () Bool)
-(declare-fun check_16_1 () Bool)
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (declare-fun exec_16_0_0 () Bool)
 (declare-fun exec_16_0_1 () Bool)
@@ -3193,6 +3185,14 @@
 (declare-fun exec_16_1_4 () Bool)
 (declare-fun exec_16_1_5 () Bool)
 (declare-fun exec_16_1_6 () Bool)
+
+; store buffer flush variables - flush_<step>_<thread>
+(declare-fun flush_16_0 () Bool)
+(declare-fun flush_16_1 () Bool)
+
+; checkpoint variables - check_<step>_<id>
+(declare-fun check_16_0 () Bool)
+(declare-fun check_16_1 () Bool)
 
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -3249,10 +3249,6 @@
 
 ; transition variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; checkpoint variables - check_<step>_<id>
-(assert (= check_16_0 (and block_16_0_0 block_16_0_1)))
-(assert (= check_16_1 (and block_16_1_0 block_16_1_1)))
-
 ; statement execution variables - exec_<step>_<thread>_<pc>
 (assert (= exec_16_0_0 (and stmt_16_0_0 thread_16_0)))
 (assert (= exec_16_0_1 (and stmt_16_0_1 thread_16_0)))
@@ -3272,17 +3268,9 @@
 (assert (= exec_16_1_5 (and stmt_16_1_5 thread_16_1)))
 (assert (= exec_16_1_6 (and stmt_16_1_6 thread_16_1)))
 
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_16_0 (=> (or stmt_16_0_0 stmt_16_0_1 stmt_16_0_5) (not thread_16_0)) (not flush_16_0)))
-(assert (ite sb-full_16_1 (=> stmt_16_1_4 (not thread_16_1)) (not flush_16_1)))
-
-; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> (and block_16_0_0 (not check_16_0)) (not thread_16_0))) ; checkpoint 0: thread 0
-(assert (=> (and block_16_0_1 (not check_16_0)) (not thread_16_1))) ; checkpoint 0: thread 1
-(assert (=> (and block_16_1_0 (not check_16_1)) (not thread_16_0))) ; checkpoint 1: thread 0
-(assert (=> (and block_16_1_1 (not check_16_1)) (not thread_16_1))) ; checkpoint 1: thread 1
+; checkpoint variables - check_<step>_<id>
+(assert (= check_16_0 (and block_16_0_0 block_16_0_1)))
+(assert (= check_16_1 (and block_16_1_0 block_16_1_1)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -3297,6 +3285,18 @@
 (assert (or (not thread_16_1) (not flush_16_1)))
 (assert (or (not thread_16_1) (not exit_16)))
 (assert (or (not flush_16_1) (not exit_16)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_16_0 (=> (or stmt_16_0_0 stmt_16_0_1 stmt_16_0_5) (not thread_16_0)) (not flush_16_0)))
+(assert (ite sb-full_16_1 (=> stmt_16_1_4 (not thread_16_1)) (not flush_16_1)))
+
+; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> (and block_16_0_0 (not check_16_0)) (not thread_16_0))) ; checkpoint 0: thread 0
+(assert (=> (and block_16_0_1 (not check_16_0)) (not thread_16_1))) ; checkpoint 0: thread 1
+(assert (=> (and block_16_1_0 (not check_16_1)) (not thread_16_0))) ; checkpoint 1: thread 0
+(assert (=> (and block_16_1_1 (not check_16_1)) (not thread_16_1))) ; checkpoint 1: thread 1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; exit code

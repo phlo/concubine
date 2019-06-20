@@ -235,10 +235,10 @@ void Btor2_Encoder::declare_block ()
 void Btor2_Encoder::declare_exit_flag ()
 {
   if (verbose)
-    formula << btor2::comment(exit_sym + " flag") << eol;
+    formula << btor2::comment(exit_flag_sym + " flag") << eol;
 
   formula <<
-    btor2::state(nid_exit = nid(), sid_bool, exit_sym) <<
+    btor2::state(nid_exit_flag = nid(), sid_bool, exit_flag_sym) <<
     eol;
 }
 
@@ -509,15 +509,15 @@ void Btor2_Encoder::define_exit_flag ()
   if (verbose)
     formula << btor2::comment("exit flag") << eol;
 
-  formula << btor2::init(nid(), sid_bool, nid_exit, nid_false);
+  formula << btor2::init(nid(), sid_bool, nid_exit_flag, nid_false);
 
-  vector<string> args({nid_exit});
+  vector<string> args({nid_exit_flag});
 
   for (const auto & [t, pcs] : exit_pcs)
     for (const auto & p : pcs)
       args.push_back(nids_exec[t][p]);
 
-  string nid_cond = nid_exit;
+  string nid_cond = nid_exit_flag;
 
   if (args.size() > 1)
     {
@@ -525,7 +525,9 @@ void Btor2_Encoder::define_exit_flag ()
       nid_cond = to_string(node - 1);
     }
 
-  formula << btor2::next(nid(), sid_bool, nid_exit, nid_cond, exit_sym) << eol;
+  formula
+    << btor2::next(nid(), sid_bool, nid_exit_flag, nid_cond, exit_flag_sym)
+    << eol;
 }
 
 void Btor2_Encoder::define_exit_code ()
@@ -615,7 +617,7 @@ void Btor2_Encoder::add_thread_scheduling ()
   for (const auto & t : nids_thread)
     variables.push_back(t.second);
 
-  variables.push_back(nid_exit);
+  variables.push_back(nid_exit_flag);
 
   formula <<
     (use_sinz_constraint

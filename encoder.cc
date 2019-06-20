@@ -19,7 +19,7 @@ const string Encoder::exec_sym      = "exec";
 const string Encoder::cas_sym       = "cas";
 const string Encoder::block_sym     = "block";
 const string Encoder::check_sym     = "check";
-const string Encoder::exit_sym      = "exit";
+const string Encoder::exit_flag_sym = "exit";
 
 Encoder::Encoder (const Program_list_ptr p, bound_t b) :
   programs(p),
@@ -32,19 +32,19 @@ Encoder::Encoder (const Program_list_ptr p, bound_t b) :
       {
         const Instruction_ptr & op = program[pc];
 
-        /* collect statements requiring an empty store buffer */
+        // collect statements requiring an empty store buffer
         if (op->requires_flush())
           flush_pcs[thread].insert(pc);
 
-        /* collect CHECK statemets */
+        // collect checkpoints
         if (Check_ptr s = dynamic_pointer_cast<Check>(op))
           check_pcs[s->arg][thread].insert(pc);
 
-        /* collect exit calls */
+        // collect exit calls
         if (Exit_ptr e = dynamic_pointer_cast<Exit>(op))
           exit_pcs[thread].push_back(pc);
 
-        /* collect CAS statemets */
+        // collect CAS statemets
         if (Cas_ptr c = dynamic_pointer_cast<Cas>(op))
           cas_threads.insert(thread);
       }

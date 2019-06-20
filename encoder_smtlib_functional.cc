@@ -217,22 +217,22 @@ void SMTLib_Encoder_Functional::define_heap ()
   formula << eol;
 }
 
-void SMTLib_Encoder_Functional::define_exit ()
+void SMTLib_Encoder_Functional::define_exit_flag ()
 {
   if (exit_pcs.empty())
     return;
 
   if (verbose)
-    formula << exit_comment << eol;
+    formula << exit_flag_comment << eol;
 
-  vector<string> args {exit_var(prev)};
+  vector<string> args {exit_flag_var(prev)};
 
   iterate_threads([this, &args] {
     for (const word_t & exit_pc : exit_pcs[thread])
       args.push_back(exec_var(prev, thread, exit_pc));
   });
 
-  formula << assign_var(exit_var(), smtlib::lor(args)) << eol << eol;
+  formula << assign_var(exit_flag_var(), smtlib::lor(args)) << eol << eol;
 }
 
 // TODO
@@ -273,7 +273,7 @@ void SMTLib_Encoder_Functional::define_states ()
   define_block();
 
   define_heap();
-  define_exit();
+  define_exit_flag();
 }
 
 void SMTLib_Encoder_Functional::encode ()

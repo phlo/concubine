@@ -739,15 +739,15 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_heap)
     encoder->str());
 }
 
-/* SMTLib_Encoder_Functional::define_exit *************************************/
-TEST_F(SMTLib_Encoder_Functional_Test, define_exit)
+/* SMTLib_Encoder_Functional::define_exit_flag ********************************/
+TEST_F(SMTLib_Encoder_Functional_Test, define_exit_flag)
 {
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program("EXIT " + to_string(i) + "\n"));
 
   reset_encoder();
 
-  encoder->define_exit();
+  encoder->define_exit_flag();
 
   ASSERT_EQ(
     "; exit flag - exit_<step>\n"
@@ -759,7 +759,7 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_exit)
   reset_encoder();
 
   verbose = false;
-  encoder->define_exit();
+  encoder->define_exit_flag();
   verbose = true;
 
   ASSERT_EQ(
@@ -768,9 +768,9 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_exit)
     encoder->str());
 }
 
-TEST_F(SMTLib_Encoder_Functional_Test, define_exit_empty)
+TEST_F(SMTLib_Encoder_Functional_Test, define_exit_flag_empty)
 {
-  encoder->define_exit();
+  encoder->define_exit_flag();
 
   ASSERT_EQ("", encoder->str());
 }
