@@ -848,6 +848,18 @@ namespace btor2
                          std::vector<std::string> const & vars
                         )
     {
+      switch (vars.size())
+        {
+        case 0: throw std::runtime_error("no arguments");
+        case 1: return constraint(std::to_string(nid++), vars.front());
+        case 2:
+          {
+            std::string c = lxor(std::to_string(nid++), sid, vars[0], vars[1]);
+            return c + constraint(nid);
+          }
+        default: break;
+        }
+
       std::ostringstream os;
       std::vector<std::string>::const_iterator it1, it2;
 
@@ -887,6 +899,18 @@ namespace btor2
                         std::vector<std::string> const & vars
                        )
     {
+      switch (vars.size())
+        {
+        case 0: throw std::runtime_error("no arguments");
+        case 1: return constraint(std::to_string(nid++), vars.front());
+        case 2:
+          {
+            std::string c = lxor(std::to_string(nid++), sid, vars[0], vars[1]);
+            return c + constraint(nid);
+          }
+        default: break;
+        }
+
       std::ostringstream os;
 
       unsigned int n = vars.size();

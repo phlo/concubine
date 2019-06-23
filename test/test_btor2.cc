@@ -688,13 +688,17 @@ TEST(Btor2_Test, cardinality_exactly_one_naive)
   btor2::nid_t nid = 10;
 
   ASSERT_EQ(
-    "10 or 1 2 3\n"
-    "11 constraint 10\n"
-    "12 nand 1 2 3\n"
-    "13 constraint 12\n",
-    btor2::card_constraint_naive(nid, "1", {"2", "3"}));
+    "10 constraint 2\n",
+    btor2::card_constraint_naive(nid, "1", {"2"}));
 
-  ASSERT_EQ(nid, 14);
+  ASSERT_EQ(nid, 11);
+
+  ASSERT_EQ(
+    "10 xor 1 2 3\n"
+    "11 constraint 10\n",
+    btor2::card_constraint_naive(nid = 10, "1", {"2", "3"}));
+
+  ASSERT_EQ(nid, 12);
 
   ASSERT_EQ(
     "10 or 1 2 3\n"
@@ -782,19 +786,17 @@ TEST(Btor2_Test, cardinality_exactly_one_sinz)
   btor2::nid_t nid = 10;
 
   ASSERT_EQ(
-    "10 or 1 2 3\n"
-    "11 constraint 10\n"
-    "12 input 1 card_aux_0\n"
-    "13 not 1 2\n"
-    "14 or 1 12 13\n"
-    "15 constraint 14\n"
-    "16 not 1 3\n"
-    "17 not 1 12\n"
-    "18 or 1 16 17\n"
-    "19 constraint 18\n",
-    btor2::card_constraint_sinz(nid, "1", {"2", "3"}));
+    "10 constraint 2\n",
+    btor2::card_constraint_naive(nid, "1", {"2"}));
 
-  ASSERT_EQ(nid, 20);
+  ASSERT_EQ(nid, 11);
+
+  ASSERT_EQ(
+    "10 xor 1 2 3\n"
+    "11 constraint 10\n",
+    btor2::card_constraint_naive(nid = 10, "1", {"2", "3"}));
+
+  ASSERT_EQ(nid, 12);
 
   ASSERT_EQ(
     "10 or 1 2 3\n"
