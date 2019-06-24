@@ -40,7 +40,7 @@ SMTLib_Encoder_Functional::SMTLib_Encoder_Functional (
 void SMTLib_Encoder_Functional::define_accu ()
 {
   if (verbose)
-    formula << accu_comment << eol;
+    formula << accu_comment;
 
   DEFINE_STATE(Update::accu, Types::accu, accu_var);
 }
@@ -48,7 +48,7 @@ void SMTLib_Encoder_Functional::define_accu ()
 void SMTLib_Encoder_Functional::define_mem ()
 {
   if (verbose)
-    formula << mem_comment << eol;
+    formula << mem_comment;
 
   DEFINE_STATE(Update::mem, Types::mem, mem_var);
 }
@@ -56,7 +56,7 @@ void SMTLib_Encoder_Functional::define_mem ()
 void SMTLib_Encoder_Functional::define_sb_adr ()
 {
   if (verbose)
-    formula << sb_adr_comment << eol;
+    formula << sb_adr_comment;
 
   DEFINE_STATE(Update::sb_adr, Types::write, sb_adr_var);
 }
@@ -64,7 +64,7 @@ void SMTLib_Encoder_Functional::define_sb_adr ()
 void SMTLib_Encoder_Functional::define_sb_val ()
 {
   if (verbose)
-    formula << sb_val_comment << eol;
+    formula << sb_val_comment;
 
   DEFINE_STATE(Update::sb_val, Types::write, sb_val_var);
 }
@@ -72,7 +72,7 @@ void SMTLib_Encoder_Functional::define_sb_val ()
 void SMTLib_Encoder_Functional::define_sb_full ()
 {
   if (verbose)
-    formula << sb_full_comment << eol;
+    formula << sb_full_comment;
 
   iterate_programs([this] (const Program & program) {
     vector<string> args;
@@ -99,7 +99,7 @@ void SMTLib_Encoder_Functional::define_sb_full ()
 void SMTLib_Encoder_Functional::define_stmt ()
 {
   if (verbose)
-    formula << stmt_comment << eol;
+    formula << stmt_comment;
 
   iterate_programs([this] (const Program & program) {
     for (pc = 0; pc < program.size(); pc++)
@@ -150,7 +150,7 @@ void SMTLib_Encoder_Functional::define_block ()
     return;
 
   if (verbose)
-    formula << block_comment << eol;
+    formula << block_comment;
 
   for (const auto & [c, threads] : check_pcs)
     for (const auto & [t, pcs] : threads)
@@ -180,7 +180,7 @@ void SMTLib_Encoder_Functional::define_block ()
 void SMTLib_Encoder_Functional::define_heap ()
 {
   if (verbose)
-    formula << heap_comment << eol;
+    formula << heap_comment;
 
   update = Update::heap;
 
@@ -223,7 +223,7 @@ void SMTLib_Encoder_Functional::define_exit_flag ()
     return;
 
   if (verbose)
-    formula << exit_flag_comment << eol;
+    formula << exit_flag_comment;
 
   vector<string> args {exit_flag_var(prev)};
 

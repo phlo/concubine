@@ -15,7 +15,7 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_accu)
   encoder->define_accu();
 
   ASSERT_EQ(
-    "; accu states - accu_<step>_<thread>\n"
+    "; accu variables - accu_<step>_<thread>\n"
     "(assert (= accu_1_0 "
       "(ite exec_0_0_0 " // LOAD
         "(ite (and sb-full_0_0 (= sb-adr_0_0 #x0001)) "
@@ -151,7 +151,7 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_mem)
   encoder->define_mem();
 
   ASSERT_EQ(
-    "; mem states - mem_<step>_<thread>\n"
+    "; mem variables - mem_<step>_<thread>\n"
     "(assert (= mem_1_0 "
       "(ite exec_0_0_13 "
         "(ite (and sb-full_0_0 (= sb-adr_0_0 #x0001)) "
@@ -212,7 +212,7 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_sb_adr)
   encoder->define_sb_adr();
 
   ASSERT_EQ(
-    "; store buffer address states - sb-adr_<step>_<thread>\n"
+    "; store buffer address variables - sb-adr_<step>_<thread>\n"
     "(assert (= sb-adr_1_0 (ite exec_0_0_1 #x0001 sb-adr_0_0)))\n"
     "(assert (= sb-adr_1_1 (ite exec_0_1_1 #x0001 sb-adr_0_1)))\n"
     "(assert (= sb-adr_1_2 (ite exec_0_2_1 #x0001 sb-adr_0_2)))\n"
@@ -243,7 +243,7 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_sb_val)
   encoder->define_sb_val();
 
   ASSERT_EQ(
-    "; store buffer value states - sb-val_<step>_<thread>\n"
+    "; store buffer value variables - sb-val_<step>_<thread>\n"
     "(assert (= sb-val_1_0 (ite exec_0_0_1 accu_0_0 sb-val_0_0)))\n"
     "(assert (= sb-val_1_1 (ite exec_0_1_1 accu_0_1 sb-val_0_1)))\n"
     "(assert (= sb-val_1_2 (ite exec_0_2_1 accu_0_2 sb-val_0_2)))\n"
@@ -274,7 +274,7 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_sb_full)
   encoder->define_sb_full();
 
   ASSERT_EQ(
-    "; store buffer full states - sb-full_<step>_<thread>\n"
+    "; store buffer full variables - sb-full_<step>_<thread>\n"
     "(assert (= sb-full_1_0 (ite flush_0_0 false (or exec_0_0_1 sb-full_0_0))))\n"
     "(assert (= sb-full_1_1 (ite flush_0_1 false (or exec_0_1_1 sb-full_0_1))))\n"
     "(assert (= sb-full_1_2 (ite flush_0_2 false (or exec_0_2_1 sb-full_0_2))))\n"
@@ -683,7 +683,7 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_heap)
   encoder->define_heap();
 
   ASSERT_EQ(
-    "; heap state - heap_<step>\n"
+    "; heap variable - heap_<step>\n"
     "(assert (= heap_1 "
       "(ite flush_0_0 " // FLUSH
         "(store heap_0 sb-adr_0_0 sb-val_0_0) "
@@ -750,7 +750,7 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_exit_flag)
   encoder->define_exit_flag();
 
   ASSERT_EQ(
-    "; exit flag - exit_<step>\n"
+    "; exit flag variable - exit_<step>\n"
     "(assert (= exit_1 (or exit_0 exec_0_0_0 exec_0_1_0 exec_0_2_0)))\n"
     "\n",
     encoder->str());
@@ -846,25 +846,25 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_states)
   ASSERT_EQ(
     "; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "; accu states - accu_<step>_<thread>\n"
+    "; accu variables - accu_<step>_<thread>\n"
     "(assert (= accu_1_0 accu_0_0))\n"
     "\n"
-    "; mem states - mem_<step>_<thread>\n"
+    "; mem variables - mem_<step>_<thread>\n"
     "(assert (= mem_1_0 mem_0_0))\n"
     "\n"
-    "; store buffer address states - sb-adr_<step>_<thread>\n"
+    "; store buffer address variables - sb-adr_<step>_<thread>\n"
     "(assert (= sb-adr_1_0 sb-adr_0_0))\n"
     "\n"
-    "; store buffer value states - sb-val_<step>_<thread>\n"
+    "; store buffer value variables - sb-val_<step>_<thread>\n"
     "(assert (= sb-val_1_0 sb-val_0_0))\n"
     "\n"
-    "; store buffer full states - sb-full_<step>_<thread>\n"
+    "; store buffer full variables - sb-full_<step>_<thread>\n"
     "(assert (= sb-full_1_0 (ite flush_0_0 false sb-full_0_0)))\n"
     "\n"
     "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
     "(assert (= stmt_1_0_0 (ite stmt_0_0_0 exec_0_0_0 (and stmt_0_0_0 (not exec_0_0_0)))))\n"
     "\n"
-    "; heap state - heap_<step>\n"
+    "; heap variable - heap_<step>\n"
     "(assert (= heap_1 (ite flush_0_0 (store heap_0 sb-adr_0_0 sb-val_0_0) heap_0)))\n"
     "\n",
     encoder->str());
@@ -909,19 +909,19 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_states_check_exit)
   ASSERT_EQ(
     "; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "; accu states - accu_<step>_<thread>\n"
+    "; accu variables - accu_<step>_<thread>\n"
     "(assert (= accu_1_0 accu_0_0))\n"
     "\n"
-    "; mem states - mem_<step>_<thread>\n"
+    "; mem variables - mem_<step>_<thread>\n"
     "(assert (= mem_1_0 mem_0_0))\n"
     "\n"
-    "; store buffer address states - sb-adr_<step>_<thread>\n"
+    "; store buffer address variables - sb-adr_<step>_<thread>\n"
     "(assert (= sb-adr_1_0 sb-adr_0_0))\n"
     "\n"
-    "; store buffer value states - sb-val_<step>_<thread>\n"
+    "; store buffer value variables - sb-val_<step>_<thread>\n"
     "(assert (= sb-val_1_0 sb-val_0_0))\n"
     "\n"
-    "; store buffer full states - sb-full_<step>_<thread>\n"
+    "; store buffer full variables - sb-full_<step>_<thread>\n"
     "(assert (= sb-full_1_0 (ite flush_0_0 false sb-full_0_0)))\n"
     "\n"
     "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
@@ -931,10 +931,10 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_states_check_exit)
     "; blocking variables - block_<step>_<id>_<thread>\n"
     "(assert (= block_1_0_0 (ite check_0_0 false (or exec_0_0_0 block_0_0_0))))\n"
     "\n"
-    "; heap state - heap_<step>\n"
+    "; heap variable - heap_<step>\n"
     "(assert (= heap_1 (ite flush_0_0 (store heap_0 sb-adr_0_0 sb-val_0_0) heap_0)))\n"
     "\n"
-    "; exit flag - exit_<step>\n"
+    "; exit flag variable - exit_<step>\n"
     "(assert (= exit_1 (or exit_0 exec_0_0_1)))\n"
     "\n",
     encoder->str());

@@ -4,22 +4,39 @@ using namespace std;
 
 const string Encoder::accu_sym      = "accu";
 const string Encoder::mem_sym       = "mem";
-
 const string Encoder::sb_adr_sym    = "sb-adr";
 const string Encoder::sb_val_sym    = "sb-val";
 const string Encoder::sb_full_sym   = "sb-full";
+const string Encoder::stmt_sym      = "stmt";
+const string Encoder::block_sym     = "block";
 
 const string Encoder::heap_sym      = "heap";
+const string Encoder::exit_flag_sym = "exit";
 const string Encoder::exit_code_sym = "exit-code";
 
 const string Encoder::thread_sym    = "thread";
-const string Encoder::flush_sym     = "flush";
-const string Encoder::stmt_sym      = "stmt";
 const string Encoder::exec_sym      = "exec";
-const string Encoder::cas_sym       = "cas";
-const string Encoder::block_sym     = "block";
+const string Encoder::flush_sym     = "flush";
 const string Encoder::check_sym     = "check";
-const string Encoder::exit_flag_sym = "exit";
+const string Encoder::cas_sym       = "cas";
+
+const string Encoder::accu_comment = "accu variables";
+const string Encoder::mem_comment = "mem variables";
+const string Encoder::sb_adr_comment = "store buffer address variables";
+const string Encoder::sb_val_comment = "store buffer value variables";
+const string Encoder::sb_full_comment = "store buffer full variables";
+const string Encoder::stmt_comment = "statement activation variables";
+const string Encoder::block_comment = "blocking variables";
+
+const string Encoder::heap_comment = "heap variable";
+const string Encoder::exit_flag_comment = "exit flag variable";
+const string Encoder::exit_code_comment = "exit code variable";
+
+const string Encoder::thread_comment = "thread activation variables";
+const string Encoder::exec_comment = "statement execution variables";
+const string Encoder::flush_comment = "store buffer flush variables";
+const string Encoder::check_comment = "checkpoint variables";
+const string Encoder::cas_comment = "CAS condition variables";
 
 Encoder::Encoder (const Program_list_ptr p, bound_t b) :
   programs(p),
@@ -34,7 +51,7 @@ Encoder::Encoder (const Program_list_ptr p, bound_t b) :
 
         // collect statements requiring an empty store buffer
         if (op->requires_flush())
-          flush_pcs[thread].insert(pc);
+          flush_pcs[thread].push_back(pc);
 
         // collect checkpoints
         if (Check_ptr s = dynamic_pointer_cast<Check>(op))

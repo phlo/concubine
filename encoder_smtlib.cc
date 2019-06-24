@@ -9,46 +9,63 @@ using namespace std;
 const string SMTLib_Encoder::bv_sort = smtlib::bitvector(word_size);
 
 const string SMTLib_Encoder::accu_comment =
-  "; accu states - " + accu_sym + "_<step>_<thread>";
+  smtlib::comment(
+    Encoder::accu_comment + " - " + accu_sym + "_<step>_<thread>" + eol);
 
 const string SMTLib_Encoder::mem_comment =
-  "; mem states - " + mem_sym + "_<step>_<thread>";
+  smtlib::comment(
+    Encoder::mem_comment + " - " + mem_sym + "_<step>_<thread>" + eol);
 
 const string SMTLib_Encoder::sb_adr_comment =
-  "; store buffer address states - " + sb_adr_sym + "_<step>_<thread>";
+  smtlib::comment(
+    Encoder::sb_adr_comment + " - " + sb_adr_sym + "_<step>_<thread>" + eol);
 
 const string SMTLib_Encoder::sb_val_comment =
-  "; store buffer value states - " + sb_val_sym + "_<step>_<thread>";
+  smtlib::comment(
+    Encoder::sb_val_comment + " - " + sb_val_sym + "_<step>_<thread>" + eol);
 
 const string SMTLib_Encoder::sb_full_comment =
-  "; store buffer full states - " + sb_full_sym + "_<step>_<thread>";
+  smtlib::comment(
+    Encoder::sb_full_comment + " - " + sb_full_sym + "_<step>_<thread>" + eol);
 
 const string SMTLib_Encoder::stmt_comment =
-  "; statement activation variables - " + stmt_sym + "_<step>_<thread>_<pc>";
+  smtlib::comment(
+    Encoder::stmt_comment + " - " + stmt_sym + "_<step>_<thread>_<pc>" + eol);
 
 const string SMTLib_Encoder::block_comment =
-  "; blocking variables - " + block_sym + "_<step>_<id>_<thread>";
+  smtlib::comment(
+    Encoder::block_comment + " - " + block_sym + "_<step>_<id>_<thread>" + eol);
 
 const string SMTLib_Encoder::heap_comment =
-  "; heap state - " + heap_sym + "_<step>";
+  smtlib::comment(
+    Encoder::heap_comment + " - " + heap_sym + "_<step>" + eol);
 
 const string SMTLib_Encoder::exit_flag_comment =
-  "; exit flag - " + exit_flag_sym + "_<step>";
+  smtlib::comment(
+    Encoder::exit_flag_comment + " - " + exit_flag_sym + "_<step>" + eol);
+
+const string SMTLib_Encoder::exit_code_comment =
+  smtlib::comment(Encoder::exit_code_comment + eol);
 
 const string SMTLib_Encoder::thread_comment =
-  "; thread activation variables - " + thread_sym + "_<step>_<thread>";
+  smtlib::comment(
+    Encoder::thread_comment + " - " + thread_sym + "_<step>_<thread>" + eol);
 
 const string SMTLib_Encoder::exec_comment =
-  "; statement execution variables - " + exec_sym + "_<step>_<thread>_<pc>";
+  smtlib::comment(
+    Encoder::exec_comment + " - " + exec_sym + "_<step>_<thread>_<pc>" + eol);
 
 const string SMTLib_Encoder::flush_comment =
-  "; store buffer flush variables - " + flush_sym + "_<step>_<thread>";
+  smtlib::comment(
+    Encoder::flush_comment + " - " + flush_sym + "_<step>_<thread>" + eol);
 
 const string SMTLib_Encoder::check_comment =
-  "; checkpoint variables - " + check_sym + "_<step>_<id>";
+  smtlib::comment(
+    Encoder::check_comment + " - " + check_sym + "_<step>_<id>" + eol);
 
 const string SMTLib_Encoder::cas_comment =
-  "; CAS condition - " + cas_sym + "_<step>_<thread>";
+  smtlib::comment(
+    Encoder::cas_comment + " - " + cas_sym + "_<step>_<thread>" + eol);
 
 SMTLib_Encoder::SMTLib_Encoder (const Program_list_ptr p, bound_t b) :
   Encoder(p, b),
@@ -290,7 +307,7 @@ string SMTLib_Encoder::load (const word_t adr, const bool indirect)
 void SMTLib_Encoder::declare_accu ()
 {
   if (verbose)
-    formula << accu_comment << eol;
+    formula << accu_comment;
 
   iterate_threads([this] {
     formula << smtlib::declare_bv_var(accu_var(), word_size) << eol;
@@ -302,7 +319,7 @@ void SMTLib_Encoder::declare_accu ()
 void SMTLib_Encoder::declare_mem ()
 {
   if (verbose)
-    formula << mem_comment << eol;
+    formula << mem_comment;
 
   iterate_threads([this] {
     formula << smtlib::declare_bv_var(mem_var(), word_size) << eol;
@@ -314,7 +331,7 @@ void SMTLib_Encoder::declare_mem ()
 void SMTLib_Encoder::declare_sb_adr ()
 {
   if (verbose)
-    formula << sb_adr_comment << eol;
+    formula << sb_adr_comment;
 
   iterate_threads([this] {
     formula << smtlib::declare_bv_var(sb_adr_var(), word_size) << eol;
@@ -326,7 +343,7 @@ void SMTLib_Encoder::declare_sb_adr ()
 void SMTLib_Encoder::declare_sb_val ()
 {
   if (verbose)
-    formula << sb_val_comment << eol;
+    formula << sb_val_comment;
 
   iterate_threads([this] {
     formula << smtlib::declare_bv_var(sb_val_var(), word_size) << eol;
@@ -338,7 +355,7 @@ void SMTLib_Encoder::declare_sb_val ()
 void SMTLib_Encoder::declare_sb_full ()
 {
   if (verbose)
-    formula << sb_full_comment << eol;
+    formula << sb_full_comment;
 
   iterate_threads([this] {
     formula << smtlib::declare_bool_var(sb_full_var()) << eol;
@@ -350,7 +367,7 @@ void SMTLib_Encoder::declare_sb_full ()
 void SMTLib_Encoder::declare_stmt ()
 {
   if (verbose)
-    formula << stmt_comment << eol;
+    formula << stmt_comment;
 
   iterate_programs([this] (const Program & program) {
     for (pc = 0; pc < program.size(); pc++)
@@ -366,7 +383,7 @@ void SMTLib_Encoder::declare_block ()
     return;
 
   if (verbose)
-    formula << block_comment << eol;
+    formula << block_comment;
 
   for (const auto & [s, threads] : check_pcs)
     for (const auto & t : threads)
@@ -380,7 +397,7 @@ void SMTLib_Encoder::declare_block ()
 void SMTLib_Encoder::declare_heap ()
 {
   if (verbose)
-    formula << heap_comment << eol;
+    formula << heap_comment;
 
   formula
     << smtlib::declare_array_var(heap_var(), bv_sort, bv_sort)
@@ -393,7 +410,7 @@ void SMTLib_Encoder::declare_exit_flag ()
     return;
 
   if (verbose)
-    formula << exit_flag_comment << eol;
+    formula << exit_flag_comment;
 
   formula << smtlib::declare_bool_var(exit_flag_var()) << eol << eol;
 }
@@ -401,7 +418,7 @@ void SMTLib_Encoder::declare_exit_flag ()
 void SMTLib_Encoder::declare_exit_code ()
 {
   if (verbose)
-    formula << smtlib::comment("exit code") << eol;
+    formula << exit_code_comment;
 
   formula << smtlib::declare_bv_var(exit_code_sym, word_size) << eol << eol;
 }
@@ -429,7 +446,7 @@ void SMTLib_Encoder::declare_states ()
 void SMTLib_Encoder::declare_thread ()
 {
   if (verbose)
-    formula << thread_comment << eol;
+    formula << thread_comment;
 
   iterate_threads([this] {
     formula << smtlib::declare_bool_var(thread_var()) << eol;
@@ -441,7 +458,7 @@ void SMTLib_Encoder::declare_thread ()
 void SMTLib_Encoder::declare_exec ()
 {
   if (verbose)
-    formula << exec_comment << eol;
+    formula << exec_comment;
 
   iterate_programs([this] (const Program & program) {
     for (pc = 0; pc < program.size(); pc++)
@@ -454,7 +471,7 @@ void SMTLib_Encoder::declare_exec ()
 void SMTLib_Encoder::declare_flush ()
 {
   if (verbose)
-    formula << flush_comment << eol;
+    formula << flush_comment;
 
   iterate_threads([this] {
     formula << smtlib::declare_bool_var(flush_var()) << eol;
@@ -469,7 +486,7 @@ void SMTLib_Encoder::declare_check ()
     return;
 
   if (verbose)
-    formula << check_comment << eol;
+    formula << check_comment;
 
   for (const auto & s : check_pcs)
     formula << smtlib::declare_bool_var(check_var(step, s.first)) << eol;
@@ -484,7 +501,7 @@ void SMTLib_Encoder::declare_cas_vars ()
     return;
 
   if (verbose)
-    formula << cas_comment << eol;
+    formula << cas_comment;
 
   iterate_threads([this] {
     if (cas_threads.find(thread) != cas_threads.end())
@@ -517,7 +534,7 @@ void SMTLib_Encoder::declare_transitions ()
 void SMTLib_Encoder::init_accu ()
 {
   if (verbose)
-    formula << accu_comment << eol;
+    formula << accu_comment;
 
   INIT_STATE(accu_var);
 }
@@ -525,7 +542,7 @@ void SMTLib_Encoder::init_accu ()
 void SMTLib_Encoder::init_mem ()
 {
   if (verbose)
-    formula << mem_comment << eol;
+    formula << mem_comment;
 
   INIT_STATE(mem_var);
 }
@@ -533,7 +550,7 @@ void SMTLib_Encoder::init_mem ()
 void SMTLib_Encoder::init_sb_adr ()
 {
   if (verbose)
-    formula << sb_adr_comment << eol;
+    formula << sb_adr_comment;
 
   INIT_STATE(sb_adr_var);
 }
@@ -541,7 +558,7 @@ void SMTLib_Encoder::init_sb_adr ()
 void SMTLib_Encoder::init_sb_val ()
 {
   if (verbose)
-    formula << sb_val_comment << eol;
+    formula << sb_val_comment;
 
   INIT_STATE(sb_val_var);
 }
@@ -549,7 +566,7 @@ void SMTLib_Encoder::init_sb_val ()
 void SMTLib_Encoder::init_sb_full ()
 {
   if (verbose)
-    formula << sb_full_comment << eol;
+    formula << sb_full_comment;
 
   iterate_threads([this] {
     formula << smtlib::assertion(smtlib::lnot(sb_full_var())) << eol;
@@ -561,7 +578,7 @@ void SMTLib_Encoder::init_sb_full ()
 void SMTLib_Encoder::init_stmt ()
 {
   if (verbose)
-    formula << stmt_comment << eol;
+    formula << stmt_comment;
 
   iterate_programs([this] (const Program & program) {
     for (pc = 0; pc < program.size(); pc++)
@@ -579,7 +596,7 @@ void SMTLib_Encoder::init_block ()
     return;
 
   if (verbose)
-    formula << block_comment << eol;
+    formula << block_comment;
 
   for (const auto & [c, threads] : check_pcs)
     for (const auto & [t, pcs] : threads)
@@ -594,7 +611,7 @@ void SMTLib_Encoder::init_exit_flag ()
     return;
 
   if (verbose)
-    formula << exit_flag_comment << eol;
+    formula << exit_flag_comment;
 
   formula << smtlib::assertion(smtlib::lnot(exit_flag_var())) << eol << eol;
 }
@@ -619,7 +636,7 @@ void SMTLib_Encoder::init_states ()
 void SMTLib_Encoder::define_exec ()
 {
   if (verbose)
-    formula << exec_comment << eol;
+    formula << exec_comment;
 
   iterate_programs([this] (const Program & program) {
     for (pc = 0; pc < program.size(); pc++)
@@ -637,7 +654,7 @@ void SMTLib_Encoder::define_check ()
     return;
 
   if (verbose)
-    formula << check_comment << eol;
+    formula << check_comment;
 
   for (const auto & [c, threads] : check_pcs)
     {
@@ -790,13 +807,12 @@ void SMTLib_Encoder::encode ()
 
       declare_states();
       declare_transitions();
+      define_transitions();
 
       if (step)
         define_states();
       else
         init_states();
-
-      define_transitions();
 
       define_constraints ();
     }
