@@ -1,12 +1,12 @@
 #ifndef PROGRAM_HH_
 #define PROGRAM_HH_
 
-#include <deque>
 #include <istream>
 #include <memory>
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 #include "common.hh"
 
@@ -16,7 +16,7 @@ using Instruction_ptr = std::shared_ptr<Instruction>;
 /*******************************************************************************
  * Program
  ******************************************************************************/
-struct Program : public std::deque<Instruction_ptr>
+struct Program : public std::vector<Instruction_ptr>
 {
   using Predecessors = std::unordered_map<word_t, std::set<word_t>>;
 
@@ -78,7 +78,7 @@ using Program_ptr = std::shared_ptr<Program>;
 /*******************************************************************************
  * Program_list
  ******************************************************************************/
-using Program_list = std::deque<Program_ptr>;
+using Program_list = std::vector<Program_ptr>;
 
 /*******************************************************************************
  * Program_list_ptr

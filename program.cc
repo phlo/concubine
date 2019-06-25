@@ -24,7 +24,7 @@ Program::Program(istream & f, string & p) : path(p)
   size_t line_num = 1;
 
   /* list of jump instructions at pc referencing a certain label */
-  deque<tuple<string, word_t, const string *>> labelled_jumps;
+  vector<tuple<string, word_t, const string *>> labelled_jumps;
 
   for (string line_buf; getline(f, line_buf); line_num++)
     {
@@ -187,7 +187,7 @@ Program::Program(istream & f, string & p) : path(p)
 /* Program::push_back *********************************************************/
 void Program::push_back (Instruction_ptr op)
 {
-  deque<Instruction_ptr>::push_back(op);
+  vector<Instruction_ptr>::push_back(op);
 
   /* collect checkpoint ids */
   if (Check_ptr c = dynamic_pointer_cast<Check>(op))
