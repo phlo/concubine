@@ -167,6 +167,8 @@ DEFINE_MEMORY   (Add,   "ADD",    accu | read)
 DEFINE_UNARY    (Addi,  "ADDI",   accu)
 DEFINE_MEMORY   (Sub,   "SUB",    accu | read)
 DEFINE_UNARY    (Subi,  "SUBI",   accu)
+DEFINE_MEMORY   (Mul,   "MUL",    accu | read)
+DEFINE_UNARY    (Muli,  "MULI",   accu)
 
 DEFINE_MEMORY   (Cmp,   "CMP",    accu | read)
 DEFINE_UNARY    (Jmp,   "JMP",    control)

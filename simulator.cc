@@ -352,6 +352,20 @@ void Thread::execute (Subi & s)
   PUSH_BACK(pc++);
 }
 
+void Thread::execute (Mul & s)
+{
+  accu *= load(s.arg, s.indirect);
+
+  PUSH_BACK(pc++);
+}
+
+void Thread::execute (Muli & s)
+{
+  accu *= s.arg;
+
+  PUSH_BACK(pc++);
+}
+
 void Thread::execute (Cmp & c)
 {
   accu -= load(c.arg, c.indirect);

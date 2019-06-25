@@ -133,6 +133,16 @@ TEST(SMTLib_Test, bvsub)
   ASSERT_EQ("(bvsub x1 x2 x3)", smtlib::bvsub({"x1", "x2", "x3"}));
 }
 
+/* bvmul **********************************************************************/
+TEST(SMTLib_Test, bvmul)
+{
+  ASSERT_THROW(smtlib::bvmul({}), runtime_error);
+
+  ASSERT_THROW(smtlib::bvmul({"x1"}), runtime_error);
+
+  ASSERT_EQ("(bvmul x1 x2 x3)", smtlib::bvmul({"x1", "x2", "x3"}));
+}
+
 /* select *********************************************************************/
 TEST(SMTLib_Test, select)
 {

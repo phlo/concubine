@@ -163,6 +163,8 @@ struct Encoder
   virtual std::string encode (Addi &) = 0;
   virtual std::string encode (Sub &) = 0;
   virtual std::string encode (Subi &) = 0;
+  virtual std::string encode (Mul &) = 0;
+  virtual std::string encode (Muli &) = 0;
 
   virtual std::string encode (Cmp &) = 0;
   virtual std::string encode (Jmp &) = 0;
@@ -344,6 +346,8 @@ struct SMTLib_Encoder : public Encoder
   virtual std::string       encode (Addi &);
   virtual std::string       encode (Sub &);
   virtual std::string       encode (Subi &);
+  virtual std::string       encode (Mul &);
+  virtual std::string       encode (Muli &);
 
   virtual std::string       encode (Cmp &);
   virtual std::string       encode (Jmp &);
@@ -500,6 +504,8 @@ struct SMTLib_Encoder_Relational : public SMTLib_Encoder
   virtual std::string encode (Addi &);
   virtual std::string encode (Sub &);
   virtual std::string encode (Subi &);
+  virtual std::string encode (Mul &);
+  virtual std::string encode (Muli &);
 
   virtual std::string encode (Cmp &);
   virtual std::string encode (Jmp &);
@@ -763,6 +769,8 @@ struct Btor2_Encoder : public Encoder
   virtual std::string           encode (Addi &);
   virtual std::string           encode (Sub &);
   virtual std::string           encode (Subi &);
+  virtual std::string           encode (Mul &);
+  virtual std::string           encode (Muli &);
 
   virtual std::string           encode (Cmp &);
   virtual std::string           encode (Jmp &);

@@ -471,6 +471,22 @@ string SMTLib_Encoder_Relational::encode (Subi & s)
   return state;
 }
 
+string SMTLib_Encoder_Relational::encode (Mul & m)
+{
+  state.accu = set_accu(m);
+  state.stmt = set_stmt_next();
+
+  return state;
+}
+
+string SMTLib_Encoder_Relational::encode (Muli & m)
+{
+  state.accu = set_accu(m);
+  state.stmt = set_stmt_next();
+
+  return state;
+}
+
 string SMTLib_Encoder_Relational::encode (Cmp & c)
 {
   state.accu = set_accu(c);

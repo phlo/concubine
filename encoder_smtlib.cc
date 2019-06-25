@@ -862,6 +862,16 @@ string SMTLib_Encoder::encode (Subi & s)
   return smtlib::bvsub({accu_var(prev, thread), smtlib::word2hex(s.arg)});
 }
 
+string SMTLib_Encoder::encode (Mul & m)
+{
+  return smtlib::bvmul({accu_var(prev, thread), load(m.arg, m.indirect)});
+}
+
+string SMTLib_Encoder::encode (Muli & m)
+{
+  return smtlib::bvmul({accu_var(prev, thread), smtlib::word2hex(m.arg)});
+}
+
 string SMTLib_Encoder::encode (Cmp & c)
 {
   return smtlib::bvsub({accu_var(prev, thread), load(c.arg, c.indirect)});

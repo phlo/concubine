@@ -1448,6 +1448,24 @@ string Btor2_Encoder::encode (Subi & s)
   return nid_subi;
 }
 
+string Btor2_Encoder::encode (Mul & m)
+{
+  string nid_mul = load(m.arg, m.indirect);
+
+  formula << btor2::mul(nid_mul = nid(), sid_bv, nids_accu[thread], nid_mul);
+
+  return nid_mul;
+}
+
+string Btor2_Encoder::encode (Muli & m)
+{
+  string nid_muli = nids_const[m.arg];
+
+  formula << btor2::mul(nid_muli = nid(), sid_bv, nids_accu[thread], nid_muli);
+
+  return nid_muli;
+}
+
 string Btor2_Encoder::encode (Cmp & c)
 {
   string nid_sub = load(c.arg, c.indirect);

@@ -142,6 +142,8 @@ struct Thread
   void          execute (Addi &);
   void          execute (Sub &);
   void          execute (Subi &);
+  void          execute (Mul &);
+  void          execute (Muli &);
 
   void          execute (Cmp &);
   void          execute (Jmp &);

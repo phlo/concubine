@@ -183,6 +183,9 @@ namespace smtlib
   /* bit-vector sub ***********************************************************/
   EXPR_BINARY_OR_MORE(bvsub, "bvsub")
 
+  /* bit-vector mul ***********************************************************/
+  EXPR_BINARY_OR_MORE(bvmul, "bvmul")
+
   /* array select *************************************************************/
   inline std::string select (const std::string array, const std::string index)
     {

@@ -1565,21 +1565,21 @@ TEST_F(SMTLib_Encoder_Test, define_checkpoint_contraints_empty)
 /* SMTLib_Encoder::encode *****************************************************/
 TEST_F(SMTLib_Encoder_Test, LOAD)
 {
-  Load load = Load(1);
+  Load load {1};
 
   ASSERT_EQ(encoder->load(load.arg), encoder->encode(load));
 }
 
 TEST_F(SMTLib_Encoder_Test, LOAD_indirect)
 {
-  Load load = Load(1, true);
+  Load load {1, true};
 
   ASSERT_EQ(encoder->load(load.arg, load.indirect), encoder->encode(load));
 }
 
 TEST_F(SMTLib_Encoder_Test, STORE)
 {
-  Store store = Store(1);
+  Store store {1};
 
   encoder->update = ::Encoder::Update::sb_adr;
   ASSERT_EQ("#x0001", encoder->encode(store));
@@ -1590,7 +1590,7 @@ TEST_F(SMTLib_Encoder_Test, STORE)
 
 TEST_F(SMTLib_Encoder_Test, STORE_indirect)
 {
-  Store store = Store(1, true);
+  Store store {1, true};
 
   encoder->update = ::Encoder::Update::sb_adr;
   ASSERT_EQ(encoder->load(store.arg), encoder->encode(store));
@@ -1601,7 +1601,7 @@ TEST_F(SMTLib_Encoder_Test, STORE_indirect)
 
 TEST_F(SMTLib_Encoder_Test, ADD)
 {
-  Add add = Add(1);
+  Add add {1};
 
   ASSERT_EQ(
     "(bvadd accu_0_0 " + encoder->load(add.arg) + ")",
@@ -1610,7 +1610,7 @@ TEST_F(SMTLib_Encoder_Test, ADD)
 
 TEST_F(SMTLib_Encoder_Test, ADD_indirect)
 {
-  Add add = Add(1, true);
+  Add add {1, true};
 
   ASSERT_EQ(
     "(bvadd accu_0_0 " + encoder->load(add.arg, add.indirect) + ")",
@@ -1619,14 +1619,14 @@ TEST_F(SMTLib_Encoder_Test, ADD_indirect)
 
 TEST_F(SMTLib_Encoder_Test, ADDI)
 {
-  Addi addi = Addi(1);
+  Addi addi {1};
 
   ASSERT_EQ("(bvadd accu_0_0 #x0001)", encoder->encode(addi));
 }
 
 TEST_F(SMTLib_Encoder_Test, SUB)
 {
-  Sub sub = Sub(1);
+  Sub sub {1};
 
   ASSERT_EQ(
     "(bvsub accu_0_0 " + encoder->load(sub.arg) + ")",
@@ -1635,7 +1635,7 @@ TEST_F(SMTLib_Encoder_Test, SUB)
 
 TEST_F(SMTLib_Encoder_Test, SUB_indirect)
 {
-  Sub sub = Sub(1, true);
+  Sub sub {1, true};
 
   ASSERT_EQ(
     "(bvsub accu_0_0 " + encoder->load(sub.arg, sub.indirect) + ")",
@@ -1644,14 +1644,39 @@ TEST_F(SMTLib_Encoder_Test, SUB_indirect)
 
 TEST_F(SMTLib_Encoder_Test, SUBI)
 {
-  Subi subi = Subi(1);
+  Subi subi {1};
 
   ASSERT_EQ("(bvsub accu_0_0 #x0001)", encoder->encode(subi));
 }
 
+TEST_F(SMTLib_Encoder_Test, MUL)
+{
+  Mul mul {1};
+
+  ASSERT_EQ(
+    "(bvmul accu_0_0 " + encoder->load(mul.arg) + ")",
+    encoder->encode(mul));
+}
+
+TEST_F(SMTLib_Encoder_Test, MUL_indirect)
+{
+  Mul mul {1, true};
+
+  ASSERT_EQ(
+    "(bvmul accu_0_0 " + encoder->load(mul.arg, mul.indirect) + ")",
+    encoder->encode(mul));
+}
+
+TEST_F(SMTLib_Encoder_Test, MULI)
+{
+  Muli muli {1};
+
+  ASSERT_EQ("(bvmul accu_0_0 #x0001)", encoder->encode(muli));
+}
+
 TEST_F(SMTLib_Encoder_Test, CMP)
 {
-  Cmp cmp = Cmp(1);
+  Cmp cmp {1};
 
   ASSERT_EQ(
     "(bvsub accu_0_0 " + encoder->load(cmp.arg) + ")",
@@ -1660,7 +1685,7 @@ TEST_F(SMTLib_Encoder_Test, CMP)
 
 TEST_F(SMTLib_Encoder_Test, CMP_indirect)
 {
-  Cmp cmp = Cmp(1, true);
+  Cmp cmp {1, true};
 
   ASSERT_EQ(
     "(bvsub accu_0_0 " + encoder->load(cmp.arg, cmp.indirect) + ")",
@@ -1669,28 +1694,28 @@ TEST_F(SMTLib_Encoder_Test, CMP_indirect)
 
 TEST_F(SMTLib_Encoder_Test, JMP)
 {
-  Jmp jmp = Jmp(1);
+  Jmp jmp {1};
 
   ASSERT_TRUE(encoder->encode(jmp).empty());
 }
 
 TEST_F(SMTLib_Encoder_Test, JZ)
 {
-  Jz jz = Jz(1);
+  Jz jz {1};
 
   ASSERT_EQ("(= accu_0_0 #x0000)", encoder->encode(jz));
 }
 
 TEST_F(SMTLib_Encoder_Test, JNZ)
 {
-  Jnz jnz = Jnz(1);
+  Jnz jnz {1};
 
   ASSERT_EQ("(not (= accu_0_0 #x0000))", encoder->encode(jnz));
 }
 
 TEST_F(SMTLib_Encoder_Test, JS)
 {
-  Js js = Js(1);
+  Js js {1};
 
   ASSERT_EQ(
     "(= #b1 ((_ extract " +
@@ -1704,7 +1729,7 @@ TEST_F(SMTLib_Encoder_Test, JS)
 
 TEST_F(SMTLib_Encoder_Test, JNS)
 {
-  Jns jns = Jns(1);
+  Jns jns {1};
 
   ASSERT_EQ(
     "(= #b0 ((_ extract " +
@@ -1718,7 +1743,7 @@ TEST_F(SMTLib_Encoder_Test, JNS)
 
 TEST_F(SMTLib_Encoder_Test, JNZNS)
 {
-  Jnzns jnzns = Jnzns(1);
+  Jnzns jnzns {1};
 
   ASSERT_EQ(
     "(and (not (= accu_0_0 #x0000)) (= #b0 ((_ extract " +
@@ -1731,21 +1756,21 @@ TEST_F(SMTLib_Encoder_Test, JNZNS)
 
 TEST_F(SMTLib_Encoder_Test, MEM)
 {
-  Mem mem = Mem(1);
+  Mem mem {1};
 
   ASSERT_EQ(encoder->load(mem.arg), encoder->encode(mem));
 }
 
 TEST_F(SMTLib_Encoder_Test, MEM_indirect)
 {
-  Mem mem = Mem(1, true);
+  Mem mem {1, true};
 
   ASSERT_EQ(encoder->load(mem.arg, mem.indirect), encoder->encode(mem));
 }
 
 TEST_F(SMTLib_Encoder_Test, CAS)
 {
-  Cas cas = Cas(1);
+  Cas cas {1};
 
   encoder->update = ::Encoder::Update::accu;
 
@@ -1765,7 +1790,7 @@ TEST_F(SMTLib_Encoder_Test, CAS)
 
 TEST_F(SMTLib_Encoder_Test, CAS_indirect)
 {
-  Cas cas = Cas(1, true);
+  Cas cas {1, true};
 
   encoder->update = ::Encoder::Update::accu;
 
@@ -1785,14 +1810,14 @@ TEST_F(SMTLib_Encoder_Test, CAS_indirect)
 
 TEST_F(SMTLib_Encoder_Test, CHECK)
 {
-  Check check = Check(1);
+  Check check {1};
 
   ASSERT_TRUE(encoder->encode(check).empty());
 }
 
 TEST_F(SMTLib_Encoder_Test, EXIT)
 {
-  Exit exit = Exit(1);
+  Exit exit {1};
 
   ASSERT_EQ("#x0001", encoder->encode(exit));
 }

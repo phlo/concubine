@@ -758,6 +758,144 @@ TEST_F(SMTLib_Encoder_Relational_Test, SUBI)
     encoder->encode(subi));
 }
 
+TEST_F(SMTLib_Encoder_Relational_Test, MUL)
+{
+  add_instruction_set(1);
+  reset_encoder();
+
+  encoder->pc = 4;
+
+  Mul mul {1};
+
+  ASSERT_EQ(
+    "(and "
+      "(= accu_1_0 "
+        "(bvmul "
+          "accu_0_0 "
+            "(ite (and sb-full_0_0 (= sb-adr_0_0 #x0001)) "
+              "sb-val_0_0 "
+              "(select heap_0 #x0001)))) "
+      "(= mem_1_0 mem_0_0) "
+      "(= sb-adr_1_0 sb-adr_0_0) "
+      "(= sb-val_1_0 sb-val_0_0) "
+      "(= sb-full_1_0 sb-full_0_0) "
+      "(and "
+        "(not stmt_1_0_0) "
+        "(not stmt_1_0_1) "
+        "(not stmt_1_0_2) "
+        "(not stmt_1_0_3) "
+        "(not stmt_1_0_4) "
+        "stmt_1_0_5 "
+        "(not stmt_1_0_6) "
+        "(not stmt_1_0_7) "
+        "(not stmt_1_0_8) "
+        "(not stmt_1_0_9) "
+        "(not stmt_1_0_10) "
+        "(not stmt_1_0_11) "
+        "(not stmt_1_0_12) "
+        "(not stmt_1_0_13) "
+        "(not stmt_1_0_14) "
+        "(not stmt_1_0_15) "
+        "(not stmt_1_0_16)) "
+      "(= block_1_1_0 (ite check_0_1 false block_0_1_0)) "
+      "(= heap_1 heap_0) "
+      "(not exit_1))",
+    encoder->encode(mul));
+}
+
+TEST_F(SMTLib_Encoder_Relational_Test, MUL_indirect)
+{
+  add_instruction_set(1);
+  reset_encoder();
+
+  encoder->pc = 4;
+
+  Mul mul {1, true};
+
+  ASSERT_EQ(
+    "(and "
+      "(= accu_1_0 "
+        "(bvmul "
+          "accu_0_0 "
+          "(ite sb-full_0_0 "
+            "(ite (= sb-adr_0_0 #x0001) "
+              "(ite (= sb-val_0_0 #x0001) "
+                "sb-val_0_0 "
+                "(ite (= sb-adr_0_0 (select heap_0 sb-val_0_0)) "
+                  "sb-val_0_0 "
+                  "(select heap_0 (select heap_0 sb-val_0_0)))) "
+              "(ite (= sb-adr_0_0 (select heap_0 #x0001)) "
+                "sb-val_0_0 "
+                "(select heap_0 (select heap_0 #x0001)))) "
+            "(select heap_0 (select heap_0 #x0001))))) "
+      "(= mem_1_0 mem_0_0) "
+      "(= sb-adr_1_0 sb-adr_0_0) "
+      "(= sb-val_1_0 sb-val_0_0) "
+      "(= sb-full_1_0 sb-full_0_0) "
+      "(and "
+        "(not stmt_1_0_0) "
+        "(not stmt_1_0_1) "
+        "(not stmt_1_0_2) "
+        "(not stmt_1_0_3) "
+        "(not stmt_1_0_4) "
+        "stmt_1_0_5 "
+        "(not stmt_1_0_6) "
+        "(not stmt_1_0_7) "
+        "(not stmt_1_0_8) "
+        "(not stmt_1_0_9) "
+        "(not stmt_1_0_10) "
+        "(not stmt_1_0_11) "
+        "(not stmt_1_0_12) "
+        "(not stmt_1_0_13) "
+        "(not stmt_1_0_14) "
+        "(not stmt_1_0_15) "
+        "(not stmt_1_0_16)) "
+      "(= block_1_1_0 (ite check_0_1 false block_0_1_0)) "
+      "(= heap_1 heap_0) "
+      "(not exit_1))",
+    encoder->encode(mul));
+}
+
+TEST_F(SMTLib_Encoder_Relational_Test, MULI)
+{
+  add_instruction_set(1);
+  reset_encoder();
+
+  encoder->pc = 5;
+
+  Muli muli {1};
+
+  ASSERT_EQ(
+    "(and "
+      "(= accu_1_0 (bvmul accu_0_0 #x0001)) "
+      "(= mem_1_0 mem_0_0) "
+      "(= sb-adr_1_0 sb-adr_0_0) "
+      "(= sb-val_1_0 sb-val_0_0) "
+      "(= sb-full_1_0 sb-full_0_0) "
+      "(and "
+        "(not stmt_1_0_0) "
+        "(not stmt_1_0_1) "
+        "(not stmt_1_0_2) "
+        "(not stmt_1_0_3) "
+        "(not stmt_1_0_4) "
+        "(not stmt_1_0_5) "
+        "stmt_1_0_6 "
+        "(not stmt_1_0_7) "
+        "(not stmt_1_0_8) "
+        "(not stmt_1_0_9) "
+        "(not stmt_1_0_10) "
+        "(not stmt_1_0_11) "
+        "(not stmt_1_0_12) "
+        "(not stmt_1_0_13) "
+        "(not stmt_1_0_14) "
+        "(not stmt_1_0_15) "
+        "(not stmt_1_0_16)) "
+      "(= block_1_1_0 (ite check_0_1 false block_0_1_0)) "
+      "(= heap_1 heap_0) "
+      "(not exit_1))",
+    encoder->encode(muli));
+}
+
 TEST_F(SMTLib_Encoder_Relational_Test, CMP)
 {
   add_instruction_set(1);

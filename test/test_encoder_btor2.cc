@@ -3402,6 +3402,101 @@ TEST_F(Btor2_Encoder_Test, SUBI)
   ASSERT_EQ(expected(), encoder->str());
 }
 
+TEST_F(Btor2_Encoder_Test, MUL)
+{
+  add_dummy_programs(1);
+  reset_encoder();
+  init_state_definitions();
+
+  btor2::nid_t nid = encoder->node;
+
+  word_t address = 0;
+
+  Mul mul {address};
+
+  string nid_mul = encoder->encode(mul);
+
+  expected = [this, &nid, &address, &nid_mul] {
+    ostringstream s;
+
+    s << expected_load(nid, address);
+    s <<
+      btor2::mul(
+        nid_mul,
+        encoder->sid_bv,
+        encoder->nids_accu[encoder->thread],
+        to_string(nid - 1));
+    nid++;
+
+    return s.str();
+  };
+
+  ASSERT_EQ(expected(), encoder->str());
+}
+
+TEST_F(Btor2_Encoder_Test, MUL_indirect)
+{
+  add_dummy_programs(1);
+  reset_encoder();
+  init_state_definitions();
+
+  btor2::nid_t nid = encoder->node;
+
+  word_t address = 0;
+
+  Mul mul {address, true};
+
+  string nid_mul = encoder->encode(mul);
+
+  expected = [this, &nid, &address, &nid_mul] {
+    ostringstream s;
+
+    s << expected_load_indirect(nid, address);
+    s <<
+      btor2::mul(
+        nid_mul,
+        encoder->sid_bv,
+        encoder->nids_accu[encoder->thread],
+        to_string(nid - 1));
+    nid++;
+
+    return s.str();
+  };
+
+  ASSERT_EQ(expected(), encoder->str());
+}
+
+TEST_F(Btor2_Encoder_Test, MULI)
+{
+  add_dummy_programs(1);
+  reset_encoder();
+  init_state_definitions();
+
+  btor2::nid_t nid = encoder->node;
+
+  word_t value = 0;
+
+  Muli muli {value};
+
+  string nid_muli = encoder->encode(muli);
+
+  expected = [this, &nid, &value, &nid_muli] {
+    ostringstream s;
+
+    s <<
+      btor2::mul(
+        nid_muli,
+        encoder->sid_bv,
+        encoder->nids_accu[encoder->thread],
+        encoder->nids_const[value]);
+    nid++;
+
+    return s.str();
+  };
+
+  ASSERT_EQ(expected(), encoder->str());
+}
+
 TEST_F(Btor2_Encoder_Test, CMP)
 {
   add_dummy_programs(1);

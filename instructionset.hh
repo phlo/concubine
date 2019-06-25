@@ -156,6 +156,8 @@ DECLARE_MEMORY  (Add,   Load)
 DECLARE_UNARY   (Addi,  Unary)
 DECLARE_MEMORY  (Sub,   Load)
 DECLARE_UNARY   (Subi,  Unary)
+DECLARE_MEMORY  (Mul,   Load)
+DECLARE_UNARY   (Muli,  Unary)
 
 DECLARE_MEMORY  (Cmp,   Load)
 DECLARE_UNARY   (Jmp,   Unary)
