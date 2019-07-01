@@ -3,42 +3,66 @@
 #include <cassert>
 #include <sstream>
 
-#include "instructionset.hh"
+#include "instruction.hh"
 #include "parser.hh"
 
-using namespace std;
+//==============================================================================
+// using declarations
+//==============================================================================
 
-Schedule::Schedule (Program_list_ptr p) :
-  bound(0),
+using std::string;
+using std::to_string;
+
+using std::istream;
+using std::istringstream;
+using std::ostringstream;
+
+using std::optional;
+
+using std::make_shared;
+
+using std::exception;
+using std::runtime_error;
+
+//==============================================================================
+// Schedule
+//==============================================================================
+
+//------------------------------------------------------------------------------
+// constructors
+//------------------------------------------------------------------------------
+
+Schedule::Schedule (const Program::List::ptr & p) :
   programs(p),
+  bound(0),
   exit(0)
 {
   init_state_update_lists();
 }
 
-Schedule::Schedule(istream & file, string & path) :
+Schedule::Schedule(istream & file, const string & path) :
+  programs(make_shared<Program::List>()),
   bound(0),
-  programs(make_shared<Program_list>()),
   exit(0)
 {
   string token;
 
   size_t line_num = 1;
 
-  /* parse programs */
+  // parse programs
   for (string line_buf; getline(file, line_buf); ++line_num)
     {
-      /* skip empty lines */
+      // skip empty lines
       if (line_buf.empty())
         continue;
 
       istringstream line(line_buf);
 
-      /* skip comments */
+      // skip comments
       if (line >> token && token.front() == '#')
         continue;
 
-      /* check if all programs have been parsed */
+      // check if all programs have been parsed
       if (token == ".")
         break;
 
@@ -55,31 +79,31 @@ Schedule::Schedule(istream & file, string & path) :
         }
     }
 
-  /* check header */
+  // check header
   if (programs->empty())
     parser_error(path, line_num, "missing threads");
 
-  /* initialize thread state update lists */
+  // initialize thread state update lists
   init_state_update_lists();
 
-  /* parse body */
+  // parse body
   line_num++;
   bound_t step = 0;
   for (string line_buf; getline(file, line_buf); ++line_num)
     {
-      /* skip empty lines */
+      // skip empty lines
       if (line_buf.empty())
         continue;
 
       istringstream line(line_buf);
 
-      /* skip comments */
+      // skip comments
       if (line_buf[line_buf.find_first_not_of(" \t")] == '#')
         continue;
 
       step++;
 
-      /* parse thread id */
+      // parse thread id
       word_t thread;
 
       if (!(line >> thread))
@@ -95,9 +119,9 @@ Schedule::Schedule(istream & file, string & path) :
             line_num,
             "unknown thread id [" + to_string(thread) + "]");
 
-      const Program & program = *programs->at(thread);
+      const Program & program = (*programs)[thread];
 
-      /* parse pc */
+      // parse pc
       word_t pc;
 
       if (!(line >> pc))
@@ -123,7 +147,9 @@ Schedule::Schedule(istream & file, string & path) :
             line_num,
             "illegal program counter [" + to_string(pc) + "]");
 
-      /* parse instruction symbol */
+      const Instruction & op = program[pc];
+
+      // parse instruction symbol
       string symbol;
 
       if (!(line >> symbol))
@@ -131,10 +157,10 @@ Schedule::Schedule(istream & file, string & path) :
 
       bool flush = symbol == "FLUSH";
 
-      if (!flush && !Instruction::Set::contains(symbol))
+      if (!flush && !Instruction::Set::contains(symbol.c_str()))
         parser_error(path, line_num, "unknown instruction [" + symbol + "]");
 
-      /* parse instruction argument */
+      // parse instruction argument
       word_t arg;
 
       if (flush)
@@ -155,18 +181,16 @@ Schedule::Schedule(istream & file, string & path) :
           if (!(line >> token))
             parser_error(path, line_num, "missing instruction argument");
 
-          const Instruction_ptr cmd = program.at(pc);
-
-          /* arg is an indirect memory address */
+          // arg is an indirect memory address
           if (flush && token == "-")
             ;
           else if (token.front() == '[')
             {
-              if (dynamic_pointer_cast<Memory>(cmd))
+              if (op.is_memory())
                 {
                   istringstream addr(token.substr(1, token.size() - 2));
 
-                  /* check if address is a number */
+                  // check if address is a number
                   if (!(addr >> arg))
                     parser_error(
                       path,
@@ -179,8 +203,8 @@ Schedule::Schedule(istream & file, string & path) :
                   line_num,
                   symbol + " does not support indirect addressing");
             }
-          /* arg is a label */
-          else if (dynamic_pointer_cast<Jmp>(cmd))
+          // arg is a label
+          else if (op.is_jump())
             {
               try
                 {
@@ -198,7 +222,7 @@ Schedule::Schedule(istream & file, string & path) :
               symbol + " does not support labels [" + token + "]");
         }
 
-      /* parse accu */
+      // parse accu
       word_t accu;
 
       if (!(line >> accu))
@@ -214,7 +238,7 @@ Schedule::Schedule(istream & file, string & path) :
             "illegal accumulator register value [" + token + "]");
         }
 
-      /* parse mem */
+      // parse mem
       word_t mem;
 
       if (!(line >> mem))
@@ -230,7 +254,7 @@ Schedule::Schedule(istream & file, string & path) :
             "illegal CAS memory register value [" + token + "]");
         }
 
-      /* parse store buffer address */
+      // parse store buffer address
       word_t sb_adr;
 
       if (!(line >> sb_adr))
@@ -246,7 +270,7 @@ Schedule::Schedule(istream & file, string & path) :
             "illegal store buffer address [" + token + "]");
         }
 
-      /* parse store buffer value */
+      // parse store buffer value
       word_t sb_val;
 
       if (!(line >> sb_val))
@@ -262,7 +286,7 @@ Schedule::Schedule(istream & file, string & path) :
             "illegal store buffer value [" + token + "]");
         }
 
-      /* parse store buffer full flag */
+      // parse store buffer full flag
       bool sb_full;
 
       if (!(line >> sb_full))
@@ -278,7 +302,7 @@ Schedule::Schedule(istream & file, string & path) :
             "illegal store buffer full flag [" + token + "]");
         }
 
-      /* parse heap cell */
+      // parse heap cell
       optional<Heap> heap;
 
       if (!(line >> token))
@@ -295,7 +319,7 @@ Schedule::Schedule(istream & file, string & path) :
               word_t adr = stoul(cell.substr(0, split));
               word_t val = stoul(cell.substr(split + 1));
 
-              /* heap cell update */
+              // heap cell update
               heap = {adr, val};
             }
           catch (const exception & e)
@@ -306,15 +330,15 @@ Schedule::Schedule(istream & file, string & path) :
                 "illegal heap update [" + token + "]");
             }
 
-          /* only flushes and atomic operations may write to memory */
-          if (!flush && !(program[pc]->type() & Instruction::Types::atomic))
+          // only flushes and atomic operations may write to memory
+          if (!flush && !(op.type() & Instruction::Type::atomic))
             parser_error(
               path,
               line_num,
               symbol + " can't perform heap updates");
         }
 
-      /* append to schedule */
+      // append to schedule
       if (flush)
         {
           if (!heap)
@@ -330,6 +354,12 @@ Schedule::Schedule(istream & file, string & path) :
     parser_error(path, line_num, "empty schedule");
 }
 
+//------------------------------------------------------------------------------
+// member functions
+//------------------------------------------------------------------------------
+
+// Schedule::init_state_update_lists -------------------------------------------
+
 void Schedule::init_state_update_lists ()
 {
   size_t num_threads = programs->size();
@@ -342,12 +372,12 @@ void Schedule::init_state_update_lists ()
   sb_full_updates.resize(num_threads);
 }
 
+// Schedule::push_back ---------------------------------------------------------
+
 template <typename T>
-void Schedule::push_back (
-                          Schedule::Updates<T> & updates,
+void Schedule::push_back (Schedule::Updates<T> & updates,
                           const bound_t step,
-                          const T val
-                         )
+                          const T val)
 {
   if (updates.empty())
     {
@@ -358,26 +388,24 @@ void Schedule::push_back (
       auto end = updates.end();
       auto prev = std::prev(end);
 
-      /* ensure that no update exists for this step */
+      // ensure that no update exists for this step
       if (prev->first == step)
         throw runtime_error("update already exists");
 
-      /* insert if value doesn't change */
+      // insert if value doesn't change
       if (prev->second != val)
         updates.insert(end, {step, val});
     }
 }
 
-void Schedule::push_back (
-                          const word_t thread,
+void Schedule::push_back (const word_t thread,
                           const word_t pc,
                           const word_t accu,
                           const word_t mem,
                           const word_t buffer_adr,
                           const word_t buffer_val,
                           const word_t buffer_full,
-                          const optional<Heap> & heap
-                         )
+                          const optional<Heap> & heap)
 {
   ++bound;
 
@@ -403,6 +431,8 @@ void Schedule::push_back (const word_t thread, const Heap & heap)
   push_back<word_t>(heap_updates[heap.adr], bound, heap.val);
 }
 
+// Schedule::insert_thread -----------------------------------------------------
+
 void Schedule::insert_thread (const bound_t step, const word_t thread)
 {
   push_back<word_t>(thread_updates, step, thread);
@@ -411,11 +441,11 @@ void Schedule::insert_thread (const bound_t step, const word_t thread)
     bound = step;
 }
 
-void Schedule::insert_pc (
-                          const bound_t step,
+// Schedule::insert_pc ---------------------------------------------------------
+
+void Schedule::insert_pc (const bound_t step,
                           const word_t thread,
-                          const word_t pc
-                         )
+                          const word_t pc)
 {
   push_back<word_t>(pc_updates.at(thread), step, pc);
 
@@ -423,11 +453,11 @@ void Schedule::insert_pc (
     bound = step;
 }
 
-void Schedule::insert_accu (
-                            const bound_t step,
+// Schedule::insert_accu -------------------------------------------------------
+
+void Schedule::insert_accu (const bound_t step,
                             const word_t thread,
-                            const word_t accu
-                           )
+                            const word_t accu)
 {
   push_back<word_t>(accu_updates.at(thread), step, accu);
 
@@ -435,11 +465,11 @@ void Schedule::insert_accu (
     bound = step;
 }
 
-void Schedule::insert_mem (
-                           const bound_t step,
+// Schedule::insert_mem --------------------------------------------------------
+
+void Schedule::insert_mem (const bound_t step,
                            const word_t thread,
-                           const word_t mem
-                          )
+                           const word_t mem)
 {
   push_back<word_t>(mem_updates.at(thread), step, mem);
 
@@ -447,11 +477,11 @@ void Schedule::insert_mem (
     bound = step;
 }
 
-void Schedule::insert_sb_adr (
-                              const bound_t step,
+// Schedule::insert_sb_adr -----------------------------------------------------
+
+void Schedule::insert_sb_adr (const bound_t step,
                               const word_t thread,
-                              const word_t adr
-                             )
+                              const word_t adr)
 {
   push_back<word_t>(sb_adr_updates.at(thread), step, adr);
 
@@ -459,11 +489,11 @@ void Schedule::insert_sb_adr (
     bound = step;
 }
 
-void Schedule::insert_sb_val (
-                              const bound_t step,
+// Schedule::insert_sb_val -----------------------------------------------------
+
+void Schedule::insert_sb_val (const bound_t step,
                               const word_t thread,
-                              const word_t val
-                             )
+                              const word_t val)
 {
   push_back<word_t>(sb_val_updates.at(thread), step, val);
 
@@ -471,17 +501,19 @@ void Schedule::insert_sb_val (
     bound = step;
 }
 
-void Schedule::insert_sb_full (
-                               const bound_t step,
+// Schedule::insert_sb_full ----------------------------------------------------
+
+void Schedule::insert_sb_full (const bound_t step,
                                const word_t thread,
-                               const bool full
-                              )
+                               const bool full)
 {
   push_back<bool>(sb_full_updates.at(thread), step, full);
 
   if (step > bound)
     bound = step;
 }
+
+// Schedule::insert_heap -------------------------------------------------------
 
 void Schedule::insert_heap (const bound_t step, const Heap & heap)
 {
@@ -491,6 +523,8 @@ void Schedule::insert_heap (const bound_t step, const Heap & heap)
     bound = step;
 }
 
+// Schedule::insert_flush ------------------------------------------------------
+
 void Schedule::insert_flush (const bound_t step)
 {
   flushes.insert(step);
@@ -499,17 +533,25 @@ void Schedule::insert_flush (const bound_t step)
     bound = step;
 }
 
+// Schedule::size --------------------------------------------------------------
+
 size_t Schedule::size () const { return bound; }
+
+// Schedule::begin -------------------------------------------------------------
 
 Schedule::iterator Schedule::begin () const
 {
   return iterator(this);
 }
 
+// Schedule::end ---------------------------------------------------------------
+
 Schedule::iterator Schedule::end () const
 {
   return iterator(this, bound + 1);
 }
+
+// Schedule::print -------------------------------------------------------------
 
 std::string Schedule::print () const
 {
@@ -517,28 +559,28 @@ std::string Schedule::print () const
 
   const char sep = '\t';
 
-  /* schedule metadata */
-  for (const Program_ptr & program : *programs)
-    ss << program->path << eol;
+  // schedule metadata
+  for (const Program & program : *programs)
+    ss << program.path << eol;
 
-  /* separator */
+  // separator
   ss << '.' << eol;
 
-  /* column headers */
+  // column headers
   ss << "# tid\tpc\tcmd\targ\taccu\tmem\tadr\tval\tfull\theap" << eol;
 
   for (const auto & step : *this)
     {
-      /* thread id */
+      // thread id
       ss << step.thread << sep;
 
-      /* reference to program */
-      const Program & program = *programs->at(step.thread);
+      // reference to program
+      const Program & program = (*programs)[step.thread];
 
-      /* reference to current instruction */
-      const Instruction_ptr & op = program[step.pc];
+      // reference to current instruction
+      const Instruction & op = program[step.pc];
 
-      /* program counter */
+      // program counter
       try
         {
           ss << program.get_label(step.pc) << sep;
@@ -548,30 +590,32 @@ std::string Schedule::print () const
           ss << step.pc << sep;
         }
 
-      /* instruction symbol / argument */
+      // instruction symbol / argument
       if (step.flush)
         {
           ss << "FLUSH" << sep << '-' << sep;
         }
       else
         {
-          ss << op->symbol() << sep;
+          ss << op.symbol() << sep;
 
           string arg {'-'};
 
-          if (auto u = dynamic_pointer_cast<Unary>(op))
+          if (op.is_unary())
             {
-              arg = to_string(u->arg);
+              const Instruction::Unary u = op;
 
-              if (auto m = dynamic_pointer_cast<Memory>(u))
+              arg = to_string(u.arg);
+
+              if (op.is_memory())
                 {
-                  if (m->indirect)
+                  if (op.indirect())
                     arg = '[' + arg + ']';
                 }
-              else if (dynamic_pointer_cast<Jmp>(u))
+              else if (op.is_jump())
                 try
                   {
-                    arg = program.get_label(u->arg);
+                    arg = program.get_label(u.arg);
                   }
               catch (...) {}
             }
@@ -579,13 +623,13 @@ std::string Schedule::print () const
           ss << arg << sep;
         }
 
-      /* accumulator / CAS memory register */
+      // accumulator / CAS memory register
       ss << step.accu << sep << step.mem << sep;
 
-      /* store buffer */
+      // store buffer
       ss << step.sb_adr << sep << step.sb_val << sep << step.sb_full << sep;
 
-      /* heap update */
+      // heap update
       ss << '{';
 
       if (step.heap)
@@ -597,20 +641,44 @@ std::string Schedule::print () const
   return ss.str();
 }
 
+//==============================================================================
+// Schedule::Step
+//==============================================================================
+
+//------------------------------------------------------------------------------
+// constructors
+//------------------------------------------------------------------------------
+
 Schedule::Step::Step (bound_t s) : step(s) {}
 
+//------------------------------------------------------------------------------
+// member operators
+//------------------------------------------------------------------------------
+
+// conversion to bound_t
+//
 Schedule::Step::operator bound_t () const { return step; }
 
+// increment
+//
 Schedule::Step & Schedule::Step::operator ++ () { step++; return *this; }
 
-Schedule::iterator::iterator (const Schedule * sc, bound_t st) :
+//==============================================================================
+// Schedule::iterator
+//==============================================================================
+
+//------------------------------------------------------------------------------
+// constructors
+//------------------------------------------------------------------------------
+
+Schedule::iterator::iterator (const Schedule * sc, const bound_t st) :
   schedule(sc),
   thread({schedule->thread_updates.begin(), schedule->thread_updates.end()})
 {
   if ((step = st) > schedule->bound)
     return;
 
-  /* initialize state update iterator lists */
+  // initialize state update iterator lists
   init_iterators(pc, schedule->pc_updates);
   init_iterators(accu, schedule->accu_updates);
   init_iterators(mem, schedule->mem_updates);
@@ -625,16 +693,22 @@ Schedule::iterator::iterator (const Schedule * sc, bound_t st) :
   assign();
 }
 
+//------------------------------------------------------------------------------
+// member function
+//------------------------------------------------------------------------------
+
+// Schedule::iterator::init_iterators ------------------------------------------
+
 template <typename T>
-void Schedule::iterator::init_iterators (
-                                         Thread_Iterators<T> & iterators,
-                                         const Thread_Updates<T> & updates
-                                        )
+void Schedule::iterator::init_iterators (Thread_Iterators<T> & iterators,
+                                         const Thread_Updates<T> & updates)
 {
   iterators.reserve(schedule->programs->size());
   for (const auto & u: updates)
     iterators.push_back({u.begin(), u.end()});
 }
+
+// Schedule::iterator::next_thread_state ---------------------------------------
 
 template <typename T>
 const T & Schedule::iterator::next_thread_state (Iterators<T> & state)
@@ -647,13 +721,15 @@ const T & Schedule::iterator::next_thread_state (Iterators<T> & state)
   return state.cur->second;
 }
 
+// Schedule::iterator::next_heap_state -----------------------------------------
+
 const optional<Schedule::Heap> Schedule::iterator::next_heap_state ()
 {
   if (step.flush)
     {
       auto & cell = heap.at(step.sb_adr);
 
-      /* mind subsequent writes of an equal value to the same address */
+      // mind subsequent writes of an equal value to the same address
       if (cell.cur->first == step)
         {
           assert(cell.cur->second == step.sb_val);
@@ -663,28 +739,30 @@ const optional<Schedule::Heap> Schedule::iterator::next_heap_state ()
       return {{step.sb_adr, step.sb_val}};
     }
 
-  const Instruction_ptr & op =
-    schedule->programs->at(step.thread)->at(step.pc);
+  const Instruction & op = (*schedule->programs)[step.thread][step.pc];
 
-  if (op->type() & Instruction::Types::atomic)
-    if (Memory_ptr atomic = dynamic_pointer_cast<Cas>(op))
-      {
-        word_t address = atomic->indirect
-          ? schedule->heap_updates.at(atomic->arg).rend()->second
-          : atomic->arg;
+  if (op.type() & Instruction::Type::atomic)
+    {
+      const Instruction::Memory & atomic = op;
 
-        auto & cell = heap.at(address);
+      word_t address = atomic.indirect
+        ? schedule->heap_updates.at(atomic.arg).rend()->second
+        : atomic.arg;
 
-        /* mind subsequent writes of an equal value to the same address */
-        word_t value = cell.cur->first == step
-          ? cell.cur++->second
-          : (--cell.cur)++->second;
+      auto & cell = heap.at(address);
 
-        return {{address, value}};
-      }
+      // mind subsequent writes of an equal value to the same address
+      word_t value = cell.cur->first == step
+        ? cell.cur++->second
+        : (--cell.cur)++->second;
+
+      return {{address, value}};
+    }
 
   return {};
 }
+
+// Schedule::iterator::assign --------------------------------------------------
 
 void Schedule::iterator::assign ()
 {
@@ -699,9 +777,15 @@ void Schedule::iterator::assign ()
   step.heap     = next_heap_state();
 }
 
+//------------------------------------------------------------------------------
+// member operators
+//------------------------------------------------------------------------------
+
+// increment -------------------------------------------------------------------
+
 Schedule::iterator & Schedule::iterator::operator ++ ()
 {
-  /* prevent increments beyond end() */
+  // prevent increments beyond end()
   if (step <= schedule->bound)
     if (++step <= schedule->bound)
       assign();
@@ -716,15 +800,19 @@ Schedule::iterator Schedule::iterator::operator ++ (int)
   return retval;
 }
 
+// equality --------------------------------------------------------------------
+
 bool Schedule::iterator::operator == (const iterator & other) const
 {
-  return schedule == other.schedule && step == other.step;
+  return schedule == other.schedule && step.step == other.step.step;
 }
 
 bool Schedule::iterator::operator != (const iterator & other) const
 {
   return !(*this == other);
 }
+
+// dereference -----------------------------------------------------------------
 
 Schedule::iterator::reference Schedule::iterator::operator * () const
 {
@@ -735,6 +823,12 @@ Schedule::iterator::pointer Schedule::iterator::operator -> () const
 {
   return &step;
 }
+
+//==============================================================================
+// non-member operators
+//==============================================================================
+
+// equality --------------------------------------------------------------------
 
 bool operator == (const Schedule & a, const Schedule & b)
 {
@@ -748,7 +842,7 @@ bool operator == (const Schedule & a, const Schedule & b)
     return false;
 
   for (size_t i = 0; i < a.programs->size(); i++)
-    if (*a.programs->at(i) != *b.programs->at(i))
+    if ((*a.programs)[i] != (*b.programs)[i])
       return false;
 
   return

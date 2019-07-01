@@ -2,11 +2,16 @@
 
 using namespace std;
 
+//==============================================================================
+// SMTLib_Encoder_Functional tests
+//==============================================================================
+
 using E = SMTLib_Encoder_Functional;
 
 using SMTLib_Encoder_Functional_Test = Test::SMTLib_Encoder<E>;
 
-/* SMTLib_Encoder_Functional::define_accu *************************************/
+// SMTLib_Encoder_Functional::define_accu ======================================
+
 TEST_F(SMTLib_Encoder_Functional_Test, define_accu)
 {
   add_instruction_set(3);
@@ -142,7 +147,8 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_accu)
     encoder->str());
 }
 
-/* SMTLib_Encoder_Functional::define_mem **************************************/
+// SMTLib_Encoder_Functional::define_mem =======================================
+
 TEST_F(SMTLib_Encoder_Functional_Test, define_mem)
 {
   add_instruction_set(3);
@@ -203,7 +209,8 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_mem)
     encoder->str());
 }
 
-/* SMTLib_Encoder_Functional::define_sb_adr ***********************************/
+// SMTLib_Encoder_Functional::define_sb_adr ====================================
+
 TEST_F(SMTLib_Encoder_Functional_Test, define_sb_adr)
 {
   add_instruction_set(3);
@@ -234,7 +241,8 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_sb_adr)
     encoder->str());
 }
 
-/* SMTLib_Encoder_Functional::define_sb_val ***********************************/
+// SMTLib_Encoder_Functional::define_sb_val ====================================
+
 TEST_F(SMTLib_Encoder_Functional_Test, define_sb_val)
 {
   add_instruction_set(3);
@@ -265,7 +273,8 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_sb_val)
     encoder->str());
 }
 
-/* SMTLib_Encoder_Functional::define_sb_full **********************************/
+// SMTLib_Encoder_Functional::define_sb_full ===================================
+
 TEST_F(SMTLib_Encoder_Functional_Test, define_sb_full)
 {
   add_instruction_set(3);
@@ -636,7 +645,8 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_stmt_jmp_twice)
     encoder->str());
 }
 
-/* SMTLib_Encoder_Functional::define_block ************************************/
+// SMTLib_Encoder_Functional::define_block =====================================
+
 TEST_F(SMTLib_Encoder_Functional_Test, define_block)
 {
   add_instruction_set(3);
@@ -674,7 +684,8 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_block_empty)
   ASSERT_EQ("", encoder->str());
 }
 
-/* SMTLib_Encoder_Functional::define_heap *************************************/
+// SMTLib_Encoder_Functional::define_heap ======================================
+
 TEST_F(SMTLib_Encoder_Functional_Test, define_heap)
 {
   add_instruction_set(3);
@@ -739,7 +750,8 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_heap)
     encoder->str());
 }
 
-/* SMTLib_Encoder_Functional::define_exit_flag ********************************/
+// SMTLib_Encoder_Functional::define_exit_flag =================================
+
 TEST_F(SMTLib_Encoder_Functional_Test, define_exit_flag)
 {
   for (size_t i = 0; i < 3; i++)
@@ -775,7 +787,8 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_exit_flag_empty)
   ASSERT_EQ("", encoder->str());
 }
 
-/* SMTLib_Encoder_Functional::define_exit_code ********************************/
+// SMTLib_Encoder_Functional::define_exit_code =================================
+
 TEST_F(SMTLib_Encoder_Functional_Test, define_exit_code)
 {
   for (size_t i = 0; i < 3; i++)
@@ -835,7 +848,8 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_exit_code_empty)
     encoder->str());
 }
 
-/* SMTLib_Encoder_Functional::define_states ***********************************/
+// SMTLib_Encoder_Functional::define_states ====================================
+
 TEST_F(SMTLib_Encoder_Functional_Test, define_states)
 {
   programs.push_back(create_program("JMP 0\n"));
@@ -940,7 +954,8 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_states_check_exit)
     encoder->str());
 }
 
-/* SMTLib_Encoder_Functional::encode ******************************************/
+// SMTLib_Encoder_Functional::encode ===========================================
+
 TEST_F(SMTLib_Encoder_Functional_Test, encode_check)
 {
   // concurrent increment using CHECK

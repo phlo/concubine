@@ -10,79 +10,109 @@
 
 #include "common.hh"
 
+//==============================================================================
+// forward declarations
+//==============================================================================
+
 struct Instruction;
-using Instruction_ptr = std::shared_ptr<Instruction>;
 
-/*******************************************************************************
- * Program
- ******************************************************************************/
-struct Program : public std::vector<Instruction_ptr>
+//==============================================================================
+// Program class
+//==============================================================================
+
+struct Program : public std::vector<Instruction>
 {
-  using Predecessors = std::unordered_map<word_t, std::set<word_t>>;
+  //----------------------------------------------------------------------------
+  // member types
+  //----------------------------------------------------------------------------
 
-  /* path to program file */
-  std::string                     path;
+  struct List : public std::vector<Program>
+    {
+      using ptr = std::shared_ptr<List>;
 
-  /* pc of predecessors for each statement */
-  Predecessors                    predecessors;
+      using std::vector<Program>::vector; // inherit constructor
+    };
 
-  /* checkpoint ids */
-  std::unordered_set<word_t>      check_ids;
+  //----------------------------------------------------------------------------
+  // members
+  //----------------------------------------------------------------------------
 
-  /* maps program counters to the label referencing it */
-  std::unordered_map<
-    word_t,
-    const std::string *>          pc_to_label;
+  // path to program file
+  //
+  std::string path;
 
-  /* maps labels to the corresponding program counter */
-  std::unordered_map<
-    const std::string *,
-    word_t>                       label_to_pc;
+  // pc of predecessors for each statement
+  //
+  std::unordered_map<word_t, std::set<word_t>> predecessors;
 
-  /* jump labels */
+  // maps checkpoint ids to the corresponding program counters
+  //
+  // checkpoint id -> thread -> pc
+  //
+  std::unordered_map<word_t, std::vector<word_t>> checkpoints;
+
+  // maps program counters to the label referencing it
+  //
+  // pc -> label
+  //
+  std::unordered_map<word_t, const std::string *> pc_to_label;
+
+  // maps labels to the corresponding program counter
+  //
+  // label -> pc
+  //
+  std::unordered_map<const std::string *, word_t> label_to_pc;
+
+  // jump labels
+  //
   std::unordered_set<std::string> labels;
 
-  /* default constructor (testing only) */
-  Program ();
+  // next instruction's type
+  //
+  std::optional<uint8_t> set_type;
 
-  /* construct from file */
-  Program (std::istream & file, std::string & path);
+  //----------------------------------------------------------------------------
+  // constructors
+  //----------------------------------------------------------------------------
 
-  /* appends instruction to the program */
-  void                            push_back (Instruction_ptr op);
+  using std::vector<Instruction>::vector; // inherit constructors
 
-  /* get pc corresponding to the given label */
-  word_t                          get_pc (std::string label) const;
+  // construct from file
+  //
+  Program (std::istream & file, const std::string & path);
 
-  /* get label corresponding to the given pc */
-  std::string                     get_label (word_t pc) const;
+  //----------------------------------------------------------------------------
+  // member functions
+  //----------------------------------------------------------------------------
 
-  /* print whole program */
-  std::string                     print (bool include_pc = false) const;
+  // appends instruction to the program
+  //
+  void push_back (Instruction && op);
 
-  /* print instruction at pc */
-  std::string                     print (bool include_pc, word_t pc) const;
+  // get pc corresponding to the given label
+  //
+  word_t get_pc (std::string label) const;
+
+  // get label corresponding to the given pc
+  //
+  std::string get_label (word_t pc) const;
+
+  // print whole program
+  //
+  std::string print (bool include_pc = false) const;
+
+  // print instruction at pc
+  //
+  std::string print (bool include_pc, word_t pc) const;
 };
 
-/*******************************************************************************
- * Operators
- ******************************************************************************/
+//==============================================================================
+// non-member operators
+//==============================================================================
+
+// equality
+//
 bool operator == (const Program &, const Program &);
 bool operator != (const Program &, const Program &);
-
-/*******************************************************************************
- * Program_ptr
- ******************************************************************************/
-using Program_ptr = std::shared_ptr<Program>;
-
-/*******************************************************************************
- * Program_list
- ******************************************************************************/
-using Program_list = std::vector<Program_ptr>;
-
-/*******************************************************************************
- * Program_list_ptr
- ******************************************************************************/
-using Program_list_ptr = std::shared_ptr<Program_list>;
 
 #endif

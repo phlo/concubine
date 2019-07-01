@@ -1,20 +1,37 @@
 #include "encoder.hh"
 
 #include <cassert>
-#include <deque>
 
 #include "smtlib.hh"
 
-using namespace std;
+//==============================================================================
+// using declarations
+//==============================================================================
 
-SMTLib_Encoder_Functional::SMTLib_Encoder_Functional (
-                                                      const Program_list_ptr p,
-                                                      bound_t b,
-                                                      bool e
-                                                     ) : SMTLib_Encoder(p, b)
+using std::string;
+using std::vector;
+
+//==============================================================================
+// SMTLib_Encoder_Functional
+//==============================================================================
+
+//------------------------------------------------------------------------------
+// constructors
+//------------------------------------------------------------------------------
+
+SMTLib_Encoder_Functional::SMTLib_Encoder_Functional (const Program::List::ptr & p,
+                                                      const bound_t b,
+                                                      const bool e) :
+  SMTLib_Encoder(p, b)
 {
   if (e) encode();
 }
+
+//------------------------------------------------------------------------------
+// functions
+//------------------------------------------------------------------------------
+
+// SMTLib_Encoder_Functional::define_accu --------------------------------------
 
 #define DEFINE_STATE(_update, _type, _var) \
   do { \
@@ -24,15 +41,15 @@ SMTLib_Encoder_Functional::SMTLib_Encoder_Functional (
       pc = program.size() - 1; \
       for (auto rit = program.rbegin(); rit != program.rend(); ++rit, pc--) \
         { \
-          const Instruction_ptr & op = *rit; \
-          if (op->type() & _type) \
+          const Instruction & op = *rit; \
+          if (op.type() & _type) \
             expr = \
               smtlib::ite( \
                 exec_var(prev, thread, pc), \
-                op->encode(*this), \
+                op.encode(*this), \
                 expr); \
         } \
-      formula << assign_var(_var(step, thread), expr) << eol; \
+      formula << assign(_var(step, thread), expr) << eol; \
     }); \
     formula << eol; \
   } while (0)
@@ -42,32 +59,40 @@ void SMTLib_Encoder_Functional::define_accu ()
   if (verbose)
     formula << accu_comment;
 
-  DEFINE_STATE(Update::accu, Types::accu, accu_var);
+  DEFINE_STATE(State::accu, Instruction::Type::accu, accu_var);
 }
+
+// SMTLib_Encoder_Functional::define_mem ---------------------------------------
 
 void SMTLib_Encoder_Functional::define_mem ()
 {
   if (verbose)
     formula << mem_comment;
 
-  DEFINE_STATE(Update::mem, Types::mem, mem_var);
+  DEFINE_STATE(State::mem, Instruction::Type::mem, mem_var);
 }
+
+// SMTLib_Encoder_Functional::define_sb_adr ------------------------------------
 
 void SMTLib_Encoder_Functional::define_sb_adr ()
 {
   if (verbose)
     formula << sb_adr_comment;
 
-  DEFINE_STATE(Update::sb_adr, Types::write, sb_adr_var);
+  DEFINE_STATE(State::sb_adr, Instruction::Type::write, sb_adr_var);
 }
+
+// SMTLib_Encoder_Functional::define_sb_val ------------------------------------
 
 void SMTLib_Encoder_Functional::define_sb_val ()
 {
   if (verbose)
     formula << sb_val_comment;
 
-  DEFINE_STATE(Update::sb_val, Types::write, sb_val_var);
+  DEFINE_STATE(State::sb_val, Instruction::Type::write, sb_val_var);
 }
+
+// SMTLib_Encoder_Functional::define_sb_full -----------------------------------
 
 void SMTLib_Encoder_Functional::define_sb_full ()
 {
@@ -79,13 +104,13 @@ void SMTLib_Encoder_Functional::define_sb_full ()
     pc = program.size() - 1;
 
     for (auto rit = program.rbegin(); rit != program.rend(); ++rit, pc--)
-      if ((*rit)->type() & Types::write)
+      if (rit->type() & Instruction::Type::write)
         args.push_back(exec_var(prev, thread, pc));
 
     args.push_back(sb_full_var(prev, thread));
 
     formula <<
-      assign_var(
+      assign(
         sb_full_var(),
           smtlib::ite(
             flush_var(prev, thread),
@@ -95,6 +120,8 @@ void SMTLib_Encoder_Functional::define_sb_full ()
 
   formula << eol;
 }
+
+// SMTLib_Encoder_Functional::define_stmt --------------------------------------
 
 void SMTLib_Encoder_Functional::define_stmt ()
 {
@@ -110,17 +137,19 @@ void SMTLib_Encoder_Functional::define_stmt ()
             stmt_var(prev, thread, pc),
             smtlib::lnot(exec_var(prev, thread, pc))});
 
-        const auto & pred = program.predecessors.at(pc);
+        const auto & preds = program.predecessors.at(pc);
 
-        for (auto p = pred.rbegin(); p != pred.rend(); ++p)
+        for (auto rit = preds.rbegin(); rit != preds.rend(); ++rit)
           {
             // predecessor's execution variable
-            string val = exec_var(prev, thread, *p);
+            string val = exec_var(prev, thread, *rit);
 
             // build conjunction of execution variable and jump condition
-            if (Jmp_ptr j = dynamic_pointer_cast<Jmp>(program[*p]))
+            const Instruction & pred = program[*rit];
+
+            if (pred.is_jump())
               {
-                string cond = j->encode(*this);
+                string cond = pred.encode(*this);
 
                 // JMP has no condition and returns an empty string
                 if (!cond.empty())
@@ -128,21 +157,23 @@ void SMTLib_Encoder_Functional::define_stmt ()
                     smtlib::land({
                       val,
                       // only activate successor if jump condition failed
-                      *p == pc - 1 && j->arg != pc
+                      *rit == pc - 1 && pred.arg() != pc
                         ? smtlib::lnot(cond)
                         : cond});
               }
 
             // add predecessor to the activation
-            expr = smtlib::ite(stmt_var(prev, thread, *p), val, expr);
+            expr = smtlib::ite(stmt_var(prev, thread, *rit), val, expr);
           }
 
-        formula << assign_var(stmt_var(), expr) << eol;
+        formula << assign(stmt_var(), expr) << eol;
       }
 
     formula << eol;
   });
 }
+
+// SMTLib_Encoder_Functional::define_block -------------------------------------
 
 void SMTLib_Encoder_Functional::define_block ()
 {
@@ -165,7 +196,7 @@ void SMTLib_Encoder_Functional::define_block ()
         block_args.push_back(block_var(prev, c, t));
 
         formula <<
-          assign_var(
+          assign(
             block_var(step, c, t),
             smtlib::ite(
               check_var(prev, c),
@@ -177,12 +208,14 @@ void SMTLib_Encoder_Functional::define_block ()
   formula << eol;
 }
 
+// SMTLib_Encoder_Functional::define_heap --------------------------------------
+
 void SMTLib_Encoder_Functional::define_heap ()
 {
   if (verbose)
     formula << heap_comment;
 
-  update = Update::heap;
+  update = State::heap;
 
   const string heap_prev = heap_var(prev);
   string expr = heap_prev;
@@ -192,13 +225,13 @@ void SMTLib_Encoder_Functional::define_heap ()
 
     for (auto rit = program.rbegin(); rit != program.rend(); ++rit, pc--)
       {
-        const Instruction_ptr & op = *rit;
+        const Instruction & op = *rit;
 
-        if (op->type() & Types::atomic)
+        if (op.type() & Instruction::Type::atomic)
           expr =
             smtlib::ite(
               exec_var(prev, thread, pc),
-              op->encode(*this),
+              op.encode(*this),
               expr);
       }
 
@@ -212,10 +245,10 @@ void SMTLib_Encoder_Functional::define_heap ()
         expr);
   });
 
-  formula << assign_var(heap_var(), expr) << eol;
-
-  formula << eol;
+  formula << assign(heap_var(), expr) << eol << eol;
 }
+
+// SMTLib_Encoder_Functional::define_exit_code ---------------------------------
 
 void SMTLib_Encoder_Functional::define_exit_flag ()
 {
@@ -232,10 +265,11 @@ void SMTLib_Encoder_Functional::define_exit_flag ()
       args.push_back(exec_var(prev, thread, exit_pc));
   });
 
-  formula << assign_var(exit_flag_var(), smtlib::lor(args)) << eol << eol;
+  formula << assign(exit_flag_var(), smtlib::lor(args)) << eol << eol;
 }
 
-// TODO
+// SMTLib_Encoder_Functional::define_exit_flag ---------------------------------
+
 void SMTLib_Encoder_Functional::define_exit_code ()
 {
   if (verbose)
@@ -250,12 +284,14 @@ void SMTLib_Encoder_Functional::define_exit_code ()
           ite =
             smtlib::ite(
               exec_var(k, thread, exit_pc),
-              program[exit_pc]->encode(*this),
+              program[exit_pc].encode(*this),
               ite);
       });
 
-  formula << assign_var(exit_code_sym, ite) << eol << eol;
+  formula << assign(exit_code_var, ite) << eol << eol;
 }
+
+// SMTLib_Encoder_Functional::define_states ------------------------------------
 
 void SMTLib_Encoder_Functional::define_states ()
 {
@@ -275,6 +311,8 @@ void SMTLib_Encoder_Functional::define_states ()
   define_heap();
   define_exit_flag();
 }
+
+// SMTLib_Encoder_Functional::encode -------------------------------------------
 
 void SMTLib_Encoder_Functional::encode ()
 {

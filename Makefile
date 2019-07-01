@@ -33,7 +33,7 @@ SRC = boolector.cc \
       encoder_smtlib.cc \
       encoder_smtlib_functional.cc \
       encoder_smtlib_relational.cc \
-      instructionset.cc \
+      instruction.cc \
       program.cc \
       schedule.cc \
       shell.cc \
@@ -61,6 +61,11 @@ debug: build
 .PHONY: valgrind
 valgrind: build
 	$(MAKE) -C test valgrind
+
+# run experiments
+.PHONY: experiments
+experiments:
+	$(MAKE) -C test experiments
 
 # build executable
 .PHONY: build

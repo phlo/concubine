@@ -2,6 +2,10 @@
 
 using namespace std;
 
+//==============================================================================
+// SMTLib_Encoder_Relational tests
+//==============================================================================
+
 using E = SMTLib_Encoder_Relational;
 
 struct SMTLib_Encoder_Relational_Test : Test::SMTLib_Encoder<E>
@@ -19,13 +23,15 @@ struct SMTLib_Encoder_Relational_Test : Test::SMTLib_Encoder<E>
     }
 };
 
-/* SMTLib_Encoder_Relational::imply *******************************************/
+// SMTLib_Encoder_Relational::imply ============================================
+
 TEST_F(SMTLib_Encoder_Relational_Test, imply)
 {
   ASSERT_EQ("(assert (=> foo bar))\n", encoder->imply("foo", "bar"));
 }
 
-/* SMTLib_Encoder_Relational::imply_thread_executed ***************************/
+// SMTLib_Encoder_Relational::imply_thread_executed ============================
+
 TEST_F(SMTLib_Encoder_Relational_Test, imply_thread_executed)
 {
   programs.push_back(
@@ -88,7 +94,8 @@ TEST_F(SMTLib_Encoder_Relational_Test, imply_thread_executed)
     encoder->str());
 }
 
-/* SMTLib_Encoder_Relational::imply_thread_not_executed ***********************/
+// SMTLib_Encoder_Relational::imply_thread_not_executed ========================
+
 TEST_F(SMTLib_Encoder_Relational_Test, imply_thread_not_executed)
 {
   programs.push_back(
@@ -118,7 +125,8 @@ TEST_F(SMTLib_Encoder_Relational_Test, imply_thread_not_executed)
     encoder->str());
 }
 
-/* SMTLib_Encoder_Relational::imply_thread_flushed ****************************/
+// SMTLib_Encoder_Relational::imply_thread_flushed =============================
+
 TEST_F(SMTLib_Encoder_Relational_Test, imply_thread_flushed)
 {
   add_instruction_set(1);
@@ -136,7 +144,8 @@ TEST_F(SMTLib_Encoder_Relational_Test, imply_thread_flushed)
     encoder->str());
 }
 
-/* SMTLib_Encoder_Relational::imply_machine_exited ****************************/
+// SMTLib_Encoder_Relational::imply_machine_exited =============================
+
 TEST_F(SMTLib_Encoder_Relational_Test, imply_machine_exited)
 {
   add_instruction_set(1);
@@ -153,7 +162,8 @@ TEST_F(SMTLib_Encoder_Relational_Test, imply_machine_exited)
     encoder->str());
 }
 
-/* SMTLib_Encoder_Relational::define_states ***********************************/
+// SMTLib_Encoder_Relational::define_states ====================================
+
 TEST_F(SMTLib_Encoder_Relational_Test, define_states)
 {
   programs.push_back(create_program("JMP 0\n"));
@@ -290,7 +300,8 @@ TEST_F(SMTLib_Encoder_Relational_Test, define_states_check_exit)
     encoder->str());
 }
 
-/* SMTLib_Encoder_Relational::encode ******************************************/
+// SMTLib_Encoder_Relational::encode ===========================================
+
 TEST_F(SMTLib_Encoder_Relational_Test, encode_check)
 {
   /* concurrent increment using CHECK */
@@ -314,7 +325,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, LOAD)
   add_instruction_set(1);
   reset_encoder();
 
-  Load load {1};
+  Instruction::Load load (1);
 
   ASSERT_EQ(
     "(and "
@@ -355,7 +366,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, LOAD_indirect)
   add_instruction_set(1);
   reset_encoder();
 
-  Load load {1, true};
+  Instruction::Load load (1, true);
 
   ASSERT_EQ(
     "(and "
@@ -406,7 +417,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, STORE)
 
   encoder->pc = 1;
 
-  Store store {1};
+  Instruction::Store store (1);
 
   ASSERT_EQ(
     "(and "
@@ -446,7 +457,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, STORE_indirect)
 
   encoder->pc = 1;
 
-  Store store {1, true};
+  Instruction::Store store (1, true);
 
   ASSERT_EQ(
     "(and "
@@ -489,7 +500,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, ADD)
 
   encoder->pc = 2;
 
-  Add add {1};
+  Instruction::Add add (1);
 
   ASSERT_EQ(
     "(and "
@@ -534,7 +545,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, ADD_indirect)
 
   encoder->pc = 2;
 
-  Add add {1, true};
+  Instruction::Add add (1, true);
 
   ASSERT_EQ(
     "(and "
@@ -587,7 +598,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, ADDI)
 
   encoder->pc = 3;
 
-  Addi addi {1};
+  Instruction::Addi addi (1);
 
   ASSERT_EQ(
     "(and "
@@ -627,7 +638,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, SUB)
 
   encoder->pc = 4;
 
-  Sub sub {1};
+  Instruction::Sub sub (1);
 
   ASSERT_EQ(
     "(and "
@@ -672,7 +683,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, SUB_indirect)
 
   encoder->pc = 4;
 
-  Sub sub {1, true};
+  Instruction::Sub sub (1, true);
 
   ASSERT_EQ(
     "(and "
@@ -725,7 +736,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, SUBI)
 
   encoder->pc = 5;
 
-  Subi subi {1};
+  Instruction::Subi subi (1);
 
   ASSERT_EQ(
     "(and "
@@ -765,7 +776,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, MUL)
 
   encoder->pc = 4;
 
-  Mul mul {1};
+  Instruction::Mul mul (1);
 
   ASSERT_EQ(
     "(and "
@@ -810,7 +821,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, MUL_indirect)
 
   encoder->pc = 4;
 
-  Mul mul {1, true};
+  Instruction::Mul mul (1, true);
 
   ASSERT_EQ(
     "(and "
@@ -863,7 +874,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, MULI)
 
   encoder->pc = 5;
 
-  Muli muli {1};
+  Instruction::Muli muli (1);
 
   ASSERT_EQ(
     "(and "
@@ -903,7 +914,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, CMP)
 
   encoder->pc = 6;
 
-  Cmp cmp {1};
+  Instruction::Cmp cmp (1);
 
   ASSERT_EQ(
     "(and "
@@ -948,7 +959,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, CMP_indirect)
 
   encoder->pc = 6;
 
-  Cmp cmp {1, true};
+  Instruction::Cmp cmp (1, true);
 
   ASSERT_EQ(
     "(and "
@@ -1001,7 +1012,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, JMP)
 
   encoder->pc = 7;
 
-  Jmp jmp {8};
+  Instruction::Jmp jmp (8);
 
   ASSERT_EQ(
     "(and "
@@ -1041,7 +1052,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, JZ)
 
   encoder->pc = 8;
 
-  Jz jz {1};
+  Instruction::Jz jz (1);
 
   ASSERT_EQ(
     "(and "
@@ -1085,7 +1096,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, JNZ)
 
   encoder->pc = 9;
 
-  Jnz jnz {1};
+  Instruction::Jnz jnz (1);
 
   ASSERT_EQ(
     "(and "
@@ -1129,7 +1140,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, JS)
 
   encoder->pc = 10;
 
-  Js js {1};
+  Instruction::Js js (1);
 
   ASSERT_EQ(
     "(and "
@@ -1173,7 +1184,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, JNS)
 
   encoder->pc = 11;
 
-  Jns jns {1};
+  Instruction::Jns jns (1);
 
   ASSERT_EQ(
     "(and "
@@ -1217,7 +1228,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, JNZNS)
 
   encoder->pc = 12;
 
-  Jnzns jnzns {1};
+  Instruction::Jnzns jnzns (1);
 
   ASSERT_EQ(
     "(and "
@@ -1267,7 +1278,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, MEM)
 
   encoder->pc = 13;
 
-  Mem mem {1};
+  Instruction::Mem mem (1);
 
   ASSERT_EQ(
     "(and "
@@ -1313,7 +1324,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, MEM_indirect)
 
   encoder->pc = 13;
 
-  Mem mem {1, true};
+  Instruction::Mem mem (1, true);
 
   ASSERT_EQ(
     "(and "
@@ -1375,7 +1386,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, CAS)
 
   encoder->pc = 14;
 
-  Cas cas {1};
+  Instruction::Cas cas (1);
 
   ASSERT_EQ(
     "(and "
@@ -1421,7 +1432,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, CAS_indirect)
 
   encoder->pc = 14;
 
-  Cas cas {1, true};
+  Instruction::Cas cas (1, true);
 
   ASSERT_EQ(
     "(and "
@@ -1467,7 +1478,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, CHECK)
 
   encoder->pc = 15;
 
-  Check check {1};
+  Instruction::Check check (1);
 
   ASSERT_EQ(
     "(and "
@@ -1512,7 +1523,7 @@ TEST_F(SMTLib_Encoder_Relational_Test, EXIT)
 
   encoder->pc = 16;
 
-  Exit exit {1};
+  Instruction::Exit exit (1);
 
   ASSERT_EQ(
     "(and "

@@ -9,6 +9,10 @@
 
 using namespace std;
 
+//==============================================================================
+// Simulator tests
+//==============================================================================
+
 struct CVC4_Test : public ::testing::Test
 {
   CVC4 cvc4;
@@ -54,12 +58,12 @@ TEST_F(CVC4_Test, print_model)
   string increment_0 = "data/increment.check.thread.0.asm";
   string increment_n = "data/increment.check.thread.n.asm";
 
-  Program_list_ptr programs = make_shared<Program_list>();
+  Program::List::ptr programs = make_shared<Program::List>();
 
   programs->push_back(create_from_file<Program>(increment_0));
   programs->push_back(create_from_file<Program>(increment_n));
 
-  Encoder_ptr encoder = make_unique<SMTLib_Encoder_Functional>(programs, 12);
+  Encoder::ptr encoder = make_unique<SMTLib_Encoder_Functional>(programs, 12);
 
   string formula = cvc4.build_formula(*encoder, constraints);
 

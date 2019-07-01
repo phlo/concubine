@@ -44,13 +44,13 @@ GTEST_FILTER += SMTLib_Encoder_Functional_Test.*
 GTEST_FILTER += SMTLib_Encoder_Relational_Test.*
 GTEST_FILTER += Btor2_Test.*
 GTEST_FILTER += Btor2_Encoder_Test.*
-# GTEST_FILTER += Thread_Test.*
+GTEST_FILTER += Thread_Test.*
 # GTEST_FILTER += Simulator_Test.*
 # GTEST_FILTER += Main_Test.*
 # GTEST_FILTER += Experimental.*
-# GTEST_FILTER += Program_Test.*
+GTEST_FILTER += Instruction_Test.*
+GTEST_FILTER += Program_Test.*
 # GTEST_FILTER += Schedule_Test.*
-# GTEST_FILTER += Instruction_Test.*
 # GTEST_FILTER += Shell_Test.*
 # GTEST_FILTER += Boolector_Test.*
 # GTEST_FILTER += BtorMC_Test.*
@@ -79,6 +79,18 @@ VALGRIND = valgrind \
 .PHONY: valgrind
 valgrind: $(TEST_RUN)
 	$(VALGRIND) ./$(TEST_RUN) $(GTEST_FILTER)
+
+# run experiments
+.PHONY: experiments
+experiments: experimental
+	./$<
+
+EXPERIMENTS = experiments.cc \
+			  ../instruction.hh ../instruction.cc \
+			  ../program.hh ../program.cc
+
+experimental: $(EXPERIMENTS) $(GTEST_LIB)
+	$(CXX) $(CXXFLAGS) $^ $(TEST_MAIN) -o $@
 
 # build executable containing all test cases
 $(TEST_RUN): $(GTEST_LIB) $(OBJ) $(TEST_OBJ)

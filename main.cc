@@ -1,9 +1,4 @@
 #include <cstring>
-#include <deque>
-#include <fstream>
-#include <iostream>
-#include <stdexcept>
-#include <string>
 
 #include "parser.hh"
 
@@ -13,14 +8,38 @@
 #include "boolector.hh"
 #include "btormc.hh"
 #include "z3.hh"
+#include "cvc4.hh"
 
-using namespace std;
+//==============================================================================
+// using declarations
+//==============================================================================
 
-/* global flags ***************************************************************/
+using std::string;
+using std::stoul;
+
+using std::cout;
+using std::cerr;
+using std::ifstream;
+using std::istreambuf_iterator;
+
+using std::make_shared;
+using std::unique_ptr;
+using std::make_unique;
+
+using std::exception;
+using std::runtime_error;
+
+//==============================================================================
+// global flags
+//==============================================================================
+
 bool verbose = false;
 
-/* usage output ***************************************************************/
-void print_usage_main (char * name)
+//==============================================================================
+// usage
+//==============================================================================
+
+void print_usage_main (const char * name)
 {
   cout << "usage: " << name <<
   " <command> [<arg> ...]" <<
@@ -32,12 +51,12 @@ void print_usage_main (char * name)
   "  solve      solve concurrent programs using SMT" << eol;
 }
 
-void print_usage_help (char * name)
+void print_usage_help (const char * name)
 {
   cout << "usage: " << name << " help <command>" << eol;
 }
 
-void print_usage_simulate (char * name)
+void print_usage_simulate (const char * name)
 {
   cout << "usage: " << name <<
   " simulate [-k <bound>] [-s <seed>] [-v] <program> ..." <<
@@ -48,7 +67,7 @@ void print_usage_simulate (char * name)
   "  program    one ore more source files, each being executed as a separate thread" << eol;
 }
 
-void print_usage_replay (char * name)
+void print_usage_replay (const char * name)
 {
   cout << "usage: " << name <<
   " replay [-k <bound>] [-v] <schedule>" <<
@@ -58,7 +77,7 @@ void print_usage_replay (char * name)
   "  schedule   the schedule to replay" << eol;
 }
 
-void print_usage_solve (char * name)
+void print_usage_solve (const char * name)
 {
   cout << "usage: " << name <<
   " solve [options] <bound> <program> ..."
@@ -78,13 +97,17 @@ void print_usage_solve (char * name)
   "  program    one or more programs to encode" << eol;
 }
 
-/*******************************************************************************
- * main functions
- ******************************************************************************/
-void print_error (string what) { cerr << "error: " << what << eol; }
+//==============================================================================
+// submodules
+//==============================================================================
 
-/* help ***********************************************************************/
-int help (char * name, int argc, char **argv)
+void print_error (const string & what) { cerr << "error: " << what << eol; }
+
+//------------------------------------------------------------------------------
+// help
+//------------------------------------------------------------------------------
+
+int help (const char * name, const int argc, const char **argv)
 {
   if (argc < 1)
     {
@@ -119,12 +142,15 @@ int help (char * name, int argc, char **argv)
   return 0;
 }
 
-/* simulate *******************************************************************/
-int simulate (char * name, int argc, char ** argv)
+//------------------------------------------------------------------------------
+// simulate
+//------------------------------------------------------------------------------
+
+int simulate (const char * name, const int argc, const char ** argv)
 {
-  bound_t           bound = 0;
-  uint64_t          seed = static_cast<uint64_t>(time(NULL));
-  Program_list_ptr  programs(make_shared<Program_list>());
+  bound_t bound = 0;
+  uint64_t seed = static_cast<uint64_t>(time(NULL));
+  Program::List::ptr programs = make_shared<Program::List>();
 
   for (int i = 0; i < argc; i++)
     {
@@ -191,17 +217,20 @@ int simulate (char * name, int argc, char ** argv)
       return -1;
     }
 
-  /* run program with given seed */
-  Schedule_ptr schedule = Simulator::simulate(programs, bound, seed);
+  // run program with given seed
+  Schedule::ptr schedule = Simulator::simulate(programs, bound, seed);
 
-  /* print the result */
+  // print the result
   cout << schedule->print();
 
   return schedule->exit;
 }
 
-/* replay *********************************************************************/
-int replay (char * name, int argc, char ** argv)
+//------------------------------------------------------------------------------
+// replay
+//------------------------------------------------------------------------------
+
+int replay (const char * name, const int argc, const char ** argv)
 {
   bound_t bound = 0;
   string  schedule_path;
@@ -247,13 +276,14 @@ int replay (char * name, int argc, char ** argv)
 
   try
     {
-      /* create and parse schedule */
-      Schedule_ptr schedule(create_from_file<Schedule>(schedule_path));
+      // create and parse schedule
+      Schedule::ptr schedule =
+        make_unique<Schedule>(create_from_file<Schedule>(schedule_path));
 
-      /* run given schedule */
+      // run given schedule
       schedule = Simulator::replay(*schedule, bound);
 
-      /* print the result */
+      // print the result
       cout << schedule->print();
 
       return schedule->exit;
@@ -265,8 +295,11 @@ int replay (char * name, int argc, char ** argv)
     }
 }
 
-/* solve **********************************************************************/
-int solve (char * name, int argc, char ** argv)
+//------------------------------------------------------------------------------
+// solve
+//------------------------------------------------------------------------------
+
+int solve (const char * name, const int argc, const char ** argv)
 {
   if (argc < 2)
     {
@@ -279,19 +312,19 @@ int solve (char * name, int argc, char ** argv)
     {
       int i = 0;
 
-      /* only print formula */
+      // only print formula
       bool pretend = false;
 
-      /* additional constraints from file */
+      // additional constraints from file
       string constraints;
 
-      /* encoder name */
+      // encoder name
       string encoder_name = "smtlib-functional";
 
-      /* solver name */
+      // solver name
       string solver_name = "boolector";
 
-      /* parse flags */
+      // parse flags
       do
         if (!strcmp(argv[i], "-c"))
           {
@@ -350,7 +383,7 @@ int solve (char * name, int argc, char ** argv)
           break;
       while (++i < argc);
 
-      /* check for bound and program */
+      // check for bound and program
       if (argc < i + 2)
         {
           print_error("too few arguments");
@@ -358,7 +391,7 @@ int solve (char * name, int argc, char ** argv)
           return -1;
         }
 
-      /* parse bound */
+      // parse bound
       bound_t bound = 0;
       try
         {
@@ -372,15 +405,15 @@ int solve (char * name, int argc, char ** argv)
           return -1;
         }
 
-      /* list of programs (thread id == idx + 1) */
-      Program_list_ptr programs(make_shared<Program_list>());
+      // list of programs (thread id == idx + 1)
+      Program::List::ptr programs = make_shared<Program::List>();
 
-      /* parse programs */
+      // parse programs
       while (i < argc)
         programs->push_back(create_from_file<Program>(argv[i++]));
 
-      /* encode program */
-      Encoder_ptr encoder;
+      // encode program
+      unique_ptr<Encoder> encoder;
 
       if (encoder_name == "smtlib-functional")
         encoder = make_unique<SMTLib_Encoder_Functional>(programs, bound);
@@ -395,15 +428,17 @@ int solve (char * name, int argc, char ** argv)
           return -1;
         }
 
-      /* select solver */
-      SolverPtr solver;
+      // select solver
+      unique_ptr<Solver> solver;
 
       if (encoder_name == "btor2")
-        solver = BtorMCPtr(new BtorMC(bound));
+        solver = make_unique<BtorMC>(bound);
       else if (solver_name == "boolector")
-        solver = BoolectorPtr(new Boolector());
+        solver = make_unique<Boolector>();
       else if (solver_name == "z3")
-        solver = Z3Ptr(new Z3());
+        solver = make_unique<Z3>();
+      else if (solver_name == "cvc4")
+        solver = make_unique<CVC4>();
       else
         {
           print_error("unknown solver [" + solver_name + "]");
@@ -411,7 +446,7 @@ int solve (char * name, int argc, char ** argv)
           return -1;
         }
 
-      /* print program if we're pretending */
+      // print formula if we're pretending
       if (pretend)
         cout << solver->build_formula(*encoder, constraints);
       else
@@ -426,12 +461,15 @@ int solve (char * name, int argc, char ** argv)
   return 0;
 }
 
-/* main ***********************************************************************/
-int main (int argc, char ** argv)
+//==============================================================================
+// main
+//==============================================================================
+
+int main (const int argc, const char ** argv)
 {
   if (argc > 1)
     {
-      /* forward to given command's main */
+      // forward to given command's main
       if (!strcmp(argv[1], "help"))
         {
           return help(argv[0], argc - 2, argv + 2);
@@ -450,7 +488,7 @@ int main (int argc, char ** argv)
         }
     }
 
-  /* found no command */
+  // found no command
   print_usage_main(argv[0]);
   return -1;
 }

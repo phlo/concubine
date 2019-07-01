@@ -1,12 +1,28 @@
 #include "encoder.hh"
 
-#include <functional>
+#include <algorithm>
 
 #include "btor2.hh"
 
-using namespace std;
+//==============================================================================
+// using declarations
+//==============================================================================
 
-// map lookup helpers, performing an arbitrary action for missing values
+using std::string;
+using std::to_string;
+
+using std::map;
+using std::unordered_map;
+using std::vector;
+
+using std::runtime_error;
+
+//==============================================================================
+// helpers
+//==============================================================================
+
+// map lookup helpers, performing an arbitrary action for missing values -------
+
 template <typename K, typename V, typename F>
 V & lookup (map<K, V> & m, K k, F fun)
 {
@@ -29,6 +45,20 @@ V & lookup (unordered_map<K, V> & m, K k, F fun)
       ? it->second
       : m.insert(it, {k, fun()})->second;
 }
+
+//==============================================================================
+// Btor2_Encoder
+//==============================================================================
+
+//------------------------------------------------------------------------------
+// static members
+//------------------------------------------------------------------------------
+
+// exit code variable ----------------------------------------------------------
+
+const string & Btor2_Encoder::exit_code_var = exit_code_sym;
+
+// variable comments -----------------------------------------------------------
 
 const string Btor2_Encoder::accu_comment =
   btor2::comment(
@@ -83,9 +113,17 @@ const string Btor2_Encoder::check_comment =
   btor2::comment(
     Encoder::check_comment + " - " + check_sym + "_<id>" + eol);
 
+// most significant bit's bitvector constant -----------------------------------
+
 const string Btor2_Encoder::msb = to_string(word_size - 1);
 
-Btor2_Encoder::Btor2_Encoder (const Program_list_ptr p, bound_t b, bool e) :
+//------------------------------------------------------------------------------
+// constructors
+//------------------------------------------------------------------------------
+
+Btor2_Encoder::Btor2_Encoder (const Program::List::ptr & p,
+                              const bound_t b,
+                              const bool e) :
   Encoder(p, b),
   node(1)
 {
@@ -95,12 +133,18 @@ Btor2_Encoder::Btor2_Encoder (const Program_list_ptr p, bound_t b, bool e) :
 
   iterate_programs([this] (const Program & program) {
     for (pc = 0; pc < program.size(); pc++)
-      if (Unary_ptr i = dynamic_pointer_cast<Unary>(program[pc]))
-        nids_const[i->arg];
+      if (program[pc].is_unary())
+        nids_const[program[pc].arg()];
   });
 
   if (e) encode();
 }
+
+//------------------------------------------------------------------------------
+// private member functions
+//------------------------------------------------------------------------------
+
+// Btor2_Encoder::accu_var -----------------------------------------------------
 
 string Btor2_Encoder::accu_var (const word_t t)
 {
@@ -112,6 +156,8 @@ string Btor2_Encoder::accu_var () const
   return accu_var(thread);
 }
 
+// Btor2_Encoder::mem_var ------------------------------------------------------
+
 string Btor2_Encoder::mem_var (const word_t t)
 {
   return mem_sym + '_' + to_string(t);
@@ -121,6 +167,8 @@ string Btor2_Encoder::mem_var () const
 {
   return mem_var(thread);
 }
+
+// Btor2_Encoder::sb_adr_var ---------------------------------------------------
 
 string Btor2_Encoder::sb_adr_var (const word_t t)
 {
@@ -132,6 +180,8 @@ string Btor2_Encoder::sb_adr_var () const
   return sb_adr_var(thread);
 }
 
+// Btor2_Encoder::sb_val_var ---------------------------------------------------
+
 string Btor2_Encoder::sb_val_var (const word_t t)
 {
   return sb_val_sym + '_' + to_string(t);
@@ -141,6 +191,8 @@ string Btor2_Encoder::sb_val_var () const
 {
   return sb_val_var(thread);
 }
+
+// Btor2_Encoder::sb_full_var --------------------------------------------------
 
 string Btor2_Encoder::sb_full_var (const word_t t)
 {
@@ -152,6 +204,8 @@ string Btor2_Encoder::sb_full_var () const
   return sb_full_var(thread);
 }
 
+// Btor2_Encoder::stmt_var -----------------------------------------------------
+
 string Btor2_Encoder::stmt_var (const word_t t, const word_t pc)
 {
   return stmt_sym + '_' + to_string(t) + '_' + to_string(pc);
@@ -162,10 +216,14 @@ string Btor2_Encoder::stmt_var () const
   return stmt_var(thread, pc);
 }
 
+// Btor2_Encoder::block_var ----------------------------------------------------
+
 string Btor2_Encoder::block_var (const word_t t, const word_t id)
 {
   return block_sym + '_' + to_string(t) + '_' + to_string(id);
 }
+
+// Btor2_Encoder::thread_var ---------------------------------------------------
 
 string Btor2_Encoder::thread_var (const word_t t)
 {
@@ -177,6 +235,8 @@ string Btor2_Encoder::thread_var () const
   return thread_var(thread);
 }
 
+// Btor2_Encoder::exec_var -----------------------------------------------------
+
 string Btor2_Encoder::exec_var (const word_t t, const word_t pc)
 {
   return exec_sym + '_' + to_string(t) + '_' + to_string(pc);
@@ -186,6 +246,8 @@ string Btor2_Encoder::exec_var () const
 {
   return exec_var(thread, pc);
 }
+
+// Btor2_Encoder::flush_var ----------------------------------------------------
 
 string Btor2_Encoder::flush_var (const word_t t)
 {
@@ -197,20 +259,14 @@ string Btor2_Encoder::flush_var () const
   return flush_var(thread);
 }
 
+// Btor2_Encoder::check_var ----------------------------------------------------
+
 string Btor2_Encoder::check_var (const word_t id)
 {
   return check_sym + '_' + to_string(id);
 }
 
-string Btor2_Encoder::cas_var (const word_t t)
-{
-  return cas_sym + '_' + to_string(t);
-}
-
-string Btor2_Encoder::cas_var () const
-{
-  return cas_var(thread);
-}
+// Btor2_Encoder::nid ----------------------------------------------------------
 
 string Btor2_Encoder::nid ()
 {
@@ -222,22 +278,26 @@ string Btor2_Encoder::nid (int offset)
   return to_string(static_cast<int>(node) + offset);
 }
 
+// Btor2_Encoder::debug_symbol -------------------------------------------------
+
 string Btor2_Encoder::debug_symbol (const word_t t, const word_t p)
 {
-  const Instruction_ptr & op = (*(*programs)[t])[p];
+  const Instruction & op = (*programs)[t][p];
 
   string sym =
     to_string(t) +
     ":" +
     to_string(p) +
     ":" +
-    op->symbol();
+    op.symbol();
 
-  if (const Unary_ptr & u = dynamic_pointer_cast<Unary>(op))
-    sym += ":" + to_string(u->arg);
+  if (op.is_unary())
+    sym += ":" + to_string(op.arg());
 
   return sym;
 }
+
+// Btor2_Encoder::load ---------------------------------------------------------
 
 string Btor2_Encoder::load (const word_t address, const bool indirect)
 {
@@ -522,6 +582,8 @@ string Btor2_Encoder::load (const word_t address, const bool indirect)
         });
 }
 
+// Btor2_Encoder::declare_sorts ------------------------------------------------
+
 void Btor2_Encoder::declare_sorts ()
 {
   if (verbose)
@@ -533,6 +595,8 @@ void Btor2_Encoder::declare_sorts ()
     btor2::declare_array(sid_heap = nid(), "2", "2") <<
     eol;
 }
+
+// Btor2_Encoder::declare_constants --------------------------------------------
 
 void Btor2_Encoder::declare_constants ()
 {
@@ -556,6 +620,8 @@ void Btor2_Encoder::declare_constants ()
   formula << eol;
 }
 
+// Btor2_Encoder::declare_accu -------------------------------------------------
+
 void Btor2_Encoder::declare_accu ()
 {
   if (verbose)
@@ -570,6 +636,8 @@ void Btor2_Encoder::declare_accu ()
 
   formula << eol;
 }
+
+// Btor2_Encoder::declare_mem --------------------------------------------------
 
 void Btor2_Encoder::declare_mem ()
 {
@@ -586,6 +654,8 @@ void Btor2_Encoder::declare_mem ()
   formula << eol;
 }
 
+// Btor2_Encoder::declare_sb_adr -----------------------------------------------
+
 void Btor2_Encoder::declare_sb_adr ()
 {
   if (verbose)
@@ -600,6 +670,8 @@ void Btor2_Encoder::declare_sb_adr ()
 
   formula << eol;
 }
+
+// Btor2_Encoder::declare_sb_val -----------------------------------------------
 
 void Btor2_Encoder::declare_sb_val ()
 {
@@ -616,6 +688,8 @@ void Btor2_Encoder::declare_sb_val ()
   formula << eol;
 }
 
+// Btor2_Encoder::declare_sb_full ----------------------------------------------
+
 void Btor2_Encoder::declare_sb_full ()
 {
   if (verbose)
@@ -630,6 +704,8 @@ void Btor2_Encoder::declare_sb_full ()
 
   formula << eol;
 }
+
+// Btor2_Encoder::declare_stmt -------------------------------------------------
 
 void Btor2_Encoder::declare_stmt ()
 {
@@ -652,6 +728,8 @@ void Btor2_Encoder::declare_stmt ()
     formula << eol;
   });
 }
+
+// Btor2_Encoder::declare_block ------------------------------------------------
 
 void Btor2_Encoder::declare_block ()
 {
@@ -680,6 +758,8 @@ void Btor2_Encoder::declare_block ()
     }
 }
 
+// Btor2_Encoder::declare_heap -------------------------------------------------
+
 void Btor2_Encoder::declare_heap ()
 {
   if (verbose)
@@ -687,6 +767,8 @@ void Btor2_Encoder::declare_heap ()
 
   formula << btor2::state(nid_heap = nid(), sid_heap, heap_sym) << eol;
 }
+
+// Btor2_Encoder::declare_exit_flag --------------------------------------------
 
 void Btor2_Encoder::declare_exit_flag ()
 {
@@ -701,6 +783,8 @@ void Btor2_Encoder::declare_exit_flag ()
     << eol;
 }
 
+// Btor2_Encoder::declare_exit_code --------------------------------------------
+
 void Btor2_Encoder::declare_exit_code ()
 {
   if (exit_pcs.empty())
@@ -709,8 +793,10 @@ void Btor2_Encoder::declare_exit_code ()
   if (verbose)
     formula << exit_code_comment;
 
-  formula << btor2::state(nid_exit_code = nid(), sid_bv, exit_code_sym) << eol;
+  formula << btor2::state(nid_exit_code = nid(), sid_bv, exit_code_var) << eol;
 }
+
+// Btor2_Encoder::declare_states -----------------------------------------------
 
 void Btor2_Encoder::declare_states ()
 {
@@ -730,6 +816,8 @@ void Btor2_Encoder::declare_states ()
   declare_exit_code();
 }
 
+// Btor2_Encoder::declare_thread -----------------------------------------------
+
 void Btor2_Encoder::declare_thread ()
 {
   if (verbose)
@@ -747,6 +835,8 @@ void Btor2_Encoder::declare_thread ()
 
   formula << eol;
 }
+
+// Btor2_Encoder::declare_flush ------------------------------------------------
 
 void Btor2_Encoder::declare_flush ()
 {
@@ -766,6 +856,8 @@ void Btor2_Encoder::declare_flush ()
   formula << eol;
 }
 
+// Btor2_Encoder::declare_inputs -----------------------------------------------
+
 void Btor2_Encoder::declare_inputs ()
 {
   if (verbose)
@@ -774,6 +866,8 @@ void Btor2_Encoder::declare_inputs ()
   declare_thread();
   declare_flush();
 }
+
+// Btor2_Encoder::define_exec --------------------------------------------------
 
 void Btor2_Encoder::define_exec ()
 {
@@ -798,6 +892,8 @@ void Btor2_Encoder::define_exec ()
     formula << eol;
   });
 }
+
+// Btor2_Encoder::define_check -------------------------------------------------
 
 void Btor2_Encoder::define_check ()
 {
@@ -831,6 +927,8 @@ void Btor2_Encoder::define_check ()
   formula << eol;
 }
 
+// Btor2_Encoder::define_transitions -------------------------------------------
+
 void Btor2_Encoder::define_transitions ()
 {
   if (verbose)
@@ -840,13 +938,13 @@ void Btor2_Encoder::define_transitions ()
   define_check();
 }
 
-void Btor2_Encoder::define_state_bv (
-                                     const Type type,
+// Btor2_Encoder::define_state_bv ----------------------------------------------
+
+void Btor2_Encoder::define_state_bv (Instruction::Type type,
                                      const string & nid_state,
-                                     const string sym
-                                    )
+                                     const string sym)
 {
-  const Program & program = *(*programs)[thread];
+  const Program & program = (*programs)[thread];
   const vector<string> & exec = nids_exec[thread];
 
   formula << btor2::init(nid(), sid_bv, nid_state, nids_const[0]);
@@ -854,15 +952,15 @@ void Btor2_Encoder::define_state_bv (
   string nid_next = nid_state;
   for (pc = 0; pc < program.size(); pc++)
     {
-      const Instruction_ptr & op = program[pc];
+      const Instruction & op = program[pc];
 
-      if (op->type() & type)
+      if (op.type() & type)
         formula <<
           btor2::ite(
             nid_next = nid(),
             sid_bv,
             exec[pc],
-            op->encode(*this),
+            op.encode(*this),
             nid_next,
             verbose ? debug_symbol(thread, pc) : "");
     }
@@ -870,65 +968,75 @@ void Btor2_Encoder::define_state_bv (
   formula << btor2::next(nid(), sid_bv, nid_state, nid_next, sym) << eol;
 }
 
+// Btor2_Encoder::define_accu --------------------------------------------------
+
 void Btor2_Encoder::define_accu ()
 {
   if (verbose)
     formula << accu_comment;
 
-  update = Update::accu;
+  update = State::accu;
 
   iterate_threads([this] {
     define_state_bv(
-      Types::accu,
+      Instruction::Type::accu,
       nids_accu[thread],
       accu_var());
   });
 }
+
+// Btor2_Encoder::define_mem ---------------------------------------------------
 
 void Btor2_Encoder::define_mem ()
 {
   if (verbose)
     formula << mem_comment;
 
-  update = Update::mem;
+  update = State::mem;
 
   iterate_threads([this] {
     define_state_bv(
-      Types::mem,
+      Instruction::Type::mem,
       nids_mem[thread],
       mem_var());
   });
 }
+
+// Btor2_Encoder::define_sb_adr ------------------------------------------------
 
 void Btor2_Encoder::define_sb_adr ()
 {
   if (verbose)
     formula << sb_adr_comment;
 
-  update = Update::sb_adr;
+  update = State::sb_adr;
 
   iterate_threads([this] {
     define_state_bv(
-      Types::write,
+      Instruction::Type::write,
       nids_sb_adr[thread],
       sb_adr_var());
   });
 }
+
+// Btor2_Encoder::define_sb_val ------------------------------------------------
 
 void Btor2_Encoder::define_sb_val ()
 {
   if (verbose)
     formula << sb_val_comment;
 
-  update = Update::sb_val;
+  update = State::sb_val;
 
   iterate_threads([this] {
     define_state_bv(
-      Types::write,
+      Instruction::Type::write,
       nids_sb_val[thread],
       sb_val_var());
   });
 }
+
+// Btor2_Encoder::define_sb_full -----------------------------------------------
 
 void Btor2_Encoder::define_sb_full ()
 {
@@ -939,7 +1047,7 @@ void Btor2_Encoder::define_sb_full ()
     vector<string> lor;
 
     for (pc = 0; pc < program.size(); pc++)
-      if (program[pc]->type() & Types::write)
+      if (program[pc].type() & Instruction::Type::write)
         lor.push_back(nids_exec[thread][pc]);
 
     lor.push_back(nids_sb_full[thread]);
@@ -965,6 +1073,8 @@ void Btor2_Encoder::define_sb_full ()
   });
 }
 
+// Btor2_Encoder::define_stmt --------------------------------------------------
+
 void Btor2_Encoder::define_stmt ()
 {
   if (verbose)
@@ -972,7 +1082,7 @@ void Btor2_Encoder::define_stmt ()
 
   iterate_programs([this] (const Program & program) {
     // map storing nids of jump conditions
-    Map<Jmp_ptr, string> nid_jmp;
+    unordered_map<word_t, string> nid_jmp;
 
     // reduce lookups
     const vector<string> & nids_stmt_thread = nids_stmt[thread];
@@ -1006,17 +1116,22 @@ void Btor2_Encoder::define_stmt ()
           {
             nid_exec = nids_exec_thread[prev];
 
+            const Instruction & pred = program[prev];
+
             // predecessor is a jump
-            if (Jmp_ptr j = dynamic_pointer_cast<Jmp>(program[prev]))
+            if (pred.is_jump())
               {
                 string nid_cond =
-                  lookup(nid_jmp, j, [this, &j] { return j->encode(*this); });
+                  lookup(
+                    nid_jmp,
+                    prev,
+                    [this, &pred] { return pred.encode(*this); });
 
                 // nothing to do here for unconditional jumps (JMP)
                 if (!nid_cond.empty())
                   {
                     // add negated condition if preceding jump failed
-                    if (prev == pc - 1 && j->arg != pc)
+                    if (prev == pc - 1 && pred.arg() != pc)
                       nid_cond = btor2::lnot(nid_cond);
 
                     // add conjunction of execution variable & jump condition
@@ -1051,6 +1166,8 @@ void Btor2_Encoder::define_stmt ()
       }
   });
 }
+
+// Btor2_Encoder::define_block -------------------------------------------------
 
 void Btor2_Encoder::define_block ()
 {
@@ -1107,12 +1224,14 @@ void Btor2_Encoder::define_block ()
     }
 }
 
+// Btor2_Encoder::define_heap --------------------------------------------------
+
 void Btor2_Encoder::define_heap ()
 {
   if (verbose)
     formula << heap_comment;
 
-  update = Update::heap;
+  update = State::heap;
 
   string nid_next = nid_heap;
 
@@ -1138,15 +1257,15 @@ void Btor2_Encoder::define_heap ()
     // atomic instructions
     for (pc = 0; pc < program.size(); pc++)
       {
-        const Instruction_ptr & op = program[pc];
+        const Instruction & op = program[pc];
 
-        if (op->type() & Types::atomic)
+        if (op.type() & Instruction::Type::atomic)
           formula <<
             btor2::ite(
               nid_next = nid(),
               sid_heap,
               nids_exec[thread][pc],
-              op->encode(*this),
+              op.encode(*this),
               nid_next,
               verbose ? debug_symbol(thread, pc) : "");
       }
@@ -1154,6 +1273,8 @@ void Btor2_Encoder::define_heap ()
 
   formula << btor2::next(nid(), sid_heap, nid_heap, nid_next, heap_sym) << eol;
 }
+
+// Btor2_Encoder::define_exit_flag ---------------------------------------------
 
 void Btor2_Encoder::define_exit_flag ()
 {
@@ -1184,6 +1305,8 @@ void Btor2_Encoder::define_exit_flag ()
     << eol;
 }
 
+// Btor2_Encoder::define_exit_code ---------------------------------------------
+
 void Btor2_Encoder::define_exit_code ()
 {
   if (exit_pcs.empty())
@@ -1203,14 +1326,16 @@ void Btor2_Encoder::define_exit_code ()
           nid_next = nid(),
           sid_bv,
           nids_exec[t][p],
-          (*(*programs)[t])[p]->encode(*this),
+          (*programs)[t][p].encode(*this),
           nid_next,
           verbose ? debug_symbol(t, p) : "");
 
   formula
-    << btor2::next(nid(), sid_bv, nid_exit_code, nid_next, exit_code_sym)
+    << btor2::next(nid(), sid_bv, nid_exit_code, nid_next, exit_code_var)
     << eol;
 }
+
+// Btor2_Encoder::define_states ------------------------------------------------
 
 void Btor2_Encoder::define_states ()
 {
@@ -1229,6 +1354,8 @@ void Btor2_Encoder::define_states ()
   define_exit_flag();
   define_exit_code();
 }
+
+// Btor2_Encoder::define_scheduling_constraints --------------------------------
 
 void Btor2_Encoder::define_scheduling_constraints ()
 {
@@ -1251,6 +1378,8 @@ void Btor2_Encoder::define_scheduling_constraints ()
     eol;
 }
 
+// Btor2_Encoder::define_store_buffer_constraints ------------------------------
+
 void Btor2_Encoder::define_store_buffer_constraints ()
 {
   if (flush_pcs.empty())
@@ -1270,7 +1399,7 @@ void Btor2_Encoder::define_store_buffer_constraints ()
 
             stmts.reserve(flush_pcs[thread].size());
 
-            transform(
+            std::transform(
               flush_pcs[thread].begin(),
               flush_pcs[thread].end(),
               back_inserter(stmts),
@@ -1303,7 +1432,9 @@ void Btor2_Encoder::define_store_buffer_constraints ()
   });
 }
 
-void Btor2_Encoder::define_checkpoint_contraints ()
+// Btor2_Encoder::define_checkpoint_constraints --------------------------------
+
+void Btor2_Encoder::define_checkpoint_constraints ()
 {
   if (check_pcs.empty())
     return;
@@ -1340,11 +1471,13 @@ void Btor2_Encoder::define_checkpoint_contraints ()
     }
 }
 
+// Btor2_Encoder::define_constraints -------------------------------------------
+
 void Btor2_Encoder::define_constraints ()
 {
   define_scheduling_constraints();
   define_store_buffer_constraints();
-  define_checkpoint_contraints();
+  define_checkpoint_constraints();
 }
 
 void Btor2_Encoder::define_bound ()
@@ -1375,6 +1508,8 @@ void Btor2_Encoder::define_bound ()
     btor2::bad(nid(), nid_prev);
 }
 
+// Btor2_Encoder::encode -------------------------------------------------------
+
 void Btor2_Encoder::encode ()
 {
   declare_sorts();
@@ -1387,19 +1522,19 @@ void Btor2_Encoder::encode ()
   define_bound();
 }
 
-string Btor2_Encoder::encode (Load & l)
+string Btor2_Encoder::encode (const Instruction::Load & l)
 {
   return load(l.arg, l.indirect);
 }
 
-string Btor2_Encoder::encode (Store & s)
+string Btor2_Encoder::encode (const Instruction::Store & s)
 {
   switch (update)
     {
-    case Update::sb_adr:
+    case State::sb_adr:
       return s.indirect ? load(s.arg) : nids_const[s.arg];
 
-    case Update::sb_val:
+    case State::sb_val:
       return nids_accu[thread];
 
     default: throw runtime_error("illegal state update");
@@ -1407,12 +1542,12 @@ string Btor2_Encoder::encode (Store & s)
 }
 
 // TODO
-string Btor2_Encoder::encode (Fence & f [[maybe_unused]])
+string Btor2_Encoder::encode (const Instruction::Fence & f [[maybe_unused]])
 {
   throw runtime_error("not implemented");
 }
 
-string Btor2_Encoder::encode (Add & a)
+string Btor2_Encoder::encode (const Instruction::Add & a)
 {
   string nid_add = load(a.arg, a.indirect);
 
@@ -1421,7 +1556,7 @@ string Btor2_Encoder::encode (Add & a)
   return nid_add;
 }
 
-string Btor2_Encoder::encode (Addi & a)
+string Btor2_Encoder::encode (const Instruction::Addi & a)
 {
   string nid_addi = nids_const[a.arg];
 
@@ -1430,7 +1565,7 @@ string Btor2_Encoder::encode (Addi & a)
   return nid_addi;
 }
 
-string Btor2_Encoder::encode (Sub & s)
+string Btor2_Encoder::encode (const Instruction::Sub & s)
 {
   string nid_sub = load(s.arg, s.indirect);
 
@@ -1439,7 +1574,7 @@ string Btor2_Encoder::encode (Sub & s)
   return nid_sub;
 }
 
-string Btor2_Encoder::encode (Subi & s)
+string Btor2_Encoder::encode (const Instruction::Subi & s)
 {
   string nid_subi = nids_const[s.arg];
 
@@ -1448,7 +1583,7 @@ string Btor2_Encoder::encode (Subi & s)
   return nid_subi;
 }
 
-string Btor2_Encoder::encode (Mul & m)
+string Btor2_Encoder::encode (const Instruction::Mul & m)
 {
   string nid_mul = load(m.arg, m.indirect);
 
@@ -1457,7 +1592,7 @@ string Btor2_Encoder::encode (Mul & m)
   return nid_mul;
 }
 
-string Btor2_Encoder::encode (Muli & m)
+string Btor2_Encoder::encode (const Instruction::Muli & m)
 {
   string nid_muli = nids_const[m.arg];
 
@@ -1466,7 +1601,7 @@ string Btor2_Encoder::encode (Muli & m)
   return nid_muli;
 }
 
-string Btor2_Encoder::encode (Cmp & c)
+string Btor2_Encoder::encode (const Instruction::Cmp & c)
 {
   string nid_sub = load(c.arg, c.indirect);
 
@@ -1475,12 +1610,12 @@ string Btor2_Encoder::encode (Cmp & c)
   return nid_sub;
 }
 
-string Btor2_Encoder::encode (Jmp & j [[maybe_unused]])
+string Btor2_Encoder::encode (const Instruction::Jmp & j [[maybe_unused]])
 {
   return "";
 }
 
-string Btor2_Encoder::encode (Jz & j [[maybe_unused]])
+string Btor2_Encoder::encode (const Instruction::Jz & j [[maybe_unused]])
 {
   string nid_jz = nid();
 
@@ -1489,7 +1624,7 @@ string Btor2_Encoder::encode (Jz & j [[maybe_unused]])
   return nid_jz;
 }
 
-string Btor2_Encoder::encode (Jnz & j [[maybe_unused]])
+string Btor2_Encoder::encode (const Instruction::Jnz & j [[maybe_unused]])
 {
   string nid_jnz = nid();
 
@@ -1498,7 +1633,7 @@ string Btor2_Encoder::encode (Jnz & j [[maybe_unused]])
   return nid_jnz;
 }
 
-string Btor2_Encoder::encode (Js & j [[maybe_unused]])
+string Btor2_Encoder::encode (const Instruction::Js & j [[maybe_unused]])
 {
   string nid_js = nid();
 
@@ -1507,7 +1642,7 @@ string Btor2_Encoder::encode (Js & j [[maybe_unused]])
   return nid_js;
 }
 
-string Btor2_Encoder::encode (Jns & j [[maybe_unused]])
+string Btor2_Encoder::encode (const Instruction::Jns & j [[maybe_unused]])
 {
   string nid_jns = nid();
 
@@ -1516,7 +1651,7 @@ string Btor2_Encoder::encode (Jns & j [[maybe_unused]])
   return btor2::lnot(nid_jns);
 }
 
-string Btor2_Encoder::encode (Jnzns & j [[maybe_unused]])
+string Btor2_Encoder::encode (const Instruction::Jnzns & j [[maybe_unused]])
 {
   string nid_nz = nid();
 
@@ -1532,12 +1667,12 @@ string Btor2_Encoder::encode (Jnzns & j [[maybe_unused]])
   return nid_nzns;
 }
 
-string Btor2_Encoder::encode (Mem & m)
+string Btor2_Encoder::encode (const Instruction::Mem & m)
 {
   return load(m.arg, m.indirect);
 }
 
-string Btor2_Encoder::encode (Cas & c)
+string Btor2_Encoder::encode (const Instruction::Cas & c)
 {
   string nid_cas =
     lookup(
@@ -1556,7 +1691,7 @@ string Btor2_Encoder::encode (Cas & c)
 
   switch (update)
     {
-    case Update::accu:
+    case State::accu:
         {
           formula <<
             btor2::ite(
@@ -1567,7 +1702,7 @@ string Btor2_Encoder::encode (Cas & c)
               nids_const[0]);
           break;
         }
-    case Update::heap:
+    case State::heap:
         {
           string nid_write = nid();
 
@@ -1592,18 +1727,18 @@ string Btor2_Encoder::encode (Cas & c)
   return nid_cas;
 }
 
-string Btor2_Encoder::encode (Check & s [[maybe_unused]])
+string Btor2_Encoder::encode (const Instruction::Check & s [[maybe_unused]])
 {
   return "";
 }
 
 // TODO
-string Btor2_Encoder::encode (Halt & h [[maybe_unused]])
+string Btor2_Encoder::encode (const Instruction::Halt & h [[maybe_unused]])
 {
   throw runtime_error("not implemented");
 }
 
-string Btor2_Encoder::encode (Exit & e [[maybe_unused]])
+string Btor2_Encoder::encode (const Instruction::Exit & e [[maybe_unused]])
 {
   return nids_const[e.arg];
 }

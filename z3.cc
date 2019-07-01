@@ -45,7 +45,10 @@ word_t eval_bv (z3::context & c, const z3::model & m, const string sym)
 }
 
 inline
-word_t eval_array (z3::context & c, const z3::model & m, const string sym, const word_t idx)
+word_t eval_array (z3::context & c,
+                   const z3::model & m,
+                   const string sym,
+                   const word_t idx)
 {
   return
     m.eval(
@@ -59,7 +62,7 @@ word_t eval_array (z3::context & c, const z3::model & m, const string sym, const
     .get_numeral_uint();
 }
 
-Schedule_ptr Z3::solve (Encoder & encoder, string & constraints)
+Schedule::ptr Z3::solve (Encoder & encoder, string & constraints)
 {
   z3::context c;
   z3::solver s = c;
@@ -71,13 +74,13 @@ Schedule_ptr Z3::solve (Encoder & encoder, string & constraints)
 
   z3::model m = s.get_model();
 
-  Schedule_ptr schedule = make_shared<Schedule>(encoder.programs);
+  Schedule::ptr schedule = make_unique<Schedule>(move(encoder.programs));
 
   for (bound_t step = 1; step <= encoder.bound; ++step)
     for (word_t thread = 0; thread < encoder.programs->size(); ++thread)
       if (eval_bool(c, m, symbol(Encoder::thread_sym, {step, thread})))
         {
-          Program & program = *(*encoder.programs)[thread];
+          const Program & program = (*encoder.programs)[thread];
 
           for (word_t pc = 0; pc < program.size(); ++pc)
             if (eval_bool(c, m, symbol(Encoder::exec_sym, {step, thread, pc})))
@@ -89,25 +92,27 @@ Schedule_ptr Z3::solve (Encoder & encoder, string & constraints)
 
                 optional<Schedule::Heap> heap;
 
+                const Instruction & op = program[pc];
+
                 /* get eventual heap update (ignore failed CAS) */
-                if (Store_ptr store = dynamic_pointer_cast<Store>(program[pc]))
-                  if (!(store->type() & Instruction::Types::atomic) || accu)
-                    {
-                      word_t idx = store->arg;
+                // TODO flush!
+                if (op.is_memory() && op.type() & Instruction::atomic && accu)
+                  {
+                    word_t idx = op.arg();
 
-                      if (store->indirect)
-                        idx =
-                          eval_array(
-                            c,
-                            m,
-                            symbol(Encoder::heap_sym, {step - 1}),
-                            idx);
+                    if (op.indirect())
+                      idx =
+                        eval_array(
+                          c,
+                          m,
+                          symbol(Encoder::heap_sym, {step - 1}),
+                          idx);
 
-                      heap = {
-                        idx,
-                        eval_array(c, m, symbol(Encoder::heap_sym, {step}), idx)
-                      };
-                    }
+                    heap = {
+                      idx,
+                      eval_array(c, m, symbol(Encoder::heap_sym, {step}), idx)
+                    };
+                  }
 
                 // TODO: store buffer
                 schedule->push_back(thread, pc, accu, mem, 0, 0, false, heap);

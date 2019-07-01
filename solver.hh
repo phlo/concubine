@@ -6,18 +6,35 @@
 
 #include "schedule.hh"
 
+//==============================================================================
+// forward declarations
+//==============================================================================
+
 struct Encoder;
+
+//==============================================================================
+// Solver base class
+//==============================================================================
 
 struct Solver
 {
-  bound_t parse_attribute (
-                           std::istringstream & line,
+  //----------------------------------------------------------------------------
+  // member types
+  //----------------------------------------------------------------------------
+
+  using pointer = std::unique_ptr<Solver>;
+
+  //----------------------------------------------------------------------------
+  // member functions
+  //----------------------------------------------------------------------------
+
+  bound_t parse_attribute (std::istringstream & line,
                            const std::string name,
-                           const char delimiter = '_'
-                          );
+                           const char delimiter = '_');
 
   /* build formula for the specific solver */
-  virtual std::string build_formula (Encoder & encoder, std::string & constraints);
+  virtual std::string build_formula (Encoder & encoder,
+                                     std::string & constraints);
 
   /* returns the solver's name */
   virtual std::string name () const = 0;
@@ -26,10 +43,8 @@ struct Solver
   virtual bool sat (std::string & formula) = 0;
 
   /* run solver and return schedule */
-  virtual Schedule_ptr solve (Encoder & encoder, std::string & constraints) = 0;
+  virtual Schedule::ptr solve (Encoder & encoder, std::string & constraints) = 0;
 };
-
-typedef std::shared_ptr<Solver> SolverPtr;
 
 /* Base class for solvers running in a forked process. */
 struct ExternalSolver : public Solver
@@ -62,7 +77,7 @@ struct ExternalSolver : public Solver
   virtual std::string build_command () = 0;
 
   /* build schedule based on the specific solver's output */
-  Schedule_ptr build_schedule (Program_list_ptr programs);
+  Schedule::ptr build_schedule (const Program::List::ptr & programs);
 
   virtual std::optional<Variable> parse_variable (std::istringstream & line);
 
@@ -70,7 +85,7 @@ struct ExternalSolver : public Solver
 
   virtual bool sat (std::string & formula);
 
-  virtual Schedule_ptr solve (Encoder & encoder, std::string & constraints);
+  virtual Schedule::ptr solve (Encoder & encoder, std::string & constraints);
 };
 
 #endif

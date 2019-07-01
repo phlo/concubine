@@ -8,7 +8,7 @@ namespace Test
 template <class E, class Impl = E>
 struct Encoder: public ::testing::Test
 {
-  Program_list programs;
+  Program::List programs;
   std::unique_ptr<E> encoder = create_encoder();
 
   virtual std::unique_ptr<E> init_encoder (std::unique_ptr<E> e)
@@ -21,16 +21,16 @@ struct Encoder: public ::testing::Test
       return
         init_encoder(
           std::make_unique<Impl>(
-            std::make_shared<Program_list>(programs),
+            std::make_shared<Program::List>(programs),
             bound,
             false));
     }
 
-  Program_ptr create_program (const std::string code)
+  Program create_program (const std::string code)
     {
       std::string path = "dummy.asm";
       std::istringstream inbuf {code};
-      return std::make_shared<Program>(inbuf, path);
+      return Program(inbuf, path);
     }
 
   void reset_encoder (const bound_t bound = 1)
@@ -88,7 +88,7 @@ struct Encoder: public ::testing::Test
 
       encoder =
         std::make_unique<Impl>(
-          std::make_shared<Program_list>(programs),
+          std::make_shared<Program::List>(programs),
           bound);
 
       std::ifstream ifs(data + file);

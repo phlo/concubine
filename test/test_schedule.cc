@@ -2,10 +2,14 @@
 
 #include "schedule.hh"
 
-#include "instructionset.hh"
+#include "instruction.hh"
 #include "parser.hh"
 
 using namespace std;
+
+//==============================================================================
+// Schedule tests
+//==============================================================================
 
 struct Schedule_Test : public ::testing::Test
 {
@@ -13,33 +17,35 @@ struct Schedule_Test : public ::testing::Test
   string program_path = "data/increment.cas.asm";
   string schedule_path = "data/increment.cas.t2.k16.schedule";
 
-  Schedule_ptr schedule;
+  Schedule::ptr schedule;
 
   void create_dummy_schedule (const size_t num_programs)
     {
-      Program_list_ptr programs = make_shared<Program_list>();
+      Program::List::ptr programs = make_unique<Program::List>();
 
-      for (size_t i = 0; i < num_programs; i++)
-        programs->push_back(make_shared<Program>());
+      programs->resize(num_programs);
 
-      schedule = make_shared<Schedule>(programs);
+      schedule = make_unique<Schedule>(programs);
     }
 };
 
-/* Schedule::Schedule *********************************************************/
+// Schedule::Schedule ==========================================================
+
 TEST_F(Schedule_Test, parse_check)
 {
-  schedule = create_from_file<Schedule>("data/increment.check.t2.k16.schedule");
+  schedule =
+    make_unique<Schedule>(
+      create_from_file<Schedule>("data/increment.check.t2.k16.schedule"));
 
   ASSERT_EQ(16, schedule->bound);
 
   ASSERT_EQ(2, schedule->programs->size());
   ASSERT_EQ(
     "data/increment.check.thread.0.asm",
-    schedule->programs->at(0)->path);
+    schedule->programs->at(0).path);
   ASSERT_EQ(
     "data/increment.check.thread.n.asm",
-    schedule->programs->at(1)->path);
+    schedule->programs->at(1).path);
 
   ASSERT_EQ(
     Schedule::Updates<word_t>({
@@ -121,13 +127,14 @@ TEST_F(Schedule_Test, parse_cas)
 {
   schedule_path = "data/increment.cas.t2.k16.schedule";
 
-  schedule = create_from_file<Schedule>(schedule_path);
+  schedule =
+    make_unique<Schedule>(create_from_file<Schedule>(schedule_path));
 
   ASSERT_EQ(16, schedule->bound);
 
   ASSERT_EQ(2, schedule->programs->size());
-  ASSERT_EQ(program_path, schedule->programs->at(0)->path);
-  ASSERT_EQ(program_path, schedule->programs->at(1)->path);
+  ASSERT_EQ(program_path, schedule->programs->at(0).path);
+  ASSERT_EQ(program_path, schedule->programs->at(1).path);
 
   ASSERT_EQ(
     Schedule::Updates<word_t>({
@@ -219,18 +226,19 @@ TEST_F(Schedule_Test, parse_empty_line)
     "\n"
     "0\t0\tEXIT\t1\t0\t0\t0\t0\t0\t{}\n");
 
-  schedule = make_shared<Schedule>(inbuf, dummy_path);
+  schedule = make_unique<Schedule>(inbuf, dummy_path);
 
   ASSERT_EQ(1, schedule->size());
   ASSERT_EQ(1, schedule->programs->size());
-  ASSERT_EQ(program_path, schedule->programs->at(0)->path);
+  ASSERT_EQ(program_path, schedule->programs->at(0).path);
 }
 
 TEST_F(Schedule_Test, parse_file_not_found)
 {
   try
     {
-      schedule = create_from_file<Schedule>("file_not_found");
+      schedule =
+        make_unique<Schedule>(create_from_file<Schedule>("file_not_found"));
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -248,7 +256,7 @@ TEST_F(Schedule_Test, parse_no_program)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -267,7 +275,7 @@ TEST_F(Schedule_Test, parse_program_not_found)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -286,7 +294,7 @@ TEST_F(Schedule_Test, parse_missing_separator)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -303,7 +311,7 @@ TEST_F(Schedule_Test, parse_missing_trace)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -321,7 +329,7 @@ TEST_F(Schedule_Test, parse_unknown_thread_id)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -339,7 +347,7 @@ TEST_F(Schedule_Test, parse_illegal_thread_id)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -357,7 +365,7 @@ TEST_F(Schedule_Test, parse_illegal_pc)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -375,7 +383,7 @@ TEST_F(Schedule_Test, parse_unknown_label)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -393,7 +401,7 @@ TEST_F(Schedule_Test, parse_unknown_instruction)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -411,7 +419,7 @@ TEST_F(Schedule_Test, parse_illegal_argument_label_not_supported)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -431,7 +439,7 @@ TEST_F(Schedule_Test, parse_illegal_argument_unknown_label)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -449,7 +457,7 @@ TEST_F(Schedule_Test, parse_illegal_accu)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -469,7 +477,7 @@ TEST_F(Schedule_Test, parse_illegal_mem)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -489,7 +497,7 @@ TEST_F(Schedule_Test, parse_illegal_store_buffer_address)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -509,7 +517,7 @@ TEST_F(Schedule_Test, parse_illegal_store_buffer_value)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -529,7 +537,7 @@ TEST_F(Schedule_Test, parse_illegal_store_buffer_full)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -549,7 +557,7 @@ TEST_F(Schedule_Test, parse_illegal_heap)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -557,7 +565,7 @@ TEST_F(Schedule_Test, parse_illegal_heap)
       ASSERT_EQ(dummy_path + ":3: illegal heap update [ILLEGAL]", e.what());
     }
 
-  /* illegal set */
+  // illegal set
   inbuf.str(
     program_path + "\n"
     ".\n" +
@@ -565,7 +573,7 @@ TEST_F(Schedule_Test, parse_illegal_heap)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -573,7 +581,7 @@ TEST_F(Schedule_Test, parse_illegal_heap)
       ASSERT_EQ(dummy_path + ":3: illegal heap update [{ILLEGAL}]", e.what());
     }
 
-  /* illegal index */
+  // illegal index
   inbuf.str(
     program_path + "\n"
     ".\n" +
@@ -581,7 +589,7 @@ TEST_F(Schedule_Test, parse_illegal_heap)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -591,7 +599,7 @@ TEST_F(Schedule_Test, parse_illegal_heap)
         e.what());
     }
 
-  /* illegal value */
+  // illegal value
   inbuf.str(
     program_path + "\n"
     ".\n" +
@@ -599,7 +607,7 @@ TEST_F(Schedule_Test, parse_illegal_heap)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -619,7 +627,7 @@ TEST_F(Schedule_Test, parse_missing_pc)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -637,7 +645,7 @@ TEST_F(Schedule_Test, parse_missing_instruction_symbol)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -655,7 +663,7 @@ TEST_F(Schedule_Test, parse_missing_instruction_argument)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -673,7 +681,7 @@ TEST_F(Schedule_Test, parse_missing_accu)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -693,7 +701,7 @@ TEST_F(Schedule_Test, parse_missing_mem)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -711,7 +719,7 @@ TEST_F(Schedule_Test, parse_missing_store_buffer_address)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -729,7 +737,7 @@ TEST_F(Schedule_Test, parse_missing_store_buffer_value)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -747,7 +755,7 @@ TEST_F(Schedule_Test, parse_missing_store_buffer_full)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -765,7 +773,7 @@ TEST_F(Schedule_Test, parse_missing_heap)
 
   try
     {
-      schedule = make_shared<Schedule>(inbuf, dummy_path);
+      schedule = make_unique<Schedule>(inbuf, dummy_path);
       FAIL() << "should throw an exception";
     }
   catch (const exception & e)
@@ -774,7 +782,8 @@ TEST_F(Schedule_Test, parse_missing_heap)
     }
 }
 
-/* Schedule::push_back ********************************************************/
+// Schedule::push_back =========================================================
+
 using Insert_Data = tuple<bound_t, word_t, word_t, word_t>;
 
 const vector<Insert_Data> insert_data {
@@ -796,7 +805,8 @@ const vector<Insert_Data> insert_data {
   {16, 1, 1, 1},
 };
 
-/* Schedule::insert_thread ****************************************************/
+// Schedule::insert_thread =====================================================
+
 TEST_F(Schedule_Test, insert_thread)
 {
   create_dummy_schedule(2);
@@ -827,7 +837,8 @@ TEST_F(Schedule_Test, insert_thread)
     schedule->thread_updates);
 }
 
-/* Schedule::insert_pc ********************************************************/
+// Schedule::insert_pc =========================================================
+
 const vector<Schedule::Updates<word_t>> insert_expected {
   {{1, 0}, {5, 1}, {9, 0}, {13, 1}},
   {{2, 0}, {6, 1}, {10, 0}, {14, 1}}
@@ -844,7 +855,8 @@ TEST_F(Schedule_Test, insert_pc)
   ASSERT_EQ(insert_expected, schedule->pc_updates);
 }
 
-/* Schedule::insert_accu ******************************************************/
+// Schedule::insert_accu =======================================================
+
 TEST_F(Schedule_Test, insert_accu)
 {
   create_dummy_schedule(2);
@@ -856,7 +868,8 @@ TEST_F(Schedule_Test, insert_accu)
   ASSERT_EQ(insert_expected, schedule->accu_updates);
 }
 
-/* Schedule::insert_mem *******************************************************/
+// Schedule::insert_mem ========================================================
+
 TEST_F(Schedule_Test, insert_mem)
 {
   create_dummy_schedule(2);
@@ -868,7 +881,8 @@ TEST_F(Schedule_Test, insert_mem)
   ASSERT_EQ(insert_expected, schedule->mem_updates);
 }
 
-/* Schedule::insert_sb_adr ****************************************************/
+// Schedule::insert_sb_adr =====================================================
+
 TEST_F(Schedule_Test, insert_sb_adr)
 {
   create_dummy_schedule(2);
@@ -880,7 +894,8 @@ TEST_F(Schedule_Test, insert_sb_adr)
   ASSERT_EQ(insert_expected, schedule->sb_adr_updates);
 }
 
-/* Schedule::insert_sb_val ****************************************************/
+// Schedule::insert_sb_val =====================================================
+
 TEST_F(Schedule_Test, insert_sb_val)
 {
   create_dummy_schedule(2);
@@ -892,7 +907,8 @@ TEST_F(Schedule_Test, insert_sb_val)
   ASSERT_EQ(insert_expected, schedule->sb_val_updates);
 }
 
-/* Schedule::insert_sb_full ***************************************************/
+// Schedule::insert_sb_full ====================================================
+
 TEST_F(Schedule_Test, insert_sb_full)
 {
   create_dummy_schedule(2);
@@ -909,7 +925,8 @@ TEST_F(Schedule_Test, insert_sb_full)
   ASSERT_EQ(expected, schedule->sb_full_updates);
 }
 
-/* Schedule::insert_heap ******************************************************/
+// Schedule::insert_heap =======================================================
+
 TEST_F(Schedule_Test, insert_heap)
 {
   create_dummy_schedule(2);
@@ -926,10 +943,11 @@ TEST_F(Schedule_Test, insert_heap)
     schedule->heap_updates);
 }
 
-/* Schedule::print ************************************************************/
+// Schedule::print =============================================================
+
 TEST_F(Schedule_Test, print)
 {
-  schedule = create_from_file<Schedule>(schedule_path);
+  schedule = make_unique<Schedule>(create_from_file<Schedule>(schedule_path));
 
   ifstream ifs(schedule_path);
   string expected(
@@ -943,7 +961,7 @@ TEST_F(Schedule_Test, print_indirect_addressing)
 {
   schedule_path = "data/indirect.addressing.schedule";
 
-  schedule = create_from_file<Schedule>(schedule_path);
+  schedule = make_unique<Schedule>(create_from_file<Schedule>(schedule_path));
 
   ifstream ifs(schedule_path);
   string expected(
@@ -953,10 +971,13 @@ TEST_F(Schedule_Test, print_indirect_addressing)
   ASSERT_EQ(expected, schedule->print());
 }
 
-/* Schedule::iterator *********************************************************/
+// Schedule::iterator ==========================================================
+
 TEST_F(Schedule_Test, iterator_check)
 {
-  schedule = create_from_file<Schedule>("data/increment.check.t2.k16.schedule");
+  schedule =
+    make_unique<Schedule>(
+      create_from_file<Schedule>("data/increment.check.t2.k16.schedule"));
 
   word_t tid[]      = {0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1};
   word_t pc[]       = {0, 0, 0, 1, 2, 1, 3, 4, 4, 5, 6, 1, 2, 3, 4, 4};
@@ -997,14 +1018,14 @@ TEST_F(Schedule_Test, iterator_check)
         ASSERT_FALSE(it->heap);
     }
 
-  /* end() remains end() */
+  // end() remains end()
   ASSERT_EQ(it++, end);
   ASSERT_EQ(++it, end);
 }
 
 TEST_F(Schedule_Test, iterator_cas)
 {
-  schedule = create_from_file<Schedule>(schedule_path);
+  schedule = make_unique<Schedule>(create_from_file<Schedule>(schedule_path));
 
   word_t tid[]      = {0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1};
   word_t pc[]       = {0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 5, 2, 4, 5, 2};
@@ -1040,47 +1061,42 @@ TEST_F(Schedule_Test, iterator_cas)
         ASSERT_FALSE(it->heap);
     }
 
-  /* end() remains end() */
+  // end() remains end()
   ASSERT_EQ(it++, end);
   ASSERT_EQ(++it, end);
 }
 
-/* operator == ****************************************************************/
-/* operator != ****************************************************************/
+// operator == =================================================================
+// operator != =================================================================
+
 TEST_F(Schedule_Test, operator_equals)
 {
-  Program_list_ptr p1 = make_shared<Program_list>();
-  Program_list_ptr p2 = make_shared<Program_list>();
+  Program::List::ptr p1 = make_unique<Program::List>(2);
+  Program::List::ptr p2 = make_unique<Program::List>(2);
 
-  p1->push_back(make_shared<Program>());
-  p1->push_back(make_shared<Program>());
+  p1->at(0).path = "program_1.asm";
+  p1->at(0).push_back(Instruction::Set::create("STORE", 1));
+  p1->at(0).push_back(Instruction::Set::create("ADDI", 1));
 
-  p2->push_back(make_shared<Program>());
-  p2->push_back(make_shared<Program>());
+  p1->at(1).path = "program_2.asm";
+  p1->at(1).push_back(Instruction::Set::create("STORE", 1));
+  p1->at(1).push_back(Instruction::Set::create("ADDI", 1));
 
-  p1->at(0)->path = "program_1.asm";
-  p1->at(0)->push_back(Instruction::Set::create("STORE", 1));
-  p1->at(0)->push_back(Instruction::Set::create("ADDI", 1));
+  p2->at(0).path = "program_1.asm";
+  p2->at(0).push_back(Instruction::Set::create("STORE", 1));
+  p2->at(0).push_back(Instruction::Set::create("ADDI", 1));
 
-  p1->at(1)->path = "program_2.asm";
-  p1->at(1)->push_back(Instruction::Set::create("STORE", 1));
-  p1->at(1)->push_back(Instruction::Set::create("ADDI", 1));
-
-  p2->at(0)->path = "program_1.asm";
-  p2->at(0)->push_back(Instruction::Set::create("STORE", 1));
-  p2->at(0)->push_back(Instruction::Set::create("ADDI", 1));
-
-  p2->at(1)->path = "program_2.asm";
-  p2->at(1)->push_back(Instruction::Set::create("STORE", 1));
-  p2->at(1)->push_back(Instruction::Set::create("ADDI", 1));
+  p2->at(1).path = "program_2.asm";
+  p2->at(1).push_back(Instruction::Set::create("STORE", 1));
+  p2->at(1).push_back(Instruction::Set::create("ADDI", 1));
 
   Schedule s1(p1);
   Schedule s2(p2);
 
-  /* empty schedule */
+  // empty schedule
   ASSERT_TRUE(s1 == s2);
 
-  /* non-empty schedule */
+  // non-empty schedule
   s1.push_back(0, 0, 0, 0, 0, 0, false, {{1, 0}});
   s1.push_back(1, 0, 0, 0, 0, 0, false, {});
   s1.push_back(0, 1, 1, 0, 0, 0, false, {});
@@ -1097,7 +1113,7 @@ TEST_F(Schedule_Test, operator_equals)
 
   ASSERT_TRUE(s1 == s2);
 
-  /* exit codes differ */
+  // exit codes differ
   s2.exit = 1;
 
   ASSERT_TRUE(s1 != s2);
@@ -1106,34 +1122,36 @@ TEST_F(Schedule_Test, operator_equals)
 
   ASSERT_TRUE(s1 == s2);
 
-  /* traces differ */
+  // traces differ
   Schedule s3 = s2;
 
   s3.push_back(0, 2, 1, 0, 1, 1, false, {{1, 1}}); // flush
 
   ASSERT_TRUE(s1 != s3);
 
-  /* programs differ */
-  p2->at(1)->push_back(Instruction::Set::create("STORE", 1));
+  // programs differ
+  p2->at(1).push_back(Instruction::Set::create("STORE", 1));
 
   ASSERT_TRUE(s1 != s2);
 
-  p1->at(1)->push_back(Instruction::Set::create("STORE", 1));
+  p1->at(1).push_back(Instruction::Set::create("STORE", 1));
 
   ASSERT_TRUE(s1 == s2);
 
-  /* list of programs differ */
-  p2->push_back(make_shared<Program>());
+  // list of programs differ
+  p2->push_back(Program());
 
   ASSERT_TRUE(s1 != s2);
 
-  p1->push_back(make_shared<Program>());
+  p1->push_back(Program());
 
   ASSERT_TRUE(s1 == s2);
 
-  /* compare files */
-  Schedule_ptr sp1 = create_from_file<Schedule>(schedule_path);
-  Schedule_ptr sp2 = create_from_file<Schedule>(schedule_path);
+  // compare files
+  Schedule::ptr sp1 =
+    make_unique<Schedule>(create_from_file<Schedule>(schedule_path));
+  Schedule::ptr sp2 =
+    make_unique<Schedule>(create_from_file<Schedule>(schedule_path));
 
   ASSERT_TRUE(*sp1 == *sp2);
 }

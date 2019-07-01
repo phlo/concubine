@@ -4,7 +4,27 @@
 
 #include "smtlib.hh"
 
-using namespace std;
+//==============================================================================
+// using declarations
+//==============================================================================
+
+using std::string;
+using std::to_string;
+
+using std::vector;
+
+using std::shared_ptr;
+using std::make_shared;
+
+using std::runtime_error;
+
+//==============================================================================
+// SMTLib_Encoder_Relational::State
+//==============================================================================
+
+//------------------------------------------------------------------------------
+// constructors
+//------------------------------------------------------------------------------
 
 SMTLib_Encoder_Relational::State::State (SMTLib_Encoder_Relational & e) :
   accu(e.restore_accu()),
@@ -19,6 +39,12 @@ SMTLib_Encoder_Relational::State::State (SMTLib_Encoder_Relational & e) :
   assert(!stmt);
   assert(!exit_code);
 }
+
+//------------------------------------------------------------------------------
+// member operators
+//------------------------------------------------------------------------------
+
+// conversion ------------------------------------------------------------------
 
 SMTLib_Encoder_Relational::State::operator string () const
 {
@@ -50,29 +76,46 @@ SMTLib_Encoder_Relational::State::operator string () const
   return smtlib::land(args);
 }
 
-SMTLib_Encoder_Relational::SMTLib_Encoder_Relational (
-                                                  const Program_list_ptr p,
-                                                  bound_t b,
-                                                  bool e
-                                                 ) : SMTLib_Encoder(p, b)
+//==============================================================================
+// SMTLib_Encoder_Relational
+//==============================================================================
+
+//------------------------------------------------------------------------------
+// constructors
+//------------------------------------------------------------------------------
+
+SMTLib_Encoder_Relational::SMTLib_Encoder_Relational (const Program::List::ptr & p,
+                                                      const bound_t b,
+                                                      const bool e) :
+  SMTLib_Encoder(p, b)
 {
   if (e) SMTLib_Encoder::encode();
 }
+
+//------------------------------------------------------------------------------
+// member functions
+//------------------------------------------------------------------------------
+
+// SMTLib_Encoder_Relational::imply --------------------------------------------
 
 string SMTLib_Encoder_Relational::imply (const string a, const string c) const
 {
   return smtlib::assertion(smtlib::implication(a, c)) + eol;
 }
 
+// SMTLib_Encoder_Relational::set_accu -----------------------------------------
+
 template <class T>
-shared_ptr<string> SMTLib_Encoder_Relational::set_accu (T & op)
+shared_ptr<string> SMTLib_Encoder_Relational::set_accu (const T & op)
 {
-  update = Update::accu;
+  update = Encoder::State::accu;
 
   return
     make_shared<string>(
       smtlib::equality({accu_var(), SMTLib_Encoder::encode(op)}));
 }
+
+// SMTLib_Encoder_Relational::restore_accu -------------------------------------
 
 shared_ptr<string> SMTLib_Encoder_Relational::restore_accu () const
 {
@@ -81,15 +124,19 @@ shared_ptr<string> SMTLib_Encoder_Relational::restore_accu () const
       smtlib::equality({accu_var(), accu_var(prev, thread)}));
 }
 
+// SMTLib_Encoder_Relational::set_mem ------------------------------------------
+
 template <class T>
-shared_ptr<string> SMTLib_Encoder_Relational::set_mem (T & op)
+shared_ptr<string> SMTLib_Encoder_Relational::set_mem (const T & op)
 {
-  update = Update::mem;
+  update = Encoder::State::mem;
 
   return
     make_shared<string>(
       smtlib::equality({mem_var(), SMTLib_Encoder::encode(op)}));
 }
+
+// SMTLib_Encoder_Relational::restore_mem --------------------------------------
 
 shared_ptr<string> SMTLib_Encoder_Relational::restore_mem () const
 {
@@ -98,15 +145,19 @@ shared_ptr<string> SMTLib_Encoder_Relational::restore_mem () const
       smtlib::equality({mem_var(), mem_var(prev, thread)}));
 }
 
+// SMTLib_Encoder_Relational::set_sb_adr ---------------------------------------
+
 template <class T>
-shared_ptr<string> SMTLib_Encoder_Relational::set_sb_adr (T & op)
+shared_ptr<string> SMTLib_Encoder_Relational::set_sb_adr (const T & op)
 {
-  update = Update::sb_adr;
+  update = Encoder::State::sb_adr;
 
   return
     make_shared<string>(
       smtlib::equality({sb_adr_var(), SMTLib_Encoder::encode(op)}));
 }
+
+// SMTLib_Encoder_Relational::restore_sb_adr -----------------------------------
 
 shared_ptr<string> SMTLib_Encoder_Relational::restore_sb_adr () const
 {
@@ -115,15 +166,19 @@ shared_ptr<string> SMTLib_Encoder_Relational::restore_sb_adr () const
       smtlib::equality({sb_adr_var(), sb_adr_var(prev, thread)}));
 }
 
+// SMTLib_Encoder_Relational::set_sb_val ---------------------------------------
+
 template <class T>
-shared_ptr<string> SMTLib_Encoder_Relational::set_sb_val (T & op)
+shared_ptr<string> SMTLib_Encoder_Relational::set_sb_val (const T & op)
 {
-  update = Update::sb_val;
+  update = Encoder::State::sb_val;
 
   return
     make_shared<string>(
       smtlib::equality({sb_val_var(), SMTLib_Encoder::encode(op)}));
 }
+
+// SMTLib_Encoder_Relational::restore_sb_val -----------------------------------
 
 shared_ptr<string> SMTLib_Encoder_Relational::restore_sb_val () const
 {
@@ -132,10 +187,14 @@ shared_ptr<string> SMTLib_Encoder_Relational::restore_sb_val () const
       smtlib::equality({sb_val_var(), sb_val_var(prev, thread)}));
 }
 
+// SMTLib_Encoder_Relational::set_sb_full --------------------------------------
+
 shared_ptr<string> SMTLib_Encoder_Relational::set_sb_full () const
 {
   return make_shared<string>(sb_full_var());
 }
+
+// SMTLib_Encoder_Relational::reset_sb_full ------------------------------------
 
 shared_ptr<string> SMTLib_Encoder_Relational::reset_sb_full () const
 {
@@ -149,6 +208,8 @@ shared_ptr<string> SMTLib_Encoder_Relational::reset_sb_full () const
           sb_full_var(prev, thread))}));
 }
 
+// SMTLib_Encoder_Relational::restor_sb_full -----------------------------------
+
 shared_ptr<string> SMTLib_Encoder_Relational::restore_sb_full () const
 {
   return
@@ -156,10 +217,12 @@ shared_ptr<string> SMTLib_Encoder_Relational::restore_sb_full () const
       smtlib::equality({sb_full_var(), sb_full_var(prev, thread)}));
 }
 
+// SMTLib_Encoder_Relational::set_stmt -----------------------------------------
+
 shared_ptr<string> SMTLib_Encoder_Relational::set_stmt (const word_t target)
 {
   const word_t cur = pc;
-  const Program & program = *(*programs)[thread];
+  const Program & program = (*programs)[thread];
   vector<string> stmts;
 
   stmts.reserve(program.size());
@@ -172,23 +235,21 @@ shared_ptr<string> SMTLib_Encoder_Relational::set_stmt (const word_t target)
   return make_shared<string>(smtlib::land(stmts));
 }
 
-shared_ptr<string> SMTLib_Encoder_Relational::set_stmt_next ()
-{
-  return set_stmt(pc + 1);
-}
+// SMTLib_Encoder_Relational::set_stmt_jmp -------------------------------------
 
 template <>
-shared_ptr<string> SMTLib_Encoder_Relational::set_stmt (Jmp & j)
+shared_ptr<string>
+SMTLib_Encoder_Relational::set_stmt_jmp (const Instruction::Jmp & j)
 {
   return set_stmt(j.arg);
 }
 
 template <class T>
-shared_ptr<string> SMTLib_Encoder_Relational::set_stmt (T & op)
+shared_ptr<string> SMTLib_Encoder_Relational::set_stmt_jmp (const T & op)
 {
   const word_t cur = pc;
   const word_t next = pc + 1;
-  const Program & program = *(*programs)[thread];
+  const Program & program = (*programs)[thread];
   const string condition = SMTLib_Encoder::encode(op);
   vector<string> stmts;
 
@@ -211,10 +272,19 @@ shared_ptr<string> SMTLib_Encoder_Relational::set_stmt (T & op)
   return make_shared<string>(smtlib::land(stmts));
 }
 
+// SMTLib_Encoder_Relational::set_stmt_next ------------------------------------
+
+shared_ptr<string> SMTLib_Encoder_Relational::set_stmt_next ()
+{
+  return set_stmt(pc + 1);
+}
+
+// SMTLib_Encoder_Relational::restore_stmt -------------------------------------
+
 shared_ptr<string> SMTLib_Encoder_Relational::restore_stmt ()
 {
   const word_t cur = pc;
-  const Program & program = *(*programs)[thread];
+  const Program & program = (*programs)[thread];
   vector<string> stmts;
 
   stmts.reserve(program.size());
@@ -230,19 +300,10 @@ shared_ptr<string> SMTLib_Encoder_Relational::restore_stmt ()
   return make_shared<string>(smtlib::land(stmts));
 }
 
-string SMTLib_Encoder_Relational::reset_block (const word_t id) const
-{
-  return
-    smtlib::equality({
-      block_var(step, id, thread),
-      smtlib::ite(
-        check_var(prev, id),
-        smtlib::FALSE,
-        block_var(prev, id, thread))});
-}
+// SMTLib_Encoder_Relational::set_block ----------------------------------------
 
 template <class T>
-shared_ptr<string> SMTLib_Encoder_Relational::set_block (T & op) const
+shared_ptr<string> SMTLib_Encoder_Relational::set_block (const T & op) const
 {
   if (check_pcs.empty())
     return {};
@@ -259,6 +320,21 @@ shared_ptr<string> SMTLib_Encoder_Relational::set_block (T & op) const
   return make_shared<string>(smtlib::land(block_vars));
 }
 
+// SMTLib_Encoder_Relational::reset_block --------------------------------------
+
+string SMTLib_Encoder_Relational::reset_block (const word_t id) const
+{
+  return
+    smtlib::equality({
+      block_var(step, id, thread),
+      smtlib::ite(
+        check_var(prev, id),
+        smtlib::FALSE,
+        block_var(prev, id, thread))});
+}
+
+// SMTLib_Encoder_Relational::restore_block ------------------------------------
+
 shared_ptr<string> SMTLib_Encoder_Relational::restore_block () const
 {
   if (check_pcs.empty())
@@ -273,15 +349,19 @@ shared_ptr<string> SMTLib_Encoder_Relational::restore_block () const
   return make_shared<string>(smtlib::land(block_vars));
 }
 
+// SMTLib_Encoder_Relational::set_heap -----------------------------------------
+
 template <class T>
-shared_ptr<string> SMTLib_Encoder_Relational::set_heap (T & op)
+shared_ptr<string> SMTLib_Encoder_Relational::set_heap (const T & op)
 {
-  update = Update::heap;
+  update = Encoder::State::heap;
 
   return
     make_shared<string>(
       smtlib::equality({heap_var(), SMTLib_Encoder::encode(op)}));
 }
+
+// SMTLib_Encoder_Relational::restore_heap -------------------------------------
 
 shared_ptr<string> SMTLib_Encoder_Relational::restore_heap () const
 {
@@ -289,6 +369,8 @@ shared_ptr<string> SMTLib_Encoder_Relational::restore_heap () const
     make_shared<string>(
       smtlib::equality({heap_var(), heap_var(prev)}));
 }
+
+// SMTLib_Encoder_Relational::set_exit_flag ------------------------------------
 
 shared_ptr<string> SMTLib_Encoder_Relational::set_exit_flag () const
 {
@@ -298,6 +380,8 @@ shared_ptr<string> SMTLib_Encoder_Relational::set_exit_flag () const
   return make_shared<string>(exit_flag_var());
 }
 
+// SMTLib_Encoder_Relational::unset_exit_flag ----------------------------------
+
 shared_ptr<string> SMTLib_Encoder_Relational::unset_exit_flag () const
 {
   if (exit_pcs.empty())
@@ -306,33 +390,40 @@ shared_ptr<string> SMTLib_Encoder_Relational::unset_exit_flag () const
   return make_shared<string>(smtlib::lnot(exit_flag_var()));
 }
 
-shared_ptr<string>
-SMTLib_Encoder_Relational::set_exit_code (const word_t e) const
+// SMTLib_Encoder_Relational::set_exit_code ------------------------------------
+
+shared_ptr<string> SMTLib_Encoder_Relational::set_exit_code (const word_t e) const
 {
   return
     make_shared<string>(
-      smtlib::equality({exit_code_sym, smtlib::word2hex(e)}));
+      smtlib::equality({exit_code_var, smtlib::word2hex(e)}));
 }
 
+// SMTLib_Encoder_Relational::imply_thread_executed ----------------------------
+//
 // thread t executed an instruction (exec_k_t_pc):
 // * update thread state accordingly
 // * restore heap (or update iff the instruction was a successful CAS)
 // * unset exit flag
 // * set exit code iff the instruction was an EXIT
+
 void SMTLib_Encoder_Relational::imply_thread_executed ()
 {
-  const Program & program = *(*programs)[thread];
+  const Program & program = (*programs)[thread];
   const State tmp = state = *this;
 
   for (pc = 0; pc < program.size(); pc++, state = tmp)
     formula
-      << imply(exec_var(prev, thread, pc), program[pc]->encode(*this))
+      << imply(exec_var(prev, thread, pc), program[pc].encode(*this))
       << eol;
 }
 
+// SMTLib_Encoder_Relational::imply_thread_not_executed ------------------------
+//
 // thread t didn't execute an instruction (not thread_k_t):
 // * preserve thread state
 // * reset sb-full iff the thread's store buffer has been flushed
+
 void SMTLib_Encoder_Relational::imply_thread_not_executed ()
 {
   state.sb_full = reset_sb_full();
@@ -343,9 +434,12 @@ void SMTLib_Encoder_Relational::imply_thread_not_executed ()
   formula << imply(smtlib::lnot(thread_var(prev, thread)), state) << eol;
 }
 
+// SMTLib_Encoder_Relational::imply_thread_flushed -----------------------------
+//
 // thread t flushed its store buffer (flush_k_t):
 // * update heap
 // * unset exit flag
+
 void SMTLib_Encoder_Relational::imply_thread_flushed ()
 {
   vector<string> args {
@@ -363,10 +457,13 @@ void SMTLib_Encoder_Relational::imply_thread_flushed ()
   formula << imply(flush_var(prev, thread), smtlib::land(args)) << eol;
 }
 
+// SMTLib_Encoder_Relational::imply_machine_exited -----------------------------
+//
 // machine exited (exit_k):
 // * preserve exit flag
 // * preserve heap
 // * set exit code to zero iff machine never exited (step == bound)
+
 void SMTLib_Encoder_Relational::imply_machine_exited ()
 {
   if (exit_pcs.empty())
@@ -390,10 +487,12 @@ void SMTLib_Encoder_Relational::imply_machine_exited ()
       imply(
         smtlib::lnot(exit_flag_var()),
         smtlib::equality({
-          exit_code_sym,
+          exit_code_var,
           smtlib::word2hex(0)})) <<
       eol;
 }
+
+// SMTLib_Encoder_Relational::define_states ------------------------------------
 
 void SMTLib_Encoder_Relational::define_states ()
 {
@@ -413,7 +512,9 @@ void SMTLib_Encoder_Relational::define_states ()
   imply_machine_exited();
 }
 
-string SMTLib_Encoder_Relational::encode (Load & l)
+// SMTLib_Encoder_Relational::encode -------------------------------------------
+
+string SMTLib_Encoder_Relational::encode (const Instruction::Load & l)
 {
   state.accu = set_accu(l);
   state.stmt = set_stmt_next();
@@ -421,7 +522,7 @@ string SMTLib_Encoder_Relational::encode (Load & l)
   return state;
 }
 
-string SMTLib_Encoder_Relational::encode (Store & s)
+string SMTLib_Encoder_Relational::encode (const Instruction::Store & s)
 {
   state.sb_adr = set_sb_adr(s);
   state.sb_val = set_sb_val(s);
@@ -432,22 +533,14 @@ string SMTLib_Encoder_Relational::encode (Store & s)
 }
 
 // TODO
-string SMTLib_Encoder_Relational::encode (Fence & f [[maybe_unused]])
+string SMTLib_Encoder_Relational::encode (const Instruction::Fence & f [[maybe_unused]])
 {
   state.stmt = set_stmt_next();
 
   return state;
 }
 
-string SMTLib_Encoder_Relational::encode (Add & a)
-{
-  state.accu = set_accu(a);
-  state.stmt = set_stmt_next();
-
-  return state;
-}
-
-string SMTLib_Encoder_Relational::encode (Addi & a)
+string SMTLib_Encoder_Relational::encode (const Instruction::Add & a)
 {
   state.accu = set_accu(a);
   state.stmt = set_stmt_next();
@@ -455,7 +548,15 @@ string SMTLib_Encoder_Relational::encode (Addi & a)
   return state;
 }
 
-string SMTLib_Encoder_Relational::encode (Sub & s)
+string SMTLib_Encoder_Relational::encode (const Instruction::Addi & a)
+{
+  state.accu = set_accu(a);
+  state.stmt = set_stmt_next();
+
+  return state;
+}
+
+string SMTLib_Encoder_Relational::encode (const Instruction::Sub & s)
 {
   state.accu = set_accu(s);
   state.stmt = set_stmt_next();
@@ -463,7 +564,7 @@ string SMTLib_Encoder_Relational::encode (Sub & s)
   return state;
 }
 
-string SMTLib_Encoder_Relational::encode (Subi & s)
+string SMTLib_Encoder_Relational::encode (const Instruction::Subi & s)
 {
   state.accu = set_accu(s);
   state.stmt = set_stmt_next();
@@ -471,7 +572,7 @@ string SMTLib_Encoder_Relational::encode (Subi & s)
   return state;
 }
 
-string SMTLib_Encoder_Relational::encode (Mul & m)
+string SMTLib_Encoder_Relational::encode (const Instruction::Mul & m)
 {
   state.accu = set_accu(m);
   state.stmt = set_stmt_next();
@@ -479,7 +580,7 @@ string SMTLib_Encoder_Relational::encode (Mul & m)
   return state;
 }
 
-string SMTLib_Encoder_Relational::encode (Muli & m)
+string SMTLib_Encoder_Relational::encode (const Instruction::Muli & m)
 {
   state.accu = set_accu(m);
   state.stmt = set_stmt_next();
@@ -487,7 +588,7 @@ string SMTLib_Encoder_Relational::encode (Muli & m)
   return state;
 }
 
-string SMTLib_Encoder_Relational::encode (Cmp & c)
+string SMTLib_Encoder_Relational::encode (const Instruction::Cmp & c)
 {
   state.accu = set_accu(c);
   state.stmt = set_stmt_next();
@@ -495,49 +596,49 @@ string SMTLib_Encoder_Relational::encode (Cmp & c)
   return state;
 }
 
-string SMTLib_Encoder_Relational::encode (Jmp & j)
+string SMTLib_Encoder_Relational::encode (const Instruction::Jmp & j)
 {
-  state.stmt = set_stmt(j);
+  state.stmt = set_stmt_jmp(j);
 
   return state;
 }
 
-string SMTLib_Encoder_Relational::encode (Jz & j)
+string SMTLib_Encoder_Relational::encode (const Instruction::Jz & j)
 {
-  state.stmt = set_stmt(j);
+  state.stmt = set_stmt_jmp(j);
 
   return state;
 }
 
-string SMTLib_Encoder_Relational::encode (Jnz & j)
+string SMTLib_Encoder_Relational::encode (const Instruction::Jnz & j)
 {
-  state.stmt = set_stmt(j);
+  state.stmt = set_stmt_jmp(j);
 
   return state;
 }
 
-string SMTLib_Encoder_Relational::encode (Js & j)
+string SMTLib_Encoder_Relational::encode (const Instruction::Js & j)
 {
-  state.stmt = set_stmt(j);
+  state.stmt = set_stmt_jmp(j);
 
   return state;
 }
 
-string SMTLib_Encoder_Relational::encode (Jns & j)
+string SMTLib_Encoder_Relational::encode (const Instruction::Jns & j)
 {
-  state.stmt = set_stmt(j);
+  state.stmt = set_stmt_jmp(j);
 
   return state;
 }
 
-string SMTLib_Encoder_Relational::encode (Jnzns & j)
+string SMTLib_Encoder_Relational::encode (const Instruction::Jnzns & j)
 {
-  state.stmt = set_stmt(j);
+  state.stmt = set_stmt_jmp(j);
 
   return state;
 }
 
-string SMTLib_Encoder_Relational::encode (Mem & m)
+string SMTLib_Encoder_Relational::encode (const Instruction::Mem & m)
 {
   state.accu = set_accu(m);
   state.mem = set_mem(m);
@@ -546,7 +647,7 @@ string SMTLib_Encoder_Relational::encode (Mem & m)
   return state;
 }
 
-string SMTLib_Encoder_Relational::encode (Cas & c)
+string SMTLib_Encoder_Relational::encode (const Instruction::Cas & c)
 {
   state.accu = set_accu(c);
   state.stmt = set_stmt_next();
@@ -555,7 +656,7 @@ string SMTLib_Encoder_Relational::encode (Cas & c)
   return state;
 }
 
-string SMTLib_Encoder_Relational::encode (Check & c)
+string SMTLib_Encoder_Relational::encode (const Instruction::Check & c)
 {
   state.stmt = set_stmt_next();
   state.block = set_block(c);
@@ -564,12 +665,12 @@ string SMTLib_Encoder_Relational::encode (Check & c)
 }
 
 // TODO
-string SMTLib_Encoder_Relational::encode (Halt & h [[maybe_unused]])
+string SMTLib_Encoder_Relational::encode (const Instruction::Halt & h [[maybe_unused]])
 {
   throw runtime_error("not implemented");
 }
 
-string SMTLib_Encoder_Relational::encode (Exit & e)
+string SMTLib_Encoder_Relational::encode (const Instruction::Exit & e)
 {
   state.stmt = set_stmt(pc);
   state.exit_flag = set_exit_flag();

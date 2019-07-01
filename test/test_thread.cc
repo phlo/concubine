@@ -6,14 +6,19 @@
 
 using namespace std;
 
+//==============================================================================
+// Thread tests
+//==============================================================================
+
 struct Thread_Test : public ::testing::Test
 {
-  Program   program;
-  Simulator simulator;
-  Thread    thread {simulator, 0, program};
+  Program program;
+  Simulator simulator = Simulator(make_shared<Program::List>(1));
+  Thread thread = Thread(simulator, 0, program);
 };
 
-/* Thread::load ***************************************************************/
+// Thread::load ================================================================
+
 TEST_F(Thread_Test, load)
 {
   /* direct */
@@ -38,7 +43,8 @@ TEST_F(Thread_Test, load)
   ASSERT_EQ(1, thread.load(1, true));
 }
 
-/* Thread::store **************************************************************/
+// Thread::store ===============================================================
+
 TEST_F(Thread_Test, store)
 {
   /* store direct */
@@ -99,7 +105,8 @@ TEST_F(Thread_Test, store_atomic)
   ASSERT_EQ(1, simulator.heap[1]);
 }
 
-/* Thread::flush **************************************************************/
+// Thread::flush ===============================================================
+
 TEST_F(Thread_Test, flush)
 {
   thread.buffer.address = 0;
@@ -114,7 +121,8 @@ TEST_F(Thread_Test, flush)
   ASSERT_EQ(1, simulator.heap[0]);
 }
 
-/* Thread::execute ************************************************************/
+// Thread::execute =============================================================
+
 TEST_F(Thread_Test, execute)
 {
   /* success */

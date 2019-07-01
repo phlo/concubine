@@ -2,43 +2,69 @@
 
 #include <sstream>
 
-#include "instructionset.hh"
+#include "instruction.hh"
 #include "parser.hh"
 
-using namespace std;
+//==============================================================================
+// using declarations
+//==============================================================================
 
-/* default constructor ********************************************************/
-Program::Program() {}
+using std::string;
+using std::to_string;
 
-/* construct from file ********************************************************/
+using std::istream;
+using std::istringstream;
+using std::ostringstream;
+using std::ws;
+
+using std::tuple;
+using std::vector;
+
+using std::move;
+
+using std::invalid_argument;
+using std::runtime_error;
+
+//==============================================================================
+// macros
+//==============================================================================
+
 #define PARSER_ERROR(msg) do { parser_error(path, line_num, msg); } while (0)
 #define INSTRUCTION_ERROR(msg) PARSER_ERROR("'" + symbol + "' " + msg)
 #define UNKNOWN_INSTRUCTION_ERROR() INSTRUCTION_ERROR("unknown instruction")
 
-Program::Program(istream & f, string & p) : path(p)
+//==============================================================================
+// Program
+//==============================================================================
+
+//------------------------------------------------------------------------------
+// constructors
+//------------------------------------------------------------------------------
+
+Program::Program(istream & f, const string & p) : path(p)
 {
   string token;
 
-  Instruction_ptr cmd;
+  Instruction cmd;
 
   size_t line_num = 1;
 
-  /* list of jump instructions at pc referencing a certain label */
+  // list of jump instructions at pc referencing a certain label
   vector<tuple<string, word_t, const string *>> labelled_jumps;
 
   for (string line_buf; getline(f, line_buf); line_num++)
     {
-      /* skip empty lines */
+      // skip empty lines
       if (line_buf.empty())
         continue;
 
       istringstream line(line_buf);
 
-      /* skip comments */
+      // skip comments
       if (line >> token && token.front() == '#')
         continue;
 
-      /* found label? */
+      // found label?
       else if (token.back() == ':')
         {
           word_t pc = size();
@@ -46,11 +72,11 @@ Program::Program(istream & f, string & p) : path(p)
           const string * label =
             &*labels.insert(token.substr(0, token.size() - 1)).first;
 
-          /* store label and the pc it was defined */
+          // store label and the pc it was defined
           label_to_pc[label] = pc;
           pc_to_label[pc] = label;
 
-          /* read labelled command */
+          // read labelled command
           line >> token;
         }
 
@@ -58,35 +84,35 @@ Program::Program(istream & f, string & p) : path(p)
 
       line >> ws;
 
-      /* parse instruction */
+      // parse instruction
       if (line.eof())
         {
-          try { cmd = Instruction::Set::create(symbol); }
+          try { cmd = Instruction::Set::create(symbol.c_str()); }
           catch (...) { UNKNOWN_INSTRUCTION_ERROR(); }
         }
       else
         {
           word_t arg;
 
-          /* try to parse the argument */
+          // try to parse the argument
           if (line >> arg)
             {
-              try { cmd = Instruction::Set::create(symbol, arg); }
+              try { cmd = Instruction::Set::create(symbol.c_str(), arg); }
               catch (...) { UNKNOWN_INSTRUCTION_ERROR(); }
             }
-          /* label or indirect addressing */
+          // label or indirect addressing
           else
             {
-              /* clear failbit - recover ifstream */
+              // clear failbit - recover ifstream
               line.clear();
 
-              /* discard leading whitespaces for later use of peek */
+              // discard leading whitespaces for later use of peek
               line >> ws;
 
-              /* arg is an indirect memory address */
+              // arg is an indirect memory address
               if (line.peek() == '[')
                 {
-                  /* parse enclosed address */
+                  // parse enclosed address
                   line >> token;
 
                   try
@@ -99,102 +125,137 @@ Program::Program(istream & f, string & p) : path(p)
                         "indirect addressing does not support labels");
                     }
 
-                  try { cmd = Instruction::Set::create(symbol, arg); }
+                  try { cmd = Instruction::Set::create(symbol.c_str(), arg); }
                   catch (...) { UNKNOWN_INSTRUCTION_ERROR(); }
 
-                  /* check if the instruction supports indirect addresses */
-                  if (auto m = dynamic_pointer_cast<Memory>(cmd))
-                    m->indirect = true;
+                  // check if the instruction supports indirect addresses
+                  if (cmd.is_memory())
+                    cmd = Instruction::Set::create(symbol.c_str(), arg, true);
                   else
                     INSTRUCTION_ERROR("does not support indirect addressing");
                 }
-              /* arg is a label */
+              // arg is a label
               else
                 {
                   /* create dummy Instruction which will be replaced by the
                      actual one when all labels are known */
-                  try { cmd = Instruction::Set::create(symbol, word_max); }
+                  try { cmd = Instruction::Set::create(symbol.c_str(), word_max); }
                   catch (...) { UNKNOWN_INSTRUCTION_ERROR(); }
 
-                  /* check if the instruction supports labels (is a jmp) */
-                  if (dynamic_pointer_cast<Jmp>(cmd))
+                  // check if the instruction supports labels (is a jmp)
+                  if (cmd.is_jump())
                     {
-                      /* get the label */
+                      // get the label
                       line >> token;
 
-                      /* get the program counter */
+                      // get the program counter
                       word_t pc = size();
 
-                      /* add tuple to the list of labelled jumps */
+                      // add tuple to the list of labelled jumps
                       labelled_jumps.push_back(
                         make_tuple(
                           symbol,
                           pc,
                           &*labels.insert(token).first));
                     }
-                  /* error: not a jump instruction */
+                  // error: not a jump instruction
                   else
                     INSTRUCTION_ERROR("does not support labels");
                 }
             }
         }
 
-      push_back(cmd);
+      push_back(move(cmd));
     }
 
-  /* replace labelled dummy instructions */
+  // replace labelled dummy instructions
   for (const auto & [sym, pc, label] : labelled_jumps)
     try
       {
-        /* check if label exists and replace dummy */
-        (*this)[pc] = Instruction::Set::create(sym, label_to_pc.at(label));
+        // check if label exists and replace dummy
+        (*this)[pc] = Instruction::Set::create(sym.c_str(), label_to_pc.at(label));
       }
     catch (...)
       {
         parser_error(path, pc, "unknown label [" + *label + "]");
       }
 
-  /* collect predecessors */
+  // collect predecessors
   predecessors[0]; // explicitly add initial instruction
   for (word_t pc = 0, last = size() - 1; pc <= last; pc++)
     {
-      const Instruction_ptr & op = (*this)[pc];
+      const Instruction & op = (*this)[pc];
 
-      if (Jmp_ptr j = dynamic_pointer_cast<Jmp>(op))
+      if (op.is_jump())
         {
-          if (j->arg >= size())
+          const Instruction::Unary & j = op;
+
+          if (j.arg >= size())
             throw runtime_error(
               path + ": illegal jump [" + to_string(pc) + "]");
 
-          if (j->symbol() != Jmp::_symbol || j->arg == pc + 1)
+          if (op.symbol() != Instruction::Jmp::symbol || j.arg == pc + 1)
             predecessors[pc + 1].insert(pc);
 
-          predecessors[j->arg].insert(pc);
+          predecessors[j.arg].insert(pc);
         }
       else if (pc < last)
-        if (!dynamic_pointer_cast<Exit>(op))
-          if (!dynamic_pointer_cast<Halt>(op))
+        {
+          using Halt = Instruction::Halt;
+          using Exit = Instruction::Exit;
+
+          if (&op.symbol() != &Exit::symbol && &op.symbol() != &Halt::symbol)
             predecessors[pc + 1].insert(pc);
+        }
     }
 
-  /* check for unreachable instructions */
+  // check for unreachable instructions
   for (word_t pc = 1; pc < size(); pc++)
     if (predecessors.find(pc) == predecessors.end())
       throw runtime_error(
         path + ": unreachable instruction [" + to_string(pc) + "]");
 }
 
-/* Program::push_back *********************************************************/
-void Program::push_back (Instruction_ptr op)
-{
-  vector<Instruction_ptr>::push_back(op);
+//------------------------------------------------------------------------------
+// member functions
+//------------------------------------------------------------------------------
 
-  /* collect checkpoint ids */
-  if (Check_ptr c = dynamic_pointer_cast<Check>(op))
-    check_ids.insert(c->arg);
+// Program::push_back ----------------------------------------------------------
+
+void Program::push_back (Instruction && op)
+{
+  // assign checkpoint
+  if (&op.symbol() == &Instruction::Check::symbol)
+    {
+      // collect checkpoint id
+      checkpoints[op.arg()].push_back(size());
+
+      // set the following instruction's type
+      set_type = set_type.value_or(0) | op.type();
+
+      // return;
+    }
+
+  // assign memory barrier
+  if (&op.symbol() == &Instruction::Fence::symbol)
+    {
+      // set the following instruction's type
+      set_type = set_type.value_or(0) | op.type() | Instruction::Type::barrier;
+
+      // return;
+    }
+
+  // define instruction as checkpoint or memory barrier
+  if (set_type)
+    {
+    }
+
+  // append instruction
+  vector<Instruction>::push_back(op);
 }
 
-/* Program::get_pc ************************************************************/
+// Program::get_pc -------------------------------------------------------------
+
 word_t Program::get_pc (const string label) const
 {
   const auto it = labels.find(label);
@@ -205,7 +266,8 @@ word_t Program::get_pc (const string label) const
   return label_to_pc.at(&*it);
 }
 
-/* Program::get_label *********************************************************/
+// Program::get_label ----------------------------------------------------------
+
 string Program::get_label (const word_t pc) const
 {
   const auto it = pc_to_label.find(pc);
@@ -216,7 +278,8 @@ string Program::get_label (const word_t pc) const
   return *it->second;
 }
 
-/* Program::print *************************************************************/
+// Program::print --------------------------------------------------------------
+
 string Program::print (const bool include_pc) const
 {
   ostringstream ss;
@@ -227,12 +290,11 @@ string Program::print (const bool include_pc) const
   return ss.str();
 }
 
-/* Program::print *************************************************************/
 string Program::print (const bool include_pc, const word_t pc) const
 {
   ostringstream ss;
 
-  /* check if instruction is referenced by a label */
+  // check if instruction is referenced by a label
   auto label_it = pc_to_label.find(pc);
   if (label_it != pc_to_label.end())
     {
@@ -246,39 +308,55 @@ string Program::print (const bool include_pc, const word_t pc) const
   else if (include_pc)
     ss << pc << "\t";
 
-  /* instruction symbol */
-  Instruction_ptr cmd = at(pc);
-  ss << cmd->symbol() << "\t";
+  // instruction symbol
+  const Instruction & op = (*this)[pc];
 
-  /* print unary instruction's argument */
-  if (Unary_ptr u = dynamic_pointer_cast<Unary>(cmd))
+  ss << op.symbol() << "\t";
+
+  // print unary instruction's argument
+  if (op.is_unary())
     {
-      label_it = pc_to_label.find(u->arg);
-      if (dynamic_pointer_cast<Jmp>(cmd) && label_it != pc_to_label.end())
-        ss << *label_it->second;
-      else if (auto m = dynamic_pointer_cast<Memory>(u))
-        ss << (m->indirect ? "[" : "") << m->arg << (m->indirect ? "]" : "");
+      label_it = pc_to_label.find(op.arg());
+      if (op.is_jump() && label_it != pc_to_label.end())
+        {
+          ss << *label_it->second;
+        }
+      else if (op.is_memory())
+        {
+          const Instruction::Memory & m = op;
+
+          if (m.indirect)
+            ss << "[" << m.arg << "]";
+          else
+            ss << m.arg;
+        }
       else
-        ss << u->arg;
+        {
+          ss << op.arg();
+        }
     }
 
   return ss.str();
 }
 
-/* operator == ****************************************************************/
+//==============================================================================
+// non-member operators
+//==============================================================================
+
+// equality --------------------------------------------------------------------
+
 bool operator == (const Program & a, const Program & b)
 {
   if (a.size() != b.size())
     return false;
 
   for (size_t i = 0; i < a.size(); i++)
-    if (*a[i] != *b[i])
+    if (a[i] != b[i])
       return false;
 
   return true;
 }
 
-/* operator != (const Program &, const Program &) *****************************/
 bool operator != (const Program & a, const Program & b)
 {
   return !(a == b);

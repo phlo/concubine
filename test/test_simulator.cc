@@ -6,31 +6,36 @@
 
 using namespace std;
 
+//==============================================================================
+// Simulator tests
+//==============================================================================
+
 struct Simulator_Test : public ::testing::Test
 {
-  Program_ptr   program = make_shared<Program>();
-  Schedule_ptr  schedule;
-  Simulator_ptr simulator;
+  Program program;
+  Schedule::ptr schedule;
+  shared_ptr<Simulator> simulator;
 
-  void create_simulator(initializer_list<Program_ptr> programs)
+  void create_simulator(initializer_list<Program> programs)
     {
-      simulator = make_shared<Simulator>(make_shared<Program_list>(programs));
+      simulator = make_shared<Simulator>(make_shared<Program::List>(programs));
     }
 };
 
-/* create_thread **************************************************************/
+// Simulator::create_thread ====================================================
+
 TEST_F(Simulator_Test, create_thread)
 {
-  simulator = make_shared<Simulator>();
+  create_simulator({});
 
   ASSERT_TRUE(simulator->active.empty());
   ASSERT_TRUE(simulator->threads.empty());
   ASSERT_TRUE(simulator->threads_per_checkpoint.empty());
   ASSERT_TRUE(simulator->waiting_for_checkpoint.empty());
 
-  program->push_back(Instruction::Set::create("ADDI", 1));
+  program.push_back(Instruction::Set::create("ADDI", 1));
 
-  simulator->create_thread(*program);
+  simulator->create_thread(program);
 
   ASSERT_EQ(0, simulator->threads.back().id);
   ASSERT_TRUE(simulator->active.empty());
@@ -38,9 +43,9 @@ TEST_F(Simulator_Test, create_thread)
   ASSERT_TRUE(simulator->threads_per_checkpoint.empty());
   ASSERT_TRUE(simulator->waiting_for_checkpoint.empty());
 
-  program->push_back(Instruction::Set::create("CHECK", 1));
+  program.push_back(Instruction::Set::create("CHECK", 1));
 
-  simulator->create_thread(*program);
+  simulator->create_thread(program);
 
   ASSERT_EQ(1, simulator->threads.back().id);
   ASSERT_TRUE(simulator->active.empty());
@@ -53,10 +58,11 @@ TEST_F(Simulator_Test, create_thread)
   ASSERT_TRUE(!simulator->waiting_for_checkpoint.empty());
 }
 
-/* run_simple *****************************************************************/
+// Simulator::run ==============================================================
+
 TEST_F(Simulator_Test, run_simple)
 {
-  program->push_back(Instruction::Set::create("ADDI", 1));
+  program.push_back(Instruction::Set::create("ADDI", 1));
 
   create_simulator({program, program});
 
@@ -145,12 +151,11 @@ TEST_F(Simulator_Test, run_simple)
   ASSERT_TRUE(schedule->heap_updates.empty());
 }
 
-/* run_add_check_exit *********************************************************/
 TEST_F(Simulator_Test, run_add_check_exit)
 {
-  program->push_back(Instruction::Set::create("ADDI", 1));
-  program->push_back(Instruction::Set::create("CHECK", 1));
-  program->push_back(Instruction::Set::create("EXIT", 1));
+  program.push_back(Instruction::Set::create("ADDI", 1));
+  program.push_back(Instruction::Set::create("CHECK", 1));
+  program.push_back(Instruction::Set::create("EXIT", 1));
 
   create_simulator({program, program});
 
@@ -267,22 +272,21 @@ TEST_F(Simulator_Test, run_add_check_exit)
   ASSERT_TRUE(schedule->heap_updates.empty());
 }
 
-/* run_race_condition *********************************************************/
 TEST_F(Simulator_Test, run_race_condition)
 {
-  program->push_back(Instruction::Set::create("LOAD", 1));
-  program->push_back(Instruction::Set::create("ADDI", 1));
-  program->push_back(Instruction::Set::create("STORE", 1));
-  program->push_back(Instruction::Set::create("CHECK", 1));
+  program.push_back(Instruction::Set::create("LOAD", 1));
+  program.push_back(Instruction::Set::create("ADDI", 1));
+  program.push_back(Instruction::Set::create("STORE", 1));
+  program.push_back(Instruction::Set::create("CHECK", 1));
 
-  Program_ptr checker = make_shared<Program>();
+  Program checker;
 
-  checker->push_back(Instruction::Set::create("CHECK", 1));
-  checker->push_back(Instruction::Set::create("LOAD", 1));
-  checker->push_back(Instruction::Set::create("SUBI", 2));
-  checker->push_back(Instruction::Set::create("JZ", 5));
-  checker->push_back(Instruction::Set::create("EXIT", 1));
-  checker->push_back(Instruction::Set::create("EXIT", 0));
+  checker.push_back(Instruction::Set::create("CHECK", 1));
+  checker.push_back(Instruction::Set::create("LOAD", 1));
+  checker.push_back(Instruction::Set::create("SUBI", 2));
+  checker.push_back(Instruction::Set::create("JZ", 5));
+  checker.push_back(Instruction::Set::create("EXIT", 1));
+  checker.push_back(Instruction::Set::create("EXIT", 0));
 
   create_simulator({checker, program, program});
 
@@ -584,10 +588,9 @@ TEST_F(Simulator_Test, run_race_condition)
     schedule->heap_updates);
 }
 
-/* run_zero_bound *************************************************************/
 TEST_F(Simulator_Test, run_zero_bound)
 {
-  program->push_back(Instruction::Set::create("JMP", 0));
+  program.push_back(Instruction::Set::create("JMP", 0));
 
   create_simulator({program});
 
@@ -663,14 +666,15 @@ TEST_F(Simulator_Test, run_zero_bound)
   ASSERT_TRUE(schedule->heap_updates.empty());
 }
 
-/* simulate_increment_check ***************************************************/
+// Simulator::simulate =========================================================
+
 TEST_F(Simulator_Test, simulate_increment_check)
 {
   ifstream schedule_file("data/increment.check.t2.k16.schedule");
   string expected((istreambuf_iterator<char>(schedule_file)),
                    istreambuf_iterator<char>());
 
-  Program_list_ptr programs = make_shared<Program_list>();
+  Program::List::ptr programs = make_shared<Program::List>();
   programs->push_back(
     create_from_file<Program>("data/increment.check.thread.0.asm"));
   programs->push_back(
@@ -683,16 +687,15 @@ TEST_F(Simulator_Test, simulate_increment_check)
   ASSERT_EQ(expected, schedule->print());
 }
 
-/* simulate_increment_cas *****************************************************/
 TEST_F(Simulator_Test, simulate_increment_cas)
 {
   ifstream schedule_file("data/increment.cas.t2.k16.schedule");
   string expected((istreambuf_iterator<char>(schedule_file)),
                    istreambuf_iterator<char>());
 
-  Program_ptr increment(create_from_file<Program>("data/increment.cas.asm"));
+  Program increment = create_from_file<Program>("data/increment.cas.asm");
 
-  Program_list_ptr programs = make_shared<Program_list>();
+  Program::List::ptr programs = make_shared<Program::List>();
   programs->push_back(increment);
   programs->push_back(increment);
 
@@ -703,7 +706,8 @@ TEST_F(Simulator_Test, simulate_increment_cas)
   ASSERT_EQ(expected, schedule->print());
 }
 
-/* replay_increment_check *****************************************************/
+// Simulator::replay ===========================================================
+
 TEST_F(Simulator_Test, replay_increment_check)
 {
   string schedule_file = "data/increment.check.t2.k16.schedule";
@@ -714,7 +718,7 @@ TEST_F(Simulator_Test, replay_increment_check)
   sfs.clear();
   sfs.seekg(0, std::ios::beg);
 
-  schedule = make_shared<Schedule>(sfs, schedule_file);
+  schedule = make_unique<Schedule>(sfs, schedule_file);
 
   schedule = Simulator::replay(*schedule);
 
@@ -723,7 +727,6 @@ TEST_F(Simulator_Test, replay_increment_check)
   ASSERT_EQ(expected, schedule->print());
 }
 
-/* replay_increment_cas *******************************************************/
 TEST_F(Simulator_Test, replay_increment_cas)
 {
   string schedule_file = "data/increment.cas.t2.k16.schedule";
@@ -734,7 +737,7 @@ TEST_F(Simulator_Test, replay_increment_cas)
   sfs.clear();
   sfs.seekg(0, std::ios::beg);
 
-  schedule = make_shared<Schedule>(sfs, schedule_file);
+  schedule = make_unique<Schedule>(sfs, schedule_file);
 
   schedule = Simulator::replay(*schedule);
 

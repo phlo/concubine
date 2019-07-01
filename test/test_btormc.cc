@@ -7,12 +7,16 @@
 
 using namespace std;
 
+//==============================================================================
+// BtorMC tests
+//==============================================================================
+
 struct BtorMC_Test : public ::testing::Test
 {
-  BtorMC            btormc = BtorMC(16);
-  Encoder_ptr       encoder;
-  Program_list_ptr  programs = make_shared<Program_list>();
-  Schedule_ptr      schedule;
+  BtorMC btormc = BtorMC(16);
+  Encoder::ptr encoder;
+  Program::List::ptr programs = make_shared<Program::List>();
+  Schedule::ptr schedule;
 };
 
 TEST_F(BtorMC_Test, sat)
@@ -50,7 +54,7 @@ TEST_F(BtorMC_Test, solve_check)
   string increment_0 = "data/increment.check.thread.0.asm";
   string increment_n = "data/increment.check.thread.n.asm";
 
-  programs = make_shared<Program_list>();
+  programs = make_shared<Program::List>();
 
   programs->push_back(create_from_file<Program>(increment_0));
   programs->push_back(create_from_file<Program>(increment_n));
@@ -124,7 +128,8 @@ TEST_F(BtorMC_Test, solve_check)
   file << schedule->print();
   file.close();
 
-  Schedule_ptr parsed {create_from_file<Schedule>("/tmp/test.schedule")};
+  Schedule::ptr parsed =
+    make_unique<Schedule>(create_from_file<Schedule>("/tmp/test.schedule"));
 
   vector<vector<pair<bound_t, word_t>>> pc_diff;
   for (size_t t = 0; t < schedule->pc_updates.size(); t++)
@@ -152,7 +157,7 @@ TEST_F(BtorMC_Test, solve_check)
 
   Simulator simulator {programs};
 
-  Schedule_ptr simulated {simulator.replay(*parsed)};
+  Schedule::ptr simulated {simulator.replay(*parsed)};
 
   ASSERT_EQ(*simulated, *schedule);
 }
@@ -163,7 +168,7 @@ TEST_F(BtorMC_Test, DISABLED_solve_cas)
   string constraints;
   string increment = "data/increment.cas.asm";
 
-  programs = make_shared<Program_list>();
+  programs = make_shared<Program::List>();
 
   programs->push_back(create_from_file<Program>(increment));
   programs->push_back(create_from_file<Program>(increment));

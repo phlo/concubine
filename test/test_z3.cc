@@ -6,12 +6,16 @@
 
 using namespace std;
 
+//==============================================================================
+// Z3 tests
+//==============================================================================
+
 struct Z3_Test : public ::testing::Test
 {
-  Z3                z3;
-  Encoder_ptr       encoder;
-  Program_list_ptr  programs = make_shared<Program_list>();
-  Schedule_ptr      schedule;
+  Z3 z3;
+  Encoder::ptr encoder;
+  Program::List::ptr programs = make_shared<Program::List>();
+  Schedule::ptr schedule;
 };
 
 TEST_F(Z3_Test, sat)
@@ -35,7 +39,7 @@ TEST_F(Z3_Test, solve_check)
   string increment_0 = "data/increment.check.thread.0.asm";
   string increment_n = "data/increment.check.thread.n.asm";
 
-  programs = make_shared<Program_list>();
+  programs = make_shared<Program::List>();
 
   programs->push_back(create_from_file<Program>(increment_0));
   programs->push_back(create_from_file<Program>(increment_n));
@@ -74,7 +78,7 @@ TEST_F(Z3_Test, solve_cas)
   string constraints;
   string increment = "data/increment.cas.asm";
 
-  programs = make_shared<Program_list>();
+  programs = make_shared<Program::List>();
 
   programs->push_back(create_from_file<Program>(increment));
   programs->push_back(create_from_file<Program>(increment));

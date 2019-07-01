@@ -4,6 +4,10 @@
 
 using namespace std;
 
+//==============================================================================
+// helper
+//==============================================================================
+
 // TODO remove - debug only
 #include "btor2.hh"
 #include "btormc.hh"
@@ -13,6 +17,10 @@ void evaluate (string & formula)
   cout << "running btormc..." << eol;
   btormc.sat(formula);
 }
+
+//==============================================================================
+// Btor2_Encoder tests
+//==============================================================================
 
 struct Btor2_Encoder_Test : public Test::Encoder<Btor2_Encoder>
 {
@@ -219,7 +227,8 @@ struct Btor2_Encoder_Test : public Test::Encoder<Btor2_Encoder>
     }
 };
 
-/* Btor2_Encoder::load ********************************************************/
+// Btor2_Encoder::load =========================================================
+
 TEST_F(Btor2_Encoder_Test, load)
 {
   add_dummy_programs(2);
@@ -288,7 +297,8 @@ TEST_F(Btor2_Encoder_Test, load_indirect)
   ASSERT_EQ(expected_load_indirect(nid, address), encoder->str());
 }
 
-/* Btor2_Encoder::declare_sorts ***********************************************/
+// Btor2_Encoder::declare_sorts ================================================
+
 TEST_F(Btor2_Encoder_Test, declare_sorts)
 {
   encoder->declare_sorts();
@@ -318,18 +328,15 @@ TEST_F(Btor2_Encoder_Test, declare_sorts)
   verbose = true;
 }
 
-/* Btor2_Encoder::declare_constants *******************************************/
+// Btor2_Encoder::declare_constants ============================================
+
 TEST_F(Btor2_Encoder_Test, declare_constants)
 {
+  programs.resize(3);
   for (size_t thread = 0; thread < 3; thread++)
-    {
-      Program_ptr program = make_shared<Program>();
-
-      programs.push_back(program);
-
-      for (size_t pc = 0; pc < 3; pc++)
-        program->push_back(Instruction::Set::create("ADDI", thread + pc + 1));
-    }
+    for (size_t pc = 0; pc < 3; pc++)
+      programs[thread].push_back(
+        Instruction::Set::create("ADDI", thread + pc + 1));
 
   reset_encoder();
 
@@ -372,7 +379,8 @@ TEST_F(Btor2_Encoder_Test, declare_constants)
   verbose = true;
 }
 
-/* Btor2_Encoder::declare_accu ************************************************/
+// Btor2_Encoder::declare_accu =================================================
+
 TEST_F(Btor2_Encoder_Test, declare_accu)
 {
   add_dummy_programs(3);
@@ -412,7 +420,8 @@ TEST_F(Btor2_Encoder_Test, declare_accu)
   verbose = true;
 }
 
-/* Btor2_Encoder::declare_mem *************************************************/
+// Btor2_Encoder::declare_mem ==================================================
+
 TEST_F(Btor2_Encoder_Test, declare_mem)
 {
   add_dummy_programs(3);
@@ -452,7 +461,8 @@ TEST_F(Btor2_Encoder_Test, declare_mem)
   verbose = true;
 }
 
-/* Btor2_Encoder::declare_sb_adr **********************************************/
+// Btor2_Encoder::declare_sb_adr ===============================================
+
 TEST_F(Btor2_Encoder_Test, declare_sb_adr)
 {
   add_dummy_programs(3);
@@ -492,7 +502,8 @@ TEST_F(Btor2_Encoder_Test, declare_sb_adr)
   verbose = true;
 }
 
-/* Btor2_Encoder::declare_sb_val **********************************************/
+// Btor2_Encoder::declare_sb_val ===============================================
+
 TEST_F(Btor2_Encoder_Test, declare_sb_val)
 {
   add_dummy_programs(3);
@@ -532,7 +543,8 @@ TEST_F(Btor2_Encoder_Test, declare_sb_val)
   verbose = true;
 }
 
-/* Btor2_Encoder::declare_sb_full *********************************************/
+// Btor2_Encoder::declare_sb_full ==============================================
+
 TEST_F(Btor2_Encoder_Test, declare_sb_full)
 {
   add_dummy_programs(3);
@@ -572,7 +584,8 @@ TEST_F(Btor2_Encoder_Test, declare_sb_full)
   verbose = true;
 }
 
-/* Btor2_Encoder::declare_stmt ************************************************/
+// Btor2_Encoder::declare_stmt =================================================
+
 TEST_F(Btor2_Encoder_Test, declare_stmt)
 {
   add_dummy_programs(3, 3);
@@ -616,7 +629,8 @@ TEST_F(Btor2_Encoder_Test, declare_stmt)
   verbose = true;
 }
 
-/* Btor2_Encoder::declare_block ***********************************************/
+// Btor2_Encoder::declare_block ================================================
+
 TEST_F(Btor2_Encoder_Test, declare_block)
 {
   for (size_t i = 0; i < 3; i++)
@@ -667,7 +681,8 @@ TEST_F(Btor2_Encoder_Test, declare_block_empty)
   ASSERT_EQ("", encoder->str());
 }
 
-/* Btor2_Encoder::declare_heap ************************************************/
+// Btor2_Encoder::declare_heap =================================================
+
 TEST_F(Btor2_Encoder_Test, declare_heap)
 {
   init_declarations();
@@ -697,7 +712,8 @@ TEST_F(Btor2_Encoder_Test, declare_heap)
   verbose = true;
 }
 
-/* Btor2_Encoder::declare_exit_flag *******************************************/
+// Btor2_Encoder::declare_exit_flag ============================================
+
 TEST_F(Btor2_Encoder_Test, declare_exit_flag)
 {
   programs.push_back(create_program("EXIT 1\n"));
@@ -736,7 +752,8 @@ TEST_F(Btor2_Encoder_Test, declare_exit_flag_empty)
   ASSERT_EQ("", encoder->str());
 }
 
-/* Btor2_Encoder::declare_exit_code *******************************************/
+// Btor2_Encoder::declare_exit_code ============================================
+
 TEST_F(Btor2_Encoder_Test, declare_exit_code)
 {
   programs.push_back(create_program("EXIT 1\n"));
@@ -768,7 +785,8 @@ TEST_F(Btor2_Encoder_Test, declare_exit_code)
   verbose = true;
 }
 
-/* Btor2_Encoder::declare_thread **********************************************/
+// Btor2_Encoder::declare_thread ===============================================
+
 TEST_F(Btor2_Encoder_Test, declare_thread)
 {
   add_dummy_programs(3);
@@ -808,7 +826,8 @@ TEST_F(Btor2_Encoder_Test, declare_thread)
   verbose = true;
 }
 
-/* Btor2_Encoder::declare_flush ***********************************************/
+// Btor2_Encoder::declare_flush ================================================
+
 TEST_F(Btor2_Encoder_Test, declare_flush)
 {
   add_dummy_programs(3);
@@ -848,7 +867,8 @@ TEST_F(Btor2_Encoder_Test, declare_flush)
   verbose = true;
 }
 
-/* Btor2_Encoder::define_exec *************************************************/
+// Btor2_Encoder::define_exec ==================================================
+
 TEST_F(Btor2_Encoder_Test, define_exec)
 {
   add_dummy_programs(3, 3);
@@ -894,7 +914,8 @@ TEST_F(Btor2_Encoder_Test, define_exec)
   verbose = true;
 }
 
-/* Btor2_Encoder::define_check ************************************************/
+// Btor2_Encoder::define_check =================================================
+
 TEST_F(Btor2_Encoder_Test, define_check)
 {
   add_instruction_set(3);
@@ -942,7 +963,8 @@ TEST_F(Btor2_Encoder_Test, define_check_empty)
   ASSERT_EQ("", encoder->str());
 }
 
-/* Btor2_Encoder::define_accu *************************************************/
+// Btor2_Encoder::define_accu ==================================================
+
 TEST_F(Btor2_Encoder_Test, define_accu)
 {
   add_instruction_set(3);
@@ -1187,7 +1209,8 @@ TEST_F(Btor2_Encoder_Test, define_accu)
   verbose = true;
 }
 
-/* Btor2_Encoder::define_sb_adr ***********************************************/
+// Btor2_Encoder::define_sb_adr ================================================
+
 TEST_F(Btor2_Encoder_Test, define_sb_adr)
 {
   add_instruction_set(3);
@@ -1252,7 +1275,8 @@ TEST_F(Btor2_Encoder_Test, define_sb_adr)
   verbose = true;
 }
 
-/* Btor2_Encoder::define_sb_val ***********************************************/
+// Btor2_Encoder::define_sb_val ================================================
+
 TEST_F(Btor2_Encoder_Test, define_sb_val)
 {
   add_instruction_set(3);
@@ -1317,7 +1341,8 @@ TEST_F(Btor2_Encoder_Test, define_sb_val)
   verbose = true;
 }
 
-/* Btor2_Encoder::define_sb_full **********************************************/
+// Btor2_Encoder::define_sb_full ===============================================
+
 TEST_F(Btor2_Encoder_Test, define_sb_full)
 {
   add_instruction_set(3);
@@ -1388,7 +1413,8 @@ TEST_F(Btor2_Encoder_Test, define_sb_full)
   verbose = true;
 }
 
-/* Btor2_Encoder::define_stmt *************************************************/
+// Btor2_Encoder::define_stmt ==================================================
+
 TEST_F(Btor2_Encoder_Test, define_stmt)
 {
   add_dummy_programs(3, 3);
@@ -2398,7 +2424,8 @@ TEST_F(Btor2_Encoder_Test, define_stmt_jmp_twice)
   verbose = true;
 }
 
-/* Btor2_Encoder::define_block ************************************************/
+// Btor2_Encoder::define_block =================================================
+
 TEST_F(Btor2_Encoder_Test, define_block)
 {
   add_instruction_set(3);
@@ -2475,7 +2502,8 @@ TEST_F(Btor2_Encoder_Test, define_block_empty)
   ASSERT_EQ("", encoder->str());
 }
 
-/* Btor2_Encoder::define_heap *************************************************/
+// Btor2_Encoder::define_heap ==================================================
+
 TEST_F(Btor2_Encoder_Test, define_heap)
 {
   add_instruction_set(3);
@@ -2611,7 +2639,8 @@ TEST_F(Btor2_Encoder_Test, define_heap)
   verbose = true;
 }
 
-/* Btor2_Encoder::define_exit_flag ********************************************/
+// Btor2_Encoder::define_exit_flag =============================================
+
 TEST_F(Btor2_Encoder_Test, define_exit_flag)
 {
   for (size_t i = 0; i < 3; i++)
@@ -2691,7 +2720,8 @@ TEST_F(Btor2_Encoder_Test, define_exit_flag_empty)
   ASSERT_EQ("", encoder->str());
 }
 
-/* Btor2_Encoder::define_exit_code ********************************************/
+// Btor2_Encoder::define_exit_code =============================================
+
 TEST_F(Btor2_Encoder_Test, define_exit_code)
 {
   for (size_t i = 0; i < 3; i++)
@@ -2777,7 +2807,8 @@ TEST_F(Btor2_Encoder_Test, define_exit_code_empty)
   ASSERT_EQ("", encoder->str());
 }
 
-/* Btor2_Encoder::define_scheduling_constraints *******************************/
+// Btor2_Encoder::define_scheduling_constraints ================================
+
 TEST_F(Btor2_Encoder_Test, define_scheduling_constraints)
 {
   add_dummy_programs(2);
@@ -2921,7 +2952,8 @@ TEST_F(Btor2_Encoder_Test, define_scheduling_constraints_single_thread)
   verbose = true;
 }
 
-/* Btor2_Encoder::define_store_buffer_constraints *****************************/
+// Btor2_Encoder::define_store_buffer_constraints ==============================
+
 TEST_F(Btor2_Encoder_Test, define_store_buffer_constraints)
 {
   // add_instruction_set(3);
@@ -2982,7 +3014,8 @@ TEST_F(Btor2_Encoder_Test, define_store_buffer_constraints)
   verbose = true;
 }
 
-/* Btor2_Encoder::define_checkpoint_contraints ********************************/
+// Btor2_Encoder::define_checkpoint_contraints =================================
+
 TEST_F(Btor2_Encoder_Test, define_checkpoint_contraints)
 {
   for (size_t i = 0; i < 3; i++)
@@ -2992,7 +3025,7 @@ TEST_F(Btor2_Encoder_Test, define_checkpoint_contraints)
 
   btor2::nid_t nid = encoder->node;
 
-  encoder->define_checkpoint_contraints();
+  encoder->define_checkpoint_constraints();
 
   expected = [this, &nid] {
     ostringstream s;
@@ -3037,18 +3070,19 @@ TEST_F(Btor2_Encoder_Test, define_checkpoint_contraints)
 
   verbose = false;
   nid = encoder->node;
-  encoder->define_checkpoint_contraints();
+  encoder->define_checkpoint_constraints();
   ASSERT_EQ(expected(), encoder->str());
   verbose = true;
 }
 
 TEST_F(Btor2_Encoder_Test, define_checkpoint_contraints_empty)
 {
-  encoder->define_checkpoint_contraints();
+  encoder->define_checkpoint_constraints();
   ASSERT_EQ("", encoder->str());
 }
 
-/* Btor2_Encoder::define_bound ************************************************/
+// Btor2_Encoder::define_bound =================================================
+
 TEST_F(Btor2_Encoder_Test, define_bound)
 {
   init_state_definitions();
@@ -3118,7 +3152,8 @@ TEST_F(Btor2_Encoder_Test, define_bound)
   verbose = true;
 }
 
-/* Btor2_Encoder::encode ******************************************************/
+// Btor2_Encoder::encode =======================================================
+
 TEST_F(Btor2_Encoder_Test, encode_check)
 {
   // concurrent increment using CHECK
@@ -3147,7 +3182,7 @@ TEST_F(Btor2_Encoder_Test, LOAD)
 
   word_t address = 0;
 
-  Load load {address};
+  Instruction::Load load (address);
 
   ASSERT_EQ(
     encoder->nids_load[encoder->thread][address],
@@ -3165,7 +3200,7 @@ TEST_F(Btor2_Encoder_Test, LOAD_indirect)
 
   word_t address = 0;
 
-  Load load {address, true};
+  Instruction::Load load (address, true);
 
   ASSERT_EQ(
     encoder->nids_load_indirect[encoder->thread][address],
@@ -3181,12 +3216,12 @@ TEST_F(Btor2_Encoder_Test, STORE)
 
   word_t address = 0;
 
-  Store store {address};
+  Instruction::Store store (address);
 
-  encoder->update = ::Encoder::Update::sb_adr;
+  encoder->update = ::Encoder::State::sb_adr;
   ASSERT_EQ(encoder->nids_const[address], encoder->encode(store));
 
-  encoder->update = ::Encoder::Update::sb_val;
+  encoder->update = ::Encoder::State::sb_val;
   ASSERT_EQ(encoder->nids_accu[0], encoder->encode(store));
 }
 
@@ -3200,15 +3235,15 @@ TEST_F(Btor2_Encoder_Test, STORE_indirect)
 
   word_t address = 0;
 
-  Store store {address, true};
+  Instruction::Store store (address, true);
 
-  encoder->update = ::Encoder::Update::sb_adr;
+  encoder->update = ::Encoder::State::sb_adr;
   ASSERT_EQ(
     encoder->nids_load[encoder->thread][address],
     encoder->encode(store));
   ASSERT_EQ(expected_load(nid, address), encoder->str());
 
-  encoder->update = ::Encoder::Update::sb_val;
+  encoder->update = ::Encoder::State::sb_val;
   ASSERT_EQ(encoder->nids_accu[0], encoder->encode(store));
 }
 
@@ -3222,7 +3257,7 @@ TEST_F(Btor2_Encoder_Test, ADD)
 
   word_t address = 0;
 
-  Add add {address};
+  Instruction::Add add (address);
 
   string nid_add = encoder->encode(add);
 
@@ -3254,7 +3289,7 @@ TEST_F(Btor2_Encoder_Test, ADD_indirect)
 
   word_t address = 0;
 
-  Add add {address, true};
+  Instruction::Add add (address, true);
 
   string nid_add = encoder->encode(add);
 
@@ -3286,7 +3321,7 @@ TEST_F(Btor2_Encoder_Test, ADDI)
 
   word_t value = 0;
 
-  Addi addi {value};
+  Instruction::Addi addi (value);
 
   string nid_addi = encoder->encode(addi);
 
@@ -3317,7 +3352,7 @@ TEST_F(Btor2_Encoder_Test, SUB)
 
   word_t address = 0;
 
-  Sub sub {address};
+  Instruction::Sub sub (address);
 
   string nid_sub = encoder->encode(sub);
 
@@ -3349,7 +3384,7 @@ TEST_F(Btor2_Encoder_Test, SUB_indirect)
 
   word_t address = 0;
 
-  Sub sub {address, true};
+  Instruction::Sub sub (address, true);
 
   string nid_sub = encoder->encode(sub);
 
@@ -3381,7 +3416,7 @@ TEST_F(Btor2_Encoder_Test, SUBI)
 
   word_t value = 0;
 
-  Subi subi {value};
+  Instruction::Subi subi (value);
 
   string nid_subi = encoder->encode(subi);
 
@@ -3412,7 +3447,7 @@ TEST_F(Btor2_Encoder_Test, MUL)
 
   word_t address = 0;
 
-  Mul mul {address};
+  Instruction::Mul mul (address);
 
   string nid_mul = encoder->encode(mul);
 
@@ -3444,7 +3479,7 @@ TEST_F(Btor2_Encoder_Test, MUL_indirect)
 
   word_t address = 0;
 
-  Mul mul {address, true};
+  Instruction::Mul mul (address, true);
 
   string nid_mul = encoder->encode(mul);
 
@@ -3476,7 +3511,7 @@ TEST_F(Btor2_Encoder_Test, MULI)
 
   word_t value = 0;
 
-  Muli muli {value};
+  Instruction::Muli muli (value);
 
   string nid_muli = encoder->encode(muli);
 
@@ -3507,7 +3542,7 @@ TEST_F(Btor2_Encoder_Test, CMP)
 
   word_t address = 0;
 
-  Cmp cmp {address};
+  Instruction::Cmp cmp (address);
 
   string nid_cmp = encoder->encode(cmp);
 
@@ -3539,7 +3574,7 @@ TEST_F(Btor2_Encoder_Test, CMP_indirect)
 
   word_t address = 0;
 
-  Cmp cmp {address, true};
+  Instruction::Cmp cmp (address, true);
 
   string nid_cmp = encoder->encode(cmp);
 
@@ -3563,7 +3598,7 @@ TEST_F(Btor2_Encoder_Test, CMP_indirect)
 
 TEST_F(Btor2_Encoder_Test, JMP)
 {
-  Jmp jmp {0};
+  Instruction::Jmp jmp (0);
 
   ASSERT_EQ("", encoder->encode(jmp));
   ASSERT_EQ("", encoder->str());
@@ -3577,7 +3612,7 @@ TEST_F(Btor2_Encoder_Test, JZ)
 
   btor2::nid_t nid = encoder->node;
 
-  Jz jz {0};
+  Instruction::Jz jz (0);
 
   string nid_jz = encoder->encode(jz);
 
@@ -3606,7 +3641,7 @@ TEST_F(Btor2_Encoder_Test, JNZ)
 
   btor2::nid_t nid = encoder->node;
 
-  Jnz jnz {0};
+  Instruction::Jnz jnz (0);
 
   string nid_jnz = encoder->encode(jnz);
 
@@ -3635,7 +3670,7 @@ TEST_F(Btor2_Encoder_Test, JS)
 
   btor2::nid_t nid = encoder->node;
 
-  Js js {0};
+  Instruction::Js js (0);
 
   string nid_js = encoder->encode(js);
 
@@ -3665,7 +3700,7 @@ TEST_F(Btor2_Encoder_Test, JNS)
 
   btor2::nid_t nid = encoder->node;
 
-  Jns jns {0};
+  Instruction::Jns jns (0);
 
   string nid_jns = encoder->encode(jns);
 
@@ -3695,7 +3730,7 @@ TEST_F(Btor2_Encoder_Test, JNZNS)
 
   btor2::nid_t nid = encoder->node;
 
-  Jnzns jnzns {0};
+  Instruction::Jnzns jnzns (0);
 
   string nid_jnzns = encoder->encode(jnzns);
 
@@ -3741,7 +3776,7 @@ TEST_F(Btor2_Encoder_Test, MEM)
 
   word_t address = 0;
 
-  Mem mem {address};
+  Instruction::Mem mem (address);
 
   ASSERT_EQ(
     encoder->nids_load[encoder->thread][address],
@@ -3759,7 +3794,7 @@ TEST_F(Btor2_Encoder_Test, MEM_indirect)
 
   word_t address = 0;
 
-  Mem mem {address, true};
+  Instruction::Mem mem (address, true);
 
   ASSERT_EQ(
     encoder->nids_load_indirect[encoder->thread][address],
@@ -3777,14 +3812,14 @@ TEST_F(Btor2_Encoder_Test, CAS)
 
   word_t address = 0;
 
-  Cas cas {address};
+  Instruction::Cas cas (address);
 
   string nid_cas;
 
   expected = [this, &nid, &address, &nid_cas] {
     ostringstream s;
 
-    if (encoder->update == ::Encoder::Update::accu)
+    if (encoder->update == ::Encoder::State::accu)
       {
         s << expected_load(nid, address);
         s <<
@@ -3803,7 +3838,7 @@ TEST_F(Btor2_Encoder_Test, CAS)
             encoder->nids_const[0]);
         nid++;
       }
-    else if (encoder->update == ::Encoder::Update::heap)
+    else if (encoder->update == ::Encoder::State::heap)
       {
         s <<
           btor2::write(
@@ -3826,13 +3861,13 @@ TEST_F(Btor2_Encoder_Test, CAS)
     return s.str();
   };
 
-  encoder->update = ::Encoder::Update::accu;
+  encoder->update = ::Encoder::State::accu;
   nid_cas = encoder->encode(cas);
   ASSERT_EQ(expected(), encoder->str());
 
   encoder->formula.str("");
 
-  encoder->update = ::Encoder::Update::heap;
+  encoder->update = ::Encoder::State::heap;
   nid_cas = encoder->encode(cas);
   ASSERT_EQ(expected(), encoder->str());
 }
@@ -3847,14 +3882,14 @@ TEST_F(Btor2_Encoder_Test, CAS_indirect)
 
   word_t address = 0;
 
-  Cas cas {address, true};
+  Instruction::Cas cas (address, true);
 
   string nid_cas;
 
   expected = [this, &nid, &address, &nid_cas] {
     ostringstream s;
 
-    if (encoder->update == ::Encoder::Update::accu)
+    if (encoder->update == ::Encoder::State::accu)
       {
         s << expected_load(nid, address);
         s <<
@@ -3873,7 +3908,7 @@ TEST_F(Btor2_Encoder_Test, CAS_indirect)
             encoder->nids_const[0]);
         nid++;
       }
-    else if (encoder->update == ::Encoder::Update::heap)
+    else if (encoder->update == ::Encoder::State::heap)
       {
         s <<
           btor2::write(
@@ -3896,20 +3931,20 @@ TEST_F(Btor2_Encoder_Test, CAS_indirect)
     return s.str();
   };
 
-  encoder->update = ::Encoder::Update::accu;
+  encoder->update = ::Encoder::State::accu;
   nid_cas = encoder->encode(cas);
   ASSERT_EQ(expected(), encoder->str());
 
   encoder->formula.str("");
 
-  encoder->update = ::Encoder::Update::heap;
+  encoder->update = ::Encoder::State::heap;
   nid_cas = encoder->encode(cas);
   ASSERT_EQ(expected(), encoder->str());
 }
 
 TEST_F(Btor2_Encoder_Test, CHECK)
 {
-  Check check {1};
+  Instruction::Check check (1);
 
   ASSERT_EQ("", encoder->encode(check));
   ASSERT_EQ("", encoder->str());
@@ -3917,7 +3952,7 @@ TEST_F(Btor2_Encoder_Test, CHECK)
 
 TEST_F(Btor2_Encoder_Test, EXIT)
 {
-  Exit exit {1};
+  Instruction::Exit exit (1);
 
   ASSERT_EQ(encoder->nids_const[1], encoder->encode(exit));
   ASSERT_EQ("", encoder->str());

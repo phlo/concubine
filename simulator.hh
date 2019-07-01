@@ -2,96 +2,123 @@
 #define MACHINE_HH_
 
 #include <functional>
-#include <memory>
-#include <unordered_map>
 
 #include "common.hh"
-#include "instructionset.hh"
+#include "instruction.hh"
+
+//==============================================================================
+// forward declarations
+//==============================================================================
 
 // TODO: forward-declare
 #include "program.hh"
 #include "schedule.hh"
 
+//==============================================================================
+// Simulator class
+//==============================================================================
+
 struct Simulator
 {
-  /* list of programs */
-  Program_list_ptr          programs;
+  //----------------------------------------------------------------------------
+  // members
+  //----------------------------------------------------------------------------
 
-  Schedule_ptr              schedule;
+  // list of programs
+  //
+  Program::List::ptr programs;
 
-  /* bounded execution */
-  bound_t                   bound;
+  // generated schedule
+  //
+  Schedule::ptr schedule;
 
-  /* seed used for thread scheduling */
-  uint64_t                  seed;
+  // bound
+  //
+  bound_t bound;
 
-  /* list of active threads */
+  // seed used for random thread scheduling
+  //
+  uint64_t seed;
+
+  // list of all threads
+  //
+  std::vector<Thread> threads;
+
+  // list of active threads
+  //
   // NOTE: much more lookup than insert/remove operations
-  std::vector<Thread *>     active;
+  //
+  std::vector<Thread *> active;
 
-  /* list of all threads */
-  std::vector<Thread>       threads;
+  // main memory
+  //
+  // address -> value
+  //
+  std::unordered_map<word_t, word_t> heap;
 
-  /* main memory */
-  std::unordered_map<
-    word_t,
-    word_t>                 heap;
+  // number of threads containing calls to a specific checkpoint
+  //
+  // checkpoint id -> list of threads
+  //
+  std::unordered_map<word_t, std::vector<Thread *>> threads_per_checkpoint;
 
-  /* number of threads containing calls to a specific checkpoint */
-  std::unordered_map<
-    word_t,
-    std::vector<Thread *>>  threads_per_checkpoint;
+  // number of threads currently waiting for a specific checkpoint
+  //
+  // checkpoint id -> number of waiting threads
+  //
+  std::unordered_map<word_t, word_t> waiting_for_checkpoint;
 
-  /* number of threads currently waiting for a specific checkpoint */
-  std::unordered_map<
-    word_t,
-    word_t>                 waiting_for_checkpoint;
+  //----------------------------------------------------------------------------
+  // constructors
+  //----------------------------------------------------------------------------
 
-  /*****************************************************************************
-   * constructors
-   ****************************************************************************/
+  Simulator (const Program::List::ptr & programs,
+             bound_t bound = 0,
+             uint64_t seed = 0);
 
-  /* default constructor (testing only) */
-  Simulator ();
+  //----------------------------------------------------------------------------
+  // private functions
+  //----------------------------------------------------------------------------
 
-  /* constructs a new simulator for simulation */
-  Simulator (Program_list_ptr programs, bound_t bound = 0, uint64_t seed = 0);
+  // checks if all threads reached the given checkpoint and resumes them
+  //
+  void check_and_resume (word_t id);
 
-  /*****************************************************************************
-   * private functions
-   ****************************************************************************/
+  // creates a thread using the given program, thread id == number of threads
+  //
+  word_t create_thread (const Program & program);
 
-  /* checks if all threads reached the given checkpoint and resumes them */
-  void                      check_and_resume (word_t id);
+  // run the simulator, using the specified scheduler
+  //
+  Schedule::ptr run (std::function<Thread *()> scheduler);
 
-  /* creates a thread using the given program, thread id == number of threads*/
-  word_t                    create_thread (Program &);
+  //----------------------------------------------------------------------------
+  // public functions
+  //----------------------------------------------------------------------------
 
-  /* run the simulator, using the specified scheduler */
-  Schedule_ptr              run (std::function<Thread *()>);
+  // runs the simulator using a random schedule
+  //
+  static Schedule::ptr simulate (const Program::List::ptr & programs,
+                                 bound_t bound = 0,
+                                 uint64_t seed = 0);
 
-  /*****************************************************************************
-   * public functions
-   ****************************************************************************/
-
-  /* runs the simulator using a random schedule */
-  static Schedule_ptr       simulate (
-                                      const Program_list_ptr programs,
-                                      const bound_t bound = 0,
-                                      const uint64_t seed = 0
-                                     );
-
-  /* replay the given schedule (schedule must match simulator configuration) */
-  static Schedule_ptr       replay (
-                                    const Schedule &,
-                                    const bound_t bound = 0
-                                   );
+  // replay the given schedule (schedule must match simulator configuration)
+  //
+  static Schedule::ptr replay (const Schedule & schedule, bound_t bound = 0);
 };
 
-using Simulator_ptr = std::shared_ptr<Simulator>;
+//==============================================================================
+// Thread
+//==============================================================================
 
 struct Thread
 {
+  //----------------------------------------------------------------------------
+  // member types
+  //----------------------------------------------------------------------------
+
+  // store buffer
+  //
   struct Buffer
     {
       bool full = false;
@@ -99,6 +126,8 @@ struct Thread
       word_t value = 0;
     };
 
+  // thread state
+  //
   enum class State : char
   {
     initial   = 'I',  // created, but not started
@@ -109,59 +138,110 @@ struct Thread
     exited    = 'E'   // exit called
   };
 
-  word_t        id;         // thread id
-  word_t        pc;         // program counter
-  word_t        mem;        // special CAS register
-  word_t        accu;       // accumulator register
-  word_t        check;      // current (or previous) checkpoint's id
-  Buffer        buffer;     // store buffer
-  State         state;      // thread state
-  Simulator &   simulator;  // reference to the simulator owning the thread
-  Program &     program;    // reference to the program being executed
+  //----------------------------------------------------------------------------
+  // members
+  //----------------------------------------------------------------------------
 
-  Thread (Simulator & simulator, word_t id, Program & program);
+  // thread id
+  //
+  word_t id;
 
-  word_t        load (word_t address, const bool indirect = false);
-  void          store (
-                       word_t address,
-                       const word_t value,
-                       const bool indirect = false,
-                       const bool atomic = false
-                      );
+  // program counter
+  //
+  word_t pc;
 
-  void          flush ();
-  void          execute ();
+  // special CAS register
+  //
+  word_t mem;
 
-  /* double-dispatched execute functions */
-  void          execute (Load &);
-  void          execute (Store &);
+  // accumulator register
+  //
+  word_t accu;
 
-  void          execute (Fence &);
+  // current (or previous) checkpoint's id
+  //
+  word_t check;
 
-  void          execute (Add &);
-  void          execute (Addi &);
-  void          execute (Sub &);
-  void          execute (Subi &);
-  void          execute (Mul &);
-  void          execute (Muli &);
+  // store buffer
+  //
+  Buffer buffer;
 
-  void          execute (Cmp &);
-  void          execute (Jmp &);
-  void          execute (Jz &);
-  void          execute (Jnz &);
-  void          execute (Js &);
-  void          execute (Jns &);
-  void          execute (Jnzns &);
+  // thread state
+  //
+  State state;
 
-  void          execute (Mem &);
-  void          execute (Cas &);
+  // reference to the simulator owning the thread
+  //
+  Simulator & simulator;
 
-  void          execute (Check &);
+  // reference to the program being executed
+  //
+  const Program & program;
 
-  void          execute (Halt &);
-  void          execute (Exit &);
+  //----------------------------------------------------------------------------
+  // constructors
+  //----------------------------------------------------------------------------
+
+  Thread (Simulator & simulator, word_t id, const Program & program);
+
+  //----------------------------------------------------------------------------
+  // functions
+  //----------------------------------------------------------------------------
+
+  // load value from given address
+  //
+  word_t load (word_t address, bool indirect = false);
+
+  // store given value at address
+  //
+  void store (word_t address,
+              word_t value,
+              bool indirect = false,
+              bool atomic = false);
+
+  // flush store buffer
+  //
+  void flush ();
+
+  // execute current instruction
+  //
+  void execute ();
+
+  // double-dispatched execute functions
+  //
+  void execute (const Instruction::Load &);
+  void execute (const Instruction::Store &);
+
+  void execute (const Instruction::Fence &);
+
+  void execute (const Instruction::Add &);
+  void execute (const Instruction::Addi &);
+  void execute (const Instruction::Sub &);
+  void execute (const Instruction::Subi &);
+  void execute (const Instruction::Mul &);
+  void execute (const Instruction::Muli &);
+
+  void execute (const Instruction::Cmp &);
+  void execute (const Instruction::Jmp &);
+  void execute (const Instruction::Jz &);
+  void execute (const Instruction::Jnz &);
+  void execute (const Instruction::Js &);
+  void execute (const Instruction::Jns &);
+  void execute (const Instruction::Jnzns &);
+
+  void execute (const Instruction::Mem &);
+  void execute (const Instruction::Cas &);
+
+  void execute (const Instruction::Check &);
+
+  void execute (const Instruction::Halt &);
+  void execute (const Instruction::Exit &);
 };
 
-std::ostream & operator << (std::ostream & os, Thread::State s);
+//==============================================================================
+// operators
+//==============================================================================
+
+std::ostream & operator << (std::ostream & os, Thread::State state);
 
 #endif

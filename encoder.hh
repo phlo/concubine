@@ -2,29 +2,43 @@
 #define ENCODER_HH_
 
 #include <map>
-#include <set>
 #include <sstream>
 #include <vector>
 
-#include "instructionset.hh"
+#include "instruction.hh"
 #include "program.hh"
 
-/*******************************************************************************
- * Encodes the given Programs into a SMT formula.
- ******************************************************************************/
+//==============================================================================
+// Encoder base class
+//
+// Encodes the given Programs into a SMT formula.
+//==============================================================================
+
 struct Encoder
 {
-  // TODO: change back to using {unordered_}{map,set} directly
-  template <class K, class V>
-  using Map = std::unordered_map<K, V>;
+  //----------------------------------------------------------------------------
+  // member types
+  //----------------------------------------------------------------------------
 
-  template <class V>
-  using Set = std::unordered_set<V>;
+  using ptr = std::unique_ptr<Encoder>;
 
-  using Type = Instruction::Type;
-  using Types = Instruction::Types;
+  // state being updated (to distinguish in Encoder::encode)
+  //
+  enum class State
+    {
+      accu,
+      mem,
+      sb_adr,
+      sb_val,
+      heap // TODO: really necessary?
+    };
+
+  //----------------------------------------------------------------------------
+  // static members
+  //----------------------------------------------------------------------------
 
   // thread state symbols
+  //
   static const std::string accu_sym;
   static const std::string mem_sym;
   static const std::string sb_adr_sym;
@@ -34,18 +48,20 @@ struct Encoder
   static const std::string block_sym;
 
   // machine state symbols
+  //
   static const std::string heap_sym;
   static const std::string exit_flag_sym;
   static const std::string exit_code_sym;
 
   // transition symbols
+  //
   static const std::string thread_sym;
   static const std::string exec_sym;
   static const std::string flush_sym;
   static const std::string check_sym;
-  static const std::string cas_sym; // TODO: really needed?
 
   // comments
+  //
   static const std::string accu_comment;
   static const std::string mem_comment;
   static const std::string sb_adr_comment;
@@ -62,359 +78,402 @@ struct Encoder
   static const std::string exec_comment;
   static const std::string flush_comment;
   static const std::string check_comment;
-  static const std::string cas_comment;
+
+  //----------------------------------------------------------------------------
+  // members
+  //----------------------------------------------------------------------------
 
   // reference to the programs being verified (index == thread id)
-  const Program_list_ptr  programs;
+  //
+  // std::shared_ptr - forwarded to the solver for generating a Trace
+  //
+  Program::List::ptr programs;
 
   // number of threads (short hand for programs->size())
-  const size_t            num_threads;
+  //
+  const size_t num_threads;
 
   // bound
-  const bound_t           bound;
+  //
+  const bound_t bound;
 
   // use Sinz's cardinality constraint (num_threads > 4)
-  const bool              use_sinz_constraint;
+  //
+  const bool use_sinz_constraint;
 
-  // SMT formula
-  std::ostringstream      formula;
+  // SMT formula buffer
+  //
+  std::ostringstream formula;
 
   // current thread id
-  word_t                  thread;
+  //
+  word_t thread;
 
   // current pc
-  word_t                  pc;
+  //
+  word_t pc;
 
-  // state being updated (for being able to distinguish in Encoder::encode)
-  enum class Update
-    {
-      accu,
-      mem,
-      sb_adr,
-      sb_val,
-      heap // TODO: really necessary?
-    };
-
-  Update update;
+  // current state being updated
+  //
+  State update;
 
   // pcs of statements requiring an empty store buffer
-  Map<
-    word_t,
-    std::vector<word_t>>  flush_pcs;
+  //
+  // thread -> list of program counters
+  //
+  std::map<word_t, std::vector<word_t>> flush_pcs; // flushes | require_flush
 
-  // pcs of checkpoint statements (checkpoint id -> thread -> pc)
-  std::map<
-    word_t,
-    std::map<
-      word_t,
-      std::set<word_t>>>  check_pcs;
+  // pcs of checkpoint statements
+  //
+  // checkpoint id -> thread -> list of program counters
+  //
+  std::map<word_t, std::map<word_t, std::vector<word_t>>> check_pcs; // checkpoints
 
   // pcs of exit calls
-  std::map<
-    word_t,
-    std::vector<word_t>>  exit_pcs;
+  //
+  // thread -> list of program counters
+  //
+  std::map<word_t, std::vector<word_t>> exit_pcs; // exits
 
-  // threads containing CAS statements
-  // TODO: really necessary?
-  Set<word_t>             cas_threads;
+  //----------------------------------------------------------------------------
+  // constructors
+  //----------------------------------------------------------------------------
 
-  // constructs an Encoder for the given program and bound
-  Encoder (const Program_list_ptr programs, bound_t bound);
+  Encoder (const Program::List::ptr & programs, bound_t bound);
 
-  /*****************************************************************************
-   * private functions
-  *****************************************************************************/
-  template<class Functor>
+  //----------------------------------------------------------------------------
+  // private member functions
+  //----------------------------------------------------------------------------
+
+  // iteration helpers
+  //
+  template <class Functor>
   void iterate_threads (const Functor fun)
     {
       for (thread = 0; thread < num_threads; thread++)
         fun();
     }
 
-  template<class Functor>
+  template <class Functor>
   void iterate_programs (const Functor fun)
     {
       thread = 0;
-      for (const Program_ptr & program : *programs)
+      for (const Program & program : *programs)
         {
-          fun(*program);
+          fun(program);
           thread++;
         }
     }
 
-  template<class Functor>
+  template <class Functor>
   void iterate_programs_reverse (const Functor fun)
     {
       thread = num_threads - 1;
       for (auto rit = programs->rbegin(); rit != programs->rend(); ++rit)
         {
-          fun(**rit);
+          fun(*rit);
           thread--;
         }
     }
 
-  // double-dispatched instruction encoding functions
-  virtual std::string encode (Load &) = 0;
-  virtual std::string encode (Store &) = 0;
-
-  virtual std::string encode (Fence &) = 0;
-
-  virtual std::string encode (Add &) = 0;
-  virtual std::string encode (Addi &) = 0;
-  virtual std::string encode (Sub &) = 0;
-  virtual std::string encode (Subi &) = 0;
-  virtual std::string encode (Mul &) = 0;
-  virtual std::string encode (Muli &) = 0;
-
-  virtual std::string encode (Cmp &) = 0;
-  virtual std::string encode (Jmp &) = 0;
-  virtual std::string encode (Jz &) = 0;
-  virtual std::string encode (Jnz &) = 0;
-  virtual std::string encode (Js &) = 0;
-  virtual std::string encode (Jns &) = 0;
-  virtual std::string encode (Jnzns &) = 0;
-
-  virtual std::string encode (Mem &) = 0;
-  virtual std::string encode (Cas &) = 0;
-
-  virtual std::string encode (Check &) = 0;
-
-  virtual std::string encode (Halt &) = 0;
-  virtual std::string encode (Exit &) = 0;
-
-  /*****************************************************************************
-   * public functions
-  *****************************************************************************/
-
   // encodes the whole machine configuration
-  virtual void        encode () = 0;
+  //
+  virtual void encode () = 0;
+
+  // double-dispatched instruction encoding functions
+  //
+  virtual std::string encode (const Instruction::Load &) = 0;
+  virtual std::string encode (const Instruction::Store &) = 0;
+
+  virtual std::string encode (const Instruction::Fence &) = 0;
+
+  virtual std::string encode (const Instruction::Add &) = 0;
+  virtual std::string encode (const Instruction::Addi &) = 0;
+  virtual std::string encode (const Instruction::Sub &) = 0;
+  virtual std::string encode (const Instruction::Subi &) = 0;
+  virtual std::string encode (const Instruction::Mul &) = 0;
+  virtual std::string encode (const Instruction::Muli &) = 0;
+
+  virtual std::string encode (const Instruction::Cmp &) = 0;
+  virtual std::string encode (const Instruction::Jmp &) = 0;
+  virtual std::string encode (const Instruction::Jz &) = 0;
+  virtual std::string encode (const Instruction::Jnz &) = 0;
+  virtual std::string encode (const Instruction::Js &) = 0;
+  virtual std::string encode (const Instruction::Jns &) = 0;
+  virtual std::string encode (const Instruction::Jnzns &) = 0;
+
+  virtual std::string encode (const Instruction::Mem &) = 0;
+  virtual std::string encode (const Instruction::Cas &) = 0;
+
+  virtual std::string encode (const Instruction::Check &) = 0;
+
+  virtual std::string encode (const Instruction::Halt &) = 0;
+  virtual std::string encode (const Instruction::Exit &) = 0;
+
+  //----------------------------------------------------------------------------
+  // public member functions
+  //----------------------------------------------------------------------------
 
   // returns the SMT formula as string
-  std::string         str ();
+  //
+  std::string str ();
 
-  /*****************************************************************************
-   * DEBUG
-  *****************************************************************************/
+  //----------------------------------------------------------------------------
+  // DEBUG
+  //
+  // TODO: remove
+  //----------------------------------------------------------------------------
+
   std::string predecessors_to_string ();
   std::string check_pcs_to_string ();
   std::string exit_pcs_to_string ();
 };
 
-/*******************************************************************************
- * Encoder_ptr
- ******************************************************************************/
-using Encoder_ptr = std::unique_ptr<Encoder>;
+//==============================================================================
+// SMT-Lib v2.5 Encoder base class
+//==============================================================================
 
-/*******************************************************************************
- * SMT-Lib v2.5 Encoder Base Class
- ******************************************************************************/
 struct SMTLib_Encoder : public Encoder
 {
-  // constructs an SMTLibEncoder for the given program and bound
-  SMTLib_Encoder (const Program_list_ptr programs, bound_t bound);
+  //----------------------------------------------------------------------------
+  // static members
+  //----------------------------------------------------------------------------
 
-  // encoder variables
-  bound_t                   step,
-                            prev;
+  // bitvector sort declaration
+  //
+  static const std::string bv_sort;
 
-  static const std::string  bv_sort;
-
-  static const std::string  exit_code_var;
+  // exit code variable
+  //
+  static const std::string & exit_code_var;
 
   // variable comments
-  static const std::string  accu_comment;
-  static const std::string  mem_comment;
-  static const std::string  sb_adr_comment;
-  static const std::string  sb_val_comment;
-  static const std::string  sb_full_comment;
-  static const std::string  stmt_comment;
-  static const std::string  block_comment;
+  //
+  static const std::string accu_comment;
+  static const std::string mem_comment;
+  static const std::string sb_adr_comment;
+  static const std::string sb_val_comment;
+  static const std::string sb_full_comment;
+  static const std::string stmt_comment;
+  static const std::string block_comment;
 
-  static const std::string  exit_flag_comment;
-  static const std::string  exit_code_comment;
-  static const std::string  heap_comment;
+  static const std::string exit_flag_comment;
+  static const std::string exit_code_comment;
+  static const std::string heap_comment;
 
-  static const std::string  thread_comment;
-  static const std::string  exec_comment;
-  static const std::string  flush_comment;
-  static const std::string  check_comment;
-  static const std::string  cas_comment;
+  static const std::string thread_comment;
+  static const std::string exec_comment;
+  static const std::string flush_comment;
+  static const std::string check_comment;
 
-  // thread state variable generators
-  static std::string        accu_var (word_t step, word_t thread);
-  std::string               accu_var () const;
-  static std::string        mem_var (word_t step, word_t thread);
-  std::string               mem_var () const;
-  static std::string        sb_adr_var (word_t step, word_t thread);
-  std::string               sb_adr_var () const;
-  static std::string        sb_val_var (word_t step, word_t thread);
-  std::string               sb_val_var () const;
-  static std::string        sb_full_var (word_t step, word_t thread);
-  std::string               sb_full_var () const;
-  static std::string        stmt_var (word_t step, word_t thread, word_t pc);
-  std::string               stmt_var () const;
-  static std::string        block_var (word_t step, word_t thread, word_t id);
+  //----------------------------------------------------------------------------
+  // members
+  //----------------------------------------------------------------------------
 
-  // machine state variable generators
-  static std::string        heap_var (word_t step);
-  std::string               heap_var () const;
-  static std::string        exit_flag_var (word_t step);
-  std::string               exit_flag_var () const;
+  // current step
+  //
+  bound_t step;
+
+  // previous step (reduce subtractions)
+  //
+  bound_t prev;
+
+  //----------------------------------------------------------------------------
+  // constructors
+  //----------------------------------------------------------------------------
+
+  SMTLib_Encoder (const Program::List::ptr & programs, bound_t bound);
+
+  //----------------------------------------------------------------------------
+  // private member functions
+  //----------------------------------------------------------------------------
+
+  // thread state variable name generators
+  //
+  static std::string accu_var (word_t step, word_t thread);
+         std::string accu_var () const;
+  static std::string mem_var (word_t step, word_t thread);
+         std::string mem_var () const;
+  static std::string sb_adr_var (word_t step, word_t thread);
+         std::string sb_adr_var () const;
+  static std::string sb_val_var (word_t step, word_t thread);
+         std::string sb_val_var () const;
+  static std::string sb_full_var (word_t step, word_t thread);
+         std::string sb_full_var () const;
+  static std::string stmt_var (word_t step, word_t thread, word_t pc);
+         std::string stmt_var () const;
+
+  static std::string block_var (word_t step, word_t thread, word_t id);
+
+  // machine state variable name generators
+  //
+  static std::string heap_var (word_t step);
+         std::string heap_var () const;
+  static std::string exit_flag_var (word_t step);
+         std::string exit_flag_var () const;
 
   // transition variable name generators
-  static std::string        thread_var (word_t step, word_t thread);
-  std::string               thread_var () const;
-  static std::string        exec_var (word_t step, word_t thread, word_t pc);
-  std::string               exec_var () const;
-  static std::string        flush_var (word_t step, word_t thread);
-  std::string               flush_var () const;
-  static std::string        check_var (word_t step, word_t id);
+  //
+  static std::string thread_var (word_t step, word_t thread);
+         std::string thread_var () const;
+  static std::string exec_var (word_t step, word_t thread, word_t pc);
+         std::string exec_var () const;
+  static std::string flush_var (word_t step, word_t thread);
+         std::string flush_var () const;
+  static std::string check_var (word_t step, word_t id);
 
-  /*
-  static std::string        cas_var (word_t step, word_t thread);
-  std::string               cas_var () const;
-  */
+  // assignment expression generator
+  //
+  std::string assign (std::string variable, std::string expression);
 
-  // expression generators
-  std::string               assign_var (std::string var, std::string expr);
-  std::string               load(word_t address, bool indirect = false);
+  // load expression generator
+  //
+  std::string load (word_t address, bool indirect = false);
 
   // state variable declarations
-  void                      declare_accu ();
-  void                      declare_mem ();
-  void                      declare_sb_adr ();
-  void                      declare_sb_val ();
-  void                      declare_sb_full ();
-  void                      declare_stmt ();
-  void                      declare_block ();
+  //
+  void declare_accu ();
+  void declare_mem ();
+  void declare_sb_adr ();
+  void declare_sb_val ();
+  void declare_sb_full ();
+  void declare_stmt ();
+  void declare_block ();
 
-  void                      declare_heap ();
-  void                      declare_exit_flag ();
-  void                      declare_exit_code ();
+  void declare_heap ();
+  void declare_exit_flag ();
+  void declare_exit_code ();
 
-  void                      declare_states ();
+  void declare_states (); // all of the above
 
   // transition variable declarations
-  void                      declare_thread ();
-  void                      declare_exec ();
-  void                      declare_flush ();
-  void                      declare_check ();
-  // void                      declare_cas ();
+  //
+  void declare_thread ();
+  void declare_exec ();
+  void declare_flush ();
+  void declare_check ();
 
-  void                      declare_transitions ();
+  void declare_transitions (); // all of the above
 
   // state variable initializers
-  void                      init_accu ();
-  void                      init_mem ();
-  void                      init_sb_adr ();
-  void                      init_sb_val ();
-  void                      init_sb_full ();
-  void                      init_stmt ();
-  void                      init_block ();
+  //
+  void init_accu ();
+  void init_mem ();
+  void init_sb_adr ();
+  void init_sb_val ();
+  void init_sb_full ();
+  void init_stmt ();
+  void init_block ();
 
-  void                      init_exit_flag ();
+  void init_exit_flag ();
 
-  void                      init_states ();
+  void init_states (); // all of the above
 
   // state variable definitions
-  virtual void              define_states () = 0;
+  //
+  virtual void define_states () = 0;
 
   // transition variable definitions
-  void                      define_exec ();
-  void                      define_check ();
-  // void                      define_cas ();
+  //
+  void define_exec ();
+  void define_check ();
 
-  void                      define_transitions ();
+  void define_transitions (); // all of the above
 
   // constraint definitions
-  void                      define_scheduling_constraints ();
-  void                      define_store_buffer_constraints ();
-  void                      define_checkpoint_contraints ();
+  //
+  void define_scheduling_constraints ();
+  void define_store_buffer_constraints ();
+  void define_checkpoint_contraints ();
 
-  void                      define_constraints ();
+  void define_constraints (); // all of the above
 
   // main encoding function
-  virtual void              encode ();
+  //
+  virtual void encode ();
 
   // double-dispatched instruction encoding functions
-  virtual std::string       encode (Load &);
-  virtual std::string       encode (Store &);
+  //
+  virtual std::string encode (const Instruction::Load &);
+  virtual std::string encode (const Instruction::Store &);
 
-  virtual std::string       encode (Fence &);
+  virtual std::string encode (const Instruction::Fence &);
 
-  virtual std::string       encode (Add &);
-  virtual std::string       encode (Addi &);
-  virtual std::string       encode (Sub &);
-  virtual std::string       encode (Subi &);
-  virtual std::string       encode (Mul &);
-  virtual std::string       encode (Muli &);
+  virtual std::string encode (const Instruction::Add &);
+  virtual std::string encode (const Instruction::Addi &);
+  virtual std::string encode (const Instruction::Sub &);
+  virtual std::string encode (const Instruction::Subi &);
+  virtual std::string encode (const Instruction::Mul &);
+  virtual std::string encode (const Instruction::Muli &);
 
-  virtual std::string       encode (Cmp &);
-  virtual std::string       encode (Jmp &);
-  virtual std::string       encode (Jz &);
-  virtual std::string       encode (Jnz &);
-  virtual std::string       encode (Js &);
-  virtual std::string       encode (Jns &);
-  virtual std::string       encode (Jnzns &);
+  virtual std::string encode (const Instruction::Cmp &);
+  virtual std::string encode (const Instruction::Jmp &);
+  virtual std::string encode (const Instruction::Jz &);
+  virtual std::string encode (const Instruction::Jnz &);
+  virtual std::string encode (const Instruction::Js &);
+  virtual std::string encode (const Instruction::Jns &);
+  virtual std::string encode (const Instruction::Jnzns &);
 
-  virtual std::string       encode (Mem &);
-  virtual std::string       encode (Cas &);
+  virtual std::string encode (const Instruction::Mem &);
+  virtual std::string encode (const Instruction::Cas &);
 
-  virtual std::string       encode (Check &);
+  virtual std::string encode (const Instruction::Check &);
 
-  virtual std::string       encode (Halt &);
-  virtual std::string       encode (Exit &);
+  virtual std::string encode (const Instruction::Halt &);
+  virtual std::string encode (const Instruction::Exit &);
 };
 
-/*******************************************************************************
- * SMTLibEncoder_ptr
- ******************************************************************************/
-using SMTLib_Encoder_ptr = std::unique_ptr<SMTLib_Encoder>;
+//==============================================================================
+// SMT-Lib v2.5 Functional Encoder class
+//==============================================================================
 
-/*******************************************************************************
- * SMT-Lib v2.5 Functional Encoder Class
- ******************************************************************************/
 struct SMTLib_Encoder_Functional : public SMTLib_Encoder
 {
-  // constructs an SMTLibEncoderFunctional for the given program and bound
-  SMTLib_Encoder_Functional (
-                             const Program_list_ptr programs,
+  //----------------------------------------------------------------------------
+  // constructors
+  //----------------------------------------------------------------------------
+
+  SMTLib_Encoder_Functional (const Program::List::ptr & programs,
                              bound_t bound,
-                             bool encode = true
-                            );
+                             bool encode = true);
 
-  // thread state definitions
-  void                define_accu ();
-  void                define_mem ();
-  void                define_sb_adr ();
-  void                define_sb_val ();
-  void                define_sb_full ();
-  void                define_stmt ();
-  void                define_block ();
+  //----------------------------------------------------------------------------
+  // private member functions
+  //----------------------------------------------------------------------------
 
-  // machine state definitions
-  void                define_heap ();
-  void                define_exit_flag ();
-  void                define_exit_code ();
+  // state variable definitions
+  //
+  void define_accu ();
+  void define_mem ();
+  void define_sb_adr ();
+  void define_sb_val ();
+  void define_sb_full ();
+  void define_stmt ();
+  void define_block ();
 
-  virtual void        define_states ();
+  void define_heap ();
+  void define_exit_flag ();
+  void define_exit_code ();
+
+  virtual void define_states (); // all of the above
 
   // main encoding function
-  virtual void        encode ();
+  //
+  virtual void encode ();
 };
 
-/*******************************************************************************
- * SMTLibEncoderFunctional_ptr
- ******************************************************************************/
-using SMTLib_Encoder_Functional_ptr =
-  std::unique_ptr<SMTLib_Encoder_Functional>;
+//==============================================================================
+// SMT-Lib v2.5 Relational Encoder class
+//==============================================================================
 
-/*******************************************************************************
- * SMT-Lib v2.5 Relational Encoder Class
- ******************************************************************************/
 struct SMTLib_Encoder_Relational : public SMTLib_Encoder
 {
-  // State object for capturing frequently used expressions
+  //----------------------------------------------------------------------------
+  // member types
+  //----------------------------------------------------------------------------
+
+  // captures frequently used expressions
+  //
   struct State {
     std::shared_ptr<std::string> accu;
     std::shared_ptr<std::string> mem;
@@ -433,109 +492,146 @@ struct SMTLib_Encoder_Relational : public SMTLib_Encoder
     operator std::string () const;
   };
 
-  State               state;
+  //----------------------------------------------------------------------------
+  // members
+  //----------------------------------------------------------------------------
 
-  // constructs an SMTLibEncoderRelational for the given program and bound
-  SMTLib_Encoder_Relational (
-                             const Program_list_ptr programs,
+  // current step's default states
+  //
+  State state;
+
+  //----------------------------------------------------------------------------
+  // constructors
+  //----------------------------------------------------------------------------
+
+  SMTLib_Encoder_Relational (const Program::List::ptr & programs,
                              bound_t bound,
-                             bool encode = true
-                            );
+                             bool encode = true);
 
-  std::string         imply (std::string ante, std::string cons) const;
+  //----------------------------------------------------------------------------
+  // private member functions
+  //----------------------------------------------------------------------------
+
+  // asserted implication expression generator
+  //
+  std::string imply (std::string ante, std::string cons) const;
+
+  // state update helpers
+  //
+  template <class T>
+  std::shared_ptr<std::string> set_accu (const T & op);
+  std::shared_ptr<std::string> restore_accu () const;
 
   template <class T>
-  std::shared_ptr<std::string>  set_accu (T & op);
-  std::shared_ptr<std::string>  restore_accu () const;
+  std::shared_ptr<std::string> set_mem (const T & op);
+  std::shared_ptr<std::string> restore_mem () const;
 
   template <class T>
-  std::shared_ptr<std::string>  set_mem (T & op);
-  std::shared_ptr<std::string>  restore_mem () const;
+  std::shared_ptr<std::string> set_sb_adr (const T & op);
+  std::shared_ptr<std::string> restore_sb_adr () const;
 
   template <class T>
-  std::shared_ptr<std::string>  set_sb_adr (T & op);
-  std::shared_ptr<std::string>  restore_sb_adr () const;
+  std::shared_ptr<std::string> set_sb_val (const T & op);
+  std::shared_ptr<std::string> restore_sb_val () const;
+
+  std::shared_ptr<std::string> set_sb_full () const;
+  std::shared_ptr<std::string> reset_sb_full () const;
+  std::shared_ptr<std::string> restore_sb_full () const;
+
+  std::shared_ptr<std::string> set_stmt (word_t pc);
+  template <class T>
+  std::shared_ptr<std::string> set_stmt_jmp (const T & op);
+  std::shared_ptr<std::string> set_stmt_next ();
+  std::shared_ptr<std::string> restore_stmt ();
 
   template <class T>
-  std::shared_ptr<std::string>  set_sb_val (T & op);
-  std::shared_ptr<std::string>  restore_sb_val () const;
-
-  std::shared_ptr<std::string>  set_sb_full () const;
-  std::shared_ptr<std::string>  reset_sb_full () const;
-  std::shared_ptr<std::string>  restore_sb_full () const;
-
-  std::shared_ptr<std::string>  set_stmt (word_t pc);
-  std::shared_ptr<std::string>  set_stmt_next ();
-  template <class T>
-  std::shared_ptr<std::string>  set_stmt (T & op);
-  std::shared_ptr<std::string>  restore_stmt ();
-
-  std::string                   reset_block (word_t id) const;
-  template <class T>
-  std::shared_ptr<std::string>  set_block (T & j) const;
-  std::shared_ptr<std::string>  restore_block () const;
+  std::shared_ptr<std::string> set_block (const T & op) const;
+  std::string reset_block (word_t id) const;
+  std::shared_ptr<std::string> restore_block () const;
 
   template <class T>
-  std::shared_ptr<std::string>  set_heap (T & op);
-  std::shared_ptr<std::string>  restore_heap () const;
+  std::shared_ptr<std::string> set_heap (const T & op);
+  std::shared_ptr<std::string> restore_heap () const;
 
-  std::shared_ptr<std::string>  set_exit_flag () const;
-  std::shared_ptr<std::string>  unset_exit_flag () const;
+  std::shared_ptr<std::string> set_exit_flag () const;
+  std::shared_ptr<std::string> unset_exit_flag () const;
 
-  std::shared_ptr<std::string>  set_exit_code (word_t e) const;
+  std::shared_ptr<std::string> set_exit_code (word_t e) const;
 
   // state variable definitions
-  void                imply_thread_executed ();
-  void                imply_thread_not_executed ();
-  void                imply_thread_flushed ();
-  void                imply_machine_exited ();
+  //
+  void imply_thread_executed ();
+  void imply_thread_not_executed ();
+  void imply_thread_flushed ();
+  void imply_machine_exited ();
 
-  virtual void        define_states ();
+  virtual void define_states (); // all of the above
 
   // double-dispatched instruction encoding functions
-  using SMTLib_Encoder::encode;
+  //
+  using SMTLib_Encoder::encode; // use base class' main encoding function
 
-  virtual std::string encode (Load &);
-  virtual std::string encode (Store &);
+  virtual std::string encode (const Instruction::Load &);
+  virtual std::string encode (const Instruction::Store &);
 
-  virtual std::string encode (Fence &);
+  virtual std::string encode (const Instruction::Fence &);
 
-  virtual std::string encode (Add &);
-  virtual std::string encode (Addi &);
-  virtual std::string encode (Sub &);
-  virtual std::string encode (Subi &);
-  virtual std::string encode (Mul &);
-  virtual std::string encode (Muli &);
+  virtual std::string encode (const Instruction::Add &);
+  virtual std::string encode (const Instruction::Addi &);
+  virtual std::string encode (const Instruction::Sub &);
+  virtual std::string encode (const Instruction::Subi &);
+  virtual std::string encode (const Instruction::Mul &);
+  virtual std::string encode (const Instruction::Muli &);
 
-  virtual std::string encode (Cmp &);
-  virtual std::string encode (Jmp &);
-  virtual std::string encode (Jz &);
-  virtual std::string encode (Jnz &);
-  virtual std::string encode (Js &);
-  virtual std::string encode (Jns &);
-  virtual std::string encode (Jnzns &);
+  virtual std::string encode (const Instruction::Cmp &);
+  virtual std::string encode (const Instruction::Jmp &);
+  virtual std::string encode (const Instruction::Jz &);
+  virtual std::string encode (const Instruction::Jnz &);
+  virtual std::string encode (const Instruction::Js &);
+  virtual std::string encode (const Instruction::Jns &);
+  virtual std::string encode (const Instruction::Jnzns &);
 
-  virtual std::string encode (Mem &);
-  virtual std::string encode (Cas &);
+  virtual std::string encode (const Instruction::Mem &);
+  virtual std::string encode (const Instruction::Cas &);
 
-  virtual std::string encode (Check &);
+  virtual std::string encode (const Instruction::Check &);
 
-  virtual std::string encode (Halt &);
-  virtual std::string encode (Exit &);
+  virtual std::string encode (const Instruction::Halt &);
+  virtual std::string encode (const Instruction::Exit &);
 };
 
-/*******************************************************************************
- * SMTLibEncoderRelational_ptr
- ******************************************************************************/
-using SMTLib_Encoder_Relational_ptr =
-  std::unique_ptr<SMTLib_Encoder_Relational>;
+//==============================================================================
+// BTOR2 Encoder class
+//==============================================================================
 
-/*******************************************************************************
- * Btor2 Encoder Class
- ******************************************************************************/
 struct Btor2_Encoder : public Encoder
 {
+  //----------------------------------------------------------------------------
+  // member types
+  //----------------------------------------------------------------------------
+
+  // node id
+  //
+  using nid_t = uint64_t;
+
+  // list of node ids
+  //
+  using nid_list = std::vector<std::string>;
+
+  // map of unsigned integers to node ids
+  //
+  using nid_map = std::unordered_map<word_t, std::string>;
+
+  //----------------------------------------------------------------------------
+  // static members
+  //----------------------------------------------------------------------------
+
+  // exit code variable
+  //
+  static const std::string & exit_code_var;
+
   // variable comments
+  //
   static const std::string accu_comment;
   static const std::string mem_comment;
   static const std::string sb_adr_comment;
@@ -553,245 +649,272 @@ struct Btor2_Encoder : public Encoder
   static const std::string flush_comment;
   static const std::string check_comment;
 
-  // most significant bit
+  // most significant bit's bitvector constant
+  //
   static const std::string msb;
 
-  // constructs a Btor2_Encoder for the given program and bound
-  Btor2_Encoder (
-                 const Program_list_ptr programs,
-                 bound_t bound,
-                 bool encode = true
-                );
+  //----------------------------------------------------------------------------
+  // members
+  //----------------------------------------------------------------------------
 
-  // next node id
-  using nid_t = uint64_t;
-
-  nid_t                         node;
+  // current node id
+  //
+  nid_t node;
 
   // sorts
-  std::string                   sid_bool;
-  std::string                   sid_bv;
-  std::string                   sid_heap;
+  //
+  std::string sid_bool;
+  std::string sid_bv;
+  std::string sid_heap;
 
   // boolean constants
-  std::string                   nid_true;
-  std::string                   nid_false;
+  //
+  std::string nid_true;
+  std::string nid_false;
 
   // bitvector constants
+  //
+  // constant -> nid
+  //
   std::map<word_t, std::string> nids_const;
 
-  // thread state variables
-  std::vector<std::string>      nids_accu;
-  std::vector<std::string>      nids_mem;
+  // register state nodes
+  //
+  // thread -> nid
+  //
+  nid_list nids_accu;
+  nid_list nids_mem;
 
-  std::vector<std::string>      nids_sb_adr;
-  std::vector<std::string>      nids_sb_val;
-  std::vector<std::string>      nids_sb_full;
+  nid_list nids_sb_adr;
+  nid_list nids_sb_val;
+  nid_list nids_sb_full;
 
-  std::vector<
-    std::vector<std::string>>   nids_stmt;
+  // statement activation state nodes
+  //
+  // thread -> pc -> nid
+  //
+  std::vector<nid_list> nids_stmt;
 
-  std::map<
-    word_t,
-    std::map<
-      word_t,
-      std::string>>             nids_block;
+  // blocking state nodes
+  //
+  // checkpoint id -> thread -> nid
+  //
+  std::map<word_t, std::map<word_t, std::string>> nids_block;
 
-  // machine state variables
-  std::string                   nid_heap;
+  // machine state nodes
+  //
+  std::string nid_heap;
 
-  std::string                   nid_exit_flag;
-  std::string                   nid_exit_code;
+  std::string nid_exit_flag;
+  std::string nid_exit_code;
 
-  // transition variables
-  std::vector<std::string>      nids_thread;
-  std::vector<
-    std::vector<std::string>>   nids_exec;
-  std::vector<std::string>      nids_flush;
-  std::unordered_map<
-    word_t,
-    std::string>                nids_check;
+  // thread input nodes
+  //
+  // thread -> nid
+  //
+  nid_list nids_thread;
 
-  // read nodes: address -> nid
-  std::unordered_map<
-    word_t,
-    std::string>                nids_read;
-  std::unordered_map<
-    word_t,
-    std::string>                nids_read_indirect;
+  // execution variable nodes
+  //
+  // thread -> pc -> nid
+  //
+  std::vector<nid_list> nids_exec;
 
-  // store buffer contains address nodes: thread -> address -> nid
-  std::unordered_map<
-    word_t,
-    std::unordered_map<
-      word_t,
-      std::string>>             nids_eq_sb_adr_adr;
+  // flush input nodes
+  //
+  // thread -> nid
+  //
+  nid_list nids_flush;
 
-  // store buffer contains address at heap[sb-val] nodes: thread -> nid
-  std::unordered_map<
-    word_t,
-    std::string>                nids_ite_eq_sb_adr_read_sb_val;
+  // checkpoint variable nodes
+  //
+  // checkpoint id -> nid
+  //
+  nid_map nids_check;
 
-  // load nodes: thread -> address -> nid
-  std::unordered_map<
-    word_t,
-    std::unordered_map<
-      word_t,
-      std::string>>             nids_load;
-  std::unordered_map<
-    word_t,
-    std::unordered_map<
-      word_t,
-      std::string>>             nids_load_indirect;
+  // array read nodes
+  //
+  // address -> nid
+  //
+  nid_map nids_read;
+  nid_map nids_read_indirect;
+
+  // store buffer contains address condition nodes
+  //
+  // thread -> address -> nid
+  //
+  std::unordered_map<word_t, nid_map> nids_eq_sb_adr_adr;
+
+  // store buffer contains address at heap[sb-val] nodes
+  //
+  // thread -> nid
+  //
+  nid_map nids_ite_eq_sb_adr_read_sb_val;
+
+  // load expression nodes
+  //
+  // thread -> address -> nid
+  //
+  std::unordered_map<word_t, nid_map> nids_load;
+  std::unordered_map<word_t, nid_map> nids_load_indirect;
 
   // CAS condition nodes: thread -> address -> nid
-  std::unordered_map<
-    word_t,
-    std::unordered_map<
-      word_t,
-      std::string>>             nids_cas;
-  std::unordered_map<
-    word_t,
-    std::unordered_map<
-      word_t,
-      std::string>>             nids_cas_indirect;
+  std::unordered_map<word_t, nid_map> nids_cas;
+  std::unordered_map<word_t, nid_map> nids_cas_indirect;
+
+  //----------------------------------------------------------------------------
+  // constructors
+  //----------------------------------------------------------------------------
+
+  Btor2_Encoder (const Program::List::ptr & programs,
+                 bound_t bound,
+                 bool encode = true);
+
+  //----------------------------------------------------------------------------
+  // private member functions
+  //----------------------------------------------------------------------------
 
   // thread state symbol generators
-  static std::string            accu_var (word_t thread);
-  std::string                   accu_var () const;
-  static std::string            mem_var (word_t thread);
-  std::string                   mem_var () const;
-  static std::string            sb_adr_var (word_t thread);
-  std::string                   sb_adr_var () const;
-  static std::string            sb_val_var (word_t thread);
-  std::string                   sb_val_var () const;
-  static std::string            sb_full_var (word_t thread);
-  std::string                   sb_full_var () const;
+  //
+  static std::string accu_var (word_t thread);
+         std::string accu_var () const;
+  static std::string mem_var (word_t thread);
+         std::string mem_var () const;
+  static std::string sb_adr_var (word_t thread);
+         std::string sb_adr_var () const;
+  static std::string sb_val_var (word_t thread);
+         std::string sb_val_var () const;
+  static std::string sb_full_var (word_t thread);
+         std::string sb_full_var () const;
 
-  static std::string            stmt_var (word_t thread, word_t pc);
-  std::string                   stmt_var () const;
-  static std::string            block_var (word_t thread, word_t id);
+  static std::string stmt_var (word_t thread, word_t pc);
+         std::string stmt_var () const;
+  static std::string block_var (word_t thread, word_t id);
 
   // transition symbol generators
-  static std::string            thread_var (word_t thread);
-  std::string                   thread_var () const;
-  static std::string            flush_var (word_t thread);
-  std::string                   flush_var () const;
-  static std::string            exec_var (const word_t t, const word_t pc);
-  std::string                   exec_var () const;
-  static std::string            check_var (word_t id);
-  static std::string            cas_var (word_t thread); // TODO: remove (unused)
-  std::string                   cas_var () const; // TODO: remove (unused)
+  //
+  static std::string thread_var (word_t thread);
+         std::string thread_var () const;
+  static std::string flush_var (word_t thread);
+         std::string flush_var () const;
+  static std::string exec_var (const word_t t, const word_t pc);
+         std::string exec_var () const;
+  static std::string check_var (word_t id);
 
   // get and advance current nid
-  std::string                   nid ();
-  std::string                   nid (int offset);
+  //
+  std::string nid ();
+  std::string nid (int offset);
 
-  std::string                   debug_symbol (word_t thread, word_t pc);
+  // debug symbol generator ("thread:pc:symbol:arg")
+  std::string debug_symbol (word_t thread, word_t pc);
 
-  // load helper
-  std::string                   load (word_t address, bool indirect = false);
+  // load expression generator
+  //
+  std::string load (word_t address, bool indirect = false);
 
   // sort declarations
-  void                          declare_sorts ();
+  //
+  void declare_sorts ();
 
   // constant declarations
-  void                          declare_constants ();
+  //
+  void declare_constants ();
 
   // state variable declarations
-  void                          declare_accu ();
-  void                          declare_mem ();
-  void                          declare_sb_adr ();
-  void                          declare_sb_val ();
-  void                          declare_sb_full ();
-  void                          declare_stmt ();
-  void                          declare_block ();
+  //
+  void declare_accu ();
+  void declare_mem ();
+  void declare_sb_adr ();
+  void declare_sb_val ();
+  void declare_sb_full ();
+  void declare_stmt ();
+  void declare_block ();
 
-  void                          declare_heap ();
-  void                          declare_exit_flag ();
-  void                          declare_exit_code ();
+  void declare_heap ();
+  void declare_exit_flag ();
+  void declare_exit_code ();
 
-  void                          declare_states ();
+  void declare_states (); // all of the above
 
-  // transition variable declarations
-  void                          declare_thread ();
-  void                          declare_flush ();
+  // input variable declarations
+  //
+  void declare_thread ();
+  void declare_flush ();
 
-  void                          declare_inputs ();
+  void declare_inputs (); // all of the above
 
   // transition variable definitions
-  void                          define_exec ();
-  void                          define_check ();
+  //
+  void define_exec ();
+  void define_check ();
 
-  void                          define_transitions ();
+  void define_transitions (); // all of the above
 
   // state variable definitions
-  void                          define_state_bv (
-                                                 Type type,
-                                                 const std::string & nid,
-                                                 std::string symbol
-                                                );
-  void                          define_accu ();
-  void                          define_mem ();
-  void                          define_sb_adr ();
-  void                          define_sb_val ();
-  void                          define_sb_full ();
-  void                          define_stmt ();
-  void                          define_block ();
+  //
+  void define_state_bv (Instruction::Type type,
+                        const std::string & nid,
+                        std::string symbol);
 
-  // machine state definitions
-  void                          define_heap ();
-  void                          define_exit_flag ();
-  void                          define_exit_code ();
+  void define_accu ();
+  void define_mem ();
+  void define_sb_adr ();
+  void define_sb_val ();
+  void define_sb_full ();
+  void define_stmt ();
+  void define_block ();
 
-  void                          define_states ();
+  void define_heap ();
+  void define_exit_flag ();
+  void define_exit_code ();
+
+  void define_states (); // all of the above
 
   // constraint definitions
-  void                          define_scheduling_constraints ();
-  void                          define_store_buffer_constraints ();
-  void                          define_checkpoint_contraints ();
+  //
+  void define_scheduling_constraints ();
+  void define_store_buffer_constraints ();
+  void define_checkpoint_constraints ();
 
-  void                          define_constraints ();
+  void define_constraints (); // all of the above
 
-  // bound (only used in random simulation)
-  void                          define_bound ();
+  // bound (only used in random "simulation")
+  //
+  void define_bound ();
 
   // main encoding function
-  virtual void                  encode ();
+  //
+  virtual void encode ();
 
   // double-dispatched instruction encoding functions
-  virtual std::string           encode (Load &);
-  virtual std::string           encode (Store &);
+  //
+  virtual std::string encode (const Instruction::Load &);
+  virtual std::string encode (const Instruction::Store &);
 
-  virtual std::string           encode (Fence &);
+  virtual std::string encode (const Instruction::Fence &);
 
-  virtual std::string           encode (Add &);
-  virtual std::string           encode (Addi &);
-  virtual std::string           encode (Sub &);
-  virtual std::string           encode (Subi &);
-  virtual std::string           encode (Mul &);
-  virtual std::string           encode (Muli &);
+  virtual std::string encode (const Instruction::Add &);
+  virtual std::string encode (const Instruction::Addi &);
+  virtual std::string encode (const Instruction::Sub &);
+  virtual std::string encode (const Instruction::Subi &);
+  virtual std::string encode (const Instruction::Mul &);
+  virtual std::string encode (const Instruction::Muli &);
 
-  virtual std::string           encode (Cmp &);
-  virtual std::string           encode (Jmp &);
-  virtual std::string           encode (Jz &);
-  virtual std::string           encode (Jnz &);
-  virtual std::string           encode (Js &);
-  virtual std::string           encode (Jns &);
-  virtual std::string           encode (Jnzns &);
+  virtual std::string encode (const Instruction::Cmp &);
+  virtual std::string encode (const Instruction::Jmp &);
+  virtual std::string encode (const Instruction::Jz &);
+  virtual std::string encode (const Instruction::Jnz &);
+  virtual std::string encode (const Instruction::Js &);
+  virtual std::string encode (const Instruction::Jns &);
+  virtual std::string encode (const Instruction::Jnzns &);
 
-  virtual std::string           encode (Mem &);
-  virtual std::string           encode (Cas &);
+  virtual std::string encode (const Instruction::Mem &);
+  virtual std::string encode (const Instruction::Cas &);
 
-  virtual std::string           encode (Check &);
+  virtual std::string encode (const Instruction::Check &);
 
-  virtual std::string           encode (Halt &);
-  virtual std::string           encode (Exit &);
+  virtual std::string encode (const Instruction::Halt &);
+  virtual std::string encode (const Instruction::Exit &);
 };
-
-/*******************************************************************************
- * Btor2_Encoder_ptr
- ******************************************************************************/
-using Btor2_Encoder_ptr = std::unique_ptr<Btor2_Encoder>;
-
 #endif

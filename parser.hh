@@ -2,33 +2,27 @@
 #define PARSER_HH_
 
 #include <fstream>
-#include <memory>
-#include <string>
 
-/* error reporting helper *****************************************************/
-inline
-void parser_error (std::string file, size_t line, std::string && msg)
+// error reporting helper
+//
+inline void parser_error (const std::string & file,
+                          const size_t line,
+                          const std::string && msg)
 {
   throw std::runtime_error(file + ":" + std::to_string(line) + ": " + msg);
 }
 
-/* file parsing helper ********************************************************/
-template <typename T>
-std::shared_ptr<T> create_from_file (std::string path)
+// file parsing helper
+//
+template <class T>
+inline T create_from_file (const std::string & path)
 {
-  std::shared_ptr<T> result;
-
   std::ifstream file(path);
 
-  if (file.is_open())
-    {
-      result.reset(new T(file, path));
-      file.close();
-    }
+  if (file)
+    return T (file, path);
   else
     throw std::runtime_error(path + " not found");
-
-  return result;
 }
 
 #endif
