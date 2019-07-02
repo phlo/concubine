@@ -2,23 +2,22 @@
 
 #include "encoder.hh"
 
-using namespace std;
-
 BtorMC::BtorMC(bound_t b) : bound(b) {}
 
-string BtorMC::name () const { return "btormc"; }
+std::string BtorMC::name () const { return "btormc"; }
 
-string BtorMC::build_command ()
+std::string BtorMC::build_command ()
 {
-  return "btormc --trace-gen-full -kmax " + to_string(bound);
+  return "btormc --trace-gen-full -kmax " + std::to_string(bound);
 }
 
-string BtorMC::build_formula (Encoder & formula, string & constraints)
+std::string BtorMC::build_formula (Encoder & formula,
+                                   const std::string & constraints)
 {
   return formula.str() + (constraints.empty() ? "" : constraints + eol);
 }
 
-optional<BtorMC::Variable> BtorMC::parse_line (istringstream & line)
+std::optional<BtorMC::Variable> BtorMC::parse_line (std::istringstream & line)
 {
   switch (line.peek())
     {
@@ -33,23 +32,25 @@ optional<BtorMC::Variable> BtorMC::parse_line (istringstream & line)
     }
 }
 
-optional<BtorMC::Variable> BtorMC::parse_variable (istringstream & line)
+std::optional<BtorMC::Variable> BtorMC::parse_variable (std::istringstream & line)
 {
-  optional<Variable> variable {Variable()};
+  std::optional<Variable> variable {Variable()};
 
-  ostringstream os;
+  std::ostringstream os;
 
   // cout << line.str() << eol;
 
   // if (!getline(line >> ws, name, '_'))
     // runtime_error("missing variable");
 
-  line >> ws;
+  line >> std::ws;
 
-  for (char c = line.get(); c != '@' && c != '#' && c != '_' && c != EOF; c = line.get())
+  for (char c = line.get();
+       c != '@' && c != '#' && c != '_' && c != EOF;
+       c = line.get())
     os << c;
 
-  string name = os.str();
+  std::string name = os.str();
 
   // cout << "BtorMC::parse_variable name = '" << name << '\'' << eol;
 

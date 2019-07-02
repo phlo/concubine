@@ -6,26 +6,6 @@
 #include "parser.hh"
 
 //==============================================================================
-// using declarations
-//==============================================================================
-
-using std::string;
-using std::to_string;
-
-using std::istream;
-using std::istringstream;
-using std::ostringstream;
-using std::ws;
-
-using std::tuple;
-using std::vector;
-
-using std::move;
-
-using std::invalid_argument;
-using std::runtime_error;
-
-//==============================================================================
 // macros
 //==============================================================================
 
@@ -41,24 +21,25 @@ using std::runtime_error;
 // constructors
 //------------------------------------------------------------------------------
 
-Program::Program(istream & f, const string & p) : path(p)
+Program::Program(std::istream & f, const std::string & p) : path(p)
 {
-  string token;
+  std::string token;
 
   Instruction cmd;
 
   size_t line_num = 1;
 
   // list of jump instructions at pc referencing a certain label
-  vector<tuple<string, word_t, const string *>> labelled_jumps;
+  std::vector<
+    std::tuple<std::string, word_t, const std::string *>> labelled_jumps;
 
-  for (string line_buf; getline(f, line_buf); line_num++)
+  for (std::string line_buf; getline(f, line_buf); line_num++)
     {
       // skip empty lines
       if (line_buf.empty())
         continue;
 
-      istringstream line(line_buf);
+      std::istringstream line(line_buf);
 
       // skip comments
       if (line >> token && token.front() == '#')
@@ -69,7 +50,7 @@ Program::Program(istream & f, const string & p) : path(p)
         {
           word_t pc = size();
 
-          const string * label =
+          const std::string * label =
             &*labels.insert(token.substr(0, token.size() - 1)).first;
 
           // store label and the pc it was defined
@@ -80,9 +61,9 @@ Program::Program(istream & f, const string & p) : path(p)
           line >> token;
         }
 
-      string symbol = token;
+      std::string symbol = token;
 
-      line >> ws;
+      line >> std::ws;
 
       // parse instruction
       if (line.eof())
@@ -107,7 +88,7 @@ Program::Program(istream & f, const string & p) : path(p)
               line.clear();
 
               // discard leading whitespaces for later use of peek
-              line >> ws;
+              line >> std::ws;
 
               // arg is an indirect memory address
               if (line.peek() == '[')
@@ -119,7 +100,7 @@ Program::Program(istream & f, const string & p) : path(p)
                     {
                       arg = stoul(token.substr(1, token.size() - 2));
                     }
-                  catch (invalid_argument & e)
+                  catch (std::invalid_argument & e)
                     {
                       PARSER_ERROR(
                         "indirect addressing does not support labels");
@@ -137,8 +118,8 @@ Program::Program(istream & f, const string & p) : path(p)
               // arg is a label
               else
                 {
-                  /* create dummy Instruction which will be replaced by the
-                     actual one when all labels are known */
+                  // create dummy Instruction which will be replaced by the
+                  // actual one when all labels are known
                   try { cmd = Instruction::Set::create(symbol.c_str(), word_max); }
                   catch (...) { UNKNOWN_INSTRUCTION_ERROR(); }
 
@@ -151,7 +132,7 @@ Program::Program(istream & f, const string & p) : path(p)
                       // get the program counter
                       word_t pc = size();
 
-                      // add tuple to the list of labelled jumps
+                      // add std::tuple to the list of labelled jumps
                       labelled_jumps.push_back(
                         make_tuple(
                           symbol,
@@ -165,7 +146,7 @@ Program::Program(istream & f, const string & p) : path(p)
             }
         }
 
-      push_back(move(cmd));
+      push_back(std::move(cmd));
     }
 
   // replace labelled dummy instructions
@@ -173,7 +154,8 @@ Program::Program(istream & f, const string & p) : path(p)
     try
       {
         // check if label exists and replace dummy
-        (*this)[pc] = Instruction::Set::create(sym.c_str(), label_to_pc.at(label));
+        (*this)[pc] =
+          Instruction::Set::create(sym.c_str(), label_to_pc.at(label));
       }
     catch (...)
       {
@@ -191,8 +173,8 @@ Program::Program(istream & f, const string & p) : path(p)
           const Instruction::Unary & j = op;
 
           if (j.arg >= size())
-            throw runtime_error(
-              path + ": illegal jump [" + to_string(pc) + "]");
+            throw std::runtime_error(
+              path + ": illegal jump [" + std::to_string(pc) + "]");
 
           if (op.symbol() != Instruction::Jmp::symbol || j.arg == pc + 1)
             predecessors[pc + 1].insert(pc);
@@ -212,8 +194,8 @@ Program::Program(istream & f, const string & p) : path(p)
   // check for unreachable instructions
   for (word_t pc = 1; pc < size(); pc++)
     if (predecessors.find(pc) == predecessors.end())
-      throw runtime_error(
-        path + ": unreachable instruction [" + to_string(pc) + "]");
+      throw std::runtime_error(
+        path + ": unreachable instruction [" + std::to_string(pc) + "]");
 }
 
 //------------------------------------------------------------------------------
@@ -251,38 +233,40 @@ void Program::push_back (Instruction && op)
     }
 
   // append instruction
-  vector<Instruction>::push_back(op);
+  std::vector<Instruction>::push_back(op);
 }
 
 // Program::get_pc -------------------------------------------------------------
 
-word_t Program::get_pc (const string label) const
+word_t Program::get_pc (const std::string label) const
 {
   const auto it = labels.find(label);
 
   if (it == labels.end())
-    throw runtime_error("unknown label [" + label + "]");
+    throw std::runtime_error("unknown label [" + label + "]");
 
   return label_to_pc.at(&*it);
 }
 
 // Program::get_label ----------------------------------------------------------
 
-string Program::get_label (const word_t pc) const
+std::string Program::get_label (const word_t pc) const
 {
   const auto it = pc_to_label.find(pc);
 
   if (it == pc_to_label.end())
-    throw runtime_error("no label for program counter [" + to_string(pc) + "]");
+    throw
+      std::runtime_error(
+        "no label for program counter [" + std::to_string(pc) + "]");
 
   return *it->second;
 }
 
 // Program::print --------------------------------------------------------------
 
-string Program::print (const bool include_pc) const
+std::string Program::print (const bool include_pc) const
 {
-  ostringstream ss;
+  std::ostringstream ss;
 
   for (word_t i = 0; i < size(); i++)
     ss <<  print(include_pc, i) << eol;
@@ -290,9 +274,9 @@ string Program::print (const bool include_pc) const
   return ss.str();
 }
 
-string Program::print (const bool include_pc, const word_t pc) const
+std::string Program::print (const bool include_pc, const word_t pc) const
 {
-  ostringstream ss;
+  std::ostringstream ss;
 
   // check if instruction is referenced by a label
   auto label_it = pc_to_label.find(pc);

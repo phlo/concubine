@@ -9,9 +9,10 @@ struct Z3 : public Solver
 {
   virtual std::string name () const;
 
-  virtual bool sat (std::string & formula);
+  virtual bool sat (const std::string & formula);
 
-  virtual Schedule::ptr solve (Encoder & encoder, std::string & constraints);
+  virtual Schedule::ptr solve (Encoder & encoder,
+                               const std::string & constraints);
 };
 
 #endif

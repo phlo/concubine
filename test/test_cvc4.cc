@@ -7,23 +7,23 @@
 #include "publicate.hh"
 #include "cvc4.hh"
 
-using namespace std;
+namespace test {
 
 //==============================================================================
-// Simulator tests
+// CVC4 tests
 //==============================================================================
 
-struct CVC4_Test : public ::testing::Test
+struct CVC4 : public ::testing::Test
 {
-  CVC4 cvc4;
+  ::CVC4 cvc4;
 };
 
-TEST_F(CVC4_Test, sat)
+TEST_F(CVC4, sat)
 {
-  string formula = "(set-logic QF_AUFBV)(assert true)(check-sat)";
+  std::string formula = "(set-logic QF_AUFBV)(assert true)(check-sat)";
 
-  ostringstream ss;
-  StreamRedirecter redirecter(cout, ss);
+  std::ostringstream ss;
+  StreamRedirecter redirecter(std::cout, ss);
 
   redirecter.start();
 
@@ -34,12 +34,12 @@ TEST_F(CVC4_Test, sat)
   ASSERT_EQ("sat\n", cvc4.std_out.str());
 }
 
-TEST_F(CVC4_Test, unsat)
+TEST_F(CVC4, unsat)
 {
-  string formula = "(set-logic QF_AUFBV)(assert false)(check-sat)";
+  std::string formula = "(set-logic QF_AUFBV)(assert false)(check-sat)";
 
-  ostringstream ss;
-  StreamRedirecter redirecter(cout, ss);
+  std::ostringstream ss;
+  StreamRedirecter redirecter(std::cout, ss);
 
   redirecter.start();
 
@@ -51,25 +51,27 @@ TEST_F(CVC4_Test, unsat)
 }
 
 // TODO: remove
-TEST_F(CVC4_Test, print_model)
+TEST_F(CVC4, print_model)
 {
-  /* concurrent increment using CHECK */
-  string constraints;
-  string increment_0 = "data/increment.check.thread.0.asm";
-  string increment_n = "data/increment.check.thread.n.asm";
+  // concurrent increment using CHECK
+  std::string constraints;
+  std::string increment_0 = "data/increment.check.thread.0.asm";
+  std::string increment_n = "data/increment.check.thread.n.asm";
 
-  Program::List::ptr programs = make_shared<Program::List>();
+  Program::List::ptr programs = std::make_shared<Program::List>();
 
   programs->push_back(create_from_file<Program>(increment_0));
   programs->push_back(create_from_file<Program>(increment_n));
 
-  Encoder::ptr encoder = make_unique<SMTLib_Encoder_Functional>(programs, 12);
+  Encoder::ptr encoder = std::make_unique<smtlib::Functional>(programs, 12);
 
-  string formula = cvc4.build_formula(*encoder, constraints);
+  std::string formula = cvc4.build_formula(*encoder, constraints);
 
   bool sat = cvc4.sat(formula);
 
-  cout << cvc4.std_out.str();
+  std::cout << cvc4.std_out.str();
 
   ASSERT_TRUE(sat);
 }
+
+} // namespace test

@@ -1,26 +1,26 @@
 #include "test_encoder_smtlib.hh"
 
-using namespace std;
+namespace test {
 
 //==============================================================================
-// SMTLib_Encoder tests
+// smtlib::Encoder tests
 //==============================================================================
 
-using E = SMTLib_Encoder;
-using Impl = SMTLib_Encoder_Functional;
+using E = smtlib::Encoder;
+using Impl = smtlib::Functional;
 
-using SMTLib_Encoder_Test = Test::SMTLib_Encoder<E, Impl>;
+using smtlib_Encoder = encoder::smtlib::Encoder<E, Impl>;
 
-// SMTLib_Encoder::accu_var ====================================================
+// smtlib::Encoder::accu_var ===================================================
 
-TEST_F(SMTLib_Encoder_Test, accu_var_args)
+TEST_F(smtlib_Encoder, accu_var_args)
 {
   ASSERT_EQ("accu_0_1", encoder->accu_var(0, 1));
   ASSERT_EQ("accu_1_2", encoder->accu_var(1, 2));
   ASSERT_EQ("accu_2_3", encoder->accu_var(2, 3));
 }
 
-TEST_F(SMTLib_Encoder_Test, accu_var)
+TEST_F(smtlib_Encoder, accu_var)
 {
   encoder->step = 0;
   encoder->thread = 1;
@@ -35,16 +35,16 @@ TEST_F(SMTLib_Encoder_Test, accu_var)
   ASSERT_EQ("accu_2_3", encoder->accu_var());
 }
 
-// SMTLib_Encoder::mem_var =====================================================
+// smtlib::Encoder::mem_var ====================================================
 
-TEST_F(SMTLib_Encoder_Test, mem_var_args)
+TEST_F(smtlib_Encoder, mem_var_args)
 {
   ASSERT_EQ("mem_0_1", encoder->mem_var(0, 1));
   ASSERT_EQ("mem_1_2", encoder->mem_var(1, 2));
   ASSERT_EQ("mem_2_3", encoder->mem_var(2, 3));
 }
 
-TEST_F(SMTLib_Encoder_Test, mem_var)
+TEST_F(smtlib_Encoder, mem_var)
 {
   encoder->step = 0;
   encoder->thread = 1;
@@ -59,16 +59,16 @@ TEST_F(SMTLib_Encoder_Test, mem_var)
   ASSERT_EQ("mem_2_3", encoder->mem_var());
 }
 
-// SMTLib_Encoder::sb_adr_var ==================================================
+// smtlib::Encoder::sb_adr_var =================================================
 
-TEST_F(SMTLib_Encoder_Test, sb_adr_var_args)
+TEST_F(smtlib_Encoder, sb_adr_var_args)
 {
   ASSERT_EQ("sb-adr_0_1", encoder->sb_adr_var(0, 1));
   ASSERT_EQ("sb-adr_1_2", encoder->sb_adr_var(1, 2));
   ASSERT_EQ("sb-adr_2_3", encoder->sb_adr_var(2, 3));
 }
 
-TEST_F(SMTLib_Encoder_Test, sb_adr_var)
+TEST_F(smtlib_Encoder, sb_adr_var)
 {
   encoder->step = 0;
   encoder->thread = 1;
@@ -83,16 +83,16 @@ TEST_F(SMTLib_Encoder_Test, sb_adr_var)
   ASSERT_EQ("sb-adr_2_3", encoder->sb_adr_var());
 }
 
-// SMTLib_Encoder::sb_val_var ==================================================
+// smtlib::Encoder::sb_val_var =================================================
 
-TEST_F(SMTLib_Encoder_Test, sb_val_var_args)
+TEST_F(smtlib_Encoder, sb_val_var_args)
 {
   ASSERT_EQ("sb-val_0_1", encoder->sb_val_var(0, 1));
   ASSERT_EQ("sb-val_1_2", encoder->sb_val_var(1, 2));
   ASSERT_EQ("sb-val_2_3", encoder->sb_val_var(2, 3));
 }
 
-TEST_F(SMTLib_Encoder_Test, sb_val_var)
+TEST_F(smtlib_Encoder, sb_val_var)
 {
   encoder->step = 0;
   encoder->thread = 1;
@@ -107,16 +107,16 @@ TEST_F(SMTLib_Encoder_Test, sb_val_var)
   ASSERT_EQ("sb-val_2_3", encoder->sb_val_var());
 }
 
-// SMTLib_Encoder::sb_full_var =================================================
+// smtlib::Encoder::sb_full_var ================================================
 
-TEST_F(SMTLib_Encoder_Test, sb_full_var_args)
+TEST_F(smtlib_Encoder, sb_full_var_args)
 {
   ASSERT_EQ("sb-full_0_1", encoder->sb_full_var(0, 1));
   ASSERT_EQ("sb-full_1_2", encoder->sb_full_var(1, 2));
   ASSERT_EQ("sb-full_2_3", encoder->sb_full_var(2, 3));
 }
 
-TEST_F(SMTLib_Encoder_Test, sb_full_var)
+TEST_F(smtlib_Encoder, sb_full_var)
 {
   encoder->step = 0;
   encoder->thread = 1;
@@ -131,16 +131,16 @@ TEST_F(SMTLib_Encoder_Test, sb_full_var)
   ASSERT_EQ("sb-full_2_3", encoder->sb_full_var());
 }
 
-// SMTLib_Encoder::stmt_var ====================================================
+// smtlib::Encoder::stmt_var ===================================================
 
-TEST_F(SMTLib_Encoder_Test, stmt_var_args)
+TEST_F(smtlib_Encoder, stmt_var_args)
 {
   ASSERT_EQ("stmt_0_1_2", encoder->stmt_var(0, 1, 2));
   ASSERT_EQ("stmt_1_2_3", encoder->stmt_var(1, 2, 3));
   ASSERT_EQ("stmt_2_3_4", encoder->stmt_var(2, 3, 4));
 }
 
-TEST_F(SMTLib_Encoder_Test, stmt_var)
+TEST_F(smtlib_Encoder, stmt_var)
 {
   encoder->step = 0;
   encoder->thread = 1;
@@ -158,25 +158,25 @@ TEST_F(SMTLib_Encoder_Test, stmt_var)
   ASSERT_EQ("stmt_2_3_4", encoder->stmt_var());
 }
 
-// SMTLib_Encoder::block_var ===================================================
+// smtlib::Encoder::block_var ==================================================
 
-TEST_F(SMTLib_Encoder_Test, block_var_args)
+TEST_F(smtlib_Encoder, block_var_args)
 {
   ASSERT_EQ("block_6_3_0", encoder->block_var(6, 3, 0));
   ASSERT_EQ("block_7_4_1", encoder->block_var(7, 4, 1));
   ASSERT_EQ("block_8_5_2", encoder->block_var(8, 5, 2));
 }
 
-// SMTLib_Encoder::heap_var ====================================================
+// smtlib::Encoder::heap_var ===================================================
 
-TEST_F(SMTLib_Encoder_Test, heap_var_args)
+TEST_F(smtlib_Encoder, heap_var_args)
 {
   ASSERT_EQ("heap_0", encoder->heap_var(0));
   ASSERT_EQ("heap_1", encoder->heap_var(1));
   ASSERT_EQ("heap_2", encoder->heap_var(2));
 }
 
-TEST_F(SMTLib_Encoder_Test, heap_var)
+TEST_F(smtlib_Encoder, heap_var)
 {
   encoder->step = 0;
   ASSERT_EQ("heap_0", encoder->heap_var());
@@ -188,16 +188,16 @@ TEST_F(SMTLib_Encoder_Test, heap_var)
   ASSERT_EQ("heap_2", encoder->heap_var());
 }
 
-// SMTLib_Encoder::exit_flag_var ===============================================
+// smtlib::Encoder::exit_flag_var ==============================================
 
-TEST_F(SMTLib_Encoder_Test, exit_var_args)
+TEST_F(smtlib_Encoder, exit_var_args)
 {
   ASSERT_EQ("exit_0", encoder->exit_flag_var(0));
   ASSERT_EQ("exit_1", encoder->exit_flag_var(1));
   ASSERT_EQ("exit_2", encoder->exit_flag_var(2));
 }
 
-TEST_F(SMTLib_Encoder_Test, exit_var)
+TEST_F(smtlib_Encoder, exit_var)
 {
   encoder->step = 0;
   encoder->thread = 1;
@@ -210,16 +210,16 @@ TEST_F(SMTLib_Encoder_Test, exit_var)
   ASSERT_EQ("exit_2", encoder->exit_flag_var());
 }
 
-// SMTLib_Encoder::thread_var ==================================================
+// smtlib::Encoder::thread_var =================================================
 
-TEST_F(SMTLib_Encoder_Test, thread_var_args)
+TEST_F(smtlib_Encoder, thread_var_args)
 {
   ASSERT_EQ("thread_0_1", encoder->thread_var(0, 1));
   ASSERT_EQ("thread_1_2", encoder->thread_var(1, 2));
   ASSERT_EQ("thread_2_3", encoder->thread_var(2, 3));
 }
 
-TEST_F(SMTLib_Encoder_Test, thread_var)
+TEST_F(smtlib_Encoder, thread_var)
 {
   encoder->step = 0;
   encoder->thread = 1;
@@ -234,16 +234,16 @@ TEST_F(SMTLib_Encoder_Test, thread_var)
   ASSERT_EQ("thread_2_3", encoder->thread_var());
 }
 
-// SMTLib_Encoder::exec_var ====================================================
+// smtlib::Encoder::exec_var ===================================================
 
-TEST_F(SMTLib_Encoder_Test, exec_var_args)
+TEST_F(smtlib_Encoder, exec_var_args)
 {
   ASSERT_EQ("exec_0_1_2", encoder->exec_var(0, 1, 2));
   ASSERT_EQ("exec_1_2_3", encoder->exec_var(1, 2, 3));
   ASSERT_EQ("exec_2_3_4", encoder->exec_var(2, 3, 4));
 }
 
-TEST_F(SMTLib_Encoder_Test, exec_var)
+TEST_F(smtlib_Encoder, exec_var)
 {
   encoder->step = 0;
   encoder->thread = 1;
@@ -261,16 +261,16 @@ TEST_F(SMTLib_Encoder_Test, exec_var)
   ASSERT_EQ("exec_2_3_4", encoder->exec_var());
 }
 
-// SMTLib_Encoder::flush_var ===================================================
+// smtlib::Encoder::flush_var ==================================================
 
-TEST_F(SMTLib_Encoder_Test, flush_var_args)
+TEST_F(smtlib_Encoder, flush_var_args)
 {
   ASSERT_EQ("flush_0_1", encoder->flush_var(0, 1));
   ASSERT_EQ("flush_1_2", encoder->flush_var(1, 2));
   ASSERT_EQ("flush_2_3", encoder->flush_var(2, 3));
 }
 
-TEST_F(SMTLib_Encoder_Test, flush_var)
+TEST_F(smtlib_Encoder, flush_var)
 {
   encoder->step = 0;
   encoder->thread = 1;
@@ -285,25 +285,25 @@ TEST_F(SMTLib_Encoder_Test, flush_var)
   ASSERT_EQ("flush_2_3", encoder->flush_var());
 }
 
-// SMTLib_Encoder::check_var ===================================================
+// smtlib::Encoder::check_var ==================================================
 
-TEST_F(SMTLib_Encoder_Test, check_var_args)
+TEST_F(smtlib_Encoder, check_var_args)
 {
   ASSERT_EQ("check_0_1", encoder->check_var(0, 1));
   ASSERT_EQ("check_1_2", encoder->check_var(1, 2));
   ASSERT_EQ("check_2_3", encoder->check_var(2, 3));
 }
 
-// SMTLib_Encoder::assign ======================================================
+// smtlib::Encoder::assign =====================================================
 
-TEST_F(SMTLib_Encoder_Test, assign)
+TEST_F(smtlib_Encoder, assign)
 {
   ASSERT_EQ("(assert (= foo bar))", encoder->assign("foo", "bar"));
 }
 
-// SMTLib_Encoder::load ========================================================
+// smtlib::Encoder::load =======================================================
 
-TEST_F(SMTLib_Encoder_Test, load)
+TEST_F(smtlib_Encoder, load)
 {
   encoder->step = 1;
   encoder->prev = 0;
@@ -331,9 +331,9 @@ TEST_F(SMTLib_Encoder_Test, load)
     encoder->load(1, true));
 }
 
-// SMTLib_Encoder::declare_accu ================================================
+// smtlib::Encoder::declare_accu ===============================================
 
-TEST_F(SMTLib_Encoder_Test, declare_accu)
+TEST_F(smtlib_Encoder, declare_accu)
 {
   add_dummy_programs(3);
   reset_encoder();
@@ -363,9 +363,9 @@ TEST_F(SMTLib_Encoder_Test, declare_accu)
     encoder->str());
 }
 
-// SMTLib_Encoder::declare_mem =================================================
+// smtlib::Encoder::declare_mem ================================================
 
-TEST_F(SMTLib_Encoder_Test, declare_mem)
+TEST_F(smtlib_Encoder, declare_mem)
 {
   add_dummy_programs(3);
   reset_encoder();
@@ -395,9 +395,9 @@ TEST_F(SMTLib_Encoder_Test, declare_mem)
     encoder->str());
 }
 
-// SMTLib_Encoder::declare_sb_adr ==============================================
+// smtlib::Encoder::declare_sb_adr =============================================
 
-TEST_F(SMTLib_Encoder_Test, declare_sb_adr)
+TEST_F(smtlib_Encoder, declare_sb_adr)
 {
   add_dummy_programs(3);
   reset_encoder();
@@ -427,9 +427,9 @@ TEST_F(SMTLib_Encoder_Test, declare_sb_adr)
     encoder->str());
 }
 
-// SMTLib_Encoder::declare_sb_val ==============================================
+// smtlib::Encoder::declare_sb_val =============================================
 
-TEST_F(SMTLib_Encoder_Test, declare_sb_val)
+TEST_F(smtlib_Encoder, declare_sb_val)
 {
   add_dummy_programs(3);
   reset_encoder();
@@ -459,9 +459,9 @@ TEST_F(SMTLib_Encoder_Test, declare_sb_val)
     encoder->str());
 }
 
-// SMTLib_Encoder::declare_sb_full =============================================
+// smtlib::Encoder::declare_sb_full ============================================
 
-TEST_F(SMTLib_Encoder_Test, declare_sb_full)
+TEST_F(smtlib_Encoder, declare_sb_full)
 {
   add_dummy_programs(3);
   reset_encoder();
@@ -491,9 +491,9 @@ TEST_F(SMTLib_Encoder_Test, declare_sb_full)
     encoder->str());
 }
 
-// SMTLib_Encoder::declare_stmt ================================================
+// smtlib::Encoder::declare_stmt ===============================================
 
-TEST_F(SMTLib_Encoder_Test, declare_stmt)
+TEST_F(smtlib_Encoder, declare_stmt)
 {
   add_dummy_programs(3, 3);
   reset_encoder();
@@ -539,9 +539,9 @@ TEST_F(SMTLib_Encoder_Test, declare_stmt)
     encoder->str());
 }
 
-// SMTLib_Encoder::declare_block ===============================================
+// smtlib::Encoder::declare_block ==============================================
 
-TEST_F(SMTLib_Encoder_Test, declare_block)
+TEST_F(smtlib_Encoder, declare_block)
 {
   for (size_t i = 0; i < 3; i++)
     programs.push_back(
@@ -583,16 +583,16 @@ TEST_F(SMTLib_Encoder_Test, declare_block)
     encoder->str());
 }
 
-TEST_F(SMTLib_Encoder_Test, declare_block_empty)
+TEST_F(smtlib_Encoder, declare_block_empty)
 {
   encoder->declare_block();
 
   ASSERT_EQ("", encoder->str());
 }
 
-// SMTLib_Encoder::declare_heap ================================================
+// smtlib::Encoder::declare_heap ===============================================
 
-TEST_F(SMTLib_Encoder_Test, declare_heap)
+TEST_F(smtlib_Encoder, declare_heap)
 {
   encoder->step = 1;
 
@@ -616,9 +616,9 @@ TEST_F(SMTLib_Encoder_Test, declare_heap)
     encoder->str());
 }
 
-// SMTLib_Encoder::declare_exit_flag ===========================================
+// smtlib::Encoder::declare_exit_flag ==========================================
 
-TEST_F(SMTLib_Encoder_Test, declare_exit_flag)
+TEST_F(smtlib_Encoder, declare_exit_flag)
 {
   programs.push_back(create_program("EXIT 1\n"));
   reset_encoder();
@@ -641,16 +641,16 @@ TEST_F(SMTLib_Encoder_Test, declare_exit_flag)
   ASSERT_EQ("(declare-fun exit_1 () Bool)\n\n", encoder->str());
 }
 
-TEST_F(SMTLib_Encoder_Test, declare_exit_flag_empty)
+TEST_F(smtlib_Encoder, declare_exit_flag_empty)
 {
   encoder->declare_exit_flag();
 
   ASSERT_EQ("", encoder->str());
 }
 
-// SMTLib_Encoder::declare_exit_code ===========================================
+// smtlib::Encoder::declare_exit_code ==========================================
 
-TEST_F(SMTLib_Encoder_Test, declare_exit_code)
+TEST_F(smtlib_Encoder, declare_exit_code)
 {
   encoder->declare_exit_code();
 
@@ -661,9 +661,9 @@ TEST_F(SMTLib_Encoder_Test, declare_exit_code)
     encoder->str());
 }
 
-// SMTLib_Encoder::declare_thread ==============================================
+// smtlib::Encoder::declare_thread =============================================
 
-TEST_F(SMTLib_Encoder_Test, declare_thread)
+TEST_F(smtlib_Encoder, declare_thread)
 {
   add_dummy_programs(3, 3);
   reset_encoder();
@@ -693,9 +693,9 @@ TEST_F(SMTLib_Encoder_Test, declare_thread)
     encoder->str());
 }
 
-// SMTLib_Encoder::declare_exec ================================================
+// smtlib::Encoder::declare_exec ===============================================
 
-TEST_F(SMTLib_Encoder_Test, declare_exec)
+TEST_F(smtlib_Encoder, declare_exec)
 {
   add_dummy_programs(3, 3);
   reset_encoder();
@@ -741,9 +741,9 @@ TEST_F(SMTLib_Encoder_Test, declare_exec)
     encoder->str());
 }
 
-// SMTLib_Encoder::declare_flush ===============================================
+// smtlib::Encoder::declare_flush ==============================================
 
-TEST_F(SMTLib_Encoder_Test, declare_flush)
+TEST_F(smtlib_Encoder, declare_flush)
 {
   add_dummy_programs(3);
   reset_encoder();
@@ -773,9 +773,9 @@ TEST_F(SMTLib_Encoder_Test, declare_flush)
     encoder->str());
 }
 
-// SMTLib_Encoder::declare_check ===============================================
+// smtlib::Encoder::declare_check ==============================================
 
-TEST_F(SMTLib_Encoder_Test, declare_check)
+TEST_F(smtlib_Encoder, declare_check)
 {
   add_dummy_programs(3);
 
@@ -783,7 +783,7 @@ TEST_F(SMTLib_Encoder_Test, declare_check)
 
   // 3 different checkpoint ids
   for (auto & p : programs)
-    p = create_program(p.print() + "CHECK " + to_string(check_id++) + "\n");
+    p = create_program(p.print() + "CHECK " + std::to_string(check_id++) + eol);
 
   reset_encoder();
 
@@ -799,7 +799,7 @@ TEST_F(SMTLib_Encoder_Test, declare_check)
 
   // same checkpoint ids
   for (auto & p : programs)
-    p = create_program(p.print() + "CHECK " + to_string(check_id) + "\n");
+    p = create_program(p.print() + "CHECK " + std::to_string(check_id) + eol);
 
   reset_encoder();
 
@@ -830,16 +830,16 @@ TEST_F(SMTLib_Encoder_Test, declare_check)
     encoder->str());
 }
 
-TEST_F(SMTLib_Encoder_Test, declare_check_empty)
+TEST_F(smtlib_Encoder, declare_check_empty)
 {
   encoder->declare_check();
 
   ASSERT_EQ("", encoder->str());
 }
 
-// SMTLib_Encoder::init_accu ===================================================
+// smtlib::Encoder::init_accu ==================================================
 
-TEST_F(SMTLib_Encoder_Test, init_accu)
+TEST_F(smtlib_Encoder, init_accu)
 {
   add_dummy_programs(3);
   reset_encoder(0);
@@ -869,9 +869,9 @@ TEST_F(SMTLib_Encoder_Test, init_accu)
     encoder->str());
 }
 
-// SMTLib_Encoder::init_mem ====================================================
+// smtlib::Encoder::init_mem ===================================================
 
-TEST_F(SMTLib_Encoder_Test, init_mem)
+TEST_F(smtlib_Encoder, init_mem)
 {
   add_dummy_programs(3);
   reset_encoder(0);
@@ -901,9 +901,9 @@ TEST_F(SMTLib_Encoder_Test, init_mem)
     encoder->str());
 }
 
-// SMTLib_Encoder::init_sb_adr =================================================
+// smtlib::Encoder::init_sb_adr ================================================
 
-TEST_F(SMTLib_Encoder_Test, init_sb_adr)
+TEST_F(smtlib_Encoder, init_sb_adr)
 {
   add_dummy_programs(3);
   reset_encoder(0);
@@ -933,9 +933,9 @@ TEST_F(SMTLib_Encoder_Test, init_sb_adr)
     encoder->str());
 }
 
-// SMTLib_Encoder::init_sb_val =================================================
+// smtlib::Encoder::init_sb_val ================================================
 
-TEST_F(SMTLib_Encoder_Test, init_sb_val)
+TEST_F(smtlib_Encoder, init_sb_val)
 {
   add_dummy_programs(3);
   reset_encoder(0);
@@ -965,9 +965,9 @@ TEST_F(SMTLib_Encoder_Test, init_sb_val)
     encoder->str());
 }
 
-// SMTLib_Encoder::init_sb_full ================================================
+// smtlib::Encoder::init_sb_full ===============================================
 
-TEST_F(SMTLib_Encoder_Test, init_sb_full)
+TEST_F(smtlib_Encoder, init_sb_full)
 {
   add_dummy_programs(3);
   reset_encoder(0);
@@ -997,9 +997,9 @@ TEST_F(SMTLib_Encoder_Test, init_sb_full)
     encoder->str());
 }
 
-// SMTLib_Encoder::init_block ==================================================
+// smtlib::Encoder::init_block =================================================
 
-TEST_F(SMTLib_Encoder_Test, init_block)
+TEST_F(smtlib_Encoder, init_block)
 {
   for (size_t i = 0; i < 3; i++)
     programs.push_back(
@@ -1041,16 +1041,16 @@ TEST_F(SMTLib_Encoder_Test, init_block)
     encoder->str());
 }
 
-TEST_F(SMTLib_Encoder_Test, init_block_empty)
+TEST_F(smtlib_Encoder, init_block_empty)
 {
   encoder->init_block();
 
   ASSERT_EQ("", encoder->str());
 }
 
-// SMTLib_Encoder::init_exit_flag ==============================================
+// smtlib::Encoder::init_exit_flag =============================================
 
-TEST_F(SMTLib_Encoder_Test, init_exit_flag)
+TEST_F(smtlib_Encoder, init_exit_flag)
 {
   programs.push_back(create_program("EXIT 1\n"));
   reset_encoder(0);
@@ -1073,16 +1073,16 @@ TEST_F(SMTLib_Encoder_Test, init_exit_flag)
   ASSERT_EQ("(assert (not exit_0))\n\n", encoder->str());
 }
 
-TEST_F(SMTLib_Encoder_Test, init_exit_flag_empty)
+TEST_F(smtlib_Encoder, init_exit_flag_empty)
 {
   encoder->init_exit_flag();
 
   ASSERT_EQ("", encoder->str());
 }
 
-// SMTLib_Encoder::init_states =================================================
+// smtlib::Encoder::init_states ================================================
 
-TEST_F(SMTLib_Encoder_Test, init_states)
+TEST_F(smtlib_Encoder, init_states)
 {
   programs.push_back(create_program("JMP 0\n"));
   reset_encoder(0);
@@ -1135,7 +1135,7 @@ TEST_F(SMTLib_Encoder_Test, init_states)
     encoder->str());
 }
 
-TEST_F(SMTLib_Encoder_Test, init_states_check_exit)
+TEST_F(smtlib_Encoder, init_states_check_exit)
 {
   programs.push_back(
     create_program(
@@ -1178,9 +1178,9 @@ TEST_F(SMTLib_Encoder_Test, init_states_check_exit)
     encoder->str());
 }
 
-// SMTLib_Encoder::define_exec =================================================
+// smtlib::Encoder::define_exec ================================================
 
-TEST_F(SMTLib_Encoder_Test, define_exec)
+TEST_F(smtlib_Encoder, define_exec)
 {
   add_dummy_programs(3, 3);
   reset_encoder();
@@ -1226,9 +1226,9 @@ TEST_F(SMTLib_Encoder_Test, define_exec)
     encoder->str());
 }
 
-// SMTLib_Encoder::define_check ================================================
+// smtlib::Encoder::define_check ===============================================
 
-TEST_F(SMTLib_Encoder_Test, define_check)
+TEST_F(smtlib_Encoder, define_check)
 {
   // single checkpoint - initial step
   for (size_t i = 0; i < 3; i++)
@@ -1265,16 +1265,16 @@ TEST_F(SMTLib_Encoder_Test, define_check)
   ASSERT_EQ("(assert (not check_0_1))\n\n", encoder->str());
 }
 
-TEST_F(SMTLib_Encoder_Test, define_check_empty)
+TEST_F(smtlib_Encoder, define_check_empty)
 {
   encoder->define_check();
 
   ASSERT_EQ("", encoder->str());
 }
 
-// SMTLib_Encoder::define_scheduling_constraints ===============================
+// smtlib::Encoder::define_scheduling_constraints ==============================
 
-TEST_F(SMTLib_Encoder_Test, define_scheduling_constraints)
+TEST_F(smtlib_Encoder, define_scheduling_constraints)
 {
   add_dummy_programs(2);
   reset_encoder();
@@ -1313,7 +1313,7 @@ TEST_F(SMTLib_Encoder_Test, define_scheduling_constraints)
     encoder->str());
 }
 
-TEST_F(SMTLib_Encoder_Test, define_scheduling_constraints_exit)
+TEST_F(smtlib_Encoder, define_scheduling_constraints_exit)
 {
   programs.push_back(create_program("EXIT 1"));
   programs.push_back(create_program("EXIT 1"));
@@ -1361,7 +1361,7 @@ TEST_F(SMTLib_Encoder_Test, define_scheduling_constraints_exit)
     encoder->str());
 }
 
-TEST_F(SMTLib_Encoder_Test, define_scheduling_constraints_single_thread)
+TEST_F(smtlib_Encoder, define_scheduling_constraints_single_thread)
 {
   add_dummy_programs(1);
   reset_encoder();
@@ -1385,9 +1385,9 @@ TEST_F(SMTLib_Encoder_Test, define_scheduling_constraints_single_thread)
   ASSERT_EQ("(assert (xor thread_1_0 flush_1_0))\n\n", encoder->str());
 }
 
-// SMTLib_Encoder::define_store_buffer_constraints =============================
+// smtlib::Encoder::define_store_buffer_constraints ============================
 
-TEST_F(SMTLib_Encoder_Test, define_store_buffer_constraints)
+TEST_F(smtlib_Encoder, define_store_buffer_constraints)
 {
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program(
@@ -1442,9 +1442,9 @@ TEST_F(SMTLib_Encoder_Test, define_store_buffer_constraints)
     encoder->str());
 }
 
-// SMTLib_Encoder::define_checkpoint_contraints ================================
+// smtlib::Encoder::define_checkpoint_contraints ===============================
 
-TEST_F(SMTLib_Encoder_Test, define_checkpoint_contraints)
+TEST_F(smtlib_Encoder, define_checkpoint_contraints)
 {
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program("CHECK 1\n"));
@@ -1520,30 +1520,30 @@ TEST_F(SMTLib_Encoder_Test, define_checkpoint_contraints)
     encoder->str());
 }
 
-TEST_F(SMTLib_Encoder_Test, define_checkpoint_contraints_empty)
+TEST_F(smtlib_Encoder, define_checkpoint_contraints_empty)
 {
   encoder->define_checkpoint_contraints();
 
   ASSERT_EQ("", encoder->str());
 }
 
-// SMTLib_Encoder::encode ======================================================
+// smtlib::Encoder::encode =====================================================
 
-TEST_F(SMTLib_Encoder_Test, LOAD)
+TEST_F(smtlib_Encoder, LOAD)
 {
   Instruction::Load load (1);
 
   ASSERT_EQ(encoder->load(load.arg), encoder->encode(load));
 }
 
-TEST_F(SMTLib_Encoder_Test, LOAD_indirect)
+TEST_F(smtlib_Encoder, LOAD_indirect)
 {
   Instruction::Load load (1, true);
 
   ASSERT_EQ(encoder->load(load.arg, load.indirect), encoder->encode(load));
 }
 
-TEST_F(SMTLib_Encoder_Test, STORE)
+TEST_F(smtlib_Encoder, STORE)
 {
   Instruction::Store store (1);
 
@@ -1554,7 +1554,7 @@ TEST_F(SMTLib_Encoder_Test, STORE)
   ASSERT_EQ("accu_0_0", encoder->encode(store));
 }
 
-TEST_F(SMTLib_Encoder_Test, STORE_indirect)
+TEST_F(smtlib_Encoder, STORE_indirect)
 {
   Instruction::Store store (1, true);
 
@@ -1565,7 +1565,7 @@ TEST_F(SMTLib_Encoder_Test, STORE_indirect)
   ASSERT_EQ("accu_0_0", encoder->encode(store));
 }
 
-TEST_F(SMTLib_Encoder_Test, ADD)
+TEST_F(smtlib_Encoder, ADD)
 {
   Instruction::Add add (1);
 
@@ -1574,7 +1574,7 @@ TEST_F(SMTLib_Encoder_Test, ADD)
     encoder->encode(add));
 }
 
-TEST_F(SMTLib_Encoder_Test, ADD_indirect)
+TEST_F(smtlib_Encoder, ADD_indirect)
 {
   Instruction::Add add (1, true);
 
@@ -1583,14 +1583,14 @@ TEST_F(SMTLib_Encoder_Test, ADD_indirect)
     encoder->encode(add));
 }
 
-TEST_F(SMTLib_Encoder_Test, ADDI)
+TEST_F(smtlib_Encoder, ADDI)
 {
   Instruction::Addi addi (1);
 
   ASSERT_EQ("(bvadd accu_0_0 #x0001)", encoder->encode(addi));
 }
 
-TEST_F(SMTLib_Encoder_Test, SUB)
+TEST_F(smtlib_Encoder, SUB)
 {
   Instruction::Sub sub (1);
 
@@ -1599,7 +1599,7 @@ TEST_F(SMTLib_Encoder_Test, SUB)
     encoder->encode(sub));
 }
 
-TEST_F(SMTLib_Encoder_Test, SUB_indirect)
+TEST_F(smtlib_Encoder, SUB_indirect)
 {
   Instruction::Sub sub (1, true);
 
@@ -1608,14 +1608,14 @@ TEST_F(SMTLib_Encoder_Test, SUB_indirect)
     encoder->encode(sub));
 }
 
-TEST_F(SMTLib_Encoder_Test, SUBI)
+TEST_F(smtlib_Encoder, SUBI)
 {
   Instruction::Subi subi (1);
 
   ASSERT_EQ("(bvsub accu_0_0 #x0001)", encoder->encode(subi));
 }
 
-TEST_F(SMTLib_Encoder_Test, MUL)
+TEST_F(smtlib_Encoder, MUL)
 {
   Instruction::Mul mul (1);
 
@@ -1624,7 +1624,7 @@ TEST_F(SMTLib_Encoder_Test, MUL)
     encoder->encode(mul));
 }
 
-TEST_F(SMTLib_Encoder_Test, MUL_indirect)
+TEST_F(smtlib_Encoder, MUL_indirect)
 {
   Instruction::Mul mul (1, true);
 
@@ -1633,14 +1633,14 @@ TEST_F(SMTLib_Encoder_Test, MUL_indirect)
     encoder->encode(mul));
 }
 
-TEST_F(SMTLib_Encoder_Test, MULI)
+TEST_F(smtlib_Encoder, MULI)
 {
   Instruction::Muli muli (1);
 
   ASSERT_EQ("(bvmul accu_0_0 #x0001)", encoder->encode(muli));
 }
 
-TEST_F(SMTLib_Encoder_Test, CMP)
+TEST_F(smtlib_Encoder, CMP)
 {
   Instruction::Cmp cmp (1);
 
@@ -1649,7 +1649,7 @@ TEST_F(SMTLib_Encoder_Test, CMP)
     encoder->encode(cmp));
 }
 
-TEST_F(SMTLib_Encoder_Test, CMP_indirect)
+TEST_F(smtlib_Encoder, CMP_indirect)
 {
   Instruction::Cmp cmp (1, true);
 
@@ -1658,83 +1658,83 @@ TEST_F(SMTLib_Encoder_Test, CMP_indirect)
     encoder->encode(cmp));
 }
 
-TEST_F(SMTLib_Encoder_Test, JMP)
+TEST_F(smtlib_Encoder, JMP)
 {
   Instruction::Jmp jmp (1);
 
   ASSERT_TRUE(encoder->encode(jmp).empty());
 }
 
-TEST_F(SMTLib_Encoder_Test, JZ)
+TEST_F(smtlib_Encoder, JZ)
 {
   Instruction::Jz jz (1);
 
   ASSERT_EQ("(= accu_0_0 #x0000)", encoder->encode(jz));
 }
 
-TEST_F(SMTLib_Encoder_Test, JNZ)
+TEST_F(smtlib_Encoder, JNZ)
 {
   Instruction::Jnz jnz (1);
 
   ASSERT_EQ("(not (= accu_0_0 #x0000))", encoder->encode(jnz));
 }
 
-TEST_F(SMTLib_Encoder_Test, JS)
+TEST_F(smtlib_Encoder, JS)
 {
   Instruction::Js js (1);
 
   ASSERT_EQ(
     "(= #b1 ((_ extract " +
-      to_string(word_size - 1) +
+      std::to_string(word_size - 1) +
       " " +
-      to_string(word_size - 1) +
+      std::to_string(word_size - 1) +
       ") " +
       "accu_0_0))",
     encoder->encode(js));
 }
 
-TEST_F(SMTLib_Encoder_Test, JNS)
+TEST_F(smtlib_Encoder, JNS)
 {
   Instruction::Jns jns (1);
 
   ASSERT_EQ(
     "(= #b0 ((_ extract " +
-      to_string(word_size - 1) +
+      std::to_string(word_size - 1) +
       " " +
-      to_string(word_size - 1) +
+      std::to_string(word_size - 1) +
       ") " +
       "accu_0_0))",
     encoder->encode(jns));
 }
 
-TEST_F(SMTLib_Encoder_Test, JNZNS)
+TEST_F(smtlib_Encoder, JNZNS)
 {
   Instruction::Jnzns jnzns (1);
 
   ASSERT_EQ(
     "(and (not (= accu_0_0 #x0000)) (= #b0 ((_ extract " +
-      to_string(word_size - 1) +
+      std::to_string(word_size - 1) +
       " " +
-      to_string(word_size - 1) +
+      std::to_string(word_size - 1) +
       ") accu_0_0)))",
     encoder->encode(jnzns));
 }
 
-TEST_F(SMTLib_Encoder_Test, MEM)
+TEST_F(smtlib_Encoder, MEM)
 {
   Instruction::Mem mem (1);
 
   ASSERT_EQ(encoder->load(mem.arg), encoder->encode(mem));
 }
 
-TEST_F(SMTLib_Encoder_Test, MEM_indirect)
+TEST_F(smtlib_Encoder, MEM_indirect)
 {
   Instruction::Mem mem (1, true);
 
   ASSERT_EQ(encoder->load(mem.arg, mem.indirect), encoder->encode(mem));
 }
 
-TEST_F(SMTLib_Encoder_Test, CAS)
+TEST_F(smtlib_Encoder, CAS)
 {
   Instruction::Cas cas (1);
 
@@ -1754,7 +1754,7 @@ TEST_F(SMTLib_Encoder_Test, CAS)
     encoder->encode(cas));
 }
 
-TEST_F(SMTLib_Encoder_Test, CAS_indirect)
+TEST_F(smtlib_Encoder, CAS_indirect)
 {
   Instruction::Cas cas (1, true);
 
@@ -1774,16 +1774,18 @@ TEST_F(SMTLib_Encoder_Test, CAS_indirect)
     encoder->encode(cas));
 }
 
-TEST_F(SMTLib_Encoder_Test, CHECK)
+TEST_F(smtlib_Encoder, CHECK)
 {
   Instruction::Check check (1);
 
   ASSERT_TRUE(encoder->encode(check).empty());
 }
 
-TEST_F(SMTLib_Encoder_Test, EXIT)
+TEST_F(smtlib_Encoder, EXIT)
 {
   Instruction::Exit exit (1);
 
   ASSERT_EQ("#x0001", encoder->encode(exit));
 }
+
+} // namespace test

@@ -5,37 +5,37 @@
 #include "instruction.hh"
 #include "parser.hh"
 
-using namespace std;
+namespace test {
 
 //==============================================================================
 // Schedule tests
 //==============================================================================
 
-struct Schedule_Test : public ::testing::Test
+struct Schedule : public ::testing::Test
 {
-  string dummy_path = "dummy.schedule";
-  string program_path = "data/increment.cas.asm";
-  string schedule_path = "data/increment.cas.t2.k16.schedule";
+  std::string dummy_path = "dummy.schedule";
+  std::string program_path = "data/increment.cas.asm";
+  std::string schedule_path = "data/increment.cas.t2.k16.schedule";
 
-  Schedule::ptr schedule;
+  ::Schedule::ptr schedule;
 
   void create_dummy_schedule (const size_t num_programs)
     {
-      Program::List::ptr programs = make_unique<Program::List>();
+      Program::List::ptr programs = std::make_unique<Program::List>();
 
       programs->resize(num_programs);
 
-      schedule = make_unique<Schedule>(programs);
+      schedule = std::make_unique<::Schedule>(programs);
     }
 };
 
 // Schedule::Schedule ==========================================================
 
-TEST_F(Schedule_Test, parse_check)
+TEST_F(Schedule, parse_check)
 {
   schedule =
-    make_unique<Schedule>(
-      create_from_file<Schedule>("data/increment.check.t2.k16.schedule"));
+    std::make_unique<::Schedule>(
+      create_from_file<::Schedule>("data/increment.check.t2.k16.schedule"));
 
   ASSERT_EQ(16, schedule->bound);
 
@@ -48,7 +48,7 @@ TEST_F(Schedule_Test, parse_check)
     schedule->programs->at(1).path);
 
   ASSERT_EQ(
-    Schedule::Updates<word_t>({
+    ::Schedule::Updates<word_t>({
       {1,  0},
       {2,  1},
       {3,  0},
@@ -58,7 +58,7 @@ TEST_F(Schedule_Test, parse_check)
     schedule->thread_updates);
 
   ASSERT_EQ(
-    Schedule::Updates<word_t>({
+    ::Schedule::Updates<word_t>({
       {1,  0},
       {4,  1},
       {5,  2},
@@ -69,7 +69,7 @@ TEST_F(Schedule_Test, parse_check)
       {12, 1}}),
     schedule->pc_updates[0]);
   ASSERT_EQ(
-    Schedule::Updates<word_t>({
+    ::Schedule::Updates<word_t>({
       {2,  0},
       {6,  1},
       {13,  2},
@@ -78,57 +78,57 @@ TEST_F(Schedule_Test, parse_check)
     schedule->pc_updates[1]);
 
   ASSERT_EQ(
-    Schedule::Updates<word_t>({
+    ::Schedule::Updates<word_t>({
       {1,  0},
       {7, 1}}),
     schedule->accu_updates[0]);
   ASSERT_EQ(
-    Schedule::Updates<word_t>({
+    ::Schedule::Updates<word_t>({
       {2,  0},
       {13, 1},
       {14, 2}}),
     schedule->accu_updates[1]);
 
   ASSERT_EQ(
-    Schedule::Updates<word_t>({
+    ::Schedule::Updates<word_t>({
       {1,  0}}),
     schedule->mem_updates[0]);
   ASSERT_EQ(
-    Schedule::Updates<word_t>({
+    ::Schedule::Updates<word_t>({
       {2, 0}}),
     schedule->mem_updates[1]);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word_t>({
+    ::Schedule::Thread_Updates<word_t>({
       {{1, 0}},
       {{2, 0}}}),
     schedule->sb_adr_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word_t>({
+    ::Schedule::Thread_Updates<word_t>({
       {{1, 0}, {8, 1}},
       {{2, 0}, {15, 2}}}),
     schedule->sb_val_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<bool>({
+    ::Schedule::Thread_Updates<bool>({
       {{1, true}, {3, false}, {8, true}, {9, false}},
       {{2, false}, {15, true}, {16, false}}}),
     schedule->sb_full_updates);
 
-  ASSERT_EQ(Schedule::Flushes({3, 9, 16}), schedule->flushes);
+  ASSERT_EQ(::Schedule::Flushes({3, 9, 16}), schedule->flushes);
 
   ASSERT_EQ(
-    Schedule::Heap_Updates({{0, {{3, 0}, {9, 1}, {16, 2}}}}),
+    ::Schedule::Heap_Updates({{0, {{3, 0}, {9, 1}, {16, 2}}}}),
     schedule->heap_updates);
 }
 
-TEST_F(Schedule_Test, parse_cas)
+TEST_F(Schedule, parse_cas)
 {
   schedule_path = "data/increment.cas.t2.k16.schedule";
 
   schedule =
-    make_unique<Schedule>(create_from_file<Schedule>(schedule_path));
+    std::make_unique<::Schedule>(create_from_file<::Schedule>(schedule_path));
 
   ASSERT_EQ(16, schedule->bound);
 
@@ -137,7 +137,7 @@ TEST_F(Schedule_Test, parse_cas)
   ASSERT_EQ(program_path, schedule->programs->at(1).path);
 
   ASSERT_EQ(
-    Schedule::Updates<word_t>({
+    ::Schedule::Updates<word_t>({
       {1,  0},
       {2,  1},
       {4,  0},
@@ -149,7 +149,7 @@ TEST_F(Schedule_Test, parse_cas)
     schedule->thread_updates);
 
   ASSERT_EQ(
-    Schedule::Updates<word_t>({
+    ::Schedule::Updates<word_t>({
       {1,  0},
       {6,  1},
       {7,  2},
@@ -159,7 +159,7 @@ TEST_F(Schedule_Test, parse_cas)
       {13, 2}}),
     schedule->pc_updates[0]);
   ASSERT_EQ(
-    Schedule::Updates<word_t>({
+    ::Schedule::Updates<word_t>({
       {2,  0},
       {5,  1},
       {8,  2},
@@ -170,12 +170,12 @@ TEST_F(Schedule_Test, parse_cas)
     schedule->pc_updates[1]);
 
   ASSERT_EQ(
-    Schedule::Updates<word_t>({
+    ::Schedule::Updates<word_t>({
       {1,  0},
       {10, 1}}),
     schedule->accu_updates[0]);
   ASSERT_EQ(
-    Schedule::Updates<word_t>({
+    ::Schedule::Updates<word_t>({
       {2,  0},
       {9,  1},
       {14, 0},
@@ -183,91 +183,92 @@ TEST_F(Schedule_Test, parse_cas)
     schedule->accu_updates[1]);
 
   ASSERT_EQ(
-    Schedule::Updates<word_t>({
+    ::Schedule::Updates<word_t>({
       {1,  0},
       {13, 1}}),
     schedule->mem_updates[0]);
   ASSERT_EQ(
-    Schedule::Updates<word_t>({
+    ::Schedule::Updates<word_t>({
       {2, 0},
       {16, 1}}),
     schedule->mem_updates[1]);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word_t>({
+    ::Schedule::Thread_Updates<word_t>({
       {{1, 0}},
       {{2, 0}}}),
     schedule->sb_adr_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word_t>({
+    ::Schedule::Thread_Updates<word_t>({
       {{1, 0}},
       {{2, 0}}}),
     schedule->sb_val_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<bool>({
+    ::Schedule::Thread_Updates<bool>({
       {{1, true}, {4, false}},
       {{2, true}, {3, false}}}),
     schedule->sb_full_updates);
 
-  ASSERT_EQ(Schedule::Flushes({3, 4}), schedule->flushes);
+  ASSERT_EQ(::Schedule::Flushes({3, 4}), schedule->flushes);
 
   ASSERT_EQ(
-    Schedule::Heap_Updates({{0, {{3, 0}, {11, 1}}}}),
+    ::Schedule::Heap_Updates({{0, {{3, 0}, {11, 1}}}}),
     schedule->heap_updates);
 }
 
-TEST_F(Schedule_Test, parse_empty_line)
+TEST_F(Schedule, parse_empty_line)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     program_path + "\n"
     ".\n"
     "\n"
     "0\t0\tEXIT\t1\t0\t0\t0\t0\t0\t{}\n");
 
-  schedule = make_unique<Schedule>(inbuf, dummy_path);
+  schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
 
   ASSERT_EQ(1, schedule->size());
   ASSERT_EQ(1, schedule->programs->size());
   ASSERT_EQ(program_path, schedule->programs->at(0).path);
 }
 
-TEST_F(Schedule_Test, parse_file_not_found)
+TEST_F(Schedule, parse_file_not_found)
 {
   try
     {
       schedule =
-        make_unique<Schedule>(create_from_file<Schedule>("file_not_found"));
-      FAIL() << "should throw an exception";
+        std::make_unique<::Schedule>(
+          create_from_file<::Schedule>("file_not_found"));
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_STREQ("file_not_found not found", e.what());
     }
 }
 
-TEST_F(Schedule_Test, parse_no_program)
+TEST_F(Schedule, parse_no_program)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     ".\n"
     "0\t0\tSTORE\t0\t0\t0\t0\t0\t0\t{}\n"
     "1\t0\tSTORE\t0\t0\t0\t0\t0\t0\t{}\n");
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(dummy_path + ":1: missing threads", e.what());
     }
 }
 
-TEST_F(Schedule_Test, parse_program_not_found)
+TEST_F(Schedule, parse_program_not_found)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     dummy_path + "\n"
     ".\n"
     "0\t0\tSTORE\t0\t0\t0\t0\t0\t0\t{}\n"
@@ -275,18 +276,18 @@ TEST_F(Schedule_Test, parse_program_not_found)
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(dummy_path + ":1: " + dummy_path + " not found", e.what());
     }
 }
 
-TEST_F(Schedule_Test, parse_missing_separator)
+TEST_F(Schedule, parse_missing_separator)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     program_path + "\n" +
     program_path + "\n"
     "0\t0\tSTORE\t0\t0\t0\t0\t0\t0\t{}\n"
@@ -294,135 +295,135 @@ TEST_F(Schedule_Test, parse_missing_separator)
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(dummy_path + ":3: 0 not found", e.what());
     }
 }
 
-TEST_F(Schedule_Test, parse_missing_trace)
+TEST_F(Schedule, parse_missing_trace)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     program_path + "\n"
     ".\n");
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(dummy_path + ":3: empty schedule", e.what());
     }
 }
 
-TEST_F(Schedule_Test, parse_unknown_thread_id)
+TEST_F(Schedule, parse_unknown_thread_id)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     program_path + "\n"
     ".\n"
     "1\t0\tSTORE\t0\t0\t0\t0\t0\t0\t{}\n");
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(dummy_path + ":3: unknown thread id [1]", e.what());
     }
 }
 
-TEST_F(Schedule_Test, parse_illegal_thread_id)
+TEST_F(Schedule, parse_illegal_thread_id)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     program_path + "\n"
     ".\n"
     "wrong\t0\tSTORE\t0\t0\t0\t0\t0\t0\t{}\n");
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(dummy_path + ":3: illegal thread id [wrong]", e.what());
     }
 }
 
-TEST_F(Schedule_Test, parse_illegal_pc)
+TEST_F(Schedule, parse_illegal_pc)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     program_path + "\n"
     ".\n" +
     "0\t1000\tSTORE\t0\t0\t0\t0\t0\t0\t{}\n");
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(dummy_path + ":3: illegal program counter [1000]", e.what());
     }
 }
 
-TEST_F(Schedule_Test, parse_unknown_label)
+TEST_F(Schedule, parse_unknown_label)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     program_path + "\n"
     ".\n" +
     "0\tUNKNOWN\tSTORE\t0\t0\t0\t0\t0\t0\t{}\n");
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(dummy_path + ":3: unknown label [UNKNOWN]", e.what());
     }
 }
 
-TEST_F(Schedule_Test, parse_unknown_instruction)
+TEST_F(Schedule, parse_unknown_instruction)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     program_path + "\n"
     ".\n" +
     "0\t0\tUNKNOWN\t0\t0\t0\t0\t0\t0\t{}\n");
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(dummy_path + ":3: unknown instruction [UNKNOWN]", e.what());
     }
 }
 
-TEST_F(Schedule_Test, parse_illegal_argument_label_not_supported)
+TEST_F(Schedule, parse_illegal_argument_label_not_supported)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\tILLEGAL\t0\t0\t0\t0\t0\t{}\n");
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(
         dummy_path + ":3: STORE does not support labels [ILLEGAL]",
@@ -430,37 +431,37 @@ TEST_F(Schedule_Test, parse_illegal_argument_label_not_supported)
     }
 }
 
-TEST_F(Schedule_Test, parse_illegal_argument_unknown_label)
+TEST_F(Schedule, parse_illegal_argument_unknown_label)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     program_path + "\n"
     ".\n" +
     "0\t5\tJMP\tILLEGAL\t0\t0\t0\t0\t0\t{}\n");
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(dummy_path + ":3: unknown label [ILLEGAL]", e.what());
     }
 }
 
-TEST_F(Schedule_Test, parse_illegal_accu)
+TEST_F(Schedule, parse_illegal_accu)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\tILLEGAL\t0\t0\t0\t0\t{}\n");
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(
         dummy_path + ":3: illegal accumulator register value [ILLEGAL]",
@@ -468,19 +469,19 @@ TEST_F(Schedule_Test, parse_illegal_accu)
     }
 }
 
-TEST_F(Schedule_Test, parse_illegal_mem)
+TEST_F(Schedule, parse_illegal_mem)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\t0\tILLEGAL\t0\t0\t0\t{}\n");
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(
         dummy_path + ":3: illegal CAS memory register value [ILLEGAL]",
@@ -488,19 +489,19 @@ TEST_F(Schedule_Test, parse_illegal_mem)
     }
 }
 
-TEST_F(Schedule_Test, parse_illegal_store_buffer_address)
+TEST_F(Schedule, parse_illegal_store_buffer_address)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\t0\t0\tILLEGAL\t0\t0\t{}\n");
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(
         dummy_path + ":3: illegal store buffer address [ILLEGAL]",
@@ -508,19 +509,19 @@ TEST_F(Schedule_Test, parse_illegal_store_buffer_address)
     }
 }
 
-TEST_F(Schedule_Test, parse_illegal_store_buffer_value)
+TEST_F(Schedule, parse_illegal_store_buffer_value)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\t0\t0\t0\tILLEGAL\t0\t{}\n");
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(
         dummy_path + ":3: illegal store buffer value [ILLEGAL]",
@@ -528,19 +529,19 @@ TEST_F(Schedule_Test, parse_illegal_store_buffer_value)
     }
 }
 
-TEST_F(Schedule_Test, parse_illegal_store_buffer_full)
+TEST_F(Schedule, parse_illegal_store_buffer_full)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\t0\t0\t0\t0\tILLEGAL\t{}\n");
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(
         dummy_path + ":3: illegal store buffer full flag [ILLEGAL]",
@@ -548,19 +549,19 @@ TEST_F(Schedule_Test, parse_illegal_store_buffer_full)
     }
 }
 
-TEST_F(Schedule_Test, parse_illegal_heap)
+TEST_F(Schedule, parse_illegal_heap)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\t0\t0\t0\t0\t0\tILLEGAL\n");
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(dummy_path + ":3: illegal heap update [ILLEGAL]", e.what());
     }
@@ -573,10 +574,10 @@ TEST_F(Schedule_Test, parse_illegal_heap)
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(dummy_path + ":3: illegal heap update [{ILLEGAL}]", e.what());
     }
@@ -589,10 +590,10 @@ TEST_F(Schedule_Test, parse_illegal_heap)
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(
         dummy_path + ":3: illegal heap update [{(ILLEGAL,0)}]",
@@ -607,10 +608,10 @@ TEST_F(Schedule_Test, parse_illegal_heap)
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(
         dummy_path + ":3: illegal heap update [{(0,ILLEGAL)}]",
@@ -618,73 +619,73 @@ TEST_F(Schedule_Test, parse_illegal_heap)
     }
 }
 
-TEST_F(Schedule_Test, parse_missing_pc)
+TEST_F(Schedule, parse_missing_pc)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     program_path + "\n"
     ".\n" +
     "0\n");
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(dummy_path + ":3: missing program counter", e.what());
     }
 }
 
-TEST_F(Schedule_Test, parse_missing_instruction_symbol)
+TEST_F(Schedule, parse_missing_instruction_symbol)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     program_path + "\n"
     ".\n" +
     "0\t0\n");
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(dummy_path + ":3: missing instruction symbol", e.what());
     }
 }
 
-TEST_F(Schedule_Test, parse_missing_instruction_argument)
+TEST_F(Schedule, parse_missing_instruction_argument)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\n");
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(dummy_path + ":3: missing instruction argument", e.what());
     }
 }
 
-TEST_F(Schedule_Test, parse_missing_accu)
+TEST_F(Schedule, parse_missing_accu)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\n");
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(
         dummy_path + ":3: missing accumulator register value",
@@ -692,91 +693,91 @@ TEST_F(Schedule_Test, parse_missing_accu)
     }
 }
 
-TEST_F(Schedule_Test, parse_missing_mem)
+TEST_F(Schedule, parse_missing_mem)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\t0\n");
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(dummy_path + ":3: missing CAS memory register value", e.what());
     }
 }
 
-TEST_F(Schedule_Test, parse_missing_store_buffer_address)
+TEST_F(Schedule, parse_missing_store_buffer_address)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\t0\t0\n");
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(dummy_path + ":3: missing store buffer address", e.what());
     }
 }
 
-TEST_F(Schedule_Test, parse_missing_store_buffer_value)
+TEST_F(Schedule, parse_missing_store_buffer_value)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\t0\t0\t0\n");
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(dummy_path + ":3: missing store buffer value", e.what());
     }
 }
 
-TEST_F(Schedule_Test, parse_missing_store_buffer_full)
+TEST_F(Schedule, parse_missing_store_buffer_full)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\t0\t0\t0\t0\n");
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(dummy_path + ":3: missing store buffer full flag", e.what());
     }
 }
 
-TEST_F(Schedule_Test, parse_missing_heap)
+TEST_F(Schedule, parse_missing_heap)
 {
-  istringstream inbuf(
+  std::istringstream inbuf(
     program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\t0\t0\t0\t0\t0\n");
 
   try
     {
-      schedule = make_unique<Schedule>(inbuf, dummy_path);
-      FAIL() << "should throw an exception";
+      schedule = std::make_unique<::Schedule>(inbuf, dummy_path);
+      FAIL() << "should throw an std::exception";
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       ASSERT_EQ(dummy_path + ":3: missing heap update", e.what());
     }
@@ -784,9 +785,9 @@ TEST_F(Schedule_Test, parse_missing_heap)
 
 // Schedule::push_back =========================================================
 
-using Insert_Data = tuple<bound_t, word_t, word_t, word_t>;
+using Insert_Data = std::tuple<bound_t, word_t, word_t, word_t>;
 
-const vector<Insert_Data> insert_data {
+const std::vector<Insert_Data> insert_data {
   {1,  0, 0, 0},
   {2,  1, 0, 0},
   {3,  0, 0, 0},
@@ -807,7 +808,7 @@ const vector<Insert_Data> insert_data {
 
 // Schedule::insert_thread =====================================================
 
-TEST_F(Schedule_Test, insert_thread)
+TEST_F(Schedule, insert_thread)
 {
   create_dummy_schedule(2);
 
@@ -816,7 +817,7 @@ TEST_F(Schedule_Test, insert_thread)
 
   ASSERT_EQ(insert_data.size(), schedule->bound);
   ASSERT_EQ(
-    Schedule::Updates<word_t> ({
+    ::Schedule::Updates<word_t> ({
       {1,  0},
       {2,  1},
       {3,  0},
@@ -839,12 +840,12 @@ TEST_F(Schedule_Test, insert_thread)
 
 // Schedule::insert_pc =========================================================
 
-const vector<Schedule::Updates<word_t>> insert_expected {
+const std::vector<::Schedule::Updates<word_t>> insert_expected {
   {{1, 0}, {5, 1}, {9, 0}, {13, 1}},
   {{2, 0}, {6, 1}, {10, 0}, {14, 1}}
 };
 
-TEST_F(Schedule_Test, insert_pc)
+TEST_F(Schedule, insert_pc)
 {
   create_dummy_schedule(2);
 
@@ -857,7 +858,7 @@ TEST_F(Schedule_Test, insert_pc)
 
 // Schedule::insert_accu =======================================================
 
-TEST_F(Schedule_Test, insert_accu)
+TEST_F(Schedule, insert_accu)
 {
   create_dummy_schedule(2);
 
@@ -870,7 +871,7 @@ TEST_F(Schedule_Test, insert_accu)
 
 // Schedule::insert_mem ========================================================
 
-TEST_F(Schedule_Test, insert_mem)
+TEST_F(Schedule, insert_mem)
 {
   create_dummy_schedule(2);
 
@@ -883,7 +884,7 @@ TEST_F(Schedule_Test, insert_mem)
 
 // Schedule::insert_sb_adr =====================================================
 
-TEST_F(Schedule_Test, insert_sb_adr)
+TEST_F(Schedule, insert_sb_adr)
 {
   create_dummy_schedule(2);
 
@@ -896,7 +897,7 @@ TEST_F(Schedule_Test, insert_sb_adr)
 
 // Schedule::insert_sb_val =====================================================
 
-TEST_F(Schedule_Test, insert_sb_val)
+TEST_F(Schedule, insert_sb_val)
 {
   create_dummy_schedule(2);
 
@@ -909,14 +910,14 @@ TEST_F(Schedule_Test, insert_sb_val)
 
 // Schedule::insert_sb_full ====================================================
 
-TEST_F(Schedule_Test, insert_sb_full)
+TEST_F(Schedule, insert_sb_full)
 {
   create_dummy_schedule(2);
 
   for (const auto & [step, thread, full, _] : insert_data)
     schedule->insert_sb_full(step, thread, full);
 
-  const vector<Schedule::Updates<bool>> expected {
+  const std::vector<::Schedule::Updates<bool>> expected {
     {{1, 0}, {5, 1}, {9, 0}, {13, 1}},
     {{2, 0}, {6, 1}, {10, 0}, {14, 1}}
   };
@@ -927,7 +928,7 @@ TEST_F(Schedule_Test, insert_sb_full)
 
 // Schedule::insert_heap =======================================================
 
-TEST_F(Schedule_Test, insert_heap)
+TEST_F(Schedule, insert_heap)
 {
   create_dummy_schedule(2);
 
@@ -936,7 +937,7 @@ TEST_F(Schedule_Test, insert_heap)
 
   ASSERT_EQ(insert_data.size(), schedule->bound);
   ASSERT_EQ(
-    Schedule::Heap_Updates ({
+    ::Schedule::Heap_Updates ({
       {0, {{1, 0}, {9, 1}}},
       {1, {{5, 0}, {13, 1}}}
     }),
@@ -945,39 +946,39 @@ TEST_F(Schedule_Test, insert_heap)
 
 // Schedule::print =============================================================
 
-TEST_F(Schedule_Test, print)
+TEST_F(Schedule, print)
 {
-  schedule = make_unique<Schedule>(create_from_file<Schedule>(schedule_path));
+  schedule =
+    std::make_unique<::Schedule>(create_from_file<::Schedule>(schedule_path));
 
-  ifstream ifs(schedule_path);
-  string expected(
-    (istreambuf_iterator<char>(ifs)),
-    istreambuf_iterator<char>());
+  std::ifstream ifs(schedule_path);
+  std::string expected((std::istreambuf_iterator<char>(ifs)),
+                        std::istreambuf_iterator<char>());
 
   ASSERT_EQ(expected, schedule->print());
 }
 
-TEST_F(Schedule_Test, print_indirect_addressing)
+TEST_F(Schedule, print_indirect_addressing)
 {
   schedule_path = "data/indirect.addressing.schedule";
 
-  schedule = make_unique<Schedule>(create_from_file<Schedule>(schedule_path));
+  schedule =
+    std::make_unique<::Schedule>(create_from_file<::Schedule>(schedule_path));
 
-  ifstream ifs(schedule_path);
-  string expected(
-    (istreambuf_iterator<char>(ifs)),
-    istreambuf_iterator<char>());
+  std::ifstream ifs(schedule_path);
+  std::string expected((std::istreambuf_iterator<char>(ifs)),
+                        std::istreambuf_iterator<char>());
 
   ASSERT_EQ(expected, schedule->print());
 }
 
 // Schedule::iterator ==========================================================
 
-TEST_F(Schedule_Test, iterator_check)
+TEST_F(Schedule, iterator_check)
 {
   schedule =
-    make_unique<Schedule>(
-      create_from_file<Schedule>("data/increment.check.t2.k16.schedule"));
+    std::make_unique<::Schedule>(
+      create_from_file<::Schedule>("data/increment.check.t2.k16.schedule"));
 
   word_t tid[]      = {0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1};
   word_t pc[]       = {0, 0, 0, 1, 2, 1, 3, 4, 4, 5, 6, 1, 2, 3, 4, 4};
@@ -987,7 +988,7 @@ TEST_F(Schedule_Test, iterator_check)
   word_t sb_val[]   = {0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 2, 2};
   word_t sb_full[]  = {1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0};
 
-  Schedule::iterator it = schedule->begin(), end = schedule->end();
+  ::Schedule::iterator it = schedule->begin(), end = schedule->end();
 
   for (size_t i = 0; it != end; i++, ++it)
     {
@@ -1023,9 +1024,10 @@ TEST_F(Schedule_Test, iterator_check)
   ASSERT_EQ(++it, end);
 }
 
-TEST_F(Schedule_Test, iterator_cas)
+TEST_F(Schedule, iterator_cas)
 {
-  schedule = make_unique<Schedule>(create_from_file<Schedule>(schedule_path));
+  schedule =
+    std::make_unique<::Schedule>(create_from_file<::Schedule>(schedule_path));
 
   word_t tid[]      = {0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1};
   word_t pc[]       = {0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 5, 2, 4, 5, 2};
@@ -1035,7 +1037,7 @@ TEST_F(Schedule_Test, iterator_cas)
   word_t sb_val[]   = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   word_t sb_full[]  = {1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-  Schedule::iterator it = schedule->begin(), end = schedule->end();
+  ::Schedule::iterator it = schedule->begin(), end = schedule->end();
 
   for (size_t i = 0; it != end; i++, ++it)
     {
@@ -1069,10 +1071,10 @@ TEST_F(Schedule_Test, iterator_cas)
 // operator == =================================================================
 // operator != =================================================================
 
-TEST_F(Schedule_Test, operator_equals)
+TEST_F(Schedule, operator_equals)
 {
-  Program::List::ptr p1 = make_unique<Program::List>(2);
-  Program::List::ptr p2 = make_unique<Program::List>(2);
+  Program::List::ptr p1 = std::make_unique<Program::List>(2);
+  Program::List::ptr p2 = std::make_unique<Program::List>(2);
 
   p1->at(0).path = "program_1.asm";
   p1->at(0).push_back(Instruction::Set::create("STORE", 1));
@@ -1090,8 +1092,8 @@ TEST_F(Schedule_Test, operator_equals)
   p2->at(1).push_back(Instruction::Set::create("STORE", 1));
   p2->at(1).push_back(Instruction::Set::create("ADDI", 1));
 
-  Schedule s1(p1);
-  Schedule s2(p2);
+  ::Schedule s1(p1);
+  ::Schedule s2(p2);
 
   // empty schedule
   ASSERT_TRUE(s1 == s2);
@@ -1123,7 +1125,7 @@ TEST_F(Schedule_Test, operator_equals)
   ASSERT_TRUE(s1 == s2);
 
   // traces differ
-  Schedule s3 = s2;
+  ::Schedule s3 = s2;
 
   s3.push_back(0, 2, 1, 0, 1, 1, false, {{1, 1}}); // flush
 
@@ -1148,10 +1150,12 @@ TEST_F(Schedule_Test, operator_equals)
   ASSERT_TRUE(s1 == s2);
 
   // compare files
-  Schedule::ptr sp1 =
-    make_unique<Schedule>(create_from_file<Schedule>(schedule_path));
-  Schedule::ptr sp2 =
-    make_unique<Schedule>(create_from_file<Schedule>(schedule_path));
+  ::Schedule::ptr sp1 =
+    std::make_unique<::Schedule>(create_from_file<::Schedule>(schedule_path));
+  ::Schedule::ptr sp2 =
+    std::make_unique<::Schedule>(create_from_file<::Schedule>(schedule_path));
 
   ASSERT_TRUE(*sp1 == *sp2);
 }
+
+} // namespace test

@@ -7,24 +7,6 @@
 #include "parser.hh"
 
 //==============================================================================
-// using declarations
-//==============================================================================
-
-using std::string;
-using std::to_string;
-
-using std::istream;
-using std::istringstream;
-using std::ostringstream;
-
-using std::optional;
-
-using std::make_shared;
-
-using std::exception;
-using std::runtime_error;
-
-//==============================================================================
 // Schedule
 //==============================================================================
 
@@ -40,23 +22,23 @@ Schedule::Schedule (const Program::List::ptr & p) :
   init_state_update_lists();
 }
 
-Schedule::Schedule(istream & file, const string & path) :
-  programs(make_shared<Program::List>()),
+Schedule::Schedule(std::istream & file, const std::string & path) :
+  programs(std::make_shared<Program::List>()),
   bound(0),
   exit(0)
 {
-  string token;
+  std::string token;
 
   size_t line_num = 1;
 
   // parse programs
-  for (string line_buf; getline(file, line_buf); ++line_num)
+  for (std::string line_buf; getline(file, line_buf); ++line_num)
     {
       // skip empty lines
       if (line_buf.empty())
         continue;
 
-      istringstream line(line_buf);
+      std::istringstream line(line_buf);
 
       // skip comments
       if (line >> token && token.front() == '#')
@@ -70,7 +52,7 @@ Schedule::Schedule(istream & file, const string & path) :
         {
           programs->push_back(create_from_file<Program>(token));
         }
-      catch (const exception & e)
+      catch (const std::exception & e)
         {
           parser_error(
             path,
@@ -89,13 +71,13 @@ Schedule::Schedule(istream & file, const string & path) :
   // parse body
   line_num++;
   bound_t step = 0;
-  for (string line_buf; getline(file, line_buf); ++line_num)
+  for (std::string line_buf; getline(file, line_buf); ++line_num)
     {
       // skip empty lines
       if (line_buf.empty())
         continue;
 
-      istringstream line(line_buf);
+      std::istringstream line(line_buf);
 
       // skip comments
       if (line_buf[line_buf.find_first_not_of(" \t")] == '#')
@@ -117,7 +99,7 @@ Schedule::Schedule(istream & file, const string & path) :
           parser_error(
             path,
             line_num,
-            "unknown thread id [" + to_string(thread) + "]");
+            "unknown thread id [" + std::to_string(thread) + "]");
 
       const Program & program = (*programs)[thread];
 
@@ -145,12 +127,12 @@ Schedule::Schedule(istream & file, const string & path) :
           parser_error(
             path,
             line_num,
-            "illegal program counter [" + to_string(pc) + "]");
+            "illegal program counter [" + std::to_string(pc) + "]");
 
       const Instruction & op = program[pc];
 
       // parse instruction symbol
-      string symbol;
+      std::string symbol;
 
       if (!(line >> symbol))
         parser_error(path, line_num, "missing instruction symbol");
@@ -188,7 +170,7 @@ Schedule::Schedule(istream & file, const string & path) :
             {
               if (op.is_memory())
                 {
-                  istringstream addr(token.substr(1, token.size() - 2));
+                  std::istringstream addr(token.substr(1, token.size() - 2));
 
                   // check if address is a number
                   if (!(addr >> arg))
@@ -303,12 +285,12 @@ Schedule::Schedule(istream & file, const string & path) :
         }
 
       // parse heap cell
-      optional<Heap> heap;
+      std::optional<Heap> heap;
 
       if (!(line >> token))
         parser_error(path, line_num, "missing heap update");
 
-      string cell = token.substr(1, token.size() - 2);
+      std::string cell = token.substr(1, token.size() - 2);
 
       if (!cell.empty())
         {
@@ -322,7 +304,7 @@ Schedule::Schedule(istream & file, const string & path) :
               // heap cell update
               heap = {adr, val};
             }
-          catch (const exception & e)
+          catch (const std::exception & e)
             {
               parser_error(
                 path,
@@ -390,7 +372,7 @@ void Schedule::push_back (Schedule::Updates<T> & updates,
 
       // ensure that no update exists for this step
       if (prev->first == step)
-        throw runtime_error("update already exists");
+        throw std::runtime_error("update already exists");
 
       // insert if value doesn't change
       if (prev->second != val)
@@ -405,7 +387,7 @@ void Schedule::push_back (const word_t thread,
                           const word_t buffer_adr,
                           const word_t buffer_val,
                           const word_t buffer_full,
-                          const optional<Heap> & heap)
+                          const std::optional<Heap> & heap)
 {
   ++bound;
 
@@ -555,7 +537,7 @@ Schedule::iterator Schedule::end () const
 
 std::string Schedule::print () const
 {
-  ostringstream ss;
+  std::ostringstream ss;
 
   const char sep = '\t';
 
@@ -599,13 +581,13 @@ std::string Schedule::print () const
         {
           ss << op.symbol() << sep;
 
-          string arg {'-'};
+          std::string arg {'-'};
 
           if (op.is_unary())
             {
               const Instruction::Unary u = op;
 
-              arg = to_string(u.arg);
+              arg = std::to_string(u.arg);
 
               if (op.is_memory())
                 {
@@ -723,7 +705,7 @@ const T & Schedule::iterator::next_thread_state (Iterators<T> & state)
 
 // Schedule::iterator::next_heap_state -----------------------------------------
 
-const optional<Schedule::Heap> Schedule::iterator::next_heap_state ()
+const std::optional<Schedule::Heap> Schedule::iterator::next_heap_state ()
 {
   if (step.flush)
     {

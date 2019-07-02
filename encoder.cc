@@ -1,13 +1,6 @@
 #include "encoder.hh"
 
 //==============================================================================
-// using declarations
-//==============================================================================
-
-using std::string;
-using std::ostringstream;
-
-//==============================================================================
 // Encoder
 //==============================================================================
 
@@ -15,39 +8,39 @@ using std::ostringstream;
 // static members
 //------------------------------------------------------------------------------
 
-const string Encoder::accu_sym          = "accu";
-const string Encoder::mem_sym           = "mem";
-const string Encoder::sb_adr_sym        = "sb-adr";
-const string Encoder::sb_val_sym        = "sb-val";
-const string Encoder::sb_full_sym       = "sb-full";
-const string Encoder::stmt_sym          = "stmt";
-const string Encoder::block_sym         = "block";
+const std::string Encoder::accu_sym          = "accu";
+const std::string Encoder::mem_sym           = "mem";
+const std::string Encoder::sb_adr_sym        = "sb-adr";
+const std::string Encoder::sb_val_sym        = "sb-val";
+const std::string Encoder::sb_full_sym       = "sb-full";
+const std::string Encoder::stmt_sym          = "stmt";
+const std::string Encoder::block_sym         = "block";
 
-const string Encoder::heap_sym          = "heap";
-const string Encoder::exit_flag_sym     = "exit";
-const string Encoder::exit_code_sym     = "exit-code";
+const std::string Encoder::heap_sym          = "heap";
+const std::string Encoder::exit_flag_sym     = "exit";
+const std::string Encoder::exit_code_sym     = "exit-code";
 
-const string Encoder::thread_sym        = "thread";
-const string Encoder::exec_sym          = "exec";
-const string Encoder::flush_sym         = "flush";
-const string Encoder::check_sym         = "check";
+const std::string Encoder::thread_sym        = "thread";
+const std::string Encoder::exec_sym          = "exec";
+const std::string Encoder::flush_sym         = "flush";
+const std::string Encoder::check_sym         = "check";
 
-const string Encoder::accu_comment      = "accu variables";
-const string Encoder::mem_comment       = "mem variables";
-const string Encoder::sb_adr_comment    = "store buffer address variables";
-const string Encoder::sb_val_comment    = "store buffer value variables";
-const string Encoder::sb_full_comment   = "store buffer full variables";
-const string Encoder::stmt_comment      = "statement activation variables";
-const string Encoder::block_comment     = "blocking variables";
+const std::string Encoder::accu_comment      = "accu variables";
+const std::string Encoder::mem_comment       = "mem variables";
+const std::string Encoder::sb_adr_comment    = "store buffer address variables";
+const std::string Encoder::sb_val_comment    = "store buffer value variables";
+const std::string Encoder::sb_full_comment   = "store buffer full variables";
+const std::string Encoder::stmt_comment      = "statement activation variables";
+const std::string Encoder::block_comment     = "blocking variables";
 
-const string Encoder::heap_comment      = "heap variable";
-const string Encoder::exit_flag_comment = "exit flag variable";
-const string Encoder::exit_code_comment = "exit code variable";
+const std::string Encoder::heap_comment      = "heap variable";
+const std::string Encoder::exit_flag_comment = "exit flag variable";
+const std::string Encoder::exit_code_comment = "exit code variable";
 
-const string Encoder::thread_comment    = "thread activation variables";
-const string Encoder::exec_comment      = "statement execution variables";
-const string Encoder::flush_comment     = "store buffer flush variables";
-const string Encoder::check_comment     = "checkpoint variables";
+const std::string Encoder::thread_comment    = "thread activation variables";
+const std::string Encoder::exec_comment      = "statement execution variables";
+const std::string Encoder::flush_comment     = "store buffer flush variables";
+const std::string Encoder::check_comment     = "checkpoint variables";
 
 //------------------------------------------------------------------------------
 // constructors
@@ -90,15 +83,15 @@ Encoder::Encoder (const Program::List::ptr & p, bound_t b) :
 
 // Encode::str -----------------------------------------------------------------
 
-string Encoder::str () { return formula.str(); }
+std::string Encoder::str () { return formula.str(); }
 
 //------------------------------------------------------------------------------
 // DEBUG
 //------------------------------------------------------------------------------
 
-string Encoder::predecessors_to_string ()
+std::string Encoder::predecessors_to_string ()
 {
-  ostringstream ss;
+  std::ostringstream ss;
 
   for (word_t tid = 0; tid < programs->size(); tid++)
     for (const auto & [_pc, _predecessors] : (*programs)[tid].predecessors)
@@ -112,9 +105,9 @@ string Encoder::predecessors_to_string ()
   return ss.str();
 }
 
-string Encoder::check_pcs_to_string ()
+std::string Encoder::check_pcs_to_string ()
 {
-  ostringstream ss;
+  std::ostringstream ss;
 
   for (const auto & [id, threads] : check_pcs)
     {
@@ -131,9 +124,9 @@ string Encoder::check_pcs_to_string ()
   return ss.str();
 }
 
-string Encoder::exit_pcs_to_string ()
+std::string Encoder::exit_pcs_to_string ()
 {
-  ostringstream ss;
+  std::ostringstream ss;
 
   for (const auto & [_thread, pcs] : exit_pcs)
     {

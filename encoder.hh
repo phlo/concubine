@@ -229,11 +229,13 @@ struct Encoder
   std::string exit_pcs_to_string ();
 };
 
+namespace smtlib {
+
 //==============================================================================
 // SMT-Lib v2.5 Encoder base class
 //==============================================================================
 
-struct SMTLib_Encoder : public Encoder
+struct Encoder : public ::Encoder
 {
   //----------------------------------------------------------------------------
   // static members
@@ -282,7 +284,7 @@ struct SMTLib_Encoder : public Encoder
   // constructors
   //----------------------------------------------------------------------------
 
-  SMTLib_Encoder (const Program::List::ptr & programs, bound_t bound);
+  Encoder (const Program::List::ptr & programs, bound_t bound);
 
   //----------------------------------------------------------------------------
   // private member functions
@@ -324,7 +326,8 @@ struct SMTLib_Encoder : public Encoder
 
   // assignment expression generator
   //
-  std::string assign (std::string variable, std::string expression);
+  std::string assign (const std::string & variable,
+                      const std::string & expression) const;
 
   // load expression generator
   //
@@ -427,15 +430,15 @@ struct SMTLib_Encoder : public Encoder
 // SMT-Lib v2.5 Functional Encoder class
 //==============================================================================
 
-struct SMTLib_Encoder_Functional : public SMTLib_Encoder
+struct Functional : public Encoder
 {
   //----------------------------------------------------------------------------
   // constructors
   //----------------------------------------------------------------------------
 
-  SMTLib_Encoder_Functional (const Program::List::ptr & programs,
-                             bound_t bound,
-                             bool encode = true);
+  Functional (const Program::List::ptr & programs,
+              bound_t bound,
+              bool encode = true);
 
   //----------------------------------------------------------------------------
   // private member functions
@@ -466,7 +469,7 @@ struct SMTLib_Encoder_Functional : public SMTLib_Encoder
 // SMT-Lib v2.5 Relational Encoder class
 //==============================================================================
 
-struct SMTLib_Encoder_Relational : public SMTLib_Encoder
+struct Relational : public Encoder
 {
   //----------------------------------------------------------------------------
   // member types
@@ -474,23 +477,24 @@ struct SMTLib_Encoder_Relational : public SMTLib_Encoder
 
   // captures frequently used expressions
   //
-  struct State {
-    std::shared_ptr<std::string> accu;
-    std::shared_ptr<std::string> mem;
-    std::shared_ptr<std::string> sb_adr;
-    std::shared_ptr<std::string> sb_val;
-    std::shared_ptr<std::string> sb_full;
-    std::shared_ptr<std::string> stmt;
-    std::shared_ptr<std::string> block;
-    std::shared_ptr<std::string> heap;
-    std::shared_ptr<std::string> exit_flag;
-    std::shared_ptr<std::string> exit_code;
+  struct State
+    {
+      std::shared_ptr<std::string> accu;
+      std::shared_ptr<std::string> mem;
+      std::shared_ptr<std::string> sb_adr;
+      std::shared_ptr<std::string> sb_val;
+      std::shared_ptr<std::string> sb_full;
+      std::shared_ptr<std::string> stmt;
+      std::shared_ptr<std::string> block;
+      std::shared_ptr<std::string> heap;
+      std::shared_ptr<std::string> exit_flag;
+      std::shared_ptr<std::string> exit_code;
 
-    State () = default;
-    State (SMTLib_Encoder_Relational & encoder);
+      State () = default;
+      State (Relational & encoder);
 
-    operator std::string () const;
-  };
+      operator std::string () const;
+    };
 
   //----------------------------------------------------------------------------
   // members
@@ -504,9 +508,9 @@ struct SMTLib_Encoder_Relational : public SMTLib_Encoder
   // constructors
   //----------------------------------------------------------------------------
 
-  SMTLib_Encoder_Relational (const Program::List::ptr & programs,
-                             bound_t bound,
-                             bool encode = true);
+  Relational (const Program::List::ptr & programs,
+              bound_t bound,
+              bool encode = true);
 
   //----------------------------------------------------------------------------
   // private member functions
@@ -514,7 +518,7 @@ struct SMTLib_Encoder_Relational : public SMTLib_Encoder
 
   // asserted implication expression generator
   //
-  std::string imply (std::string ante, std::string cons) const;
+  std::string imply (const std::string & ante, const std::string & cons) const;
 
   // state update helpers
   //
@@ -569,7 +573,7 @@ struct SMTLib_Encoder_Relational : public SMTLib_Encoder
 
   // double-dispatched instruction encoding functions
   //
-  using SMTLib_Encoder::encode; // use base class' main encoding function
+  using Encoder::encode; // use base class' main encoding function
 
   virtual std::string encode (const Instruction::Load &);
   virtual std::string encode (const Instruction::Store &);
@@ -600,11 +604,15 @@ struct SMTLib_Encoder_Relational : public SMTLib_Encoder
   virtual std::string encode (const Instruction::Exit &);
 };
 
+} // namespace smtlib
+
+namespace btor2 {
+
 //==============================================================================
 // BTOR2 Encoder class
 //==============================================================================
 
-struct Btor2_Encoder : public Encoder
+struct Encoder : public ::Encoder
 {
   //----------------------------------------------------------------------------
   // member types
@@ -766,9 +774,9 @@ struct Btor2_Encoder : public Encoder
   // constructors
   //----------------------------------------------------------------------------
 
-  Btor2_Encoder (const Program::List::ptr & programs,
-                 bound_t bound,
-                 bool encode = true);
+  Encoder (const Program::List::ptr & programs,
+           bound_t bound,
+           bool encode = true);
 
   //----------------------------------------------------------------------------
   // private member functions
@@ -917,4 +925,7 @@ struct Btor2_Encoder : public Encoder
   virtual std::string encode (const Instruction::Halt &);
   virtual std::string encode (const Instruction::Exit &);
 };
+
+} // namespace btor2
+
 #endif

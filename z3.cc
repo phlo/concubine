@@ -4,11 +4,9 @@
 
 #include "encoder.hh"
 
-using namespace std;
+std::string Z3::name () const { return "z3"; }
 
-string Z3::name () const { return "z3"; }
-
-bool Z3::sat (std::string & formula)
+bool Z3::sat (const std::string & formula)
 {
   z3::context c;
   z3::solver s = c;
@@ -20,9 +18,9 @@ bool Z3::sat (std::string & formula)
 
 // TODO: replace with SMTLibEncoder variable name generators
 inline
-string symbol (string type, initializer_list<bound_t> attributes)
+std::string symbol (std::string type, std::initializer_list<bound_t> attributes)
 {
-  ostringstream os;
+  std::ostringstream os;
 
   os << type;
 
@@ -33,13 +31,13 @@ string symbol (string type, initializer_list<bound_t> attributes)
 }
 
 inline
-bool eval_bool (z3::context & c, const z3::model & m, const string sym)
+bool eval_bool (z3::context & c, const z3::model & m, const std::string sym)
 {
   return m.eval(c.bool_const(sym.c_str())).is_true();
 }
 
 inline
-word_t eval_bv (z3::context & c, const z3::model & m, const string sym)
+word_t eval_bv (z3::context & c, const z3::model & m, const std::string sym)
 {
   return m.eval(c.bv_const(sym.c_str(), word_size)).get_numeral_uint();
 }
@@ -47,7 +45,7 @@ word_t eval_bv (z3::context & c, const z3::model & m, const string sym)
 inline
 word_t eval_array (z3::context & c,
                    const z3::model & m,
-                   const string sym,
+                   const std::string sym,
                    const word_t idx)
 {
   return
@@ -62,7 +60,7 @@ word_t eval_array (z3::context & c,
     .get_numeral_uint();
 }
 
-Schedule::ptr Z3::solve (Encoder & encoder, string & constraints)
+Schedule::ptr Z3::solve (Encoder & encoder, const std::string & constraints)
 {
   z3::context c;
   z3::solver s = c;
@@ -70,11 +68,12 @@ Schedule::ptr Z3::solve (Encoder & encoder, string & constraints)
   s.from_string(build_formula(encoder, constraints).c_str());
 
   if (s.check() != z3::sat)
-    throw runtime_error("formula is not sat");
+    throw std::runtime_error("formula is not sat");
 
   z3::model m = s.get_model();
 
-  Schedule::ptr schedule = make_unique<Schedule>(move(encoder.programs));
+  Schedule::ptr schedule =
+    std::make_unique<Schedule>(std::move(encoder.programs));
 
   for (bound_t step = 1; step <= encoder.bound; ++step)
     for (word_t thread = 0; thread < encoder.programs->size(); ++thread)
@@ -90,11 +89,11 @@ Schedule::ptr Z3::solve (Encoder & encoder, string & constraints)
                 word_t mem =
                   eval_bv(c, m, symbol(Encoder::mem_sym, {step, thread}));
 
-                optional<Schedule::Heap> heap;
+                std::optional<Schedule::Heap> heap;
 
                 const Instruction & op = program[pc];
 
-                /* get eventual heap update (ignore failed CAS) */
+                // get eventual heap update (ignore failed CAS)
                 // TODO flush!
                 if (op.is_memory() && op.type() & Instruction::atomic && accu)
                   {

@@ -37,25 +37,25 @@ GTEST_FILTER = --gtest_filter=
 
 # GTEST_FILTER += "*"
 # GTEST_FILTER += *Encoder*
-GTEST_FILTER += Encoder_Test.*
-GTEST_FILTER += SMTLib_Test.*
-GTEST_FILTER += SMTLib_Encoder_Test.*
-GTEST_FILTER += SMTLib_Encoder_Functional_Test.*
-GTEST_FILTER += SMTLib_Encoder_Relational_Test.*
-GTEST_FILTER += Btor2_Test.*
-GTEST_FILTER += Btor2_Encoder_Test.*
-GTEST_FILTER += Thread_Test.*
-# GTEST_FILTER += Simulator_Test.*
-# GTEST_FILTER += Main_Test.*
+GTEST_FILTER += Encoder.*
+GTEST_FILTER += smtlib.*
+GTEST_FILTER += smtlib_Encoder.*
+GTEST_FILTER += smtlib_Functional.*
+GTEST_FILTER += smtlib_Relational.*
+GTEST_FILTER += btor2.*
+GTEST_FILTER += btor2_Encoder.*
+GTEST_FILTER += Thread.*
+# GTEST_FILTER += Simulator.*
+# GTEST_FILTER += Main.*
 # GTEST_FILTER += Experimental.*
-GTEST_FILTER += Instruction_Test.*
-GTEST_FILTER += Program_Test.*
-# GTEST_FILTER += Schedule_Test.*
-# GTEST_FILTER += Shell_Test.*
-# GTEST_FILTER += Boolector_Test.*
-# GTEST_FILTER += BtorMC_Test.*
-# GTEST_FILTER += Z3_Test.*
-# GTEST_FILTER += CVC4_Test.*
+GTEST_FILTER += Instruction.*
+GTEST_FILTER += Program.*
+# GTEST_FILTER += Schedule.*
+# GTEST_FILTER += Shell.*
+# GTEST_FILTER += Boolector.*
+# GTEST_FILTER += BtorMC.*
+# GTEST_FILTER += Z3.*
+# GTEST_FILTER += CVC4.*
 
 GTEST_FILTER := $(shell echo ${GTEST_FILTER} | sed -e 's/ /:/g')
 

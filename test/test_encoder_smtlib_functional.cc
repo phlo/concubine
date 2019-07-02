@@ -1,18 +1,16 @@
 #include "test_encoder_smtlib.hh"
 
-using namespace std;
+namespace test {
 
 //==============================================================================
-// SMTLib_Encoder_Functional tests
+// smtlib::Functional tests
 //==============================================================================
 
-using E = SMTLib_Encoder_Functional;
+using smtlib_Functional = encoder::smtlib::Encoder<smtlib::Functional>;
 
-using SMTLib_Encoder_Functional_Test = Test::SMTLib_Encoder<E>;
+// smtlib::Functional::define_accu =============================================
 
-// SMTLib_Encoder_Functional::define_accu ======================================
-
-TEST_F(SMTLib_Encoder_Functional_Test, define_accu)
+TEST_F(smtlib_Functional, define_accu)
 {
   add_instruction_set(3);
   reset_encoder();
@@ -147,9 +145,9 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_accu)
     encoder->str());
 }
 
-// SMTLib_Encoder_Functional::define_mem =======================================
+// smtlib::Functional::define_mem ==============================================
 
-TEST_F(SMTLib_Encoder_Functional_Test, define_mem)
+TEST_F(smtlib_Functional, define_mem)
 {
   add_instruction_set(3);
   reset_encoder();
@@ -209,9 +207,9 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_mem)
     encoder->str());
 }
 
-// SMTLib_Encoder_Functional::define_sb_adr ====================================
+// smtlib::Functional::define_sb_adr ===========================================
 
-TEST_F(SMTLib_Encoder_Functional_Test, define_sb_adr)
+TEST_F(smtlib_Functional, define_sb_adr)
 {
   add_instruction_set(3);
   reset_encoder();
@@ -241,9 +239,9 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_sb_adr)
     encoder->str());
 }
 
-// SMTLib_Encoder_Functional::define_sb_val ====================================
+// smtlib::Functional::define_sb_val ===========================================
 
-TEST_F(SMTLib_Encoder_Functional_Test, define_sb_val)
+TEST_F(smtlib_Functional, define_sb_val)
 {
   add_instruction_set(3);
   reset_encoder();
@@ -273,9 +271,9 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_sb_val)
     encoder->str());
 }
 
-// SMTLib_Encoder_Functional::define_sb_full ===================================
+// smtlib::Functional::define_sb_full ==========================================
 
-TEST_F(SMTLib_Encoder_Functional_Test, define_sb_full)
+TEST_F(smtlib_Functional, define_sb_full)
 {
   add_instruction_set(3);
   reset_encoder();
@@ -305,7 +303,7 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_sb_full)
     encoder->str());
 }
 
-TEST_F(SMTLib_Encoder_Functional_Test, define_stmt)
+TEST_F(smtlib_Functional, define_stmt)
 {
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program(
@@ -368,7 +366,7 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_stmt)
     encoder->str());
 }
 
-TEST_F(SMTLib_Encoder_Functional_Test, define_stmt_jmp)
+TEST_F(smtlib_Functional, define_stmt_jmp)
 {
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program(
@@ -422,7 +420,7 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_stmt_jmp)
     encoder->str());
 }
 
-TEST_F(SMTLib_Encoder_Functional_Test, define_stmt_jmp_conditional)
+TEST_F(smtlib_Functional, define_stmt_jmp_conditional)
 {
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program(
@@ -489,7 +487,7 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_stmt_jmp_conditional)
     encoder->str());
 }
 
-TEST_F(SMTLib_Encoder_Functional_Test, define_stmt_jmp_start)
+TEST_F(smtlib_Functional, define_stmt_jmp_start)
 {
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program(
@@ -559,7 +557,7 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_stmt_jmp_start)
     encoder->str());
 }
 
-TEST_F(SMTLib_Encoder_Functional_Test, define_stmt_jmp_twice)
+TEST_F(smtlib_Functional, define_stmt_jmp_twice)
 {
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program(
@@ -645,9 +643,9 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_stmt_jmp_twice)
     encoder->str());
 }
 
-// SMTLib_Encoder_Functional::define_block =====================================
+// smtlib::Functional::define_block ============================================
 
-TEST_F(SMTLib_Encoder_Functional_Test, define_block)
+TEST_F(smtlib_Functional, define_block)
 {
   add_instruction_set(3);
   reset_encoder();
@@ -677,16 +675,16 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_block)
     encoder->str());
 }
 
-TEST_F(SMTLib_Encoder_Functional_Test, define_block_empty)
+TEST_F(smtlib_Functional, define_block_empty)
 {
   encoder->define_block();
 
   ASSERT_EQ("", encoder->str());
 }
 
-// SMTLib_Encoder_Functional::define_heap ======================================
+// smtlib::Functional::define_heap =============================================
 
-TEST_F(SMTLib_Encoder_Functional_Test, define_heap)
+TEST_F(smtlib_Functional, define_heap)
 {
   add_instruction_set(3);
   reset_encoder();
@@ -750,12 +748,12 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_heap)
     encoder->str());
 }
 
-// SMTLib_Encoder_Functional::define_exit_flag =================================
+// smtlib::Functional::define_exit_flag ========================================
 
-TEST_F(SMTLib_Encoder_Functional_Test, define_exit_flag)
+TEST_F(smtlib_Functional, define_exit_flag)
 {
   for (size_t i = 0; i < 3; i++)
-    programs.push_back(create_program("EXIT " + to_string(i) + "\n"));
+    programs.push_back(create_program("EXIT " + std::to_string(i) + eol));
 
   reset_encoder();
 
@@ -780,19 +778,19 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_exit_flag)
     encoder->str());
 }
 
-TEST_F(SMTLib_Encoder_Functional_Test, define_exit_flag_empty)
+TEST_F(smtlib_Functional, define_exit_flag_empty)
 {
   encoder->define_exit_flag();
 
   ASSERT_EQ("", encoder->str());
 }
 
-// SMTLib_Encoder_Functional::define_exit_code =================================
+// smtlib::Functional::define_exit_code ========================================
 
-TEST_F(SMTLib_Encoder_Functional_Test, define_exit_code)
+TEST_F(smtlib_Functional, define_exit_code)
 {
   for (size_t i = 0; i < 3; i++)
-    programs.push_back(create_program("EXIT " + to_string(i)));
+    programs.push_back(create_program("EXIT " + std::to_string(i)));
 
   reset_encoder();
 
@@ -834,7 +832,7 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_exit_code)
     encoder->str());
 }
 
-TEST_F(SMTLib_Encoder_Functional_Test, define_exit_code_empty)
+TEST_F(smtlib_Functional, define_exit_code_empty)
 {
   encoder->define_exit_code();
 
@@ -848,9 +846,9 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_exit_code_empty)
     encoder->str());
 }
 
-// SMTLib_Encoder_Functional::define_states ====================================
+// smtlib::Functional::define_states ===========================================
 
-TEST_F(SMTLib_Encoder_Functional_Test, define_states)
+TEST_F(smtlib_Functional, define_states)
 {
   programs.push_back(create_program("JMP 0\n"));
   reset_encoder();
@@ -908,7 +906,7 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_states)
     encoder->str());
 }
 
-TEST_F(SMTLib_Encoder_Functional_Test, define_states_check_exit)
+TEST_F(smtlib_Functional, define_states_check_exit)
 {
   programs.push_back(
     create_program(
@@ -954,9 +952,9 @@ TEST_F(SMTLib_Encoder_Functional_Test, define_states_check_exit)
     encoder->str());
 }
 
-// SMTLib_Encoder_Functional::encode ===========================================
+// smtlib::Functional::encode ==================================================
 
-TEST_F(SMTLib_Encoder_Functional_Test, encode_check)
+TEST_F(smtlib_Functional, encode_check)
 {
   // concurrent increment using CHECK
   encode(
@@ -965,7 +963,7 @@ TEST_F(SMTLib_Encoder_Functional_Test, encode_check)
     16);
 }
 
-TEST_F(SMTLib_Encoder_Functional_Test, encode_cas)
+TEST_F(smtlib_Functional, encode_cas)
 {
   // concurrent increment using CAS
   encode(
@@ -973,3 +971,5 @@ TEST_F(SMTLib_Encoder_Functional_Test, encode_cas)
     "increment.cas.functional.t2.k16.smt2",
     16);
 }
+
+} // namespace test

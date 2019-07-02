@@ -2,8 +2,6 @@
 
 #include <functional>
 
-using namespace std;
-
 struct Experimental : public ::testing::Test
 {
 };
@@ -12,7 +10,7 @@ struct Experimental : public ::testing::Test
 
 TEST(Hashing, hash)
 {
-  hash<unsigned long> hash_fn;
+  std::hash<unsigned long> hash_fn;
 
   unsigned long id = 0;
 
@@ -235,9 +233,9 @@ TEST(Experimental, type_erasure)
 #include "instruction.hh"
 struct Thread
 {
-  void execute (const Instruction & i) { cout << "executing "; i.execute(*this); }
+  void execute (const Instruction & i) { std::cout << "executing "; i.execute(*this); }
 
-  void execute (const Instruction::Load & l) { cout << l.symbol << endl; }
+  void execute (const Instruction::Load & l) { std::cout << l.symbol << std::endl; }
   // void execute (const Fence & f) { cout << f.symbol << endl; }
   // void execute (const Add & a) { cout << a.symbol << endl; }
   // void execute (const Store & s) { cout << s.symbol << endl; }
@@ -246,9 +244,9 @@ struct Thread
 
 struct Encoder
 {
-  string encode (const Instruction & i) { return "encoding " + i.encode(*this); }
+  std::string encode (const Instruction & i) { return "encoding " + i.encode(*this); }
 
-  string encode (const Instruction::Load & l) { return l.symbol; }
+  std::string encode (const Instruction::Load & l) { return l.symbol; }
   // string encode (const Fence & f) { return f.symbol; }
   // string encode (const Add & a) { return a.symbol; }
   // string encode (const Store & s) { return s.symbol; }
@@ -261,7 +259,7 @@ TEST(Experimental, Instruction)
 
   Instruction::Unary u {0, 1}; (void) u;
 
-  vector<Instruction> program {
+  std::vector<Instruction> program {
     Instruction::Load {0}
   };
 

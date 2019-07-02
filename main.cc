@@ -11,25 +11,6 @@
 #include "cvc4.hh"
 
 //==============================================================================
-// using declarations
-//==============================================================================
-
-using std::string;
-using std::stoul;
-
-using std::cout;
-using std::cerr;
-using std::ifstream;
-using std::istreambuf_iterator;
-
-using std::make_shared;
-using std::unique_ptr;
-using std::make_unique;
-
-using std::exception;
-using std::runtime_error;
-
-//==============================================================================
 // global flags
 //==============================================================================
 
@@ -41,7 +22,7 @@ bool verbose = false;
 
 void print_usage_main (const char * name)
 {
-  cout << "usage: " << name <<
+  std::cout << "usage: " << name <<
   " <command> [<arg> ...]" <<
   eol << eol <<
   "available commands:" << eol <<
@@ -53,12 +34,12 @@ void print_usage_main (const char * name)
 
 void print_usage_help (const char * name)
 {
-  cout << "usage: " << name << " help <command>" << eol;
+  std::cout << "usage: " << name << " help <command>" << eol;
 }
 
 void print_usage_simulate (const char * name)
 {
-  cout << "usage: " << name <<
+  std::cout << "usage: " << name <<
   " simulate [-k <bound>] [-s <seed>] [-v] <program> ..." <<
   eol << eol <<
   "  -k bound   execute a maximum of <bound> steps" << eol <<
@@ -69,7 +50,7 @@ void print_usage_simulate (const char * name)
 
 void print_usage_replay (const char * name)
 {
-  cout << "usage: " << name <<
+  std::cout << "usage: " << name <<
   " replay [-k <bound>] [-v] <schedule>" <<
   eol << eol <<
   "  -k bound   execute a maximum of <bound> steps" << eol <<
@@ -79,7 +60,7 @@ void print_usage_replay (const char * name)
 
 void print_usage_solve (const char * name)
 {
-  cout << "usage: " << name <<
+  std::cout << "usage: " << name <<
   " solve [options] <bound> <program> ..."
   << eol << eol <<
   "options:" << eol <<
@@ -101,7 +82,7 @@ void print_usage_solve (const char * name)
 // submodules
 //==============================================================================
 
-void print_error (const string & what) { cerr << "error: " << what << eol; }
+void print_error (const std::string & m) { std::cerr << "error: " << m << eol; }
 
 //------------------------------------------------------------------------------
 // help
@@ -134,7 +115,7 @@ int help (const char * name, const int argc, const char **argv)
     }
   else
     {
-      print_error("unknown command " + string(argv[0]));
+      print_error("unknown command " + std::string(argv[0]));
       print_usage_help(name);
       return -1;
     }
@@ -150,11 +131,11 @@ int simulate (const char * name, const int argc, const char ** argv)
 {
   bound_t bound = 0;
   uint64_t seed = static_cast<uint64_t>(time(NULL));
-  Program::List::ptr programs = make_shared<Program::List>();
+  Program::List::ptr programs = std::make_shared<Program::List>();
 
   for (int i = 0; i < argc; i++)
     {
-      string arg(argv[i]);
+      std::string arg(argv[i]);
 
       if (arg == "-v")
         {
@@ -202,7 +183,7 @@ int simulate (const char * name, const int argc, const char ** argv)
             {
               programs->push_back(create_from_file<Program>(arg));
             }
-          catch (const exception & e)
+          catch (const std::exception & e)
             {
               print_error(e.what());
               return -1;
@@ -221,7 +202,7 @@ int simulate (const char * name, const int argc, const char ** argv)
   Schedule::ptr schedule = Simulator::simulate(programs, bound, seed);
 
   // print the result
-  cout << schedule->print();
+  std::cout << schedule->print();
 
   return schedule->exit;
 }
@@ -233,11 +214,11 @@ int simulate (const char * name, const int argc, const char ** argv)
 int replay (const char * name, const int argc, const char ** argv)
 {
   bound_t bound = 0;
-  string  schedule_path;
+  std::string  schedule_path;
 
   for (int i = 0; i < argc; i++)
     {
-      string arg(argv[i]);
+      std::string arg(argv[i]);
 
       if (arg == "-v")
         {
@@ -278,17 +259,17 @@ int replay (const char * name, const int argc, const char ** argv)
     {
       // create and parse schedule
       Schedule::ptr schedule =
-        make_unique<Schedule>(create_from_file<Schedule>(schedule_path));
+        std::make_unique<Schedule>(create_from_file<Schedule>(schedule_path));
 
       // run given schedule
       schedule = Simulator::replay(*schedule, bound);
 
       // print the result
-      cout << schedule->print();
+      std::cout << schedule->print();
 
       return schedule->exit;
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       print_error(e.what());
       return -1;
@@ -316,13 +297,13 @@ int solve (const char * name, const int argc, const char ** argv)
       bool pretend = false;
 
       // additional constraints from file
-      string constraints;
+      std::string constraints;
 
       // encoder name
-      string encoder_name = "smtlib-functional";
+      std::string encoder_name = "smtlib-functional";
 
       // solver name
-      string solver_name = "boolector";
+      std::string solver_name = "boolector";
 
       // parse flags
       do
@@ -335,13 +316,13 @@ int solve (const char * name, const int argc, const char ** argv)
                 return -1;
               }
 
-            ifstream ifs(argv[i]);
+            std::ifstream ifs(argv[i]);
             constraints.assign(
-              istreambuf_iterator<char>(ifs),
-              istreambuf_iterator<char>());
+              std::istreambuf_iterator<char>(ifs),
+              std::istreambuf_iterator<char>());
 
             if (constraints.empty())
-              throw runtime_error(string(argv[i]) + " not found");
+              throw std::runtime_error(std::string(argv[i]) + " not found");
           }
         else if (!strcmp(argv[i], "-e"))
           {
@@ -375,7 +356,7 @@ int solve (const char * name, const int argc, const char ** argv)
           }
         else if (argv[i][0] == '-')
           {
-            print_error("unknown option [" + string(argv[i]) + "]");
+            print_error("unknown option [" + std::string(argv[i]) + "]");
             print_usage_solve(name);
             return -1;
           }
@@ -395,32 +376,32 @@ int solve (const char * name, const int argc, const char ** argv)
       bound_t bound = 0;
       try
         {
-          bound = stoul(argv[i++], nullptr, 0);
+          bound = std::stoul(argv[i++], nullptr, 0);
 
-          if (bound < 1) throw runtime_error("");
+          if (bound < 1) throw std::runtime_error("");
         }
       catch (...)
         {
-          print_error("illegal bound [" + string(argv[i - 1]) + "]");
+          print_error("illegal bound [" + std::string(argv[i - 1]) + "]");
           return -1;
         }
 
       // list of programs (thread id == idx + 1)
-      Program::List::ptr programs = make_shared<Program::List>();
+      Program::List::ptr programs = std::make_shared<Program::List>();
 
       // parse programs
       while (i < argc)
         programs->push_back(create_from_file<Program>(argv[i++]));
 
       // encode program
-      unique_ptr<Encoder> encoder;
+      std::unique_ptr<Encoder> encoder;
 
       if (encoder_name == "smtlib-functional")
-        encoder = make_unique<SMTLib_Encoder_Functional>(programs, bound);
+        encoder = std::make_unique<smtlib::Functional>(programs, bound);
       else if (encoder_name == "smtlib-relational")
-        encoder = make_unique<SMTLib_Encoder_Relational>(programs, bound);
+        encoder = std::make_unique<smtlib::Relational>(programs, bound);
       else if (encoder_name == "btor2")
-        encoder = make_unique<Btor2_Encoder>(programs, bound);
+        encoder = std::make_unique<btor2::Encoder>(programs, bound);
       else
         {
           print_error("unknown encoder [" + encoder_name + "]");
@@ -429,16 +410,16 @@ int solve (const char * name, const int argc, const char ** argv)
         }
 
       // select solver
-      unique_ptr<Solver> solver;
+      std::unique_ptr<Solver> solver;
 
       if (encoder_name == "btor2")
-        solver = make_unique<BtorMC>(bound);
+        solver = std::make_unique<BtorMC>(bound);
       else if (solver_name == "boolector")
-        solver = make_unique<Boolector>();
+        solver = std::make_unique<Boolector>();
       else if (solver_name == "z3")
-        solver = make_unique<Z3>();
+        solver = std::make_unique<Z3>();
       else if (solver_name == "cvc4")
-        solver = make_unique<CVC4>();
+        solver = std::make_unique<CVC4>();
       else
         {
           print_error("unknown solver [" + solver_name + "]");
@@ -448,11 +429,11 @@ int solve (const char * name, const int argc, const char ** argv)
 
       // print formula if we're pretending
       if (pretend)
-        cout << solver->build_formula(*encoder, constraints);
+        std::cout << solver->build_formula(*encoder, constraints);
       else
-        cout << solver->solve(*encoder, constraints)->print();
+        std::cout << solver->solve(*encoder, constraints)->print();
     }
-  catch (const exception & e)
+  catch (const std::exception & e)
     {
       print_error(e.what());
       return -1;

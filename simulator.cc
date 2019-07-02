@@ -5,26 +5,7 @@
 #include <sstream>
 
 //==============================================================================
-// using declarations
-//==============================================================================
-
-using std::string;
-using std::to_string;
-
-using std::ostringstream;
-
-using std::function;
-
-using std::optional;
-
-using std::mt19937_64;
-
-using std::make_unique;
-
-using std::runtime_error;
-
-//==============================================================================
-// helpers
+// functions
 //==============================================================================
 
 // erases a given element from a STL container
@@ -47,7 +28,7 @@ Simulator::Simulator (const Program::List::ptr & p,
                       const bound_t b,
                       const uint64_t s) :
   programs(p),
-  schedule(make_unique<Schedule>(p)),
+  schedule(std::make_unique<Schedule>(p)),
   bound(b),
   seed(s)
 {
@@ -100,7 +81,7 @@ void Simulator::check_and_resume (word_t id)
 
 // Simulator::run --------------------------------------------------------------
 
-Schedule::ptr Simulator::run (function<Thread *()> scheduler)
+Schedule::ptr Simulator::run (std::function<Thread *()> scheduler)
 {
   assert(active.empty());
 
@@ -180,12 +161,12 @@ Schedule::ptr Simulator::run (function<Thread *()> scheduler)
 
         default:
           {
-            ostringstream m;
+            std::ostringstream m;
             m << "illegal thread state transition "
               << static_cast<char>(Thread::State::running)
               << " -> "
               << static_cast<char>(thread->state);
-            throw runtime_error(m.str());
+            throw std::runtime_error(m.str());
           }
         }
     }
@@ -202,7 +183,7 @@ Schedule::ptr Simulator::simulate (const Program::List::ptr & programs,
   Simulator simulator {programs, bound, seed};
 
   // Mersenne Twister pseudo-random number generator
-  mt19937_64 random(seed);
+  std::mt19937_64 random(seed);
 
   // random scheduler
   return simulator.run([&simulator, &random] {
@@ -323,7 +304,7 @@ void Thread::flush ()
 void Thread::execute ()
 {
   if (pc >= program.size())
-    throw runtime_error("illegal pc [" + to_string(pc) + "]");
+    throw std::runtime_error("illegal pc [" + std::to_string(pc) + "]");
 
   // execute instruction
   program[pc].execute(*this);
@@ -480,7 +461,7 @@ void Thread::execute (const Instruction::Mem & m)
 
 void Thread::execute (const Instruction::Cas & c)
 {
-  optional<Schedule::Heap> heap;
+  std::optional<Schedule::Heap> heap;
 
   if (mem == load(c.arg, c.indirect))
     {

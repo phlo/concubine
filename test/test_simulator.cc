@@ -4,27 +4,29 @@
 
 #include "parser.hh"
 
-using namespace std;
+namespace test {
 
 //==============================================================================
 // Simulator tests
 //==============================================================================
 
-struct Simulator_Test : public ::testing::Test
+struct Simulator : public ::testing::Test
 {
   Program program;
   Schedule::ptr schedule;
-  shared_ptr<Simulator> simulator;
+  std::unique_ptr<::Simulator> simulator;
 
-  void create_simulator(initializer_list<Program> programs)
+  void create_simulator(std::initializer_list<Program> programs)
     {
-      simulator = make_shared<Simulator>(make_shared<Program::List>(programs));
+      simulator =
+        std::make_unique<::Simulator>(
+          std::make_shared<Program::List>(programs));
     }
 };
 
 // Simulator::create_thread ====================================================
 
-TEST_F(Simulator_Test, create_thread)
+TEST_F(Simulator, create_thread)
 {
   create_simulator({});
 
@@ -53,14 +55,14 @@ TEST_F(Simulator_Test, create_thread)
   ASSERT_EQ(1, simulator->threads_per_checkpoint[1].size());
   ASSERT_TRUE(simulator->waiting_for_checkpoint.empty());
 
-  /* basically tests mapped default value */
+  // basically tests mapped default value
   ASSERT_EQ(0, simulator->waiting_for_checkpoint[0]);
   ASSERT_TRUE(!simulator->waiting_for_checkpoint.empty());
 }
 
 // Simulator::run ==============================================================
 
-TEST_F(Simulator_Test, run_simple)
+TEST_F(Simulator, run_simple)
 {
   program.push_back(Instruction::Set::create("ADDI", 1));
 
@@ -73,16 +75,16 @@ TEST_F(Simulator_Test, run_simple)
 
   bound_t step = 0;
 
-  /* NOTE: EXPECT_* required by lambda function */
-  function<Thread *()> scheduler = [&] () -> Thread *
+  // NOTE: EXPECT_* required by lambda std::function
+  std::function<Thread *()> scheduler = [&] () -> Thread *
     {
       switch (step++)
         {
-        case 0: /* initial -> t0: pre ADDI 1 */
+        case 0: // initial -> t0: pre ADDI 1
             {
               return &simulator->threads[0];
             }
-        case 1: /* t0: post ADDI 1 && next == t1 */
+        case 1: // t0: post ADDI 1 && next == t1
             {
               EXPECT_EQ(1, simulator->threads[0].pc);
               EXPECT_EQ(1, simulator->threads[0].accu);
@@ -91,7 +93,7 @@ TEST_F(Simulator_Test, run_simple)
 
               return &simulator->threads[1];
             }
-        case 2: /* t1: post ADDI 1 && next == t0 */
+        case 2: // t1: post ADDI 1 && next == t0
             {
               EXPECT_EQ(1, simulator->threads[0].pc);
               EXPECT_EQ(1, simulator->threads[0].accu);
@@ -111,7 +113,7 @@ TEST_F(Simulator_Test, run_simple)
         }
     };
 
-  /* run it */
+  // run it
   schedule = simulator->run(scheduler);
 
   EXPECT_EQ(2, step);
@@ -119,7 +121,7 @@ TEST_F(Simulator_Test, run_simple)
   EXPECT_EQ(Thread::State::halted, simulator->threads[0].state);
   EXPECT_EQ(Thread::State::halted, simulator->threads[1].state);
 
-  /* check Schedule */
+  // check Schedule
   ASSERT_EQ(0, schedule->exit);
 
   ASSERT_EQ(
@@ -151,7 +153,7 @@ TEST_F(Simulator_Test, run_simple)
   ASSERT_TRUE(schedule->heap_updates.empty());
 }
 
-TEST_F(Simulator_Test, run_add_check_exit)
+TEST_F(Simulator, run_add_check_exit)
 {
   program.push_back(Instruction::Set::create("ADDI", 1));
   program.push_back(Instruction::Set::create("CHECK", 1));
@@ -166,15 +168,15 @@ TEST_F(Simulator_Test, run_add_check_exit)
 
   bound_t step = 0;
 
-  function<Thread *()> scheduler = [&] () -> Thread *
+  std::function<Thread *()> scheduler = [&] () -> Thread *
     {
       switch (step++)
         {
-        case 0: /* initial -> t0: pre ADDI 1 */
+        case 0: // initial -> t0: pre ADDI 1
             {
               return &simulator->threads[0];
             }
-        case 1: /* t0: post ADDI 1 && next == t1 */
+        case 1: // t0: post ADDI 1 && next == t1
             {
               EXPECT_EQ(1, simulator->threads[0].pc);
               EXPECT_EQ(1, simulator->threads[0].accu);
@@ -183,7 +185,7 @@ TEST_F(Simulator_Test, run_add_check_exit)
 
               return &simulator->threads[1];
             }
-        case 2: /* t1: post ADDI 1 && next == t0 */
+        case 2: // t1: post ADDI 1 && next == t0
             {
               EXPECT_EQ(1, simulator->threads[0].pc);
               EXPECT_EQ(1, simulator->threads[0].accu);
@@ -192,7 +194,7 @@ TEST_F(Simulator_Test, run_add_check_exit)
 
               return &simulator->threads[0];
             }
-        case 3: /* t0: post CHECK 1 && next == t1 */
+        case 3: // t0: post CHECK 1 && next == t1
             {
               EXPECT_EQ(2, simulator->threads[0].pc);
               EXPECT_EQ(1, simulator->threads[0].accu);
@@ -207,7 +209,7 @@ TEST_F(Simulator_Test, run_add_check_exit)
 
               return &simulator->threads[1];
             }
-        case 4: /* t1: post CHECK 1 (both active again) && next == t0 */
+        case 4: // t1: post CHECK 1 (both active again) && next == t0
             {
               EXPECT_EQ(2, simulator->threads[0].pc);
               EXPECT_EQ(1, simulator->threads[0].accu);
@@ -230,7 +232,7 @@ TEST_F(Simulator_Test, run_add_check_exit)
         }
     };
 
-  /* run it */
+  // run it
   schedule = simulator->run(scheduler);
 
   EXPECT_EQ(step, 5);
@@ -238,7 +240,7 @@ TEST_F(Simulator_Test, run_add_check_exit)
   EXPECT_EQ(Thread::State::exited, simulator->threads[0].state);
   EXPECT_EQ(Thread::State::running, simulator->threads[1].state);
 
-  /* check Schedule */
+  // check Schedule
   ASSERT_EQ(1, schedule->exit);
 
   ASSERT_EQ(
@@ -272,7 +274,7 @@ TEST_F(Simulator_Test, run_add_check_exit)
   ASSERT_TRUE(schedule->heap_updates.empty());
 }
 
-TEST_F(Simulator_Test, run_race_condition)
+TEST_F(Simulator, run_race_condition)
 {
   program.push_back(Instruction::Set::create("LOAD", 1));
   program.push_back(Instruction::Set::create("ADDI", 1));
@@ -297,11 +299,11 @@ TEST_F(Simulator_Test, run_race_condition)
 
   bound_t step = 0;
 
-  function<Thread *()> scheduler = [&] () -> Thread *
+  std::function<Thread *()> scheduler = [&] () -> Thread *
     {
       switch (step++)
         {
-        case 0: /* initial = t0 [CHECK 1] */
+        case 0: // initial = t0 [CHECK 1]
             {
               EXPECT_EQ(0, simulator->heap[1]);
 
@@ -316,7 +318,7 @@ TEST_F(Simulator_Test, run_race_condition)
 
               return &simulator->threads[0];
             }
-        case 1: /* prev = t0 [CHECK 1] | next = t1 [LOAD 1] */
+        case 1: // prev = t0 [CHECK 1] | next = t1 [LOAD 1]
             {
               EXPECT_EQ(1, simulator->threads[0].pc);
               EXPECT_EQ(0, simulator->threads[0].accu);
@@ -331,7 +333,7 @@ TEST_F(Simulator_Test, run_race_condition)
 
               return &simulator->threads[1];
             }
-        case 2: /* prev = t1 [LOAD 1] | next = t2 [LOAD 1] */
+        case 2: // prev = t1 [LOAD 1] | next = t2 [LOAD 1]
             {
               EXPECT_EQ(1, simulator->threads[0].pc);
               EXPECT_EQ(0, simulator->threads[0].accu);
@@ -342,7 +344,7 @@ TEST_F(Simulator_Test, run_race_condition)
 
               return &simulator->threads[2];
             }
-        case 3: /* prev = t2 [LOAD 1] | next = t1 [ADDI 1] */
+        case 3: // prev = t2 [LOAD 1] | next = t1 [ADDI 1]
             {
               EXPECT_EQ(1, simulator->threads[0].pc);
               EXPECT_EQ(0, simulator->threads[0].accu);
@@ -353,7 +355,7 @@ TEST_F(Simulator_Test, run_race_condition)
 
               return &simulator->threads[1];
             }
-        case 4: /* prev = t1 [ADDI 1] | next = t2 [ADDI 1] */
+        case 4: // prev = t1 [ADDI 1] | next = t2 [ADDI 1]
             {
               EXPECT_EQ(1, simulator->threads[0].pc);
               EXPECT_EQ(0, simulator->threads[0].accu);
@@ -364,7 +366,7 @@ TEST_F(Simulator_Test, run_race_condition)
 
               return &simulator->threads[2];
             }
-        case 5: /* prev = t2 [ADDI 1] | next = t1 [STORE 1] */
+        case 5: // prev = t2 [ADDI 1] | next = t1 [STORE 1]
             {
               EXPECT_EQ(1, simulator->threads[0].pc);
               EXPECT_EQ(0, simulator->threads[0].accu);
@@ -375,7 +377,7 @@ TEST_F(Simulator_Test, run_race_condition)
 
               return &simulator->threads[1];
             }
-        case 6: /* prev = t1 [STORE 1] | next = t2 [STORE 1] */
+        case 6: // prev = t1 [STORE 1] | next = t2 [STORE 1]
             {
               EXPECT_EQ(1, simulator->threads[0].pc);
               EXPECT_EQ(0, simulator->threads[0].accu);
@@ -390,7 +392,7 @@ TEST_F(Simulator_Test, run_race_condition)
 
               return &simulator->threads[2];
             }
-        case 7: /* prev = t2 [STORE 1] | next = t1 [FLUSH] */
+        case 7: // prev = t2 [STORE 1] | next = t1 [FLUSH]
             {
               EXPECT_EQ(1, simulator->threads[0].pc);
               EXPECT_EQ(0, simulator->threads[0].accu);
@@ -407,7 +409,7 @@ TEST_F(Simulator_Test, run_race_condition)
 
               return &simulator->threads[1];
             }
-        case 8: /* prev = t1 [FLUSH] | next = t2 [FLUSH] */
+        case 8: // prev = t1 [FLUSH] | next = t2 [FLUSH]
             {
               EXPECT_EQ(1, simulator->threads[0].pc);
               EXPECT_EQ(0, simulator->threads[0].accu);
@@ -426,7 +428,7 @@ TEST_F(Simulator_Test, run_race_condition)
 
               return &simulator->threads[2];
             }
-        case 9: /* prev = t2 [FLUSH] | next = t1 [CHECK 1] */
+        case 9: // prev = t2 [FLUSH] | next = t1 [CHECK 1]
             {
               EXPECT_EQ(1, simulator->threads[0].pc);
               EXPECT_EQ(0, simulator->threads[0].accu);
@@ -443,7 +445,7 @@ TEST_F(Simulator_Test, run_race_condition)
 
               return &simulator->threads[1];
             }
-        case 10: /* prev = t1 [CHECK 1] | next = t2 [CHECK 1] */
+        case 10: // prev = t1 [CHECK 1] | next = t2 [CHECK 1]
             {
               EXPECT_EQ(1, simulator->threads[0].pc);
               EXPECT_EQ(0, simulator->threads[0].accu);
@@ -459,7 +461,7 @@ TEST_F(Simulator_Test, run_race_condition)
 
               return &simulator->threads[2];
             }
-        case 11: /* prev = t2 [CHECK 1] | next = t0 [LOAD 1] */
+        case 11: // prev = t2 [CHECK 1] | next = t0 [LOAD 1]
             {
               EXPECT_EQ(1, simulator->threads[0].pc);
               EXPECT_EQ(0, simulator->threads[0].accu);
@@ -476,7 +478,7 @@ TEST_F(Simulator_Test, run_race_condition)
 
               return &simulator->threads[0];
             }
-        case 12: /* prev = t0 [LOAD 1] | next = t0 [SUBI 2] */
+        case 12: // prev = t0 [LOAD 1] | next = t0 [SUBI 2]
             {
               EXPECT_EQ(2, simulator->threads[0].pc);
               EXPECT_EQ(1, simulator->threads[0].accu);
@@ -487,7 +489,7 @@ TEST_F(Simulator_Test, run_race_condition)
 
               return &simulator->threads[0];
             }
-        case 13: /* prev = t0 [SUBI 2] | next = t0 [JZ 5] */
+        case 13: // prev = t0 [SUBI 2] | next = t0 [JZ 5]
             {
               EXPECT_EQ(3, simulator->threads[0].pc);
               EXPECT_EQ(word_t(-1), simulator->threads[0].accu);
@@ -498,7 +500,7 @@ TEST_F(Simulator_Test, run_race_condition)
 
               return &simulator->threads[0];
             }
-        case 14: /* prev = t0 [JZ 5] | next = t0 [EXIT 1] */
+        case 14: // prev = t0 [JZ 5] | next = t0 [EXIT 1]
             {
               EXPECT_EQ(4, simulator->threads[0].pc);
               EXPECT_EQ(word_t(-1), simulator->threads[0].accu);
@@ -509,7 +511,7 @@ TEST_F(Simulator_Test, run_race_condition)
 
               return &simulator->threads[0];
             }
-        case 15: /* last = t0 [EXIT 1] */
+        case 15: // last = t0 [EXIT 1]
             {
               EXPECT_EQ(4, simulator->threads[0].pc);
               EXPECT_EQ(word_t(-1), simulator->threads[0].accu);
@@ -530,7 +532,7 @@ TEST_F(Simulator_Test, run_race_condition)
         }
     };
 
-  /* run it */
+  // run it
   schedule = simulator->run(scheduler);
 
   EXPECT_EQ(15, step);
@@ -539,7 +541,7 @@ TEST_F(Simulator_Test, run_race_condition)
   EXPECT_EQ(Thread::State::halted, simulator->threads[1].state);
   EXPECT_EQ(Thread::State::halted, simulator->threads[2].state);
 
-  /* check Schedule */
+  // check Schedule
   ASSERT_EQ(1, schedule->exit);
 
   ASSERT_EQ(
@@ -588,7 +590,7 @@ TEST_F(Simulator_Test, run_race_condition)
     schedule->heap_updates);
 }
 
-TEST_F(Simulator_Test, run_zero_bound)
+TEST_F(Simulator, run_zero_bound)
 {
   program.push_back(Instruction::Set::create("JMP", 0));
 
@@ -596,7 +598,7 @@ TEST_F(Simulator_Test, run_zero_bound)
 
   bound_t step = 0;
 
-  function<Thread *()> scheduler = [&] () -> Thread *
+  std::function<Thread *()> scheduler = [&] () -> Thread *
     {
       switch (step++)
         {
@@ -612,7 +614,7 @@ TEST_F(Simulator_Test, run_zero_bound)
             }
         case 2:
             {
-              /* 3 iterations are enough ... */
+              // 3 iterations are enough ...
               simulator->bound = 1;
 
               EXPECT_EQ(0, simulator->threads[0].pc);
@@ -627,14 +629,14 @@ TEST_F(Simulator_Test, run_zero_bound)
         }
     };
 
-  /* run it */
+  // run it
   schedule = simulator->run(scheduler);
 
   EXPECT_EQ(step, 3);
 
   EXPECT_EQ(Thread::State::running, simulator->threads[0].state);
 
-  /* check Schedule */
+  // check Schedule
   ASSERT_EQ(0, schedule->exit);
 
   ASSERT_EQ(
@@ -668,38 +670,38 @@ TEST_F(Simulator_Test, run_zero_bound)
 
 // Simulator::simulate =========================================================
 
-TEST_F(Simulator_Test, simulate_increment_check)
+TEST_F(Simulator, simulate_increment_check)
 {
-  ifstream schedule_file("data/increment.check.t2.k16.schedule");
-  string expected((istreambuf_iterator<char>(schedule_file)),
-                   istreambuf_iterator<char>());
+  std::ifstream schedule_file("data/increment.check.t2.k16.schedule");
+  std::string expected((std::istreambuf_iterator<char>(schedule_file)),
+                        std::istreambuf_iterator<char>());
 
-  Program::List::ptr programs = make_shared<Program::List>();
+  Program::List::ptr programs = std::make_shared<Program::List>();
   programs->push_back(
     create_from_file<Program>("data/increment.check.thread.0.asm"));
   programs->push_back(
     create_from_file<Program>("data/increment.check.thread.n.asm"));
 
-  schedule = Simulator::simulate(programs, 16);
+  schedule = ::Simulator::simulate(programs, 16);
 
   ASSERT_EQ(0, schedule->exit);
   ASSERT_EQ(16, schedule->bound);
   ASSERT_EQ(expected, schedule->print());
 }
 
-TEST_F(Simulator_Test, simulate_increment_cas)
+TEST_F(Simulator, simulate_increment_cas)
 {
-  ifstream schedule_file("data/increment.cas.t2.k16.schedule");
-  string expected((istreambuf_iterator<char>(schedule_file)),
-                   istreambuf_iterator<char>());
+  std::ifstream schedule_file("data/increment.cas.t2.k16.schedule");
+  std::string expected((std::istreambuf_iterator<char>(schedule_file)),
+                        std::istreambuf_iterator<char>());
 
   Program increment = create_from_file<Program>("data/increment.cas.asm");
 
-  Program::List::ptr programs = make_shared<Program::List>();
+  Program::List::ptr programs = std::make_shared<Program::List>();
   programs->push_back(increment);
   programs->push_back(increment);
 
-  schedule = Simulator::simulate(programs, 16);
+  schedule = ::Simulator::simulate(programs, 16);
 
   ASSERT_EQ(0, schedule->exit);
   ASSERT_EQ(16, schedule->bound);
@@ -708,40 +710,42 @@ TEST_F(Simulator_Test, simulate_increment_cas)
 
 // Simulator::replay ===========================================================
 
-TEST_F(Simulator_Test, replay_increment_check)
+TEST_F(Simulator, replay_increment_check)
 {
-  string schedule_file = "data/increment.check.t2.k16.schedule";
+  std::string schedule_file = "data/increment.check.t2.k16.schedule";
 
-  ifstream sfs(schedule_file);
-  string expected((istreambuf_iterator<char>(sfs)),
-                   istreambuf_iterator<char>());
+  std::ifstream sfs(schedule_file);
+  std::string expected((std::istreambuf_iterator<char>(sfs)),
+                        std::istreambuf_iterator<char>());
   sfs.clear();
   sfs.seekg(0, std::ios::beg);
 
-  schedule = make_unique<Schedule>(sfs, schedule_file);
+  schedule = std::make_unique<Schedule>(sfs, schedule_file);
 
-  schedule = Simulator::replay(*schedule);
+  schedule = ::Simulator::replay(*schedule);
 
   ASSERT_EQ(0, schedule->exit);
   ASSERT_EQ(16, schedule->bound);
   ASSERT_EQ(expected, schedule->print());
 }
 
-TEST_F(Simulator_Test, replay_increment_cas)
+TEST_F(Simulator, replay_increment_cas)
 {
-  string schedule_file = "data/increment.cas.t2.k16.schedule";
+  std::string schedule_file = "data/increment.cas.t2.k16.schedule";
 
-  ifstream sfs(schedule_file);
-  string expected((istreambuf_iterator<char>(sfs)),
-                   istreambuf_iterator<char>());
+  std::ifstream sfs(schedule_file);
+  std::string expected((std::istreambuf_iterator<char>(sfs)),
+                        std::istreambuf_iterator<char>());
   sfs.clear();
   sfs.seekg(0, std::ios::beg);
 
-  schedule = make_unique<Schedule>(sfs, schedule_file);
+  schedule = std::make_unique<Schedule>(sfs, schedule_file);
 
-  schedule = Simulator::replay(*schedule);
+  schedule = ::Simulator::replay(*schedule);
 
   ASSERT_EQ(0, schedule->exit);
   ASSERT_EQ(16, schedule->bound);
   ASSERT_EQ(expected, schedule->print());
 }
+
+} // namespace test

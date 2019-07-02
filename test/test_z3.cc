@@ -4,47 +4,47 @@
 #include "parser.hh"
 #include "z3.hh"
 
-using namespace std;
+namespace test {
 
 //==============================================================================
 // Z3 tests
 //==============================================================================
 
-struct Z3_Test : public ::testing::Test
+struct Z3 : public ::testing::Test
 {
-  Z3 z3;
+  ::Z3 z3;
   Encoder::ptr encoder;
-  Program::List::ptr programs = make_shared<Program::List>();
+  Program::List::ptr programs = std::make_shared<Program::List>();
   Schedule::ptr schedule;
 };
 
-TEST_F(Z3_Test, sat)
+TEST_F(Z3, sat)
 {
-  string formula = "(assert true)(check-sat)";
+  std::string formula = "(assert true)(check-sat)";
 
   ASSERT_TRUE(z3.sat(formula));
 }
 
-TEST_F(Z3_Test, unsat)
+TEST_F(Z3, unsat)
 {
-  string formula = "(assert false)(check-sat)";
+  std::string formula = "(assert false)(check-sat)";
 
   ASSERT_FALSE(z3.sat(formula));
 }
 
-TEST_F(Z3_Test, solve_check)
+TEST_F(Z3, solve_check)
 {
-  /* concurrent increment using CHECK */
-  string constraints;
-  string increment_0 = "data/increment.check.thread.0.asm";
-  string increment_n = "data/increment.check.thread.n.asm";
+  // concurrent increment using CHECK
+  std::string constraints;
+  std::string increment_0 = "data/increment.check.thread.0.asm";
+  std::string increment_n = "data/increment.check.thread.n.asm";
 
-  programs = make_shared<Program::List>();
+  programs = std::make_shared<Program::List>();
 
   programs->push_back(create_from_file<Program>(increment_0));
   programs->push_back(create_from_file<Program>(increment_n));
 
-  encoder = make_unique<SMTLib_Encoder_Functional>(programs, 16);
+  encoder = std::make_unique<smtlib::Functional>(programs, 16);
 
   schedule = z3.solve(*encoder, constraints);
 
@@ -72,18 +72,18 @@ TEST_F(Z3_Test, solve_check)
     schedule->print());
 }
 
-TEST_F(Z3_Test, solve_cas)
+TEST_F(Z3, solve_cas)
 {
-  /* concurrent increment using CAS */
-  string constraints;
-  string increment = "data/increment.cas.asm";
+  // concurrent increment using CAS
+  std::string constraints;
+  std::string increment = "data/increment.cas.asm";
 
-  programs = make_shared<Program::List>();
+  programs = std::make_shared<Program::List>();
 
   programs->push_back(create_from_file<Program>(increment));
   programs->push_back(create_from_file<Program>(increment));
 
-  encoder = make_unique<SMTLib_Encoder_Functional>(programs, 16);
+  encoder = std::make_unique<smtlib::Functional>(programs, 16);
 
   schedule = z3.solve(*encoder, constraints);
 
@@ -110,3 +110,5 @@ TEST_F(Z3_Test, solve_cas)
     "1	LOOP	MEM	0	3	3	{}\n",
     schedule->print());
 }
+
+} // namespace test

@@ -5,23 +5,23 @@
 #include "parser.hh"
 #include "simulator.hh"
 
-using namespace std;
+namespace test {
 
 //==============================================================================
 // BtorMC tests
 //==============================================================================
 
-struct BtorMC_Test : public ::testing::Test
+struct BtorMC : public ::testing::Test
 {
-  BtorMC btormc = BtorMC(16);
+  ::BtorMC btormc = ::BtorMC(16);
   Encoder::ptr encoder;
-  Program::List::ptr programs = make_shared<Program::List>();
+  Program::List::ptr programs = std::make_shared<Program::List>();
   Schedule::ptr schedule;
 };
 
-TEST_F(BtorMC_Test, sat)
+TEST_F(BtorMC, sat)
 {
-  string formula =
+  std::string formula =
     "1 sort bitvec 1\n"
     "2 state 1 x\n"
     "3 bad 2\n";
@@ -37,9 +37,9 @@ TEST_F(BtorMC_Test, sat)
     btormc.std_out.str());
 }
 
-TEST_F(BtorMC_Test, unsat)
+TEST_F(BtorMC, unsat)
 {
-  string formula =
+  std::string formula =
     "1 sort bitvec 1\n"
     "2 state 1 x\n";
 
@@ -47,56 +47,56 @@ TEST_F(BtorMC_Test, unsat)
   ASSERT_EQ("", btormc.std_out.str());
 }
 
-TEST_F(BtorMC_Test, solve_check)
+TEST_F(BtorMC, solve_check)
 {
-  /* concurrent increment using CHECK */
-  string constraints;
-  string increment_0 = "data/increment.check.thread.0.asm";
-  string increment_n = "data/increment.check.thread.n.asm";
+  // concurrent increment using CHECK
+  std::string constraints;
+  std::string increment_0 = "data/increment.check.thread.0.asm";
+  std::string increment_n = "data/increment.check.thread.n.asm";
 
-  programs = make_shared<Program::List>();
+  programs = std::make_shared<Program::List>();
 
   programs->push_back(create_from_file<Program>(increment_0));
   programs->push_back(create_from_file<Program>(increment_n));
 
-  encoder = make_unique<Btor2_Encoder>(programs, 16);
+  encoder = std::make_unique<btor2::Encoder>(programs, 16);
 
   schedule = btormc.solve(*encoder, constraints);
 
   /*
-  cout << "scheduled threads" << eol;
+  std::cout << "scheduled threads" << eol;
   for (const auto & [step, thread] : schedule->thread_updates)
     {
-      cout << "\t{" << step << ", " << thread << "}" << eol;
+      std::cout << "\t{" << step << ", " << thread << "}" << eol;
     }
 
-  cout << "pc updates" << eol;
+  std::cout << "pc updates" << eol;
   unsigned long thread = 0;
   for (const auto & updates : schedule->pc_updates)
     {
       for (const auto & [step, val] : updates)
         {
-          cout << "\t" << thread << ": {" << step << ", " << val << "}" << eol;
+          std::cout << "\t" << thread << ": {" << step << ", " << val << "}" << eol;
         }
       thread++;
     }
 
-  cout << "accu updates" << eol;
+  std::cout << "accu updates" << eol;
   thread = 0;
   for (const auto & updates : schedule->accu_updates)
     {
       for (const auto & [step, val] : updates)
         {
-          cout << "\t" << thread << ": {" << step << ", " << val << "}" << eol;
+          std::cout << "\t" << thread << ": {" << step << ", " << val << "}" << eol;
         }
       thread++;
     }
 
-  cout << "heap updates" << eol;
+  std::cout << "heap updates" << eol;
   for (const auto & updates : schedule->heap_updates)
     for (const auto & [idx, val] : updates.second)
       {
-        cout << "\t{" << idx << ", " << val << "}" << eol;
+        std::cout << "\t{" << idx << ", " << val << "}" << eol;
       }
   */
 
@@ -124,17 +124,18 @@ TEST_F(BtorMC_Test, solve_check)
     "1	2	LOAD	0	2	0	{}\n",
     schedule->print());
 
-  ofstream file {"/tmp/test.schedule"};
+  std::ofstream file {"/tmp/test.schedule"};
   file << schedule->print();
   file.close();
 
   Schedule::ptr parsed =
-    make_unique<Schedule>(create_from_file<Schedule>("/tmp/test.schedule"));
+    std::make_unique<Schedule>(
+      create_from_file<Schedule>("/tmp/test.schedule"));
 
-  vector<vector<pair<bound_t, word_t>>> pc_diff;
+  std::vector<std::vector<std::pair<bound_t, word_t>>> pc_diff;
   for (size_t t = 0; t < schedule->pc_updates.size(); t++)
     {
-      vector<pair<bound_t, word_t>> diff;
+      std::vector<std::pair<bound_t, word_t>> diff;
 
       std::set_symmetric_difference(
         schedule->pc_updates[t].begin(), schedule->pc_updates[t].end(),
@@ -144,12 +145,15 @@ TEST_F(BtorMC_Test, solve_check)
       pc_diff.push_back(diff);
     }
 
-  cout << "pc diff" << eol;
+  std::cout << "pc diff" << eol;
   word_t thread = 0;
   for (const auto & updates : pc_diff)
     {
       for (const auto & [step, val] : updates)
-        cout << "\t" << thread << ": {" << step << ", " << val << "}" << eol;
+        std::cout
+          << "\t" << thread << ": {" << step << ", " << val << "}"
+          << eol;
+
       thread++;
     }
 
@@ -162,18 +166,18 @@ TEST_F(BtorMC_Test, solve_check)
   ASSERT_EQ(*simulated, *schedule);
 }
 
-TEST_F(BtorMC_Test, DISABLED_solve_cas)
+TEST_F(BtorMC, DISABLED_solve_cas)
 {
-  /* concurrent increment using CAS */
-  string constraints;
-  string increment = "data/increment.cas.asm";
+  // concurrent increment using CAS
+  std::string constraints;
+  std::string increment = "data/increment.cas.asm";
 
-  programs = make_shared<Program::List>();
+  programs = std::make_shared<Program::List>();
 
   programs->push_back(create_from_file<Program>(increment));
   programs->push_back(create_from_file<Program>(increment));
 
-  encoder = make_unique<Btor2_Encoder>(programs, 16);
+  encoder = std::make_unique<btor2::Encoder>(programs, 16);
 
   schedule = btormc.solve(*encoder, constraints);
 
@@ -201,3 +205,5 @@ TEST_F(BtorMC_Test, DISABLED_solve_cas)
     // "1	3	ADDI	1	3	2	{}\n",
     schedule->print());
 }
+
+} // namespace test

@@ -4,66 +4,105 @@
 #include "parser.hh"
 #include "shell.hh"
 
-using namespace std;
+//==============================================================================
+// Solver
+//==============================================================================
 
-string Solver::build_formula (Encoder & formula, string & constraints)
+// Solver::parse_attribute -----------------------------------------------------
+
+bound_t Solver::parse_attribute (
+                                 std::istringstream & line,
+                                 const std::string & name,
+                                 const char delimiter
+                                )
+{
+  std::string token;
+
+  if (!getline(line, token, delimiter))
+    throw std::runtime_error("missing " + name);
+
+  try
+    {
+      return stoul(token);
+    }
+  catch (...)
+    {
+      throw std::runtime_error("illegal " + name + " [" + token + "]");
+    }
+}
+
+// Solver::build_formula -------------------------------------------------------
+
+std::string Solver::build_formula (Encoder & formula,
+                                   const std::string & constraints)
 {
   return formula.str() + eol + (constraints.empty() ? "" : constraints + eol);
 }
 
-bool ExternalSolver::sat (string & input)
+//==============================================================================
+// External
+//==============================================================================
+
+// External::sat ---------------------------------------------------------------
+
+bool External::sat (const std::string & input)
 {
   Shell shell;
 
   std_out = shell.run(build_command(), input);
 
-  string sat;
+  std::string sat;
 
   return (std_out >> sat) && sat == "sat";
 }
 
-#include <iostream>
-Schedule::ptr ExternalSolver::solve (Encoder & formula, string & constraints)
+// External::solve -------------------------------------------------------------
+
+Schedule::ptr External::solve (Encoder & formula,
+                                      const std::string & constraints)
 {
-  string input = build_formula(formula, constraints);
+  std::string input = build_formula(formula, constraints);
 
   sat(input);
 
-  unique_ptr<Schedule> s = build_schedule(formula.programs);
+  std::unique_ptr<Schedule> s = build_schedule(formula.programs);
 
   return s;
 
   // return build_schedule(formula.programs);
 }
 
-Schedule::ptr ExternalSolver::build_schedule (const Program::List::ptr & programs)
+// External::build_schedule ----------------------------------------------------
+
+Schedule::ptr
+External::build_schedule (const Program::List::ptr & programs)
 {
   // not really needed
   if (!std_out.rdbuf()->in_avail())
-    throw runtime_error(": missing model");
+    throw std::runtime_error(": missing model");
 
-  string sat;
+  std::string sat;
 
-  /* ensure that formula is sat */
+  // ensure that formula is sat
   // if (!(std_out >> sat) || sat != "sat")
     // runtime_error("formula is not sat [" + sat + "]");
 
-  Schedule::ptr schedule = make_unique<Schedule>(programs);
+  Schedule::ptr schedule = std::make_unique<Schedule>(programs);
 
-  /* current line number */
+  // current line number
   size_t lineno = 2;
 
-  for (string line_buf; getline(std_out >> std::ws, line_buf); lineno++)
+  for (std::string line_buf; getline(std_out >> std::ws, line_buf); lineno++)
     {
-      /* skip empty lines */
+      // skip empty lines
       if (line_buf.empty())
         continue;
 
-      istringstream line(line_buf);
+      std::istringstream line(line_buf);
 
       try
         {
-          optional<Variable> variable = parse_line(line);
+          std::optional<Variable> variable = parse_line(line);
 
           if (variable)
             {
@@ -113,7 +152,7 @@ Schedule::ptr ExternalSolver::build_schedule (const Program::List::ptr & program
                 }
             }
         }
-      catch (const exception & e)
+      catch (const std::exception & e)
         {
           parser_error(name(), lineno, e.what());
         }
@@ -122,36 +161,17 @@ Schedule::ptr ExternalSolver::build_schedule (const Program::List::ptr & program
   return schedule;
 }
 
-bound_t Solver::parse_attribute (
-                                 istringstream & line,
-                                 const string name,
-                                 const char delimiter
-                                )
+// External::parse_variable ----------------------------------------------------
+
+std::optional<External::Variable>
+External::parse_variable (std::istringstream & line)
 {
-  string token;
+  std::optional<Variable> variable {Variable()};
 
-  if (!getline(line, token, delimiter))
-    throw runtime_error("missing " + name);
+  std::string name;
 
-  try
-    {
-      return stoul(token);
-    }
-  catch (...)
-    {
-      throw runtime_error("illegal " + name + " [" + token + "]");
-    }
-}
-
-optional<ExternalSolver::Variable>
-ExternalSolver::parse_variable (istringstream & line)
-{
-  optional<Variable> variable {Variable()};
-
-  string name;
-
-  if (!getline(line >> ws, name, '_'))
-    throw runtime_error("missing variable");
+  if (!getline(line >> std::ws, name, '_'))
+    throw std::runtime_error("missing variable");
 
   if (name == Encoder::thread_sym)
     {

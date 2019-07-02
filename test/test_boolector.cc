@@ -5,88 +5,88 @@
 #include "parser.hh"
 #include "simulator.hh"
 
-using namespace std;
+namespace test {
 
 //==============================================================================
 // Boolector tests
 //==============================================================================
 
-struct Boolector_Test : public ::testing::Test
+struct Boolector : public ::testing::Test
 {
-  string constraints;
-  Boolector boolector;
+  std::string constraints;
+  ::Boolector boolector;
   Encoder::ptr encoder;
-  Program::List::ptr programs = make_shared<Program::List>();
+  Program::List::ptr programs = std::make_shared<Program::List>();
   Schedule::ptr schedule;
 };
 
-TEST_F(Boolector_Test, sat)
+TEST_F(Boolector, sat)
 {
-  string formula = "(assert true)(check-sat)";
+  std::string formula = "(assert true)(check-sat)";
 
   ASSERT_TRUE(boolector.sat(formula));
 
   ASSERT_EQ("sat\n", boolector.std_out.str());
 }
 
-TEST_F(Boolector_Test, unsat)
+TEST_F(Boolector, unsat)
 {
-  string formula = "(assert false)(check-sat)";
+  std::string formula = "(assert false)(check-sat)";
 
   ASSERT_FALSE(boolector.sat(formula));
 
   ASSERT_EQ("unsat\n", boolector.std_out.str());
 }
 
-TEST_F(Boolector_Test, solve_check)
+TEST_F(Boolector, solve_check)
 {
-  /* concurrent increment using CHECK */
-  string increment_0 = "data/increment.check.thread.0.asm";
-  string increment_n = "data/increment.check.thread.n.asm";
+  // concurrent increment using CHECK
+  std::string increment_0 = "data/increment.check.thread.0.asm";
+  std::string increment_n = "data/increment.check.thread.n.asm";
 
-  programs = make_shared<Program::List>();
+  programs = std::make_shared<Program::List>();
 
   programs->push_back(create_from_file<Program>(increment_0));
   programs->push_back(create_from_file<Program>(increment_n));
 
-  encoder = make_unique<SMTLib_Encoder_Functional>(programs, 16);
+  encoder = std::make_unique<smtlib::Functional>(programs, 16);
 
   schedule = boolector.solve(*encoder, constraints);
 
   /*
-  cout << "scheduled threads" << eol;
+  std::cout << "scheduled threads" << eol;
   for (const auto & [step, thread] : schedule->thread_updates)
     {
-      cout << "\t{" << step << ", " << thread << "}" << eol;
+      std::cout << "\t{" << step << ", " << thread << "}" << eol;
     }
 
-  cout << "pc updates" << eol;
+  std::cout << "pc updates" << eol;
   unsigned long thread = 0;
   for (const auto & updates : schedule->pc_updates)
     {
       for (const auto & [step, val] : updates)
         {
-          cout << "\t" << thread << ": {" << step << ", " << val << "}" << eol;
+          std::cout << "\t" << thread << ": {" << step << ", " << val << "}" << eol;
         }
       thread++;
     }
 
-  cout << "accu updates" << eol;
+  std::cout << "accu updates" << eol;
   thread = 0;
   for (const auto & updates : schedule->accu_updates)
     {
       for (const auto & [step, val] : updates)
         {
-          cout << "\t" << thread << ": {" << step << ", " << val << "}" << eol;
+          std::cout << "\t" << thread << ": {" << step << ", " << val << "}" << eol;
         }
       thread++;
     }
 
-  cout << "heap updates" << eol;
+  std::cout << "heap updates" << eol;
   for (const auto & updates : schedule->heap_updates)
     for (const auto & [idx, val] : updates.second)
       {
-        cout << "\t{" << idx << ", " << val << "}" << eol;
+        std::cout << "\t{" << idx << ", " << val << "}" << eol;
       }
   */
 
@@ -113,17 +113,18 @@ TEST_F(Boolector_Test, solve_check)
     "1	1	CHECK	1	2	0	{}\n",
     schedule->print());
 
-  ofstream file {"/tmp/test.schedule"};
+  std::ofstream file {"/tmp/test.schedule"};
   file << schedule->print();
   file.close();
 
   Schedule::ptr parsed =
-    make_unique<Schedule>(create_from_file<Schedule>("/tmp/test.schedule"));
+    std::make_unique<Schedule>(
+      create_from_file<Schedule>("/tmp/test.schedule"));
 
-  vector<vector<pair<bound_t, word_t>>> pc_diff;
+  std::vector<std::vector<std::pair<bound_t, word_t>>> pc_diff;
   for (size_t t = 0; t < schedule->pc_updates.size(); t++)
     {
-      vector<pair<bound_t, word_t>> diff;
+      std::vector<std::pair<bound_t, word_t>> diff;
 
       std::set_symmetric_difference(
         schedule->pc_updates[t].begin(), schedule->pc_updates[t].end(),
@@ -133,12 +134,15 @@ TEST_F(Boolector_Test, solve_check)
       pc_diff.push_back(diff);
     }
 
-  cout << "pc diff" << eol;
+  std::cout << "pc diff" << eol;
   word_t thread = 0;
   for (const auto & updates : pc_diff)
     {
       for (const auto & [step, val] : updates)
-        cout << "\t" << thread << ": {" << step << ", " << val << "}" << eol;
+        std::cout
+          << "\t" << thread << ": {" << step << ", " << val << "}"
+          << eol;
+
       thread++;
     }
 
@@ -151,17 +155,17 @@ TEST_F(Boolector_Test, solve_check)
   ASSERT_EQ(*simulated, *schedule);
 }
 
-TEST_F(Boolector_Test, DISABLED_solve_cas)
+TEST_F(Boolector, DISABLED_solve_cas)
 {
-  /* concurrent increment using CAS */
-  string increment = "data/increment.cas.asm";
+  // concurrent increment using CAS
+  std::string increment = "data/increment.cas.asm";
 
-  programs = make_shared<Program::List>();
+  programs = std::make_shared<Program::List>();
 
   programs->push_back(create_from_file<Program>(increment));
   programs->push_back(create_from_file<Program>(increment));
 
-  encoder = make_unique<SMTLib_Encoder_Functional>(programs, 16);
+  encoder = std::make_unique<smtlib::Functional>(programs, 16);
 
   schedule = boolector.solve(*encoder, constraints);
 
@@ -189,15 +193,17 @@ TEST_F(Boolector_Test, DISABLED_solve_cas)
     schedule->print());
 }
 
-TEST_F(Boolector_Test, encode_deadlock)
+TEST_F(Boolector, encode_deadlock)
 {
-  /* deadlock after 3 steps -> unsat */
+  // deadlock after 3 steps -> unsat
   programs->push_back(create_from_file<Program>("data/deadlock.thread.0.asm"));
   programs->push_back(create_from_file<Program>("data/deadlock.thread.1.asm"));
 
-  encoder = make_unique<SMTLib_Encoder_Functional>(programs, 3);
+  encoder = std::make_unique<smtlib::Functional>(programs, 3);
 
-  string formula = encoder->str();
+  std::string formula = encoder->str();
 
   ASSERT_FALSE(boolector.sat(formula));
 }
+
+} // namespace test

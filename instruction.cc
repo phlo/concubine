@@ -6,19 +6,6 @@
 #include "simulator.hh"
 
 //==============================================================================
-// using declarations
-//==============================================================================
-
-using std::string;
-
-using std::unique_ptr;
-using std::make_unique;
-
-using std::is_base_of;
-
-using std::runtime_error;
-
-//==============================================================================
 // Instruction::Set
 //==============================================================================
 
@@ -26,15 +13,15 @@ using std::runtime_error;
 // static members
 //------------------------------------------------------------------------------
 
-unique_ptr<Instruction::Set::nullary_t> Instruction::Set::nullary;
-unique_ptr<Instruction::Set::unary_t> Instruction::Set::unary;
-unique_ptr<Instruction::Set::memory_t> Instruction::Set::memory;
+std::unique_ptr<Instruction::Set::nullary_t> Instruction::Set::nullary;
+std::unique_ptr<Instruction::Set::unary_t> Instruction::Set::unary;
+std::unique_ptr<Instruction::Set::memory_t> Instruction::Set::memory;
 
 //------------------------------------------------------------------------------
 // static member functions
 //------------------------------------------------------------------------------
 
-bool Instruction::Set::contains (const string & symbol)
+bool Instruction::Set::contains (const std::string & symbol)
 {
   if (nullary->find(symbol) != nullary->end())
     return true;
@@ -49,10 +36,10 @@ bool Instruction::Set::contains (const string & symbol)
 }
 
 template <class POD>
-const string & Instruction::Set::add_nullary (const string && symbol)
+const std::string & Instruction::Set::add_nullary (const std::string && symbol)
 {
   if (!nullary)
-    nullary = make_unique<nullary_t>();
+    nullary = std::make_unique<nullary_t>();
 
   return
     nullary->emplace(
@@ -62,10 +49,10 @@ const string & Instruction::Set::add_nullary (const string && symbol)
 }
 
 template <class POD>
-const string & Instruction::Set::add_unary (const string && symbol)
+const std::string & Instruction::Set::add_unary (const std::string && symbol)
 {
   if (!unary)
-    unary = make_unique<unary_t>();
+    unary = std::make_unique<unary_t>();
 
   return
     unary->emplace(
@@ -75,12 +62,12 @@ const string & Instruction::Set::add_unary (const string && symbol)
 }
 
 template <class POD>
-const string & Instruction::Set::add_memory (const string && symbol)
+const std::string & Instruction::Set::add_memory (const std::string && symbol)
 {
-  add_unary<POD>(string {symbol});
+  add_unary<POD>(std::string {symbol});
 
   if (!memory)
-    memory = make_unique<memory_t>();
+    memory = std::make_unique<memory_t>();
 
   return
     memory->emplace(
@@ -89,28 +76,29 @@ const string & Instruction::Set::add_memory (const string && symbol)
     .first->first;
 }
 
-Instruction Instruction::Set::create (const string & symbol)
+Instruction Instruction::Set::create (const std::string & symbol)
 {
   if (nullary->find(symbol) == nullary->end())
-    throw runtime_error("Instruction '" + symbol + "' unknown");
+    throw std::runtime_error("Instruction '" + symbol + "' unknown");
 
   return (*nullary)[symbol]();
 }
 
-Instruction Instruction::Set::create (const string & symbol, const word_t arg)
+Instruction Instruction::Set::create (const std::string & symbol,
+                                      const word_t arg)
 {
   if (unary->find(symbol) == unary->end())
-    throw runtime_error("Instruction '" + symbol + "' unknown");
+    throw std::runtime_error("Instruction '" + symbol + "' unknown");
 
   return (*unary)[symbol](arg);
 }
 
-Instruction Instruction::Set::create (const string & symbol,
+Instruction Instruction::Set::create (const std::string & symbol,
                                       const word_t arg,
                                       const bool indirect)
 {
   if (memory->find(symbol) == memory->end())
-    throw runtime_error("Instruction '" + symbol + "' unknown");
+    throw std::runtime_error("Instruction '" + symbol + "' unknown");
 
   return (*memory)[symbol](arg, indirect);
 }
@@ -133,11 +121,11 @@ struct Model : public Instruction::Concept
   Model (const T & p) : pod(p) {}
   // Model (const T && pod) : obj(move(pod)) {}
 
-  virtual pointer clone () const { return make_unique<Model<T>>(pod); }
+  virtual pointer clone () const { return std::make_unique<Model<T>>(pod); }
 
-  virtual bool is_nullary () const { return is_base_of<Nullary, T>(); }
-  virtual bool is_unary () const { return is_base_of<Unary, T>(); }
-  virtual bool is_memory () const { return is_base_of<Memory, T>(); }
+  virtual bool is_nullary () const { return std::is_base_of<Nullary, T>(); }
+  virtual bool is_unary () const { return std::is_base_of<Unary, T>(); }
+  virtual bool is_memory () const { return std::is_base_of<Memory, T>(); }
   virtual bool is_jump () const { return pod.type & Instruction::Type::jump; }
 
   virtual bool requires_flush () const
@@ -145,7 +133,7 @@ struct Model : public Instruction::Concept
       return pod.type & (Instruction::Type::write | Instruction::Type::barrier);
     }
 
-  virtual const string & symbol () const { return pod.symbol; }
+  virtual const std::string & symbol () const { return pod.symbol; }
 
   virtual uint8_t type () const { return pod.type; }
   virtual void type (uint8_t type) { pod.type = type; }
@@ -154,7 +142,7 @@ struct Model : public Instruction::Concept
   virtual bool indirect () const { const Memory & m = *this; return m.indirect; }
 
   virtual void execute (Thread & t) const { t.execute(pod); }
-  virtual string encode (Encoder & e) const { return e.encode(pod); }
+  virtual std::string encode (Encoder & e) const { return e.encode(pod); }
 
   virtual operator const Unary & () const
     {
@@ -179,7 +167,7 @@ struct Model : public Instruction::Concept
 
 template <class T>
 Instruction::Instruction (const T & pod) :
-  model(make_unique<Model<T>>(pod))
+  model(std::make_unique<Model<T>>(pod))
 {}
 
 Instruction::Instruction (const Instruction & other) :
@@ -197,7 +185,7 @@ bool Instruction::is_jump () const { return model->is_jump(); }
 
 bool Instruction::requires_flush () const { return model->requires_flush(); }
 
-const string & Instruction::symbol () const { return model->symbol(); }
+const std::string & Instruction::symbol () const { return model->symbol(); }
 
 uint8_t Instruction::type () const { return model->type(); }
 void Instruction::type (uint8_t t) { model->type(t); }
@@ -206,7 +194,7 @@ word_t Instruction::arg () const { return model->arg(); }
 bool Instruction::indirect () const { return model->indirect(); }
 
 void Instruction::execute (Thread & t) const { model->execute(t); }
-string Instruction::encode (Encoder & e) const { return model->encode(e); }
+std::string Instruction::encode (Encoder & e) const { return model->encode(e); }
 
 //------------------------------------------------------------------------------
 // member operators

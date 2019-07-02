@@ -4,68 +4,67 @@
 
 #include "parser.hh"
 
-using namespace std;
+std::string Boolector::name () const { return "boolector"; }
 
-string Boolector::name () const { return "boolector"; }
-
-string Boolector::build_command ()
+std::string Boolector::build_command ()
 {
   // return "boolector --model-gen --output-number-format=dec";
   return "boolector --model-gen";
 }
 
-optional<Boolector::Variable> Boolector::parse_line (istringstream & line)
+std::optional<Boolector::Variable>
+Boolector::parse_line (std::istringstream & line)
 {
-  string token;
+  std::string token;
 
   uint64_t nid;
 
   word_t adr = 0, val = 0;
 
-  /* parse node id */
+  // parse node id
   if (!(line >> nid))
     {
       line >> token;
-      throw runtime_error("parsing node id failed [" + token + ']');
+      throw std::runtime_error("parsing node id failed [" + token + ']');
     }
 
-  /* parse value */
+  // parse value
   if (!(line >> token))
-    throw runtime_error("missing value");
+    throw std::runtime_error("missing value");
 
   try
     {
       val = stoul(token, nullptr, 2);
     }
-  catch (const logic_error &)
+  catch (const std::logic_error &)
     {
-      /* array element index */
+      // array element index
       try
         {
           token = token.substr(1, token.size() - 2);
           adr = stoul(token, nullptr, 2);
         }
-      catch (const logic_error &)
+      catch (const std::logic_error &)
         {
-          throw runtime_error("illegal array index [" + token + "]");
+          throw std::runtime_error("illegal array index [" + token + "]");
         }
 
-      /* array element value */
+      // array element value
       if (!(line >> token))
-        throw runtime_error("missing array value");
+        throw std::runtime_error("missing array value");
 
       try
         {
           val = stoul(token, nullptr, 2);
         }
-      catch (const logic_error &)
+      catch (const std::logic_error &)
         {
-          throw runtime_error("illegal array value [" + token + "]");
+          throw std::runtime_error("illegal array value [" + token + "]");
         }
     }
 
-  /* parse variable */
-  optional<Variable> variable = parse_variable(line);
+  // parse variable
+  std::optional<Variable> variable = parse_variable(line);
 
   /*
   if (variable && variable->type == Variable::Type::EXEC && val)

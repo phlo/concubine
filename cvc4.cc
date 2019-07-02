@@ -2,16 +2,15 @@
 
 #include "smtlib.hh"
 
-using namespace std;
+std::string CVC4::name () const { return "cvc4"; }
 
-string CVC4::name () const { return "cvc4"; }
-
-string CVC4::build_command ()
+std::string CVC4::build_command ()
 {
   return "cvc4 -L smt2 -m --output-lang=cvc4";
 }
 
-string CVC4::build_formula (Encoder & formula, string & constraints)
+std::string CVC4::build_formula (Encoder & formula,
+                                 const std::string & constraints)
 {
   return
     Solver::build_formula(formula, constraints) +
@@ -19,7 +18,7 @@ string CVC4::build_formula (Encoder & formula, string & constraints)
     smtlib::get_model();
 }
 
-optional<CVC4::Variable> CVC4::parse_line (istringstream & line)
+std::optional<CVC4::Variable> CVC4::parse_line (std::istringstream & line)
 {
   // TODO
   (void) line;

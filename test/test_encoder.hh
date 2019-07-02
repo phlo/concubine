@@ -3,8 +3,8 @@
 #include "encoder.hh"
 #include "parser.hh"
 
-namespace Test
-{
+namespace test::encoder {
+
 template <class E, class Impl = E>
 struct Encoder: public ::testing::Test
 {
@@ -75,11 +75,9 @@ struct Encoder: public ::testing::Test
           ));
     }
 
-  void encode (
-               const std::initializer_list<std::string> _programs,
+  void encode (const std::initializer_list<std::string> _programs,
                const std::string file,
-               const bound_t bound
-              )
+               const bound_t bound)
     {
       const char * data = "data/";
 
@@ -103,4 +101,5 @@ struct Encoder: public ::testing::Test
       ASSERT_EQ(expected, encoder->str());
     }
 };
-}
+
+} // namespace test::encoder
