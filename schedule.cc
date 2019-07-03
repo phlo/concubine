@@ -139,7 +139,7 @@ Schedule::Schedule(std::istream & file, const std::string & path) :
 
       bool flush = symbol == "FLUSH";
 
-      if (!flush && !Instruction::Set::contains(symbol.c_str()))
+      if (!flush && !Instruction::contains(symbol))
         parser_error(path, line_num, "unknown instruction [" + symbol + "]");
 
       // parse instruction argument

@@ -77,6 +77,10 @@ struct Program : public std::vector<Instruction>
 
   using std::vector<Instruction>::vector; // inherit constructors
 
+  // default constructor
+  //
+  Program ();
+
   // construct from file
   //
   Program (std::istream & file, const std::string & path);

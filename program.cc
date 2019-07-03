@@ -21,6 +21,8 @@
 // constructors
 //------------------------------------------------------------------------------
 
+Program::Program () : std::vector<Instruction>(), set_memory_barrier(false) {}
+
 Program::Program(std::istream & f, const std::string & p) :
   path(p),
   set_memory_barrier(false)
@@ -70,7 +72,7 @@ Program::Program(std::istream & f, const std::string & p) :
       // parse instruction
       if (line.eof())
         {
-          try { cmd = Instruction::Set::create(symbol.c_str()); }
+          try { cmd = Instruction::create(symbol); }
           catch (...) { UNKNOWN_INSTRUCTION_ERROR(); }
         }
       else
@@ -80,7 +82,7 @@ Program::Program(std::istream & f, const std::string & p) :
           // try to parse the argument
           if (line >> arg)
             {
-              try { cmd = Instruction::Set::create(symbol.c_str(), arg); }
+              try { cmd = Instruction::create(symbol, arg); }
               catch (...) { UNKNOWN_INSTRUCTION_ERROR(); }
             }
           // label or indirect addressing
@@ -108,12 +110,12 @@ Program::Program(std::istream & f, const std::string & p) :
                         "indirect addressing does not support labels");
                     }
 
-                  try { cmd = Instruction::Set::create(symbol.c_str(), arg); }
+                  try { cmd = Instruction::create(symbol, arg); }
                   catch (...) { UNKNOWN_INSTRUCTION_ERROR(); }
 
                   // check if the instruction supports indirect addresses
                   if (cmd.is_memory())
-                    cmd = Instruction::Set::create(symbol.c_str(), arg, true);
+                    cmd = Instruction::create(symbol, arg, true);
                   else
                     INSTRUCTION_ERROR("does not support indirect addressing");
                 }
@@ -122,7 +124,7 @@ Program::Program(std::istream & f, const std::string & p) :
                 {
                   // create dummy Instruction which will be replaced by the
                   // actual one when all labels are known
-                  try { cmd = Instruction::Set::create(symbol.c_str(), word_max); }
+                  try { cmd = Instruction::create(symbol, word_max); }
                   catch (...) { UNKNOWN_INSTRUCTION_ERROR(); }
 
                   // check if the instruction supports labels (is a jmp)
@@ -157,7 +159,7 @@ Program::Program(std::istream & f, const std::string & p) :
       {
         // check if label exists and replace dummy
         (*this)[pc] =
-          Instruction::Set::create(sym.c_str(), label_to_pc.at(label));
+          Instruction::create(sym, label_to_pc.at(label));
       }
     catch (...)
       {
@@ -324,7 +326,7 @@ std::string Program::print (const bool include_pc, const word_t pc) const
 //==============================================================================
 
 // equality --------------------------------------------------------------------
-
+//
 bool operator == (const Program & a, const Program & b)
 {
   if (a.size() != b.size())

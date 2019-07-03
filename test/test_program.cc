@@ -329,11 +329,11 @@ TEST_F(Program, parse_predecessors_halt)
 
 TEST_F(Program, push_back)
 {
-  program.push_back(Instruction::Set::create("ADD", 1));
+  program.push_back(Instruction::create("ADD", 1));
   ASSERT_EQ(1, program.size());
   ASSERT_EQ(0, program.checkpoints.size());
 
-  program.push_back(Instruction::Set::create("CHECK", 1));
+  program.push_back(Instruction::create("CHECK", 1));
   ASSERT_EQ(2, program.size());
   ASSERT_EQ(1, program.checkpoints.size());
   ASSERT_TRUE(program.checkpoints.find(1) != program.checkpoints.end());
@@ -395,12 +395,12 @@ TEST_F(Program, operator_equals)
   ::Program p1, p2;
 
   p1.path = "program_1.asm";
-  p1.push_back(Instruction::Set::create("LOAD", 1));
-  p1.push_back(Instruction::Set::create("ADDI", 1));
+  p1.push_back(Instruction::create("LOAD", 1));
+  p1.push_back(Instruction::create("ADDI", 1));
 
   p2.path = "program_1.asm";
-  p2.push_back(Instruction::Set::create("LOAD", 1));
-  p2.push_back(Instruction::Set::create("ADDI", 1));
+  p2.push_back(Instruction::create("LOAD", 1));
+  p2.push_back(Instruction::create("ADDI", 1));
 
   ASSERT_TRUE(p1 == p2);
 
@@ -410,12 +410,12 @@ TEST_F(Program, operator_equals)
   ASSERT_TRUE(p1 == p2);
 
   // different size
-  p1.push_back(Instruction::Set::create("STORE", 1));
+  p1.push_back(Instruction::create("STORE", 1));
 
   ASSERT_TRUE(p1 != p2);
 
   // different instructions
-  p2.push_back(Instruction::Set::create("JNZ", 0));
+  p2.push_back(Instruction::create("JNZ", 0));
 
   ASSERT_TRUE(p1 != p2);
 }

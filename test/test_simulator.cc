@@ -35,7 +35,7 @@ TEST_F(Simulator, create_thread)
   ASSERT_TRUE(simulator->threads_per_checkpoint.empty());
   ASSERT_TRUE(simulator->waiting_for_checkpoint.empty());
 
-  program.push_back(Instruction::Set::create("ADDI", 1));
+  program.push_back(Instruction::create("ADDI", 1));
 
   simulator->create_thread(program);
 
@@ -45,7 +45,7 @@ TEST_F(Simulator, create_thread)
   ASSERT_TRUE(simulator->threads_per_checkpoint.empty());
   ASSERT_TRUE(simulator->waiting_for_checkpoint.empty());
 
-  program.push_back(Instruction::Set::create("CHECK", 1));
+  program.push_back(Instruction::create("CHECK", 1));
 
   simulator->create_thread(program);
 
@@ -64,7 +64,7 @@ TEST_F(Simulator, create_thread)
 
 TEST_F(Simulator, run_simple)
 {
-  program.push_back(Instruction::Set::create("ADDI", 1));
+  program.push_back(Instruction::create("ADDI", 1));
 
   create_simulator({program, program});
 
@@ -155,9 +155,9 @@ TEST_F(Simulator, run_simple)
 
 TEST_F(Simulator, run_add_check_exit)
 {
-  program.push_back(Instruction::Set::create("ADDI", 1));
-  program.push_back(Instruction::Set::create("CHECK", 1));
-  program.push_back(Instruction::Set::create("EXIT", 1));
+  program.push_back(Instruction::create("ADDI", 1));
+  program.push_back(Instruction::create("CHECK", 1));
+  program.push_back(Instruction::create("EXIT", 1));
 
   create_simulator({program, program});
 
@@ -276,19 +276,19 @@ TEST_F(Simulator, run_add_check_exit)
 
 TEST_F(Simulator, run_race_condition)
 {
-  program.push_back(Instruction::Set::create("LOAD", 1));
-  program.push_back(Instruction::Set::create("ADDI", 1));
-  program.push_back(Instruction::Set::create("STORE", 1));
-  program.push_back(Instruction::Set::create("CHECK", 1));
+  program.push_back(Instruction::create("LOAD", 1));
+  program.push_back(Instruction::create("ADDI", 1));
+  program.push_back(Instruction::create("STORE", 1));
+  program.push_back(Instruction::create("CHECK", 1));
 
   Program checker;
 
-  checker.push_back(Instruction::Set::create("CHECK", 1));
-  checker.push_back(Instruction::Set::create("LOAD", 1));
-  checker.push_back(Instruction::Set::create("SUBI", 2));
-  checker.push_back(Instruction::Set::create("JZ", 5));
-  checker.push_back(Instruction::Set::create("EXIT", 1));
-  checker.push_back(Instruction::Set::create("EXIT", 0));
+  checker.push_back(Instruction::create("CHECK", 1));
+  checker.push_back(Instruction::create("LOAD", 1));
+  checker.push_back(Instruction::create("SUBI", 2));
+  checker.push_back(Instruction::create("JZ", 5));
+  checker.push_back(Instruction::create("EXIT", 1));
+  checker.push_back(Instruction::create("EXIT", 0));
 
   create_simulator({checker, program, program});
 
@@ -592,7 +592,7 @@ TEST_F(Simulator, run_race_condition)
 
 TEST_F(Simulator, run_zero_bound)
 {
-  program.push_back(Instruction::Set::create("JMP", 0));
+  program.push_back(Instruction::create("JMP", 0));
 
   create_simulator({program});
 

@@ -1077,20 +1077,20 @@ TEST_F(Schedule, operator_equals)
   Program::List::ptr p2 = std::make_unique<Program::List>(2);
 
   p1->at(0).path = "program_1.asm";
-  p1->at(0).push_back(Instruction::Set::create("STORE", 1));
-  p1->at(0).push_back(Instruction::Set::create("ADDI", 1));
+  p1->at(0).push_back(Instruction::create("STORE", 1));
+  p1->at(0).push_back(Instruction::create("ADDI", 1));
 
   p1->at(1).path = "program_2.asm";
-  p1->at(1).push_back(Instruction::Set::create("STORE", 1));
-  p1->at(1).push_back(Instruction::Set::create("ADDI", 1));
+  p1->at(1).push_back(Instruction::create("STORE", 1));
+  p1->at(1).push_back(Instruction::create("ADDI", 1));
 
   p2->at(0).path = "program_1.asm";
-  p2->at(0).push_back(Instruction::Set::create("STORE", 1));
-  p2->at(0).push_back(Instruction::Set::create("ADDI", 1));
+  p2->at(0).push_back(Instruction::create("STORE", 1));
+  p2->at(0).push_back(Instruction::create("ADDI", 1));
 
   p2->at(1).path = "program_2.asm";
-  p2->at(1).push_back(Instruction::Set::create("STORE", 1));
-  p2->at(1).push_back(Instruction::Set::create("ADDI", 1));
+  p2->at(1).push_back(Instruction::create("STORE", 1));
+  p2->at(1).push_back(Instruction::create("ADDI", 1));
 
   ::Schedule s1(p1);
   ::Schedule s2(p2);
@@ -1132,11 +1132,11 @@ TEST_F(Schedule, operator_equals)
   ASSERT_TRUE(s1 != s3);
 
   // programs differ
-  p2->at(1).push_back(Instruction::Set::create("STORE", 1));
+  p2->at(1).push_back(Instruction::create("STORE", 1));
 
   ASSERT_TRUE(s1 != s2);
 
-  p1->at(1).push_back(Instruction::Set::create("STORE", 1));
+  p1->at(1).push_back(Instruction::create("STORE", 1));
 
   ASSERT_TRUE(s1 == s2);
 

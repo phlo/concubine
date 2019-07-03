@@ -1,6 +1,7 @@
 #ifndef INSTRUCTION_HH_
 #define INSTRUCTION_HH_
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -12,35 +13,26 @@
 //==============================================================================
 
 // simplify declaration of instruction PODs ------------------------------------
-
+//
 #define DECLARE_NULLARY(classname, baseclass, _symbol, _type) \
-  struct classname : public baseclass \
+  struct classname : baseclass \
   { \
     inline static const std::string & symbol = \
-      Set::add_nullary<classname>(_symbol); \
-    \
-    classname () : baseclass(_type) {} \
-    classname (uint8_t t) : baseclass(t) {} \
+      add_nullary<classname>(_symbol, _type); \
   }; \
 
 #define DECLARE_UNARY(classname, baseclass, _symbol, _type) \
-  struct classname : public baseclass \
+  struct classname : baseclass \
   { \
     inline static const std::string & symbol = \
-      Set::add_unary<classname>(_symbol); \
-    \
-    classname (word_t a) : baseclass(_type, a) {} \
-    classname (uint8_t t, word_t a) : baseclass(t, a) {} \
+      add_unary<classname>(_symbol, _type); \
   }; \
 
 #define DECLARE_MEMORY(classname, baseclass, _symbol, _type) \
-  struct classname : public baseclass \
+  struct classname : baseclass \
   { \
     inline static const std::string & symbol = \
-      Set::add_memory<classname>(_symbol); \
-    \
-    classname (word_t a, bool i = false) : baseclass(_type, a, i) {} \
-    classname (uint8_t t, word_t a, bool i = false) : baseclass(t, a, i) {} \
+      add_memory<classname>(_symbol, _type); \
   }; \
 
 //==============================================================================
@@ -59,71 +51,66 @@ struct Encoder;
 struct Instruction
 {
   //----------------------------------------------------------------------------
+  // static members
+  //----------------------------------------------------------------------------
+
+  // map containing pointers to nullary instruction object factories
+  //
+  using nullary_factory_map =
+    std::unordered_map<
+      std::string,
+      std::function<Instruction()>>;
+
+  static std::unique_ptr<nullary_factory_map> nullary_factory;
+
+  // map containing pointers to unary instruction object factories
+  //
+  using unary_factory_map =
+    std::unordered_map<
+      std::string,
+      std::function<Instruction(word_t)>>;
+
+  static std::unique_ptr<unary_factory_map> unary_factory;
+
+  // map containing pointers to memory instruction object factories
+  //
+  using memory_factory_map =
+    std::unordered_map<
+      std::string,
+      std::function<Instruction(word_t, bool)>>;
+
+  static std::unique_ptr<memory_factory_map> memory_factory;
+
+  //----------------------------------------------------------------------------
+  // static member functions
+  //----------------------------------------------------------------------------
+
+  static bool contains (const std::string & symbol);
+
+  template <class POD>
+  static const std::string & add_nullary (const std::string & symbol,
+                                          uint8_t type);
+  template <class POD>
+  static const std::string & add_unary (const std::string & symbol,
+                                        uint8_t type);
+  template <class POD>
+  static const std::string & add_memory (const std::string & symbol,
+                                         uint8_t type);
+
+  // copy elision
+  //
+  static Instruction create (const std::string & symbol);
+  static Instruction create (const std::string & symbol, const word_t arg);
+  static Instruction create (const std::string & symbol,
+                             const word_t arg,
+                             const bool indirect);
+
+  //----------------------------------------------------------------------------
   // member types
   //----------------------------------------------------------------------------
 
-  // object factories to simplify parsing --------------------------------------
-
-  struct Set
-    {
-      virtual ~Set () = 0; // for a purely static class
-
-      //------------------------------------------------------------------------
-      // static members
-      //------------------------------------------------------------------------
-
-      // map containing pointers to nullary instruction object factories
-      //
-      using nullary_t =
-          std::unordered_map<
-            std::string,
-            Instruction (*) ()>;
-
-      static std::unique_ptr<nullary_t> nullary;
-
-      // map containing pointers to unary instruction object factories
-      //
-      using unary_t =
-        std::unordered_map<
-          std::string,
-          Instruction (*) (word_t)>;
-
-      static std::unique_ptr<unary_t> unary;
-
-      // map containing pointers to memory instruction object factories
-      //
-      using memory_t =
-        std::unordered_map<
-          std::string,
-          Instruction (*) (word_t, bool)>;
-
-      static std::unique_ptr<memory_t> memory;
-
-      //------------------------------------------------------------------------
-      // static member functions
-      //------------------------------------------------------------------------
-
-      // NOTE: really needed?
-      static bool contains (const std::string & symbol);
-
-      template <class POD>
-      static const std::string & add_nullary (const std::string && symbol);
-      template <class POD>
-      static const std::string & add_unary (const std::string && symbol);
-      template <class POD>
-      static const std::string & add_memory (const std::string && symbol);
-
-      // copy elision
-      //
-      static Instruction create (const std::string & symbol);
-      static Instruction create (const std::string & symbol, const word_t arg);
-      static Instruction create (const std::string & symbol,
-                                 const word_t arg,
-                                 const bool indirect);
-    };
-
   // instruction types ---------------------------------------------------------
-
+  //
   enum Type : uint8_t
     {
       none    = 0,
@@ -138,32 +125,11 @@ struct Instruction
       jump    = 1 << 7  // jump instruction
     };
 
-  // abstract base classes for instruction PODs --------------------------------
-
-  struct Nullary
-    {
-      uint8_t type;
-
-      Nullary (uint8_t t) : type(t) {}
-
-      virtual ~Nullary () = default; // some virtual required by dynamic_cast
-    };
-
-  struct Unary : public Nullary
-    {
-      const word_t arg;
-
-      Unary (uint8_t t, word_t a) : Nullary(t), arg(a) {}
-    };
-
-  struct Memory : public Unary
-    {
-      const bool indirect;
-
-      Memory (uint8_t t, word_t a, bool i) : Unary(t, a), indirect(i) {}
-    };
-
-  // concrete instruction PODs -------------------------------------------------
+  // instruction PODs ----------------------------------------------------------
+  //
+  struct Nullary { uint8_t type = Type::none; };
+  struct Unary : Nullary { const word_t arg; };
+  struct Memory : Unary { const bool indirect = false; };
 
   DECLARE_MEMORY  (Load,  Memory,   "LOAD",   accu | read)
   DECLARE_MEMORY  (Store, Memory,   "STORE",  write)
@@ -194,12 +160,10 @@ struct Instruction
   DECLARE_UNARY   (Exit,  Unary,    "EXIT",   control)
 
   // abstract interface (types erasure concept) --------------------------------
-
+  //
   struct Concept
     {
-      using pointer = std::unique_ptr<Concept>;
-
-      virtual pointer clone () const = 0;
+      virtual std::unique_ptr<Concept> clone () const = 0;
 
       virtual bool is_nullary () const = 0;
       virtual bool is_unary () const = 0;
@@ -227,7 +191,7 @@ struct Instruction
   // members
   //----------------------------------------------------------------------------
 
-  Concept::pointer model;
+  std::unique_ptr<Concept> model;
 
   //----------------------------------------------------------------------------
   // constructors
@@ -237,8 +201,8 @@ struct Instruction
 
   // construct embedding a given POD
   //
-  template <class T>
-  Instruction (const T & pod);
+  template <class POD>
+  Instruction (const POD & pod);
 
   // copy constructor
   //

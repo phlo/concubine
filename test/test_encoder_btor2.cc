@@ -337,7 +337,7 @@ TEST_F(btor2_Encoder, declare_constants)
   for (size_t thread = 0; thread < 3; thread++)
     for (size_t pc = 0; pc < 3; pc++)
       programs[thread].push_back(
-        Instruction::Set::create("ADDI", thread + pc + 1));
+        Instruction::create("ADDI", thread + pc + 1));
 
   reset_encoder();
 
@@ -3184,7 +3184,7 @@ TEST_F(btor2_Encoder, LOAD)
 
   word_t address = 0;
 
-  Instruction::Load load (address);
+  Instruction::Load load {Type::none, address};
 
   ASSERT_EQ(
     encoder->nids_load[encoder->thread][address],
@@ -3202,7 +3202,7 @@ TEST_F(btor2_Encoder, LOAD_indirect)
 
   word_t address = 0;
 
-  Instruction::Load load (address, true);
+  Instruction::Load load {Type::none, address, true};
 
   ASSERT_EQ(
     encoder->nids_load_indirect[encoder->thread][address],
@@ -3218,7 +3218,7 @@ TEST_F(btor2_Encoder, STORE)
 
   word_t address = 0;
 
-  Instruction::Store store (address);
+  Instruction::Store store {Type::none, address};
 
   encoder->update = ::Encoder::State::sb_adr;
   ASSERT_EQ(encoder->nids_const[address], encoder->encode(store));
@@ -3237,7 +3237,7 @@ TEST_F(btor2_Encoder, STORE_indirect)
 
   word_t address = 0;
 
-  Instruction::Store store (address, true);
+  Instruction::Store store {Type::none, address, true};
 
   encoder->update = ::Encoder::State::sb_adr;
   ASSERT_EQ(
@@ -3259,7 +3259,7 @@ TEST_F(btor2_Encoder, ADD)
 
   word_t address = 0;
 
-  Instruction::Add add (address);
+  Instruction::Add add {Type::none, address};
 
   std::string nid_add = encoder->encode(add);
 
@@ -3291,7 +3291,7 @@ TEST_F(btor2_Encoder, ADD_indirect)
 
   word_t address = 0;
 
-  Instruction::Add add (address, true);
+  Instruction::Add add {Type::none, address, true};
 
   std::string nid_add = encoder->encode(add);
 
@@ -3323,7 +3323,7 @@ TEST_F(btor2_Encoder, ADDI)
 
   word_t value = 0;
 
-  Instruction::Addi addi (value);
+  Instruction::Addi addi {Type::none, value};
 
   std::string nid_addi = encoder->encode(addi);
 
@@ -3354,7 +3354,7 @@ TEST_F(btor2_Encoder, SUB)
 
   word_t address = 0;
 
-  Instruction::Sub sub (address);
+  Instruction::Sub sub {Type::none, address};
 
   std::string nid_sub = encoder->encode(sub);
 
@@ -3386,7 +3386,7 @@ TEST_F(btor2_Encoder, SUB_indirect)
 
   word_t address = 0;
 
-  Instruction::Sub sub (address, true);
+  Instruction::Sub sub {Type::none, address, true};
 
   std::string nid_sub = encoder->encode(sub);
 
@@ -3418,7 +3418,7 @@ TEST_F(btor2_Encoder, SUBI)
 
   word_t value = 0;
 
-  Instruction::Subi subi (value);
+  Instruction::Subi subi {Type::none, value};
 
   std::string nid_subi = encoder->encode(subi);
 
@@ -3449,7 +3449,7 @@ TEST_F(btor2_Encoder, MUL)
 
   word_t address = 0;
 
-  Instruction::Mul mul (address);
+  Instruction::Mul mul {Type::none, address};
 
   std::string nid_mul = encoder->encode(mul);
 
@@ -3481,7 +3481,7 @@ TEST_F(btor2_Encoder, MUL_indirect)
 
   word_t address = 0;
 
-  Instruction::Mul mul (address, true);
+  Instruction::Mul mul {Type::none, address, true};
 
   std::string nid_mul = encoder->encode(mul);
 
@@ -3513,7 +3513,7 @@ TEST_F(btor2_Encoder, MULI)
 
   word_t value = 0;
 
-  Instruction::Muli muli (value);
+  Instruction::Muli muli {Type::none, value};
 
   std::string nid_muli = encoder->encode(muli);
 
@@ -3544,7 +3544,7 @@ TEST_F(btor2_Encoder, CMP)
 
   word_t address = 0;
 
-  Instruction::Cmp cmp (address);
+  Instruction::Cmp cmp {Type::none, address};
 
   std::string nid_cmp = encoder->encode(cmp);
 
@@ -3576,7 +3576,7 @@ TEST_F(btor2_Encoder, CMP_indirect)
 
   word_t address = 0;
 
-  Instruction::Cmp cmp (address, true);
+  Instruction::Cmp cmp {Type::none, address, true};
 
   std::string nid_cmp = encoder->encode(cmp);
 
@@ -3600,7 +3600,7 @@ TEST_F(btor2_Encoder, CMP_indirect)
 
 TEST_F(btor2_Encoder, JMP)
 {
-  Instruction::Jmp jmp (0);
+  Instruction::Jmp jmp {Type::none, 0};
 
   ASSERT_EQ("", encoder->encode(jmp));
   ASSERT_EQ("", encoder->str());
@@ -3614,7 +3614,7 @@ TEST_F(btor2_Encoder, JZ)
 
   btor2::nid_t nid = encoder->node;
 
-  Instruction::Jz jz (0);
+  Instruction::Jz jz {Type::none, 0};
 
   std::string nid_jz = encoder->encode(jz);
 
@@ -3643,7 +3643,7 @@ TEST_F(btor2_Encoder, JNZ)
 
   btor2::nid_t nid = encoder->node;
 
-  Instruction::Jnz jnz (0);
+  Instruction::Jnz jnz {Type::none, 0};
 
   std::string nid_jnz = encoder->encode(jnz);
 
@@ -3672,7 +3672,7 @@ TEST_F(btor2_Encoder, JS)
 
   btor2::nid_t nid = encoder->node;
 
-  Instruction::Js js (0);
+  Instruction::Js js {Type::none, 0};
 
   std::string nid_js = encoder->encode(js);
 
@@ -3702,7 +3702,7 @@ TEST_F(btor2_Encoder, JNS)
 
   btor2::nid_t nid = encoder->node;
 
-  Instruction::Jns jns (0);
+  Instruction::Jns jns {Type::none, 0};
 
   std::string nid_jns = encoder->encode(jns);
 
@@ -3732,7 +3732,7 @@ TEST_F(btor2_Encoder, JNZNS)
 
   btor2::nid_t nid = encoder->node;
 
-  Instruction::Jnzns jnzns (0);
+  Instruction::Jnzns jnzns {Type::none, 0};
 
   std::string nid_jnzns = encoder->encode(jnzns);
 
@@ -3778,7 +3778,7 @@ TEST_F(btor2_Encoder, MEM)
 
   word_t address = 0;
 
-  Instruction::Mem mem (address);
+  Instruction::Mem mem {Type::none, address};
 
   ASSERT_EQ(
     encoder->nids_load[encoder->thread][address],
@@ -3796,7 +3796,7 @@ TEST_F(btor2_Encoder, MEM_indirect)
 
   word_t address = 0;
 
-  Instruction::Mem mem (address, true);
+  Instruction::Mem mem {Type::none, address, true};
 
   ASSERT_EQ(
     encoder->nids_load_indirect[encoder->thread][address],
@@ -3814,7 +3814,7 @@ TEST_F(btor2_Encoder, CAS)
 
   word_t address = 0;
 
-  Instruction::Cas cas (address);
+  Instruction::Cas cas {Type::none, address};
 
   std::string nid_cas;
 
@@ -3884,7 +3884,7 @@ TEST_F(btor2_Encoder, CAS_indirect)
 
   word_t address = 0;
 
-  Instruction::Cas cas (address, true);
+  Instruction::Cas cas {Type::none, address, true};
 
   std::string nid_cas;
 
@@ -3946,7 +3946,7 @@ TEST_F(btor2_Encoder, CAS_indirect)
 
 TEST_F(btor2_Encoder, CHECK)
 {
-  Instruction::Check check (1);
+  Instruction::Check check {Type::none, 1};
 
   ASSERT_EQ("", encoder->encode(check));
   ASSERT_EQ("", encoder->str());
@@ -3954,7 +3954,7 @@ TEST_F(btor2_Encoder, CHECK)
 
 TEST_F(btor2_Encoder, EXIT)
 {
-  Instruction::Exit exit (1);
+  Instruction::Exit exit {Type::none, 1};
 
   ASSERT_EQ(encoder->nids_const[1], encoder->encode(exit));
   ASSERT_EQ("", encoder->str());

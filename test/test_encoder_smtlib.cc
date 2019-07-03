@@ -1531,21 +1531,21 @@ TEST_F(smtlib_Encoder, define_checkpoint_contraints_empty)
 
 TEST_F(smtlib_Encoder, LOAD)
 {
-  Instruction::Load load (1);
+  Instruction::Load load {Type::none, 1};
 
   ASSERT_EQ(encoder->load(load.arg), encoder->encode(load));
 }
 
 TEST_F(smtlib_Encoder, LOAD_indirect)
 {
-  Instruction::Load load (1, true);
+  Instruction::Load load {Type::none, 1, true};
 
   ASSERT_EQ(encoder->load(load.arg, load.indirect), encoder->encode(load));
 }
 
 TEST_F(smtlib_Encoder, STORE)
 {
-  Instruction::Store store (1);
+  Instruction::Store store {Type::none, 1};
 
   encoder->update = ::Encoder::State::sb_adr;
   ASSERT_EQ("#x0001", encoder->encode(store));
@@ -1556,7 +1556,7 @@ TEST_F(smtlib_Encoder, STORE)
 
 TEST_F(smtlib_Encoder, STORE_indirect)
 {
-  Instruction::Store store (1, true);
+  Instruction::Store store {Type::none, 1, true};
 
   encoder->update = ::Encoder::State::sb_adr;
   ASSERT_EQ(encoder->load(store.arg), encoder->encode(store));
@@ -1567,7 +1567,7 @@ TEST_F(smtlib_Encoder, STORE_indirect)
 
 TEST_F(smtlib_Encoder, ADD)
 {
-  Instruction::Add add (1);
+  Instruction::Add add {Type::none, 1};
 
   ASSERT_EQ(
     "(bvadd accu_0_0 " + encoder->load(add.arg) + ")",
@@ -1576,7 +1576,7 @@ TEST_F(smtlib_Encoder, ADD)
 
 TEST_F(smtlib_Encoder, ADD_indirect)
 {
-  Instruction::Add add (1, true);
+  Instruction::Add add {Type::none, 1, true};
 
   ASSERT_EQ(
     "(bvadd accu_0_0 " + encoder->load(add.arg, add.indirect) + ")",
@@ -1585,14 +1585,14 @@ TEST_F(smtlib_Encoder, ADD_indirect)
 
 TEST_F(smtlib_Encoder, ADDI)
 {
-  Instruction::Addi addi (1);
+  Instruction::Addi addi {Type::none, 1};
 
   ASSERT_EQ("(bvadd accu_0_0 #x0001)", encoder->encode(addi));
 }
 
 TEST_F(smtlib_Encoder, SUB)
 {
-  Instruction::Sub sub (1);
+  Instruction::Sub sub {Type::none, 1};
 
   ASSERT_EQ(
     "(bvsub accu_0_0 " + encoder->load(sub.arg) + ")",
@@ -1601,7 +1601,7 @@ TEST_F(smtlib_Encoder, SUB)
 
 TEST_F(smtlib_Encoder, SUB_indirect)
 {
-  Instruction::Sub sub (1, true);
+  Instruction::Sub sub {Type::none, 1, true};
 
   ASSERT_EQ(
     "(bvsub accu_0_0 " + encoder->load(sub.arg, sub.indirect) + ")",
@@ -1610,14 +1610,14 @@ TEST_F(smtlib_Encoder, SUB_indirect)
 
 TEST_F(smtlib_Encoder, SUBI)
 {
-  Instruction::Subi subi (1);
+  Instruction::Subi subi {Type::none, 1};
 
   ASSERT_EQ("(bvsub accu_0_0 #x0001)", encoder->encode(subi));
 }
 
 TEST_F(smtlib_Encoder, MUL)
 {
-  Instruction::Mul mul (1);
+  Instruction::Mul mul {Type::none, 1};
 
   ASSERT_EQ(
     "(bvmul accu_0_0 " + encoder->load(mul.arg) + ")",
@@ -1626,7 +1626,7 @@ TEST_F(smtlib_Encoder, MUL)
 
 TEST_F(smtlib_Encoder, MUL_indirect)
 {
-  Instruction::Mul mul (1, true);
+  Instruction::Mul mul {Type::none, 1, true};
 
   ASSERT_EQ(
     "(bvmul accu_0_0 " + encoder->load(mul.arg, mul.indirect) + ")",
@@ -1635,14 +1635,14 @@ TEST_F(smtlib_Encoder, MUL_indirect)
 
 TEST_F(smtlib_Encoder, MULI)
 {
-  Instruction::Muli muli (1);
+  Instruction::Muli muli {Type::none, 1};
 
   ASSERT_EQ("(bvmul accu_0_0 #x0001)", encoder->encode(muli));
 }
 
 TEST_F(smtlib_Encoder, CMP)
 {
-  Instruction::Cmp cmp (1);
+  Instruction::Cmp cmp {Type::none, 1};
 
   ASSERT_EQ(
     "(bvsub accu_0_0 " + encoder->load(cmp.arg) + ")",
@@ -1651,7 +1651,7 @@ TEST_F(smtlib_Encoder, CMP)
 
 TEST_F(smtlib_Encoder, CMP_indirect)
 {
-  Instruction::Cmp cmp (1, true);
+  Instruction::Cmp cmp {Type::none, 1, true};
 
   ASSERT_EQ(
     "(bvsub accu_0_0 " + encoder->load(cmp.arg, cmp.indirect) + ")",
@@ -1660,28 +1660,28 @@ TEST_F(smtlib_Encoder, CMP_indirect)
 
 TEST_F(smtlib_Encoder, JMP)
 {
-  Instruction::Jmp jmp (1);
+  Instruction::Jmp jmp {Type::none, 1};
 
   ASSERT_TRUE(encoder->encode(jmp).empty());
 }
 
 TEST_F(smtlib_Encoder, JZ)
 {
-  Instruction::Jz jz (1);
+  Instruction::Jz jz {Type::none, 1};
 
   ASSERT_EQ("(= accu_0_0 #x0000)", encoder->encode(jz));
 }
 
 TEST_F(smtlib_Encoder, JNZ)
 {
-  Instruction::Jnz jnz (1);
+  Instruction::Jnz jnz {Type::none, 1};
 
   ASSERT_EQ("(not (= accu_0_0 #x0000))", encoder->encode(jnz));
 }
 
 TEST_F(smtlib_Encoder, JS)
 {
-  Instruction::Js js (1);
+  Instruction::Js js {Type::none, 1};
 
   ASSERT_EQ(
     "(= #b1 ((_ extract " +
@@ -1695,7 +1695,7 @@ TEST_F(smtlib_Encoder, JS)
 
 TEST_F(smtlib_Encoder, JNS)
 {
-  Instruction::Jns jns (1);
+  Instruction::Jns jns {Type::none, 1};
 
   ASSERT_EQ(
     "(= #b0 ((_ extract " +
@@ -1709,7 +1709,7 @@ TEST_F(smtlib_Encoder, JNS)
 
 TEST_F(smtlib_Encoder, JNZNS)
 {
-  Instruction::Jnzns jnzns (1);
+  Instruction::Jnzns jnzns {Type::none, 1};
 
   ASSERT_EQ(
     "(and (not (= accu_0_0 #x0000)) (= #b0 ((_ extract " +
@@ -1722,21 +1722,21 @@ TEST_F(smtlib_Encoder, JNZNS)
 
 TEST_F(smtlib_Encoder, MEM)
 {
-  Instruction::Mem mem (1);
+  Instruction::Mem mem {Type::none, 1};
 
   ASSERT_EQ(encoder->load(mem.arg), encoder->encode(mem));
 }
 
 TEST_F(smtlib_Encoder, MEM_indirect)
 {
-  Instruction::Mem mem (1, true);
+  Instruction::Mem mem {Type::none, 1, true};
 
   ASSERT_EQ(encoder->load(mem.arg, mem.indirect), encoder->encode(mem));
 }
 
 TEST_F(smtlib_Encoder, CAS)
 {
-  Instruction::Cas cas (1);
+  Instruction::Cas cas {Type::none, 1};
 
   encoder->update = ::Encoder::State::accu;
 
@@ -1756,7 +1756,7 @@ TEST_F(smtlib_Encoder, CAS)
 
 TEST_F(smtlib_Encoder, CAS_indirect)
 {
-  Instruction::Cas cas (1, true);
+  Instruction::Cas cas {Type::none, 1, true};
 
   encoder->update = ::Encoder::State::accu;
 
@@ -1776,14 +1776,14 @@ TEST_F(smtlib_Encoder, CAS_indirect)
 
 TEST_F(smtlib_Encoder, CHECK)
 {
-  Instruction::Check check (1);
+  Instruction::Check check {Type::none, 1};
 
   ASSERT_TRUE(encoder->encode(check).empty());
 }
 
 TEST_F(smtlib_Encoder, EXIT)
 {
-  Instruction::Exit exit (1);
+  Instruction::Exit exit {Type::none, 1};
 
   ASSERT_EQ("#x0001", encoder->encode(exit));
 }

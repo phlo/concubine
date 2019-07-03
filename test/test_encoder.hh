@@ -8,6 +8,8 @@ namespace test::encoder {
 template <class E, class Impl = E>
 struct Encoder: public ::testing::Test
 {
+  using Type = Instruction::Type;
+
   Program::List programs;
   std::unique_ptr<E> encoder = create_encoder();
 

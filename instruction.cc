@@ -6,112 +6,15 @@
 #include "simulator.hh"
 
 //==============================================================================
-// Instruction::Set
-//==============================================================================
-
-//------------------------------------------------------------------------------
-// static members
-//------------------------------------------------------------------------------
-
-std::unique_ptr<Instruction::Set::nullary_t> Instruction::Set::nullary;
-std::unique_ptr<Instruction::Set::unary_t> Instruction::Set::unary;
-std::unique_ptr<Instruction::Set::memory_t> Instruction::Set::memory;
-
-//------------------------------------------------------------------------------
-// static member functions
-//------------------------------------------------------------------------------
-
-bool Instruction::Set::contains (const std::string & symbol)
-{
-  if (nullary->find(symbol) != nullary->end())
-    return true;
-
-  if (unary->find(symbol) != unary->end())
-    return true;
-
-  if (memory->find(symbol) != memory->end())
-    return true;
-
-  return false;
-}
-
-template <class POD>
-const std::string & Instruction::Set::add_nullary (const std::string && symbol)
-{
-  if (!nullary)
-    nullary = std::make_unique<nullary_t>();
-
-  return
-    nullary->emplace(
-      symbol,
-      [] () -> Instruction { return POD(); })
-    .first->first;
-}
-
-template <class POD>
-const std::string & Instruction::Set::add_unary (const std::string && symbol)
-{
-  if (!unary)
-    unary = std::make_unique<unary_t>();
-
-  return
-    unary->emplace(
-      symbol,
-      [] (word_t a) -> Instruction { return POD(a); })
-    .first->first;
-}
-
-template <class POD>
-const std::string & Instruction::Set::add_memory (const std::string && symbol)
-{
-  add_unary<POD>(std::string {symbol});
-
-  if (!memory)
-    memory = std::make_unique<memory_t>();
-
-  return
-    memory->emplace(
-      symbol,
-      [] (word_t a, bool i) -> Instruction { return POD(a, i); })
-    .first->first;
-}
-
-Instruction Instruction::Set::create (const std::string & symbol)
-{
-  if (nullary->find(symbol) == nullary->end())
-    throw std::runtime_error("Instruction '" + symbol + "' unknown");
-
-  return (*nullary)[symbol]();
-}
-
-Instruction Instruction::Set::create (const std::string & symbol,
-                                      const word_t arg)
-{
-  if (unary->find(symbol) == unary->end())
-    throw std::runtime_error("Instruction '" + symbol + "' unknown");
-
-  return (*unary)[symbol](arg);
-}
-
-Instruction Instruction::Set::create (const std::string & symbol,
-                                      const word_t arg,
-                                      const bool indirect)
-{
-  if (memory->find(symbol) == memory->end())
-    throw std::runtime_error("Instruction '" + symbol + "' unknown");
-
-  return (*memory)[symbol](arg, indirect);
-}
-
-//==============================================================================
 // Model<T>
 //
 // * Instruction::Concept implementation
 //==============================================================================
 
 template <class T>
-struct Model : public Instruction::Concept
+struct Model : Instruction::Concept
 {
+  using Type = Instruction::Type;
   using Nullary = Instruction::Nullary;
   using Unary = Instruction::Unary;
   using Memory = Instruction::Memory;
@@ -121,7 +24,10 @@ struct Model : public Instruction::Concept
   Model (const T & p) : pod(p) {}
   // Model (const T && pod) : obj(move(pod)) {}
 
-  virtual pointer clone () const { return std::make_unique<Model<T>>(pod); }
+  virtual std::unique_ptr<Concept> clone () const
+    {
+      return std::make_unique<Model<T>>(pod);
+    }
 
   virtual bool is_nullary () const { return std::is_base_of<Nullary, T>(); }
   virtual bool is_unary () const { return std::is_base_of<Unary, T>(); }
@@ -130,7 +36,7 @@ struct Model : public Instruction::Concept
 
   virtual bool requires_flush () const
     {
-      return pod.type & (Instruction::Type::write | Instruction::Type::barrier);
+      return pod.type & (Type::write | Type::barrier);
     }
 
   virtual const std::string & symbol () const { return pod.symbol; }
@@ -147,13 +53,13 @@ struct Model : public Instruction::Concept
   virtual operator const Unary & () const
     {
       assert(is_unary());
-      return dynamic_cast<const Unary &>(pod);
+      return reinterpret_cast<const Unary &>(pod);
     }
 
   virtual operator const Memory & () const
     {
       assert(is_memory());
-      return dynamic_cast<const Memory &>(pod);
+      return reinterpret_cast<const Memory &>(pod);
     }
 };
 
@@ -162,12 +68,118 @@ struct Model : public Instruction::Concept
 //==============================================================================
 
 //------------------------------------------------------------------------------
+// static members
+//------------------------------------------------------------------------------
+
+std::unique_ptr<Instruction::nullary_factory_map> Instruction::nullary_factory;
+std::unique_ptr<Instruction::unary_factory_map> Instruction::unary_factory;
+std::unique_ptr<Instruction::memory_factory_map> Instruction::memory_factory;
+
+//------------------------------------------------------------------------------
+// static member functions
+//------------------------------------------------------------------------------
+
+// Instruction::contains -------------------------------------------------------
+//
+bool Instruction::contains (const std::string & symbol)
+{
+  if (nullary_factory->find(symbol) != nullary_factory->end())
+    return true;
+
+  if (unary_factory->find(symbol) != unary_factory->end())
+    return true;
+
+  if (memory_factory->find(symbol) != memory_factory->end())
+    return true;
+
+  return false;
+}
+
+// Instruction::add_nullary ----------------------------------------------------
+//
+template <class POD>
+const std::string & Instruction::add_nullary (const std::string & symbol,
+                                              uint8_t type)
+{
+  if (!nullary_factory)
+    nullary_factory = std::make_unique<nullary_factory_map>();
+
+  return
+    nullary_factory->emplace(
+      std::move(symbol),
+      [type] () { return Instruction(POD{type}); })
+    .first->first;
+}
+
+// Instruction::add_unary ------------------------------------------------------
+//
+template <class POD>
+const std::string & Instruction::add_unary (const std::string & symbol,
+                                            uint8_t type)
+{
+  if (!unary_factory)
+    unary_factory = std::make_unique<unary_factory_map>();
+
+  return
+    unary_factory->emplace(
+      std::move(symbol),
+      [type] (word_t a) { return Instruction(POD{type, a}); })
+    .first->first;
+}
+
+// Instruction::add_memory -----------------------------------------------------
+//
+template <class POD>
+const std::string & Instruction::add_memory (const std::string & symbol,
+                                             uint8_t type)
+{
+  add_unary<POD>(symbol, type);
+
+  if (!memory_factory)
+    memory_factory = std::make_unique<memory_factory_map>();
+
+  return
+    memory_factory->emplace(
+      std::move(symbol),
+      [type] (word_t a, bool i) { return Instruction(POD{type, a, i}); })
+    .first->first;
+}
+
+// Instruction::create ---------------------------------------------------------
+//
+Instruction Instruction::create (const std::string & symbol)
+{
+  if (nullary_factory->find(symbol) == nullary_factory->end())
+    throw std::runtime_error("Instruction '" + symbol + "' unknown");
+
+  return (*nullary_factory)[symbol]();
+}
+
+Instruction Instruction::create (const std::string & symbol, const word_t arg)
+{
+  if (unary_factory->find(symbol) == unary_factory->end())
+    throw std::runtime_error("Instruction '" + symbol + "' unknown");
+
+  return (*unary_factory)[symbol](arg);
+}
+
+Instruction Instruction::create (const std::string & symbol,
+                                 const word_t arg,
+                                 const bool indirect)
+{
+  if (memory_factory->find(symbol) == memory_factory->end())
+    throw std::runtime_error("Instruction '" + symbol + "' unknown");
+
+  return (*memory_factory)[symbol](arg, indirect);
+}
+
+//------------------------------------------------------------------------------
 // constructors
 //------------------------------------------------------------------------------
 
-template <class T>
-Instruction::Instruction (const T & pod) :
-  model(std::make_unique<Model<T>>(pod))
+template <class POD>
+Instruction::Instruction (const POD & pod) :
+  model(std::make_unique<Model<POD>>(pod))
 {}
 
 Instruction::Instruction (const Instruction & other) :
@@ -201,7 +213,7 @@ std::string Instruction::encode (Encoder & e) const { return model->encode(e); }
 //------------------------------------------------------------------------------
 
 // assignment ------------------------------------------------------------------
-
+//
 Instruction & Instruction::operator = (const Instruction & other)
 {
   model = other.model->clone();
@@ -209,7 +221,7 @@ Instruction & Instruction::operator = (const Instruction & other)
 }
 
 // conversion ------------------------------------------------------------------
-
+//
 Instruction::operator const Unary & () const { return *model; }
 Instruction::operator const Memory & () const { return *model; }
 
@@ -218,7 +230,7 @@ Instruction::operator const Memory & () const { return *model; }
 //==============================================================================
 
 // equality --------------------------------------------------------------------
-
+//
 bool operator == (const Instruction & a, const Instruction & b)
 {
   if (a.symbol() != b.symbol())

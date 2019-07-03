@@ -325,7 +325,7 @@ TEST_F(smtlib_Relational, LOAD)
   add_instruction_set(1);
   reset_encoder();
 
-  Instruction::Load load (1);
+  Instruction::Load load {Type::none, 1};
 
   ASSERT_EQ(
     "(and "
@@ -366,7 +366,7 @@ TEST_F(smtlib_Relational, LOAD_indirect)
   add_instruction_set(1);
   reset_encoder();
 
-  Instruction::Load load (1, true);
+  Instruction::Load load {Type::none, 1, true};
 
   ASSERT_EQ(
     "(and "
@@ -417,7 +417,7 @@ TEST_F(smtlib_Relational, STORE)
 
   encoder->pc = 1;
 
-  Instruction::Store store (1);
+  Instruction::Store store {Type::none, 1};
 
   ASSERT_EQ(
     "(and "
@@ -457,7 +457,7 @@ TEST_F(smtlib_Relational, STORE_indirect)
 
   encoder->pc = 1;
 
-  Instruction::Store store (1, true);
+  Instruction::Store store {Type::none, 1, true};
 
   ASSERT_EQ(
     "(and "
@@ -500,7 +500,7 @@ TEST_F(smtlib_Relational, ADD)
 
   encoder->pc = 2;
 
-  Instruction::Add add (1);
+  Instruction::Add add {Type::none, 1};
 
   ASSERT_EQ(
     "(and "
@@ -545,7 +545,7 @@ TEST_F(smtlib_Relational, ADD_indirect)
 
   encoder->pc = 2;
 
-  Instruction::Add add (1, true);
+  Instruction::Add add {Type::none, 1, true};
 
   ASSERT_EQ(
     "(and "
@@ -598,7 +598,7 @@ TEST_F(smtlib_Relational, ADDI)
 
   encoder->pc = 3;
 
-  Instruction::Addi addi (1);
+  Instruction::Addi addi {Type::none, 1};
 
   ASSERT_EQ(
     "(and "
@@ -638,7 +638,7 @@ TEST_F(smtlib_Relational, SUB)
 
   encoder->pc = 4;
 
-  Instruction::Sub sub (1);
+  Instruction::Sub sub {Type::none, 1};
 
   ASSERT_EQ(
     "(and "
@@ -683,7 +683,7 @@ TEST_F(smtlib_Relational, SUB_indirect)
 
   encoder->pc = 4;
 
-  Instruction::Sub sub (1, true);
+  Instruction::Sub sub {Type::none, 1, true};
 
   ASSERT_EQ(
     "(and "
@@ -736,7 +736,7 @@ TEST_F(smtlib_Relational, SUBI)
 
   encoder->pc = 5;
 
-  Instruction::Subi subi (1);
+  Instruction::Subi subi {Type::none, 1};
 
   ASSERT_EQ(
     "(and "
@@ -776,7 +776,7 @@ TEST_F(smtlib_Relational, MUL)
 
   encoder->pc = 4;
 
-  Instruction::Mul mul (1);
+  Instruction::Mul mul {Type::none, 1};
 
   ASSERT_EQ(
     "(and "
@@ -821,7 +821,7 @@ TEST_F(smtlib_Relational, MUL_indirect)
 
   encoder->pc = 4;
 
-  Instruction::Mul mul (1, true);
+  Instruction::Mul mul {Type::none, 1, true};
 
   ASSERT_EQ(
     "(and "
@@ -874,7 +874,7 @@ TEST_F(smtlib_Relational, MULI)
 
   encoder->pc = 5;
 
-  Instruction::Muli muli (1);
+  Instruction::Muli muli {Type::none, 1};
 
   ASSERT_EQ(
     "(and "
@@ -914,7 +914,7 @@ TEST_F(smtlib_Relational, CMP)
 
   encoder->pc = 6;
 
-  Instruction::Cmp cmp (1);
+  Instruction::Cmp cmp {Type::none, 1};
 
   ASSERT_EQ(
     "(and "
@@ -959,7 +959,7 @@ TEST_F(smtlib_Relational, CMP_indirect)
 
   encoder->pc = 6;
 
-  Instruction::Cmp cmp (1, true);
+  Instruction::Cmp cmp {Type::none, 1, true};
 
   ASSERT_EQ(
     "(and "
@@ -1012,7 +1012,7 @@ TEST_F(smtlib_Relational, JMP)
 
   encoder->pc = 7;
 
-  Instruction::Jmp jmp (8);
+  Instruction::Jmp jmp {Type::none, 8};
 
   ASSERT_EQ(
     "(and "
@@ -1052,7 +1052,7 @@ TEST_F(smtlib_Relational, JZ)
 
   encoder->pc = 8;
 
-  Instruction::Jz jz (1);
+  Instruction::Jz jz {Type::none, 1};
 
   ASSERT_EQ(
     "(and "
@@ -1096,7 +1096,7 @@ TEST_F(smtlib_Relational, JNZ)
 
   encoder->pc = 9;
 
-  Instruction::Jnz jnz (1);
+  Instruction::Jnz jnz {Type::none, 1};
 
   ASSERT_EQ(
     "(and "
@@ -1140,7 +1140,7 @@ TEST_F(smtlib_Relational, JS)
 
   encoder->pc = 10;
 
-  Instruction::Js js (1);
+  Instruction::Js js {Type::none, 1};
 
   ASSERT_EQ(
     "(and "
@@ -1184,7 +1184,7 @@ TEST_F(smtlib_Relational, JNS)
 
   encoder->pc = 11;
 
-  Instruction::Jns jns (1);
+  Instruction::Jns jns {Type::none, 1};
 
   ASSERT_EQ(
     "(and "
@@ -1228,7 +1228,7 @@ TEST_F(smtlib_Relational, JNZNS)
 
   encoder->pc = 12;
 
-  Instruction::Jnzns jnzns (1);
+  Instruction::Jnzns jnzns {Type::none, 1};
 
   ASSERT_EQ(
     "(and "
@@ -1278,7 +1278,7 @@ TEST_F(smtlib_Relational, MEM)
 
   encoder->pc = 13;
 
-  Instruction::Mem mem (1);
+  Instruction::Mem mem {Type::none, 1};
 
   ASSERT_EQ(
     "(and "
@@ -1324,7 +1324,7 @@ TEST_F(smtlib_Relational, MEM_indirect)
 
   encoder->pc = 13;
 
-  Instruction::Mem mem (1, true);
+  Instruction::Mem mem {Type::none, 1, true};
 
   ASSERT_EQ(
     "(and "
@@ -1386,7 +1386,7 @@ TEST_F(smtlib_Relational, CAS)
 
   encoder->pc = 14;
 
-  Instruction::Cas cas (1);
+  Instruction::Cas cas {Type::none, 1};
 
   ASSERT_EQ(
     "(and "
@@ -1432,7 +1432,7 @@ TEST_F(smtlib_Relational, CAS_indirect)
 
   encoder->pc = 14;
 
-  Instruction::Cas cas (1, true);
+  Instruction::Cas cas {Type::none, 1, true};
 
   ASSERT_EQ(
     "(and "
@@ -1478,7 +1478,7 @@ TEST_F(smtlib_Relational, CHECK)
 
   encoder->pc = 15;
 
-  Instruction::Check check (1);
+  Instruction::Check check {Type::none, 1};
 
   ASSERT_EQ(
     "(and "
@@ -1523,7 +1523,7 @@ TEST_F(smtlib_Relational, EXIT)
 
   encoder->pc = 16;
 
-  Instruction::Exit exit (1);
+  Instruction::Exit exit {Type::none, 1};
 
   ASSERT_EQ(
     "(and "
