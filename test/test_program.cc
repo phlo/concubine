@@ -90,21 +90,20 @@ TEST_F(Program, parse)
 {
   program = create_from_file<::Program>("data/increment.cas.asm");
 
-  ASSERT_EQ(7, program.size());
+  ASSERT_EQ(6, program.size());
   ASSERT_EQ(1, program.checkpoints.size());
   ASSERT_EQ(1, program.labels.size());
   ASSERT_EQ(1, program.pc_to_label.size());
-  ASSERT_EQ("LOOP", *program.pc_to_label[3]);
+  ASSERT_EQ("LOOP", *program.pc_to_label[2]);
   ASSERT_EQ(1, program.label_to_pc.size());
-  ASSERT_EQ(3, program.label_to_pc[program.pc_to_label[3]]);
+  ASSERT_EQ(2, program.label_to_pc[program.pc_to_label[2]]);
 
   ASSERT_EQ("0\tSTORE\t0",  program.print(true, 0));
-  ASSERT_EQ("1\tFENCE\t",   program.print(true, 1));
-  ASSERT_EQ("2\tCHECK\t0",  program.print(true, 2));
-  ASSERT_EQ("LOOP\tMEM\t0", program.print(true, 3));
-  ASSERT_EQ("4\tADDI\t1",   program.print(true, 4));
-  ASSERT_EQ("5\tCAS\t0",    program.print(true, 5));
-  ASSERT_EQ("6\tJMP\tLOOP", program.print(true, 6));
+  ASSERT_EQ("1\tCHECK\t0",  program.print(true, 1));
+  ASSERT_EQ("LOOP\tMEM\t0", program.print(true, 2));
+  ASSERT_EQ("3\tADDI\t1",   program.print(true, 3));
+  ASSERT_EQ("4\tCAS\t0",    program.print(true, 4));
+  ASSERT_EQ("5\tJMP\tLOOP", program.print(true, 5));
 
   // indirect addressing
   program = create_from_file<::Program>("data/indirect.addressing.asm");

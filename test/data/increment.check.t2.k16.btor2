@@ -50,335 +50,328 @@
 24 state 1 stmt_0_5
 25 state 1 stmt_0_6
 26 state 1 stmt_0_7
-27 state 1 stmt_0_8
 
-28 state 1 stmt_1_0
-29 state 1 stmt_1_1
-30 state 1 stmt_1_2
-31 state 1 stmt_1_3
-32 state 1 stmt_1_4
-33 state 1 stmt_1_5
-34 state 1 stmt_1_6
+27 state 1 stmt_1_0
+28 state 1 stmt_1_1
+29 state 1 stmt_1_2
+30 state 1 stmt_1_3
+31 state 1 stmt_1_4
+32 state 1 stmt_1_5
+33 state 1 stmt_1_6
 
 ; blocking variables - block_<id>_<thread>
-35 state 1 block_0_0
-36 state 1 block_0_1
+34 state 1 block_0_0
+35 state 1 block_0_1
 
-37 state 1 block_1_0
-38 state 1 block_1_1
+36 state 1 block_1_0
+37 state 1 block_1_1
 
 ; heap variable
-39 state 3 heap
+38 state 3 heap
 
 ; exit flag variable
-40 state 1 exit
+39 state 1 exit
 
 ; exit code variable
-41 state 2 exit-code
+40 state 2 exit-code
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; input variable declarations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; thread activation variables - thread_<thread>
-42 input 1 thread_0
-43 input 1 thread_1
+41 input 1 thread_0
+42 input 1 thread_1
 
 ; store buffer flush variables - flush_<thread>
-44 input 1 flush_0
-45 input 1 flush_1
+43 input 1 flush_0
+44 input 1 flush_1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; transition variable definitions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; statement execution variables - exec_<thread>_<pc>
-46 and 1 19 42 exec_0_0
-47 and 1 20 42 exec_0_1
-48 and 1 21 42 exec_0_2
-49 and 1 22 42 exec_0_3
-50 and 1 23 42 exec_0_4
-51 and 1 24 42 exec_0_5
-52 and 1 25 42 exec_0_6
-53 and 1 26 42 exec_0_7
-54 and 1 27 42 exec_0_8
+45 and 1 19 41 exec_0_0
+46 and 1 20 41 exec_0_1
+47 and 1 21 41 exec_0_2
+48 and 1 22 41 exec_0_3
+49 and 1 23 41 exec_0_4
+50 and 1 24 41 exec_0_5
+51 and 1 25 41 exec_0_6
+52 and 1 26 41 exec_0_7
 
-55 and 1 28 43 exec_1_0
-56 and 1 29 43 exec_1_1
-57 and 1 30 43 exec_1_2
-58 and 1 31 43 exec_1_3
-59 and 1 32 43 exec_1_4
-60 and 1 33 43 exec_1_5
-61 and 1 34 43 exec_1_6
+53 and 1 27 42 exec_1_0
+54 and 1 28 42 exec_1_1
+55 and 1 29 42 exec_1_2
+56 and 1 30 42 exec_1_3
+57 and 1 31 42 exec_1_4
+58 and 1 32 42 exec_1_5
+59 and 1 33 42 exec_1_6
 
 ; checkpoint variables - check_<id>
-62 and 1 35 36 check_0
-63 and 1 37 38 check_1
+60 and 1 34 35 check_0
+61 and 1 36 37 check_1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; state variable definitions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; accu variables - accu_<thread>
-64 init 2 9 6
-65 read 2 39 6
-66 eq 1 13 6
-67 and 1 17 66
-68 ite 2 67 15 65
-69 ite 2 49 68 9 0:3:LOAD:0
-70 add 2 9 7
-71 ite 2 50 70 69 0:4:ADDI:1
-72 next 2 9 71 accu_0
+62 init 2 9 6
+63 read 2 38 6
+64 eq 1 13 6
+65 and 1 17 64
+66 ite 2 65 15 63
+67 ite 2 47 66 9 0:2:LOAD:0
+68 add 2 9 7
+69 ite 2 48 68 67 0:3:ADDI:1
+70 next 2 9 69 accu_0
 
-73 init 2 10 6
-74 eq 1 14 6
-75 and 1 18 74
-76 ite 2 75 16 65
-77 ite 2 57 76 10 1:2:LOAD:0
-78 add 2 10 7
-79 ite 2 58 78 77 1:3:ADDI:1
-80 next 2 10 79 accu_1
+71 init 2 10 6
+72 eq 1 14 6
+73 and 1 18 72
+74 ite 2 73 16 63
+75 ite 2 55 74 10 1:2:LOAD:0
+76 add 2 10 7
+77 ite 2 56 76 75 1:3:ADDI:1
+78 next 2 10 77 accu_1
 
 ; mem variables - mem_<thread>
-81 init 2 11 6
-82 next 2 11 11 mem_0
+79 init 2 11 6
+80 next 2 11 11 mem_0
 
-83 init 2 12 6
-84 next 2 12 12 mem_1
+81 init 2 12 6
+82 next 2 12 12 mem_1
 
 ; store buffer address variables - sb-adr_<thread>
-85 init 2 13 6
-86 ite 2 46 6 13 0:0:STORE:0
-87 ite 2 51 6 86 0:5:STORE:0
-88 next 2 13 87 sb-adr_0
+83 init 2 13 6
+84 ite 2 45 6 13 0:0:STORE:0
+85 ite 2 49 6 84 0:4:STORE:0
+86 next 2 13 85 sb-adr_0
 
-89 init 2 14 6
-90 ite 2 59 6 14 1:4:STORE:0
-91 next 2 14 90 sb-adr_1
+87 init 2 14 6
+88 ite 2 57 6 14 1:4:STORE:0
+89 next 2 14 88 sb-adr_1
 
 ; store buffer value variables - sb-val_<thread>
-92 init 2 15 6
-93 ite 2 46 9 15 0:0:STORE:0
-94 ite 2 51 9 93 0:5:STORE:0
-95 next 2 15 94 sb-val_0
+90 init 2 15 6
+91 ite 2 45 9 15 0:0:STORE:0
+92 ite 2 49 9 91 0:4:STORE:0
+93 next 2 15 92 sb-val_0
 
-96 init 2 16 6
-97 ite 2 59 10 16 1:4:STORE:0
-98 next 2 16 97 sb-val_1
+94 init 2 16 6
+95 ite 2 57 10 16 1:4:STORE:0
+96 next 2 16 95 sb-val_1
 
 ; store buffer full variables - sb-full_<thread>
-99 init 1 17 4
-100 or 1 46 51
-101 or 1 17 100
-102 ite 1 44 4 101
-103 next 1 17 102 sb-full_0
+97 init 1 17 4
+98 or 1 45 49
+99 or 1 17 98
+100 ite 1 43 4 99
+101 next 1 17 100 sb-full_0
 
-104 init 1 18 4
-105 or 1 59 18
-106 ite 1 45 4 105
-107 next 1 18 106 sb-full_1
+102 init 1 18 4
+103 or 1 57 18
+104 ite 1 44 4 103
+105 next 1 18 104 sb-full_1
 
 ; statement activation variables - stmt_<thread>_<pc>
-108 init 1 19 5
-109 and 1 19 -46 0:0:STORE:0
-110 next 1 19 109 stmt_0_0
+106 init 1 19 5
+107 and 1 19 -45 0:0:STORE:0
+108 next 1 19 107 stmt_0_0
 
-111 init 1 20 4
-112 and 1 20 -47 0:1:FENCE
-113 ite 1 19 46 112 0:0:STORE:0
-114 ne 1 9 6
-115 and 1 53 114
-116 ite 1 26 115 113 0:7:JNZ:1
-117 next 1 20 116 stmt_0_1
+109 init 1 20 4
+110 and 1 20 -46 0:1:CHECK:0
+111 ite 1 19 45 110 0:0:STORE:0
+112 ne 1 9 6
+113 and 1 51 112
+114 ite 1 25 113 111 0:6:JNZ:1
+115 next 1 20 114 stmt_0_1
 
-118 init 1 21 4
-119 and 1 21 -48 0:2:CHECK:0
-120 ite 1 20 47 119 0:1:FENCE
-121 next 1 21 120 stmt_0_2
+116 init 1 21 4
+117 and 1 21 -47 0:2:LOAD:0
+118 ite 1 20 46 117 0:1:CHECK:0
+119 next 1 21 118 stmt_0_2
 
-122 init 1 22 4
-123 and 1 22 -49 0:3:LOAD:0
-124 ite 1 21 48 123 0:2:CHECK:0
-125 next 1 22 124 stmt_0_3
+120 init 1 22 4
+121 and 1 22 -48 0:3:ADDI:1
+122 ite 1 21 47 121 0:2:LOAD:0
+123 next 1 22 122 stmt_0_3
 
-126 init 1 23 4
-127 and 1 23 -50 0:4:ADDI:1
-128 ite 1 22 49 127 0:3:LOAD:0
-129 next 1 23 128 stmt_0_4
+124 init 1 23 4
+125 and 1 23 -49 0:4:STORE:0
+126 ite 1 22 48 125 0:3:ADDI:1
+127 next 1 23 126 stmt_0_4
 
-130 init 1 24 4
-131 and 1 24 -51 0:5:STORE:0
-132 ite 1 23 50 131 0:4:ADDI:1
-133 next 1 24 132 stmt_0_5
+128 init 1 24 4
+129 and 1 24 -50 0:5:CHECK:1
+130 ite 1 23 49 129 0:4:STORE:0
+131 next 1 24 130 stmt_0_5
 
-134 init 1 25 4
-135 and 1 25 -52 0:6:CHECK:1
-136 ite 1 24 51 135 0:5:STORE:0
-137 next 1 25 136 stmt_0_6
+132 init 1 25 4
+133 and 1 25 -51 0:6:JNZ:1
+134 ite 1 24 50 133 0:5:CHECK:1
+135 next 1 25 134 stmt_0_6
 
-138 init 1 26 4
-139 and 1 26 -53 0:7:JNZ:1
-140 ite 1 25 52 139 0:6:CHECK:1
-141 next 1 26 140 stmt_0_7
+136 init 1 26 4
+137 and 1 26 -52 0:7:EXIT:1
+138 and 1 51 -112
+139 ite 1 25 138 137 0:6:JNZ:1
+140 next 1 26 139 stmt_0_7
 
-142 init 1 27 4
-143 and 1 27 -54 0:8:EXIT:1
-144 and 1 53 -114
-145 ite 1 26 144 143 0:7:JNZ:1
-146 next 1 27 145 stmt_0_8
+141 init 1 27 5
+142 and 1 27 -53 1:0:CHECK:0
+143 ne 1 10 6
+144 and 1 58 143
+145 ite 1 32 144 142 1:5:JNZ:0
+146 next 1 27 145 stmt_1_0
 
-147 init 1 28 5
-148 and 1 28 -55 1:0:CHECK:0
-149 ne 1 10 6
-150 and 1 60 149
-151 ite 1 33 150 148 1:5:JNZ:0
-152 next 1 28 151 stmt_1_0
+147 init 1 28 4
+148 and 1 28 -54 1:1:CHECK:1
+149 ite 1 27 53 148 1:0:CHECK:0
+150 next 1 28 149 stmt_1_1
 
-153 init 1 29 4
-154 and 1 29 -56 1:1:CHECK:1
-155 ite 1 28 55 154 1:0:CHECK:0
-156 next 1 29 155 stmt_1_1
+151 init 1 29 4
+152 and 1 29 -55 1:2:LOAD:0
+153 ite 1 28 54 152 1:1:CHECK:1
+154 next 1 29 153 stmt_1_2
 
-157 init 1 30 4
-158 and 1 30 -57 1:2:LOAD:0
-159 ite 1 29 56 158 1:1:CHECK:1
-160 next 1 30 159 stmt_1_2
+155 init 1 30 4
+156 and 1 30 -56 1:3:ADDI:1
+157 ite 1 29 55 156 1:2:LOAD:0
+158 next 1 30 157 stmt_1_3
 
-161 init 1 31 4
-162 and 1 31 -58 1:3:ADDI:1
-163 ite 1 30 57 162 1:2:LOAD:0
-164 next 1 31 163 stmt_1_3
+159 init 1 31 4
+160 and 1 31 -57 1:4:STORE:0
+161 ite 1 30 56 160 1:3:ADDI:1
+162 next 1 31 161 stmt_1_4
 
-165 init 1 32 4
-166 and 1 32 -59 1:4:STORE:0
-167 ite 1 31 58 166 1:3:ADDI:1
-168 next 1 32 167 stmt_1_4
+163 init 1 32 4
+164 and 1 32 -58 1:5:JNZ:0
+165 ite 1 31 57 164 1:4:STORE:0
+166 next 1 32 165 stmt_1_5
 
-169 init 1 33 4
-170 and 1 33 -60 1:5:JNZ:0
-171 ite 1 32 59 170 1:4:STORE:0
-172 next 1 33 171 stmt_1_5
-
-173 init 1 34 4
-174 and 1 34 -61 1:6:EXIT:1
-175 and 1 60 -149
-176 ite 1 33 175 174 1:5:JNZ:0
-177 next 1 34 176 stmt_1_6
+167 init 1 33 4
+168 and 1 33 -59 1:6:EXIT:1
+169 and 1 58 -143
+170 ite 1 32 169 168 1:5:JNZ:0
+171 next 1 33 170 stmt_1_6
 
 ; blocking variables - block_<id>_<thread>
-178 init 1 35 4
-179 or 1 48 35
-180 ite 1 63 4 179
-181 next 1 35 180 block_0_0
+172 init 1 34 4
+173 or 1 46 34
+174 ite 1 61 4 173
+175 next 1 34 174 block_0_0
 
-182 init 1 36 4
-183 or 1 55 36
-184 ite 1 63 4 183
-185 next 1 36 184 block_0_1
+176 init 1 35 4
+177 or 1 53 35
+178 ite 1 61 4 177
+179 next 1 35 178 block_0_1
 
-186 init 1 37 4
-187 or 1 52 37
-188 ite 1 62 4 187
-189 next 1 37 188 block_1_0
+180 init 1 36 4
+181 or 1 50 36
+182 ite 1 60 4 181
+183 next 1 36 182 block_1_0
 
-190 init 1 38 4
-191 or 1 56 38
-192 ite 1 62 4 191
-193 next 1 38 192 block_1_1
+184 init 1 37 4
+185 or 1 54 37
+186 ite 1 60 4 185
+187 next 1 37 186 block_1_1
 
 ; heap variable
-194 write 3 39 13 15
-195 ite 3 44 194 39 flush_0
-196 write 3 39 14 16
-197 ite 3 45 196 195 flush_1
-198 next 3 39 197 heap
+188 write 3 38 13 15
+189 ite 3 43 188 38 flush_0
+190 write 3 38 14 16
+191 ite 3 44 190 189 flush_1
+192 next 3 38 191 heap
 
 ; exit flag variable
-199 init 1 40 4
-200 or 1 40 54
-201 or 1 61 200
-202 next 1 40 201 exit
+193 init 1 39 4
+194 or 1 39 52
+195 or 1 59 194
+196 next 1 39 195 exit
 
 ; exit code variable
-203 init 2 41 6
-204 ite 2 54 7 41 0:8:EXIT:1
-205 ite 2 61 7 204 1:6:EXIT:1
-206 next 2 41 205 exit-code
+197 init 2 40 6
+198 ite 2 52 7 40 0:7:EXIT:1
+199 ite 2 59 7 198 1:6:EXIT:1
+200 next 2 40 199 exit-code
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; scheduling constraints
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-207 or 1 42 43
-208 or 1 44 207
-209 or 1 45 208
-210 or 1 40 209
-211 constraint 210
-212 nand 1 42 43
-213 nand 1 42 44
-214 nand 1 42 45
-215 nand 1 42 40
-216 nand 1 43 44
-217 nand 1 43 45
-218 nand 1 43 40
-219 nand 1 44 45
-220 nand 1 44 40
-221 nand 1 45 40
-222 and 1 212 213
+201 or 1 41 42
+202 or 1 43 201
+203 or 1 44 202
+204 or 1 39 203
+205 constraint 204
+206 nand 1 41 42
+207 nand 1 41 43
+208 nand 1 41 44
+209 nand 1 41 39
+210 nand 1 42 43
+211 nand 1 42 44
+212 nand 1 42 39
+213 nand 1 43 44
+214 nand 1 43 39
+215 nand 1 44 39
+216 and 1 206 207
+217 and 1 208 216
+218 and 1 209 217
+219 and 1 210 218
+220 and 1 211 219
+221 and 1 212 220
+222 and 1 213 221
 223 and 1 214 222
 224 and 1 215 223
-225 and 1 216 224
-226 and 1 217 225
-227 and 1 218 226
-228 and 1 219 227
-229 and 1 220 228
-230 and 1 221 229
-231 constraint 230
+225 constraint 224
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; store buffer constraints
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-232 or 1 19 20
-233 or 1 24 232
-234 implies 1 233 -42
-235 ite 1 17 234 -44
-236 constraint 235
+226 or 1 19 20
+227 or 1 23 226
+228 implies 1 227 -41
+229 ite 1 17 228 -43
+230 constraint 229
 
-237 implies 1 32 -43
-238 ite 1 18 237 -45
-239 constraint 238
+231 implies 1 31 -42
+232 ite 1 18 231 -44
+233 constraint 232
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; checkpoint constraints
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-240 and 1 35 -62
-241 implies 1 240 -42
-242 constraint 241 block_0_0
+234 and 1 34 -60
+235 implies 1 234 -41
+236 constraint 235 block_0_0
 
-243 and 1 36 -62
-244 implies 1 243 -43
-245 constraint 244 block_0_1
+237 and 1 35 -60
+238 implies 1 237 -42
+239 constraint 238 block_0_1
 
-246 and 1 37 -63
-247 implies 1 246 -42
-248 constraint 247 block_1_0
+240 and 1 36 -61
+241 implies 1 240 -41
+242 constraint 241 block_1_0
 
-249 and 1 38 -63
-250 implies 1 249 -43
-251 constraint 250 block_1_1
+243 and 1 37 -61
+244 implies 1 243 -42
+245 constraint 244 block_1_1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; bound
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; step counter
-252 state 2 k
-253 init 2 252 6
-254 add 2 7 252
-255 next 2 252 254
+246 state 2 k
+247 init 2 246 6
+248 add 2 7 246
+249 next 2 246 248
 
 ; bound (16)
-256 eq 1 8 252
-257 bad 256
+250 eq 1 8 246
+251 bad 250

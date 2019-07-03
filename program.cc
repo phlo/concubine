@@ -21,7 +21,9 @@
 // constructors
 //------------------------------------------------------------------------------
 
-Program::Program(std::istream & f, const std::string & p) : path(p)
+Program::Program(std::istream & f, const std::string & p) :
+  path(p),
+  set_memory_barrier(false)
 {
   std::string token;
 
@@ -206,30 +208,24 @@ Program::Program(std::istream & f, const std::string & p) : path(p)
 
 void Program::push_back (Instruction && op)
 {
-  // assign checkpoint
+  // collect checkpoint id
   if (&op.symbol() == &Instruction::Check::symbol)
-    {
-      // collect checkpoint id
-      checkpoints[op.arg()].push_back(size());
+    checkpoints[op.arg()].push_back(size());
 
-      // set the following instruction's type
-      set_type = set_type.value_or(0) | op.type();
-
-      // return;
-    }
-
-  // assign memory barrier
+  // define the following instruction as memory barrier
   if (&op.symbol() == &Instruction::Fence::symbol)
     {
-      // set the following instruction's type
-      set_type = set_type.value_or(0) | op.type() | Instruction::Type::barrier;
+      set_memory_barrier = true;
 
-      // return;
+      return;
     }
 
   // define instruction as checkpoint or memory barrier
-  if (set_type)
+  if (set_memory_barrier)
     {
+      op.type(op.type() | Instruction::Type::barrier);
+
+      set_memory_barrier = false;
     }
 
   // append instruction

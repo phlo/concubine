@@ -67,9 +67,9 @@ struct Program : public std::vector<Instruction>
   //
   std::unordered_set<std::string> labels;
 
-  // next instruction's type
+  // define next instruction as memory barrier
   //
-  std::optional<uint8_t> set_type;
+  bool set_memory_barrier;
 
   //----------------------------------------------------------------------------
   // constructors
