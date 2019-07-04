@@ -730,13 +730,16 @@ const std::optional<Schedule::Heap> Schedule::iterator::next_heap_state ()
 
       auto & cell = heap.at(address);
 
-      // mind subsequent writes of an equal value to the same address
-      word_t value =
-        cell.cur->first == step
-          ? cell.cur++->second
-          : (--cell.cur)++->second;
+      if (cell.cur->first == step)
+        {
+          // mind subsequent writes of an equal value to the same address
+          word_t value =
+            cell.cur->first == step
+              ? cell.cur++->second
+              : (--cell.cur)++->second;
 
-      return {{address, value}};
+          return {{address, value}};
+        }
     }
 
   return {};

@@ -114,21 +114,20 @@ struct Instruction
   enum Type : uint8_t
     {
       none    = 0,
-      accu    = 1 << 0, // modifies accu
-      mem     = 1 << 1, // modifies mem
+      accu    = 1 << 0,     // modifies accu
+      mem     = 1 << 1,     // modifies mem
       modify  = accu | mem, // modifies a register
-      read    = 1 << 2, // reads from memory
-      write   = 1 << 3, // writes to memory
-      atomic  = 1 << 4, // atomic instruction
-      barrier = 1 << 5, // memory barrier
-      control = 1 << 6, // control flow
-      jump    = 1 << 7  // jump instruction
+      read    = 1 << 2,     // reads from memory
+      write   = 1 << 3,     // writes to memory
+      atomic  = 1 << 4,     // atomic instruction
+      barrier = 1 << 5,     // memory barrier
+      control = 1 << 6      // control flow
     };
 
   // instruction PODs ----------------------------------------------------------
   //
   struct Nullary { uint8_t type = Type::none; };
-  struct Unary : Nullary { word_t arg; };
+  struct Unary : Nullary { word_t arg = 0; };
   struct Memory : Unary { bool indirect = false; };
 
   DECLARE_MEMORY  (Load,  Memory,   "LOAD",   accu | read)
@@ -144,12 +143,12 @@ struct Instruction
   DECLARE_UNARY   (Muli,  Unary,    "MULI",   accu)
 
   DECLARE_MEMORY  (Cmp,   Load,     "CMP",    accu | read)
-  DECLARE_UNARY   (Jmp,   Unary,    "JMP",    control | jump)
-  DECLARE_UNARY   (Jz,    Jmp,      "JZ",     control | jump)
-  DECLARE_UNARY   (Jnz,   Jmp,      "JNZ",    control | jump)
-  DECLARE_UNARY   (Js,    Jmp,      "JS",     control | jump)
-  DECLARE_UNARY   (Jns,   Jmp,      "JNS",    control | jump)
-  DECLARE_UNARY   (Jnzns, Jmp,      "JNZNS",  control | jump)
+  DECLARE_UNARY   (Jmp,   Unary,    "JMP",    control)
+  DECLARE_UNARY   (Jz,    Jmp,      "JZ",     control)
+  DECLARE_UNARY   (Jnz,   Jmp,      "JNZ",    control)
+  DECLARE_UNARY   (Js,    Jmp,      "JS",     control)
+  DECLARE_UNARY   (Jns,   Jmp,      "JNS",    control)
+  DECLARE_UNARY   (Jnzns, Jmp,      "JNZNS",  control)
 
   DECLARE_MEMORY  (Mem,   Load,     "MEM",    accu | mem | read)
   DECLARE_MEMORY  (Cas,   Store,    "CAS",    accu | read | atomic | barrier)

@@ -116,10 +116,10 @@ TEST_F(Simulator, run_simple)
   // run it
   schedule = simulator->run(scheduler);
 
-  EXPECT_EQ(2, step);
+  ASSERT_EQ(2, step);
 
-  EXPECT_EQ(Thread::State::halted, simulator->threads[0].state);
-  EXPECT_EQ(Thread::State::halted, simulator->threads[1].state);
+  ASSERT_EQ(Thread::State::halted, simulator->threads[0].state);
+  ASSERT_EQ(Thread::State::halted, simulator->threads[1].state);
 
   // check Schedule
   ASSERT_EQ(0, schedule->exit);
@@ -235,10 +235,10 @@ TEST_F(Simulator, run_add_check_exit)
   // run it
   schedule = simulator->run(scheduler);
 
-  EXPECT_EQ(step, 5);
+  ASSERT_EQ(step, 5);
 
-  EXPECT_EQ(Thread::State::exited, simulator->threads[0].state);
-  EXPECT_EQ(Thread::State::running, simulator->threads[1].state);
+  ASSERT_EQ(Thread::State::exited, simulator->threads[0].state);
+  ASSERT_EQ(Thread::State::running, simulator->threads[1].state);
 
   // check Schedule
   ASSERT_EQ(1, schedule->exit);
@@ -535,11 +535,11 @@ TEST_F(Simulator, run_race_condition)
   // run it
   schedule = simulator->run(scheduler);
 
-  EXPECT_EQ(15, step);
+  ASSERT_EQ(15, step);
 
-  EXPECT_EQ(Thread::State::exited, simulator->threads[0].state);
-  EXPECT_EQ(Thread::State::halted, simulator->threads[1].state);
-  EXPECT_EQ(Thread::State::halted, simulator->threads[2].state);
+  ASSERT_EQ(Thread::State::exited, simulator->threads[0].state);
+  ASSERT_EQ(Thread::State::halted, simulator->threads[1].state);
+  ASSERT_EQ(Thread::State::halted, simulator->threads[2].state);
 
   // check Schedule
   ASSERT_EQ(1, schedule->exit);
@@ -553,7 +553,7 @@ TEST_F(Simulator, run_race_condition)
 
   ASSERT_EQ(
     Schedule::Thread_Updates<word_t>({
-      {{1, 0}, {12, 1}, {13, 65535}, {15, 1}},
+      {{1, 0}, {12, 1}, {13, 65535}},
       {{2, 0}, {4, 1}},
       {{3, 0}, {5, 1}}}),
     schedule->accu_updates);

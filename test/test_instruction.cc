@@ -501,7 +501,7 @@ TEST_F(Instruction, JMP)
   ASSERT_FALSE(instruction.requires_flush());
 
   ASSERT_EQ("JMP", instruction.symbol());
-  ASSERT_EQ(Type::control | Type::jump, instruction.type());
+  ASSERT_EQ(Type::control, instruction.type());
   ASSERT_EQ(word_max, instruction.arg());
 
   ASSERT_EQ(0, thread.pc);
@@ -530,7 +530,7 @@ TEST_F(Instruction, JZ)
   ASSERT_FALSE(instruction.requires_flush());
 
   ASSERT_EQ("JZ", instruction.symbol());
-  ASSERT_EQ(Type::control | Type::jump, instruction.type());
+  ASSERT_EQ(Type::control, instruction.type());
   ASSERT_EQ(0, instruction.arg());
 
   ASSERT_EQ(0, thread.pc);
@@ -560,7 +560,7 @@ TEST_F(Instruction, JNZ)
   ASSERT_FALSE(instruction.requires_flush());
 
   ASSERT_EQ("JNZ", instruction.symbol());
-  ASSERT_EQ(Type::control | Type::jump, instruction.type());
+  ASSERT_EQ(Type::control, instruction.type());
   ASSERT_EQ(0, instruction.arg());
 
   ASSERT_EQ(0, thread.pc);
@@ -590,7 +590,7 @@ TEST_F(Instruction, JS)
   ASSERT_FALSE(instruction.requires_flush());
 
   ASSERT_EQ("JS", instruction.symbol());
-  ASSERT_EQ(Type::control | Type::jump, instruction.type());
+  ASSERT_EQ(Type::control, instruction.type());
   ASSERT_EQ(0, instruction.arg());
 
   ASSERT_EQ(0, thread.pc);
@@ -620,7 +620,7 @@ TEST_F(Instruction, JNS)
   ASSERT_FALSE(instruction.requires_flush());
 
   ASSERT_EQ("JNS", instruction.symbol());
-  ASSERT_EQ(Type::control | Type::jump, instruction.type());
+  ASSERT_EQ(Type::control, instruction.type());
   ASSERT_EQ(0, instruction.arg());
 
   ASSERT_EQ(0, thread.pc);
@@ -650,7 +650,7 @@ TEST_F(Instruction, JNZNS)
   ASSERT_FALSE(instruction.requires_flush());
 
   ASSERT_EQ("JNZNS", instruction.symbol());
-  ASSERT_EQ(Type::control | Type::jump, instruction.type());
+  ASSERT_EQ(Type::control, instruction.type());
   ASSERT_EQ(0, instruction.arg());
 
   ASSERT_EQ(0, thread.pc);
@@ -811,7 +811,8 @@ TEST_F(Instruction, EXIT)
   instruction.execute(thread);
 
   ASSERT_EQ(0, thread.pc);
-  ASSERT_EQ(1, thread.accu);
+  ASSERT_EQ(0, thread.accu);
+  ASSERT_EQ(1, thread.simulator.schedule->exit);
   ASSERT_EQ(Thread::State::exited, thread.state);
 }
 

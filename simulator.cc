@@ -152,12 +152,7 @@ Schedule::ptr Simulator::run (std::function<Thread *()> scheduler)
           }
 
         // exiting - return exit code
-        case Thread::State::exited:
-          {
-            done = true;
-            schedule->exit = static_cast<int>(thread->accu);
-            break;
-          }
+        case Thread::State::exited: done = true; break;
 
         default:
           {
@@ -486,15 +481,16 @@ void Thread::execute (const Instruction::Check & c)
   PUSH_BACK(pc++);
 }
 
-// TODO
 void Thread::execute (const Instruction::Halt & h [[maybe_unused]])
 {
-  PUSH_BACK(pc++);
+  state = State::halted;
+
+  PUSH_BACK(pc);
 }
 
 void Thread::execute (const Instruction::Exit & e)
 {
-  accu = e.arg;
+  simulator.schedule->exit = e.arg;
   state = State::exited;
 
   PUSH_BACK(pc);

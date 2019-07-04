@@ -6,33 +6,42 @@
 #include "simulator.hh"
 
 //==============================================================================
-// Model<T>
+// Model<POD>
 //
 // Instruction::Concept implementation
 //==============================================================================
 
-template <class T>
+template <class POD>
+constexpr bool is_nullary = std::is_base_of<Instruction::Nullary, POD>::value;
+
+template <class POD>
+constexpr bool is_unary = std::is_base_of<Instruction::Unary, POD>::value;
+
+template <class POD>
+constexpr bool is_memory = std::is_base_of<Instruction::Memory, POD>::value;
+
+template <class POD>
+constexpr bool is_jump = std::is_base_of<Instruction::Jmp, POD>::value;
+
+template <class POD>
 struct Model : Instruction::Concept
 {
   using Type = Instruction::Type;
-  using Nullary = Instruction::Nullary;
-  using Unary = Instruction::Unary;
-  using Memory = Instruction::Memory;
 
-  T pod;
+  POD pod;
 
-  Model (const T & p) : pod(p) {}
+  Model (const POD & p) : pod(p) {}
   // Model (const T && pod) : obj(move(pod)) {}
 
   std::unique_ptr<Concept> clone () const
     {
-      return std::make_unique<Model<T>>(pod);
+      return std::make_unique<Model<POD>>(pod);
     }
 
-  bool is_nullary () const { return std::is_base_of<Nullary, T>::value; }
-  bool is_unary () const { return std::is_base_of<Unary, T>::value; }
-  bool is_memory () const { return std::is_base_of<Memory, T>::value; }
-  bool is_jump () const { return pod.type & Instruction::Type::jump; }
+  bool is_nullary () const { return ::is_nullary<POD>; }
+  bool is_unary () const { return ::is_unary<POD>; }
+  bool is_memory () const { return ::is_memory<POD>; }
+  bool is_jump () const { return ::is_jump<POD>; }
 
   bool requires_flush () const
     {
@@ -46,7 +55,7 @@ struct Model : Instruction::Concept
 
   word_t arg () const
     {
-      if constexpr(std::is_base_of<Unary, T>::value)
+      if constexpr(::is_unary<POD>)
         return pod.arg;
       else
         { assert(false); return 0; }
@@ -54,7 +63,7 @@ struct Model : Instruction::Concept
 
   void arg (const word_t a [[maybe_unused]])
     {
-      if constexpr(std::is_base_of<Unary, T>::value)
+      if constexpr(::is_unary<POD>)
         pod.arg = a;
       else
         assert(false);
@@ -62,7 +71,7 @@ struct Model : Instruction::Concept
 
   bool indirect () const
     {
-      if constexpr(std::is_base_of<Memory, T>::value)
+      if constexpr(::is_memory<POD>)
         return pod.indirect;
       else
         { assert(false); return false; }
@@ -70,7 +79,7 @@ struct Model : Instruction::Concept
 
   void indirect (const bool i [[maybe_unused]])
     {
-      if constexpr(std::is_base_of<Memory, T>::value)
+      if constexpr(::is_memory<POD>)
         pod.indirect = i;
       else
         assert(false);
