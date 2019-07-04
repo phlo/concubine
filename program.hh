@@ -69,7 +69,11 @@ struct Program : public std::vector<Instruction>
 
   // define next instruction as memory barrier
   //
-  bool set_memory_barrier;
+  bool set_fence;
+
+  // adjust jump targets after removing FENCEs
+  //
+  word_t num_removed;
 
   //----------------------------------------------------------------------------
   // constructors

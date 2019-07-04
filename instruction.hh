@@ -100,10 +100,10 @@ struct Instruction
   // copy elision
   //
   static Instruction create (const std::string & symbol);
-  static Instruction create (const std::string & symbol, const word_t arg);
+  static Instruction create (const std::string & symbol, word_t arg);
   static Instruction create (const std::string & symbol,
-                             const word_t arg,
-                             const bool indirect);
+                             word_t arg,
+                             bool indirect);
 
   //----------------------------------------------------------------------------
   // member types
@@ -128,8 +128,8 @@ struct Instruction
   // instruction PODs ----------------------------------------------------------
   //
   struct Nullary { uint8_t type = Type::none; };
-  struct Unary : Nullary { const word_t arg; };
-  struct Memory : Unary { const bool indirect = false; };
+  struct Unary : Nullary { word_t arg; };
+  struct Memory : Unary { bool indirect = false; };
 
   DECLARE_MEMORY  (Load,  Memory,   "LOAD",   accu | read)
   DECLARE_MEMORY  (Store, Memory,   "STORE",  write)
@@ -178,13 +178,13 @@ struct Instruction
       virtual void type (uint8_t type) = 0;
 
       virtual word_t arg () const = 0;
+      virtual void arg (word_t arg) = 0;
+
       virtual bool indirect () const = 0;
+      virtual void indirect (bool indirect) = 0;
 
       virtual void execute (Thread & t) const = 0;
       virtual std::string encode (Encoder & e) const = 0;
-
-      virtual operator const Instruction::Unary & () const = 0;
-      virtual operator const Instruction::Memory & () const = 0;
     };
 
   //----------------------------------------------------------------------------
@@ -233,7 +233,10 @@ struct Instruction
   void type (uint8_t type);
 
   word_t arg () const;
+  void arg (word_t arg);
+
   bool indirect () const;
+  void indirect (bool indirect);
 
   void execute (Thread & t) const;
   std::string encode (Encoder & e) const;
@@ -253,11 +256,6 @@ struct Instruction
   // * required due to user-declared copy constructor / assignment operator
   //
   Instruction & operator = (Instruction && other) = default;
-
-  // conversion into an abstract instruction POD
-  //
-  operator const Unary & () const;
-  operator const Memory & () const;
 };
 
 //==============================================================================

@@ -179,14 +179,14 @@
 ; statement activation variables - stmt_<thread>_<pc>
 106 init 1 19 5
 107 and 1 19 -45 0:0:STORE:0
-108 next 1 19 107 stmt_0_0
+108 ne 1 9 6
+109 and 1 51 108
+110 ite 1 25 109 107 0:6:JNZ:0
+111 next 1 19 110 stmt_0_0
 
-109 init 1 20 4
-110 and 1 20 -46 0:1:CHECK:0
-111 ite 1 19 45 110 0:0:STORE:0
-112 ne 1 9 6
-113 and 1 51 112
-114 ite 1 25 113 111 0:6:JNZ:1
+112 init 1 20 4
+113 and 1 20 -46 0:1:CHECK:0
+114 ite 1 19 45 113 0:0:STORE:0
 115 next 1 20 114 stmt_0_1
 
 116 init 1 21 4
@@ -210,14 +210,14 @@
 131 next 1 24 130 stmt_0_5
 
 132 init 1 25 4
-133 and 1 25 -51 0:6:JNZ:1
+133 and 1 25 -51 0:6:JNZ:0
 134 ite 1 24 50 133 0:5:CHECK:1
 135 next 1 25 134 stmt_0_6
 
 136 init 1 26 4
 137 and 1 26 -52 0:7:EXIT:1
-138 and 1 51 -112
-139 ite 1 25 138 137 0:6:JNZ:1
+138 and 1 51 -108
+139 ite 1 25 138 137 0:6:JNZ:0
 140 next 1 26 139 stmt_0_7
 
 141 init 1 27 5

@@ -8,7 +8,7 @@
 //==============================================================================
 // Model<T>
 //
-// * Instruction::Concept implementation
+// Instruction::Concept implementation
 //==============================================================================
 
 template <class T>
@@ -24,43 +24,60 @@ struct Model : Instruction::Concept
   Model (const T & p) : pod(p) {}
   // Model (const T && pod) : obj(move(pod)) {}
 
-  virtual std::unique_ptr<Concept> clone () const
+  std::unique_ptr<Concept> clone () const
     {
       return std::make_unique<Model<T>>(pod);
     }
 
-  virtual bool is_nullary () const { return std::is_base_of<Nullary, T>(); }
-  virtual bool is_unary () const { return std::is_base_of<Unary, T>(); }
-  virtual bool is_memory () const { return std::is_base_of<Memory, T>(); }
-  virtual bool is_jump () const { return pod.type & Instruction::Type::jump; }
+  bool is_nullary () const { return std::is_base_of<Nullary, T>::value; }
+  bool is_unary () const { return std::is_base_of<Unary, T>::value; }
+  bool is_memory () const { return std::is_base_of<Memory, T>::value; }
+  bool is_jump () const { return pod.type & Instruction::Type::jump; }
 
-  virtual bool requires_flush () const
+  bool requires_flush () const
     {
       return pod.type & (Type::write | Type::barrier);
     }
 
-  virtual const std::string & symbol () const { return pod.symbol; }
+  const std::string & symbol () const { return pod.symbol; }
 
-  virtual uint8_t type () const { return pod.type; }
-  virtual void type (uint8_t type) { pod.type = type; }
+  uint8_t type () const { return pod.type; }
+  void type (const uint8_t type) { pod.type = type; }
 
-  virtual word_t arg () const { const Unary & u = *this; return u.arg; }
-  virtual bool indirect () const { const Memory & m = *this; return m.indirect; }
-
-  virtual void execute (Thread & t) const { t.execute(pod); }
-  virtual std::string encode (Encoder & e) const { return e.encode(pod); }
-
-  virtual operator const Unary & () const
+  word_t arg () const
     {
-      assert(is_unary());
-      return reinterpret_cast<const Unary &>(pod);
+      if constexpr(std::is_base_of<Unary, T>::value)
+        return pod.arg;
+      else
+        { assert(false); return 0; }
     }
 
-  virtual operator const Memory & () const
+  void arg (const word_t a [[maybe_unused]])
     {
-      assert(is_memory());
-      return reinterpret_cast<const Memory &>(pod);
+      if constexpr(std::is_base_of<Unary, T>::value)
+        pod.arg = a;
+      else
+        assert(false);
     }
+
+  bool indirect () const
+    {
+      if constexpr(std::is_base_of<Memory, T>::value)
+        return pod.indirect;
+      else
+        { assert(false); return false; }
+    }
+
+  void indirect (const bool i [[maybe_unused]])
+    {
+      if constexpr(std::is_base_of<Memory, T>::value)
+        pod.indirect = i;
+      else
+        assert(false);
+    }
+
+  void execute (Thread & t) const { t.execute(pod); }
+  std::string encode (Encoder & e) const { return e.encode(pod); }
 };
 
 //==============================================================================
@@ -203,7 +220,10 @@ uint8_t Instruction::type () const { return model->type(); }
 void Instruction::type (uint8_t t) { model->type(t); }
 
 word_t Instruction::arg () const { return model->arg(); }
+void Instruction::arg (const word_t a) { model->arg(a); }
+
 bool Instruction::indirect () const { return model->indirect(); }
+void Instruction::indirect (const bool i) { model->indirect(i); }
 
 void Instruction::execute (Thread & t) const { model->execute(t); }
 std::string Instruction::encode (Encoder & e) const { return model->encode(e); }
@@ -220,11 +240,6 @@ Instruction & Instruction::operator = (const Instruction & other)
   return *this;
 }
 
-// conversion ------------------------------------------------------------------
-//
-Instruction::operator const Unary & () const { return *model; }
-Instruction::operator const Memory & () const { return *model; }
-
 //==============================================================================
 // non-member operators
 //==============================================================================
@@ -233,24 +248,17 @@ Instruction::operator const Memory & () const { return *model; }
 //
 bool operator == (const Instruction & a, const Instruction & b)
 {
-  if (a.symbol() != b.symbol())
+  if (&a.symbol() != &b.symbol())
     return false;
 
   if (a.type() != b.type())
     return false;
 
   if (a.is_memory() && b.is_memory())
-    {
-      const Instruction::Memory & ma = a, mb = b;
+    return a.arg() == b.arg() && a.indirect() == b.indirect();
 
-      return ma.arg == mb.arg && ma.indirect == mb.indirect;
-    }
-  else if (a.is_unary() && b.is_unary())
-    {
-      const Instruction::Unary & ua = a, ub = b;
-
-      return ua.arg == ub.arg;
-    }
+  if (a.is_unary() && b.is_unary())
+    return a.arg() == b.arg();
 
   return true;
 }

@@ -21,11 +21,15 @@
 // constructors
 //------------------------------------------------------------------------------
 
-Program::Program () : std::vector<Instruction>(), set_memory_barrier(false) {}
+Program::Program () :
+  set_fence(false),
+  num_removed(0)
+{}
 
 Program::Program(std::istream & f, const std::string & p) :
   path(p),
-  set_memory_barrier(false)
+  set_fence(false),
+  num_removed(0)
 {
   std::string token;
 
@@ -174,16 +178,16 @@ Program::Program(std::istream & f, const std::string & p) :
 
       if (op.is_jump())
         {
-          const Instruction::Unary & j = op;
+          const word_t target = op.arg();
 
-          if (j.arg >= size())
+          if (target >= size())
             throw std::runtime_error(
               path + ": illegal jump [" + std::to_string(pc) + "]");
 
-          if (op.symbol() != Instruction::Jmp::symbol || j.arg == pc + 1)
+          if (op.symbol() != Instruction::Jmp::symbol || target == pc + 1)
             predecessors[pc + 1].insert(pc);
 
-          predecessors[j.arg].insert(pc);
+          predecessors[target].insert(pc);
         }
       else if (pc < last)
         {
@@ -217,18 +221,21 @@ void Program::push_back (Instruction && op)
   // define the following instruction as memory barrier
   if (&op.symbol() == &Instruction::Fence::symbol)
     {
-      set_memory_barrier = true;
-
+      set_fence = true;
+      num_removed++;
       return;
     }
 
-  // define instruction as checkpoint or memory barrier
-  if (set_memory_barrier)
+  // define instruction as memory barrier
+  if (set_fence)
     {
       op.type(op.type() | Instruction::Type::barrier);
-
-      set_memory_barrier = false;
+      set_fence = false;
     }
+
+  // adjust jump targets after removing FENCEs
+  if (op.is_jump() && num_removed)
+    op.arg(op.arg() - num_removed);
 
   // append instruction
   std::vector<Instruction>::push_back(op);
@@ -305,12 +312,10 @@ std::string Program::print (const bool include_pc, const word_t pc) const
         }
       else if (op.is_memory())
         {
-          const Instruction::Memory & m = op;
-
-          if (m.indirect)
-            ss << "[" << m.arg << "]";
+          if (op.indirect())
+            ss << "[" << op.arg() << "]";
           else
-            ss << m.arg;
+            ss << op.arg();
         }
       else
         {

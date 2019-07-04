@@ -585,9 +585,7 @@ std::string Schedule::print () const
 
           if (op.is_unary())
             {
-              const Instruction::Unary u = op;
-
-              arg = std::to_string(u.arg);
+              arg = std::to_string(op.arg());
 
               if (op.is_memory())
                 {
@@ -597,7 +595,7 @@ std::string Schedule::print () const
               else if (op.is_jump())
                 try
                   {
-                    arg = program.get_label(u.arg);
+                    arg = program.get_label(op.arg());
                   }
               catch (...) {}
             }
@@ -725,18 +723,18 @@ const std::optional<Schedule::Heap> Schedule::iterator::next_heap_state ()
 
   if (op.type() & Instruction::Type::atomic)
     {
-      const Instruction::Memory & atomic = op;
-
-      word_t address = atomic.indirect
-        ? schedule->heap_updates.at(atomic.arg).rend()->second
-        : atomic.arg;
+      word_t address =
+        op.indirect()
+          ? schedule->heap_updates.at(op.arg()).rend()->second
+          : op.arg();
 
       auto & cell = heap.at(address);
 
       // mind subsequent writes of an equal value to the same address
-      word_t value = cell.cur->first == step
-        ? cell.cur++->second
-        : (--cell.cur)++->second;
+      word_t value =
+        cell.cur->first == step
+          ? cell.cur++->second
+          : (--cell.cur)++->second;
 
       return {{address, value}};
     }

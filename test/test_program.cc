@@ -92,11 +92,13 @@ TEST_F(Program, parse)
 
   ASSERT_EQ(6, program.size());
   ASSERT_EQ(1, program.checkpoints.size());
+  ASSERT_EQ(1, program.checkpoints[0][0]);
   ASSERT_EQ(1, program.labels.size());
   ASSERT_EQ(1, program.pc_to_label.size());
   ASSERT_EQ("LOOP", *program.pc_to_label[2]);
   ASSERT_EQ(1, program.label_to_pc.size());
   ASSERT_EQ(2, program.label_to_pc[program.pc_to_label[2]]);
+  ASSERT_EQ(1, program.num_removed);
 
   ASSERT_EQ("0\tSTORE\t0",  program.print(true, 0));
   ASSERT_EQ("1\tCHECK\t0",  program.print(true, 1));
@@ -104,6 +106,8 @@ TEST_F(Program, parse)
   ASSERT_EQ("3\tADDI\t1",   program.print(true, 3));
   ASSERT_EQ("4\tCAS\t0",    program.print(true, 4));
   ASSERT_EQ("5\tJMP\tLOOP", program.print(true, 5));
+
+  ASSERT_TRUE(program[1].type() & Instruction::Type::barrier);
 
   // indirect addressing
   program = create_from_file<::Program>("data/indirect.addressing.asm");
