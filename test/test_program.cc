@@ -90,24 +90,22 @@ TEST_F(Program, parse)
 {
   program = create_from_file<::Program>("data/increment.cas.asm");
 
-  ASSERT_EQ(6, program.size());
+  ASSERT_EQ(7, program.size());
   ASSERT_EQ(1, program.checkpoints.size());
-  ASSERT_EQ(1, program.checkpoints[0][0]);
+  ASSERT_EQ(2, program.checkpoints[0][0]);
   ASSERT_EQ(1, program.labels.size());
   ASSERT_EQ(1, program.pc_to_label.size());
-  ASSERT_EQ("LOOP", *program.pc_to_label[2]);
+  ASSERT_EQ("LOOP", *program.pc_to_label[3]);
   ASSERT_EQ(1, program.label_to_pc.size());
-  ASSERT_EQ(2, program.label_to_pc[program.pc_to_label[2]]);
-  ASSERT_EQ(1, program.num_removed);
+  ASSERT_EQ(3, program.label_to_pc[program.pc_to_label[3]]);
 
-  ASSERT_EQ("0\tSTORE\t0",  program.print(true, 0));
-  ASSERT_EQ("1\tCHECK\t0",  program.print(true, 1));
-  ASSERT_EQ("LOOP\tMEM\t0", program.print(true, 2));
-  ASSERT_EQ("3\tADDI\t1",   program.print(true, 3));
-  ASSERT_EQ("4\tCAS\t0",    program.print(true, 4));
-  ASSERT_EQ("5\tJMP\tLOOP", program.print(true, 5));
-
-  ASSERT_TRUE(program[1].type() & Instruction::Type::barrier);
+  ASSERT_EQ("0 STORE 0",      program.print(true, 0));
+  ASSERT_EQ("1 FENCE",        program.print(true, 1));
+  ASSERT_EQ("2 CHECK 0",      program.print(true, 2));
+  ASSERT_EQ("3 LOOP: MEM 0",  program.print(true, 3));
+  ASSERT_EQ("4 ADDI 1",       program.print(true, 4));
+  ASSERT_EQ("5 CAS 0",        program.print(true, 5));
+  ASSERT_EQ("6 JMP LOOP",     program.print(true, 6));
 
   // indirect addressing
   program = create_from_file<::Program>("data/indirect.addressing.asm");
@@ -116,12 +114,12 @@ TEST_F(Program, parse)
   ASSERT_EQ(0, program.checkpoints.size());
   ASSERT_EQ(0, program.labels.size());
 
-  ASSERT_EQ("0\tSTORE\t1",    program.print(true, 0));
-  ASSERT_EQ("1\tADDI\t1",     program.print(true, 1));
-  ASSERT_EQ("2\tSTORE\t[1]",  program.print(true, 2));
-  ASSERT_EQ("3\tLOAD\t[0]",   program.print(true, 3));
-  ASSERT_EQ("4\tADD\t[1]",    program.print(true, 4));
-  ASSERT_EQ("5\tCMP\t[1]",    program.print(true, 5));
+  ASSERT_EQ("0 STORE 1",    program.print(true, 0));
+  ASSERT_EQ("1 ADDI 1",     program.print(true, 1));
+  ASSERT_EQ("2 STORE [1]",  program.print(true, 2));
+  ASSERT_EQ("3 LOAD [0]",   program.print(true, 3));
+  ASSERT_EQ("4 ADD [1]",    program.print(true, 4));
+  ASSERT_EQ("5 CMP [1]",    program.print(true, 5));
 }
 
 TEST_F(Program, parse_empty_line)
@@ -133,8 +131,8 @@ TEST_F(Program, parse_empty_line)
 
   ASSERT_EQ(2, program.size());
 
-  ASSERT_EQ("0\tADDI\t1",  program.print(true, 0));
-  ASSERT_EQ("1\tEXIT\t1",   program.print(true, 1));
+  ASSERT_EQ("0 ADDI 1", program.print(true, 0));
+  ASSERT_EQ("1 EXIT 1", program.print(true, 1));
 }
 
 TEST_F(Program, parse_file_not_found)
@@ -390,6 +388,34 @@ TEST_F(Program, get_label)
         "no label for program counter [" + std::to_string(word_max) + "]",
         e.what());
     }
+}
+
+// Program::print ==============================================================
+
+TEST_F(Program, print)
+{
+  program = create_from_file<::Program>("data/increment.cas.asm");
+
+  ASSERT_EQ(
+    "STORE 0\n"
+    "FENCE\n"
+    "CHECK 0\n"
+    "LOOP: MEM 0\n"
+    "ADDI 1\n"
+    "CAS 0\n"
+    "JMP LOOP\n",
+    program.print());
+
+  // include pc
+  ASSERT_EQ(
+    "0 STORE 0\n"
+    "1 FENCE\n"
+    "2 CHECK 0\n"
+    "3 LOOP: MEM 0\n"
+    "4 ADDI 1\n"
+    "5 CAS 0\n"
+    "6 JMP LOOP\n",
+    program.print(true));
 }
 
 // operator equals =============================================================

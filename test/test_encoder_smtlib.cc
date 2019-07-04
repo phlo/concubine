@@ -1405,15 +1405,15 @@ TEST_F(smtlib_Encoder, define_store_buffer_constraints)
     "\n"
     "(assert "
       "(ite sb-full_1_0 "
-        "(=> (or stmt_1_0_0 stmt_1_0_1) (not thread_1_0)) "
+        "(=> (or stmt_1_0_0 stmt_1_0_1 stmt_1_0_2) (not thread_1_0)) "
         "(not flush_1_0)))\n"
     "(assert "
       "(ite sb-full_1_1 "
-        "(=> (or stmt_1_1_0 stmt_1_1_1) (not thread_1_1)) "
+        "(=> (or stmt_1_1_0 stmt_1_1_1 stmt_1_1_2) (not thread_1_1)) "
         "(not flush_1_1)))\n"
     "(assert "
       "(ite sb-full_1_2 "
-        "(=> (or stmt_1_2_0 stmt_1_2_1) (not thread_1_2)) "
+        "(=> (or stmt_1_2_0 stmt_1_2_1 stmt_1_2_2) (not thread_1_2)) "
         "(not flush_1_2)))\n"
     "\n",
     encoder->str());
@@ -1428,15 +1428,15 @@ TEST_F(smtlib_Encoder, define_store_buffer_constraints)
   ASSERT_EQ(
     "(assert "
       "(ite sb-full_1_0 "
-        "(=> (or stmt_1_0_0 stmt_1_0_1) (not thread_1_0)) "
+        "(=> (or stmt_1_0_0 stmt_1_0_1 stmt_1_0_2) (not thread_1_0)) "
         "(not flush_1_0)))\n"
     "(assert "
       "(ite sb-full_1_1 "
-        "(=> (or stmt_1_1_0 stmt_1_1_1) (not thread_1_1)) "
+        "(=> (or stmt_1_1_0 stmt_1_1_1 stmt_1_1_2) (not thread_1_1)) "
         "(not flush_1_1)))\n"
     "(assert "
       "(ite sb-full_1_2 "
-        "(=> (or stmt_1_2_0 stmt_1_2_1) (not thread_1_2)) "
+        "(=> (or stmt_1_2_0 stmt_1_2_1 stmt_1_2_2) (not thread_1_2)) "
         "(not flush_1_2)))\n"
     "\n",
     encoder->str());

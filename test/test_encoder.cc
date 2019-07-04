@@ -53,10 +53,10 @@ TEST_F(Encoder, constructor_flush_pcs)
   reset_encoder();
 
   for (const auto & p : *encoder->programs)
-    ASSERT_EQ(2, p.size());
+    ASSERT_EQ(3, p.size());
 
   for (const auto & pcs : encoder->flush_pcs)
-    ASSERT_EQ(std::vector<word_t>({0, 1}), pcs.second);
+    ASSERT_EQ(std::vector<word_t>({0, 1, 2}), pcs.second);
 }
 
 TEST_F(Encoder, constructor_check_pcs)

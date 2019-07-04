@@ -21,15 +21,7 @@
 // constructors
 //------------------------------------------------------------------------------
 
-Program::Program () :
-  set_fence(false),
-  num_removed(0)
-{}
-
-Program::Program(std::istream & f, const std::string & p) :
-  path(p),
-  set_fence(false),
-  num_removed(0)
+Program::Program(std::istream & f, const std::string & p) : path(p)
 {
   std::string token;
 
@@ -218,25 +210,6 @@ void Program::push_back (Instruction && op)
   if (&op.symbol() == &Instruction::Check::symbol)
     checkpoints[op.arg()].push_back(size());
 
-  // define the following instruction as memory barrier
-  if (&op.symbol() == &Instruction::Fence::symbol)
-    {
-      set_fence = true;
-      num_removed++;
-      return;
-    }
-
-  // define instruction as memory barrier
-  if (set_fence)
-    {
-      op.type(op.type() | Instruction::Type::barrier);
-      set_fence = false;
-    }
-
-  // adjust jump targets after removing FENCEs
-  if (op.is_jump() && num_removed)
-    op.arg(op.arg() - num_removed);
-
   // append instruction
   std::vector<Instruction>::push_back(op);
 }
@@ -282,29 +255,26 @@ std::string Program::print (const bool include_pc) const
 std::string Program::print (const bool include_pc, const word_t pc) const
 {
   std::ostringstream ss;
+  const char delimiter = ' ';
+
+  if (include_pc)
+    ss << pc << delimiter;
 
   // check if instruction is referenced by a label
   auto label_it = pc_to_label.find(pc);
   if (label_it != pc_to_label.end())
-    {
-      ss << *label_it->second;
-
-      if (include_pc)
-        ss << "\t";
-      else
-        ss << ": ";
-    }
-  else if (include_pc)
-    ss << pc << "\t";
+    ss << *label_it->second << ": ";
 
   // instruction symbol
   const Instruction & op = (*this)[pc];
 
-  ss << op.symbol() << "\t";
+  ss << op.symbol();
 
   // print unary instruction's argument
   if (op.is_unary())
     {
+      ss << delimiter;
+
       label_it = pc_to_label.find(op.arg());
       if (op.is_jump() && label_it != pc_to_label.end())
         {

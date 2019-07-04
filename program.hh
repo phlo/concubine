@@ -67,23 +67,13 @@ struct Program : public std::vector<Instruction>
   //
   std::unordered_set<std::string> labels;
 
-  // define next instruction as memory barrier
-  //
-  bool set_fence;
-
-  // adjust jump targets after removing FENCEs
-  //
-  word_t num_removed;
-
   //----------------------------------------------------------------------------
   // constructors
   //----------------------------------------------------------------------------
 
-  using std::vector<Instruction>::vector; // inherit constructors
-
-  // default constructor
+  // inherit base constructors
   //
-  Program ();
+  using std::vector<Instruction>::vector;
 
   // construct from file
   //
