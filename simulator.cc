@@ -496,6 +496,10 @@ void Thread::execute (const Instruction::Exit & e)
   PUSH_BACK(pc);
 }
 
+//==============================================================================
+// non-member operators
+//==============================================================================
+
 std::ostream & operator << (std::ostream & os, Thread::State s)
 {
     return os << static_cast<char>(s);

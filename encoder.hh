@@ -188,7 +188,7 @@ struct Encoder
   //
   virtual void encode () = 0;
 
-  // double-dispatched instruction encoding functions
+  // double-dispatched instruction encoding functions (runtime polymorphism)
   //
   virtual std::string encode (const Instruction::Load &) = 0;
   virtual std::string encode (const Instruction::Store &) = 0;
