@@ -51,6 +51,10 @@ const std::string Encoder::block_comment =
   comment(
     ::Encoder::block_comment + " - " + block_sym + "_<step>_<id>_<thread>" + eol);
 
+const std::string Encoder::halt_comment =
+  comment(
+    ::Encoder::halt_comment + " - " + halt_sym + "_<step>_<thread>" + eol);
+
 const std::string Encoder::heap_comment =
   comment(
     ::Encoder::heap_comment + " - " + heap_sym + "_<step>" + eol);
@@ -178,6 +182,18 @@ std::string Encoder::block_var (const word_t k,
     std::to_string(k) + '_' +
     std::to_string(id) + '_' +
     std::to_string(tid);
+}
+
+// smtlib::Encoder::halt_var ---------------------------------------------------
+
+std::string Encoder::halt_var (const word_t k, const word_t t)
+{
+  return halt_sym + '_' + std::to_string(k) + '_' + std::to_string(t);
+}
+
+std::string Encoder::halt_var () const
+{
+  return halt_var(step, thread);
 }
 
 // smtlib::Encoder::heap_var ---------------------------------------------------
@@ -431,6 +447,22 @@ void Encoder::declare_block ()
   formula << eol;
 }
 
+// smtlib::Encoder::declare_halt -----------------------------------------------
+
+void Encoder::declare_halt ()
+{
+  if (halt_pcs.empty())
+    return;
+
+  if (verbose)
+    formula << halt_comment;
+
+  for (const auto & it : halt_pcs)
+    formula << declare_bool_var(halt_var(step, it.first)) << eol;
+
+  formula << eol;
+}
+
 // smtlib::Encoder::declare_heap -----------------------------------------------
 
 void Encoder::declare_heap ()
@@ -447,7 +479,7 @@ void Encoder::declare_heap ()
 
 void Encoder::declare_exit_flag ()
 {
-  if (exit_pcs.empty())
+  if (halt_pcs.empty() && exit_pcs.empty())
     return;
 
   if (verbose)
@@ -480,6 +512,7 @@ void Encoder::declare_states ()
   declare_sb_full();
   declare_stmt();
   declare_block();
+  declare_halt();
 
   declare_heap();
   declare_exit_flag();
@@ -656,11 +689,28 @@ void Encoder::init_block ()
   formula << eol;
 }
 
+// smtlib::Encoder::init_halt --------------------------------------------------
+
+void Encoder::init_halt ()
+{
+  if (halt_pcs.empty())
+    return;
+
+  if (verbose)
+    formula << halt_comment;
+
+  iterate_threads([this] {
+    formula << assertion(lnot(halt_var())) << eol;
+  });
+
+  formula << eol;
+}
+
 // smtlib::Encoder::init_exit_flag ---------------------------------------------
 
 void Encoder::init_exit_flag ()
 {
-  if (exit_pcs.empty())
+  if (halt_pcs.empty() && exit_pcs.empty())
     return;
 
   if (verbose)
@@ -685,6 +735,7 @@ void Encoder::init_states ()
   init_sb_full();
   init_stmt();
   init_block();
+  init_halt();
   init_exit_flag();
 }
 
@@ -766,7 +817,7 @@ void Encoder::define_scheduling_constraints ()
     variables.push_back(flush_var());
   });
 
-  if (!exit_pcs.empty())
+  if (!halt_pcs.empty() || !exit_pcs.empty())
     variables.push_back(exit_flag_var());
 
   formula
@@ -780,9 +831,6 @@ void Encoder::define_scheduling_constraints ()
 
 void Encoder::define_store_buffer_constraints ()
 {
-  if (flush_pcs.empty())
-    return;
-
   if (verbose)
     formula << comment_subsection("store buffer constraints");
 
@@ -823,9 +871,9 @@ void Encoder::define_store_buffer_constraints ()
   formula << eol;
 }
 
-// smtlib::Encoder::define_checkpoint_contraints -------------------------------
+// smtlib::Encoder::define_checkpoint_constraints ------------------------------
 
-void Encoder::define_checkpoint_contraints ()
+void Encoder::define_checkpoint_constraints ()
 {
   if (check_pcs.empty())
     return;
@@ -853,13 +901,35 @@ void Encoder::define_checkpoint_contraints ()
   formula << eol;
 }
 
+// smtlib::Encoder::define_halt_constraints ------------------------------------
+
+void Encoder::define_halt_constraints ()
+{
+  if (halt_pcs.empty())
+    return;
+
+  if (verbose)
+    formula << comment_subsection("halt constraints");
+
+  for (const auto & it : halt_pcs)
+    formula <<
+      assertion(
+        implication(
+            halt_var(step, it.first),
+            lnot(thread_var(step, it.first)))) <<
+      eol;
+
+  formula << eol;
+}
+
 // smtlib::Encoder::define_constraints -----------------------------------------
 
 void Encoder::define_constraints ()
 {
   define_scheduling_constraints();
   define_store_buffer_constraints();
-  define_checkpoint_contraints();
+  define_checkpoint_constraints();
+  define_halt_constraints();
 }
 
 // smtlib::Encoder::encode -----------------------------------------------------

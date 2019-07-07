@@ -1,5 +1,7 @@
 #include "test_encoder_smtlib.hh"
 
+#include <filesystem>
+
 namespace test {
 
 //==============================================================================
@@ -318,6 +320,22 @@ TEST_F(smtlib_Relational, encode_cas)
     {"increment.cas.asm", "increment.cas.asm"},
     "increment.cas.relational.t2.k16.smt2",
     16);
+}
+
+TEST_F(smtlib_Relational, encode_halt)
+{
+  const std::string path = "halt.asm";
+
+  if (!std::filesystem::exists("/tmp/" + path))
+    {
+      std::ofstream file("/tmp/" + path);
+      file <<
+        "JNZ 2\n"
+        "HALT\n"
+        "EXIT 1\n";
+    }
+
+  encode({path, path}, "test.relational.t2.k10.smt2", 10, "/tmp/");
 }
 
 TEST_F(smtlib_Relational, LOAD)

@@ -343,11 +343,11 @@
 233 or 1 24 232
 234 implies 1 233 -42
 235 ite 1 17 234 -44
-236 constraint 235
+236 constraint 235 flush_0
 
 237 implies 1 32 -43
 238 ite 1 18 237 -45
-239 constraint 238
+239 constraint 238 flush_1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; checkpoint constraints

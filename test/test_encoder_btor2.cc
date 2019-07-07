@@ -1,5 +1,6 @@
 #include "test_encoder.hh"
 
+#include <filesystem>
 #include <functional>
 
 #include "btor2.hh"
@@ -678,6 +679,53 @@ TEST_F(btor2_Encoder, declare_block)
 TEST_F(btor2_Encoder, declare_block_empty)
 {
   encoder->declare_block();
+
+  ASSERT_EQ("", encoder->str());
+}
+
+// btor2::Encoder::declare_halt ================================================
+TEST_F(btor2_Encoder, declare_halt)
+{
+  add_dummy_programs(3);
+  reset_encoder();
+  init_declarations();
+
+  encoder->declare_halt();
+
+  expected = [this] {
+    std::ostringstream s;
+
+    if (verbose)
+      s << encoder->halt_comment;
+
+    encoder->iterate_threads([this, &s] {
+      s <<
+        btor2::state(
+          encoder->nids_halt[encoder->thread],
+          encoder->sid_bool,
+          encoder->halt_var());
+    });
+
+    s << eol;
+
+    return s.str();
+  };
+
+  ASSERT_EQ(expected(), encoder->str());
+
+  // verbosity
+  reset_encoder();
+  init_declarations();
+
+  verbose = false;
+  encoder->declare_halt();
+  ASSERT_EQ(expected(), encoder->str());
+  verbose = true;
+}
+
+TEST_F(btor2_Encoder, declare_halt_empty)
+{
+  encoder->declare_halt();
 
   ASSERT_EQ("", encoder->str());
 }
@@ -2503,6 +2551,88 @@ TEST_F(btor2_Encoder, define_block_empty)
   ASSERT_EQ("", encoder->str());
 }
 
+// btor2::Encoder::define_halt =================================================
+
+TEST_F(btor2_Encoder, define_halt)
+{
+  for (size_t i = 0; i < 3; i++)
+    programs.push_back(create_program(
+      "ADDI 1\n"
+      "JNZ 3\n"
+      "HALT\n"
+      "SUBI 1\n"
+    ));
+  reset_encoder();
+  init_state_definitions();
+
+  btor2::nid_t nid = encoder->node;
+
+  encoder->define_halt();
+
+  expected = [this, &nid] {
+    std::ostringstream s;
+
+    if (verbose)
+      s << encoder->halt_comment;
+
+    encoder->iterate_threads([this, &nid, &s] {
+      const word_t & thread = encoder->thread;
+
+      s <<
+        btor2::init(
+          std::to_string(nid),
+          encoder->sid_bool,
+          encoder->nids_halt[thread],
+          encoder->nid_false);
+      nid++;
+      s <<
+        btor2::lor(
+          std::to_string(nid),
+          encoder->sid_bool,
+          encoder->nids_exec[thread][2],
+          encoder->nids_exec[thread][3]);
+      nid++;
+      s <<
+        btor2::lor(
+          std::to_string(nid),
+          encoder->sid_bool,
+          encoder->nids_halt[thread],
+          std::to_string(nid - 1));
+      nid++;
+      s <<
+        btor2::next(
+          std::to_string(nid),
+          encoder->sid_bool,
+          encoder->nids_halt[thread],
+          std::to_string(nid - 1),
+          encoder->halt_var());
+      nid++;
+
+      s << eol;
+    });
+
+    return s.str();
+  };
+
+  ASSERT_EQ(expected(), encoder->str());
+
+  // verbosity
+  reset_encoder();
+  init_state_definitions();
+
+  verbose = false;
+  nid = encoder->node;
+  encoder->define_halt();
+  ASSERT_EQ(expected(), encoder->str());
+  verbose = true;
+}
+
+TEST_F(btor2_Encoder, define_halt_empty)
+{
+  encoder->define_halt();
+  ASSERT_EQ("", encoder->str());
+}
+
 // btor2::Encoder::define_heap =================================================
 
 TEST_F(btor2_Encoder, define_heap)
@@ -2645,10 +2775,15 @@ TEST_F(btor2_Encoder, define_heap)
 TEST_F(btor2_Encoder, define_exit_flag)
 {
   for (size_t i = 0; i < 3; i++)
-    programs.push_back(create_program("EXIT " + std::to_string(i) + eol));
-
+    programs.push_back(create_program(
+      "JNZ 2\n"
+      "HALT\n"
+      "EXIT 1\n"
+    ));
   reset_encoder();
-  init_state_definitions();
+  init_state_definitions(false);
+  encoder->define_halt();
+  encoder->formula.str("");
 
   btor2::nid_t nid = encoder->node;
 
@@ -2668,24 +2803,45 @@ TEST_F(btor2_Encoder, define_exit_flag)
         encoder->nid_false);
     nid++;
     s <<
-      btor2::lor(
+      btor2::land(
         std::to_string(nid),
         encoder->sid_bool,
-        encoder->nid_exit_flag,
-        encoder->nids_exec[0][0]);
+        encoder->nids_halt_next[0],
+        encoder->nids_halt_next[1]);
     nid++;
     s <<
-      btor2::lor(
+      btor2::land(
         std::to_string(nid),
         encoder->sid_bool,
-        encoder->nids_exec[1][0],
+        encoder->nids_halt_next[2],
         std::to_string(nid - 1));
     nid++;
     s <<
       btor2::lor(
         std::to_string(nid),
         encoder->sid_bool,
-        encoder->nids_exec[2][0],
+        encoder->nid_exit_flag,
+        std::to_string(nid - 1));
+    nid++;
+    s <<
+      btor2::lor(
+        std::to_string(nid),
+        encoder->sid_bool,
+        encoder->nids_exec[0][2],
+        std::to_string(nid - 1));
+    nid++;
+    s <<
+      btor2::lor(
+        std::to_string(nid),
+        encoder->sid_bool,
+        encoder->nids_exec[1][2],
+        std::to_string(nid - 1));
+    nid++;
+    s <<
+      btor2::lor(
+        std::to_string(nid),
+        encoder->sid_bool,
+        encoder->nids_exec[2][2],
         std::to_string(nid - 1));
     nid++;
     s <<
@@ -2706,7 +2862,9 @@ TEST_F(btor2_Encoder, define_exit_flag)
 
   // verbosity
   reset_encoder();
-  init_state_definitions();
+  init_state_definitions(false);
+  encoder->define_halt();
+  encoder->formula.str("");
 
   verbose = false;
   nid = encoder->node;
@@ -2802,12 +2960,6 @@ TEST_F(btor2_Encoder, define_exit_code)
   verbose = true;
 }
 
-TEST_F(btor2_Encoder, define_exit_code_empty)
-{
-  encoder->define_exit_code();
-  ASSERT_EQ("", encoder->str());
-}
-
 // btor2::Encoder::define_scheduling_constraints ===============================
 
 TEST_F(btor2_Encoder, define_scheduling_constraints)
@@ -2837,6 +2989,8 @@ TEST_F(btor2_Encoder, define_scheduling_constraints)
       args.end(),
       encoder->nids_flush.begin(),
       encoder->nids_flush.end());
+
+    args.push_back(encoder->nid_exit_flag);
 
     s << btor2::card_constraint_naive(nid, encoder->sid_bool, args) << eol;
 
@@ -2935,6 +3089,8 @@ TEST_F(btor2_Encoder, define_scheduling_constraints_single_thread)
       encoder->nids_flush.begin(),
       encoder->nids_flush.end());
 
+    args.push_back(encoder->nid_exit_flag);
+
     s << btor2::card_constraint_naive(nid, encoder->sid_bool, args) << eol;
 
     return s.str();
@@ -2995,7 +3151,7 @@ TEST_F(btor2_Encoder, define_store_buffer_constraints)
           std::to_string(nid - 1),
           btor2::lnot(encoder->nids_flush[encoder->thread]));
       nid++;
-      s << btor2::constraint(nid);
+      s << btor2::constraint(nid, encoder->flush_var());
       s << eol;
     });
 
@@ -3015,9 +3171,43 @@ TEST_F(btor2_Encoder, define_store_buffer_constraints)
   verbose = true;
 }
 
-// btor2::Encoder::define_checkpoint_contraints ================================
+TEST_F(btor2_Encoder, define_store_buffer_constraints_no_barrier)
+{
+  add_dummy_programs(3);
+  reset_encoder();
+  init_state_definitions();
 
-TEST_F(btor2_Encoder, define_checkpoint_contraints)
+  btor2::nid_t nid = encoder->node;
+
+  encoder->define_store_buffer_constraints();
+
+  expected = [this, &nid] {
+    std::ostringstream s;
+
+    if (verbose)
+      s << btor2::comment_section("store buffer constraints");
+
+    encoder->iterate_threads([this, &nid, &s] {
+      s <<
+        btor2::implies(
+          std::to_string(nid),
+          encoder->sid_bool,
+          btor2::lnot(encoder->nids_sb_full[encoder->thread]),
+          btor2::lnot(encoder->nids_flush[encoder->thread]));
+      nid++;
+      s << btor2::constraint(nid, encoder->flush_var());
+      s << eol;
+    });
+
+    return s.str();
+  };
+
+  ASSERT_EQ(expected(), encoder->str());
+}
+
+// btor2::Encoder::define_checkpoint_constraints ===============================
+
+TEST_F(btor2_Encoder, define_checkpoint_constraints)
 {
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program("CHECK 1\n"));
@@ -3076,7 +3266,61 @@ TEST_F(btor2_Encoder, define_checkpoint_contraints)
   verbose = true;
 }
 
-TEST_F(btor2_Encoder, define_checkpoint_contraints_empty)
+TEST_F(btor2_Encoder, define_checkpoint_constraints_empty)
+{
+  encoder->define_checkpoint_constraints();
+  ASSERT_EQ("", encoder->str());
+}
+
+// btor2::Encoder::define_halt_constraints =====================================
+
+TEST_F(btor2_Encoder, define_halt_constraints)
+{
+  add_dummy_programs(3);
+  reset_encoder();
+  init_state_definitions();
+
+  btor2::nid_t nid = encoder->node;
+
+  encoder->define_halt_constraints();
+
+  expected = [this, &nid] {
+    std::ostringstream s;
+
+    if (verbose)
+      s << btor2::comment_section("halt constraints");
+
+    for (const auto & [t, nid_halt] : encoder->nids_halt)
+      {
+        s <<
+          btor2::implies(
+            std::to_string(nid),
+            encoder->sid_bool,
+            nid_halt,
+            btor2::lnot(encoder->nids_thread[t]));
+        nid++;
+        s << btor2::constraint(nid, encoder->halt_var(t));
+
+        s << eol;
+      }
+
+    return s.str();
+  };
+
+  ASSERT_EQ(expected(), encoder->str());
+
+  // verbosity
+  reset_encoder();
+  init_state_definitions();
+
+  verbose = false;
+  nid = encoder->node;
+  encoder->define_halt_constraints();
+  ASSERT_EQ(expected(), encoder->str());
+  verbose = true;
+}
+
+TEST_F(btor2_Encoder, define_halt_constraints_empty)
 {
   encoder->define_checkpoint_constraints();
   ASSERT_EQ("", encoder->str());
@@ -3172,6 +3416,22 @@ TEST_F(btor2_Encoder, encode_cas)
     {"increment.cas.asm", "increment.cas.asm"},
     "increment.cas.t2.k16.btor2",
     16);
+}
+
+TEST_F(btor2_Encoder, encode_halt)
+{
+  const std::string path = "halt.asm";
+
+  if (!std::filesystem::exists("/tmp/" + path))
+    {
+      std::ofstream file("/tmp/" + path);
+      file <<
+        "JNZ 2\n"
+        "HALT\n"
+        "EXIT 1\n";
+    }
+
+  encode({path, path}, "test.t2.k10.btor2", 10, "/tmp/");
 }
 
 TEST_F(btor2_Encoder, LOAD)
@@ -3942,14 +4202,6 @@ TEST_F(btor2_Encoder, CAS_indirect)
   encoder->update = ::Encoder::State::heap;
   nid_cas = encoder->encode(cas);
   ASSERT_EQ(expected(), encoder->str());
-}
-
-TEST_F(btor2_Encoder, CHECK)
-{
-  Instruction::Check check {Type::none, 1};
-
-  ASSERT_EQ("", encoder->encode(check));
-  ASSERT_EQ("", encoder->str());
 }
 
 TEST_F(btor2_Encoder, EXIT)

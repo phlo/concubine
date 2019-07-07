@@ -153,9 +153,9 @@ struct Instruction
   DECLARE_MEMORY  (Mem,   Load,     "MEM",    accu | mem | read)
   DECLARE_MEMORY  (Cas,   Store,    "CAS",    accu | read | atomic | barrier)
 
-  DECLARE_UNARY   (Check, Unary,    "CHECK",  control)
+  DECLARE_UNARY   (Check, Unary,    "CHECK",  none)
 
-  DECLARE_NULLARY (Halt,  Nullary,  "HALT",   control)
+  DECLARE_NULLARY (Halt,  Nullary,  "HALT",   barrier | control)
   DECLARE_UNARY   (Exit,  Unary,    "EXIT",   control)
 
   // abstract interface (types erasure concept) --------------------------------

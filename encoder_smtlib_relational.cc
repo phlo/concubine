@@ -21,6 +21,7 @@ Relational::State::State (Relational & e) :
   sb_val(e.restore_sb_val()),
   sb_full(e.restore_sb_full()),
   block(e.restore_block()),
+  halt(e.restore_halt()),
   heap(e.restore_heap()),
   exit_flag(e.unset_exit_flag())
 {
@@ -51,6 +52,9 @@ Relational::State::operator std::string () const
 
   if (block)
     args.push_back(*block);
+
+  if (halt)
+    args.push_back(*halt);
 
   if (heap)
     args.push_back(*heap);
@@ -338,6 +342,40 @@ std::shared_ptr<std::string> Relational::restore_block () const
   return std::make_shared<std::string>(land(block_vars));
 }
 
+// smtlib::Relational::set_halt ------------------------------------------------
+
+std::shared_ptr<std::string> Relational::set_halt () const
+{
+  if (halt_pcs.empty())
+    return {};
+
+  std::vector<std::string> args;
+  args.reserve(halt_pcs.size());
+
+  for (const auto & it : halt_pcs)
+    args.push_back(halt_var(step, it.first));
+
+  return
+    std::make_shared<std::string>(
+      land({
+        halt_var(),
+        implication(
+          land(args),
+          exit_flag_var())}));
+}
+
+// smtlib::Relational::restore_halt --------------------------------------------
+
+std::shared_ptr<std::string> Relational::restore_halt () const
+{
+  if (halt_pcs.empty())
+    return {};
+
+  return
+    std::make_shared<std::string>(
+      equality({halt_var(), halt_var(prev, thread)}));
+}
+
 // smtlib::Relational::set_heap ------------------------------------------------
 
 template <class T>
@@ -361,7 +399,7 @@ std::shared_ptr<std::string> Relational::restore_heap () const
 
 std::shared_ptr<std::string> Relational::set_exit_flag () const
 {
-  if (exit_pcs.empty())
+  if (halt_pcs.empty() && exit_pcs.empty())
     return {};
 
   return std::make_shared<std::string>(exit_flag_var());
@@ -371,7 +409,7 @@ std::shared_ptr<std::string> Relational::set_exit_flag () const
 
 std::shared_ptr<std::string> Relational::unset_exit_flag () const
 {
-  if (exit_pcs.empty())
+  if (halt_pcs.empty() && exit_pcs.empty())
     return {};
 
   return std::make_shared<std::string>(lnot(exit_flag_var()));
@@ -389,7 +427,7 @@ std::shared_ptr<std::string> Relational::set_exit_code (const word_t e) const
 // thread t executed an instruction (exec_k_t_pc):
 // * update thread state accordingly
 // * restore heap (or update iff the instruction was a successful CAS)
-// * unset exit flag
+// * unset exit flag iff the instruction was neither an EXIT, nor a HALT
 // * set exit code iff the instruction was an EXIT
 
 void Relational::imply_thread_executed ()
@@ -398,9 +436,18 @@ void Relational::imply_thread_executed ()
   const State tmp = state = *this;
 
   for (pc = 0; pc < program.size(); pc++, state = tmp)
-    formula
-      << imply(exec_var(prev, thread, pc), program[pc].encode(*this))
-      << eol;
+    {
+      // halts (final statement)
+      if (halt_pcs.find(thread) != halt_pcs.end() && pc == halt_pcs[thread].back())
+        {
+          state.halt = set_halt();
+          state.exit_flag = {};
+        }
+
+      formula
+        << imply(exec_var(prev, thread, pc), program[pc].encode(*this))
+        << eol;
+    }
 }
 
 // smtlib::Relational::imply_thread_not_executed -------------------------------
@@ -451,7 +498,7 @@ void Relational::imply_thread_flushed ()
 
 void Relational::imply_machine_exited ()
 {
-  if (exit_pcs.empty())
+  if (halt_pcs.empty() && exit_pcs.empty())
     return;
 
   if (verbose)
@@ -649,10 +696,12 @@ std::string Relational::encode (const Instruction::Check & c)
   return state;
 }
 
-// TODO
 std::string Relational::encode (const Instruction::Halt & h [[maybe_unused]])
 {
-  throw std::runtime_error("not implemented");
+  state.halt = set_halt();
+  state.exit_flag = {};
+
+  return state;
 }
 
 std::string Relational::encode (const Instruction::Exit & e)

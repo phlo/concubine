@@ -34,6 +34,8 @@ TEST_F(Encoder, constructor)
         id == 1 ? std::vector<word_t>({3}) : std::vector<word_t>({5}),
         std::get<1>(pcs));
 
+  ASSERT_TRUE(encoder->halt_pcs.empty());
+
   for (const auto & [thread, pcs] : encoder->exit_pcs)
     {
       ASSERT_TRUE(!thread || thread < 3);
@@ -76,6 +78,26 @@ TEST_F(Encoder, constructor_check_pcs)
         word_t thread = id - 1;
         ASSERT_EQ(std::vector<word_t>({thread}), pcs.second);
       }
+}
+
+TEST_F(Encoder, constructor_halt_pcs)
+{
+  for (size_t i = 0; i < 2; i++)
+    {
+      if (i)
+        programs.push_back(create_program("ADDI 1\n"));
+      else
+        programs.push_back(create_program(
+          "JZ 2\n"
+          "HALT\n"
+          "ADDI 1\n"
+        ));
+    }
+
+  reset_encoder();
+
+  ASSERT_EQ(std::vector<word_t>({1, 2}), encoder->halt_pcs[0]);
+  ASSERT_EQ(std::vector<word_t>({0}), encoder->halt_pcs[1]);
 }
 
 TEST_F(Encoder, constructor_exit_pcs)

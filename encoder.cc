@@ -15,6 +15,7 @@ const std::string Encoder::sb_val_sym        = "sb-val";
 const std::string Encoder::sb_full_sym       = "sb-full";
 const std::string Encoder::stmt_sym          = "stmt";
 const std::string Encoder::block_sym         = "block";
+const std::string Encoder::halt_sym          = "halt";
 
 const std::string Encoder::heap_sym          = "heap";
 const std::string Encoder::exit_flag_sym     = "exit";
@@ -32,6 +33,7 @@ const std::string Encoder::sb_val_comment    = "store buffer value variables";
 const std::string Encoder::sb_full_comment   = "store buffer full variables";
 const std::string Encoder::stmt_comment      = "statement activation variables";
 const std::string Encoder::block_comment     = "blocking variables";
+const std::string Encoder::halt_comment      = "halt variables";
 
 const std::string Encoder::heap_comment      = "heap variable";
 const std::string Encoder::exit_flag_comment = "exit flag variable";
@@ -61,6 +63,10 @@ Encoder::Encoder (const Program::List::ptr & p, bound_t b) :
         if (op.requires_flush())
           flush_pcs[thread].push_back(pc);
 
+        // collect explicit halt statements
+        if (&op.symbol() == &Instruction::Halt::symbol)
+          halt_pcs[thread].push_back(pc);
+
         // collect exit calls
         if (&op.symbol() == &Instruction::Exit::symbol)
           exit_pcs[thread].push_back(pc);
@@ -74,6 +80,10 @@ Encoder::Encoder (const Program::List::ptr & p, bound_t b) :
         lst.reserve(lst.size() + pcs.size());
         lst.insert(lst.end(), pcs.begin(), pcs.end());
       }
+
+    // collect final halt statement (excluding control operations)
+    if (!(program.back().type() & Instruction::Type::control))
+      halt_pcs[thread].push_back(pc - 1);
   });
 }
 

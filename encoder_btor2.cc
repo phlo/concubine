@@ -1,6 +1,7 @@
 #include "encoder.hh"
 
 #include <algorithm>
+#include <cassert>
 
 #include "btor2.hh"
 
@@ -69,6 +70,9 @@ const std::string Encoder::stmt_comment =
 
 const std::string Encoder::block_comment =
   comment(::Encoder::block_comment + " - " + block_sym + "_<id>_<thread>" + eol);
+
+const std::string Encoder::halt_comment =
+  comment(::Encoder::halt_comment + " - " + halt_sym + "_<thread>" + eol);
 
 const std::string Encoder::heap_comment =
   comment(::Encoder::heap_comment + eol);
@@ -197,6 +201,18 @@ std::string Encoder::stmt_var () const
 std::string Encoder::block_var (const word_t t, const word_t id)
 {
   return block_sym + '_' + std::to_string(t) + '_' + std::to_string(id);
+}
+
+// btor2::Encoder::halt_var ----------------------------------------------------
+
+std::string Encoder::halt_var (const word_t t)
+{
+  return halt_sym + '_' + std::to_string(t);
+}
+
+std::string Encoder::halt_var () const
+{
+  return halt_var(thread);
 }
 
 // btor2::Encoder::thread_var --------------------------------------------------
@@ -693,6 +709,26 @@ void Encoder::declare_block ()
     }
 }
 
+// btor2::Encoder::declare_halt ------------------------------------------------
+
+void Encoder::declare_halt ()
+{
+  if (halt_pcs.empty())
+    return;
+
+  if (verbose)
+    formula << halt_comment;
+
+  for (const auto & it : halt_pcs)
+    formula <<
+      state(
+        nids_halt.emplace_hint(nids_halt.end(), it.first, nid())->second,
+        sid_bool,
+        halt_var(it.first));
+
+  formula << eol;
+}
+
 // btor2::Encoder::declare_heap ------------------------------------------------
 
 void Encoder::declare_heap ()
@@ -707,7 +743,7 @@ void Encoder::declare_heap ()
 
 void Encoder::declare_exit_flag ()
 {
-  if (exit_pcs.empty())
+  if (halt_pcs.empty() && exit_pcs.empty())
     return;
 
   if (verbose)
@@ -720,9 +756,6 @@ void Encoder::declare_exit_flag ()
 
 void Encoder::declare_exit_code ()
 {
-  if (exit_pcs.empty())
-    return;
-
   if (verbose)
     formula << exit_code_comment;
 
@@ -743,6 +776,7 @@ void Encoder::declare_states ()
   declare_sb_full();
   declare_stmt();
   declare_block();
+  declare_halt();
 
   declare_heap();
   declare_exit_flag();
@@ -802,13 +836,12 @@ void Encoder::define_exec ()
   nids_exec.resize(num_threads);
 
   iterate_programs([this] (const Program & program) {
-    auto & nids = nids_exec[thread];
-    nids.reserve(program.size());
+    nids_exec[thread].reserve(program.size());
 
     for (pc = 0; pc < program.size(); pc++)
       formula <<
         land(
-          nids.emplace_back(nid()),
+          nids_exec[thread].emplace_back(nid()),
           sid_bool,
           nids_stmt[thread][pc],
           nids_thread[thread],
@@ -969,21 +1002,26 @@ void Encoder::define_sb_full ()
     formula << sb_full_comment;
 
   iterate_programs([this] (const Program & program) {
-    std::vector<std::string> cls;
+    formula << init(nid(), sid_bool, nids_sb_full[thread], nid_false);
+
+    std::vector<std::string> args;
+
+    std::string nid_next = nids_sb_full[thread];
 
     for (pc = 0; pc < program.size(); pc++)
       if (program[pc].type() & Instruction::Type::write)
-        cls.push_back(nids_exec[thread][pc]);
+        args.push_back(nids_exec[thread][pc]);
 
-    cls.push_back(nids_sb_full[thread]);
-
-    std::string prev;
+    if (!args.empty())
+      {
+        args.push_back(nids_sb_full[thread]);
+        formula << lor(node, sid_bool, args);
+        nid_next = nid(-1);
+      }
 
     formula <<
-      init(nid(), sid_bool, nids_sb_full[thread], nid_false) <<
-      lor(node, sid_bool, cls) <<
-      ite(prev = nid(), sid_bool, nids_flush[thread], nid_false, nid(-1)) <<
-      next(nid(), sid_bool, nids_sb_full[thread], prev, sb_full_var()) <<
+      ite(nid_next = nid(), sid_bool, nids_flush[thread], nid_false, nid_next) <<
+      next(nid(), sid_bool, nids_sb_full[thread], nid_next, sb_full_var()) <<
       eol;
   });
 }
@@ -996,18 +1034,13 @@ void Encoder::define_stmt ()
     formula << stmt_comment;
 
   iterate_programs([this] (const Program & program) {
-    // map storing nids of jump conditions
-    std::unordered_map<word_t, std::string> nid_jmp;
-
-    // reduce lookups
-    const std::vector<std::string> & nids_stmt_thread = nids_stmt[thread];
-    const std::vector<std::string> & nids_exec_thread = nids_exec[thread];
+    std::unordered_map<word_t, std::string> nid_jmp; // nids of jump conditions
 
     for (pc = 0; pc < program.size(); pc++)
       {
         std::string nid_next = nid();
-        std::string nid_exec = nids_exec_thread[pc];
-        std::string nid_stmt = nids_stmt_thread[pc];
+        std::string nid_exec = nids_exec[thread][pc];
+        std::string nid_stmt = nids_stmt[thread][pc];
 
         // init
         formula <<
@@ -1025,12 +1058,12 @@ void Encoder::define_stmt ()
         // add activation by predecessor's execution
         for (word_t prev : program.predecessors.at(pc))
           {
-            nid_exec = nids_exec_thread[prev];
+            nid_exec = nids_exec[thread][prev];
 
             const Instruction & pred = program[prev];
 
-            // predecessor is a jump
-            if (pred.is_jump())
+            // predecessor is a conditional jump
+            if (pred.is_jump() && &pred.symbol() != &Instruction::Jmp::symbol)
               {
                 std::string nid_cond =
                   lookup(
@@ -1038,17 +1071,13 @@ void Encoder::define_stmt ()
                     prev,
                     [this, &pred] { return pred.encode(*this); });
 
-                // nothing to do here for unconditional jumps (JMP)
-                if (!nid_cond.empty())
-                  {
-                    // add negated condition if preceding jump failed
-                    if (prev == pc - 1 && pred.arg() != pc)
-                      nid_cond = lnot(nid_cond);
+                // add negated condition if preceding jump failed
+                if (prev == pc - 1 && pred.arg() != pc)
+                  nid_cond = lnot(nid_cond);
 
-                    // add conjunction of execution variable & jump condition
-                    formula <<
-                      land(nid_exec = nid(), sid_bool, nid_exec, nid_cond);
-                  }
+                // add conjunction of execution variable & jump condition
+                formula <<
+                  land(nid_exec = nid(), sid_bool, nid_exec, nid_cond);
               }
 
             // add predecessors activation
@@ -1056,7 +1085,7 @@ void Encoder::define_stmt ()
               ite(
                 nid_next = nid(),
                 sid_bool,
-                nids_stmt_thread[prev],
+                nids_stmt[thread][prev],
                 nid_exec,
                 nid_next,
                 verbose ? debug_symbol(thread, prev) : "");
@@ -1114,6 +1143,40 @@ void Encoder::define_block ()
     }
 }
 
+// btor2::Encoder::define_halt -------------------------------------------------
+
+void Encoder::define_halt ()
+{
+  if (halt_pcs.empty())
+    return;
+
+  if (verbose)
+    formula << halt_comment;
+
+  for (const auto & [t, pcs] : halt_pcs)
+    {
+      std::vector<std::string> args;
+
+      args.reserve(pcs.size() + 1);
+
+      for (const word_t p : pcs)
+        args.push_back(nids_exec[t][p]);
+
+      args.push_back(nids_halt[t]);
+
+      formula <<
+        init(nid(), sid_bool, nids_halt[t], nid_false) <<
+        lor(node, sid_bool, args) <<
+        next(
+          nid(),
+          sid_bool,
+          nids_halt[t],
+          nids_halt_next.emplace_hint(nids_halt_next.end(), t, nid(-1))->second,
+          halt_var(t)) <<
+        eol;
+    }
+}
+
 // btor2::Encoder::define_heap -------------------------------------------------
 
 void Encoder::define_heap ()
@@ -1168,7 +1231,7 @@ void Encoder::define_heap ()
 
 void Encoder::define_exit_flag ()
 {
-  if (exit_pcs.empty())
+  if (halt_pcs.empty() && exit_pcs.empty())
     return;
 
   if (verbose)
@@ -1178,20 +1241,41 @@ void Encoder::define_exit_flag ()
 
   std::vector<std::string> args({nid_exit_flag});
 
-  for (const auto & [t, pcs] : exit_pcs)
-    for (const auto & p : pcs)
-      args.push_back(nids_exec[t][p]);
+  std::string nid_next = nid_exit_flag;
 
-  std::string nid_cond = nid_exit_flag;
+  if (!halt_pcs.empty())
+    {
+      if (nids_halt.size() > 1)
+        {
+          std::vector<std::string> halt;
+          halt.reserve(nids_halt_next.size());
+
+          for (const auto & it : nids_halt_next)
+            halt.push_back(it.second);
+
+          formula << land(node, sid_bool, halt);
+
+          args.push_back(nid(-1));
+        }
+      else
+        {
+          args.push_back(nids_halt_next.begin()->second);
+        }
+    }
+
+  if (!exit_pcs.empty())
+    for (const auto & [t, pcs] : exit_pcs)
+      for (const auto & p : pcs)
+        args.push_back(nids_exec[t][p]);
 
   if (args.size() > 1)
     {
       formula << lor(node, sid_bool, args);
-      nid_cond = std::to_string(node - 1);
+      nid_next = std::to_string(node - 1);
     }
 
   formula
-    << next(nid(), sid_bool, nid_exit_flag, nid_cond, exit_flag_sym)
+    << next(nid(), sid_bool, nid_exit_flag, nid_next, exit_flag_sym)
     << eol;
 }
 
@@ -1199,9 +1283,6 @@ void Encoder::define_exit_flag ()
 
 void Encoder::define_exit_code ()
 {
-  if (exit_pcs.empty())
-    return;
-
   if (verbose)
     formula << exit_code_comment;
 
@@ -1239,6 +1320,7 @@ void Encoder::define_states ()
   define_sb_full();
   define_stmt();
   define_block();
+  define_halt();
 
   define_heap();
   define_exit_flag();
@@ -1258,7 +1340,7 @@ void Encoder::define_scheduling_constraints ()
   variables.insert(variables.end(), nids_thread.begin(), nids_thread.end());
   variables.insert(variables.end(), nids_flush.begin(), nids_flush.end());
 
-  if (!exit_pcs.empty())
+  if (!nid_exit_flag.empty())
     variables.push_back(nid_exit_flag);
 
   formula <<
@@ -1272,9 +1354,6 @@ void Encoder::define_scheduling_constraints ()
 
 void Encoder::define_store_buffer_constraints ()
 {
-  if (flush_pcs.empty())
-    return;
-
   if (verbose)
     formula << comment_section("store buffer constraints");
 
@@ -1301,7 +1380,7 @@ void Encoder::define_store_buffer_constraints ()
           }
         else
           {
-            nid_or = nids_stmt[thread][flush_pcs[thread][0]];
+            nid_or = nids_stmt[thread][flush_pcs[thread].front()];
           }
 
         formula <<
@@ -1311,10 +1390,17 @@ void Encoder::define_store_buffer_constraints ()
             sid_bool,
             nids_sb_full[thread],
             nid(-1),
-            lnot(nids_flush[thread])) <<
-          constraint(node) <<
-          eol;
+            lnot(nids_flush[thread]));
       }
+    else
+      formula <<
+        implies(
+          nid(),
+          sid_bool,
+          lnot(nids_sb_full[thread]),
+          lnot(nids_flush[thread]));
+
+    formula << constraint(node, flush_var()) << eol;
   });
 }
 
@@ -1349,6 +1435,23 @@ void Encoder::define_checkpoint_constraints ()
     }
 }
 
+// btor2::Encoder::define_halt_constraints -------------------------------------
+
+void Encoder::define_halt_constraints ()
+{
+  if (halt_pcs.empty())
+    return;
+
+  if (verbose)
+    formula << comment_section("halt constraints");
+
+  for (const auto & [t, nid_halt] : nids_halt)
+    formula
+      << implies(nid(), sid_bool, nid_halt, lnot(nids_thread[t]))
+      << constraint(node, halt_var(t))
+      << eol;
+}
+
 // btor2::Encoder::define_constraints ------------------------------------------
 
 void Encoder::define_constraints ()
@@ -1356,7 +1459,10 @@ void Encoder::define_constraints ()
   define_scheduling_constraints();
   define_store_buffer_constraints();
   define_checkpoint_constraints();
+  define_halt_constraints();
 }
+
+// btor2::Encoder::define_bound ------------------------------------------------
 
 void Encoder::define_bound ()
 {
@@ -1419,10 +1525,10 @@ std::string Encoder::encode (const Instruction::Store & s)
     }
 }
 
-// TODO
 std::string Encoder::encode (const Instruction::Fence & f [[maybe_unused]])
 {
-  throw std::runtime_error("not implemented");
+  assert(false);
+  return "";
 }
 
 std::string Encoder::encode (const Instruction::Add & a)
@@ -1608,13 +1714,14 @@ std::string Encoder::encode (const Instruction::Cas & c)
 
 std::string Encoder::encode (const Instruction::Check & s [[maybe_unused]])
 {
+  assert(false);
   return "";
 }
 
-// TODO
 std::string Encoder::encode (const Instruction::Halt & h [[maybe_unused]])
 {
-  throw std::runtime_error("not implemented");
+  assert(false);
+  return "";
 }
 
 std::string Encoder::encode (const Instruction::Exit & e [[maybe_unused]])

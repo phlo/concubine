@@ -79,19 +79,18 @@ struct Encoder: public ::testing::Test
 
   void encode (const std::initializer_list<std::string> _programs,
                const std::string file,
-               const bound_t bound)
+               const bound_t bound,
+               const char * dir = "data/")
     {
-      const char * data = "data/";
-
       for (const auto & p : _programs)
-        programs.push_back(create_from_file<Program>(data + p));
+        programs.push_back(create_from_file<Program>(dir + p));
 
       encoder =
         std::make_unique<Impl>(
           std::make_shared<Program::List>(programs),
           bound);
 
-      std::ifstream ifs(data + file);
+      std::ifstream ifs(dir + file);
 
       std::string expected;
       expected.assign(std::istreambuf_iterator<char>(ifs),

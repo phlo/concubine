@@ -3,6 +3,13 @@
 # - CXXFLAGS
 # - OBJ
 
+# link std::filesystem
+ifeq ($(CXX),g++)
+LDFLAGS += -lstdc++fs
+else
+LDFLAGS += -lc++fs
+endif
+
 # googletest root
 GTEST_DIR = lib/googletest/googletest
 
@@ -43,7 +50,7 @@ GTEST_FILTER += smtlib_Functional.*
 GTEST_FILTER += smtlib_Relational.*
 GTEST_FILTER += btor2.*
 GTEST_FILTER += btor2_Encoder.*
-# GTEST_FILTER += Thread.*
+GTEST_FILTER += Thread.*
 # GTEST_FILTER += Simulator.*
 # GTEST_FILTER += Main.*
 # GTEST_FILTER += Experimental.*
@@ -93,7 +100,7 @@ experimental: $(EXPERIMENTS) $(GTEST_LIB)
 
 # build executable containing all test cases
 $(TEST_RUN): $(GTEST_LIB) $(OBJ) $(TEST_OBJ)
-	$(CXX) $(CXXFLAGS) $^ $(TEST_MAIN) -o $@
+	$(CXX) $(CXXFLAGS) $^ $(TEST_MAIN) $(LDFLAGS) -o $@
 
 # build googletest library
 $(GTEST_DIR):

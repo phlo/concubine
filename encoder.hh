@@ -46,6 +46,7 @@ struct Encoder
   static const std::string sb_full_sym;
   static const std::string stmt_sym;
   static const std::string block_sym;
+  static const std::string halt_sym;
 
   // machine state symbols
   //
@@ -69,6 +70,7 @@ struct Encoder
   static const std::string sb_full_comment;
   static const std::string stmt_comment;
   static const std::string block_comment;
+  static const std::string halt_comment;
 
   static const std::string exit_flag_comment;
   static const std::string exit_code_comment;
@@ -128,6 +130,12 @@ struct Encoder
   // checkpoint id -> thread -> list of program counters
   //
   std::map<word_t, std::map<word_t, std::vector<word_t>>> check_pcs; // checkpoints
+
+  // pcs of halt statements
+  //
+  // thread -> list of program counters
+  //
+  std::map<word_t, std::vector<word_t>> halt_pcs; // halts
 
   // pcs of exit calls
   //
@@ -258,6 +266,7 @@ struct Encoder : public ::Encoder
   static const std::string sb_full_comment;
   static const std::string stmt_comment;
   static const std::string block_comment;
+  static const std::string halt_comment;
 
   static const std::string exit_flag_comment;
   static const std::string exit_code_comment;
@@ -304,8 +313,9 @@ struct Encoder : public ::Encoder
          std::string sb_full_var () const;
   static std::string stmt_var (word_t step, word_t thread, word_t pc);
          std::string stmt_var () const;
-
   static std::string block_var (word_t step, word_t thread, word_t id);
+  static std::string halt_var (word_t step, word_t thread);
+         std::string halt_var () const;
 
   // machine state variable name generators
   //
@@ -342,6 +352,7 @@ struct Encoder : public ::Encoder
   void declare_sb_full ();
   void declare_stmt ();
   void declare_block ();
+  void declare_halt ();
 
   void declare_heap ();
   void declare_exit_flag ();
@@ -367,6 +378,7 @@ struct Encoder : public ::Encoder
   void init_sb_full ();
   void init_stmt ();
   void init_block ();
+  void init_halt ();
 
   void init_exit_flag ();
 
@@ -387,7 +399,8 @@ struct Encoder : public ::Encoder
   //
   void define_scheduling_constraints ();
   void define_store_buffer_constraints ();
-  void define_checkpoint_contraints ();
+  void define_checkpoint_constraints ();
+  void define_halt_constraints ();
 
   void define_constraints (); // all of the above
 
@@ -453,6 +466,7 @@ struct Functional : public Encoder
   void define_sb_full ();
   void define_stmt ();
   void define_block ();
+  void define_halt ();
 
   void define_heap ();
   void define_exit_flag ();
@@ -486,6 +500,7 @@ struct Relational : public Encoder
       std::shared_ptr<std::string> sb_full;
       std::shared_ptr<std::string> stmt;
       std::shared_ptr<std::string> block;
+      std::shared_ptr<std::string> halt;
       std::shared_ptr<std::string> heap;
       std::shared_ptr<std::string> exit_flag;
       std::shared_ptr<std::string> exit_code;
@@ -552,6 +567,9 @@ struct Relational : public Encoder
   std::shared_ptr<std::string> set_block (const T & op) const;
   std::string reset_block (word_t id) const;
   std::shared_ptr<std::string> restore_block () const;
+
+  std::shared_ptr<std::string> set_halt () const;
+  std::shared_ptr<std::string> restore_halt () const;
 
   template <class T>
   std::shared_ptr<std::string> set_heap (const T & op);
@@ -647,6 +665,7 @@ struct Encoder : public ::Encoder
   static const std::string sb_full_comment;
   static const std::string stmt_comment;
   static const std::string block_comment;
+  static const std::string halt_comment;
 
   static const std::string exit_flag_comment;
   static const std::string exit_code_comment;
@@ -708,6 +727,18 @@ struct Encoder : public ::Encoder
   // checkpoint id -> thread -> nid
   //
   std::map<word_t, std::map<word_t, std::string>> nids_block;
+
+  // halt state nodes
+  //
+  // thread -> nid
+  //
+  std::map<word_t, std::string> nids_halt;
+
+  // halt state definition nodes (as used in next)
+  //
+  // required in exit_flag definition: exit_flag and last halt set in same step
+  //
+  std::map<word_t, std::string> nids_halt_next;
 
   // machine state nodes
   //
@@ -794,10 +825,11 @@ struct Encoder : public ::Encoder
          std::string sb_val_var () const;
   static std::string sb_full_var (word_t thread);
          std::string sb_full_var () const;
-
   static std::string stmt_var (word_t thread, word_t pc);
          std::string stmt_var () const;
   static std::string block_var (word_t thread, word_t id);
+  static std::string halt_var (word_t thread);
+         std::string halt_var () const;
 
   // transition symbol generators
   //
@@ -838,6 +870,7 @@ struct Encoder : public ::Encoder
   void declare_sb_full ();
   void declare_stmt ();
   void declare_block ();
+  void declare_halt ();
 
   void declare_heap ();
   void declare_exit_flag ();
@@ -872,6 +905,7 @@ struct Encoder : public ::Encoder
   void define_sb_full ();
   void define_stmt ();
   void define_block ();
+  void define_halt ();
 
   void define_heap ();
   void define_exit_flag ();
@@ -884,6 +918,7 @@ struct Encoder : public ::Encoder
   void define_scheduling_constraints ();
   void define_store_buffer_constraints ();
   void define_checkpoint_constraints ();
+  void define_halt_constraints ();
 
   void define_constraints (); // all of the above
 

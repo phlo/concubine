@@ -178,14 +178,14 @@ void Functional::define_block ()
   for (const auto & [c, threads] : check_pcs)
     for (const auto & [t, pcs] : threads)
       {
-        std::vector<std::string> block_args;
+        std::vector<std::string> args;
 
-        block_args.reserve(pcs.size() + 1);
+        args.reserve(pcs.size() + 1);
 
         for (const word_t p : pcs)
-          block_args.push_back(exec_var(prev, t, p));
+          args.push_back(exec_var(prev, t, p));
 
-        block_args.push_back(block_var(prev, c, t));
+        args.push_back(block_var(prev, c, t));
 
         formula <<
           assign(
@@ -193,9 +193,35 @@ void Functional::define_block ()
             ite(
               check_var(prev, c),
               FALSE,
-              lor(block_args))) <<
+              lor(args))) <<
           eol;
       }
+
+  formula << eol;
+}
+
+// smtlib::Functional::define_halt ---------------------------------------------
+
+void Functional::define_halt ()
+{
+  if (halt_pcs.empty())
+    return;
+
+  if (verbose)
+    formula << halt_comment;
+
+  for (const auto & [t, pcs] : halt_pcs)
+    {
+      std::vector<std::string> args;
+      args.reserve(pcs.size() + 1);
+
+      for (const word_t p : pcs)
+        args.push_back(exec_var(prev, t, p));
+
+      args.push_back(halt_var(prev, t));
+
+      formula << assign(halt_var(step, t), lor(args)) << eol;
+    }
 
   formula << eol;
 }
@@ -236,11 +262,11 @@ void Functional::define_heap ()
   formula << assign(heap_var(), expr) << eol << eol;
 }
 
-// smtlib::Functional::define_exit_code ----------------------------------------
+// smtlib::Functional::define_exit_flag ----------------------------------------
 
 void Functional::define_exit_flag ()
 {
-  if (exit_pcs.empty())
+  if (halt_pcs.empty() && exit_pcs.empty())
     return;
 
   if (verbose)
@@ -248,15 +274,26 @@ void Functional::define_exit_flag ()
 
   std::vector<std::string> args {exit_flag_var(prev)};
 
-  iterate_threads([this, &args] {
-    for (const word_t & exit_pc : exit_pcs[thread])
-      args.push_back(exec_var(prev, thread, exit_pc));
-  });
+  if (!halt_pcs.empty())
+    {
+      std::vector<std::string> halt;
+      halt.reserve(halt_pcs.size());
+
+      for (const auto & it : halt_pcs)
+        halt.push_back(halt_var(step, it.first));
+
+      args.push_back(land(halt));
+    }
+
+  if (!exit_pcs.empty())
+    for (const auto & [t, pcs] : exit_pcs)
+      for (const word_t p : pcs)
+        args.push_back(exec_var(prev, t, p));
 
   formula << assign(exit_flag_var(), lor(args)) << eol << eol;
 }
 
-// smtlib::Functional::define_exit_flag ----------------------------------------
+// smtlib::Functional::define_exit_code ----------------------------------------
 
 void Functional::define_exit_code ()
 {
@@ -295,6 +332,7 @@ void Functional::define_states ()
   define_sb_full();
   define_stmt();
   define_block();
+  define_halt();
 
   define_heap();
   define_exit_flag();

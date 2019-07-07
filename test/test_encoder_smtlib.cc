@@ -167,6 +167,30 @@ TEST_F(smtlib_Encoder, block_var_args)
   ASSERT_EQ("block_8_5_2", encoder->block_var(8, 5, 2));
 }
 
+// smtlib::Encoder::halt_var ===================================================
+
+TEST_F(smtlib_Encoder, halt_var_args)
+{
+  ASSERT_EQ("halt_0_1", encoder->halt_var(0, 1));
+  ASSERT_EQ("halt_1_2", encoder->halt_var(1, 2));
+  ASSERT_EQ("halt_2_3", encoder->halt_var(2, 3));
+}
+
+TEST_F(smtlib_Encoder, halt_var)
+{
+  encoder->step = 0;
+  encoder->thread = 1;
+  ASSERT_EQ("halt_0_1", encoder->halt_var());
+
+  encoder->step = 1;
+  encoder->thread = 2;
+  ASSERT_EQ("halt_1_2", encoder->halt_var());
+
+  encoder->step = 2;
+  encoder->thread = 3;
+  ASSERT_EQ("halt_2_3", encoder->halt_var());
+}
+
 // smtlib::Encoder::heap_var ===================================================
 
 TEST_F(smtlib_Encoder, heap_var_args)
@@ -590,6 +614,45 @@ TEST_F(smtlib_Encoder, declare_block_empty)
   ASSERT_EQ("", encoder->str());
 }
 
+// smtlib::Encoder::declare_halt ===============================================
+
+TEST_F(smtlib_Encoder, declare_halt)
+{
+  add_dummy_programs(3);
+  reset_encoder();
+
+  encoder->declare_halt();
+
+  ASSERT_EQ(
+    "; halt variables - halt_<step>_<thread>\n"
+    "(declare-fun halt_1_0 () Bool)\n"
+    "(declare-fun halt_1_1 () Bool)\n"
+    "(declare-fun halt_1_2 () Bool)\n"
+    "\n",
+    encoder->str());
+
+  // verbosity
+  reset_encoder();
+
+  verbose = false;
+  encoder->declare_halt();
+  verbose = true;
+
+  ASSERT_EQ(
+    "(declare-fun halt_1_0 () Bool)\n"
+    "(declare-fun halt_1_1 () Bool)\n"
+    "(declare-fun halt_1_2 () Bool)\n"
+    "\n",
+    encoder->str());
+}
+
+TEST_F(smtlib_Encoder, declare_halt_empty)
+{
+  encoder->declare_halt();
+
+  ASSERT_EQ("", encoder->str());
+}
+
 // smtlib::Encoder::declare_heap ===============================================
 
 TEST_F(smtlib_Encoder, declare_heap)
@@ -997,6 +1060,54 @@ TEST_F(smtlib_Encoder, init_sb_full)
     encoder->str());
 }
 
+// smtlib::Encoder::init_stmt ==================================================
+
+TEST_F(smtlib_Encoder, init_stmt)
+{
+  add_dummy_programs(3, 3);
+  reset_encoder(0);
+
+  encoder->init_stmt();
+
+  ASSERT_EQ(
+    "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
+    "(assert stmt_0_0_0)\n"
+    "(assert (not stmt_0_0_1))\n"
+    "(assert (not stmt_0_0_2))\n"
+    "\n"
+    "(assert stmt_0_1_0)\n"
+    "(assert (not stmt_0_1_1))\n"
+    "(assert (not stmt_0_1_2))\n"
+    "\n"
+    "(assert stmt_0_2_0)\n"
+    "(assert (not stmt_0_2_1))\n"
+    "(assert (not stmt_0_2_2))\n"
+    "\n",
+    encoder->str());
+
+  // verbosity
+  reset_encoder(0);
+
+  verbose = false;
+  encoder->init_stmt();
+  verbose = true;
+
+  ASSERT_EQ(
+    "(assert stmt_0_0_0)\n"
+    "(assert (not stmt_0_0_1))\n"
+    "(assert (not stmt_0_0_2))\n"
+    "\n"
+    "(assert stmt_0_1_0)\n"
+    "(assert (not stmt_0_1_1))\n"
+    "(assert (not stmt_0_1_2))\n"
+    "\n"
+    "(assert stmt_0_2_0)\n"
+    "(assert (not stmt_0_2_1))\n"
+    "(assert (not stmt_0_2_2))\n"
+    "\n",
+    encoder->str());
+}
+
 // smtlib::Encoder::init_block =================================================
 
 TEST_F(smtlib_Encoder, init_block)
@@ -1044,6 +1155,45 @@ TEST_F(smtlib_Encoder, init_block)
 TEST_F(smtlib_Encoder, init_block_empty)
 {
   encoder->init_block();
+
+  ASSERT_EQ("", encoder->str());
+}
+
+// smtlib::Encoder::init_halt ==================================================
+
+TEST_F(smtlib_Encoder, init_halt)
+{
+  add_dummy_programs(3);
+  reset_encoder(0);
+
+  encoder->init_halt();
+
+  ASSERT_EQ(
+    "; halt variables - halt_<step>_<thread>\n"
+    "(assert (not halt_0_0))\n"
+    "(assert (not halt_0_1))\n"
+    "(assert (not halt_0_2))\n"
+    "\n",
+    encoder->str());
+
+  // verbosity
+  reset_encoder(0);
+
+  verbose = false;
+  encoder->init_halt();
+  verbose = true;
+
+  ASSERT_EQ(
+    "(assert (not halt_0_0))\n"
+    "(assert (not halt_0_1))\n"
+    "(assert (not halt_0_2))\n"
+    "\n",
+    encoder->str());
+}
+
+TEST_F(smtlib_Encoder, init_halt_empty)
+{
+  encoder->init_halt();
 
   ASSERT_EQ("", encoder->str());
 }
@@ -1284,13 +1434,17 @@ TEST_F(smtlib_Encoder, define_scheduling_constraints)
   ASSERT_EQ(
     "; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "(assert (or thread_1_0 flush_1_0 thread_1_1 flush_1_1))\n"
+    "(assert (or thread_1_0 flush_1_0 thread_1_1 flush_1_1 exit_1))\n"
     "(assert (or (not thread_1_0) (not flush_1_0)))\n"
     "(assert (or (not thread_1_0) (not thread_1_1)))\n"
     "(assert (or (not thread_1_0) (not flush_1_1)))\n"
+    "(assert (or (not thread_1_0) (not exit_1)))\n"
     "(assert (or (not flush_1_0) (not thread_1_1)))\n"
     "(assert (or (not flush_1_0) (not flush_1_1)))\n"
+    "(assert (or (not flush_1_0) (not exit_1)))\n"
     "(assert (or (not thread_1_1) (not flush_1_1)))\n"
+    "(assert (or (not thread_1_1) (not exit_1)))\n"
+    "(assert (or (not flush_1_1) (not exit_1)))\n"
     "\n",
     encoder->str());
 
@@ -1302,13 +1456,17 @@ TEST_F(smtlib_Encoder, define_scheduling_constraints)
   verbose = true;
 
   ASSERT_EQ(
-    "(assert (or thread_1_0 flush_1_0 thread_1_1 flush_1_1))\n"
+    "(assert (or thread_1_0 flush_1_0 thread_1_1 flush_1_1 exit_1))\n"
     "(assert (or (not thread_1_0) (not flush_1_0)))\n"
     "(assert (or (not thread_1_0) (not thread_1_1)))\n"
     "(assert (or (not thread_1_0) (not flush_1_1)))\n"
+    "(assert (or (not thread_1_0) (not exit_1)))\n"
     "(assert (or (not flush_1_0) (not thread_1_1)))\n"
     "(assert (or (not flush_1_0) (not flush_1_1)))\n"
+    "(assert (or (not flush_1_0) (not exit_1)))\n"
     "(assert (or (not thread_1_1) (not flush_1_1)))\n"
+    "(assert (or (not thread_1_1) (not exit_1)))\n"
+    "(assert (or (not flush_1_1) (not exit_1)))\n"
     "\n",
     encoder->str());
 }
@@ -1363,7 +1521,7 @@ TEST_F(smtlib_Encoder, define_scheduling_constraints_exit)
 
 TEST_F(smtlib_Encoder, define_scheduling_constraints_single_thread)
 {
-  add_dummy_programs(1);
+  programs.push_back(create_program("JMP 0\n"));
   reset_encoder();
 
   encoder->define_scheduling_constraints();
@@ -1442,16 +1600,16 @@ TEST_F(smtlib_Encoder, define_store_buffer_constraints)
     encoder->str());
 }
 
-// smtlib::Encoder::define_checkpoint_contraints ===============================
+// smtlib::Encoder::define_checkpoint_constraints ==============================
 
-TEST_F(smtlib_Encoder, define_checkpoint_contraints)
+TEST_F(smtlib_Encoder, define_checkpoint_constraints)
 {
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program("CHECK 1\n"));
 
   reset_encoder();
 
-  encoder->define_checkpoint_contraints();
+  encoder->define_checkpoint_constraints();
 
   ASSERT_EQ(
     "; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
@@ -1468,7 +1626,7 @@ TEST_F(smtlib_Encoder, define_checkpoint_contraints)
 
   reset_encoder();
 
-  encoder->define_checkpoint_contraints();
+  encoder->define_checkpoint_constraints();
 
   ASSERT_EQ(
     "; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
@@ -1488,7 +1646,7 @@ TEST_F(smtlib_Encoder, define_checkpoint_contraints)
 
   reset_encoder();
 
-  encoder->define_checkpoint_contraints();
+  encoder->define_checkpoint_constraints();
 
   ASSERT_EQ(
     "; checkpoint constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
@@ -1506,7 +1664,7 @@ TEST_F(smtlib_Encoder, define_checkpoint_contraints)
   reset_encoder();
 
   verbose = false;
-  encoder->define_checkpoint_contraints();
+  encoder->define_checkpoint_constraints();
   verbose = true;
 
   ASSERT_EQ(
@@ -1520,9 +1678,49 @@ TEST_F(smtlib_Encoder, define_checkpoint_contraints)
     encoder->str());
 }
 
-TEST_F(smtlib_Encoder, define_checkpoint_contraints_empty)
+TEST_F(smtlib_Encoder, define_checkpoint_constraints_empty)
 {
-  encoder->define_checkpoint_contraints();
+  encoder->define_checkpoint_constraints();
+
+  ASSERT_EQ("", encoder->str());
+}
+
+// smtlib::Encoder::define_halt_constraints ====================================
+
+TEST_F(smtlib_Encoder, define_halt_constraints)
+{
+  add_dummy_programs(3);
+  reset_encoder();
+
+  encoder->define_halt_constraints();
+
+  ASSERT_EQ(
+    "; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+    "\n"
+    "(assert (=> halt_1_0 (not thread_1_0)))\n"
+    "(assert (=> halt_1_1 (not thread_1_1)))\n"
+    "(assert (=> halt_1_2 (not thread_1_2)))\n"
+    "\n",
+    encoder->str());
+
+  // verbosity
+  reset_encoder();
+
+  verbose = false;
+  encoder->define_halt_constraints();
+  verbose = true;
+
+  ASSERT_EQ(
+    "(assert (=> halt_1_0 (not thread_1_0)))\n"
+    "(assert (=> halt_1_1 (not thread_1_1)))\n"
+    "(assert (=> halt_1_2 (not thread_1_2)))\n"
+    "\n",
+    encoder->str());
+}
+
+TEST_F(smtlib_Encoder, define_halt_constraints_empty)
+{
+  encoder->define_halt_constraints();
 
   ASSERT_EQ("", encoder->str());
 }

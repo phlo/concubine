@@ -1,5 +1,7 @@
 #include "test_encoder_smtlib.hh"
 
+#include <filesystem>
+
 namespace test {
 
 //==============================================================================
@@ -682,6 +684,51 @@ TEST_F(smtlib_Functional, define_block_empty)
   ASSERT_EQ("", encoder->str());
 }
 
+// smtlib::Functional::define_halt =============================================
+
+TEST_F(smtlib_Functional, define_halt)
+{
+  for (size_t i = 0; i < 3; i++)
+    programs.push_back(create_program(
+      "ADDI 1\n"
+      "JNZ 3\n"
+      "HALT\n"
+      "SUBI 1\n"
+    ));
+  reset_encoder();
+
+  encoder->define_halt();
+
+  ASSERT_EQ(
+    "; halt variables - halt_<step>_<thread>\n"
+    "(assert (= halt_1_0 (or exec_0_0_2 exec_0_0_3 halt_0_0)))\n"
+    "(assert (= halt_1_1 (or exec_0_1_2 exec_0_1_3 halt_0_1)))\n"
+    "(assert (= halt_1_2 (or exec_0_2_2 exec_0_2_3 halt_0_2)))\n"
+    "\n",
+    encoder->str());
+
+  // verbosity
+  reset_encoder();
+
+  verbose = false;
+  encoder->define_halt();
+  verbose = true;
+
+  ASSERT_EQ(
+    "(assert (= halt_1_0 (or exec_0_0_2 exec_0_0_3 halt_0_0)))\n"
+    "(assert (= halt_1_1 (or exec_0_1_2 exec_0_1_3 halt_0_1)))\n"
+    "(assert (= halt_1_2 (or exec_0_2_2 exec_0_2_3 halt_0_2)))\n"
+    "\n",
+    encoder->str());
+}
+
+TEST_F(smtlib_Functional, define_halt_empty)
+{
+  encoder->define_halt();
+
+  ASSERT_EQ("", encoder->str());
+}
+
 // smtlib::Functional::define_heap =============================================
 
 TEST_F(smtlib_Functional, define_heap)
@@ -753,7 +800,11 @@ TEST_F(smtlib_Functional, define_heap)
 TEST_F(smtlib_Functional, define_exit_flag)
 {
   for (size_t i = 0; i < 3; i++)
-    programs.push_back(create_program("EXIT " + std::to_string(i) + eol));
+    programs.push_back(create_program(
+      "JNZ 2\n"
+      "HALT\n"
+      "EXIT 1\n"
+    ));
 
   reset_encoder();
 
@@ -761,7 +812,10 @@ TEST_F(smtlib_Functional, define_exit_flag)
 
   ASSERT_EQ(
     "; exit flag variable - exit_<step>\n"
-    "(assert (= exit_1 (or exit_0 exec_0_0_0 exec_0_1_0 exec_0_2_0)))\n"
+    "(assert (= exit_1 (or "
+      "exit_0 "
+      "(and halt_1_0 halt_1_1 halt_1_2) "
+      "exec_0_0_2 exec_0_1_2 exec_0_2_2)))\n"
     "\n",
     encoder->str());
 
@@ -773,7 +827,10 @@ TEST_F(smtlib_Functional, define_exit_flag)
   verbose = true;
 
   ASSERT_EQ(
-    "(assert (= exit_1 (or exit_0 exec_0_0_0 exec_0_1_0 exec_0_2_0)))\n"
+    "(assert (= exit_1 (or "
+      "exit_0 "
+      "(and halt_1_0 halt_1_1 halt_1_2) "
+      "exec_0_0_2 exec_0_1_2 exec_0_2_2)))\n"
     "\n",
     encoder->str());
 }
@@ -970,6 +1027,22 @@ TEST_F(smtlib_Functional, encode_cas)
     {"increment.cas.asm", "increment.cas.asm"},
     "increment.cas.functional.t2.k16.smt2",
     16);
+}
+
+TEST_F(smtlib_Functional, encode_halt)
+{
+  const std::string path = "halt.asm";
+
+  if (!std::filesystem::exists("/tmp/" + path))
+    {
+      std::ofstream file("/tmp/" + path);
+      file <<
+        "JNZ 2\n"
+        "HALT\n"
+        "EXIT 1\n";
+    }
+
+  encode({path, path}, "test.functional.t2.k10.smt2", 10, "/tmp/");
 }
 
 } // namespace test

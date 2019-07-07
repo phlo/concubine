@@ -96,7 +96,7 @@ flags:
 	@echo $(CXXFLAGS)
 
 # export compiler flags for sub-make
-export CXX CXXFLAGS OBJ
+export CXX CXXFLAGS LDFLAGS OBJ
 
 # auto-dependency generation
 include dependencies.mk

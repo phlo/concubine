@@ -757,7 +757,7 @@ TEST_F(Instruction, CHECK)
   ASSERT_FALSE(instruction.requires_flush());
 
   ASSERT_EQ("CHECK", instruction.symbol());
-  ASSERT_EQ(Type::control, instruction.type());
+  ASSERT_EQ(Type::none, instruction.type());
   ASSERT_EQ(1, instruction.arg());
 
   ASSERT_EQ(0, thread.pc);
@@ -782,10 +782,10 @@ TEST_F(Instruction, HALT)
   ASSERT_FALSE(instruction.is_unary());
   ASSERT_FALSE(instruction.is_memory());
   ASSERT_FALSE(instruction.is_jump());
-  ASSERT_FALSE(instruction.requires_flush());
+  ASSERT_TRUE(instruction.requires_flush());
 
   ASSERT_EQ("HALT", instruction.symbol());
-  ASSERT_EQ(Type::control, instruction.type());
+  ASSERT_EQ(Type::barrier | Type::control, instruction.type());
 }
 
 // EXIT ========================================================================
