@@ -11,8 +11,7 @@ struct Z3 : public Solver
 
   virtual bool sat (const std::string & formula);
 
-  virtual Schedule::ptr solve (Encoder & encoder,
-                               const std::string & constraints);
+  virtual Trace::ptr solve (Encoder & encoder, const std::string & constraints);
 };
 
 #endif

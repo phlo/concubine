@@ -28,7 +28,7 @@ Simulator::Simulator (const Program::List::ptr & p,
                       const bound_t b,
                       const uint64_t s) :
   programs(p),
-  schedule(std::make_unique<Schedule>(p)),
+  trace(std::make_unique<Trace>(p)),
   bound(b),
   seed(s)
 {
@@ -81,7 +81,7 @@ void Simulator::check_and_resume (word_t id)
 
 // Simulator::run --------------------------------------------------------------
 
-Schedule::ptr Simulator::run (std::function<Thread *()> scheduler)
+Trace::ptr Simulator::run (std::function<Thread *()> scheduler)
 {
   assert(active.empty());
 
@@ -94,7 +94,7 @@ Schedule::ptr Simulator::run (std::function<Thread *()> scheduler)
 
   bool done = active.empty();
 
-  while (!done && (!bound || schedule->bound < bound))
+  while (!done && (!bound || trace->bound < bound))
     {
       Thread * thread = scheduler();
 
@@ -166,14 +166,14 @@ Schedule::ptr Simulator::run (std::function<Thread *()> scheduler)
         }
     }
 
-  return move(schedule);
+  return move(trace);
 }
 
 // Simulator::simulate ---------------------------------------------------------
 
-Schedule::ptr Simulator::simulate (const Program::List::ptr & programs,
-                                   const bound_t bound,
-                                   const bound_t seed)
+Trace::ptr Simulator::simulate (const Program::List::ptr & programs,
+                                const bound_t bound,
+                                const bound_t seed)
 {
   Simulator simulator {programs, bound, seed};
 
@@ -197,15 +197,15 @@ Schedule::ptr Simulator::simulate (const Program::List::ptr & programs,
 
 // Simulator::replay -----------------------------------------------------------
 
-Schedule::ptr Simulator::replay (const Schedule & schedule, const bound_t bound)
+Trace::ptr Simulator::replay (const Trace & trace, const bound_t bound)
 {
   Simulator simulator {
-    schedule.programs,
-    bound && bound < schedule.bound ? bound : schedule.bound
+    trace.programs,
+    bound && bound < trace.bound ? bound : trace.bound
   };
 
   // replay scheduler
-  Schedule::iterator iterator = schedule.begin();
+  Trace::iterator iterator = trace.begin();
 
   return simulator.run([&simulator, &iterator] {
     if (iterator->flush)
@@ -291,7 +291,7 @@ void Thread::flush ()
   state = Thread::State::running;
   simulator.heap[buffer.address] = buffer.value;
 
-  simulator.schedule->push_back(id, {buffer.address, buffer.value});
+  simulator.trace->push_back(id, {buffer.address, buffer.value});
 }
 
 // Thread::execute -------------------------------------------------------------
@@ -310,7 +310,7 @@ void Thread::execute ()
 }
 
 #define PUSH_BACK_ATOMIC(pc, heap) \
-  simulator.schedule->push_back( \
+  simulator.trace->push_back( \
     id, \
     pc, \
     accu, \
@@ -456,7 +456,7 @@ void Thread::execute (const Instruction::Mem & m)
 
 void Thread::execute (const Instruction::Cas & c)
 {
-  std::optional<Schedule::Heap> heap;
+  std::optional<Trace::Heap> heap;
 
   if (mem == load(c.arg, c.indirect))
     {
@@ -490,7 +490,7 @@ void Thread::execute (const Instruction::Halt & h [[maybe_unused]])
 
 void Thread::execute (const Instruction::Exit & e)
 {
-  simulator.schedule->exit = e.arg;
+  simulator.trace->exit = e.arg;
   state = State::exited;
 
   PUSH_BACK(pc);

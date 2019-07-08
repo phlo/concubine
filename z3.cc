@@ -60,7 +60,7 @@ word_t eval_array (z3::context & c,
     .get_numeral_uint();
 }
 
-Schedule::ptr Z3::solve (Encoder & encoder, const std::string & constraints)
+Trace::ptr Z3::solve (Encoder & encoder, const std::string & constraints)
 {
   z3::context c;
   z3::solver s = c;
@@ -72,8 +72,7 @@ Schedule::ptr Z3::solve (Encoder & encoder, const std::string & constraints)
 
   z3::model m = s.get_model();
 
-  Schedule::ptr schedule =
-    std::make_unique<Schedule>(std::move(encoder.programs));
+  Trace::ptr trace = std::make_unique<Trace>(std::move(encoder.programs));
 
   for (bound_t step = 1; step <= encoder.bound; ++step)
     for (word_t thread = 0; thread < encoder.programs->size(); ++thread)
@@ -89,7 +88,7 @@ Schedule::ptr Z3::solve (Encoder & encoder, const std::string & constraints)
                 word_t mem =
                   eval_bv(c, m, symbol(Encoder::mem_sym, {step, thread}));
 
-                std::optional<Schedule::Heap> heap;
+                std::optional<Trace::Heap> heap;
 
                 const Instruction & op = program[pc];
 
@@ -114,11 +113,11 @@ Schedule::ptr Z3::solve (Encoder & encoder, const std::string & constraints)
                   }
 
                 // TODO: store buffer
-                schedule->push_back(thread, pc, accu, mem, 0, 0, false, heap);
+                trace->push_back(thread, pc, accu, mem, 0, 0, false, heap);
               }
         }
 
-  schedule->exit = eval_bv(c, m, symbol(Encoder::exit_code_sym, {}));
+  trace->exit = eval_bv(c, m, symbol(Encoder::exit_code_sym, {}));
 
-  return schedule;
+  return trace;
 }

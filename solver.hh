@@ -4,7 +4,7 @@
 #include <memory>
 #include <sstream>
 
-#include "schedule.hh"
+#include "trace.hh"
 
 //==============================================================================
 // forward declarations
@@ -39,10 +39,10 @@ struct Solver
   //
   virtual bool sat (const std::string & formula) = 0;
 
-  // run solver and return schedule
+  // run solver and return trace
   //
-  virtual Schedule::ptr solve (Encoder & encoder,
-                               const std::string & constraints) = 0;
+  virtual Trace::ptr solve (Encoder & encoder,
+                            const std::string & constraints) = 0;
 };
 
 //==============================================================================
@@ -94,9 +94,9 @@ struct External : public Solver
   //
   virtual std::string build_command () = 0;
 
-  // build schedule based on the specific solver's output
+  // build trace based on the specific solver's output
   //
-  Schedule::ptr build_schedule (const Program::List::ptr & programs);
+  Trace::ptr build_trace (const Program::List::ptr & programs);
 
   virtual std::optional<Variable> parse_variable (std::istringstream & line);
 
@@ -104,8 +104,7 @@ struct External : public Solver
 
   virtual bool sat (const std::string & formula);
 
-  virtual Schedule::ptr solve (Encoder & encoder,
-                               const std::string & constraints);
+  virtual Trace::ptr solve (Encoder & encoder, const std::string & constraints);
 };
 
 #endif

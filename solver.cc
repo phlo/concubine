@@ -10,11 +10,9 @@
 
 // Solver::parse_attribute -----------------------------------------------------
 
-bound_t Solver::parse_attribute (
-                                 std::istringstream & line,
+bound_t Solver::parse_attribute (std::istringstream & line,
                                  const std::string & name,
-                                 const char delimiter
-                                )
+                                 const char delimiter)
 {
   std::string token;
 
@@ -58,24 +56,22 @@ bool External::sat (const std::string & input)
 
 // External::solve -------------------------------------------------------------
 
-Schedule::ptr External::solve (Encoder & formula,
-                                      const std::string & constraints)
+Trace::ptr External::solve (Encoder & formula, const std::string & constraints)
 {
   std::string input = build_formula(formula, constraints);
 
   sat(input);
 
-  std::unique_ptr<Schedule> s = build_schedule(formula.programs);
+  std::unique_ptr<Trace> s = build_trace(formula.programs);
 
   return s;
 
-  // return build_schedule(formula.programs);
+  // return build_trace(formula.programs);
 }
 
-// External::build_schedule ----------------------------------------------------
+// External::build_trace -------------------------------------------------------
 
-Schedule::ptr
-External::build_schedule (const Program::List::ptr & programs)
+Trace::ptr External::build_trace (const Program::List::ptr & programs)
 {
   // not really needed
   if (!std_out.rdbuf()->in_avail())
@@ -87,7 +83,7 @@ External::build_schedule (const Program::List::ptr & programs)
   // if (!(std_out >> sat) || sat != "sat")
     // runtime_error("formula is not sat [" + sat + "]");
 
-  Schedule::ptr schedule = std::make_unique<Schedule>(programs);
+  Trace::ptr trace = std::make_unique<Trace>(programs);
 
   // current line number
   size_t lineno = 2;
@@ -109,34 +105,34 @@ External::build_schedule (const Program::List::ptr & programs)
               switch (variable->type)
                 {
                 case Variable::Type::THREAD:
-                  schedule->insert_thread(
+                  trace->insert_thread(
                     variable->step,
                     variable->thread);
                   break;
 
                 case Variable::Type::EXEC:
-                  schedule->insert_pc(
+                  trace->insert_pc(
                     variable->step,
                     variable->thread,
                     variable->pc);
                   break;
 
                 case Variable::Type::ACCU:
-                  schedule->insert_accu(
+                  trace->insert_accu(
                     variable->step,
                     variable->thread,
                     variable->val);
                   break;
 
                 case Variable::Type::MEM:
-                  schedule->insert_mem(
+                  trace->insert_mem(
                     variable->step,
                     variable->thread,
                     variable->val);
                   break;
 
                 case Variable::Type::HEAP:
-                  schedule->insert_heap(
+                  trace->insert_heap(
                     variable->step,
                     {variable->adr, variable->val});
                   break;
@@ -145,7 +141,7 @@ External::build_schedule (const Program::List::ptr & programs)
                   break;
 
                 case Variable::Type::EXIT_CODE:
-                  schedule->exit = variable->val;
+                  trace->exit = variable->val;
                   break;
 
                 default: {}
@@ -158,7 +154,7 @@ External::build_schedule (const Program::List::ptr & programs)
         }
     }
 
-  return schedule;
+  return trace;
 }
 
 // External::parse_variable ----------------------------------------------------

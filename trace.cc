@@ -1,4 +1,4 @@
-#include "schedule.hh"
+#include "trace.hh"
 
 #include <cassert>
 #include <sstream>
@@ -7,14 +7,14 @@
 #include "parser.hh"
 
 //==============================================================================
-// Schedule
+// Trace
 //==============================================================================
 
 //------------------------------------------------------------------------------
 // constructors
 //------------------------------------------------------------------------------
 
-Schedule::Schedule (const Program::List::ptr & p) :
+Trace::Trace (const Program::List::ptr & p) :
   programs(p),
   bound(0),
   exit(0)
@@ -22,7 +22,7 @@ Schedule::Schedule (const Program::List::ptr & p) :
   init_state_update_lists();
 }
 
-Schedule::Schedule(std::istream & file, const std::string & path) :
+Trace::Trace(std::istream & file, const std::string & path) :
   programs(std::make_shared<Program::List>()),
   bound(0),
   exit(0)
@@ -320,7 +320,7 @@ Schedule::Schedule(std::istream & file, const std::string & path) :
               symbol + " can't perform heap updates");
         }
 
-      // append to schedule
+      // append to trace
       if (flush)
         {
           if (!heap)
@@ -333,16 +333,16 @@ Schedule::Schedule(std::istream & file, const std::string & path) :
     }
 
   if (!bound)
-    parser_error(path, line_num, "empty schedule");
+    parser_error(path, line_num, "empty trace");
 }
 
 //------------------------------------------------------------------------------
 // member functions
 //------------------------------------------------------------------------------
 
-// Schedule::init_state_update_lists -------------------------------------------
+// Trace::init_state_update_lists ----------------------------------------------
 
-void Schedule::init_state_update_lists ()
+void Trace::init_state_update_lists ()
 {
   size_t num_threads = programs->size();
 
@@ -354,12 +354,12 @@ void Schedule::init_state_update_lists ()
   sb_full_updates.resize(num_threads);
 }
 
-// Schedule::push_back ---------------------------------------------------------
+// Trace::push_back ------------------------------------------------------------
 
 template <typename T>
-void Schedule::push_back (Schedule::Updates<T> & updates,
-                          const bound_t step,
-                          const T val)
+void Trace::push_back (Trace::Updates<T> & updates,
+                       const bound_t step,
+                       const T val)
 {
   if (updates.empty())
     {
@@ -380,14 +380,14 @@ void Schedule::push_back (Schedule::Updates<T> & updates,
     }
 }
 
-void Schedule::push_back (const word_t thread,
-                          const word_t pc,
-                          const word_t accu,
-                          const word_t mem,
-                          const word_t buffer_adr,
-                          const word_t buffer_val,
-                          const word_t buffer_full,
-                          const std::optional<Heap> & heap)
+void Trace::push_back (const word_t thread,
+                       const word_t pc,
+                       const word_t accu,
+                       const word_t mem,
+                       const word_t buffer_adr,
+                       const word_t buffer_val,
+                       const word_t buffer_full,
+                       const std::optional<Heap> & heap)
 {
   ++bound;
 
@@ -403,7 +403,7 @@ void Schedule::push_back (const word_t thread,
     push_back(heap_updates[heap->adr], bound, heap->val);
 }
 
-void Schedule::push_back (const word_t thread, const Heap & heap)
+void Trace::push_back (const word_t thread, const Heap & heap)
 {
   ++bound;
 
@@ -413,9 +413,9 @@ void Schedule::push_back (const word_t thread, const Heap & heap)
   push_back<word_t>(heap_updates[heap.adr], bound, heap.val);
 }
 
-// Schedule::insert_thread -----------------------------------------------------
+// Trace::insert_thread --------------------------------------------------------
 
-void Schedule::insert_thread (const bound_t step, const word_t thread)
+void Trace::insert_thread (const bound_t step, const word_t thread)
 {
   push_back<word_t>(thread_updates, step, thread);
 
@@ -423,11 +423,9 @@ void Schedule::insert_thread (const bound_t step, const word_t thread)
     bound = step;
 }
 
-// Schedule::insert_pc ---------------------------------------------------------
+// Trace::insert_pc ------------------------------------------------------------
 
-void Schedule::insert_pc (const bound_t step,
-                          const word_t thread,
-                          const word_t pc)
+void Trace::insert_pc (const bound_t step, const word_t thread, const word_t pc)
 {
   push_back<word_t>(pc_updates.at(thread), step, pc);
 
@@ -435,11 +433,11 @@ void Schedule::insert_pc (const bound_t step,
     bound = step;
 }
 
-// Schedule::insert_accu -------------------------------------------------------
+// Trace::insert_accu ----------------------------------------------------------
 
-void Schedule::insert_accu (const bound_t step,
-                            const word_t thread,
-                            const word_t accu)
+void Trace::insert_accu (const bound_t step,
+                         const word_t thread,
+                         const word_t accu)
 {
   push_back<word_t>(accu_updates.at(thread), step, accu);
 
@@ -447,11 +445,11 @@ void Schedule::insert_accu (const bound_t step,
     bound = step;
 }
 
-// Schedule::insert_mem --------------------------------------------------------
+// Trace::insert_mem -----------------------------------------------------------
 
-void Schedule::insert_mem (const bound_t step,
-                           const word_t thread,
-                           const word_t mem)
+void Trace::insert_mem (const bound_t step,
+                        const word_t thread,
+                        const word_t mem)
 {
   push_back<word_t>(mem_updates.at(thread), step, mem);
 
@@ -459,11 +457,11 @@ void Schedule::insert_mem (const bound_t step,
     bound = step;
 }
 
-// Schedule::insert_sb_adr -----------------------------------------------------
+// Trace::insert_sb_adr --------------------------------------------------------
 
-void Schedule::insert_sb_adr (const bound_t step,
-                              const word_t thread,
-                              const word_t adr)
+void Trace::insert_sb_adr (const bound_t step,
+                           const word_t thread,
+                           const word_t adr)
 {
   push_back<word_t>(sb_adr_updates.at(thread), step, adr);
 
@@ -471,11 +469,11 @@ void Schedule::insert_sb_adr (const bound_t step,
     bound = step;
 }
 
-// Schedule::insert_sb_val -----------------------------------------------------
+// Trace::insert_sb_val --------------------------------------------------------
 
-void Schedule::insert_sb_val (const bound_t step,
-                              const word_t thread,
-                              const word_t val)
+void Trace::insert_sb_val (const bound_t step,
+                           const word_t thread,
+                           const word_t val)
 {
   push_back<word_t>(sb_val_updates.at(thread), step, val);
 
@@ -483,11 +481,11 @@ void Schedule::insert_sb_val (const bound_t step,
     bound = step;
 }
 
-// Schedule::insert_sb_full ----------------------------------------------------
+// Trace::insert_sb_full -------------------------------------------------------
 
-void Schedule::insert_sb_full (const bound_t step,
-                               const word_t thread,
-                               const bool full)
+void Trace::insert_sb_full (const bound_t step,
+                            const word_t thread,
+                            const bool full)
 {
   push_back<bool>(sb_full_updates.at(thread), step, full);
 
@@ -495,9 +493,9 @@ void Schedule::insert_sb_full (const bound_t step,
     bound = step;
 }
 
-// Schedule::insert_heap -------------------------------------------------------
+// Trace::insert_heap ----------------------------------------------------------
 
-void Schedule::insert_heap (const bound_t step, const Heap & heap)
+void Trace::insert_heap (const bound_t step, const Heap & heap)
 {
   push_back<word_t>(heap_updates[heap.adr], step, heap.val);
 
@@ -505,9 +503,9 @@ void Schedule::insert_heap (const bound_t step, const Heap & heap)
     bound = step;
 }
 
-// Schedule::insert_flush ------------------------------------------------------
+// Trace::insert_flush ---------------------------------------------------------
 
-void Schedule::insert_flush (const bound_t step)
+void Trace::insert_flush (const bound_t step)
 {
   flushes.insert(step);
 
@@ -515,33 +513,33 @@ void Schedule::insert_flush (const bound_t step)
     bound = step;
 }
 
-// Schedule::size --------------------------------------------------------------
+// Trace::size -----------------------------------------------------------------
 
-size_t Schedule::size () const { return bound; }
+size_t Trace::size () const { return bound; }
 
-// Schedule::begin -------------------------------------------------------------
+// Trace::begin ----------------------------------------------------------------
 
-Schedule::iterator Schedule::begin () const
+Trace::iterator Trace::begin () const
 {
   return iterator(this);
 }
 
-// Schedule::end ---------------------------------------------------------------
+// Trace::end ------------------------------------------------------------------
 
-Schedule::iterator Schedule::end () const
+Trace::iterator Trace::end () const
 {
   return iterator(this, bound + 1);
 }
 
-// Schedule::print -------------------------------------------------------------
+// Trace::print ----------------------------------------------------------------
 
-std::string Schedule::print () const
+std::string Trace::print () const
 {
   std::ostringstream ss;
 
   const char sep = '\t';
 
-  // schedule metadata
+  // trace metadata
   for (const Program & program : *programs)
     ss << program.path << eol;
 
@@ -622,14 +620,14 @@ std::string Schedule::print () const
 }
 
 //==============================================================================
-// Schedule::Step
+// Trace::Step
 //==============================================================================
 
 //------------------------------------------------------------------------------
 // constructors
 //------------------------------------------------------------------------------
 
-Schedule::Step::Step (bound_t s) : step(s) {}
+Trace::Step::Step (bound_t s) : step(s) {}
 
 //------------------------------------------------------------------------------
 // member operators
@@ -637,37 +635,37 @@ Schedule::Step::Step (bound_t s) : step(s) {}
 
 // conversion to bound_t
 //
-Schedule::Step::operator bound_t () const { return step; }
+Trace::Step::operator bound_t () const { return step; }
 
 // increment
 //
-Schedule::Step & Schedule::Step::operator ++ () { step++; return *this; }
+Trace::Step & Trace::Step::operator ++ () { step++; return *this; }
 
 //==============================================================================
-// Schedule::iterator
+// Trace::iterator
 //==============================================================================
 
 //------------------------------------------------------------------------------
 // constructors
 //------------------------------------------------------------------------------
 
-Schedule::iterator::iterator (const Schedule * sc, const bound_t st) :
-  schedule(sc),
-  thread({schedule->thread_updates.begin(), schedule->thread_updates.end()})
+Trace::iterator::iterator (const Trace * sc, const bound_t st) :
+  trace(sc),
+  thread({trace->thread_updates.begin(), trace->thread_updates.end()})
 {
-  if ((step = st) > schedule->bound)
+  if ((step = st) > trace->bound)
     return;
 
   // initialize state update iterator lists
-  init_iterators(pc, schedule->pc_updates);
-  init_iterators(accu, schedule->accu_updates);
-  init_iterators(mem, schedule->mem_updates);
-  init_iterators(sb_adr, schedule->sb_adr_updates);
-  init_iterators(sb_val, schedule->sb_val_updates);
-  init_iterators(sb_full, schedule->sb_full_updates);
+  init_iterators(pc, trace->pc_updates);
+  init_iterators(accu, trace->accu_updates);
+  init_iterators(mem, trace->mem_updates);
+  init_iterators(sb_adr, trace->sb_adr_updates);
+  init_iterators(sb_val, trace->sb_val_updates);
+  init_iterators(sb_full, trace->sb_full_updates);
 
-  heap.reserve(schedule->heap_updates.size());
-  for (const auto & [idx, updates] : schedule->heap_updates)
+  heap.reserve(trace->heap_updates.size());
+  for (const auto & [idx, updates] : trace->heap_updates)
     heap[idx] = {updates.begin(), updates.cend()};
 
   assign();
@@ -677,21 +675,21 @@ Schedule::iterator::iterator (const Schedule * sc, const bound_t st) :
 // member function
 //------------------------------------------------------------------------------
 
-// Schedule::iterator::init_iterators ------------------------------------------
+// Trace::iterator::init_iterators ---------------------------------------------
 
 template <typename T>
-void Schedule::iterator::init_iterators (Thread_Iterators<T> & iterators,
-                                         const Thread_Updates<T> & updates)
+void Trace::iterator::init_iterators (Thread_Iterators<T> & iterators,
+                                      const Thread_Updates<T> & updates)
 {
-  iterators.reserve(schedule->programs->size());
+  iterators.reserve(trace->programs->size());
   for (const auto & u: updates)
     iterators.push_back({u.begin(), u.end()});
 }
 
-// Schedule::iterator::next_thread_state ---------------------------------------
+// Trace::iterator::next_thread_state ------------------------------------------
 
 template <typename T>
-const T & Schedule::iterator::next_thread_state (Iterators<T> & state)
+const T & Trace::iterator::next_thread_state (Iterators<T> & state)
 {
   auto next {std::next(state.cur)};
 
@@ -701,9 +699,9 @@ const T & Schedule::iterator::next_thread_state (Iterators<T> & state)
   return state.cur->second;
 }
 
-// Schedule::iterator::next_heap_state -----------------------------------------
+// Trace::iterator::next_heap_state --------------------------------------------
 
-const std::optional<Schedule::Heap> Schedule::iterator::next_heap_state ()
+const std::optional<Trace::Heap> Trace::iterator::next_heap_state ()
 {
   if (step.flush)
     {
@@ -719,13 +717,13 @@ const std::optional<Schedule::Heap> Schedule::iterator::next_heap_state ()
       return {{step.sb_adr, step.sb_val}};
     }
 
-  const Instruction & op = (*schedule->programs)[step.thread][step.pc];
+  const Instruction & op = (*trace->programs)[step.thread][step.pc];
 
   if (op.type() & Instruction::Type::atomic)
     {
       word_t address =
         op.indirect()
-          ? schedule->heap_updates.at(op.arg()).rend()->second
+          ? trace->heap_updates.at(op.arg()).rend()->second
           : op.arg();
 
       auto & cell = heap.at(address);
@@ -745,9 +743,9 @@ const std::optional<Schedule::Heap> Schedule::iterator::next_heap_state ()
   return {};
 }
 
-// Schedule::iterator::assign --------------------------------------------------
+// Trace::iterator::assign -----------------------------------------------------
 
-void Schedule::iterator::assign ()
+void Trace::iterator::assign ()
 {
   step.thread   = next_thread_state(thread);
   step.pc       = next_thread_state(pc[step.thread]);
@@ -756,7 +754,7 @@ void Schedule::iterator::assign ()
   step.sb_adr   = next_thread_state(sb_adr[step.thread]);
   step.sb_val   = next_thread_state(sb_val[step.thread]);
   step.sb_full  = next_thread_state(sb_full[step.thread]);
-  step.flush    = schedule->flushes.find(step) != schedule->flushes.end();
+  step.flush    = trace->flushes.find(step) != trace->flushes.end();
   step.heap     = next_heap_state();
 }
 
@@ -766,17 +764,17 @@ void Schedule::iterator::assign ()
 
 // increment -------------------------------------------------------------------
 
-Schedule::iterator & Schedule::iterator::operator ++ ()
+Trace::iterator & Trace::iterator::operator ++ ()
 {
   // prevent increments beyond end()
-  if (step <= schedule->bound)
-    if (++step <= schedule->bound)
+  if (step <= trace->bound)
+    if (++step <= trace->bound)
       assign();
 
   return *this;
 }
 
-Schedule::iterator Schedule::iterator::operator ++ (int)
+Trace::iterator Trace::iterator::operator ++ (int)
 {
   iterator retval = *this;
   ++(*this);
@@ -785,24 +783,24 @@ Schedule::iterator Schedule::iterator::operator ++ (int)
 
 // equality --------------------------------------------------------------------
 
-bool Schedule::iterator::operator == (const iterator & other) const
+bool Trace::iterator::operator == (const iterator & other) const
 {
-  return schedule == other.schedule && step.step == other.step.step;
+  return trace == other.trace && step.step == other.step.step;
 }
 
-bool Schedule::iterator::operator != (const iterator & other) const
+bool Trace::iterator::operator != (const iterator & other) const
 {
   return !(*this == other);
 }
 
 // dereference -----------------------------------------------------------------
 
-Schedule::iterator::reference Schedule::iterator::operator * () const
+Trace::iterator::reference Trace::iterator::operator * () const
 {
   return step;
 }
 
-Schedule::iterator::pointer Schedule::iterator::operator -> () const
+Trace::iterator::pointer Trace::iterator::operator -> () const
 {
   return &step;
 }
@@ -813,7 +811,7 @@ Schedule::iterator::pointer Schedule::iterator::operator -> () const
 
 // equality --------------------------------------------------------------------
 
-bool operator == (const Schedule & a, const Schedule & b)
+bool operator == (const Trace & a, const Trace & b)
 {
   if (a.bound != b.bound)
     return false;
@@ -837,7 +835,7 @@ bool operator == (const Schedule & a, const Schedule & b)
     a.heap_updates == b.heap_updates;
 }
 
-bool operator != (const Schedule & a, const Schedule & b)
+bool operator != (const Trace & a, const Trace & b)
 {
   return !(a == b);
 }

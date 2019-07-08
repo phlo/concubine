@@ -13,7 +13,7 @@ namespace test {
 struct Simulator : public ::testing::Test
 {
   Program program;
-  Schedule::ptr schedule;
+  Trace::ptr trace;
   std::unique_ptr<::Simulator> simulator;
 
   void create_simulator(std::initializer_list<Program> programs)
@@ -114,43 +114,43 @@ TEST_F(Simulator, run_simple)
     };
 
   // run it
-  schedule = simulator->run(scheduler);
+  trace = simulator->run(scheduler);
 
   ASSERT_EQ(2, step);
 
   ASSERT_EQ(Thread::State::halted, simulator->threads[0].state);
   ASSERT_EQ(Thread::State::halted, simulator->threads[1].state);
 
-  // check Schedule
-  ASSERT_EQ(0, schedule->exit);
+  // check Trace
+  ASSERT_EQ(0, trace->exit);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
-    schedule->pc_updates);
+    Trace::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
+    trace->pc_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word_t>({{{1, 1}}, {{2, 1}}}),
-    schedule->accu_updates);
+    Trace::Thread_Updates<word_t>({{{1, 1}}, {{2, 1}}}),
+    trace->accu_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
-    schedule->mem_updates);
+    Trace::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
+    trace->mem_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
-    schedule->sb_adr_updates);
+    Trace::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
+    trace->sb_adr_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
-    schedule->sb_val_updates);
+    Trace::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
+    trace->sb_val_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<bool>({{{1, false}}, {{2, false}}}),
-    schedule->sb_full_updates);
+    Trace::Thread_Updates<bool>({{{1, false}}, {{2, false}}}),
+    trace->sb_full_updates);
 
-  ASSERT_EQ(Schedule::Flushes(), schedule->flushes);
+  ASSERT_EQ(Trace::Flushes(), trace->flushes);
 
-  ASSERT_TRUE(schedule->heap_updates.empty());
+  ASSERT_TRUE(trace->heap_updates.empty());
 }
 
 TEST_F(Simulator, run_add_check_exit)
@@ -233,45 +233,45 @@ TEST_F(Simulator, run_add_check_exit)
     };
 
   // run it
-  schedule = simulator->run(scheduler);
+  trace = simulator->run(scheduler);
 
   ASSERT_EQ(step, 5);
 
   ASSERT_EQ(Thread::State::exited, simulator->threads[0].state);
   ASSERT_EQ(Thread::State::running, simulator->threads[1].state);
 
-  // check Schedule
-  ASSERT_EQ(1, schedule->exit);
+  // check Trace
+  ASSERT_EQ(1, trace->exit);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word_t>({
+    Trace::Thread_Updates<word_t>({
       {{1, 0}, {3, 1}, {5, 2}},
       {{2, 0}, {4, 1}}}),
-    schedule->pc_updates);
+    trace->pc_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word_t>({{{1, 1}}, {{2, 1}}}),
-    schedule->accu_updates);
+    Trace::Thread_Updates<word_t>({{{1, 1}}, {{2, 1}}}),
+    trace->accu_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
-    schedule->mem_updates);
+    Trace::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
+    trace->mem_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
-    schedule->sb_adr_updates);
+    Trace::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
+    trace->sb_adr_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
-    schedule->sb_val_updates);
+    Trace::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
+    trace->sb_val_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<bool>({{{1, false}}, {{2, false}}}),
-    schedule->sb_full_updates);
+    Trace::Thread_Updates<bool>({{{1, false}}, {{2, false}}}),
+    trace->sb_full_updates);
 
-  ASSERT_EQ(Schedule::Flushes(), schedule->flushes);
+  ASSERT_EQ(Trace::Flushes(), trace->flushes);
 
-  ASSERT_TRUE(schedule->heap_updates.empty());
+  ASSERT_TRUE(trace->heap_updates.empty());
 }
 
 TEST_F(Simulator, run_race_condition)
@@ -533,7 +533,7 @@ TEST_F(Simulator, run_race_condition)
     };
 
   // run it
-  schedule = simulator->run(scheduler);
+  trace = simulator->run(scheduler);
 
   ASSERT_EQ(15, step);
 
@@ -541,53 +541,53 @@ TEST_F(Simulator, run_race_condition)
   ASSERT_EQ(Thread::State::halted, simulator->threads[1].state);
   ASSERT_EQ(Thread::State::halted, simulator->threads[2].state);
 
-  // check Schedule
-  ASSERT_EQ(1, schedule->exit);
+  // check Trace
+  ASSERT_EQ(1, trace->exit);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word_t>({
+    Trace::Thread_Updates<word_t>({
       {{1, 0}, {12, 1}, {13, 2}, {14, 3}, {15, 4}},
       {{2, 0}, {4, 1}, {6, 2}, {10, 3}},
       {{3, 0}, {5, 1}, {7, 2}, {11, 3}}}),
-    schedule->pc_updates);
+    trace->pc_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word_t>({
+    Trace::Thread_Updates<word_t>({
       {{1, 0}, {12, 1}, {13, 65535}},
       {{2, 0}, {4, 1}},
       {{3, 0}, {5, 1}}}),
-    schedule->accu_updates);
+    trace->accu_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}, {{3, 0}}}),
-    schedule->mem_updates);
+    Trace::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}, {{3, 0}}}),
+    trace->mem_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word_t>({
+    Trace::Thread_Updates<word_t>({
       {{1, 0}},
       {{2, 0}, {6, 1}},
       {{3, 0}, {7, 1}}}),
-    schedule->sb_adr_updates);
+    trace->sb_adr_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word_t>({
+    Trace::Thread_Updates<word_t>({
       {{1, 0}},
       {{2, 0}, {6, 1}},
       {{3, 0}, {7, 1}}}),
-    schedule->sb_val_updates);
+    trace->sb_val_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<bool>({
+    Trace::Thread_Updates<bool>({
       {{1, false}},
       {{2, false}, {6, true}, {8, false}},
       {{3, false}, {7, true}, {9, false}}}),
-    schedule->sb_full_updates);
+    trace->sb_full_updates);
 
-  ASSERT_EQ(Schedule::Flushes({8, 9}), schedule->flushes);
+  ASSERT_EQ(Trace::Flushes({8, 9}), trace->flushes);
 
   ASSERT_EQ(
-    Schedule::Heap_Updates({{1, {{8, 1}}}}),
-    schedule->heap_updates);
+    Trace::Heap_Updates({{1, {{8, 1}}}}),
+    trace->heap_updates);
 }
 
 TEST_F(Simulator, run_zero_bound)
@@ -630,50 +630,50 @@ TEST_F(Simulator, run_zero_bound)
     };
 
   // run it
-  schedule = simulator->run(scheduler);
+  trace = simulator->run(scheduler);
 
   EXPECT_EQ(step, 3);
 
   EXPECT_EQ(Thread::State::running, simulator->threads[0].state);
 
-  // check Schedule
-  ASSERT_EQ(0, schedule->exit);
+  // check Trace
+  ASSERT_EQ(0, trace->exit);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word_t>({{{1, 0}}}),
-    schedule->pc_updates);
+    Trace::Thread_Updates<word_t>({{{1, 0}}}),
+    trace->pc_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word_t>({{{1, 0}}}),
-    schedule->accu_updates);
+    Trace::Thread_Updates<word_t>({{{1, 0}}}),
+    trace->accu_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word_t>({{{1, 0}}}),
-    schedule->mem_updates);
+    Trace::Thread_Updates<word_t>({{{1, 0}}}),
+    trace->mem_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word_t>({{{1, 0}}}),
-    schedule->sb_adr_updates);
+    Trace::Thread_Updates<word_t>({{{1, 0}}}),
+    trace->sb_adr_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<word_t>({{{1, 0}}}),
-    schedule->sb_val_updates);
+    Trace::Thread_Updates<word_t>({{{1, 0}}}),
+    trace->sb_val_updates);
 
   ASSERT_EQ(
-    Schedule::Thread_Updates<bool>({{{1, false}}}),
-    schedule->sb_full_updates);
+    Trace::Thread_Updates<bool>({{{1, false}}}),
+    trace->sb_full_updates);
 
-  ASSERT_EQ(Schedule::Flushes(), schedule->flushes);
+  ASSERT_EQ(Trace::Flushes(), trace->flushes);
 
-  ASSERT_TRUE(schedule->heap_updates.empty());
+  ASSERT_TRUE(trace->heap_updates.empty());
 }
 
 // Simulator::simulate =========================================================
 
 TEST_F(Simulator, simulate_increment_check)
 {
-  std::ifstream schedule_file("data/increment.check.t2.k16.schedule");
-  std::string expected((std::istreambuf_iterator<char>(schedule_file)),
+  std::ifstream trace_file("data/increment.check.t2.k16.trace");
+  std::string expected((std::istreambuf_iterator<char>(trace_file)),
                         std::istreambuf_iterator<char>());
 
   Program::List::ptr programs = std::make_shared<Program::List>();
@@ -682,17 +682,17 @@ TEST_F(Simulator, simulate_increment_check)
   programs->push_back(
     create_from_file<Program>("data/increment.check.thread.n.asm"));
 
-  schedule = ::Simulator::simulate(programs, 16);
+  trace = ::Simulator::simulate(programs, 16);
 
-  ASSERT_EQ(0, schedule->exit);
-  ASSERT_EQ(16, schedule->bound);
-  ASSERT_EQ(expected, schedule->print());
+  ASSERT_EQ(0, trace->exit);
+  ASSERT_EQ(16, trace->bound);
+  ASSERT_EQ(expected, trace->print());
 }
 
 TEST_F(Simulator, simulate_increment_cas)
 {
-  std::ifstream schedule_file("data/increment.cas.t2.k16.schedule");
-  std::string expected((std::istreambuf_iterator<char>(schedule_file)),
+  std::ifstream trace_file("data/increment.cas.t2.k16.trace");
+  std::string expected((std::istreambuf_iterator<char>(trace_file)),
                         std::istreambuf_iterator<char>());
 
   Program increment = create_from_file<Program>("data/increment.cas.asm");
@@ -701,51 +701,51 @@ TEST_F(Simulator, simulate_increment_cas)
   programs->push_back(increment);
   programs->push_back(increment);
 
-  schedule = ::Simulator::simulate(programs, 16);
+  trace = ::Simulator::simulate(programs, 16);
 
-  ASSERT_EQ(0, schedule->exit);
-  ASSERT_EQ(16, schedule->bound);
-  ASSERT_EQ(expected, schedule->print());
+  ASSERT_EQ(0, trace->exit);
+  ASSERT_EQ(16, trace->bound);
+  ASSERT_EQ(expected, trace->print());
 }
 
 // Simulator::replay ===========================================================
 
 TEST_F(Simulator, replay_increment_check)
 {
-  std::string schedule_file = "data/increment.check.t2.k16.schedule";
+  std::string trace_path = "data/increment.check.t2.k16.trace";
 
-  std::ifstream sfs(schedule_file);
+  std::ifstream sfs(trace_path);
   std::string expected((std::istreambuf_iterator<char>(sfs)),
                         std::istreambuf_iterator<char>());
   sfs.clear();
   sfs.seekg(0, std::ios::beg);
 
-  schedule = std::make_unique<Schedule>(sfs, schedule_file);
+  trace = std::make_unique<Trace>(sfs, trace_path);
 
-  schedule = ::Simulator::replay(*schedule);
+  trace = ::Simulator::replay(*trace);
 
-  ASSERT_EQ(0, schedule->exit);
-  ASSERT_EQ(16, schedule->bound);
-  ASSERT_EQ(expected, schedule->print());
+  ASSERT_EQ(0, trace->exit);
+  ASSERT_EQ(16, trace->bound);
+  ASSERT_EQ(expected, trace->print());
 }
 
 TEST_F(Simulator, replay_increment_cas)
 {
-  std::string schedule_file = "data/increment.cas.t2.k16.schedule";
+  std::string trace_path = "data/increment.cas.t2.k16.trace";
 
-  std::ifstream sfs(schedule_file);
+  std::ifstream sfs(trace_path);
   std::string expected((std::istreambuf_iterator<char>(sfs)),
                         std::istreambuf_iterator<char>());
   sfs.clear();
   sfs.seekg(0, std::ios::beg);
 
-  schedule = std::make_unique<Schedule>(sfs, schedule_file);
+  trace = std::make_unique<Trace>(sfs, trace_path);
 
-  schedule = ::Simulator::replay(*schedule);
+  trace = ::Simulator::replay(*trace);
 
-  ASSERT_EQ(0, schedule->exit);
-  ASSERT_EQ(16, schedule->bound);
-  ASSERT_EQ(expected, schedule->print());
+  ASSERT_EQ(0, trace->exit);
+  ASSERT_EQ(16, trace->bound);
+  ASSERT_EQ(expected, trace->print());
 }
 
 } // namespace test

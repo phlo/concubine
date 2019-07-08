@@ -22,7 +22,7 @@ struct Instruction : public ::testing::Test
 
   Instruction ()
     {
-      simulator.schedule = std::make_unique<Schedule>(simulator.programs);
+      simulator.trace = std::make_unique<Trace>(simulator.programs);
     }
 };
 
@@ -812,7 +812,7 @@ TEST_F(Instruction, EXIT)
 
   ASSERT_EQ(0, thread.pc);
   ASSERT_EQ(0, thread.accu);
-  ASSERT_EQ(1, thread.simulator.schedule->exit);
+  ASSERT_EQ(1, thread.simulator.trace->exit);
   ASSERT_EQ(Thread::State::exited, thread.state);
 }
 

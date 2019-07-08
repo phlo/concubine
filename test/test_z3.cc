@@ -15,7 +15,7 @@ struct Z3 : public ::testing::Test
   ::Z3 z3;
   Encoder::ptr encoder;
   Program::List::ptr programs = std::make_shared<Program::List>();
-  Schedule::ptr schedule;
+  Trace::ptr trace;
 };
 
 TEST_F(Z3, sat)
@@ -46,7 +46,7 @@ TEST_F(Z3, solve_check)
 
   encoder = std::make_unique<smtlib::Functional>(programs, 16);
 
-  schedule = z3.solve(*encoder, constraints);
+  trace = z3.solve(*encoder, constraints);
 
   ASSERT_EQ(
     "data/increment.check.thread.0.asm\n"
@@ -69,7 +69,7 @@ TEST_F(Z3, solve_check)
     "0	3	ADDI	1	3	0	{}\n"
     "0	4	STORE	0	3	0	{(0,3)}\n"
     "0	5	CHECK	1	3	0	{}\n",
-    schedule->print());
+    trace->print());
 }
 
 TEST_F(Z3, solve_cas)
@@ -85,7 +85,7 @@ TEST_F(Z3, solve_cas)
 
   encoder = std::make_unique<smtlib::Functional>(programs, 16);
 
-  schedule = z3.solve(*encoder, constraints);
+  trace = z3.solve(*encoder, constraints);
 
   ASSERT_EQ(
     "data/increment.cas.asm\n"
@@ -108,7 +108,7 @@ TEST_F(Z3, solve_cas)
     "1	4	CAS	0	1	2	{(0,3)}\n"
     "1	5	JMP	LOOP	1	2	{}\n"
     "1	LOOP	MEM	0	3	3	{}\n",
-    schedule->print());
+    trace->print());
 }
 
 } // namespace test

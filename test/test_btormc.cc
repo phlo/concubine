@@ -16,7 +16,7 @@ struct BtorMC : public ::testing::Test
   ::BtorMC btormc = ::BtorMC(16);
   Encoder::ptr encoder;
   Program::List::ptr programs = std::make_shared<Program::List>();
-  Schedule::ptr schedule;
+  Trace::ptr trace;
 };
 
 TEST_F(BtorMC, sat)
@@ -61,18 +61,18 @@ TEST_F(BtorMC, solve_check)
 
   encoder = std::make_unique<btor2::Encoder>(programs, 16);
 
-  schedule = btormc.solve(*encoder, constraints);
+  trace = btormc.solve(*encoder, constraints);
 
   /*
   std::cout << "scheduled threads" << eol;
-  for (const auto & [step, thread] : schedule->thread_updates)
+  for (const auto & [step, thread] : trace->thread_updates)
     {
       std::cout << "\t{" << step << ", " << thread << "}" << eol;
     }
 
   std::cout << "pc updates" << eol;
   unsigned long thread = 0;
-  for (const auto & updates : schedule->pc_updates)
+  for (const auto & updates : trace->pc_updates)
     {
       for (const auto & [step, val] : updates)
         {
@@ -83,7 +83,7 @@ TEST_F(BtorMC, solve_check)
 
   std::cout << "accu updates" << eol;
   thread = 0;
-  for (const auto & updates : schedule->accu_updates)
+  for (const auto & updates : trace->accu_updates)
     {
       for (const auto & [step, val] : updates)
         {
@@ -93,7 +93,7 @@ TEST_F(BtorMC, solve_check)
     }
 
   std::cout << "heap updates" << eol;
-  for (const auto & updates : schedule->heap_updates)
+  for (const auto & updates : trace->heap_updates)
     for (const auto & [idx, val] : updates.second)
       {
         std::cout << "\t{" << idx << ", " << val << "}" << eol;
@@ -122,23 +122,22 @@ TEST_F(BtorMC, solve_check)
     "0	4	STORE	0	3	0	{(0,3)}\n"
     "1	1	CHECK	1	2	0	{}\n"
     "1	2	LOAD	0	2	0	{}\n",
-    schedule->print());
+    trace->print());
 
-  std::ofstream file {"/tmp/test.schedule"};
-  file << schedule->print();
+  std::ofstream file {"/tmp/test.trace"};
+  file << trace->print();
   file.close();
 
-  Schedule::ptr parsed =
-    std::make_unique<Schedule>(
-      create_from_file<Schedule>("/tmp/test.schedule"));
+  Trace::ptr parsed =
+    std::make_unique<Trace>(create_from_file<Trace>("/tmp/test.trace"));
 
   std::vector<std::vector<std::pair<bound_t, word_t>>> pc_diff;
-  for (size_t t = 0; t < schedule->pc_updates.size(); t++)
+  for (size_t t = 0; t < trace->pc_updates.size(); t++)
     {
       std::vector<std::pair<bound_t, word_t>> diff;
 
       std::set_symmetric_difference(
-        schedule->pc_updates[t].begin(), schedule->pc_updates[t].end(),
+        trace->pc_updates[t].begin(), trace->pc_updates[t].end(),
         parsed->pc_updates[t].begin(), parsed->pc_updates[t].end(),
         std::back_inserter(diff));
 
@@ -157,13 +156,13 @@ TEST_F(BtorMC, solve_check)
       thread++;
     }
 
-  ASSERT_EQ(*parsed, *schedule);
+  ASSERT_EQ(*parsed, *trace);
 
   Simulator simulator {programs};
 
-  Schedule::ptr simulated {simulator.replay(*parsed)};
+  Trace::ptr simulated {simulator.replay(*parsed)};
 
-  ASSERT_EQ(*simulated, *schedule);
+  ASSERT_EQ(*simulated, *trace);
 }
 
 TEST_F(BtorMC, DISABLED_solve_cas)
@@ -179,7 +178,7 @@ TEST_F(BtorMC, DISABLED_solve_cas)
 
   encoder = std::make_unique<btor2::Encoder>(programs, 16);
 
-  schedule = btormc.solve(*encoder, constraints);
+  trace = btormc.solve(*encoder, constraints);
 
   ASSERT_EQ(
     "",
@@ -203,7 +202,7 @@ TEST_F(BtorMC, DISABLED_solve_cas)
     // "0	4	CAS	0	1	1	{(0,2)}\n"
     // "1	LOOP	MEM	0	2	2	{}\n"
     // "1	3	ADDI	1	3	2	{}\n",
-    schedule->print());
+    trace->print());
 }
 
 } // namespace test

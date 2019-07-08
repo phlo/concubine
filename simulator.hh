@@ -12,7 +12,7 @@
 
 // TODO: forward-declare
 #include "program.hh"
-#include "schedule.hh"
+#include "trace.hh"
 
 //==============================================================================
 // Simulator class
@@ -28,9 +28,9 @@ struct Simulator
   //
   Program::List::ptr programs;
 
-  // generated schedule
+  // generated trace
   //
-  Schedule::ptr schedule;
+  Trace::ptr trace;
 
   // bound
   //
@@ -90,21 +90,21 @@ struct Simulator
 
   // run the simulator, using the specified scheduler
   //
-  Schedule::ptr run (std::function<Thread *()> scheduler);
+  Trace::ptr run (std::function<Thread *()> scheduler);
 
   //----------------------------------------------------------------------------
   // public functions
   //----------------------------------------------------------------------------
 
-  // runs the simulator using a random schedule
+  // runs the simulator using a random trace
   //
-  static Schedule::ptr simulate (const Program::List::ptr & programs,
-                                 bound_t bound = 0,
-                                 uint64_t seed = 0);
+  static Trace::ptr simulate (const Program::List::ptr & programs,
+                              bound_t bound = 0,
+                              uint64_t seed = 0);
 
-  // replay the given schedule (schedule must match simulator configuration)
+  // replay the given trace (trace must match simulator configuration)
   //
-  static Schedule::ptr replay (const Schedule & schedule, bound_t bound = 0);
+  static Trace::ptr replay (const Trace & trace, bound_t bound = 0);
 };
 
 //==============================================================================

@@ -35,7 +35,7 @@ SRC = boolector.cc \
       encoder_smtlib_relational.cc \
       instruction.cc \
       program.cc \
-      schedule.cc \
+      trace.cc \
       shell.cc \
       simulator.cc \
       solver.cc \

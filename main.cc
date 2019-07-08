@@ -28,7 +28,7 @@ void print_usage_main (const char * name)
   "available commands:" << eol <<
   "  help       print help for a specific <command>" << eol <<
   "  simulate   simulate concurrent programs" << eol <<
-  "  replay     reevaluates a given schedule" << eol <<
+  "  replay     reevaluates a given trace" << eol <<
   "  solve      solve concurrent programs using SMT" << eol;
 }
 
@@ -44,18 +44,18 @@ void print_usage_simulate (const char * name)
   eol << eol <<
   "  -k bound   execute a maximum of <bound> steps" << eol <<
   "  -s seed    random number generator's seed" << eol <<
-  "  -v         verbose schedule output" << eol <<
+  "  -v         verbose trace output" << eol <<
   "  program    one ore more source files, each being executed as a separate thread" << eol;
 }
 
 void print_usage_replay (const char * name)
 {
   std::cout << "usage: " << name <<
-  " replay [-k <bound>] [-v] <schedule>" <<
+  " replay [-k <bound>] [-v] <trace>" <<
   eol << eol <<
   "  -k bound   execute a maximum of <bound> steps" << eol <<
-  "  -v         verbose schedule output" << eol <<
-  "  schedule   the schedule to replay" << eol;
+  "  -v         verbose trace output" << eol <<
+  "  trace      the trace to replay" << eol;
 }
 
 void print_usage_solve (const char * name)
@@ -199,12 +199,12 @@ int simulate (const char * name, const int argc, const char ** argv)
     }
 
   // run program with given seed
-  Schedule::ptr schedule = Simulator::simulate(programs, bound, seed);
+  Trace::ptr trace = Simulator::simulate(programs, bound, seed);
 
   // print the result
-  std::cout << schedule->print();
+  std::cout << trace->print();
 
-  return schedule->exit;
+  return trace->exit;
 }
 
 //------------------------------------------------------------------------------
@@ -214,7 +214,7 @@ int simulate (const char * name, const int argc, const char ** argv)
 int replay (const char * name, const int argc, const char ** argv)
 {
   bound_t bound = 0;
-  std::string  schedule_path;
+  std::string trace_path;
 
   for (int i = 0; i < argc; i++)
     {
@@ -244,30 +244,30 @@ int replay (const char * name, const int argc, const char ** argv)
         }
       else
         {
-          schedule_path = arg;
+          trace_path = arg;
         }
     }
 
-  if (schedule_path.empty())
+  if (trace_path.empty())
     {
-      print_error("no schedule given");
+      print_error("no trace given");
       print_usage_replay(name);
       return -1;
     }
 
   try
     {
-      // create and parse schedule
-      Schedule::ptr schedule =
-        std::make_unique<Schedule>(create_from_file<Schedule>(schedule_path));
+      // create and parse trace
+      Trace::ptr trace =
+        std::make_unique<Trace>(create_from_file<Trace>(trace_path));
 
-      // run given schedule
-      schedule = Simulator::replay(*schedule, bound);
+      // run given trace
+      trace = Simulator::replay(*trace, bound);
 
       // print the result
-      std::cout << schedule->print();
+      std::cout << trace->print();
 
-      return schedule->exit;
+      return trace->exit;
     }
   catch (const std::exception & e)
     {

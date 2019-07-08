@@ -46,9 +46,9 @@ TEST_F(Main, illegal_command_line)
 
 TEST_F(Main, simulate_increment_check)
 {
-  // read expected schedule from file
-  std::ifstream schedule_file("data/increment.check.t2.k16.schedule");
-  std::string expected((std::istreambuf_iterator<char>(schedule_file)),
+  // read expected trace from file
+  std::ifstream trace_file("data/increment.check.t2.k16.trace");
+  std::string expected((std::istreambuf_iterator<char>(trace_file)),
                         std::istreambuf_iterator<char>());
 
   std::string args = " simulate -v -s 0 -k 16 ";
@@ -64,9 +64,9 @@ TEST_F(Main, simulate_increment_check)
 
 TEST_F(Main, simulate_increment_cas)
 {
-  // read expected schedule from file
-  std::ifstream schedule_file("data/increment.cas.t2.k16.schedule");
-  std::string expected((std::istreambuf_iterator<char>(schedule_file)),
+  // read expected trace from file
+  std::ifstream trace_file("data/increment.cas.t2.k16.trace");
+  std::string expected((std::istreambuf_iterator<char>(trace_file)),
                         std::istreambuf_iterator<char>());
 
   std::string args = " simulate -v -s 0 -k 16 ";
@@ -150,15 +150,15 @@ TEST_F(Main, simulate_illegal_bound)
 
 TEST_F(Main, replay_increment_check)
 {
-  std::string schedule_file = "data/increment.check.t2.k16.schedule";
+  std::string trace_path = "data/increment.check.t2.k16.trace";
 
-  // read expected schedule from file
-  std::ifstream sfs(schedule_file);
+  // read expected trace from file
+  std::ifstream sfs(trace_path);
   std::string expected((std::istreambuf_iterator<char>(sfs)),
                         std::istreambuf_iterator<char>());
 
   std::string args = " replay -v ";
-  std::string cmd = executable + args + schedule_file;
+  std::string cmd = executable + args + trace_path;
 
   std::string actual = shell.run(cmd).str();
 
@@ -168,15 +168,15 @@ TEST_F(Main, replay_increment_check)
 
 TEST_F(Main, replay_increment_cas)
 {
-  std::string schedule_file = "data/increment.cas.t2.k16.schedule";
+  std::string trace_path = "data/increment.cas.t2.k16.trace";
 
-  // read expected schedule from file
-  std::ifstream sfs(schedule_file);
+  // read expected trace from file
+  std::ifstream sfs(trace_path);
   std::string expected((std::istreambuf_iterator<char>(sfs)),
                         std::istreambuf_iterator<char>());
 
   std::string args = " replay -v ";
-  std::string cmd = executable + args + schedule_file;
+  std::string cmd = executable + args + trace_path;
 
   std::string actual = shell.run(cmd).str();
 
@@ -188,7 +188,7 @@ TEST_F(Main, replay_missing_args)
 {
   std::string args = " replay";
 
-  std::string expected = "error: no schedule given\n";
+  std::string expected = "error: no trace given\n";
   std::string actual = shell.run(executable + args).str();
 
   ASSERT_EQ(255, shell.last_exit_code());

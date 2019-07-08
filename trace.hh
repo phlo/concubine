@@ -1,5 +1,5 @@
-#ifndef SCHEDULE_HH_
-#define SCHEDULE_HH_
+#ifndef TRACE_HH_
+#define TRACE_HH_
 
 #include <map>
 #include <unordered_map>
@@ -8,16 +8,16 @@
 #include "program.hh"
 
 //==============================================================================
-// Schedule class
+// Trace class
 //==============================================================================
 
-struct Schedule
+struct Trace
 {
   //----------------------------------------------------------------------------
   // member types
   //----------------------------------------------------------------------------
 
-  using ptr = std::unique_ptr<Schedule>;
+  using ptr = std::unique_ptr<Trace>;
 
   // update maps ---------------------------------------------------------------
 
@@ -62,7 +62,7 @@ struct Schedule
       Step & operator ++ ();
     };
 
-  // schedule iterator ---------------------------------------------------------
+  // trace iterator ------------------------------------------------------------
 
   class iterator
     {
@@ -75,30 +75,28 @@ struct Schedule
         };
 
       template <typename T>
-      using Thread_Iterators  = std::vector<Iterators<T>>;
+      using Thread_Iterators = std::vector<Iterators<T>>;
 
-      using Heap_Iterators    = std::unordered_map<word_t, Iterators<word_t>>;
+      using Heap_Iterators = std::unordered_map<word_t, Iterators<word_t>>;
 
-      const Schedule *          schedule;
+      const Trace * trace;
 
-      Step                      step;
+      Step step;
 
-      Iterators<word_t>         thread;
-      Thread_Iterators<word_t>  pc,
-                                accu,
-                                mem,
-                                sb_adr,
-                                sb_val;
-      Thread_Iterators<bool>    sb_full;
-      Heap_Iterators            heap;
+      Iterators<word_t> thread;
+      Thread_Iterators<word_t> pc,
+                               accu,
+                               mem,
+                               sb_adr,
+                               sb_val;
+      Thread_Iterators<bool> sb_full;
+      Heap_Iterators heap;
 
       // helper for initializing thread update iterators
       //
       template <typename T>
-      void init_iterators (
-                           Thread_Iterators<T> & iterators,
-                           const Thread_Updates<T> & updates
-                          );
+      void init_iterators (Thread_Iterators<T> & iterators,
+                           const Thread_Updates<T> & updates);
 
       // return current thread state and advance
       //
@@ -120,7 +118,7 @@ struct Schedule
       using reference         = const Step &;
       using iterator_category = std::forward_iterator_tag;
 
-      iterator (const Schedule * schedule, bound_t step = 1);
+      iterator (const Trace * trace, bound_t step = 1);
 
       iterator &  operator ++ ();
       iterator    operator ++ (int);
@@ -136,7 +134,7 @@ struct Schedule
   // members
   //----------------------------------------------------------------------------
 
-  // programs used to generate the schedule
+  // programs used to generate the trace
   //
   // might be copied to another Trace during replay
   //
@@ -183,15 +181,15 @@ struct Schedule
 
   // initialize with given bound
   //
-  explicit Schedule (bound_t bound);
+  explicit Trace (bound_t bound);
 
   // construct from simulator/solver
   //
-  Schedule (const Program::List::ptr & programs);
+  Trace (const Program::List::ptr & programs);
 
   // construct from file
   //
-  Schedule (std::istream & file, const std::string & path);
+  Trace (std::istream & file, const std::string & path);
 
   //----------------------------------------------------------------------------
   // member functions
@@ -235,7 +233,7 @@ struct Schedule
   void insert_heap (bound_t step, const Heap & heap);
   void insert_flush (const bound_t step);
 
-  // return schedule size (bound)
+  // return trace size (bound)
   //
   size_t size () const;
 
@@ -247,7 +245,7 @@ struct Schedule
   //
   iterator end () const;
 
-  // print schedule
+  // print trace
   //
   std::string print () const;
 };
@@ -258,7 +256,7 @@ struct Schedule
 
 // equality
 //
-bool operator == (const Schedule &, const Schedule &);
-bool operator != (const Schedule &, const Schedule &);
+bool operator == (const Trace &, const Trace &);
+bool operator != (const Trace &, const Trace &);
 
 #endif
