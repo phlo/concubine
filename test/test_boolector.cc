@@ -38,7 +38,7 @@ TEST_F(Boolector, unsat)
   ASSERT_EQ("unsat\n", boolector.std_out.str());
 }
 
-TEST_F(Boolector, solve_check)
+TEST_F(Boolector, DISABLED_solve_check)
 {
   // concurrent increment using CHECK
   std::string increment_0 = "data/increment.check.thread.0.asm";
@@ -115,7 +115,6 @@ TEST_F(Boolector, solve_check)
 
   std::ofstream file {"/tmp/test.trace"};
   file << trace->print();
-  file.close();
 
   Trace::ptr parsed =
     std::make_unique<Trace>(create_from_file<Trace>("/tmp/test.trace"));
@@ -192,7 +191,7 @@ TEST_F(Boolector, DISABLED_solve_cas)
     trace->print());
 }
 
-TEST_F(Boolector, encode_deadlock)
+TEST_F(Boolector, DISABLED_encode_deadlock)
 {
   // deadlock after 3 steps -> unsat
   programs->push_back(create_from_file<Program>("data/deadlock.thread.0.asm"));
@@ -203,6 +202,52 @@ TEST_F(Boolector, encode_deadlock)
   std::string formula = encoder->str();
 
   ASSERT_FALSE(boolector.sat(formula));
+}
+
+// TODO: remove
+TEST_F(Boolector, print_model_check)
+{
+  // concurrent increment using CHECK
+  std::string increment_0 = "data/increment.check.thread.0.asm";
+  std::string increment_n = "data/increment.check.thread.n.asm";
+
+  programs = std::make_shared<Program::List>();
+
+  programs->push_back(create_from_file<Program>(increment_0));
+  programs->push_back(create_from_file<Program>(increment_n));
+
+  encoder = std::make_unique<smtlib::Functional>(programs, 12);
+
+  std::string formula = boolector.build_formula(*encoder, constraints);
+
+  bool sat = boolector.sat(formula);
+
+  std::ofstream outfile("/tmp/boolector.check.out");
+  outfile << boolector.std_out.str();
+
+  ASSERT_TRUE(sat);
+}
+
+TEST_F(Boolector, print_model_cas)
+{
+  // concurrent increment using CAS
+  std::string increment_cas = "data/increment.cas.asm";
+
+  programs = std::make_shared<Program::List>();
+
+  programs->push_back(create_from_file<Program>(increment_cas));
+  programs->push_back(create_from_file<Program>(increment_cas));
+
+  encoder = std::make_unique<smtlib::Functional>(programs, 12);
+
+  std::string formula = boolector.build_formula(*encoder, constraints);
+
+  bool sat = boolector.sat(formula);
+
+  std::ofstream outfile("/tmp/boolector.cas.out");
+  outfile << boolector.std_out.str();
+
+  ASSERT_TRUE(sat);
 }
 
 } // namespace test

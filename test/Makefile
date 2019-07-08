@@ -3,13 +3,6 @@
 # - CXXFLAGS
 # - OBJ
 
-# link std::filesystem
-ifeq ($(CXX),g++)
-LDFLAGS += -lstdc++fs
-else
-LDFLAGS += -lc++fs
-endif
-
 # googletest root
 GTEST_DIR = lib/googletest/googletest
 
@@ -18,11 +11,20 @@ GTEST_LIB = $(GTEST_DIR)/make/gtest-all.o
 
 # compiler flags (exported from parent makefile)
 CXXFLAGS += -isystem $(GTEST_DIR)/include \
-			-I../ \
-			-pthread \
-			-lboolector \
-			-lz3 \
-			-D__TEST__
+            -I../ \
+            -pthread \
+            -D__TEST__
+
+# linker flags (exported from parent makefile)
+LDFLAGS += -lboolector
+
+ifeq ($(CXX),g++)
+	# std::filesystem
+	LDFLAGS += -lstdc++fs
+else
+	# std::filesystem
+	LDFLAGS += -lc++fs
+endif
 
 # object files of code to test (exported)
 OBJ := $(addprefix ../,$(OBJ))
@@ -43,19 +45,19 @@ TEST_RUN := run_all_tests
 GTEST_FILTER = --gtest_filter=
 
 # GTEST_FILTER += "*"
-GTEST_FILTER += Encoder.*
-GTEST_FILTER += smtlib.*
-GTEST_FILTER += smtlib_Encoder.*
-GTEST_FILTER += smtlib_Functional.*
-GTEST_FILTER += smtlib_Relational.*
-GTEST_FILTER += btor2.*
-GTEST_FILTER += btor2_Encoder.*
-GTEST_FILTER += Thread.*
-GTEST_FILTER += Simulator.*
+# GTEST_FILTER += Encoder.*
+# GTEST_FILTER += smtlib.*
+# GTEST_FILTER += smtlib_Encoder.*
+# GTEST_FILTER += smtlib_Functional.*
+# GTEST_FILTER += smtlib_Relational.*
+# GTEST_FILTER += btor2.*
+# GTEST_FILTER += btor2_Encoder.*
+# GTEST_FILTER += Thread.*
+# GTEST_FILTER += Simulator.*
 # GTEST_FILTER += Main.*
 # GTEST_FILTER += Experimental.*
-GTEST_FILTER += Instruction.*
-GTEST_FILTER += Program.*
+# GTEST_FILTER += Instruction.*
+# GTEST_FILTER += Program.*
 GTEST_FILTER += Trace.*
 # GTEST_FILTER += Shell.*
 # GTEST_FILTER += Boolector.*

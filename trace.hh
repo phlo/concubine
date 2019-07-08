@@ -219,19 +219,17 @@ struct Trace
   //
   void push_back (word_t thread, const Heap & heap);
 
-  // insert individual state updates
+  // append individual state updates
   //
-  // NOTE: expects step to increase monotonically
-  //
-  void insert_thread (bound_t step, word_t thread);
-  void insert_pc (bound_t step, word_t thread, word_t pc);
-  void insert_accu (bound_t step, word_t thread, word_t accu);
-  void insert_mem (bound_t step, word_t thread, word_t mem);
-  void insert_sb_adr (bound_t step, word_t thread, word_t adr);
-  void insert_sb_val (bound_t step, word_t thread, word_t val);
-  void insert_sb_full (bound_t step, word_t thread, bool full);
-  void insert_heap (bound_t step, const Heap & heap);
-  void insert_flush (const bound_t step);
+  void push_back_thread (bound_t step, word_t thread);
+  void push_back_pc (bound_t step, word_t thread, word_t pc);
+  void push_back_accu (bound_t step, word_t thread, word_t accu);
+  void push_back_mem (bound_t step, word_t thread, word_t mem);
+  void push_back_sb_adr (bound_t step, word_t thread, word_t adr);
+  void push_back_sb_val (bound_t step, word_t thread, word_t val);
+  void push_back_sb_full (bound_t step, word_t thread, bool full);
+  void push_back_heap (bound_t step, const Heap & heap);
+  void push_back_flush (const bound_t step);
 
   // return trace size (bound)
   //

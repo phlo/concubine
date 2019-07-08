@@ -781,9 +781,7 @@ TEST_F(Trace, parse_missing_heap)
 
 // Trace::push_back ============================================================
 
-using Insert_Data = std::tuple<bound_t, word_t, word_t, word_t>;
-
-const std::vector<Insert_Data> insert_data {
+const std::vector<std::tuple<bound_t, word_t, word_t, word_t>> data {
   {1,  0, 0, 0},
   {2,  1, 0, 0},
   {3,  0, 0, 0},
@@ -802,16 +800,16 @@ const std::vector<Insert_Data> insert_data {
   {16, 1, 1, 1},
 };
 
-// Trace::insert_thread ========================================================
+// Trace::push_back_thread =====================================================
 
-TEST_F(Trace, insert_thread)
+TEST_F(Trace, push_back_thread)
 {
   create_dummy_trace(2);
 
-  for (const auto & [step, thread, _, __] : insert_data)
-    trace->insert_thread(step, thread);
+  for (const auto & [step, thread, _, __] : data)
+    trace->push_back_thread(step, thread);
 
-  ASSERT_EQ(insert_data.size(), trace->bound);
+  ASSERT_EQ(data.size(), trace->bound);
   ASSERT_EQ(
     ::Trace::Updates<word_t> ({
       {1,  0},
@@ -834,104 +832,104 @@ TEST_F(Trace, insert_thread)
     trace->thread_updates);
 }
 
-// Trace::insert_pc ============================================================
+// Trace::push_back_pc =========================================================
 
-const std::vector<::Trace::Updates<word_t>> insert_expected {
+const std::vector<::Trace::Updates<word_t>> push_back_expected {
   {{1, 0}, {5, 1}, {9, 0}, {13, 1}},
   {{2, 0}, {6, 1}, {10, 0}, {14, 1}}
 };
 
-TEST_F(Trace, insert_pc)
+TEST_F(Trace, push_back_pc)
 {
   create_dummy_trace(2);
 
-  for (const auto & [step, thread, pc, _] : insert_data)
-    trace->insert_pc(step, thread, pc);
+  for (const auto & [step, thread, pc, _] : data)
+    trace->push_back_pc(step, thread, pc);
 
-  ASSERT_EQ(insert_data.size(), trace->bound);
-  ASSERT_EQ(insert_expected, trace->pc_updates);
+  ASSERT_EQ(data.size(), trace->bound);
+  ASSERT_EQ(push_back_expected, trace->pc_updates);
 }
 
-// Trace::insert_accu ==========================================================
+// Trace::push_back_accu =======================================================
 
-TEST_F(Trace, insert_accu)
+TEST_F(Trace, push_back_accu)
 {
   create_dummy_trace(2);
 
-  for (const auto & [step, thread, accu, _] : insert_data)
-    trace->insert_accu(step, thread, accu);
+  for (const auto & [step, thread, accu, _] : data)
+    trace->push_back_accu(step, thread, accu);
 
-  ASSERT_EQ(insert_data.size(), trace->bound);
-  ASSERT_EQ(insert_expected, trace->accu_updates);
+  ASSERT_EQ(data.size(), trace->bound);
+  ASSERT_EQ(push_back_expected, trace->accu_updates);
 }
 
-// Trace::insert_mem ===========================================================
+// Trace::push_back_mem ========================================================
 
-TEST_F(Trace, insert_mem)
+TEST_F(Trace, push_back_mem)
 {
   create_dummy_trace(2);
 
-  for (const auto & [step, thread, mem, _] : insert_data)
-    trace->insert_mem(step, thread, mem);
+  for (const auto & [step, thread, mem, _] : data)
+    trace->push_back_mem(step, thread, mem);
 
-  ASSERT_EQ(insert_data.size(), trace->bound);
-  ASSERT_EQ(insert_expected, trace->mem_updates);
+  ASSERT_EQ(data.size(), trace->bound);
+  ASSERT_EQ(push_back_expected, trace->mem_updates);
 }
 
-// Trace::insert_sb_adr ========================================================
+// Trace::push_back_sb_adr =====================================================
 
-TEST_F(Trace, insert_sb_adr)
+TEST_F(Trace, push_back_sb_adr)
 {
   create_dummy_trace(2);
 
-  for (const auto & [step, thread, adr, _] : insert_data)
-    trace->insert_sb_adr(step, thread, adr);
+  for (const auto & [step, thread, adr, _] : data)
+    trace->push_back_sb_adr(step, thread, adr);
 
-  ASSERT_EQ(insert_data.size(), trace->bound);
-  ASSERT_EQ(insert_expected, trace->sb_adr_updates);
+  ASSERT_EQ(data.size(), trace->bound);
+  ASSERT_EQ(push_back_expected, trace->sb_adr_updates);
 }
 
-// Trace::insert_sb_val ========================================================
+// Trace::push_back_sb_val =====================================================
 
-TEST_F(Trace, insert_sb_val)
+TEST_F(Trace, push_back_sb_val)
 {
   create_dummy_trace(2);
 
-  for (const auto & [step, thread, adr, _] : insert_data)
-    trace->insert_sb_val(step, thread, adr);
+  for (const auto & [step, thread, adr, _] : data)
+    trace->push_back_sb_val(step, thread, adr);
 
-  ASSERT_EQ(insert_data.size(), trace->bound);
-  ASSERT_EQ(insert_expected, trace->sb_val_updates);
+  ASSERT_EQ(data.size(), trace->bound);
+  ASSERT_EQ(push_back_expected, trace->sb_val_updates);
 }
 
-// Trace::insert_sb_full =======================================================
+// Trace::push_back_sb_full ====================================================
 
-TEST_F(Trace, insert_sb_full)
+TEST_F(Trace, push_back_sb_full)
 {
   create_dummy_trace(2);
 
-  for (const auto & [step, thread, full, _] : insert_data)
-    trace->insert_sb_full(step, thread, full);
+  for (const auto & [step, thread, full, _] : data)
+    trace->push_back_sb_full(step, thread, full);
 
   const std::vector<::Trace::Updates<bool>> expected {
     {{1, 0}, {5, 1}, {9, 0}, {13, 1}},
     {{2, 0}, {6, 1}, {10, 0}, {14, 1}}
   };
 
-  ASSERT_EQ(insert_data.size(), trace->bound);
+  ASSERT_EQ(data.size(), trace->bound);
   ASSERT_EQ(expected, trace->sb_full_updates);
 }
 
-// Trace::insert_heap ==========================================================
+// Trace::push_back_heap =======================================================
 
-TEST_F(Trace, insert_heap)
+TEST_F(Trace, push_back_heap)
 {
   create_dummy_trace(2);
 
-  for (const auto & [step, thread, idx, val] : insert_data)
-    trace->insert_heap(step, {idx, val});
+  for (const auto & [step, thread, idx, val] : data)
+    trace->push_back_heap(step, {idx, val});
 
-  ASSERT_EQ(insert_data.size(), trace->bound);
+  ASSERT_EQ(data.size(), trace->bound);
   ASSERT_EQ(
     ::Trace::Heap_Updates ({
       {0, {{1, 0}, {9, 1}}},

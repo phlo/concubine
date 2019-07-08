@@ -413,9 +413,9 @@ void Trace::push_back (const word_t thread, const Heap & heap)
   push_back<word_t>(heap_updates[heap.adr], bound, heap.val);
 }
 
-// Trace::insert_thread --------------------------------------------------------
+// Trace::push_back_thread -----------------------------------------------------
 
-void Trace::insert_thread (const bound_t step, const word_t thread)
+void Trace::push_back_thread (const bound_t step, const word_t thread)
 {
   push_back<word_t>(thread_updates, step, thread);
 
@@ -423,9 +423,11 @@ void Trace::insert_thread (const bound_t step, const word_t thread)
     bound = step;
 }
 
-// Trace::insert_pc ------------------------------------------------------------
+// Trace::push_back_pc ---------------------------------------------------------
 
-void Trace::insert_pc (const bound_t step, const word_t thread, const word_t pc)
+void Trace::push_back_pc (const bound_t step,
+                          const word_t thread,
+                          const word_t pc)
 {
   push_back<word_t>(pc_updates.at(thread), step, pc);
 
@@ -433,11 +435,11 @@ void Trace::insert_pc (const bound_t step, const word_t thread, const word_t pc)
     bound = step;
 }
 
-// Trace::insert_accu ----------------------------------------------------------
+// Trace::push_back_accu -------------------------------------------------------
 
-void Trace::insert_accu (const bound_t step,
-                         const word_t thread,
-                         const word_t accu)
+void Trace::push_back_accu (const bound_t step,
+                            const word_t thread,
+                            const word_t accu)
 {
   push_back<word_t>(accu_updates.at(thread), step, accu);
 
@@ -445,11 +447,11 @@ void Trace::insert_accu (const bound_t step,
     bound = step;
 }
 
-// Trace::insert_mem -----------------------------------------------------------
+// Trace::push_back_mem --------------------------------------------------------
 
-void Trace::insert_mem (const bound_t step,
-                        const word_t thread,
-                        const word_t mem)
+void Trace::push_back_mem (const bound_t step,
+                           const word_t thread,
+                           const word_t mem)
 {
   push_back<word_t>(mem_updates.at(thread), step, mem);
 
@@ -457,11 +459,11 @@ void Trace::insert_mem (const bound_t step,
     bound = step;
 }
 
-// Trace::insert_sb_adr --------------------------------------------------------
+// Trace::push_back_sb_adr -----------------------------------------------------
 
-void Trace::insert_sb_adr (const bound_t step,
-                           const word_t thread,
-                           const word_t adr)
+void Trace::push_back_sb_adr (const bound_t step,
+                              const word_t thread,
+                              const word_t adr)
 {
   push_back<word_t>(sb_adr_updates.at(thread), step, adr);
 
@@ -469,11 +471,11 @@ void Trace::insert_sb_adr (const bound_t step,
     bound = step;
 }
 
-// Trace::insert_sb_val --------------------------------------------------------
+// Trace::push_back_sb_val -----------------------------------------------------
 
-void Trace::insert_sb_val (const bound_t step,
-                           const word_t thread,
-                           const word_t val)
+void Trace::push_back_sb_val (const bound_t step,
+                              const word_t thread,
+                              const word_t val)
 {
   push_back<word_t>(sb_val_updates.at(thread), step, val);
 
@@ -481,11 +483,11 @@ void Trace::insert_sb_val (const bound_t step,
     bound = step;
 }
 
-// Trace::insert_sb_full -------------------------------------------------------
+// Trace::push_back_sb_full ----------------------------------------------------
 
-void Trace::insert_sb_full (const bound_t step,
-                            const word_t thread,
-                            const bool full)
+void Trace::push_back_sb_full (const bound_t step,
+                               const word_t thread,
+                               const bool full)
 {
   push_back<bool>(sb_full_updates.at(thread), step, full);
 
@@ -493,9 +495,9 @@ void Trace::insert_sb_full (const bound_t step,
     bound = step;
 }
 
-// Trace::insert_heap ----------------------------------------------------------
+// Trace::push_back_heap -------------------------------------------------------
 
-void Trace::insert_heap (const bound_t step, const Heap & heap)
+void Trace::push_back_heap (const bound_t step, const Heap & heap)
 {
   push_back<word_t>(heap_updates[heap.adr], step, heap.val);
 
@@ -503,9 +505,9 @@ void Trace::insert_heap (const bound_t step, const Heap & heap)
     bound = step;
 }
 
-// Trace::insert_flush ---------------------------------------------------------
+// Trace::push_back_flush ---------------------------------------------------------
 
-void Trace::insert_flush (const bound_t step)
+void Trace::push_back_flush (const bound_t step)
 {
   flushes.insert(step);
 

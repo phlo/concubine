@@ -1,7 +1,10 @@
 # compiler flags
 CXX      = g++
 #CXX      = clang++
-CFLAGS   = -std=c++17 -g -ggdb #-O2
+CFLAGS   = -std=c++17 \
+           -g \
+           -ggdb \
+           #-O3
 CXXFLAGS = $(CFLAGS) $(WFLAGS)
 WFLAGS   = -pedantic \
            -Wall \

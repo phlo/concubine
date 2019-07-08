@@ -47,7 +47,7 @@ TEST_F(BtorMC, unsat)
   ASSERT_EQ("", btormc.std_out.str());
 }
 
-TEST_F(BtorMC, solve_check)
+TEST_F(BtorMC, DISABLED_solve_check)
 {
   // concurrent increment using CHECK
   std::string constraints;
@@ -203,6 +203,52 @@ TEST_F(BtorMC, DISABLED_solve_cas)
     // "1	LOOP	MEM	0	2	2	{}\n"
     // "1	3	ADDI	1	3	2	{}\n",
     trace->print());
+}
+
+// TODO: remove
+TEST_F(BtorMC, print_model_check)
+{
+  // concurrent increment using CHECK
+  std::string increment_0 = "data/increment.check.thread.0.asm";
+  std::string increment_n = "data/increment.check.thread.n.asm";
+
+  programs = std::make_shared<Program::List>();
+
+  programs->push_back(create_from_file<Program>(increment_0));
+  programs->push_back(create_from_file<Program>(increment_n));
+
+  encoder = std::make_unique<btor2::Encoder>(programs, 12);
+
+  std::string formula = btormc.build_formula(*encoder, "");
+
+  bool sat = btormc.sat(formula);
+
+  std::ofstream outfile("/tmp/btormc.check.out");
+  outfile << btormc.std_out.str();
+
+  ASSERT_TRUE(sat);
+}
+
+TEST_F(BtorMC, print_model_cas)
+{
+  // concurrent increment using CAS
+  std::string increment_cas = "data/increment.cas.asm";
+
+  programs = std::make_shared<Program::List>();
+
+  programs->push_back(create_from_file<Program>(increment_cas));
+  programs->push_back(create_from_file<Program>(increment_cas));
+
+  encoder = std::make_unique<btor2::Encoder>(programs, 12);
+
+  std::string formula = btormc.build_formula(*encoder, "");
+
+  bool sat = btormc.sat(formula);
+
+  std::ofstream outfile("/tmp/btormc.cas.out");
+  outfile << btormc.std_out.str();
+
+  ASSERT_TRUE(sat);
 }
 
 } // namespace test

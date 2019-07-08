@@ -105,34 +105,34 @@ Trace::ptr External::build_trace (const Program::List::ptr & programs)
               switch (variable->type)
                 {
                 case Variable::Type::THREAD:
-                  trace->insert_thread(
+                  trace->push_back_thread(
                     variable->step,
                     variable->thread);
                   break;
 
                 case Variable::Type::EXEC:
-                  trace->insert_pc(
+                  trace->push_back_pc(
                     variable->step,
                     variable->thread,
                     variable->pc);
                   break;
 
                 case Variable::Type::ACCU:
-                  trace->insert_accu(
+                  trace->push_back_accu(
                     variable->step,
                     variable->thread,
                     variable->val);
                   break;
 
                 case Variable::Type::MEM:
-                  trace->insert_mem(
+                  trace->push_back_mem(
                     variable->step,
                     variable->thread,
                     variable->val);
                   break;
 
                 case Variable::Type::HEAP:
-                  trace->insert_heap(
+                  trace->push_back_heap(
                     variable->step,
                     {variable->adr, variable->val});
                   break;

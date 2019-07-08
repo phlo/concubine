@@ -51,7 +51,7 @@ TEST_F(CVC4, unsat)
 }
 
 // TODO: remove
-TEST_F(CVC4, print_model)
+TEST_F(CVC4, print_model_check)
 {
   // concurrent increment using CHECK
   std::string constraints;
@@ -69,7 +69,31 @@ TEST_F(CVC4, print_model)
 
   bool sat = cvc4.sat(formula);
 
-  std::cout << cvc4.std_out.str();
+  std::ofstream outfile("/tmp/cvc4.check.out");
+  outfile << cvc4.std_out.str();
+
+  ASSERT_TRUE(sat);
+}
+
+TEST_F(CVC4, print_model_cas)
+{
+  // concurrent increment using CAS
+  std::string constraints;
+  std::string increment_cas = "data/increment.cas.asm";
+
+  Program::List::ptr programs = std::make_shared<Program::List>();
+
+  programs->push_back(create_from_file<Program>(increment_cas));
+  programs->push_back(create_from_file<Program>(increment_cas));
+
+  Encoder::ptr encoder = std::make_unique<smtlib::Functional>(programs, 12);
+
+  std::string formula = cvc4.build_formula(*encoder, constraints);
+
+  bool sat = cvc4.sat(formula);
+
+  std::ofstream outfile("/tmp/cvc4.cas.out");
+  outfile << cvc4.std_out.str();
 
   ASSERT_TRUE(sat);
 }
