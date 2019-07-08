@@ -112,7 +112,7 @@ BV=5
 PV=test/data/load.store.arithmetic.asm
 SV=test/data/load.store.arithmetic.spec.smt
 
-SCHEDULE=data/increment.invalid.schedule
+TRACE=data/increment.invalid.trace
 
 # demo targets
 .PHONY: run
@@ -132,7 +132,7 @@ run_cas_forever: $(MAIN)
 
 .PHONY: run_replay
 run_replay: $(MAIN)
-	cd test && ../$(MAIN) replay -v $(SCHEDULE)
+	cd test && ../$(MAIN) replay -v $(TRACE)
 
 .PHONY: run_verify
 run_verify: $(MAIN)

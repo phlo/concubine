@@ -4,14 +4,14 @@
 
 **Concu**rrent **Bin**ary **E**valuator - a toolchain for simulating and bounded model checking of random memory access sequences by concurrent programs on a simple virtual machine.
 
-Concubine can be used to generate schedules of arbitrary programs either via **simulation**, or by **solving** the resulting SMT problem as well as **replaying** them for comparison.
+Concubine can be used to generate traces of arbitrary programs either via **simulation**, or by **solving** the resulting SMT problem as well as **replaying** them for comparison.
 
 ```
          program*
-        /        \
-simulate          solve
-        \        /
-         schedule
+        /       \
+simulate         solve
+        \       /
+          trace
             |
           replay
             |
