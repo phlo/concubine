@@ -48,7 +48,7 @@ TEST_F(Trace, parse_check)
   ASSERT_EQ(check_program_paths[1], trace->programs->at(1).path);
 
   ASSERT_EQ(
-    ::Trace::Updates<word_t>({
+    ::Trace::update_map<word_t>({
       {1,  0},
       {2,  1},
       {3,  0},
@@ -58,7 +58,7 @@ TEST_F(Trace, parse_check)
     trace->thread_updates);
 
   ASSERT_EQ(
-    ::Trace::Updates<word_t>({
+    ::Trace::update_map<word_t>({
       {1,  0},
       {4,  1},
       {5,  2},
@@ -69,7 +69,7 @@ TEST_F(Trace, parse_check)
       {12, 1}}),
     trace->pc_updates[0]);
   ASSERT_EQ(
-    ::Trace::Updates<word_t>({
+    ::Trace::update_map<word_t>({
       {2,  0},
       {6,  1},
       {13,  2},
@@ -78,48 +78,48 @@ TEST_F(Trace, parse_check)
     trace->pc_updates[1]);
 
   ASSERT_EQ(
-    ::Trace::Updates<word_t>({
+    ::Trace::update_map<word_t>({
       {1,  0},
       {7, 1}}),
     trace->accu_updates[0]);
   ASSERT_EQ(
-    ::Trace::Updates<word_t>({
+    ::Trace::update_map<word_t>({
       {2,  0},
       {13, 1},
       {14, 2}}),
     trace->accu_updates[1]);
 
   ASSERT_EQ(
-    ::Trace::Updates<word_t>({
+    ::Trace::update_map<word_t>({
       {1,  0}}),
     trace->mem_updates[0]);
   ASSERT_EQ(
-    ::Trace::Updates<word_t>({
+    ::Trace::update_map<word_t>({
       {2, 0}}),
     trace->mem_updates[1]);
 
   ASSERT_EQ(
-    ::Trace::Thread_Updates<word_t>({
+    ::Trace::thread_states<word_t>({
       {{1, 0}},
       {{2, 0}}}),
     trace->sb_adr_updates);
 
   ASSERT_EQ(
-    ::Trace::Thread_Updates<word_t>({
+    ::Trace::thread_states<word_t>({
       {{1, 0}, {8, 1}},
       {{2, 0}, {15, 2}}}),
     trace->sb_val_updates);
 
   ASSERT_EQ(
-    ::Trace::Thread_Updates<bool>({
+    ::Trace::thread_states<bool>({
       {{1, true}, {3, false}, {8, true}, {9, false}},
       {{2, false}, {15, true}, {16, false}}}),
     trace->sb_full_updates);
 
-  ASSERT_EQ(::Trace::Flushes({3, 9, 16}), trace->flushes);
+  ASSERT_EQ(std::unordered_set<size_t>({3, 9, 16}), trace->flushes);
 
   ASSERT_EQ(
-    ::Trace::Heap_Updates({{0, {{3, 0}, {9, 1}, {16, 2}}}}),
+    ::Trace::heap_states({{0, {{3, 0}, {9, 1}, {16, 2}}}}),
     trace->heap_updates);
 }
 
@@ -134,7 +134,7 @@ TEST_F(Trace, parse_cas)
   ASSERT_EQ(cas_program_path, trace->programs->at(1).path);
 
   ASSERT_EQ(
-    ::Trace::Updates<word_t>({
+    ::Trace::update_map<word_t>({
       {1,  0},
       {2,  1},
       {4,  0},
@@ -146,7 +146,7 @@ TEST_F(Trace, parse_cas)
     trace->thread_updates);
 
   ASSERT_EQ(
-    ::Trace::Updates<word_t>({
+    ::Trace::update_map<word_t>({
       {1,  0},
       {6,  1},
       {7,  2},
@@ -156,7 +156,7 @@ TEST_F(Trace, parse_cas)
       {13, 2}}),
     trace->pc_updates[0]);
   ASSERT_EQ(
-    ::Trace::Updates<word_t>({
+    ::Trace::update_map<word_t>({
       {2,  0},
       {5,  1},
       {8,  2},
@@ -167,12 +167,12 @@ TEST_F(Trace, parse_cas)
     trace->pc_updates[1]);
 
   ASSERT_EQ(
-    ::Trace::Updates<word_t>({
+    ::Trace::update_map<word_t>({
       {1,  0},
       {10, 1}}),
     trace->accu_updates[0]);
   ASSERT_EQ(
-    ::Trace::Updates<word_t>({
+    ::Trace::update_map<word_t>({
       {2,  0},
       {9,  1},
       {14, 0},
@@ -180,38 +180,38 @@ TEST_F(Trace, parse_cas)
     trace->accu_updates[1]);
 
   ASSERT_EQ(
-    ::Trace::Updates<word_t>({
+    ::Trace::update_map<word_t>({
       {1,  0},
       {13, 1}}),
     trace->mem_updates[0]);
   ASSERT_EQ(
-    ::Trace::Updates<word_t>({
+    ::Trace::update_map<word_t>({
       {2, 0},
       {16, 1}}),
     trace->mem_updates[1]);
 
   ASSERT_EQ(
-    ::Trace::Thread_Updates<word_t>({
+    ::Trace::thread_states<word_t>({
       {{1, 0}},
       {{2, 0}}}),
     trace->sb_adr_updates);
 
   ASSERT_EQ(
-    ::Trace::Thread_Updates<word_t>({
+    ::Trace::thread_states<word_t>({
       {{1, 0}},
       {{2, 0}}}),
     trace->sb_val_updates);
 
   ASSERT_EQ(
-    ::Trace::Thread_Updates<bool>({
+    ::Trace::thread_states<bool>({
       {{1, true}, {4, false}},
       {{2, true}, {3, false}}}),
     trace->sb_full_updates);
 
-  ASSERT_EQ(::Trace::Flushes({3, 4}), trace->flushes);
+  ASSERT_EQ(std::unordered_set<size_t>({3, 4}), trace->flushes);
 
   ASSERT_EQ(
-    ::Trace::Heap_Updates({{0, {{3, 0}, {11, 1}}}}),
+    ::Trace::heap_states({{0, {{3, 0}, {11, 1}}}}),
     trace->heap_updates);
 }
 
@@ -781,7 +781,7 @@ TEST_F(Trace, parse_missing_heap)
 
 // Trace::push_back ============================================================
 
-const std::vector<std::tuple<bound_t, word_t, word_t, word_t>> data {
+const std::vector<std::tuple<size_t, word_t, word_t, word_t>> data {
   {1,  0, 0, 0},
   {2,  1, 0, 0},
   {3,  0, 0, 0},
@@ -811,7 +811,7 @@ TEST_F(Trace, push_back_thread)
 
   ASSERT_EQ(data.size(), trace->bound);
   ASSERT_EQ(
-    ::Trace::Updates<word_t> ({
+    ::Trace::update_map<word_t> ({
       {1,  0},
       {2,  1},
       {3,  0},
@@ -834,7 +834,7 @@ TEST_F(Trace, push_back_thread)
 
 // Trace::push_back_pc =========================================================
 
-const std::vector<::Trace::Updates<word_t>> push_back_expected {
+const std::vector<::Trace::update_map<word_t>> push_back_expected {
   {{1, 0}, {5, 1}, {9, 0}, {13, 1}},
   {{2, 0}, {6, 1}, {10, 0}, {14, 1}}
 };
@@ -911,7 +911,7 @@ TEST_F(Trace, push_back_sb_full)
   for (const auto & [step, thread, full, _] : data)
     trace->push_back_sb_full(step, thread, full);
 
-  const std::vector<::Trace::Updates<bool>> expected {
+  const std::vector<::Trace::update_map<bool>> expected {
     {{1, 0}, {5, 1}, {9, 0}, {13, 1}},
     {{2, 0}, {6, 1}, {10, 0}, {14, 1}}
   };
@@ -931,7 +931,7 @@ TEST_F(Trace, push_back_heap)
 
   ASSERT_EQ(data.size(), trace->bound);
   ASSERT_EQ(
-    ::Trace::Heap_Updates ({
+    ::Trace::heap_states ({
       {0, {{1, 0}, {9, 1}}},
       {1, {{5, 0}, {13, 1}}}
     }),

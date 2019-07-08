@@ -97,7 +97,7 @@ struct Encoder
 
   // bound
   //
-  const bound_t bound;
+  const size_t bound;
 
   // use Sinz's cardinality constraint (num_threads > 4)
   //
@@ -147,7 +147,7 @@ struct Encoder
   // constructors
   //----------------------------------------------------------------------------
 
-  Encoder (const Program::List::ptr & programs, bound_t bound);
+  Encoder (const Program::List::ptr & programs, size_t bound);
 
   //----------------------------------------------------------------------------
   // private member functions
@@ -283,17 +283,17 @@ struct Encoder : public ::Encoder
 
   // current step
   //
-  bound_t step;
+  size_t step;
 
   // previous step (reduce subtractions)
   //
-  bound_t prev;
+  size_t prev;
 
   //----------------------------------------------------------------------------
   // constructors
   //----------------------------------------------------------------------------
 
-  Encoder (const Program::List::ptr & programs, bound_t bound);
+  Encoder (const Program::List::ptr & programs, size_t bound);
 
   //----------------------------------------------------------------------------
   // private member functions
@@ -450,7 +450,7 @@ struct Functional : public Encoder
   //----------------------------------------------------------------------------
 
   Functional (const Program::List::ptr & programs,
-              bound_t bound,
+              size_t bound,
               bool encode = true);
 
   //----------------------------------------------------------------------------
@@ -524,7 +524,7 @@ struct Relational : public Encoder
   //----------------------------------------------------------------------------
 
   Relational (const Program::List::ptr & programs,
-              bound_t bound,
+              size_t bound,
               bool encode = true);
 
   //----------------------------------------------------------------------------
@@ -806,7 +806,7 @@ struct Encoder : public ::Encoder
   //----------------------------------------------------------------------------
 
   Encoder (const Program::List::ptr & programs,
-           bound_t bound,
+           size_t bound,
            bool encode = true);
 
   //----------------------------------------------------------------------------

@@ -10,9 +10,9 @@
 
 // Solver::parse_attribute -----------------------------------------------------
 
-bound_t Solver::parse_attribute (std::istringstream & line,
-                                 const std::string & name,
-                                 const char delimiter)
+size_t Solver::parse_attribute (std::istringstream & line,
+                                const std::string & name,
+                                const char delimiter)
 {
   std::string token;
 

@@ -77,7 +77,7 @@ Relational::State::operator std::string () const
 //------------------------------------------------------------------------------
 
 Relational::Relational (const Program::List::ptr & p,
-                        const bound_t b,
+                        const size_t b,
                         const bool e) :
   Encoder(p, b)
 {

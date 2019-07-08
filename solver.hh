@@ -22,9 +22,9 @@ struct Solver
   // member functions
   //----------------------------------------------------------------------------
 
-  bound_t parse_attribute (std::istringstream & line,
-                           const std::string & name,
-                           char delimiter = '_');
+  size_t parse_attribute (std::istringstream & line,
+                          const std::string & name,
+                          char delimiter = '_');
 
   // build formula for the specific solver
   //
@@ -70,12 +70,12 @@ struct External : public Solver
           EXIT_CODE
         };
 
-      Type    type;
-      bound_t step;
-      word_t  thread;
-      word_t  pc;
-      word_t  adr;
-      word_t  val;
+      Type   type;
+      size_t step;
+      word_t thread;
+      word_t pc;
+      word_t adr;
+      word_t val;
     };
 
   //----------------------------------------------------------------------------

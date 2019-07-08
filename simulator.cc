@@ -25,7 +25,7 @@ inline void erase (C & container, T & val)
 //------------------------------------------------------------------------------
 
 Simulator::Simulator (const Program::List::ptr & p,
-                      const bound_t b,
+                      const size_t b,
                       const uint64_t s) :
   programs(p),
   trace(std::make_unique<Trace>(p)),
@@ -172,8 +172,8 @@ Trace::ptr Simulator::run (std::function<Thread *()> scheduler)
 // Simulator::simulate ---------------------------------------------------------
 
 Trace::ptr Simulator::simulate (const Program::List::ptr & programs,
-                                const bound_t bound,
-                                const bound_t seed)
+                                const size_t bound,
+                                const size_t seed)
 {
   Simulator simulator {programs, bound, seed};
 
@@ -197,7 +197,7 @@ Trace::ptr Simulator::simulate (const Program::List::ptr & programs,
 
 // Simulator::replay -----------------------------------------------------------
 
-Trace::ptr Simulator::replay (const Trace & trace, const bound_t bound)
+Trace::ptr Simulator::replay (const Trace & trace, const size_t bound)
 {
   Simulator simulator {
     trace.programs,
@@ -456,7 +456,7 @@ void Thread::execute (const Instruction::Mem & m)
 
 void Thread::execute (const Instruction::Cas & c)
 {
-  std::optional<Trace::Heap> heap;
+  std::optional<Trace::cell_t> heap;
 
   if (mem == load(c.arg, c.indirect))
     {

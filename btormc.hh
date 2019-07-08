@@ -5,9 +5,9 @@
 
 struct BtorMC : public Boolector
 {
-  BtorMC (bound_t);
+  BtorMC (size_t);
 
-  const bound_t bound;
+  const size_t bound;
 
   virtual std::string build_command ();
 

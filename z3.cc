@@ -18,13 +18,13 @@ bool Z3::sat (const std::string & formula)
 
 // TODO: replace with SMTLibEncoder variable name generators
 inline
-std::string symbol (std::string type, std::initializer_list<bound_t> attributes)
+std::string symbol (std::string type, std::initializer_list<size_t> attributes)
 {
   std::ostringstream os;
 
   os << type;
 
-  for (const bound_t a : attributes)
+  for (const size_t a : attributes)
     os << '_' << a;
 
   return os.str();
@@ -74,7 +74,7 @@ Trace::ptr Z3::solve (Encoder & encoder, const std::string & constraints)
 
   Trace::ptr trace = std::make_unique<Trace>(std::move(encoder.programs));
 
-  for (bound_t step = 1; step <= encoder.bound; ++step)
+  for (size_t step = 1; step <= encoder.bound; ++step)
     for (word_t thread = 0; thread < encoder.programs->size(); ++thread)
       if (eval_bool(c, m, symbol(Encoder::thread_sym, {step, thread})))
         {
@@ -88,7 +88,7 @@ Trace::ptr Z3::solve (Encoder & encoder, const std::string & constraints)
                 word_t mem =
                   eval_bv(c, m, symbol(Encoder::mem_sym, {step, thread}));
 
-                std::optional<Trace::Heap> heap;
+                std::optional<Trace::cell_t> heap;
 
                 const Instruction & op = program[pc];
 

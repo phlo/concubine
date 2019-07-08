@@ -21,113 +21,153 @@ struct Trace
 
   // update maps ---------------------------------------------------------------
 
+  // step -> state
+  //
   template <typename T>
-  using Updates = std::map<bound_t, T>; // step -> state
+  using update_map = std::map<size_t, T>;
 
+  // thread -> step -> state
+  //
   template <typename T>
-  using Thread_Updates = std::vector<Updates<T>>;
+  using thread_states = std::vector<update_map<T>>;
 
-  using Heap_Updates = std::unordered_map<word_t, Updates<word_t>>;
-
-  using Flushes = std::unordered_set<bound_t>; // steps
+  // address -> step -> state
+  //
+  using heap_states = std::unordered_map<word_t, update_map<word_t>>;
 
   // heap cell -----------------------------------------------------------------
-
-  struct Heap
+  //
+  struct cell_t
     {
       word_t adr;
       word_t val;
     };
 
   // state at a specific step --------------------------------------------------
-
+  //
   struct Step
     {
-      bound_t step;
+      size_t step;
       word_t thread;
       word_t pc;
       word_t accu;
       word_t mem;
       word_t sb_adr;
       word_t sb_val;
-      bool sb_full;
-      bool flush;
-      std::optional<Heap> heap;
+      bool   sb_full;
+      bool   flush;
+      std::optional<cell_t> heap;
 
       Step () = default;
-      Step (bound_t step);
+      Step (size_t step);
 
-      operator bound_t () const;
+      operator size_t () const;
 
       Step & operator ++ ();
     };
 
   // trace iterator ------------------------------------------------------------
-
+  //
   class iterator
     {
-    private:
+    private: //-----------------------------------------------------------------
+
+      //------------------------------------------------------------------------
+      // member types
+      //------------------------------------------------------------------------
+
       template <typename T>
-      struct Iterators
+      struct update_map_iterator
         {
-          typename Updates<T>::const_iterator cur;
-          typename Updates<T>::const_iterator end;
+          typename update_map<T>::const_iterator cur;
+          typename update_map<T>::const_iterator end;
         };
 
       template <typename T>
-      using Thread_Iterators = std::vector<Iterators<T>>;
+      using thread_state_iterators = std::vector<update_map_iterator<T>>;
 
-      using Heap_Iterators = std::unordered_map<word_t, Iterators<word_t>>;
+      //------------------------------------------------------------------------
+      // members
+      //------------------------------------------------------------------------
 
+      // trace being iterated
+      //
       const Trace * trace;
 
+      // current step's state
+      //
       Step step;
 
-      Iterators<word_t> thread;
-      Thread_Iterators<word_t> pc,
-                               accu,
-                               mem,
-                               sb_adr,
-                               sb_val;
-      Thread_Iterators<bool> sb_full;
-      Heap_Iterators heap;
+      // schedule iterator
+      //
+      update_map_iterator<word_t> thread;
 
-      // helper for initializing thread update iterators
+      // thread state update iterators
+      //
+      thread_state_iterators<word_t> pc;
+      thread_state_iterators<word_t> accu;
+      thread_state_iterators<word_t> mem;
+      thread_state_iterators<word_t> sb_adr;
+      thread_state_iterators<word_t> sb_val;
+      thread_state_iterators<bool>   sb_full;
+
+      // heap state update iterators
+      //
+      std::unordered_map<word_t, update_map_iterator<word_t>> heap;
+
+      //------------------------------------------------------------------------
+      // private member functions
+      //------------------------------------------------------------------------
+
+      // helper for initializing thread update iterator
       //
       template <typename T>
-      void init_iterators (Thread_Iterators<T> & iterators,
-                           const Thread_Updates<T> & updates);
+      void init_iterator (thread_state_iterators<T> & iterator,
+                          const thread_states<T> & updates);
 
       // return current thread state and advance
       //
       template <typename T>
-      const T & next_thread_state (Iterators<T> & state);
+      const T & next_thread_state (update_map_iterator<T> & state);
 
       // return current heap state update and advance
       //
-      const std::optional<Heap> next_heap_state ();
+      const std::optional<cell_t> next_heap_state ();
 
-      // assign state update
+      // assign next state
       //
       void assign ();
 
-    public:
+    public: //------------------------------------------------------------------
+
+      //------------------------------------------------------------------------
+      // iterator traits
+      //------------------------------------------------------------------------
+
       using difference_type   = std::ptrdiff_t; // size_t ?
       using value_type        = Step;
       using pointer           = const Step *;
       using reference         = const Step &;
       using iterator_category = std::forward_iterator_tag;
 
-      iterator (const Trace * trace, bound_t step = 1);
+      //------------------------------------------------------------------------
+      // constructors
+      //------------------------------------------------------------------------
 
-      iterator &  operator ++ ();
-      iterator    operator ++ (int);
+      iterator (const Trace * trace, size_t step = 1);
 
-      bool        operator == (const iterator &) const;
-      bool        operator != (const iterator &) const;
+      //------------------------------------------------------------------------
+      // member operators
+      //------------------------------------------------------------------------
 
-      reference   operator * () const;
-      pointer     operator -> () const;
+      iterator & operator ++ ();
+      iterator   operator ++ (int);
+
+      bool operator == (const iterator &) const;
+      bool operator != (const iterator &) const;
+
+      reference operator * () const;
+      pointer   operator -> () const;
     };
 
   //----------------------------------------------------------------------------
@@ -142,7 +182,7 @@ struct Trace
 
   // bound used == size()
   //
-  bound_t bound;
+  size_t bound;
 
   // exit code
   //
@@ -150,30 +190,30 @@ struct Trace
 
   // store buffer flushes
   //
-  Flushes flushes;
+  std::unordered_set<size_t> flushes;
 
   // thread sequence
   //
   // step -> thread
   //
-  Updates<word_t> thread_updates;
+  update_map<word_t> thread_updates;
 
   // thread state updates
   //
   // thread -> step -> val
   //
-  Thread_Updates<word_t> pc_updates;
-  Thread_Updates<word_t> accu_updates;
-  Thread_Updates<word_t> mem_updates;
-  Thread_Updates<word_t> sb_adr_updates;
-  Thread_Updates<word_t> sb_val_updates;
-  Thread_Updates<bool> sb_full_updates;
+  thread_states<word_t> pc_updates;
+  thread_states<word_t> accu_updates;
+  thread_states<word_t> mem_updates;
+  thread_states<word_t> sb_adr_updates;
+  thread_states<word_t> sb_val_updates;
+  thread_states<bool>   sb_full_updates;
 
   // heap state updates
   //
   // address -> list of (step, val) pairs
   //
-  Heap_Updates heap_updates;
+  heap_states heap_updates;
 
   //----------------------------------------------------------------------------
   // constructors
@@ -181,7 +221,7 @@ struct Trace
 
   // initialize with given bound
   //
-  explicit Trace (bound_t bound);
+  explicit Trace (size_t bound);
 
   // construct from simulator/solver
   //
@@ -197,12 +237,12 @@ struct Trace
 
   // initialize thread state update lists
   //
-  void init_state_update_lists ();
+  void init_thread_states ();
 
   // append state update helper
   //
   template <typename T>
-  void push_back (Updates<T> & updates, const bound_t step, const T val);
+  void push_back (update_map<T> & updates, const size_t step, const T val);
 
   // append state update after executing an instruction
   //
@@ -213,23 +253,23 @@ struct Trace
                   word_t sb_adr,
                   word_t sb_val,
                   word_t sb_full,
-                  const std::optional<Heap> & heap);
+                  const std::optional<cell_t> & heap);
 
   // append state update after flushing the store buffer
   //
-  void push_back (word_t thread, const Heap & heap);
+  void push_back (word_t thread, const cell_t & heap);
 
   // append individual state updates
   //
-  void push_back_thread (bound_t step, word_t thread);
-  void push_back_pc (bound_t step, word_t thread, word_t pc);
-  void push_back_accu (bound_t step, word_t thread, word_t accu);
-  void push_back_mem (bound_t step, word_t thread, word_t mem);
-  void push_back_sb_adr (bound_t step, word_t thread, word_t adr);
-  void push_back_sb_val (bound_t step, word_t thread, word_t val);
-  void push_back_sb_full (bound_t step, word_t thread, bool full);
-  void push_back_heap (bound_t step, const Heap & heap);
-  void push_back_flush (const bound_t step);
+  void push_back_thread (size_t step, word_t thread);
+  void push_back_pc (size_t step, word_t thread, word_t pc);
+  void push_back_accu (size_t step, word_t thread, word_t accu);
+  void push_back_mem (size_t step, word_t thread, word_t mem);
+  void push_back_sb_adr (size_t step, word_t thread, word_t adr);
+  void push_back_sb_val (size_t step, word_t thread, word_t val);
+  void push_back_sb_full (size_t step, word_t thread, bool full);
+  void push_back_heap (size_t step, const cell_t & heap);
+  void push_back_flush (const size_t step);
 
   // return trace size (bound)
   //

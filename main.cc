@@ -129,7 +129,7 @@ int help (const char * name, const int argc, const char **argv)
 
 int simulate (const char * name, const int argc, const char ** argv)
 {
-  bound_t bound = 0;
+  size_t bound = 0;
   uint64_t seed = static_cast<uint64_t>(time(NULL));
   Program::List::ptr programs = std::make_shared<Program::List>();
 
@@ -213,7 +213,7 @@ int simulate (const char * name, const int argc, const char ** argv)
 
 int replay (const char * name, const int argc, const char ** argv)
 {
-  bound_t bound = 0;
+  size_t bound = 0;
   std::string trace_path;
 
   for (int i = 0; i < argc; i++)
@@ -373,7 +373,7 @@ int solve (const char * name, const int argc, const char ** argv)
         }
 
       // parse bound
-      bound_t bound = 0;
+      size_t bound = 0;
       try
         {
           bound = std::stoul(argv[i++], nullptr, 0);

@@ -34,7 +34,7 @@ struct Simulator
 
   // bound
   //
-  bound_t bound;
+  size_t bound;
 
   // seed used for random thread scheduling
   //
@@ -73,7 +73,7 @@ struct Simulator
   //----------------------------------------------------------------------------
 
   Simulator (const Program::List::ptr & programs,
-             bound_t bound = 0,
+             size_t bound = 0,
              uint64_t seed = 0);
 
   //----------------------------------------------------------------------------
@@ -99,12 +99,12 @@ struct Simulator
   // runs the simulator using a random trace
   //
   static Trace::ptr simulate (const Program::List::ptr & programs,
-                              bound_t bound = 0,
+                              size_t bound = 0,
                               uint64_t seed = 0);
 
   // replay the given trace (trace must match simulator configuration)
   //
-  static Trace::ptr replay (const Trace & trace, bound_t bound = 0);
+  static Trace::ptr replay (const Trace & trace, size_t bound = 0);
 };
 
 //==============================================================================

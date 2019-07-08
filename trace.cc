@@ -19,7 +19,7 @@ Trace::Trace (const Program::List::ptr & p) :
   bound(0),
   exit(0)
 {
-  init_state_update_lists();
+  init_thread_states();
 }
 
 Trace::Trace(std::istream & file, const std::string & path) :
@@ -66,11 +66,11 @@ Trace::Trace(std::istream & file, const std::string & path) :
     parser_error(path, line_num, "missing threads");
 
   // initialize thread state update lists
-  init_state_update_lists();
+  init_thread_states();
 
   // parse body
   line_num++;
-  bound_t step = 0;
+  size_t step = 0;
   for (std::string line_buf; getline(file, line_buf); ++line_num)
     {
       // skip empty lines
@@ -285,7 +285,7 @@ Trace::Trace(std::istream & file, const std::string & path) :
         }
 
       // parse heap cell
-      std::optional<Heap> heap;
+      std::optional<cell_t> heap;
 
       if (!(line >> token))
         parser_error(path, line_num, "missing heap update");
@@ -340,9 +340,9 @@ Trace::Trace(std::istream & file, const std::string & path) :
 // member functions
 //------------------------------------------------------------------------------
 
-// Trace::init_state_update_lists ----------------------------------------------
+// Trace::init_thread_states ---------------------------------------------------
 
-void Trace::init_state_update_lists ()
+void Trace::init_thread_states ()
 {
   size_t num_threads = programs->size();
 
@@ -357,8 +357,8 @@ void Trace::init_state_update_lists ()
 // Trace::push_back ------------------------------------------------------------
 
 template <typename T>
-void Trace::push_back (Trace::Updates<T> & updates,
-                       const bound_t step,
+void Trace::push_back (Trace::update_map<T> & updates,
+                       const size_t step,
                        const T val)
 {
   if (updates.empty())
@@ -387,7 +387,7 @@ void Trace::push_back (const word_t thread,
                        const word_t buffer_adr,
                        const word_t buffer_val,
                        const word_t buffer_full,
-                       const std::optional<Heap> & heap)
+                       const std::optional<cell_t> & heap)
 {
   ++bound;
 
@@ -403,7 +403,7 @@ void Trace::push_back (const word_t thread,
     push_back(heap_updates[heap->adr], bound, heap->val);
 }
 
-void Trace::push_back (const word_t thread, const Heap & heap)
+void Trace::push_back (const word_t thread, const cell_t & heap)
 {
   ++bound;
 
@@ -415,7 +415,7 @@ void Trace::push_back (const word_t thread, const Heap & heap)
 
 // Trace::push_back_thread -----------------------------------------------------
 
-void Trace::push_back_thread (const bound_t step, const word_t thread)
+void Trace::push_back_thread (const size_t step, const word_t thread)
 {
   push_back<word_t>(thread_updates, step, thread);
 
@@ -425,7 +425,7 @@ void Trace::push_back_thread (const bound_t step, const word_t thread)
 
 // Trace::push_back_pc ---------------------------------------------------------
 
-void Trace::push_back_pc (const bound_t step,
+void Trace::push_back_pc (const size_t step,
                           const word_t thread,
                           const word_t pc)
 {
@@ -437,7 +437,7 @@ void Trace::push_back_pc (const bound_t step,
 
 // Trace::push_back_accu -------------------------------------------------------
 
-void Trace::push_back_accu (const bound_t step,
+void Trace::push_back_accu (const size_t step,
                             const word_t thread,
                             const word_t accu)
 {
@@ -449,7 +449,7 @@ void Trace::push_back_accu (const bound_t step,
 
 // Trace::push_back_mem --------------------------------------------------------
 
-void Trace::push_back_mem (const bound_t step,
+void Trace::push_back_mem (const size_t step,
                            const word_t thread,
                            const word_t mem)
 {
@@ -461,7 +461,7 @@ void Trace::push_back_mem (const bound_t step,
 
 // Trace::push_back_sb_adr -----------------------------------------------------
 
-void Trace::push_back_sb_adr (const bound_t step,
+void Trace::push_back_sb_adr (const size_t step,
                               const word_t thread,
                               const word_t adr)
 {
@@ -473,7 +473,7 @@ void Trace::push_back_sb_adr (const bound_t step,
 
 // Trace::push_back_sb_val -----------------------------------------------------
 
-void Trace::push_back_sb_val (const bound_t step,
+void Trace::push_back_sb_val (const size_t step,
                               const word_t thread,
                               const word_t val)
 {
@@ -485,7 +485,7 @@ void Trace::push_back_sb_val (const bound_t step,
 
 // Trace::push_back_sb_full ----------------------------------------------------
 
-void Trace::push_back_sb_full (const bound_t step,
+void Trace::push_back_sb_full (const size_t step,
                                const word_t thread,
                                const bool full)
 {
@@ -497,7 +497,7 @@ void Trace::push_back_sb_full (const bound_t step,
 
 // Trace::push_back_heap -------------------------------------------------------
 
-void Trace::push_back_heap (const bound_t step, const Heap & heap)
+void Trace::push_back_heap (const size_t step, const cell_t & heap)
 {
   push_back<word_t>(heap_updates[heap.adr], step, heap.val);
 
@@ -505,9 +505,9 @@ void Trace::push_back_heap (const bound_t step, const Heap & heap)
     bound = step;
 }
 
-// Trace::push_back_flush ---------------------------------------------------------
+// Trace::push_back_flush ------------------------------------------------------
 
-void Trace::push_back_flush (const bound_t step)
+void Trace::push_back_flush (const size_t step)
 {
   flushes.insert(step);
 
@@ -629,15 +629,15 @@ std::string Trace::print () const
 // constructors
 //------------------------------------------------------------------------------
 
-Trace::Step::Step (bound_t s) : step(s) {}
+Trace::Step::Step (size_t s) : step(s) {}
 
 //------------------------------------------------------------------------------
 // member operators
 //------------------------------------------------------------------------------
 
-// conversion to bound_t
+// conversion to size_t
 //
-Trace::Step::operator bound_t () const { return step; }
+Trace::Step::operator size_t () const { return step; }
 
 // increment
 //
@@ -651,20 +651,20 @@ Trace::Step & Trace::Step::operator ++ () { step++; return *this; }
 // constructors
 //------------------------------------------------------------------------------
 
-Trace::iterator::iterator (const Trace * sc, const bound_t st) :
-  trace(sc),
+Trace::iterator::iterator (const Trace * t, const size_t s) :
+  trace(t),
   thread({trace->thread_updates.begin(), trace->thread_updates.end()})
 {
-  if ((step = st) > trace->bound)
+  if ((step = s) > trace->bound)
     return;
 
   // initialize state update iterator lists
-  init_iterators(pc, trace->pc_updates);
-  init_iterators(accu, trace->accu_updates);
-  init_iterators(mem, trace->mem_updates);
-  init_iterators(sb_adr, trace->sb_adr_updates);
-  init_iterators(sb_val, trace->sb_val_updates);
-  init_iterators(sb_full, trace->sb_full_updates);
+  init_iterator(pc, trace->pc_updates);
+  init_iterator(accu, trace->accu_updates);
+  init_iterator(mem, trace->mem_updates);
+  init_iterator(sb_adr, trace->sb_adr_updates);
+  init_iterator(sb_val, trace->sb_val_updates);
+  init_iterator(sb_full, trace->sb_full_updates);
 
   heap.reserve(trace->heap_updates.size());
   for (const auto & [idx, updates] : trace->heap_updates)
@@ -674,14 +674,14 @@ Trace::iterator::iterator (const Trace * sc, const bound_t st) :
 }
 
 //------------------------------------------------------------------------------
-// member function
+// member functions
 //------------------------------------------------------------------------------
 
-// Trace::iterator::init_iterators ---------------------------------------------
+// Trace::iterator::init_iterator ----------------------------------------------
 
 template <typename T>
-void Trace::iterator::init_iterators (Thread_Iterators<T> & iterators,
-                                      const Thread_Updates<T> & updates)
+void Trace::iterator::init_iterator (thread_state_iterators<T> & iterators,
+                                     const thread_states<T> & updates)
 {
   iterators.reserve(trace->programs->size());
   for (const auto & u: updates)
@@ -691,7 +691,7 @@ void Trace::iterator::init_iterators (Thread_Iterators<T> & iterators,
 // Trace::iterator::next_thread_state ------------------------------------------
 
 template <typename T>
-const T & Trace::iterator::next_thread_state (Iterators<T> & state)
+const T & Trace::iterator::next_thread_state (update_map_iterator<T> & state)
 {
   auto next {std::next(state.cur)};
 
@@ -703,7 +703,7 @@ const T & Trace::iterator::next_thread_state (Iterators<T> & state)
 
 // Trace::iterator::next_heap_state --------------------------------------------
 
-const std::optional<Trace::Heap> Trace::iterator::next_heap_state ()
+const std::optional<Trace::cell_t> Trace::iterator::next_heap_state ()
 {
   if (step.flush)
     {
@@ -749,15 +749,15 @@ const std::optional<Trace::Heap> Trace::iterator::next_heap_state ()
 
 void Trace::iterator::assign ()
 {
-  step.thread   = next_thread_state(thread);
-  step.pc       = next_thread_state(pc[step.thread]);
-  step.accu     = next_thread_state(accu[step.thread]);
-  step.mem      = next_thread_state(mem[step.thread]);
-  step.sb_adr   = next_thread_state(sb_adr[step.thread]);
-  step.sb_val   = next_thread_state(sb_val[step.thread]);
-  step.sb_full  = next_thread_state(sb_full[step.thread]);
-  step.flush    = trace->flushes.find(step) != trace->flushes.end();
-  step.heap     = next_heap_state();
+  step.thread  = next_thread_state(thread);
+  step.pc      = next_thread_state(pc[step.thread]);
+  step.accu    = next_thread_state(accu[step.thread]);
+  step.mem     = next_thread_state(mem[step.thread]);
+  step.sb_adr  = next_thread_state(sb_adr[step.thread]);
+  step.sb_val  = next_thread_state(sb_val[step.thread]);
+  step.sb_full = next_thread_state(sb_full[step.thread]);
+  step.flush   = trace->flushes.find(step) != trace->flushes.end();
+  step.heap    = next_heap_state();
 }
 
 //------------------------------------------------------------------------------

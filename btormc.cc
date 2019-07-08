@@ -2,7 +2,7 @@
 
 #include "encoder.hh"
 
-BtorMC::BtorMC(bound_t b) : bound(b) {}
+BtorMC::BtorMC(size_t b) : bound(b) {}
 
 std::string BtorMC::name () const { return "btormc"; }
 

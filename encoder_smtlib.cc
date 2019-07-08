@@ -86,7 +86,7 @@ const std::string Encoder::check_comment =
 // constructors
 //------------------------------------------------------------------------------
 
-Encoder::Encoder (const Program::List::ptr & p, const bound_t b) :
+Encoder::Encoder (const Program::List::ptr & p, const size_t b) :
   ::Encoder(p, b),
   step(0)
 {}
@@ -938,7 +938,7 @@ void Encoder::encode ()
 {
   formula << set_logic() << eol << eol;
 
-  for (step = 0, prev = static_cast<bound_t>(-1); step <= bound; step++, prev++)
+  for (step = 0, prev = static_cast<size_t>(-1); step <= bound; step++, prev++)
     {
       if (verbose)
         formula << comment_section("step " + std::to_string(step));

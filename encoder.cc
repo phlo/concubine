@@ -48,7 +48,7 @@ const std::string Encoder::check_comment     = "checkpoint variables";
 // constructors
 //------------------------------------------------------------------------------
 
-Encoder::Encoder (const Program::List::ptr & p, bound_t b) :
+Encoder::Encoder (const Program::List::ptr & p, size_t b) :
   programs(p),
   num_threads(p->size()),
   bound(b),

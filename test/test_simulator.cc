@@ -73,7 +73,7 @@ TEST_F(Simulator, run_simple)
   ASSERT_TRUE(simulator->threads_per_checkpoint.empty());
   ASSERT_TRUE(simulator->waiting_for_checkpoint.empty());
 
-  bound_t step = 0;
+  size_t step = 0;
 
   // NOTE: EXPECT_* required by lambda std::function
   std::function<Thread *()> scheduler = [&] () -> Thread *
@@ -125,30 +125,30 @@ TEST_F(Simulator, run_simple)
   ASSERT_EQ(0, trace->exit);
 
   ASSERT_EQ(
-    Trace::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
+    Trace::thread_states<word_t>({{{1, 0}}, {{2, 0}}}),
     trace->pc_updates);
 
   ASSERT_EQ(
-    Trace::Thread_Updates<word_t>({{{1, 1}}, {{2, 1}}}),
+    Trace::thread_states<word_t>({{{1, 1}}, {{2, 1}}}),
     trace->accu_updates);
 
   ASSERT_EQ(
-    Trace::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
+    Trace::thread_states<word_t>({{{1, 0}}, {{2, 0}}}),
     trace->mem_updates);
 
   ASSERT_EQ(
-    Trace::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
+    Trace::thread_states<word_t>({{{1, 0}}, {{2, 0}}}),
     trace->sb_adr_updates);
 
   ASSERT_EQ(
-    Trace::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
+    Trace::thread_states<word_t>({{{1, 0}}, {{2, 0}}}),
     trace->sb_val_updates);
 
   ASSERT_EQ(
-    Trace::Thread_Updates<bool>({{{1, false}}, {{2, false}}}),
+    Trace::thread_states<bool>({{{1, false}}, {{2, false}}}),
     trace->sb_full_updates);
 
-  ASSERT_EQ(Trace::Flushes(), trace->flushes);
+  ASSERT_EQ(std::unordered_set<size_t>(), trace->flushes);
 
   ASSERT_TRUE(trace->heap_updates.empty());
 }
@@ -166,7 +166,7 @@ TEST_F(Simulator, run_add_check_exit)
   ASSERT_EQ(2, simulator->threads_per_checkpoint[1].size());
   ASSERT_EQ(0, simulator->waiting_for_checkpoint[1]);
 
-  bound_t step = 0;
+  size_t step = 0;
 
   std::function<Thread *()> scheduler = [&] () -> Thread *
     {
@@ -244,32 +244,32 @@ TEST_F(Simulator, run_add_check_exit)
   ASSERT_EQ(1, trace->exit);
 
   ASSERT_EQ(
-    Trace::Thread_Updates<word_t>({
+    Trace::thread_states<word_t>({
       {{1, 0}, {3, 1}, {5, 2}},
       {{2, 0}, {4, 1}}}),
     trace->pc_updates);
 
   ASSERT_EQ(
-    Trace::Thread_Updates<word_t>({{{1, 1}}, {{2, 1}}}),
+    Trace::thread_states<word_t>({{{1, 1}}, {{2, 1}}}),
     trace->accu_updates);
 
   ASSERT_EQ(
-    Trace::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
+    Trace::thread_states<word_t>({{{1, 0}}, {{2, 0}}}),
     trace->mem_updates);
 
   ASSERT_EQ(
-    Trace::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
+    Trace::thread_states<word_t>({{{1, 0}}, {{2, 0}}}),
     trace->sb_adr_updates);
 
   ASSERT_EQ(
-    Trace::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}}),
+    Trace::thread_states<word_t>({{{1, 0}}, {{2, 0}}}),
     trace->sb_val_updates);
 
   ASSERT_EQ(
-    Trace::Thread_Updates<bool>({{{1, false}}, {{2, false}}}),
+    Trace::thread_states<bool>({{{1, false}}, {{2, false}}}),
     trace->sb_full_updates);
 
-  ASSERT_EQ(Trace::Flushes(), trace->flushes);
+  ASSERT_EQ(std::unordered_set<size_t>(), trace->flushes);
 
   ASSERT_TRUE(trace->heap_updates.empty());
 }
@@ -297,7 +297,7 @@ TEST_F(Simulator, run_race_condition)
   ASSERT_EQ(3, simulator->threads_per_checkpoint[1].size());
   ASSERT_EQ(0, simulator->waiting_for_checkpoint[1]);
 
-  bound_t step = 0;
+  size_t step = 0;
 
   std::function<Thread *()> scheduler = [&] () -> Thread *
     {
@@ -545,48 +545,48 @@ TEST_F(Simulator, run_race_condition)
   ASSERT_EQ(1, trace->exit);
 
   ASSERT_EQ(
-    Trace::Thread_Updates<word_t>({
+    Trace::thread_states<word_t>({
       {{1, 0}, {12, 1}, {13, 2}, {14, 3}, {15, 4}},
       {{2, 0}, {4, 1}, {6, 2}, {10, 3}},
       {{3, 0}, {5, 1}, {7, 2}, {11, 3}}}),
     trace->pc_updates);
 
   ASSERT_EQ(
-    Trace::Thread_Updates<word_t>({
+    Trace::thread_states<word_t>({
       {{1, 0}, {12, 1}, {13, 65535}},
       {{2, 0}, {4, 1}},
       {{3, 0}, {5, 1}}}),
     trace->accu_updates);
 
   ASSERT_EQ(
-    Trace::Thread_Updates<word_t>({{{1, 0}}, {{2, 0}}, {{3, 0}}}),
+    Trace::thread_states<word_t>({{{1, 0}}, {{2, 0}}, {{3, 0}}}),
     trace->mem_updates);
 
   ASSERT_EQ(
-    Trace::Thread_Updates<word_t>({
+    Trace::thread_states<word_t>({
       {{1, 0}},
       {{2, 0}, {6, 1}},
       {{3, 0}, {7, 1}}}),
     trace->sb_adr_updates);
 
   ASSERT_EQ(
-    Trace::Thread_Updates<word_t>({
+    Trace::thread_states<word_t>({
       {{1, 0}},
       {{2, 0}, {6, 1}},
       {{3, 0}, {7, 1}}}),
     trace->sb_val_updates);
 
   ASSERT_EQ(
-    Trace::Thread_Updates<bool>({
+    Trace::thread_states<bool>({
       {{1, false}},
       {{2, false}, {6, true}, {8, false}},
       {{3, false}, {7, true}, {9, false}}}),
     trace->sb_full_updates);
 
-  ASSERT_EQ(Trace::Flushes({8, 9}), trace->flushes);
+  ASSERT_EQ(std::unordered_set<size_t>({8, 9}), trace->flushes);
 
   ASSERT_EQ(
-    Trace::Heap_Updates({{1, {{8, 1}}}}),
+    Trace::heap_states({{1, {{8, 1}}}}),
     trace->heap_updates);
 }
 
@@ -596,7 +596,7 @@ TEST_F(Simulator, run_zero_bound)
 
   create_simulator({program});
 
-  bound_t step = 0;
+  size_t step = 0;
 
   std::function<Thread *()> scheduler = [&] () -> Thread *
     {
@@ -640,30 +640,30 @@ TEST_F(Simulator, run_zero_bound)
   ASSERT_EQ(0, trace->exit);
 
   ASSERT_EQ(
-    Trace::Thread_Updates<word_t>({{{1, 0}}}),
+    Trace::thread_states<word_t>({{{1, 0}}}),
     trace->pc_updates);
 
   ASSERT_EQ(
-    Trace::Thread_Updates<word_t>({{{1, 0}}}),
+    Trace::thread_states<word_t>({{{1, 0}}}),
     trace->accu_updates);
 
   ASSERT_EQ(
-    Trace::Thread_Updates<word_t>({{{1, 0}}}),
+    Trace::thread_states<word_t>({{{1, 0}}}),
     trace->mem_updates);
 
   ASSERT_EQ(
-    Trace::Thread_Updates<word_t>({{{1, 0}}}),
+    Trace::thread_states<word_t>({{{1, 0}}}),
     trace->sb_adr_updates);
 
   ASSERT_EQ(
-    Trace::Thread_Updates<word_t>({{{1, 0}}}),
+    Trace::thread_states<word_t>({{{1, 0}}}),
     trace->sb_val_updates);
 
   ASSERT_EQ(
-    Trace::Thread_Updates<bool>({{{1, false}}}),
+    Trace::thread_states<bool>({{{1, false}}}),
     trace->sb_full_updates);
 
-  ASSERT_EQ(Trace::Flushes(), trace->flushes);
+  ASSERT_EQ(std::unordered_set<size_t>(), trace->flushes);
 
   ASSERT_TRUE(trace->heap_updates.empty());
 }

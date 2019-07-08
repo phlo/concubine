@@ -18,7 +18,7 @@ struct Encoder: public ::testing::Test
       return e;
     }
 
-  std::unique_ptr<E> create_encoder (const bound_t bound = 1)
+  std::unique_ptr<E> create_encoder (const size_t bound = 1)
     {
       return
         init_encoder(
@@ -35,7 +35,7 @@ struct Encoder: public ::testing::Test
       return Program(inbuf, path);
     }
 
-  void reset_encoder (const bound_t bound = 1)
+  void reset_encoder (const size_t bound = 1)
     {
       encoder = create_encoder(bound);
     }
@@ -79,7 +79,7 @@ struct Encoder: public ::testing::Test
 
   void encode (const std::initializer_list<std::string> _programs,
                const std::string file,
-               const bound_t bound,
+               const size_t bound,
                const char * dir = "data/")
     {
       for (const auto & p : _programs)

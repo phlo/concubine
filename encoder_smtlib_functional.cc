@@ -15,7 +15,7 @@ namespace smtlib {
 //------------------------------------------------------------------------------
 
 Functional::Functional (const Program::List::ptr & p,
-                        const bound_t b,
+                        const size_t b,
                         const bool e) :
   Encoder(p, b)
 {
@@ -303,7 +303,7 @@ void Functional::define_exit_code ()
   std::string expr = word2hex(0);
 
   if (!exit_pcs.empty())
-    for (bound_t k = step = bound; k > 0; k--)
+    for (size_t k = step = bound; k > 0; k--)
       iterate_programs_reverse([this, &expr, k] (const Program & program) {
         for (const word_t & exit_pc : exit_pcs[thread])
           expr =

@@ -119,10 +119,10 @@ TEST_F(Boolector, DISABLED_solve_check)
   Trace::ptr parsed =
     std::make_unique<Trace>(create_from_file<Trace>("/tmp/test.trace"));
 
-  std::vector<std::vector<std::pair<bound_t, word_t>>> pc_diff;
+  std::vector<std::vector<std::pair<size_t, word_t>>> pc_diff;
   for (size_t t = 0; t < trace->pc_updates.size(); t++)
     {
-      std::vector<std::pair<bound_t, word_t>> diff;
+      std::vector<std::pair<size_t, word_t>> diff;
 
       std::set_symmetric_difference(
         trace->pc_updates[t].begin(), trace->pc_updates[t].end(),
