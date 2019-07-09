@@ -85,6 +85,10 @@ struct Instruction
   // static member functions
   //----------------------------------------------------------------------------
 
+  static bool is_nullary (const std::string & symbol);
+  static bool is_unary (const std::string & symbol);
+  static bool is_memory (const std::string & symbol);
+
   static bool contains (const std::string & symbol);
 
   template <class POD>

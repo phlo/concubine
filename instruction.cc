@@ -105,20 +105,32 @@ std::unique_ptr<Instruction::memory_factory_map> Instruction::memory_factory;
 // static member functions
 //------------------------------------------------------------------------------
 
+// Instruction::is_nullary -----------------------------------------------------
+//
+bool Instruction::is_nullary (const std::string & symbol)
+{
+  return nullary_factory->find(symbol) != nullary_factory->end();
+}
+
+// Instruction::is_unary -------------------------------------------------------
+//
+bool Instruction::is_unary (const std::string & symbol)
+{
+  return unary_factory->find(symbol) != unary_factory->end();
+}
+
+// Instruction::is_memory ------------------------------------------------------
+//
+bool Instruction::is_memory (const std::string & symbol)
+{
+  return memory_factory->find(symbol) != memory_factory->end();
+}
+
 // Instruction::contains -------------------------------------------------------
 //
 bool Instruction::contains (const std::string & symbol)
 {
-  if (nullary_factory->find(symbol) != nullary_factory->end())
-    return true;
-
-  if (unary_factory->find(symbol) != unary_factory->end())
-    return true;
-
-  if (memory_factory->find(symbol) != memory_factory->end())
-    return true;
-
-  return false;
+  return is_nullary(symbol) || is_unary(symbol) || is_memory(symbol);
 }
 
 // Instruction::add_nullary ----------------------------------------------------
