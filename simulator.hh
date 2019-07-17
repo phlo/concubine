@@ -21,110 +21,8 @@
 struct Simulator
 {
   //----------------------------------------------------------------------------
-  // members
-  //----------------------------------------------------------------------------
-
-  // list of programs
-  //
-  Program::List::ptr programs;
-
-  // generated trace
-  //
-  Trace::ptr trace;
-
-  // bound
-  //
-  size_t bound;
-
-  // seed used for random thread scheduling
-  //
-  uint64_t seed;
-
-  // list of all threads
-  //
-  std::vector<Thread> threads;
-
-  // list of active threads
-  //
-  // NOTE: much more lookup than insert/remove operations
-  //
-  std::vector<Thread *> active;
-
-  // main memory
-  //
-  // address -> value
-  //
-  std::unordered_map<word_t, word_t> heap;
-
-  // number of threads containing calls to a specific checkpoint
-  //
-  // checkpoint id -> list of threads
-  //
-  std::unordered_map<word_t, std::vector<Thread *>> threads_per_checkpoint;
-
-  // number of threads currently waiting for a specific checkpoint
-  //
-  // checkpoint id -> number of waiting threads
-  //
-  std::unordered_map<word_t, word_t> waiting_for_checkpoint;
-
-  //----------------------------------------------------------------------------
-  // constructors
-  //----------------------------------------------------------------------------
-
-  Simulator (const Program::List::ptr & programs,
-             size_t bound = 0,
-             uint64_t seed = 0);
-
-  //----------------------------------------------------------------------------
-  // private functions
-  //----------------------------------------------------------------------------
-
-  // checks if all threads reached the given checkpoint and resumes them
-  //
-  void check_and_resume (word_t id);
-
-  // creates a thread using the given program, thread id == number of threads
-  //
-  word_t create_thread (const Program & program);
-
-  // run the simulator, using the specified scheduler
-  //
-  Trace::ptr run (std::function<Thread *()> scheduler);
-
-  //----------------------------------------------------------------------------
-  // public functions
-  //----------------------------------------------------------------------------
-
-  // runs the simulator using a random trace
-  //
-  static Trace::ptr simulate (const Program::List::ptr & programs,
-                              size_t bound = 0,
-                              uint64_t seed = 0);
-
-  // replay the given trace (trace must match simulator configuration)
-  //
-  static Trace::ptr replay (const Trace & trace, size_t bound = 0);
-};
-
-//==============================================================================
-// Thread
-//==============================================================================
-
-struct Thread
-{
-  //----------------------------------------------------------------------------
   // member types
   //----------------------------------------------------------------------------
-
-  // store buffer
-  //
-  struct Buffer
-    {
-      bool full = false;
-      word_t address = 0;
-      word_t value = 0;
-    };
 
   // thread state
   //
@@ -142,51 +40,102 @@ struct Thread
   // members
   //----------------------------------------------------------------------------
 
-  // thread id
+  // list of programs
   //
-  word_t id;
+  Program::List::ptr programs;
 
-  // program counter
+  // generated trace
   //
-  word_t pc;
+  Trace::ptr trace;
 
-  // special CAS register
+  // current step
   //
-  word_t mem;
+  size_t step;
 
-  // accumulator register
+  // bound
   //
-  word_t accu;
+  size_t bound;
 
-  // current (or previous) checkpoint's id
+  // seed used for random thread scheduling
   //
-  word_t check;
+  uint64_t seed;
 
-  // store buffer
+  // current thread
   //
-  Buffer buffer;
+  word_t thread;
 
-  // thread state
+  // list of thread states
   //
-  State state;
+  std::vector<State> state;
 
-  // reference to the simulator owning the thread
+  // list of active threads
   //
-  Simulator & simulator;
+  // NOTE: much more lookup than insert/remove operations
+  //
+  std::vector<word_t> active;
 
-  // reference to the program being executed
+  // threads containing calls to a specific checkpoint
   //
-  const Program & program;
+  // checkpoint id -> list of threads
+  //
+  std::unordered_map<word_t, std::unordered_set<word_t>> threads_per_checkpoint;
+
+  // threads waiting for a specific checkpoint
+  //
+  // checkpoint id -> list of threads
+  //
+  std::unordered_map<word_t, std::unordered_set<word_t>> waiting_for_checkpoint;
 
   //----------------------------------------------------------------------------
   // constructors
   //----------------------------------------------------------------------------
 
-  Thread (Simulator & simulator, word_t id, const Program & program);
+  Simulator (const Program::List::ptr & programs,
+             size_t bound = 0,
+             uint64_t seed = 0);
 
   //----------------------------------------------------------------------------
-  // functions
+  // private functions
   //----------------------------------------------------------------------------
+
+  // checks if all threads reached the given checkpoint and resumes them
+  //
+  void check_and_resume (word_t id);
+
+  // run the simulator, using the specified scheduler
+  //
+  Trace::ptr run (std::function<word_t()> scheduler);
+
+  // program counter
+  //
+  word_t pc () const;
+  void pc (word_t value);
+  void pc_increment ();
+
+  // accumulator register
+  //
+  word_t accu () const;
+  void accu (word_t value);
+
+  // special CAS register
+  //
+  word_t mem () const;
+  void mem (word_t value);
+
+  // store buffer address
+  //
+  word_t sb_adr () const;
+  void sb_adr (word_t value);
+
+  // store buffer value
+  //
+  word_t sb_val () const;
+  void sb_val (word_t value);
+
+  // store buffer full flag
+  //
+  bool sb_full () const;
+  void sb_full (bool value);
 
   // load value from given address
   //
@@ -197,7 +146,7 @@ struct Thread
   void store (word_t address,
               word_t value,
               bool indirect = false,
-              bool atomic = false);
+              bool flush = false);
 
   // flush store buffer
   //
@@ -236,12 +185,26 @@ struct Thread
 
   void execute (const Instruction::Halt &);
   void execute (const Instruction::Exit &);
+
+  //----------------------------------------------------------------------------
+  // public functions
+  //----------------------------------------------------------------------------
+
+  // runs the simulator using a random trace
+  //
+  static Trace::ptr simulate (const Program::List::ptr & programs,
+                              size_t bound = 0,
+                              uint64_t seed = 0);
+
+  // replay the given trace (trace must match simulator configuration)
+  //
+  static Trace::ptr replay (const Trace & trace, size_t bound = 0);
 };
 
 //==============================================================================
 // non-member operators
 //==============================================================================
 
-std::ostream & operator << (std::ostream & os, Thread::State state);
+std::ostream & operator << (std::ostream & os, Simulator::State state);
 
 #endif

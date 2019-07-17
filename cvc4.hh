@@ -5,6 +5,8 @@
 
 class CVC4 : public External
 {
+private:
+
   virtual std::string build_command ();
 
   virtual std::string build_formula (Encoder & encoder,

@@ -85,7 +85,7 @@ struct Model : Instruction::Concept
         assert(false);
     }
 
-  void execute (Thread & t) const { t.execute(pod); }
+  void execute (Simulator & s) const { s.execute(pod); }
   std::string encode (Encoder & e) const { return e.encode(pod); }
 };
 
@@ -246,7 +246,7 @@ void Instruction::arg (const word_t a) { model->arg(a); }
 bool Instruction::indirect () const { return model->indirect(); }
 void Instruction::indirect (const bool i) { model->indirect(i); }
 
-void Instruction::execute (Thread & t) const { model->execute(t); }
+void Instruction::execute (Simulator & s) const { model->execute(s); }
 std::string Instruction::encode (Encoder & e) const { return model->encode(e); }
 
 //------------------------------------------------------------------------------

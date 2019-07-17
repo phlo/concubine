@@ -39,7 +39,7 @@
 // forward declarations
 //==============================================================================
 
-struct Thread;
+struct Simulator;
 struct Encoder;
 
 //==============================================================================
@@ -186,7 +186,7 @@ struct Instruction
       virtual bool indirect () const = 0;
       virtual void indirect (bool indirect) = 0;
 
-      virtual void execute (Thread & t) const = 0;
+      virtual void execute (Simulator & s) const = 0;
       virtual std::string encode (Encoder & e) const = 0;
     };
 
@@ -241,7 +241,7 @@ struct Instruction
   bool indirect () const;
   void indirect (bool indirect);
 
-  void execute (Thread & t) const;
+  void execute (Simulator & s) const;
   std::string encode (Encoder & e) const;
 
   //----------------------------------------------------------------------------

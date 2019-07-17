@@ -10,7 +10,8 @@
 #endif
 
 // make all class members public
-#define class struct
+#define private public
+#define protected public
 
 #endif // __TEST__
 

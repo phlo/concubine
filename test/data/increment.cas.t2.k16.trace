@@ -2,19 +2,20 @@ data/increment.cas.asm
 data/increment.cas.asm
 .
 # tid	pc	cmd	arg	accu	mem	adr	val	full	heap
-0	0	STORE	0	0	0	0	0	1	{}
-1	0	STORE	0	0	0	0	0	1	{}
-1	0	FLUSH	-	0	0	0	0	0	{(0,0)}
-0	0	FLUSH	-	0	0	0	0	0	{(0,0)}
-1	1	FENCE	-	0	0	0	0	0	{}
-0	1	FENCE	-	0	0	0	0	0	{}
-0	2	CHECK	0	0	0	0	0	0	{}
-1	2	CHECK	0	0	0	0	0	0	{}
-1	LOOP	MEM	0	0	0	0	0	0	{}
-0	LOOP	MEM	0	0	0	0	0	0	{}
-0	4	ADDI	1	1	0	0	0	0	{}
-0	5	CAS	0	1	0	0	0	0	{(0,1)}
-0	6	JMP	LOOP	1	0	0	0	0	{}
-1	4	ADDI	1	1	0	0	0	0	{}
-1	5	CAS	0	0	0	0	0	0	{}
-1	6	JMP	LOOP	0	0	0	0	0	{}
+0	0	STORE	0	0	0	0	0	0	{}	# 0
+1	0	STORE	0	0	0	0	0	0	{}	# 1
+1	1	FLUSH	-	0	0	0	0	1	{}	# 2
+0	1	FLUSH	-	0	0	0	0	1	{(0,0)}	# 3
+1	1	FENCE	-	0	0	0	0	0	{(0,0)}	# 4
+0	1	FENCE	-	0	0	0	0	0	{}	# 5
+0	2	CHECK	0	0	0	0	0	0	{}	# 6
+1	2	CHECK	0	0	0	0	0	0	{}	# 7
+0	LOOP	MEM	0	0	0	0	0	0	{}	# 8
+1	LOOP	MEM	0	0	0	0	0	0	{}	# 9
+1	4	ADDI	1	0	0	0	0	0	{}	# 10
+1	5	CAS	0	1	0	0	0	0	{}	# 11
+1	6	JMP	LOOP	1	0	0	0	0	{(0,1)}	# 12
+0	4	ADDI	1	0	0	0	0	0	{}	# 13
+0	5	CAS	0	1	0	0	0	0	{}	# 14
+0	6	JMP	LOOP	0	0	0	0	0	{}	# 15
+0	LOOP	MEM	0	0	0	0	0	0	{}	# 16

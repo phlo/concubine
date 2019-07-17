@@ -10,7 +10,7 @@
 
 // erases a given element from a STL container
 //
-template<class C, class T>
+template <class C, class T>
 inline void erase (C & container, T & val)
 {
   container.erase(find(container.begin(), container.end(), val));
@@ -29,51 +29,46 @@ Simulator::Simulator (const Program::List::ptr & p,
                       const uint64_t s) :
   programs(p),
   trace(std::make_unique<Trace>(p)),
-  bound(b),
-  seed(s)
+  step(0),
+  bound(b ? b : static_cast<size_t>(-1)),
+  seed(s),
+  state(p->size(), State::running),
+  active(p->size())
 {
-  active.reserve(programs->size());
-  threads.reserve(programs->size());
+  for (thread = 0; thread < programs->size(); thread++)
+    {
+      // initialize register states
+      pc(0);
+      accu(0);
+      mem(0);
+      sb_adr(0);
+      sb_val(0);
+      sb_full(false);
 
-  for (const Program & program : *programs)
-    create_thread(program);
+      // collect checkpoints
+      for (const auto & [c, pcs] : (*programs)[thread].checkpoints)
+        threads_per_checkpoint[c].insert(thread);
+    }
 }
 
 //------------------------------------------------------------------------------
 // member functions
 //------------------------------------------------------------------------------
 
-// Simulator::create_thread ----------------------------------------------------
-
-word_t Simulator::create_thread (const Program & program)
-{
-  // determine thread id
-  word_t id = threads.size();
-
-  // add thread to queue
-  threads.push_back({*this, id, program});
-
-  // add to checkpoint sets
-  for (const auto & it : program.checkpoints)
-    threads_per_checkpoint[it.first].push_back(&threads.back());
-
-  return id;
-}
-
 // Simulator::check_and_resume -------------------------------------------------
 
 void Simulator::check_and_resume (word_t id)
 {
-  // all other threads already at this checkpoint?
-  if (waiting_for_checkpoint[id] == threads_per_checkpoint[id].size())
+  // all other threads already at this checkpoint (or halted)?
+  if (waiting_for_checkpoint[id].size() >= threads_per_checkpoint[id].size())
     {
       // reset number of waiting threads
-      waiting_for_checkpoint[id] = 0;
+      waiting_for_checkpoint[id].clear();
 
       // reactivate threads
-      for (Thread * t : threads_per_checkpoint[id])
+      for (const word_t t : threads_per_checkpoint[id])
         {
-          t->state = Thread::State::running;
+          state[t] = State::running;
           active.push_back(t);
         }
     }
@@ -81,86 +76,56 @@ void Simulator::check_and_resume (word_t id)
 
 // Simulator::run --------------------------------------------------------------
 
-Trace::ptr Simulator::run (std::function<Thread *()> scheduler)
+Trace::ptr Simulator::run (std::function<word_t()> scheduler)
 {
-  assert(active.empty());
-
   // activate threads
-  for (Thread & t : threads)
-    {
-      t.state = Thread::State::running;
-      active.push_back(&t);
-    }
+  std::iota(active.begin(), active.end(), 0);
 
   bool done = active.empty();
 
-  while (!done && (!bound || trace->bound < bound))
+  while (!done && ++step <= bound)
     {
-      Thread * thread = scheduler();
+      thread = scheduler();
+
+      trace->push_back_thread(step - 1, thread);
 
       // flush store buffer or execute instruction
-      if (thread->state == Thread::State::flushing)
-        thread->flush();
+      if (state[thread] == State::flushing)
+        flush();
       else
-        thread->execute();
+        execute();
 
       // handle state transitions
-      switch (thread->state)
+      switch (state[thread])
         {
         // keep 'em running
-        case Thread::State::running: break;
+        case State::running:
 
-        // checkpoint reached - release if all other threads are waiting
-        case Thread::State::waiting:
-          {
-            // remove from active threads
-            erase(active, thread);
-
-            // increment number of waiting threads
-            waiting_for_checkpoint[thread->check]++;
-
-            // all other threads already waiting at this checkpoint?
-            check_and_resume(thread->check);
-
-            break;
-          }
+        // checkpoint reached
+        case State::waiting: break;
 
         // halted - quit if all the others also stopped
-        case Thread::State::halted:
+        case State::halted:
           {
-            // remove from active threads
-            erase(active, thread);
-
-            // take care if last instruction was a CHECK (bypasses WAITING)
-            if (&thread->program.back().symbol() == &Instruction::Check::symbol)
-              {
-                // remove from list of waiting threads
-                erase(threads_per_checkpoint[thread->check], thread);
-
-                // activate all waiting threads if this was the last one
-                check_and_resume(thread->check);
-              }
-
             // check if we were the last thread standing
             done = true;
-
-            for (const Thread & t : threads)
-              if (t.state != Thread::State::halted)
+            for (auto it = active.begin(); done && it != active.end(); ++it)
+              if (state[*it] != State::halted)
                 done = false;
 
             break;
           }
 
         // exiting - return exit code
-        case Thread::State::exited: done = true; break;
+        case State::exited: done = true; break;
 
         default:
           {
             std::ostringstream m;
             m << "illegal thread state transition "
-              << static_cast<char>(Thread::State::running)
+              << State::running
               << " -> "
-              << static_cast<char>(thread->state);
+              << state[thread];
             throw std::runtime_error(m.str());
           }
         }
@@ -182,16 +147,21 @@ Trace::ptr Simulator::simulate (const Program::List::ptr & programs,
 
   // random scheduler
   return simulator.run([&simulator, &random] {
-    Thread * t = simulator.active[random() % simulator.active.size()];
+    simulator.thread = simulator.active[random() % simulator.active.size()];
 
-    assert(t->state == Thread::State::running);
+    assert(simulator.state[simulator.thread] == State::running);
 
     // rule 2, 5, 7: store buffer may be flushed at any time or must be empty
-    if (t->buffer.full)
-      if (random() % 2 || t->program[t->pc].requires_flush())
-        t->state = Thread::State::flushing;
+    if (simulator.sb_full())
+      {
+        const Instruction & op =
+          (*simulator.programs)[simulator.thread][simulator.pc()];
 
-    return t;
+        if (random() % 2 || op.requires_flush())
+          simulator.state[simulator.thread] = State::flushing;
+      }
+
+    return simulator.thread;
   });
 }
 
@@ -201,7 +171,7 @@ Trace::ptr Simulator::replay (const Trace & trace, const size_t bound)
 {
   Simulator simulator {
     trace.programs,
-    bound && bound < trace.bound ? bound : trace.bound
+    bound && bound < trace.length ? bound : trace.length - 1
   };
 
   // replay scheduler
@@ -209,298 +179,337 @@ Trace::ptr Simulator::replay (const Trace & trace, const size_t bound)
 
   return simulator.run([&simulator, &iterator] {
     if (iterator->flush)
-      simulator.threads[iterator->thread].state = Thread::State::flushing;
+      simulator.state[iterator->thread] = State::flushing;
 
-    return &simulator.threads[iterator++->thread];
+    return iterator++->thread;
   });
 }
 
-//==============================================================================
-// Thread
-//==============================================================================
+// Simulator::pc ---------------------------------------------------------------
 
-//------------------------------------------------------------------------------
-// constructors
-//------------------------------------------------------------------------------
-
-Thread::Thread (Simulator & s, const word_t i, const Program & p) :
-  id(i),
-  pc(0),
-  mem(0),
-  accu(0),
-  check(0),
-  state(State::initial),
-  simulator(s),
-  program(p)
-{}
-
-//------------------------------------------------------------------------------
-// member functions
-//------------------------------------------------------------------------------
-
-// Thread::load ----------------------------------------------------------------
-
-word_t Thread::load (word_t address, const bool indirect)
+word_t Simulator::pc () const
 {
-  if (indirect)
-    address =
-      buffer.full && buffer.address == address
-        ? buffer.value
-        : simulator.heap[address];
-
-  return
-    buffer.full && buffer.address == address
-      ? buffer.value
-      : simulator.heap[address];
+  return trace->pc(thread);
 }
 
-// Thread::store ---------------------------------------------------------------
-
-void Thread::store (
-                    word_t address,
-                    const word_t value,
-                    const bool indirect,
-                    const bool atomic
-                   )
+void Simulator::pc (const word_t pc)
 {
-  assert(!buffer.full);
+  if (pc < (*programs)[thread].size())
+    trace->push_back_pc(step, thread, pc);
+}
+
+void Simulator::pc_increment () { pc(pc() + 1); }
+
+// Simulator::accu -------------------------------------------------------------
+
+word_t Simulator::accu () const
+{
+  return trace->accu(thread);
+}
+
+void Simulator::accu (const word_t value)
+{
+  trace->push_back_accu(step, thread, value);
+}
+
+// Simulator::mem --------------------------------------------------------------
+
+word_t Simulator::mem () const
+{
+  return trace->mem(thread);
+}
+
+void Simulator::mem (const word_t value)
+{
+  trace->push_back_mem(step, thread, value);
+}
+
+// Simulator::sb_adr -----------------------------------------------------------
+
+word_t Simulator::sb_adr () const
+{
+  return trace->sb_adr(thread);
+}
+
+void Simulator::sb_adr (const word_t value)
+{
+  trace->push_back_sb_adr(step, thread, value);
+}
+
+// Simulator::sb_val -----------------------------------------------------------
+
+word_t Simulator::sb_val () const
+{
+  return trace->sb_val(thread);
+}
+
+void Simulator::sb_val (const word_t value)
+{
+  trace->push_back_sb_val(step, thread, value);
+}
+
+// Simulator::sb_full ----------------------------------------------------------
+
+bool Simulator::sb_full () const
+{
+  return trace->sb_full(thread);
+}
+
+void Simulator::sb_full (const bool value)
+{
+  trace->push_back_sb_full(step, thread, value);
+}
+
+// Simulator::load -------------------------------------------------------------
+
+word_t Simulator::load (word_t address, const bool indirect)
+{
+  word_t adr = trace->sb_adr(thread);
+  word_t val = trace->sb_val(thread);
+  bool full = trace->sb_full(thread);
+
+  if (indirect)
+    address =
+      full && adr == address
+        ? val
+        : trace->heap(address);
+
+  return
+    full && adr == address
+      ? val
+      : trace->heap(address);
+}
+
+// Simulator::store ------------------------------------------------------------
+
+void Simulator::store (word_t address,
+                       const word_t value,
+                       const bool indirect,
+                       const bool flush)
+{
+  assert(!sb_full());
 
   if (indirect)
     address = load(address);
 
-  if (atomic)
+  if (flush)
     {
-      simulator.heap[address] = value;
+      trace->push_back_heap(step, {address, value});
     }
   else
     {
-      buffer.full = true;
-      buffer.address = address;
-      buffer.value = value;
+      sb_full(true);
+      sb_adr(address);
+      sb_val(value);
     }
 }
 
-// Thread::flush ---------------------------------------------------------------
+// Simulator::flush ------------------------------------------------------------
 
-void Thread::flush ()
+void Simulator::flush ()
 {
-  assert(buffer.full);
-  assert(state == Thread::State::flushing);
+  assert(sb_full());
+  assert(state[thread] == State::flushing);
 
-  buffer.full = false;
-  state = Thread::State::running;
-  simulator.heap[buffer.address] = buffer.value;
-
-  simulator.trace->push_back(id, {buffer.address, buffer.value});
+  sb_full(false);
+  state[thread] = State::running;
+  trace->push_back_flush(step - 1);
+  trace->push_back_heap(step, {sb_adr(), sb_val()});
 }
 
-// Thread::execute -------------------------------------------------------------
+// Simulator::execute ----------------------------------------------------------
 
-void Thread::execute ()
+void Simulator::execute ()
 {
-  if (pc >= program.size())
-    throw std::runtime_error("illegal pc [" + std::to_string(pc) + "]");
+  const Program & program = (*programs)[thread];
+  const Instruction & op = program[pc()];
 
   // execute instruction
-  program[pc].execute(*this);
+  op.execute(*this);
 
   // set state to halted if it was the last command in the program
-  if (pc >= program.size())
-    state = State::halted;
-}
-
-#define PUSH_BACK_ATOMIC(pc, heap) \
-  simulator.trace->push_back( \
-    id, \
-    pc, \
-    accu, \
-    mem, \
-    buffer.address, \
-    buffer.value, \
-    buffer.full, \
-    heap)
-
-#define PUSH_BACK(pc) PUSH_BACK_ATOMIC(pc, {})
-
-void Thread::execute (const Instruction::Load & l)
-{
-  accu = load(l.arg, l.indirect);
-
-  PUSH_BACK(pc++);
-}
-
-void Thread::execute (const Instruction::Store & s)
-{
-  store(s.arg, accu, s.indirect);
-
-  PUSH_BACK(pc++);
-}
-
-void Thread::execute (const Instruction::Fence & f [[maybe_unused]])
-{
-  PUSH_BACK(pc++);
-}
-
-void Thread::execute (const Instruction::Add & a)
-{
-  accu += load(a.arg, a.indirect);
-
-  PUSH_BACK(pc++);
-}
-
-void Thread::execute (const Instruction::Addi & a)
-{
-  accu += a.arg;
-
-  PUSH_BACK(pc++);
-}
-
-void Thread::execute (const Instruction::Sub & s)
-{
-  accu -= load(s.arg, s.indirect);
-
-  PUSH_BACK(pc++);
-}
-
-void Thread::execute (const Instruction::Subi & s)
-{
-  accu -= s.arg;
-
-  PUSH_BACK(pc++);
-}
-
-void Thread::execute (const Instruction::Mul & s)
-{
-  accu *= load(s.arg, s.indirect);
-
-  PUSH_BACK(pc++);
-}
-
-void Thread::execute (const Instruction::Muli & s)
-{
-  accu *= s.arg;
-
-  PUSH_BACK(pc++);
-}
-
-void Thread::execute (const Instruction::Cmp & c)
-{
-  accu -= load(c.arg, c.indirect);
-
-  PUSH_BACK(pc++);
-}
-
-void Thread::execute (const Instruction::Jmp & j)
-{
-  PUSH_BACK(pc);
-
-  pc = j.arg;
-}
-
-void Thread::execute (const Instruction::Jz & j)
-{
-  PUSH_BACK(pc);
-
-  if (accu)
-    pc++;
-  else
-    pc = j.arg;
-}
-
-void Thread::execute (const Instruction::Jnz & j)
-{
-  PUSH_BACK(pc);
-
-  if (accu)
-    pc = j.arg;
-  else
-    pc++;
-}
-
-void Thread::execute (const Instruction::Js & j)
-{
-  PUSH_BACK(pc);
-
-  if (static_cast<sword_t>(accu) < 0)
-    pc = j.arg;
-  else
-    pc++;
-}
-
-void Thread::execute (const Instruction::Jns & j)
-{
-  PUSH_BACK(pc);
-
-  if (static_cast<sword_t>(accu) >= 0)
-    pc = j.arg;
-  else
-    pc++;
-}
-
-void Thread::execute (const Instruction::Jnzns & j)
-{
-  PUSH_BACK(pc);
-
-  if (static_cast<sword_t>(accu) > 0)
-    pc = j.arg;
-  else
-    pc++;
-}
-
-void Thread::execute (const Instruction::Mem & m)
-{
-  mem = accu = load(m.arg, m.indirect);
-
-  PUSH_BACK(pc++);
-}
-
-void Thread::execute (const Instruction::Cas & c)
-{
-  std::optional<Trace::cell_t> heap;
-
-  if (mem == load(c.arg, c.indirect))
+  if (op == program.back() && state[thread] != State::exited && !op.is_jump())
     {
-      heap = {c.indirect ? load(c.arg) : c.arg, accu};
+      // take care if last instruction was a CHECK (bypasses WAITING)
+      if (state[thread] == State::waiting)
+        // remove from list of waiting threads
+        threads_per_checkpoint[program.back().arg()].erase(thread);
+      else
+        // remove from active threads
+        erase(active, thread);
 
-      store(c.arg, accu, c.indirect, true);
-      accu = 1;
+      state[thread] = State::halted;
+    }
+}
+
+void Simulator::execute (const Instruction::Load & l)
+{
+  pc_increment();
+
+  accu(load(l.arg, l.indirect));
+}
+
+void Simulator::execute (const Instruction::Store & s)
+{
+  pc_increment();
+
+  store(s.arg, accu(), s.indirect);
+}
+
+void Simulator::execute (const Instruction::Fence & f [[maybe_unused]])
+{
+  pc_increment();
+}
+
+void Simulator::execute (const Instruction::Add & a)
+{
+  pc_increment();
+
+  accu(accu() + load(a.arg, a.indirect));
+}
+
+void Simulator::execute (const Instruction::Addi & a)
+{
+  pc_increment();
+
+  accu(accu() + a.arg);
+}
+
+void Simulator::execute (const Instruction::Sub & s)
+{
+  pc_increment();
+
+  accu(accu() - load(s.arg, s.indirect));
+}
+
+void Simulator::execute (const Instruction::Subi & s)
+{
+  pc_increment();
+
+  accu(accu() - s.arg);
+}
+
+void Simulator::execute (const Instruction::Mul & s)
+{
+  pc_increment();
+
+  accu(accu() * load(s.arg, s.indirect));
+}
+
+void Simulator::execute (const Instruction::Muli & s)
+{
+  pc_increment();
+
+  accu(accu() * s.arg);
+}
+
+void Simulator::execute (const Instruction::Cmp & c)
+{
+  pc_increment();
+
+  accu(accu() - load(c.arg, c.indirect));
+}
+
+void Simulator::execute (const Instruction::Jmp & j)
+{
+  pc(j.arg);
+}
+
+void Simulator::execute (const Instruction::Jz & j)
+{
+  if (accu())
+    pc_increment();
+  else
+    pc(j.arg);
+}
+
+void Simulator::execute (const Instruction::Jnz & j)
+{
+  if (accu())
+    pc(j.arg);
+  else
+    pc_increment();
+}
+
+void Simulator::execute (const Instruction::Js & j)
+{
+  if (static_cast<sword_t>(accu()) < 0)
+    pc(j.arg);
+  else
+    pc_increment();
+}
+
+void Simulator::execute (const Instruction::Jns & j)
+{
+  if (static_cast<sword_t>(accu()) >= 0)
+    pc(j.arg);
+  else
+    pc_increment();
+}
+
+void Simulator::execute (const Instruction::Jnzns & j)
+{
+  if (static_cast<sword_t>(accu()) > 0)
+    pc(j.arg);
+  else
+    pc_increment();
+}
+
+void Simulator::execute (const Instruction::Mem & m)
+{
+  pc_increment();
+
+  accu(load(m.arg, m.indirect));
+  mem(accu());
+}
+
+void Simulator::execute (const Instruction::Cas & c)
+{
+  pc_increment();
+
+  if (mem() == load(c.arg, c.indirect))
+    {
+      store(c.arg, accu(), c.indirect, true);
+      accu(1);
     }
   else
     {
-      accu = 0;
+      accu(0);
     }
-
-  PUSH_BACK_ATOMIC(pc++, heap);
 }
 
-void Thread::execute (const Instruction::Check & c)
+void Simulator::execute (const Instruction::Check & c)
 {
-  check = c.arg;
-  state = State::waiting;
+  pc_increment();
 
-  PUSH_BACK(pc++);
+  state[thread] = State::waiting;
+
+  // remove from list of active threads
+  erase(active, thread);
+
+  // add to set of waiting threads
+  waiting_for_checkpoint[c.arg].insert(thread);
+
+  // all other threads already waiting at this checkpoint?
+  check_and_resume(c.arg);
 }
 
-void Thread::execute (const Instruction::Halt & h [[maybe_unused]])
+void Simulator::execute (const Instruction::Halt & h [[maybe_unused]])
 {
-  state = State::halted;
-
-  PUSH_BACK(pc);
+  state[thread] = State::halted;
 }
 
-void Thread::execute (const Instruction::Exit & e)
+void Simulator::execute (const Instruction::Exit & e)
 {
-  simulator.trace->exit = e.arg;
-  state = State::exited;
-
-  PUSH_BACK(pc);
+  trace->exit = e.arg;
+  state[thread] = State::exited;
 }
 
 //==============================================================================
 // non-member operators
 //==============================================================================
 
-std::ostream & operator << (std::ostream & os, Thread::State s)
+std::ostream & operator << (std::ostream & os, Simulator::State s)
 {
-    return os << static_cast<char>(s);
+  return os << static_cast<char>(s);
 }

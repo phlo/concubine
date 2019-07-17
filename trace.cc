@@ -16,15 +16,15 @@
 
 Trace::Trace (const Program::List::ptr & p) :
   programs(p),
-  bound(0),
+  length(0),
   exit(0)
 {
-  init_thread_states();
+  init_register_states();
 }
 
 Trace::Trace(std::istream & file, const std::string & path) :
   programs(std::make_shared<Program::List>()),
-  bound(0),
+  length(0),
   exit(0)
 {
   std::string token;
@@ -66,12 +66,11 @@ Trace::Trace(std::istream & file, const std::string & path) :
     parser_error(path, line_num, "missing threads");
 
   // initialize thread state update lists
-  init_thread_states();
+  init_register_states();
 
   // parse body
   line_num++;
-  size_t step = 0;
-  for (std::string line_buf; getline(file, line_buf); ++line_num)
+  for (std::string line_buf; getline(file, line_buf); line_num++)
     {
       // skip empty lines
       if (line_buf.empty())
@@ -82,8 +81,6 @@ Trace::Trace(std::istream & file, const std::string & path) :
       // skip comments
       if (line_buf[line_buf.find_first_not_of(" \t")] == '#')
         continue;
-
-      step++;
 
       // parse thread id
       word_t thread;
@@ -142,10 +139,16 @@ Trace::Trace(std::istream & file, const std::string & path) :
       if (!flush && !Instruction::contains(symbol))
         parser_error(path, line_num, "unknown instruction [" + symbol + "]");
 
+      if (!flush && symbol != op.symbol())
+        parser_error(
+          path,
+          line_num,
+          "unexpected instruction [" + symbol + " != " + op.symbol() + "]");
+
       // parse instruction argument
       word_t arg;
 
-      if (flush)
+      if (flush || Instruction::is_nullary(symbol))
         {
           if (!(line >> token))
             parser_error(path, line_num, "missing instruction argument");
@@ -164,9 +167,7 @@ Trace::Trace(std::istream & file, const std::string & path) :
             parser_error(path, line_num, "missing instruction argument");
 
           // arg is an indirect memory address
-          if (flush && token == "-")
-            ;
-          else if (token.front() == '[')
+          if (token.front() == '[')
             {
               if (op.is_memory())
                 {
@@ -311,28 +312,13 @@ Trace::Trace(std::istream & file, const std::string & path) :
                 line_num,
                 "illegal heap update [" + token + "]");
             }
-
-          // only flushes and atomic operations may write to memory
-          if (!flush && !(op.type() & Instruction::Type::atomic))
-            parser_error(
-              path,
-              line_num,
-              symbol + " can't perform heap updates");
         }
 
       // append to trace
-      if (flush)
-        {
-          if (!heap)
-            parser_error(path, line_num, "missing heap update");
-
-          push_back(thread, *heap);
-        }
-      else
-        push_back(thread, pc, accu, mem, sb_adr, sb_val, sb_full, heap);
+      push_back(thread, pc, accu, mem, sb_adr, sb_val, sb_full, heap, flush);
     }
 
-  if (!bound)
+  if (!length)
     parser_error(path, line_num, "empty trace");
 }
 
@@ -340,11 +326,11 @@ Trace::Trace(std::istream & file, const std::string & path) :
 // member functions
 //------------------------------------------------------------------------------
 
-// Trace::init_thread_states ---------------------------------------------------
+// Trace::init_register_states -------------------------------------------------
 
-void Trace::init_thread_states ()
+void Trace::init_register_states ()
 {
-  size_t num_threads = programs->size();
+  const size_t num_threads = programs->size();
 
   pc_updates.resize(num_threads);
   accu_updates.resize(num_threads);
@@ -387,137 +373,189 @@ void Trace::push_back (const word_t thread,
                        const word_t buffer_adr,
                        const word_t buffer_val,
                        const word_t buffer_full,
-                       const std::optional<cell_t> & heap)
+                       std::optional<cell_t> & heap,
+                       const bool flush)
 {
-  ++bound;
-
-  push_back<word_t>(thread_updates, bound, thread);
-  push_back<word_t>(pc_updates[thread], bound, pc);
-  push_back<word_t>(accu_updates[thread], bound, accu);
-  push_back<word_t>(mem_updates[thread], bound, mem);
-  push_back<word_t>(sb_adr_updates[thread], bound, buffer_adr);
-  push_back<word_t>(sb_val_updates[thread], bound, buffer_val);
-  push_back<bool>(sb_full_updates[thread], bound, buffer_full);
+  push_back<word_t>(thread_updates, length, thread);
+  push_back<word_t>(pc_updates[thread], length, pc);
+  push_back<word_t>(accu_updates[thread], length, accu);
+  push_back<word_t>(mem_updates[thread], length, mem);
+  push_back<word_t>(sb_adr_updates[thread], length, buffer_adr);
+  push_back<word_t>(sb_val_updates[thread], length, buffer_val);
+  push_back<bool>(sb_full_updates[thread], length, buffer_full);
 
   if (heap)
-    push_back(heap_updates[heap->adr], bound, heap->val);
-}
+    {
+      heap_adr_updates.emplace_hint(heap_adr_updates.end(), length, heap->adr);
+      push_back(heap_val_updates[heap->adr], length, heap->val);
+      heap.reset();
+    }
 
-void Trace::push_back (const word_t thread, const cell_t & heap)
-{
-  ++bound;
+  if (flush)
+    flushes.insert(length);
 
-  flushes.insert(bound);
-  push_back<word_t>(thread_updates, bound, thread);
-  push_back<bool>(sb_full_updates[thread], bound, false);
-  push_back<word_t>(heap_updates[heap.adr], bound, heap.val);
+  length++;
 }
 
 // Trace::push_back_thread -----------------------------------------------------
 
-void Trace::push_back_thread (const size_t step, const word_t thread)
+void Trace::push_back_thread (size_t step, const word_t thread)
 {
   push_back<word_t>(thread_updates, step, thread);
 
-  if (step > bound)
-    bound = step;
+  if (++step > length)
+    length = step;
 }
 
 // Trace::push_back_pc ---------------------------------------------------------
 
-void Trace::push_back_pc (const size_t step,
-                          const word_t thread,
-                          const word_t pc)
+void Trace::push_back_pc (size_t step, const word_t thread, const word_t pc)
 {
   push_back<word_t>(pc_updates.at(thread), step, pc);
 
-  if (step > bound)
-    bound = step;
+  if (++step > length)
+    length = step;
 }
 
 // Trace::push_back_accu -------------------------------------------------------
 
-void Trace::push_back_accu (const size_t step,
-                            const word_t thread,
-                            const word_t accu)
+void Trace::push_back_accu (size_t step, const word_t thread, const word_t accu)
 {
   push_back<word_t>(accu_updates.at(thread), step, accu);
 
-  if (step > bound)
-    bound = step;
+  if (++step > length)
+    length = step;
 }
 
 // Trace::push_back_mem --------------------------------------------------------
 
-void Trace::push_back_mem (const size_t step,
-                           const word_t thread,
-                           const word_t mem)
+void Trace::push_back_mem (size_t step, const word_t thread, const word_t mem)
 {
   push_back<word_t>(mem_updates.at(thread), step, mem);
 
-  if (step > bound)
-    bound = step;
+  if (++step > length)
+    length = step;
 }
 
 // Trace::push_back_sb_adr -----------------------------------------------------
 
-void Trace::push_back_sb_adr (const size_t step,
+void Trace::push_back_sb_adr (size_t step,
                               const word_t thread,
                               const word_t adr)
 {
   push_back<word_t>(sb_adr_updates.at(thread), step, adr);
 
-  if (step > bound)
-    bound = step;
+  if (++step > length)
+    length = step;
 }
 
 // Trace::push_back_sb_val -----------------------------------------------------
 
-void Trace::push_back_sb_val (const size_t step,
+void Trace::push_back_sb_val (size_t step,
                               const word_t thread,
                               const word_t val)
 {
   push_back<word_t>(sb_val_updates.at(thread), step, val);
 
-  if (step > bound)
-    bound = step;
+  if (++step > length)
+    length = step;
 }
 
 // Trace::push_back_sb_full ----------------------------------------------------
 
-void Trace::push_back_sb_full (const size_t step,
+void Trace::push_back_sb_full (size_t step,
                                const word_t thread,
                                const bool full)
 {
   push_back<bool>(sb_full_updates.at(thread), step, full);
 
-  if (step > bound)
-    bound = step;
+  if (++step > length)
+    length = step;
 }
 
 // Trace::push_back_heap -------------------------------------------------------
 
-void Trace::push_back_heap (const size_t step, const cell_t & heap)
+void Trace::push_back_heap (size_t step, const cell_t & heap)
 {
-  push_back<word_t>(heap_updates[heap.adr], step, heap.val);
+  heap_adr_updates.emplace_hint(heap_adr_updates.end(), step, heap.adr);
+  push_back<word_t>(heap_val_updates[heap.adr], step, heap.val);
 
-  if (step > bound)
-    bound = step;
+  if (++step > length)
+    length = step;
 }
 
 // Trace::push_back_flush ------------------------------------------------------
 
-void Trace::push_back_flush (const size_t step)
+void Trace::push_back_flush (size_t step)
 {
   flushes.insert(step);
 
-  if (step > bound)
-    bound = step;
+  if (++step > length)
+    length = step;
+}
+
+// Trace::thread ---------------------------------------------------------------
+
+word_t Trace::thread () const
+{
+  return thread_updates.crbegin()->second;
+}
+
+// Trace::pc -------------------------------------------------------------------
+
+word_t Trace::pc (const word_t thread) const
+{
+  return pc_updates[thread].crbegin()->second;
+}
+
+// Trace::accu -----------------------------------------------------------------
+
+word_t Trace::accu (const word_t thread) const
+{
+  return accu_updates[thread].crbegin()->second;
+}
+
+// Trace::mem ------------------------------------------------------------------
+
+word_t Trace::mem (const word_t thread) const
+{
+  return mem_updates[thread].crbegin()->second;
+}
+
+// Trace::sb_adr ---------------------------------------------------------------
+
+word_t Trace::sb_adr (const word_t thread) const
+{
+  return sb_adr_updates[thread].crbegin()->second;
+}
+
+// Trace::sb_val ---------------------------------------------------------------
+
+word_t Trace::sb_val (const word_t thread) const
+{
+  return sb_val_updates[thread].crbegin()->second;
+}
+
+// Trace::sb_full --------------------------------------------------------------
+
+bool Trace::sb_full (const word_t thread) const
+{
+  return sb_full_updates[thread].crbegin()->second;
+}
+
+// Trace::heap -----------------------------------------------------------------
+
+word_t Trace::heap (const word_t address) const
+{
+  return
+    heap_val_updates.empty()
+      ? 0 // TODO: add randomness!
+      : heap_val_updates.at(address).crbegin()->second;
 }
 
 // Trace::size -----------------------------------------------------------------
 
-size_t Trace::size () const { return bound; }
+size_t Trace::size () const { return length; }
 
 // Trace::begin ----------------------------------------------------------------
 
@@ -530,7 +568,7 @@ Trace::iterator Trace::begin () const
 
 Trace::iterator Trace::end () const
 {
-  return iterator(this, bound + 1);
+  return iterator(this, size());
 }
 
 // Trace::print ----------------------------------------------------------------
@@ -593,11 +631,7 @@ std::string Trace::print () const
                     arg = '[' + arg + ']';
                 }
               else if (op.is_jump())
-                try
-                  {
-                    arg = program.get_label(op.arg());
-                  }
-              catch (...) {}
+                try { arg = program.get_label(op.arg()); } catch (...) {}
             }
 
           ss << arg << sep;
@@ -615,7 +649,13 @@ std::string Trace::print () const
       if (step.heap)
         ss << '(' << step.heap->adr << ',' << step.heap->val << ')';
 
-      ss << '}' << eol;
+      ss << '}';
+
+      // step number
+      if (verbose)
+        ss << sep << "# " << std::to_string(step.step);
+
+      ss << eol;
     }
 
   return ss.str();
@@ -655,20 +695,21 @@ Trace::iterator::iterator (const Trace * t, const size_t s) :
   trace(t),
   thread({trace->thread_updates.begin(), trace->thread_updates.end()})
 {
-  if ((step = s) > trace->bound)
+  if ((step = s) > trace->length)
     return;
 
-  // initialize state update iterator lists
-  init_iterator(pc, trace->pc_updates);
-  init_iterator(accu, trace->accu_updates);
-  init_iterator(mem, trace->mem_updates);
-  init_iterator(sb_adr, trace->sb_adr_updates);
-  init_iterator(sb_val, trace->sb_val_updates);
-  init_iterator(sb_full, trace->sb_full_updates);
+  // initialize register state update iterator lists
+  init_iterators(pc, trace->pc_updates);
+  init_iterators(accu, trace->accu_updates);
+  init_iterators(mem, trace->mem_updates);
+  init_iterators(sb_adr, trace->sb_adr_updates);
+  init_iterators(sb_val, trace->sb_val_updates);
+  init_iterators(sb_full, trace->sb_full_updates);
 
-  heap.reserve(trace->heap_updates.size());
-  for (const auto & [idx, updates] : trace->heap_updates)
-    heap[idx] = {updates.begin(), updates.cend()};
+  // initialize heap state update iterators
+  heap_adr = {trace->heap_adr_updates.begin(), trace->heap_adr_updates.end()};
+  for (const auto & [idx, updates] : trace->heap_val_updates)
+    heap_val[idx] = {updates.begin(), updates.end()};
 
   assign();
 }
@@ -677,23 +718,23 @@ Trace::iterator::iterator (const Trace * t, const size_t s) :
 // member functions
 //------------------------------------------------------------------------------
 
-// Trace::iterator::init_iterator ----------------------------------------------
+// Trace::iterator::init_iterators ---------------------------------------------
 
 template <typename T>
-void Trace::iterator::init_iterator (thread_state_iterators<T> & iterators,
-                                     const thread_states<T> & updates)
+void Trace::iterator::init_iterators (thread_state_iterators<T> & iterators,
+                                      const thread_map<T> & updates)
 {
   iterators.reserve(trace->programs->size());
   for (const auto & u: updates)
     iterators.push_back({u.begin(), u.end()});
 }
 
-// Trace::iterator::next_thread_state ------------------------------------------
+// Trace::iterator::next_state -------------------------------------------------
 
 template <typename T>
-const T & Trace::iterator::next_thread_state (update_map_iterator<T> & state)
+const T & Trace::iterator::next_state (update_map_iterator<T> & state)
 {
-  auto next {std::next(state.cur)};
+  auto next = std::next(state.cur);
 
   while (next != state.end && next->first <= step)
     state.cur = next++;
@@ -705,42 +746,10 @@ const T & Trace::iterator::next_thread_state (update_map_iterator<T> & state)
 
 const std::optional<Trace::cell_t> Trace::iterator::next_heap_state ()
 {
-  if (step.flush)
-    {
-      auto & cell = heap.at(step.sb_adr);
+  const word_t adr = next_state(heap_adr);
 
-      // mind subsequent writes of an equal value to the same address
-      if (cell.cur->first == step)
-        {
-          assert(cell.cur->second == step.sb_val);
-          cell.cur++;
-        }
-
-      return {{step.sb_adr, step.sb_val}};
-    }
-
-  const Instruction & op = (*trace->programs)[step.thread][step.pc];
-
-  if (op.type() & Instruction::Type::atomic)
-    {
-      word_t address =
-        op.indirect()
-          ? trace->heap_updates.at(op.arg()).rend()->second
-          : op.arg();
-
-      auto & cell = heap.at(address);
-
-      if (cell.cur->first == step)
-        {
-          // mind subsequent writes of an equal value to the same address
-          word_t value =
-            cell.cur->first == step
-              ? cell.cur++->second
-              : (--cell.cur)++->second;
-
-          return {{address, value}};
-        }
-    }
+  if (heap_adr.cur->first == step.step)
+    return {{adr, next_state(heap_val[adr])}};
 
   return {};
 }
@@ -749,13 +758,13 @@ const std::optional<Trace::cell_t> Trace::iterator::next_heap_state ()
 
 void Trace::iterator::assign ()
 {
-  step.thread  = next_thread_state(thread);
-  step.pc      = next_thread_state(pc[step.thread]);
-  step.accu    = next_thread_state(accu[step.thread]);
-  step.mem     = next_thread_state(mem[step.thread]);
-  step.sb_adr  = next_thread_state(sb_adr[step.thread]);
-  step.sb_val  = next_thread_state(sb_val[step.thread]);
-  step.sb_full = next_thread_state(sb_full[step.thread]);
+  step.thread  = next_state(thread);
+  step.pc      = next_state(pc[step.thread]);
+  step.accu    = next_state(accu[step.thread]);
+  step.mem     = next_state(mem[step.thread]);
+  step.sb_adr  = next_state(sb_adr[step.thread]);
+  step.sb_val  = next_state(sb_val[step.thread]);
+  step.sb_full = next_state(sb_full[step.thread]);
   step.flush   = trace->flushes.find(step) != trace->flushes.end();
   step.heap    = next_heap_state();
 }
@@ -769,8 +778,8 @@ void Trace::iterator::assign ()
 Trace::iterator & Trace::iterator::operator ++ ()
 {
   // prevent increments beyond end()
-  if (step <= trace->bound)
-    if (++step <= trace->bound)
+  if (step < trace->length)
+    if (++step < trace->length)
       assign();
 
   return *this;
@@ -815,7 +824,7 @@ Trace::iterator::pointer Trace::iterator::operator -> () const
 
 bool operator == (const Trace & a, const Trace & b)
 {
-  if (a.bound != b.bound)
+  if (a.length != b.length)
     return false;
 
   if (a.exit != b.exit)
@@ -834,7 +843,8 @@ bool operator == (const Trace & a, const Trace & b)
     a.pc_updates == b.pc_updates &&
     a.accu_updates == b.accu_updates &&
     a.mem_updates == b.mem_updates &&
-    a.heap_updates == b.heap_updates;
+    a.heap_adr_updates == b.heap_adr_updates &&
+    a.heap_val_updates == b.heap_val_updates;
 }
 
 bool operator != (const Trace & a, const Trace & b)

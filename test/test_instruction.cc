@@ -3,7 +3,6 @@
 #include "instruction.hh"
 
 #include "program.hh"
-#include "simulator.hh"
 
 namespace test {
 
@@ -17,13 +16,6 @@ struct Instruction : public ::testing::Test
 
   ::Instruction instruction;
   Program program;
-  Simulator simulator = Simulator(std::make_shared<Program::List>(1));
-  Thread thread = Thread(simulator, 0, program);
-
-  Instruction ()
-    {
-      simulator.trace = std::make_unique<Trace>(simulator.programs);
-    }
 };
 
 // construction ================================================================
@@ -207,26 +199,9 @@ TEST_F(Instruction, LOAD)
 {
   instruction = ::Instruction::create("LOAD", 0);
 
-  ASSERT_TRUE(instruction.is_nullary());
-  ASSERT_TRUE(instruction.is_unary());
-  ASSERT_TRUE(instruction.is_memory());
-  ASSERT_FALSE(instruction.is_jump());
-  ASSERT_FALSE(instruction.requires_flush());
-
   ASSERT_EQ("LOAD", instruction.symbol());
   ASSERT_EQ(Type::accu | Type::read, instruction.type());
   ASSERT_EQ(0, instruction.arg());
-
-  simulator.heap[0] = 1;
-
-  ASSERT_EQ(0, thread.pc);
-  ASSERT_EQ(0, thread.accu);
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(1, thread.pc);
-  ASSERT_EQ(1, thread.accu);
-  ASSERT_EQ(1, simulator.heap[0]);
 }
 
 // STORE =======================================================================
@@ -245,26 +220,6 @@ TEST_F(Instruction, STORE)
   ASSERT_EQ(Type::write, instruction.type());
   ASSERT_EQ(0, instruction.arg());
   ASSERT_FALSE(instruction.indirect());
-
-  thread.accu = 1;
-
-  ASSERT_EQ(0, thread.pc);
-
-  ASSERT_FALSE(thread.buffer.full);
-  ASSERT_EQ(0, thread.buffer.address);
-  ASSERT_EQ(0, thread.buffer.value);
-
-  ASSERT_EQ(0, simulator.heap[0]);
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(1, thread.pc);
-
-  ASSERT_TRUE(thread.buffer.full);
-  ASSERT_EQ(0, thread.buffer.address);
-  ASSERT_EQ(1, thread.buffer.value);
-
-  ASSERT_EQ(0, simulator.heap[0]);
 }
 
 // FENCE =======================================================================
@@ -281,12 +236,6 @@ TEST_F(Instruction, FENCE)
 
   ASSERT_EQ("FENCE", instruction.symbol());
   ASSERT_EQ(Type::barrier, instruction.type());
-
-  ASSERT_EQ(0, thread.pc);
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(1, thread.pc);
 }
 
 // ADD =========================================================================
@@ -305,17 +254,6 @@ TEST_F(Instruction, ADD)
   ASSERT_EQ(Type::accu | Type::read, instruction.type());
   ASSERT_EQ(0, instruction.arg());
   ASSERT_FALSE(instruction.indirect());
-
-  simulator.heap[0] = 1;
-
-  ASSERT_EQ(0, thread.pc);
-  ASSERT_EQ(0, thread.accu);
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(1, thread.pc);
-  ASSERT_EQ(1, thread.accu);
-  ASSERT_EQ(1, simulator.heap[0]);
 }
 
 // ADDI ========================================================================
@@ -333,14 +271,6 @@ TEST_F(Instruction, ADDI)
   ASSERT_EQ("ADDI", instruction.symbol());
   ASSERT_EQ(Type::accu, instruction.type());
   ASSERT_EQ(1, instruction.arg());
-
-  ASSERT_EQ(0, thread.pc);
-  ASSERT_EQ(0, thread.accu);
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(1, thread.pc);
-  ASSERT_EQ(1, thread.accu);
 }
 
 // SUB =========================================================================
@@ -359,17 +289,6 @@ TEST_F(Instruction, SUB)
   ASSERT_EQ(Type::accu | Type::read, instruction.type());
   ASSERT_EQ(0, instruction.arg());
   ASSERT_FALSE(instruction.indirect());
-
-  thread.accu = 1;
-  simulator.heap[0] = 1;
-
-  ASSERT_EQ(0, thread.pc);
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(1, thread.pc);
-  ASSERT_EQ(0, thread.accu);
-  ASSERT_EQ(1, simulator.heap[0]);
 }
 
 // SUBI ========================================================================
@@ -387,15 +306,6 @@ TEST_F(Instruction, SUBI)
   ASSERT_EQ("SUBI", instruction.symbol());
   ASSERT_EQ(Type::accu, instruction.type());
   ASSERT_EQ(1, instruction.arg());
-
-  thread.accu = 1;
-
-  ASSERT_EQ(0, thread.pc);
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(1, thread.pc);
-  ASSERT_EQ(0, thread.accu);
 }
 
 // MUL =========================================================================
@@ -414,17 +324,6 @@ TEST_F(Instruction, MUL)
   ASSERT_EQ(Type::accu | Type::read, instruction.type());
   ASSERT_EQ(0, instruction.arg());
   ASSERT_FALSE(instruction.indirect());
-
-  simulator.heap[0] = 1;
-
-  ASSERT_EQ(0, thread.accu);
-  ASSERT_EQ(0, thread.pc);
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(1, thread.pc);
-  ASSERT_EQ(0, thread.accu);
-  ASSERT_EQ(1, simulator.heap[0]);
 }
 
 // MULI ========================================================================
@@ -442,15 +341,6 @@ TEST_F(Instruction, MULI)
   ASSERT_EQ("MULI", instruction.symbol());
   ASSERT_EQ(Type::accu, instruction.type());
   ASSERT_EQ(0, instruction.arg());
-
-  thread.accu = 1;
-
-  ASSERT_EQ(0, thread.pc);
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(1, thread.pc);
-  ASSERT_EQ(0, thread.accu);
 }
 
 // CMP =========================================================================
@@ -469,23 +359,6 @@ TEST_F(Instruction, CMP)
   ASSERT_EQ(Type::accu | Type::read, instruction.type());
   ASSERT_EQ(0, instruction.arg());
   ASSERT_FALSE(instruction.indirect());
-
-  thread.accu = 1;
-  simulator.heap[0] = 1;
-
-  ASSERT_EQ(0, thread.pc);
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(1, thread.pc);
-  ASSERT_EQ(0, thread.accu);
-  ASSERT_EQ(1, simulator.heap[0]);
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(2, thread.pc);
-  ASSERT_EQ(word_max, thread.accu);
-  ASSERT_EQ(1, simulator.heap[0]);
 }
 
 // JMP =========================================================================
@@ -503,18 +376,6 @@ TEST_F(Instruction, JMP)
   ASSERT_EQ("JMP", instruction.symbol());
   ASSERT_EQ(Type::control, instruction.type());
   ASSERT_EQ(word_max, instruction.arg());
-
-  ASSERT_EQ(0, thread.pc);
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(word_max, thread.pc);
-
-  instruction = ::Instruction::create("JMP", 0);
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(0, thread.pc);
 }
 
 // JZ ==========================================================================
@@ -532,19 +393,6 @@ TEST_F(Instruction, JZ)
   ASSERT_EQ("JZ", instruction.symbol());
   ASSERT_EQ(Type::control, instruction.type());
   ASSERT_EQ(0, instruction.arg());
-
-  ASSERT_EQ(0, thread.pc);
-  ASSERT_EQ(0, thread.accu);
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(0, thread.pc);
-
-  thread.accu = 1;
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(1, thread.pc);
 }
 
 // JNZ =========================================================================
@@ -562,19 +410,6 @@ TEST_F(Instruction, JNZ)
   ASSERT_EQ("JNZ", instruction.symbol());
   ASSERT_EQ(Type::control, instruction.type());
   ASSERT_EQ(0, instruction.arg());
-
-  ASSERT_EQ(0, thread.pc);
-  ASSERT_EQ(0, thread.accu);
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(1, thread.pc);
-
-  thread.accu = 1;
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(0, thread.pc);
 }
 
 // JS ==========================================================================
@@ -592,19 +427,6 @@ TEST_F(Instruction, JS)
   ASSERT_EQ("JS", instruction.symbol());
   ASSERT_EQ(Type::control, instruction.type());
   ASSERT_EQ(0, instruction.arg());
-
-  ASSERT_EQ(0, thread.pc);
-  ASSERT_EQ(0, thread.accu);
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(1, thread.pc);
-
-  thread.accu = word_max;
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(0, thread.pc);
 }
 
 // JNS =========================================================================
@@ -622,19 +444,6 @@ TEST_F(Instruction, JNS)
   ASSERT_EQ("JNS", instruction.symbol());
   ASSERT_EQ(Type::control, instruction.type());
   ASSERT_EQ(0, instruction.arg());
-
-  ASSERT_EQ(0, thread.pc);
-  ASSERT_EQ(0, thread.accu);
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(0, thread.pc);
-
-  thread.accu = word_max;
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(1, thread.pc);
 }
 
 // JNZNS =======================================================================
@@ -652,25 +461,6 @@ TEST_F(Instruction, JNZNS)
   ASSERT_EQ("JNZNS", instruction.symbol());
   ASSERT_EQ(Type::control, instruction.type());
   ASSERT_EQ(0, instruction.arg());
-
-  ASSERT_EQ(0, thread.pc);
-  ASSERT_EQ(0, thread.accu);
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(1, thread.pc);
-
-  thread.accu = word_max;
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(2, thread.pc);
-
-  thread.accu = 1;
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(0, thread.pc);
 }
 
 // MEM =========================================================================
@@ -689,19 +479,6 @@ TEST_F(Instruction, MEM)
   ASSERT_EQ(Type::accu | Type::mem | Type::read, instruction.type());
   ASSERT_EQ(0, instruction.arg());
   ASSERT_FALSE(instruction.indirect());
-
-  simulator.heap[0] = 1;
-
-  ASSERT_EQ(0, thread.pc);
-  ASSERT_EQ(0, thread.accu);
-  ASSERT_EQ(0, thread.mem);
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(1, thread.pc);
-  ASSERT_EQ(1, thread.accu);
-  ASSERT_EQ(1, thread.mem);
-  ASSERT_EQ(1, simulator.heap[0]);
 }
 
 // CAS =========================================================================
@@ -722,26 +499,6 @@ TEST_F(Instruction, CAS)
     instruction.type());
   ASSERT_EQ(0, instruction.arg());
   ASSERT_FALSE(instruction.indirect());
-
-  thread.accu = 0;
-  thread.mem = 1;
-  simulator.heap[0] = 1;
-
-  ASSERT_EQ(0, thread.pc);
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(1, thread.pc);
-  ASSERT_EQ(1, thread.mem);
-  ASSERT_EQ(1, thread.accu);
-  ASSERT_EQ(0, simulator.heap[0]);
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(2, thread.pc);
-  ASSERT_EQ(1, thread.mem);
-  ASSERT_EQ(0, thread.accu);
-  ASSERT_EQ(0, simulator.heap[0]);
 }
 
 // CHECK =======================================================================
@@ -759,23 +516,12 @@ TEST_F(Instruction, CHECK)
   ASSERT_EQ("CHECK", instruction.symbol());
   ASSERT_EQ(Type::none, instruction.type());
   ASSERT_EQ(1, instruction.arg());
-
-  ASSERT_EQ(0, thread.pc);
-  ASSERT_EQ(0, thread.check);
-  ASSERT_EQ(Thread::State::initial, thread.state);
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(1, thread.pc);
-  ASSERT_EQ(1, thread.check);
-  ASSERT_EQ(Thread::State::waiting, thread.state);
 }
 
 // HALT ========================================================================
 
 TEST_F(Instruction, HALT)
 {
-  // TODO
   instruction = ::Instruction::create("HALT");
 
   ASSERT_TRUE(instruction.is_nullary());
@@ -803,17 +549,6 @@ TEST_F(Instruction, EXIT)
   ASSERT_EQ("EXIT", instruction.symbol());
   ASSERT_EQ(Type::control, instruction.type());
   ASSERT_EQ(1, instruction.arg());
-
-  ASSERT_EQ(0, thread.pc);
-  ASSERT_EQ(0, thread.accu);
-  ASSERT_EQ(Thread::State::initial, thread.state);
-
-  instruction.execute(thread);
-
-  ASSERT_EQ(0, thread.pc);
-  ASSERT_EQ(0, thread.accu);
-  ASSERT_EQ(1, thread.simulator.trace->exit);
-  ASSERT_EQ(Thread::State::exited, thread.state);
 }
 
 } // namespace test

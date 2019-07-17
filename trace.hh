@@ -23,17 +23,17 @@ struct Trace
 
   // step -> state
   //
-  template <typename T>
+  template <class T>
   using update_map = std::map<size_t, T>;
 
   // thread -> step -> state
   //
-  template <typename T>
-  using thread_states = std::vector<update_map<T>>;
+  template <class T>
+  using thread_map = std::vector<update_map<T>>;
 
   // address -> step -> state
   //
-  using heap_states = std::unordered_map<word_t, update_map<word_t>>;
+  using heap_val_map = std::unordered_map<word_t, update_map<word_t>>;
 
   // heap cell -----------------------------------------------------------------
   //
@@ -54,8 +54,8 @@ struct Trace
       word_t mem;
       word_t sb_adr;
       word_t sb_val;
-      bool   sb_full;
-      bool   flush;
+      bool sb_full;
+      bool flush;
       std::optional<cell_t> heap;
 
       Step () = default;
@@ -109,26 +109,30 @@ struct Trace
       thread_state_iterators<word_t> mem;
       thread_state_iterators<word_t> sb_adr;
       thread_state_iterators<word_t> sb_val;
-      thread_state_iterators<bool>   sb_full;
+      thread_state_iterators<bool> sb_full;
 
-      // heap state update iterators
+      // heap update iterator
       //
-      std::unordered_map<word_t, update_map_iterator<word_t>> heap;
+      update_map_iterator<word_t> heap_adr;
+
+      // heap value update iterator
+      //
+      std::unordered_map<word_t, update_map_iterator<word_t>> heap_val;
 
       //------------------------------------------------------------------------
       // private member functions
       //------------------------------------------------------------------------
 
-      // helper for initializing thread update iterator
+      // helper for initializing thread update iterators
       //
       template <typename T>
-      void init_iterator (thread_state_iterators<T> & iterator,
-                          const thread_states<T> & updates);
+      void init_iterators (thread_state_iterators<T> & iterators,
+                           const thread_map<T> & updates);
 
       // return current thread state and advance
       //
       template <typename T>
-      const T & next_thread_state (update_map_iterator<T> & state);
+      const T & next_state (update_map_iterator<T> & updates);
 
       // return current heap state update and advance
       //
@@ -154,7 +158,7 @@ struct Trace
       // constructors
       //------------------------------------------------------------------------
 
-      iterator (const Trace * trace, size_t step = 1);
+      iterator (const Trace * trace, size_t step = 0);
 
       //------------------------------------------------------------------------
       // member operators
@@ -180,9 +184,9 @@ struct Trace
   //
   Program::List::ptr programs;
 
-  // bound used == size()
+  // trace length
   //
-  size_t bound;
+  size_t length;
 
   // exit code
   //
@@ -202,26 +206,32 @@ struct Trace
   //
   // thread -> step -> val
   //
-  thread_states<word_t> pc_updates;
-  thread_states<word_t> accu_updates;
-  thread_states<word_t> mem_updates;
-  thread_states<word_t> sb_adr_updates;
-  thread_states<word_t> sb_val_updates;
-  thread_states<bool>   sb_full_updates;
+  thread_map<word_t> pc_updates;
+  thread_map<word_t> accu_updates;
+  thread_map<word_t> mem_updates;
+  thread_map<word_t> sb_adr_updates;
+  thread_map<word_t> sb_val_updates;
+  thread_map<bool> sb_full_updates;
 
   // heap state updates
   //
-  // address -> list of (step, val) pairs
+  // step -> address
   //
-  heap_states heap_updates;
+  update_map<word_t> heap_adr_updates;
+
+  // heap value updates
+  //
+  // address -> step -> value
+  //
+  heap_val_map heap_val_updates;
 
   //----------------------------------------------------------------------------
   // constructors
   //----------------------------------------------------------------------------
 
-  // initialize with given bound
+  // initialize with given length
   //
-  explicit Trace (size_t bound);
+  explicit Trace (size_t length);
 
   // construct from simulator/solver
   //
@@ -237,7 +247,9 @@ struct Trace
 
   // initialize thread state update lists
   //
-  void init_thread_states ();
+  template <typename T>
+  void init_register_states (thread_map<T> & updates);
+  void init_register_states ();
 
   // append state update helper
   //
@@ -253,11 +265,8 @@ struct Trace
                   word_t sb_adr,
                   word_t sb_val,
                   word_t sb_full,
-                  const std::optional<cell_t> & heap);
-
-  // append state update after flushing the store buffer
-  //
-  void push_back (word_t thread, const cell_t & heap);
+                  std::optional<cell_t> & heap,
+                  bool flush = false);
 
   // append individual state updates
   //
@@ -269,9 +278,26 @@ struct Trace
   void push_back_sb_val (size_t step, word_t thread, word_t val);
   void push_back_sb_full (size_t step, word_t thread, bool full);
   void push_back_heap (size_t step, const cell_t & heap);
-  void push_back_flush (const size_t step);
+  void push_back_flush (size_t step);
 
-  // return trace size (bound)
+  // return most recently scheduled thread's id
+  //
+  word_t thread () const;
+
+  // return most recent register states
+  //
+  word_t pc (word_t thread) const;
+  word_t accu (word_t thread) const;
+  word_t mem (word_t thread) const;
+  word_t sb_adr (word_t thread) const;
+  word_t sb_val (word_t thread) const;
+  bool sb_full (word_t thread) const;
+
+  // return most recent heap state
+  //
+  word_t heap (word_t address) const;
+
+  // return trace size (length)
   //
   size_t size () const;
 

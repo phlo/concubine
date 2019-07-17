@@ -24,42 +24,6 @@ struct Simulator : public ::testing::Test
     }
 };
 
-// Simulator::create_thread ====================================================
-
-TEST_F(Simulator, create_thread)
-{
-  create_simulator({});
-
-  ASSERT_TRUE(simulator->active.empty());
-  ASSERT_TRUE(simulator->threads.empty());
-  ASSERT_TRUE(simulator->threads_per_checkpoint.empty());
-  ASSERT_TRUE(simulator->waiting_for_checkpoint.empty());
-
-  program.push_back(Instruction::create("ADDI", 1));
-
-  simulator->create_thread(program);
-
-  ASSERT_EQ(0, simulator->threads.back().id);
-  ASSERT_TRUE(simulator->active.empty());
-  ASSERT_EQ(1, simulator->threads.size());
-  ASSERT_TRUE(simulator->threads_per_checkpoint.empty());
-  ASSERT_TRUE(simulator->waiting_for_checkpoint.empty());
-
-  program.push_back(Instruction::create("CHECK", 1));
-
-  simulator->create_thread(program);
-
-  ASSERT_EQ(1, simulator->threads.back().id);
-  ASSERT_TRUE(simulator->active.empty());
-  ASSERT_EQ(2, simulator->threads.size());
-  ASSERT_EQ(1, simulator->threads_per_checkpoint[1].size());
-  ASSERT_TRUE(simulator->waiting_for_checkpoint.empty());
-
-  // basically tests mapped default value
-  ASSERT_EQ(0, simulator->waiting_for_checkpoint[0]);
-  ASSERT_TRUE(!simulator->waiting_for_checkpoint.empty());
-}
-
 // Simulator::run ==============================================================
 
 TEST_F(Simulator, run_simple)
@@ -68,89 +32,86 @@ TEST_F(Simulator, run_simple)
 
   create_simulator({program, program});
 
-  ASSERT_EQ(0, simulator->active.size());
-  ASSERT_EQ(2, simulator->threads.size());
+  ASSERT_EQ(2, simulator->active.size());
+  ASSERT_EQ(2, simulator->programs->size());
   ASSERT_TRUE(simulator->threads_per_checkpoint.empty());
   ASSERT_TRUE(simulator->waiting_for_checkpoint.empty());
 
-  size_t step = 0;
-
   // NOTE: EXPECT_* required by lambda std::function
-  std::function<Thread *()> scheduler = [&] () -> Thread *
-    {
-      switch (step++)
+  trace = simulator->run([&] () -> word_t {
+    switch (simulator->step)
+      {
+      case 1: // initial -> t0: pre ADDI 1
         {
-        case 0: // initial -> t0: pre ADDI 1
-            {
-              return &simulator->threads[0];
-            }
-        case 1: // t0: post ADDI 1 && next == t1
-            {
-              EXPECT_EQ(1, simulator->threads[0].pc);
-              EXPECT_EQ(1, simulator->threads[0].accu);
-              EXPECT_EQ(0, simulator->threads[1].pc);
-              EXPECT_EQ(0, simulator->threads[1].accu);
-
-              return &simulator->threads[1];
-            }
-        case 2: // t1: post ADDI 1 && next == t0
-            {
-              EXPECT_EQ(1, simulator->threads[0].pc);
-              EXPECT_EQ(1, simulator->threads[0].accu);
-              EXPECT_EQ(1, simulator->threads[1].pc);
-              EXPECT_EQ(1, simulator->threads[1].accu);
-
-              EXPECT_EQ(Thread::State::halted, simulator->threads[0].state);
-              EXPECT_EQ(Thread::State::running, simulator->threads[1].state);
-
-              return &simulator->threads[0];
-            }
-        default:
-            {
-              EXPECT_TRUE(false) << "should have halted by now";
-              return nullptr;
-            }
+          return simulator->thread = 0;
         }
-    };
+      case 2: // t0: post ADDI 1 && next == t1
+        {
+          EXPECT_EQ(0, simulator->trace->pc(0));
+          EXPECT_EQ(1, simulator->trace->accu(0));
+          EXPECT_EQ(0, simulator->trace->pc(1));
+          EXPECT_EQ(0, simulator->trace->accu(1));
 
-  // run it
-  trace = simulator->run(scheduler);
+          return simulator->thread = 1;
+        }
+      case 3: // t1: post ADDI 1 && next == t0
+        {
+          EXPECT_EQ(0, simulator->trace->pc(0));
+          EXPECT_EQ(1, simulator->trace->accu(0));
+          EXPECT_EQ(0, simulator->trace->pc(1));
+          EXPECT_EQ(1, simulator->trace->accu(1));
 
-  ASSERT_EQ(2, step);
+          EXPECT_EQ(::Simulator::State::halted, simulator->state[0]);
+          EXPECT_EQ(::Simulator::State::running, simulator->state[1]);
 
-  ASSERT_EQ(Thread::State::halted, simulator->threads[0].state);
-  ASSERT_EQ(Thread::State::halted, simulator->threads[1].state);
+          return simulator->thread = 0;
+        }
+      default:
+        {
+          EXPECT_TRUE(false) << "should have halted by now";
+          return 0;
+        }
+      }
+  });
+
+  ASSERT_EQ(2, simulator->step);
+
+  ASSERT_EQ(::Simulator::State::halted, simulator->state[0]);
+  ASSERT_EQ(::Simulator::State::halted, simulator->state[1]);
 
   // check Trace
   ASSERT_EQ(0, trace->exit);
 
   ASSERT_EQ(
-    Trace::thread_states<word_t>({{{1, 0}}, {{2, 0}}}),
+    Trace::thread_map<word_t>({{{0, 0}}, {{0, 0}}}),
     trace->pc_updates);
 
   ASSERT_EQ(
-    Trace::thread_states<word_t>({{{1, 1}}, {{2, 1}}}),
+    Trace::thread_map<word_t>({
+      {{0, 0}, {1, 1}},
+      {{0, 0}, {2, 1}}}),
     trace->accu_updates);
 
   ASSERT_EQ(
-    Trace::thread_states<word_t>({{{1, 0}}, {{2, 0}}}),
+    Trace::thread_map<word_t>({{{0, 0}}, {{0, 0}}}),
     trace->mem_updates);
 
   ASSERT_EQ(
-    Trace::thread_states<word_t>({{{1, 0}}, {{2, 0}}}),
+    Trace::thread_map<word_t>({{{0, 0}}, {{0, 0}}}),
     trace->sb_adr_updates);
 
   ASSERT_EQ(
-    Trace::thread_states<word_t>({{{1, 0}}, {{2, 0}}}),
+    Trace::thread_map<word_t>({{{0, 0}}, {{0, 0}}}),
     trace->sb_val_updates);
 
   ASSERT_EQ(
-    Trace::thread_states<bool>({{{1, false}}, {{2, false}}}),
+    Trace::thread_map<bool>({{{0, false}}, {{0, false}}}),
     trace->sb_full_updates);
 
-  ASSERT_EQ(std::unordered_set<size_t>(), trace->flushes);
+  ASSERT_TRUE(trace->flushes.empty());
 
-  ASSERT_TRUE(trace->heap_updates.empty());
+  ASSERT_TRUE(trace->heap_adr_updates.empty());
+  ASSERT_TRUE(trace->heap_val_updates.empty());
 }
 
 TEST_F(Simulator, run_add_check_exit)
@@ -161,117 +122,115 @@ TEST_F(Simulator, run_add_check_exit)
 
   create_simulator({program, program});
 
-  ASSERT_EQ(0, simulator->active.size());
-  ASSERT_EQ(2, simulator->threads.size());
+  ASSERT_EQ(2, simulator->active.size());
+  ASSERT_EQ(2, simulator->programs->size());
   ASSERT_EQ(2, simulator->threads_per_checkpoint[1].size());
-  ASSERT_EQ(0, simulator->waiting_for_checkpoint[1]);
-
-  size_t step = 0;
-
-  std::function<Thread *()> scheduler = [&] () -> Thread *
-    {
-      switch (step++)
-        {
-        case 0: // initial -> t0: pre ADDI 1
-            {
-              return &simulator->threads[0];
-            }
-        case 1: // t0: post ADDI 1 && next == t1
-            {
-              EXPECT_EQ(1, simulator->threads[0].pc);
-              EXPECT_EQ(1, simulator->threads[0].accu);
-              EXPECT_EQ(0, simulator->threads[1].pc);
-              EXPECT_EQ(0, simulator->threads[1].accu);
-
-              return &simulator->threads[1];
-            }
-        case 2: // t1: post ADDI 1 && next == t0
-            {
-              EXPECT_EQ(1, simulator->threads[0].pc);
-              EXPECT_EQ(1, simulator->threads[0].accu);
-              EXPECT_EQ(1, simulator->threads[1].pc);
-              EXPECT_EQ(1, simulator->threads[1].accu);
-
-              return &simulator->threads[0];
-            }
-        case 3: // t0: post CHECK 1 && next == t1
-            {
-              EXPECT_EQ(2, simulator->threads[0].pc);
-              EXPECT_EQ(1, simulator->threads[0].accu);
-              EXPECT_EQ(1, simulator->threads[1].pc);
-              EXPECT_EQ(1, simulator->threads[1].accu);
-
-              EXPECT_EQ(Thread::State::waiting, simulator->threads[0].state);
-              EXPECT_EQ(Thread::State::running, simulator->threads[1].state);
-
-              EXPECT_EQ(1, simulator->active.size());
-              EXPECT_EQ(1, simulator->waiting_for_checkpoint[1]);
-
-              return &simulator->threads[1];
-            }
-        case 4: // t1: post CHECK 1 (both active again) && next == t0
-            {
-              EXPECT_EQ(2, simulator->threads[0].pc);
-              EXPECT_EQ(1, simulator->threads[0].accu);
-              EXPECT_EQ(2, simulator->threads[1].pc);
-              EXPECT_EQ(1, simulator->threads[1].accu);
-
-              EXPECT_EQ(Thread::State::running, simulator->threads[0].state);
-              EXPECT_EQ(Thread::State::running, simulator->threads[1].state);
-
-              EXPECT_EQ(2, simulator->active.size());
-              EXPECT_EQ(0, simulator->waiting_for_checkpoint[1]);
-
-              return &simulator->threads[0];
-            }
-        default:
-            {
-              EXPECT_TRUE(false) << "should have exited by now";
-              return nullptr;
-            }
-        }
-    };
+  ASSERT_EQ(0, simulator->waiting_for_checkpoint[1].size());
 
   // run it
-  trace = simulator->run(scheduler);
+  trace = simulator->run([&] () -> word_t {
+    switch (simulator->step)
+      {
+      case 1: // initial -> t0: pre ADDI 1
+        {
+          return simulator->thread = 0;
+        }
+      case 2: // t0: post ADDI 1 && next == t1
+        {
+          EXPECT_EQ(1, simulator->trace->pc(0));
+          EXPECT_EQ(1, simulator->trace->accu(0));
+          EXPECT_EQ(0, simulator->trace->pc(1));
+          EXPECT_EQ(0, simulator->trace->accu(1));
 
-  ASSERT_EQ(step, 5);
+          return simulator->thread = 1;
+        }
+      case 3: // t1: post ADDI 1 && next == t0
+        {
+          EXPECT_EQ(1, simulator->trace->pc(0));
+          EXPECT_EQ(1, simulator->trace->accu(0));
+          EXPECT_EQ(1, simulator->trace->pc(1));
+          EXPECT_EQ(1, simulator->trace->accu(1));
 
-  ASSERT_EQ(Thread::State::exited, simulator->threads[0].state);
-  ASSERT_EQ(Thread::State::running, simulator->threads[1].state);
+          return simulator->thread = 0;
+        }
+      case 4: // t0: post CHECK 1 && next == t1
+        {
+          EXPECT_EQ(2, simulator->trace->pc(0));
+          EXPECT_EQ(1, simulator->trace->accu(0));
+          EXPECT_EQ(1, simulator->trace->pc(1));
+          EXPECT_EQ(1, simulator->trace->accu(1));
+
+          EXPECT_EQ(::Simulator::State::waiting, simulator->state[0]);
+          EXPECT_EQ(::Simulator::State::running, simulator->state[1]);
+
+          EXPECT_EQ(1, simulator->active.size());
+          EXPECT_EQ(1, simulator->waiting_for_checkpoint[1].size());
+
+          return simulator->thread = 1;
+        }
+      case 5: // t1: post CHECK 1 (both active again) && next == t0
+        {
+          EXPECT_EQ(2, simulator->trace->pc(0));
+          EXPECT_EQ(1, simulator->trace->accu(0));
+          EXPECT_EQ(2, simulator->trace->pc(1));
+          EXPECT_EQ(1, simulator->trace->accu(1));
+
+          EXPECT_EQ(::Simulator::State::running, simulator->state[0]);
+          EXPECT_EQ(::Simulator::State::running, simulator->state[1]);
+
+          EXPECT_EQ(2, simulator->active.size());
+          EXPECT_EQ(0, simulator->waiting_for_checkpoint[1].size());
+
+          return simulator->thread = 0;
+        }
+      default:
+        {
+          EXPECT_TRUE(false) << "should have exited by now";
+          return 0;
+        }
+      }
+  });
+
+  ASSERT_EQ(simulator->step, 5);
+
+  ASSERT_EQ(::Simulator::State::exited, simulator->state[0]);
+  ASSERT_EQ(::Simulator::State::running, simulator->state[1]);
 
   // check Trace
   ASSERT_EQ(1, trace->exit);
 
   ASSERT_EQ(
-    Trace::thread_states<word_t>({
-      {{1, 0}, {3, 1}, {5, 2}},
-      {{2, 0}, {4, 1}}}),
+    Trace::thread_map<word_t>({
+      {{0, 0}, {1, 1}, {3, 2}},
+      {{0, 0}, {2, 1}, {4, 2}}}),
     trace->pc_updates);
 
   ASSERT_EQ(
-    Trace::thread_states<word_t>({{{1, 1}}, {{2, 1}}}),
+    Trace::thread_map<word_t>({
+      {{0, 0}, {1, 1}},
+      {{0, 0}, {2, 1}}}),
     trace->accu_updates);
 
   ASSERT_EQ(
-    Trace::thread_states<word_t>({{{1, 0}}, {{2, 0}}}),
+    Trace::thread_map<word_t>({{{0, 0}}, {{0, 0}}}),
     trace->mem_updates);
 
   ASSERT_EQ(
-    Trace::thread_states<word_t>({{{1, 0}}, {{2, 0}}}),
+    Trace::thread_map<word_t>({{{0, 0}}, {{0, 0}}}),
     trace->sb_adr_updates);
 
   ASSERT_EQ(
-    Trace::thread_states<word_t>({{{1, 0}}, {{2, 0}}}),
+    Trace::thread_map<word_t>({{{0, 0}}, {{0, 0}}}),
     trace->sb_val_updates);
 
   ASSERT_EQ(
-    Trace::thread_states<bool>({{{1, false}}, {{2, false}}}),
+    Trace::thread_map<bool>({{{0, false}}, {{0, false}}}),
     trace->sb_full_updates);
 
-  ASSERT_EQ(std::unordered_set<size_t>(), trace->flushes);
+  ASSERT_TRUE(trace->flushes.empty());
 
-  ASSERT_TRUE(trace->heap_updates.empty());
+  ASSERT_TRUE(trace->heap_adr_updates.empty());
+  ASSERT_TRUE(trace->heap_val_updates.empty());
 }
 
 TEST_F(Simulator, run_race_condition)
@@ -292,302 +251,298 @@ TEST_F(Simulator, run_race_condition)
 
   create_simulator({checker, program, program});
 
-  ASSERT_EQ(0, simulator->active.size());
-  ASSERT_EQ(3, simulator->threads.size());
+  ASSERT_EQ(3, simulator->active.size());
+  ASSERT_EQ(3, simulator->programs->size());
   ASSERT_EQ(3, simulator->threads_per_checkpoint[1].size());
-  ASSERT_EQ(0, simulator->waiting_for_checkpoint[1]);
-
-  size_t step = 0;
-
-  std::function<Thread *()> scheduler = [&] () -> Thread *
-    {
-      switch (step++)
-        {
-        case 0: // initial = t0 [CHECK 1]
-            {
-              EXPECT_EQ(0, simulator->heap[1]);
-
-              EXPECT_EQ(0, simulator->threads[0].pc);
-              EXPECT_EQ(0, simulator->threads[0].accu);
-              EXPECT_EQ(0, simulator->threads[1].pc);
-              EXPECT_EQ(0, simulator->threads[1].accu);
-              EXPECT_EQ(0, simulator->threads[2].pc);
-              EXPECT_EQ(0, simulator->threads[2].accu);
-
-              EXPECT_EQ(3, simulator->active.size());
-
-              return &simulator->threads[0];
-            }
-        case 1: // prev = t0 [CHECK 1] | next = t1 [LOAD 1]
-            {
-              EXPECT_EQ(1, simulator->threads[0].pc);
-              EXPECT_EQ(0, simulator->threads[0].accu);
-              EXPECT_EQ(0, simulator->threads[1].pc);
-              EXPECT_EQ(0, simulator->threads[1].accu);
-              EXPECT_EQ(0, simulator->threads[2].pc);
-              EXPECT_EQ(0, simulator->threads[2].accu);
-
-              EXPECT_EQ(2, simulator->active.size());
-              EXPECT_EQ(1, simulator->waiting_for_checkpoint[1]);
-              EXPECT_EQ(Thread::State::waiting, simulator->threads[0].state);
-
-              return &simulator->threads[1];
-            }
-        case 2: // prev = t1 [LOAD 1] | next = t2 [LOAD 1]
-            {
-              EXPECT_EQ(1, simulator->threads[0].pc);
-              EXPECT_EQ(0, simulator->threads[0].accu);
-              EXPECT_EQ(1, simulator->threads[1].pc);
-              EXPECT_EQ(0, simulator->threads[1].accu);
-              EXPECT_EQ(0, simulator->threads[2].pc);
-              EXPECT_EQ(0, simulator->threads[2].accu);
-
-              return &simulator->threads[2];
-            }
-        case 3: // prev = t2 [LOAD 1] | next = t1 [ADDI 1]
-            {
-              EXPECT_EQ(1, simulator->threads[0].pc);
-              EXPECT_EQ(0, simulator->threads[0].accu);
-              EXPECT_EQ(1, simulator->threads[1].pc);
-              EXPECT_EQ(0, simulator->threads[1].accu);
-              EXPECT_EQ(1, simulator->threads[2].pc);
-              EXPECT_EQ(0, simulator->threads[2].accu);
-
-              return &simulator->threads[1];
-            }
-        case 4: // prev = t1 [ADDI 1] | next = t2 [ADDI 1]
-            {
-              EXPECT_EQ(1, simulator->threads[0].pc);
-              EXPECT_EQ(0, simulator->threads[0].accu);
-              EXPECT_EQ(2, simulator->threads[1].pc);
-              EXPECT_EQ(1, simulator->threads[1].accu);
-              EXPECT_EQ(1, simulator->threads[2].pc);
-              EXPECT_EQ(0, simulator->threads[2].accu);
-
-              return &simulator->threads[2];
-            }
-        case 5: // prev = t2 [ADDI 1] | next = t1 [STORE 1]
-            {
-              EXPECT_EQ(1, simulator->threads[0].pc);
-              EXPECT_EQ(0, simulator->threads[0].accu);
-              EXPECT_EQ(2, simulator->threads[1].pc);
-              EXPECT_EQ(1, simulator->threads[1].accu);
-              EXPECT_EQ(2, simulator->threads[2].pc);
-              EXPECT_EQ(1, simulator->threads[2].accu);
-
-              return &simulator->threads[1];
-            }
-        case 6: // prev = t1 [STORE 1] | next = t2 [STORE 1]
-            {
-              EXPECT_EQ(1, simulator->threads[0].pc);
-              EXPECT_EQ(0, simulator->threads[0].accu);
-              EXPECT_EQ(3, simulator->threads[1].pc);
-              EXPECT_EQ(1, simulator->threads[1].accu);
-              EXPECT_EQ(2, simulator->threads[2].pc);
-              EXPECT_EQ(1, simulator->threads[2].accu);
-
-              EXPECT_EQ(1, simulator->threads[1].buffer.address);
-              EXPECT_EQ(1, simulator->threads[1].buffer.value);
-              EXPECT_TRUE(simulator->threads[1].buffer.full);
-
-              return &simulator->threads[2];
-            }
-        case 7: // prev = t2 [STORE 1] | next = t1 [FLUSH]
-            {
-              EXPECT_EQ(1, simulator->threads[0].pc);
-              EXPECT_EQ(0, simulator->threads[0].accu);
-              EXPECT_EQ(3, simulator->threads[1].pc);
-              EXPECT_EQ(1, simulator->threads[1].accu);
-              EXPECT_EQ(3, simulator->threads[2].pc);
-              EXPECT_EQ(1, simulator->threads[2].accu);
-
-              EXPECT_EQ(1, simulator->threads[2].buffer.address);
-              EXPECT_EQ(1, simulator->threads[2].buffer.value);
-              EXPECT_TRUE(simulator->threads[2].buffer.full);
-
-              simulator->threads[1].state = Thread::State::flushing;
-
-              return &simulator->threads[1];
-            }
-        case 8: // prev = t1 [FLUSH] | next = t2 [FLUSH]
-            {
-              EXPECT_EQ(1, simulator->threads[0].pc);
-              EXPECT_EQ(0, simulator->threads[0].accu);
-              EXPECT_EQ(3, simulator->threads[1].pc);
-              EXPECT_EQ(1, simulator->threads[1].accu);
-              EXPECT_EQ(3, simulator->threads[2].pc);
-              EXPECT_EQ(1, simulator->threads[2].accu);
-
-              EXPECT_FALSE(simulator->threads[1].buffer.full);
-
-              EXPECT_EQ(
-                simulator->threads[1].buffer.value,
-                simulator->heap[simulator->threads[1].buffer.address]);
-
-              simulator->threads[2].state = Thread::State::flushing;
-
-              return &simulator->threads[2];
-            }
-        case 9: // prev = t2 [FLUSH] | next = t1 [CHECK 1]
-            {
-              EXPECT_EQ(1, simulator->threads[0].pc);
-              EXPECT_EQ(0, simulator->threads[0].accu);
-              EXPECT_EQ(3, simulator->threads[1].pc);
-              EXPECT_EQ(1, simulator->threads[1].accu);
-              EXPECT_EQ(3, simulator->threads[2].pc);
-              EXPECT_EQ(1, simulator->threads[2].accu);
-
-              EXPECT_FALSE(simulator->threads[2].buffer.full);
-
-              EXPECT_EQ(
-                simulator->threads[2].buffer.value,
-                simulator->heap[simulator->threads[2].buffer.address]);
-
-              return &simulator->threads[1];
-            }
-        case 10: // prev = t1 [CHECK 1] | next = t2 [CHECK 1]
-            {
-              EXPECT_EQ(1, simulator->threads[0].pc);
-              EXPECT_EQ(0, simulator->threads[0].accu);
-              EXPECT_EQ(4, simulator->threads[1].pc);
-              EXPECT_EQ(1, simulator->threads[1].accu);
-              EXPECT_EQ(3, simulator->threads[2].pc);
-              EXPECT_EQ(1, simulator->threads[2].accu);
-
-              EXPECT_EQ(1, simulator->active.size());
-              EXPECT_EQ(1, simulator->waiting_for_checkpoint[1]);
-              EXPECT_EQ(Thread::State::waiting, simulator->threads[0].state);
-              EXPECT_EQ(Thread::State::halted, simulator->threads[1].state);
-
-              return &simulator->threads[2];
-            }
-        case 11: // prev = t2 [CHECK 1] | next = t0 [LOAD 1]
-            {
-              EXPECT_EQ(1, simulator->threads[0].pc);
-              EXPECT_EQ(0, simulator->threads[0].accu);
-              EXPECT_EQ(4, simulator->threads[1].pc);
-              EXPECT_EQ(1, simulator->threads[1].accu);
-              EXPECT_EQ(4, simulator->threads[2].pc);
-              EXPECT_EQ(1, simulator->threads[2].accu);
-
-              EXPECT_EQ(1, simulator->active.size());
-              EXPECT_EQ(0, simulator->waiting_for_checkpoint[1]);
-              EXPECT_EQ(Thread::State::running, simulator->threads[0].state);
-              EXPECT_EQ(Thread::State::halted, simulator->threads[1].state);
-              EXPECT_EQ(Thread::State::halted, simulator->threads[2].state);
-
-              return &simulator->threads[0];
-            }
-        case 12: // prev = t0 [LOAD 1] | next = t0 [SUBI 2]
-            {
-              EXPECT_EQ(2, simulator->threads[0].pc);
-              EXPECT_EQ(1, simulator->threads[0].accu);
-              EXPECT_EQ(4, simulator->threads[1].pc);
-              EXPECT_EQ(1, simulator->threads[1].accu);
-              EXPECT_EQ(4, simulator->threads[2].pc);
-              EXPECT_EQ(1, simulator->threads[2].accu);
-
-              return &simulator->threads[0];
-            }
-        case 13: // prev = t0 [SUBI 2] | next = t0 [JZ 5]
-            {
-              EXPECT_EQ(3, simulator->threads[0].pc);
-              EXPECT_EQ(word_t(-1), simulator->threads[0].accu);
-              EXPECT_EQ(4, simulator->threads[1].pc);
-              EXPECT_EQ(1, simulator->threads[1].accu);
-              EXPECT_EQ(4, simulator->threads[2].pc);
-              EXPECT_EQ(1, simulator->threads[2].accu);
-
-              return &simulator->threads[0];
-            }
-        case 14: // prev = t0 [JZ 5] | next = t0 [EXIT 1]
-            {
-              EXPECT_EQ(4, simulator->threads[0].pc);
-              EXPECT_EQ(word_t(-1), simulator->threads[0].accu);
-              EXPECT_EQ(4, simulator->threads[1].pc);
-              EXPECT_EQ(1, simulator->threads[1].accu);
-              EXPECT_EQ(4, simulator->threads[2].pc);
-              EXPECT_EQ(1, simulator->threads[2].accu);
-
-              return &simulator->threads[0];
-            }
-        case 15: // last = t0 [EXIT 1]
-            {
-              EXPECT_EQ(4, simulator->threads[0].pc);
-              EXPECT_EQ(word_t(-1), simulator->threads[0].accu);
-              EXPECT_EQ(4, simulator->threads[1].pc);
-              EXPECT_EQ(1, simulator->threads[1].accu);
-              EXPECT_EQ(4, simulator->threads[2].pc);
-              EXPECT_EQ(1, simulator->threads[2].accu);
-
-              EXPECT_EQ(Thread::State::exited, simulator->threads[0].state);
-
-              return &simulator->threads[0];
-            }
-        default:
-            {
-              EXPECT_TRUE(false) << "should have exited by now";
-              return nullptr;
-            }
-        }
-    };
+  ASSERT_EQ(0, simulator->waiting_for_checkpoint[1].size());
 
   // run it
-  trace = simulator->run(scheduler);
+  trace = simulator->run([&] () -> word_t {
+    switch (simulator->step)
+      {
+      case 1: // initial = t0 [CHECK 1]
+        {
+          EXPECT_EQ(0, simulator->trace->pc(0));
+          EXPECT_EQ(0, simulator->trace->accu(0));
+          EXPECT_EQ(0, simulator->trace->pc(1));
+          EXPECT_EQ(0, simulator->trace->accu(1));
+          EXPECT_EQ(0, simulator->trace->pc(2));
+          EXPECT_EQ(0, simulator->trace->accu(2));
 
-  ASSERT_EQ(15, step);
+          EXPECT_EQ(3, simulator->active.size());
 
-  ASSERT_EQ(Thread::State::exited, simulator->threads[0].state);
-  ASSERT_EQ(Thread::State::halted, simulator->threads[1].state);
-  ASSERT_EQ(Thread::State::halted, simulator->threads[2].state);
+          return simulator->thread = 0;
+        }
+      case 2: // prev = t0 [CHECK 1] | next = t1 [LOAD 1]
+        {
+          EXPECT_EQ(1, simulator->trace->pc(0));
+          EXPECT_EQ(0, simulator->trace->accu(0));
+          EXPECT_EQ(0, simulator->trace->pc(1));
+          EXPECT_EQ(0, simulator->trace->accu(1));
+          EXPECT_EQ(0, simulator->trace->pc(2));
+          EXPECT_EQ(0, simulator->trace->accu(2));
+
+          EXPECT_EQ(2, simulator->active.size());
+          EXPECT_EQ(1, simulator->waiting_for_checkpoint[1].size());
+          EXPECT_EQ(::Simulator::State::waiting, simulator->state[0]);
+
+          return simulator->thread = 1;
+        }
+      case 3: // prev = t1 [LOAD 1] | next = t2 [LOAD 1]
+        {
+          EXPECT_EQ(1, simulator->trace->pc(0));
+          EXPECT_EQ(0, simulator->trace->accu(0));
+          EXPECT_EQ(1, simulator->trace->pc(1));
+          EXPECT_EQ(0, simulator->trace->accu(1));
+          EXPECT_EQ(0, simulator->trace->pc(2));
+          EXPECT_EQ(0, simulator->trace->accu(2));
+
+          return simulator->thread = 2;
+        }
+      case 4: // prev = t2 [LOAD 1] | next = t1 [ADDI 1]
+        {
+          EXPECT_EQ(1, simulator->trace->pc(0));
+          EXPECT_EQ(0, simulator->trace->accu(0));
+          EXPECT_EQ(1, simulator->trace->pc(1));
+          EXPECT_EQ(0, simulator->trace->accu(1));
+          EXPECT_EQ(1, simulator->trace->pc(2));
+          EXPECT_EQ(0, simulator->trace->accu(2));
+
+          return simulator->thread = 1;
+        }
+      case 5: // prev = t1 [ADDI 1] | next = t2 [ADDI 1]
+        {
+          EXPECT_EQ(1, simulator->trace->pc(0));
+          EXPECT_EQ(0, simulator->trace->accu(0));
+          EXPECT_EQ(2, simulator->trace->pc(1));
+          EXPECT_EQ(1, simulator->trace->accu(1));
+          EXPECT_EQ(1, simulator->trace->pc(2));
+          EXPECT_EQ(0, simulator->trace->accu(2));
+
+          return simulator->thread = 2;
+        }
+      case 6: // prev = t2 [ADDI 1] | next = t1 [STORE 1]
+        {
+          EXPECT_EQ(1, simulator->trace->pc(0));
+          EXPECT_EQ(0, simulator->trace->accu(0));
+          EXPECT_EQ(2, simulator->trace->pc(1));
+          EXPECT_EQ(1, simulator->trace->accu(1));
+          EXPECT_EQ(2, simulator->trace->pc(2));
+          EXPECT_EQ(1, simulator->trace->accu(2));
+
+          return simulator->thread = 1;
+        }
+      case 7: // prev = t1 [STORE 1] | next = t2 [STORE 1]
+        {
+          EXPECT_EQ(1, simulator->trace->pc(0));
+          EXPECT_EQ(0, simulator->trace->accu(0));
+          EXPECT_EQ(3, simulator->trace->pc(1));
+          EXPECT_EQ(1, simulator->trace->accu(1));
+          EXPECT_EQ(2, simulator->trace->pc(2));
+          EXPECT_EQ(1, simulator->trace->accu(2));
+
+          EXPECT_EQ(1, simulator->trace->sb_adr(1));
+          EXPECT_EQ(1, simulator->trace->sb_val(1));
+          EXPECT_TRUE(simulator->trace->sb_full(1));
+
+          return simulator->thread = 2;
+        }
+      case 8: // prev = t2 [STORE 1] | next = t1 [FLUSH]
+        {
+          EXPECT_EQ(1, simulator->trace->pc(0));
+          EXPECT_EQ(0, simulator->trace->accu(0));
+          EXPECT_EQ(3, simulator->trace->pc(1));
+          EXPECT_EQ(1, simulator->trace->accu(1));
+          EXPECT_EQ(3, simulator->trace->pc(2));
+          EXPECT_EQ(1, simulator->trace->accu(2));
+
+          EXPECT_EQ(1, simulator->trace->sb_adr(2));
+          EXPECT_EQ(1, simulator->trace->sb_val(2));
+          EXPECT_TRUE(simulator->trace->sb_full(2));
+
+          simulator->state[1] = ::Simulator::State::flushing;
+
+          return simulator->thread = 1;
+        }
+      case 9: // prev = t1 [FLUSH] | next = t2 [FLUSH]
+        {
+          EXPECT_EQ(1, simulator->trace->pc(0));
+          EXPECT_EQ(0, simulator->trace->accu(0));
+          EXPECT_EQ(3, simulator->trace->pc(1));
+          EXPECT_EQ(1, simulator->trace->accu(1));
+          EXPECT_EQ(3, simulator->trace->pc(2));
+          EXPECT_EQ(1, simulator->trace->accu(2));
+
+          EXPECT_FALSE(simulator->trace->sb_full(1));
+
+          EXPECT_EQ(
+            simulator->trace->sb_val(1),
+            simulator->trace->heap(simulator->trace->sb_adr(1)));
+
+          simulator->state[2] = ::Simulator::State::flushing;
+
+          return simulator->thread = 2;
+        }
+      case 10: // prev = t2 [FLUSH] | next = t1 [CHECK 1]
+        {
+          EXPECT_EQ(1, simulator->trace->pc(0));
+          EXPECT_EQ(0, simulator->trace->accu(0));
+          EXPECT_EQ(3, simulator->trace->pc(1));
+          EXPECT_EQ(1, simulator->trace->accu(1));
+          EXPECT_EQ(3, simulator->trace->pc(2));
+          EXPECT_EQ(1, simulator->trace->accu(2));
+
+          EXPECT_FALSE(simulator->trace->sb_full(2));
+
+          EXPECT_EQ(
+            simulator->trace->sb_val(2),
+            simulator->trace->heap(simulator->trace->sb_adr(2)));
+
+          return simulator->thread = 1;
+        }
+      case 11: // prev = t1 [CHECK 1] | next = t2 [CHECK 1]
+        {
+          EXPECT_EQ(1, simulator->trace->pc(0));
+          EXPECT_EQ(0, simulator->trace->accu(0));
+          EXPECT_EQ(3, simulator->trace->pc(1));
+          EXPECT_EQ(1, simulator->trace->accu(1));
+          EXPECT_EQ(3, simulator->trace->pc(2));
+          EXPECT_EQ(1, simulator->trace->accu(2));
+
+          EXPECT_EQ(1, simulator->active.size());
+          EXPECT_EQ(2, simulator->waiting_for_checkpoint[1].size());
+          EXPECT_EQ(::Simulator::State::waiting, simulator->state[0]);
+          EXPECT_EQ(::Simulator::State::halted, simulator->state[1]);
+
+          return simulator->thread = 2;
+        }
+      case 12: // prev = t2 [CHECK 1] | next = t0 [LOAD 1]
+        {
+          EXPECT_EQ(1, simulator->trace->pc(0));
+          EXPECT_EQ(0, simulator->trace->accu(0));
+          EXPECT_EQ(3, simulator->trace->pc(1));
+          EXPECT_EQ(1, simulator->trace->accu(1));
+          EXPECT_EQ(3, simulator->trace->pc(2));
+          EXPECT_EQ(1, simulator->trace->accu(2));
+
+          EXPECT_EQ(1, simulator->active.size());
+          EXPECT_EQ(0, simulator->waiting_for_checkpoint[1].size());
+          EXPECT_EQ(::Simulator::State::running, simulator->state[0]);
+          EXPECT_EQ(::Simulator::State::halted, simulator->state[1]);
+          EXPECT_EQ(::Simulator::State::halted, simulator->state[2]);
+
+          return simulator->thread = 0;
+        }
+      case 13: // prev = t0 [LOAD 1] | next = t0 [SUBI 2]
+        {
+          EXPECT_EQ(2, simulator->trace->pc(0));
+          EXPECT_EQ(1, simulator->trace->accu(0));
+          EXPECT_EQ(3, simulator->trace->pc(1));
+          EXPECT_EQ(1, simulator->trace->accu(1));
+          EXPECT_EQ(3, simulator->trace->pc(2));
+          EXPECT_EQ(1, simulator->trace->accu(2));
+
+          return simulator->thread = 0;
+        }
+      case 14: // prev = t0 [SUBI 2] | next = t0 [JZ 5]
+        {
+          EXPECT_EQ(3, simulator->trace->pc(0));
+          EXPECT_EQ(word_t(-1), simulator->trace->accu(0));
+          EXPECT_EQ(3, simulator->trace->pc(1));
+          EXPECT_EQ(1, simulator->trace->accu(1));
+          EXPECT_EQ(3, simulator->trace->pc(2));
+          EXPECT_EQ(1, simulator->trace->accu(2));
+
+          return simulator->thread = 0;
+        }
+      case 15: // prev = t0 [JZ 5] | next = t0 [EXIT 1]
+        {
+          EXPECT_EQ(4, simulator->trace->pc(0));
+          EXPECT_EQ(word_t(-1), simulator->trace->accu(0));
+          EXPECT_EQ(3, simulator->trace->pc(1));
+          EXPECT_EQ(1, simulator->trace->accu(1));
+          EXPECT_EQ(3, simulator->trace->pc(2));
+          EXPECT_EQ(1, simulator->trace->accu(2));
+
+          return simulator->thread = 0;
+        }
+      case 16: // last = t0 [EXIT 1]
+        {
+          EXPECT_EQ(4, simulator->trace->pc(0));
+          EXPECT_EQ(word_t(-1), simulator->trace->accu(0));
+          EXPECT_EQ(3, simulator->trace->pc(1));
+          EXPECT_EQ(1, simulator->trace->accu(1));
+          EXPECT_EQ(3, simulator->trace->pc(2));
+          EXPECT_EQ(1, simulator->trace->accu(2));
+
+          EXPECT_EQ(::Simulator::State::exited, simulator->state[0]);
+
+          return simulator->thread = 0;
+        }
+      default:
+        {
+          EXPECT_TRUE(false) << "should have exited by now";
+          return 0;
+        }
+      }
+  });
+
+  ASSERT_EQ(15, simulator->step);
+
+  ASSERT_EQ(::Simulator::State::exited, simulator->state[0]);
+  ASSERT_EQ(::Simulator::State::halted, simulator->state[1]);
+  ASSERT_EQ(::Simulator::State::halted, simulator->state[2]);
 
   // check Trace
   ASSERT_EQ(1, trace->exit);
 
   ASSERT_EQ(
-    Trace::thread_states<word_t>({
-      {{1, 0}, {12, 1}, {13, 2}, {14, 3}, {15, 4}},
-      {{2, 0}, {4, 1}, {6, 2}, {10, 3}},
-      {{3, 0}, {5, 1}, {7, 2}, {11, 3}}}),
+    Trace::thread_map<word_t>({
+      {{0, 0}, {1, 1}, {12, 2}, {13, 3}, {14, 4}},
+      {{0, 0}, {2, 1}, {4, 2}, {6, 3}},
+      {{0, 0}, {3, 1}, {5, 2}, {7, 3}}}),
     trace->pc_updates);
 
   ASSERT_EQ(
-    Trace::thread_states<word_t>({
-      {{1, 0}, {12, 1}, {13, 65535}},
-      {{2, 0}, {4, 1}},
-      {{3, 0}, {5, 1}}}),
+    Trace::thread_map<word_t>({
+      {{0, 0}, {12, 1}, {13, 65535}},
+      {{0, 0}, {4, 1}},
+      {{0, 0}, {5, 1}}}),
     trace->accu_updates);
 
   ASSERT_EQ(
-    Trace::thread_states<word_t>({{{1, 0}}, {{2, 0}}, {{3, 0}}}),
+    Trace::thread_map<word_t>({{{0, 0}}, {{0, 0}}, {{0, 0}}}),
     trace->mem_updates);
 
   ASSERT_EQ(
-    Trace::thread_states<word_t>({
-      {{1, 0}},
-      {{2, 0}, {6, 1}},
-      {{3, 0}, {7, 1}}}),
+    Trace::thread_map<word_t>({
+      {{0, 0}},
+      {{0, 0}, {6, 1}},
+      {{0, 0}, {7, 1}}}),
     trace->sb_adr_updates);
 
   ASSERT_EQ(
-    Trace::thread_states<word_t>({
-      {{1, 0}},
-      {{2, 0}, {6, 1}},
-      {{3, 0}, {7, 1}}}),
+    Trace::thread_map<word_t>({
+      {{0, 0}},
+      {{0, 0}, {6, 1}},
+      {{0, 0}, {7, 1}}}),
     trace->sb_val_updates);
 
   ASSERT_EQ(
-    Trace::thread_states<bool>({
-      {{1, false}},
-      {{2, false}, {6, true}, {8, false}},
-      {{3, false}, {7, true}, {9, false}}}),
+    Trace::thread_map<bool>({
+      {{0, false}},
+      {{0, false}, {6, true}, {8, false}},
+      {{0, false}, {7, true}, {9, false}}}),
     trace->sb_full_updates);
 
-  ASSERT_EQ(std::unordered_set<size_t>({8, 9}), trace->flushes);
+  ASSERT_EQ(std::unordered_set<size_t>({7, 8}), trace->flushes);
 
   ASSERT_EQ(
-    Trace::heap_states({{1, {{8, 1}}}}),
-    trace->heap_updates);
+    Trace::update_map<word_t>({{8, 1}, {9, 1}}),
+    trace->heap_adr_updates);
+  ASSERT_EQ(
+    Trace::heap_val_map({{1, {{8, 1}}}}),
+    trace->heap_val_updates);
 }
 
 TEST_F(Simulator, run_zero_bound)
@@ -596,76 +551,69 @@ TEST_F(Simulator, run_zero_bound)
 
   create_simulator({program});
 
-  size_t step = 0;
-
-  std::function<Thread *()> scheduler = [&] () -> Thread *
-    {
-      switch (step++)
-        {
-        case 0:
-            {
-              return &simulator->threads[0];
-            }
-        case 1:
-            {
-              EXPECT_EQ(0, simulator->threads[0].pc);
-
-              return &simulator->threads[0];
-            }
-        case 2:
-            {
-              // 3 iterations are enough ...
-              simulator->bound = 1;
-
-              EXPECT_EQ(0, simulator->threads[0].pc);
-
-              return &simulator->threads[0];
-            }
-        default:
-            {
-              EXPECT_TRUE(false) << "should have halted by now";
-              return nullptr;
-            }
-        }
-    };
-
   // run it
-  trace = simulator->run(scheduler);
+  trace = simulator->run([&] () -> word_t {
+    switch (simulator->step)
+      {
+      case 0: return simulator->thread = 0;
+      case 1:
+        {
+          EXPECT_EQ(0, simulator->trace->pc(0));
 
-  EXPECT_EQ(step, 3);
+          return simulator->thread = 0;
+        }
+      case 2:
+        {
+          // 3 iterations are enough ...
+          simulator->bound = 1;
 
-  EXPECT_EQ(Thread::State::running, simulator->threads[0].state);
+          EXPECT_EQ(0, simulator->trace->pc(0));
+
+          return simulator->thread = 0;
+        }
+      default:
+        {
+          EXPECT_TRUE(false) << "should have halted by now";
+          return 0;
+        }
+      }
+  });
+
+  EXPECT_EQ(3, simulator->step);
+
+  EXPECT_EQ(::Simulator::State::running, simulator->state[0]);
 
   // check Trace
   ASSERT_EQ(0, trace->exit);
 
   ASSERT_EQ(
-    Trace::thread_states<word_t>({{{1, 0}}}),
+    Trace::thread_map<word_t>({{{0, 0}}}),
     trace->pc_updates);
 
   ASSERT_EQ(
-    Trace::thread_states<word_t>({{{1, 0}}}),
+    Trace::thread_map<word_t>({{{0, 0}}}),
     trace->accu_updates);
 
   ASSERT_EQ(
-    Trace::thread_states<word_t>({{{1, 0}}}),
+    Trace::thread_map<word_t>({{{0, 0}}}),
     trace->mem_updates);
 
   ASSERT_EQ(
-    Trace::thread_states<word_t>({{{1, 0}}}),
+    Trace::thread_map<word_t>({{{0, 0}}}),
     trace->sb_adr_updates);
 
   ASSERT_EQ(
-    Trace::thread_states<word_t>({{{1, 0}}}),
+    Trace::thread_map<word_t>({{{0, 0}}}),
     trace->sb_val_updates);
 
   ASSERT_EQ(
-    Trace::thread_states<bool>({{{1, false}}}),
+    Trace::thread_map<bool>({{{0, false}}}),
     trace->sb_full_updates);
 
   ASSERT_EQ(std::unordered_set<size_t>(), trace->flushes);
 
-  ASSERT_TRUE(trace->heap_updates.empty());
+  ASSERT_TRUE(trace->heap_adr_updates.empty());
+  ASSERT_TRUE(trace->heap_val_updates.empty());
 }
 
 // Simulator::simulate =========================================================
@@ -684,8 +632,12 @@ TEST_F(Simulator, simulate_increment_check)
 
   trace = ::Simulator::simulate(programs, 16);
 
+  ASSERT_EQ(
+    Trace::update_map<word_t>({{3,0}, {14, 0}}),
+    trace->heap_adr_updates);
+
   ASSERT_EQ(0, trace->exit);
-  ASSERT_EQ(16, trace->bound);
+  ASSERT_EQ(17, trace->length);
   ASSERT_EQ(expected, trace->print());
 }
 
@@ -703,8 +655,12 @@ TEST_F(Simulator, simulate_increment_cas)
 
   trace = ::Simulator::simulate(programs, 16);
 
+  ASSERT_EQ(
+    Trace::update_map<word_t>({{3, 0}, {4, 0}, {12, 0}}),
+    trace->heap_adr_updates);
+
   ASSERT_EQ(0, trace->exit);
-  ASSERT_EQ(16, trace->bound);
+  ASSERT_EQ(17, trace->length);
   ASSERT_EQ(expected, trace->print());
 }
 
@@ -725,7 +681,7 @@ TEST_F(Simulator, replay_increment_check)
   trace = ::Simulator::replay(*trace);
 
   ASSERT_EQ(0, trace->exit);
-  ASSERT_EQ(16, trace->bound);
+  ASSERT_EQ(17, trace->length);
   ASSERT_EQ(expected, trace->print());
 }
 
@@ -744,7 +700,7 @@ TEST_F(Simulator, replay_increment_cas)
   trace = ::Simulator::replay(*trace);
 
   ASSERT_EQ(0, trace->exit);
-  ASSERT_EQ(16, trace->bound);
+  ASSERT_EQ(17, trace->length);
   ASSERT_EQ(expected, trace->print());
 }
 
