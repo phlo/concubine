@@ -40,6 +40,10 @@ constexpr char eol = '\n';
 //
 extern bool verbose;
 
+// seed used by random number generators
+//
+extern uint64_t seed;
+
 } // namespace ConcuBinE
 
 #endif

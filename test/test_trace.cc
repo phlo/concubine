@@ -251,12 +251,12 @@ TEST_F(Trace, parse_file_not_found)
     {
       trace =
         std::make_unique<ConcuBinE::Trace>(
-          create_from_file<ConcuBinE::Trace>("file_not_found"));
+          create_from_file<ConcuBinE::Trace>("file"));
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
     {
-      ASSERT_STREQ("file_not_found not found", e.what());
+      ASSERT_STREQ("file not found", e.what());
     }
 }
 

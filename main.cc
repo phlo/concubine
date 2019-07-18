@@ -13,10 +13,11 @@
 namespace ConcuBinE {
 
 //==============================================================================
-// global flags
+// global variables
 //==============================================================================
 
 bool verbose = false;
+uint64_t seed = static_cast<uint64_t>(time(NULL));
 
 //==============================================================================
 // usage
@@ -132,7 +133,6 @@ int help (const char * name, const int argc, const char **argv)
 int simulate (const char * name, const int argc, const char ** argv)
 {
   size_t bound = 0;
-  uint64_t seed = static_cast<uint64_t>(time(NULL));
   Program::List::ptr programs = std::make_shared<Program::List>();
 
   for (int i = 0; i < argc; i++)
@@ -201,7 +201,7 @@ int simulate (const char * name, const int argc, const char ** argv)
     }
 
   // run program with given seed
-  Trace::ptr trace = Simulator::simulate(programs, bound, seed);
+  Trace::ptr trace = Simulator::simulate(programs, bound);
 
   // print the result
   std::cout << trace->print();

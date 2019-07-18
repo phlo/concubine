@@ -27,13 +27,11 @@ inline void erase (C & container, T & val)
 //------------------------------------------------------------------------------
 
 Simulator::Simulator (const Program::List::ptr & p,
-                      const size_t b,
-                      const uint64_t s) :
+                      const size_t b) :
   programs(p),
   trace(std::make_unique<Trace>(p)),
   step(0),
   bound(b ? b : static_cast<size_t>(-1)),
-  seed(s),
   state(p->size(), State::running),
   active(p->size())
 {
@@ -459,10 +457,9 @@ Trace::ptr Simulator::run (std::function<word_t()> scheduler)
 // Simulator::simulate ---------------------------------------------------------
 
 Trace::ptr Simulator::simulate (const Program::List::ptr & programs,
-                                const size_t bound,
-                                const size_t seed)
+                                const size_t bound)
 {
-  Simulator simulator {programs, bound, seed};
+  Simulator simulator {programs, bound};
 
   // Mersenne Twister pseudo-random number generator
   std::mt19937_64 random(seed);

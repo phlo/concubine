@@ -7,6 +7,7 @@
 namespace ConcuBinE {
 
 bool verbose = true;
+uint64_t seed = 0;
 
 } // namespace ConcuBinE
 

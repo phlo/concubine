@@ -138,16 +138,14 @@ TEST_F(Program, parse_empty_line)
 
 TEST_F(Program, parse_file_not_found)
 {
-  std::string file = "file_not_found";
-
   try
     {
-      program = create_from_file<ConcuBinE::Program>(file);
+      program = create_from_file<ConcuBinE::Program>("file");
       ASSERT_TRUE(false);
     }
   catch (const std::exception & e)
     {
-      ASSERT_STREQ("file_not_found not found", e.what());
+      ASSERT_STREQ("file not found", e.what());
     }
 }
 

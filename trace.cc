@@ -34,7 +34,7 @@ Trace::Trace(std::istream & file, const std::string & path) :
   size_t line_num = 1;
 
   // parse programs
-  for (std::string line_buf; getline(file, line_buf); ++line_num)
+  for (std::string line_buf; std::getline(file, line_buf); ++line_num)
     {
       // skip empty lines
       if (line_buf.empty())
@@ -72,7 +72,7 @@ Trace::Trace(std::istream & file, const std::string & path) :
 
   // parse body
   line_num++;
-  for (std::string line_buf; getline(file, line_buf); line_num++)
+  for (std::string line_buf; std::getline(file, line_buf); line_num++)
     {
       // skip empty lines
       if (line_buf.empty())

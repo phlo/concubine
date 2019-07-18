@@ -37,6 +37,7 @@ SRC = boolector.cc \
       encoder_smtlib_functional.cc \
       encoder_smtlib_relational.cc \
       instruction.cc \
+      mmap.cc \
       program.cc \
       trace.cc \
       shell.cc \

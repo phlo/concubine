@@ -35,7 +35,7 @@ Program::Program(std::istream & f, const std::string & p) : path(p)
   std::vector<
     std::tuple<std::string, word_t, const std::string *>> labelled_jumps;
 
-  for (std::string line_buf; getline(f, line_buf); line_num++)
+  for (std::string line_buf; std::getline(f, line_buf); line_num++)
     {
       // skip empty lines
       if (line_buf.empty())

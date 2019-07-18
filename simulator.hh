@@ -58,10 +58,6 @@ struct Simulator
   //
   size_t bound;
 
-  // seed used for random thread scheduling
-  //
-  uint64_t seed;
-
   // current thread
   //
   word_t thread;
@@ -92,9 +88,7 @@ struct Simulator
   // constructors
   //----------------------------------------------------------------------------
 
-  Simulator (const Program::List::ptr & programs,
-             size_t bound = 0,
-             uint64_t seed = 0);
+  Simulator (const Program::List::ptr & programs, size_t bound = 0);
 
   //----------------------------------------------------------------------------
   // private functions
@@ -195,8 +189,7 @@ struct Simulator
   // runs the simulator using a random trace
   //
   static Trace::ptr simulate (const Program::List::ptr & programs,
-                              size_t bound = 0,
-                              uint64_t seed = 0);
+                              size_t bound = 0);
 
   // replay the given trace (trace must match simulator configuration)
   //
