@@ -3,6 +3,8 @@
 
 #include "solver.hh"
 
+namespace ConcuBinE {
+
 class Boolector : public External
 {
   virtual std::string build_command ();
@@ -15,5 +17,7 @@ public:
 
   virtual std::string name () const;
 };
+
+} // namespace ConcuBinE
 
 #endif

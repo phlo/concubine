@@ -5,6 +5,8 @@
 #include "instruction.hh"
 #include "parser.hh"
 
+namespace ConcuBinE {
+
 //==============================================================================
 // macros
 //==============================================================================
@@ -318,3 +320,5 @@ bool operator != (const Program & a, const Program & b)
 {
   return !(a == b);
 }
+
+} // namespace ConcuBinE

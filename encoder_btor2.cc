@@ -5,7 +5,7 @@
 
 #include "btor2.hh"
 
-namespace btor2 {
+namespace ConcuBinE::btor2 {
 
 //==============================================================================
 // helpers
@@ -51,49 +51,109 @@ const std::string & Encoder::exit_code_var = exit_code_sym;
 // variable comments -----------------------------------------------------------
 
 const std::string Encoder::accu_comment =
-  comment(::Encoder::accu_comment + " - " + accu_sym + "_<thread>" + eol);
+  comment(
+    ConcuBinE::Encoder::accu_comment
+    + " - "
+    + accu_sym
+    + "_<thread>"
+    + eol);
 
 const std::string Encoder::mem_comment =
-  comment(::Encoder::mem_comment + " - " + mem_sym + "_<thread>" + eol);
+  comment(
+    ConcuBinE::Encoder::mem_comment
+    + " - "
+    + mem_sym
+    + "_<thread>"
+    + eol);
 
 const std::string Encoder::sb_adr_comment =
-  comment(::Encoder::sb_adr_comment + " - " + sb_adr_sym + "_<thread>" + eol);
+  comment(
+    ConcuBinE::Encoder::sb_adr_comment
+    + " - "
+    + sb_adr_sym
+    + "_<thread>"
+    + eol);
 
 const std::string Encoder::sb_val_comment =
-  comment(::Encoder::sb_val_comment + " - " + sb_val_sym + "_<thread>" + eol);
+  comment(
+    ConcuBinE::Encoder::sb_val_comment
+    + " - "
+    + sb_val_sym
+    + "_<thread>"
+    + eol);
 
 const std::string Encoder::sb_full_comment =
-  comment(::Encoder::sb_full_comment + " - " + sb_full_sym + "_<thread>" + eol);
+  comment(
+    ConcuBinE::Encoder::sb_full_comment
+    + " - "
+    + sb_full_sym
+    + "_<thread>"
+    + eol);
 
 const std::string Encoder::stmt_comment =
-  comment(::Encoder::stmt_comment + " - " + stmt_sym + "_<thread>_<pc>" + eol);
+  comment(
+    ConcuBinE::Encoder::stmt_comment
+    + " - "
+    + stmt_sym
+    + "_<thread>_<pc>"
+    + eol);
 
 const std::string Encoder::block_comment =
-  comment(::Encoder::block_comment + " - " + block_sym + "_<id>_<thread>" + eol);
+  comment(
+    ConcuBinE::Encoder::block_comment
+    + " - "
+    + block_sym
+    + "_<id>_<thread>"
+    + eol);
 
 const std::string Encoder::halt_comment =
-  comment(::Encoder::halt_comment + " - " + halt_sym + "_<thread>" + eol);
+  comment(
+    ConcuBinE::Encoder::halt_comment
+    + " - "
+    + halt_sym
+    + "_<thread>"
+    + eol);
 
 const std::string Encoder::heap_comment =
-  comment(::Encoder::heap_comment + eol);
+  comment(ConcuBinE::Encoder::heap_comment + eol);
 
 const std::string Encoder::exit_flag_comment =
-  comment(::Encoder::exit_flag_comment + eol);
+  comment(ConcuBinE::Encoder::exit_flag_comment + eol);
 
 const std::string Encoder::exit_code_comment =
-  comment(::Encoder::exit_code_comment + eol);
+  comment(ConcuBinE::Encoder::exit_code_comment + eol);
 
 const std::string Encoder::thread_comment =
-  comment(::Encoder::thread_comment + " - " + thread_sym + "_<thread>" + eol);
+  comment(
+    ConcuBinE::Encoder::thread_comment
+    + " - "
+    + thread_sym
+    + "_<thread>"
+    + eol);
 
 const std::string Encoder::exec_comment =
-  comment(::Encoder::exec_comment + " - " + exec_sym + "_<thread>_<pc>" + eol);
+  comment(
+    ConcuBinE::Encoder::exec_comment
+    + " - "
+    + exec_sym
+    + "_<thread>_<pc>"
+    + eol);
 
 const std::string Encoder::flush_comment =
-  comment(::Encoder::flush_comment + " - " + flush_sym + "_<thread>" + eol);
+  comment(
+    ConcuBinE::Encoder::flush_comment
+    + " - "
+    + flush_sym
+    + "_<thread>"
+    + eol);
 
 const std::string Encoder::check_comment =
-  comment(::Encoder::check_comment + " - " + check_sym + "_<id>" + eol);
+  comment(
+    ConcuBinE::Encoder::check_comment
+    + " - "
+    + check_sym
+    + "_<id>"
+    + eol);
 
 // most significant bit's bitvector constant -----------------------------------
 
@@ -104,7 +164,7 @@ const std::string Encoder::msb = std::to_string(word_size - 1);
 //------------------------------------------------------------------------------
 
 Encoder::Encoder (const Program::List::ptr & p, const size_t b, const bool e) :
-  ::Encoder(p, b),
+  ConcuBinE::Encoder(p, b),
   node(1)
 {
   // collect constants
@@ -1729,4 +1789,4 @@ std::string Encoder::encode (const Instruction::Exit & e [[maybe_unused]])
   return nids_const[e.arg];
 }
 
-} // namespace btor2
+} // namespace ConcuBinE::btor2

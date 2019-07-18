@@ -2,9 +2,8 @@
 
 #include "boolector.hh"
 #include "smtlib.hh"
-#include "streamredirecter.hh"
 
-namespace test {
+namespace ConcuBinE::test {
 
 //==============================================================================
 // SMT-Lib v2.5 std::string generator tests
@@ -269,12 +268,8 @@ TEST(smtlib, cardinality_exactly_one_naive)
 TEST(smtlib, cardinality_exactly_one_naive_verify)
 {
   Boolector btor;
-
   std::ostringstream ss;
-  StreamRedirecter redirecter(std::cout, ss);
-
   std::vector<std::string> vars({"x1", "x2", "x3"});
-
   std::string formula = smtlib::set_logic() + eol;
 
   for (const auto & v : vars)
@@ -290,11 +285,7 @@ TEST(smtlib, cardinality_exactly_one_naive_verify)
 
   spec += smtlib::check_sat() + eol;
 
-  redirecter.start();
-
   ASSERT_FALSE(btor.sat(spec));
-
-  redirecter.stop();
 
   // not more than one
   spec = formula;
@@ -305,11 +296,7 @@ TEST(smtlib, cardinality_exactly_one_naive_verify)
 
   spec += smtlib::check_sat() + eol;
 
-  redirecter.start();
-
   ASSERT_FALSE(btor.sat(spec));
-
-  redirecter.stop();
 }
 
 // card_constraint_sinz ========================================================
@@ -361,12 +348,8 @@ TEST(smtlib, cardinality_exactly_one_sinz)
 TEST(smtlib, cardinality_exactly_one_sinz_verify)
 {
   Boolector btor;
-
   std::ostringstream ss;
-  StreamRedirecter redirecter(std::cout, ss);
-
   std::vector<std::string> vars({"x1", "x2", "x3", "x4", "x5", "x6"});
-
   std::string formula = smtlib::set_logic() + eol;
 
   for (const auto & v : vars)
@@ -382,11 +365,7 @@ TEST(smtlib, cardinality_exactly_one_sinz_verify)
 
   spec += smtlib::check_sat() + eol;
 
-  redirecter.start();
-
   ASSERT_FALSE(btor.sat(spec));
-
-  redirecter.stop();
 
   // not more than one
   spec = formula;
@@ -397,11 +376,7 @@ TEST(smtlib, cardinality_exactly_one_sinz_verify)
 
   spec += smtlib::check_sat() + eol;
 
-  redirecter.start();
-
   ASSERT_FALSE(btor.sat(spec));
-
-  redirecter.stop();
 }
 
-} // namespace test
+} // namespace ConcuBinE::test

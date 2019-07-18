@@ -8,7 +8,7 @@
 #include <sstream>
 #include <vector>
 
-namespace smtlib {
+namespace ConcuBinE::smtlib {
 
 //==============================================================================
 // SMT-Lib v2.5 std::string generators for commonly used expressions
@@ -364,6 +364,6 @@ inline std::string card_constraint_sinz (const std::vector<std::string> & vars)
   return constraint.str();
 }
 
-} // namespace smtlib
+} // namespace ConcuBinE::smtlib
 
 #endif

@@ -6,13 +6,15 @@
 #include "common.hh"
 #include "instruction.hh"
 
-//==============================================================================
-// forward declarations
-//==============================================================================
-
 // TODO: forward-declare
 #include "program.hh"
 #include "trace.hh"
+
+namespace ConcuBinE {
+
+//==============================================================================
+// forward declarations
+//==============================================================================
 
 //==============================================================================
 // Simulator class
@@ -98,14 +100,6 @@ struct Simulator
   // private functions
   //----------------------------------------------------------------------------
 
-  // checks if all threads reached the given checkpoint and resumes them
-  //
-  void check_and_resume (word_t id);
-
-  // run the simulator, using the specified scheduler
-  //
-  Trace::ptr run (std::function<word_t()> scheduler);
-
   // program counter
   //
   word_t pc () const;
@@ -186,6 +180,14 @@ struct Simulator
   void execute (const Instruction::Halt &);
   void execute (const Instruction::Exit &);
 
+  // checks if all threads reached the given checkpoint and resumes them
+  //
+  void check_and_resume (word_t id);
+
+  // run the simulator, using the specified scheduler
+  //
+  Trace::ptr run (std::function<word_t()> scheduler);
+
   //----------------------------------------------------------------------------
   // public functions
   //----------------------------------------------------------------------------
@@ -206,5 +208,7 @@ struct Simulator
 //==============================================================================
 
 std::ostream & operator << (std::ostream & os, Simulator::State state);
+
+} // namespace ConcuBinE
 
 #endif

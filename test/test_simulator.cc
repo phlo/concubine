@@ -4,7 +4,7 @@
 
 #include "parser.hh"
 
-namespace test {
+namespace ConcuBinE::test {
 
 //==============================================================================
 // Simulator tests
@@ -12,14 +12,16 @@ namespace test {
 
 struct Simulator : public ::testing::Test
 {
+  using State = ConcuBinE::Simulator::State;
+
   Program program;
   Trace::ptr trace;
-  std::unique_ptr<::Simulator> simulator;
+  std::unique_ptr<ConcuBinE::Simulator> simulator;
 
   void create_simulator(std::initializer_list<Program> programs)
     {
       simulator =
-        std::make_unique<::Simulator>(
+        std::make_unique<ConcuBinE::Simulator>(
           std::make_shared<Program::List>(programs));
     }
 };
@@ -61,8 +63,8 @@ TEST_F(Simulator, run_simple)
           EXPECT_EQ(0, simulator->trace->pc(1));
           EXPECT_EQ(1, simulator->trace->accu(1));
 
-          EXPECT_EQ(::Simulator::State::halted, simulator->state[0]);
-          EXPECT_EQ(::Simulator::State::running, simulator->state[1]);
+          EXPECT_EQ(State::halted, simulator->state[0]);
+          EXPECT_EQ(State::running, simulator->state[1]);
 
           return simulator->thread = 0;
         }
@@ -76,8 +78,8 @@ TEST_F(Simulator, run_simple)
 
   ASSERT_EQ(2, simulator->step);
 
-  ASSERT_EQ(::Simulator::State::halted, simulator->state[0]);
-  ASSERT_EQ(::Simulator::State::halted, simulator->state[1]);
+  ASSERT_EQ(State::halted, simulator->state[0]);
+  ASSERT_EQ(State::halted, simulator->state[1]);
 
   // check Trace
   ASSERT_EQ(0, trace->exit);
@@ -160,8 +162,8 @@ TEST_F(Simulator, run_add_check_exit)
           EXPECT_EQ(1, simulator->trace->pc(1));
           EXPECT_EQ(1, simulator->trace->accu(1));
 
-          EXPECT_EQ(::Simulator::State::waiting, simulator->state[0]);
-          EXPECT_EQ(::Simulator::State::running, simulator->state[1]);
+          EXPECT_EQ(State::waiting, simulator->state[0]);
+          EXPECT_EQ(State::running, simulator->state[1]);
 
           EXPECT_EQ(1, simulator->active.size());
           EXPECT_EQ(1, simulator->waiting_for_checkpoint[1].size());
@@ -175,8 +177,8 @@ TEST_F(Simulator, run_add_check_exit)
           EXPECT_EQ(2, simulator->trace->pc(1));
           EXPECT_EQ(1, simulator->trace->accu(1));
 
-          EXPECT_EQ(::Simulator::State::running, simulator->state[0]);
-          EXPECT_EQ(::Simulator::State::running, simulator->state[1]);
+          EXPECT_EQ(State::running, simulator->state[0]);
+          EXPECT_EQ(State::running, simulator->state[1]);
 
           EXPECT_EQ(2, simulator->active.size());
           EXPECT_EQ(0, simulator->waiting_for_checkpoint[1].size());
@@ -193,8 +195,8 @@ TEST_F(Simulator, run_add_check_exit)
 
   ASSERT_EQ(simulator->step, 5);
 
-  ASSERT_EQ(::Simulator::State::exited, simulator->state[0]);
-  ASSERT_EQ(::Simulator::State::running, simulator->state[1]);
+  ASSERT_EQ(State::exited, simulator->state[0]);
+  ASSERT_EQ(State::running, simulator->state[1]);
 
   // check Trace
   ASSERT_EQ(1, trace->exit);
@@ -284,7 +286,7 @@ TEST_F(Simulator, run_race_condition)
 
           EXPECT_EQ(2, simulator->active.size());
           EXPECT_EQ(1, simulator->waiting_for_checkpoint[1].size());
-          EXPECT_EQ(::Simulator::State::waiting, simulator->state[0]);
+          EXPECT_EQ(State::waiting, simulator->state[0]);
 
           return simulator->thread = 1;
         }
@@ -360,7 +362,7 @@ TEST_F(Simulator, run_race_condition)
           EXPECT_EQ(1, simulator->trace->sb_val(2));
           EXPECT_TRUE(simulator->trace->sb_full(2));
 
-          simulator->state[1] = ::Simulator::State::flushing;
+          simulator->state[1] = State::flushing;
 
           return simulator->thread = 1;
         }
@@ -379,7 +381,7 @@ TEST_F(Simulator, run_race_condition)
             simulator->trace->sb_val(1),
             simulator->trace->heap(simulator->trace->sb_adr(1)));
 
-          simulator->state[2] = ::Simulator::State::flushing;
+          simulator->state[2] = State::flushing;
 
           return simulator->thread = 2;
         }
@@ -411,8 +413,8 @@ TEST_F(Simulator, run_race_condition)
 
           EXPECT_EQ(1, simulator->active.size());
           EXPECT_EQ(2, simulator->waiting_for_checkpoint[1].size());
-          EXPECT_EQ(::Simulator::State::waiting, simulator->state[0]);
-          EXPECT_EQ(::Simulator::State::halted, simulator->state[1]);
+          EXPECT_EQ(State::waiting, simulator->state[0]);
+          EXPECT_EQ(State::halted, simulator->state[1]);
 
           return simulator->thread = 2;
         }
@@ -427,9 +429,9 @@ TEST_F(Simulator, run_race_condition)
 
           EXPECT_EQ(1, simulator->active.size());
           EXPECT_EQ(0, simulator->waiting_for_checkpoint[1].size());
-          EXPECT_EQ(::Simulator::State::running, simulator->state[0]);
-          EXPECT_EQ(::Simulator::State::halted, simulator->state[1]);
-          EXPECT_EQ(::Simulator::State::halted, simulator->state[2]);
+          EXPECT_EQ(State::running, simulator->state[0]);
+          EXPECT_EQ(State::halted, simulator->state[1]);
+          EXPECT_EQ(State::halted, simulator->state[2]);
 
           return simulator->thread = 0;
         }
@@ -475,7 +477,7 @@ TEST_F(Simulator, run_race_condition)
           EXPECT_EQ(3, simulator->trace->pc(2));
           EXPECT_EQ(1, simulator->trace->accu(2));
 
-          EXPECT_EQ(::Simulator::State::exited, simulator->state[0]);
+          EXPECT_EQ(State::exited, simulator->state[0]);
 
           return simulator->thread = 0;
         }
@@ -489,9 +491,9 @@ TEST_F(Simulator, run_race_condition)
 
   ASSERT_EQ(15, simulator->step);
 
-  ASSERT_EQ(::Simulator::State::exited, simulator->state[0]);
-  ASSERT_EQ(::Simulator::State::halted, simulator->state[1]);
-  ASSERT_EQ(::Simulator::State::halted, simulator->state[2]);
+  ASSERT_EQ(State::exited, simulator->state[0]);
+  ASSERT_EQ(State::halted, simulator->state[1]);
+  ASSERT_EQ(State::halted, simulator->state[2]);
 
   // check Trace
   ASSERT_EQ(1, trace->exit);
@@ -581,7 +583,7 @@ TEST_F(Simulator, run_zero_bound)
 
   EXPECT_EQ(3, simulator->step);
 
-  EXPECT_EQ(::Simulator::State::running, simulator->state[0]);
+  EXPECT_EQ(State::running, simulator->state[0]);
 
   // check Trace
   ASSERT_EQ(0, trace->exit);
@@ -630,7 +632,7 @@ TEST_F(Simulator, simulate_increment_check)
   programs->push_back(
     create_from_file<Program>("data/increment.check.thread.n.asm"));
 
-  trace = ::Simulator::simulate(programs, 16);
+  trace = ConcuBinE::Simulator::simulate(programs, 16);
 
   ASSERT_EQ(
     Trace::update_map<word_t>({{3,0}, {14, 0}}),
@@ -653,7 +655,7 @@ TEST_F(Simulator, simulate_increment_cas)
   programs->push_back(increment);
   programs->push_back(increment);
 
-  trace = ::Simulator::simulate(programs, 16);
+  trace = ConcuBinE::Simulator::simulate(programs, 16);
 
   ASSERT_EQ(
     Trace::update_map<word_t>({{3, 0}, {4, 0}, {12, 0}}),
@@ -678,7 +680,7 @@ TEST_F(Simulator, replay_increment_check)
 
   trace = std::make_unique<Trace>(sfs, trace_path);
 
-  trace = ::Simulator::replay(*trace);
+  trace = ConcuBinE::Simulator::replay(*trace);
 
   ASSERT_EQ(0, trace->exit);
   ASSERT_EQ(17, trace->length);
@@ -697,11 +699,11 @@ TEST_F(Simulator, replay_increment_cas)
 
   trace = std::make_unique<Trace>(sfs, trace_path);
 
-  trace = ::Simulator::replay(*trace);
+  trace = ConcuBinE::Simulator::replay(*trace);
 
   ASSERT_EQ(0, trace->exit);
   ASSERT_EQ(17, trace->length);
   ASSERT_EQ(expected, trace->print());
 }
 
-} // namespace test
+} // namespace ConcuBinE::test

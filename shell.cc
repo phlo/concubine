@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
+namespace ConcuBinE {
+
 //==============================================================================
 // constants
 //==============================================================================
@@ -146,3 +148,5 @@ std::stringstream Shell::run (const std::string & cmd,
 
   return output;
 }
+
+} // namespace ConcuBinE

@@ -4,7 +4,7 @@
 #include "parser.hh"
 #include "z3.hh"
 
-namespace test {
+namespace ConcuBinE::test {
 
 //==============================================================================
 // Z3 tests
@@ -12,7 +12,7 @@ namespace test {
 
 struct Z3 : public ::testing::Test
 {
-  ::Z3 z3;
+  ConcuBinE::Z3 z3;
   Encoder::ptr encoder;
   Program::List::ptr programs = std::make_shared<Program::List>();
   Trace::ptr trace;
@@ -111,4 +111,4 @@ TEST_F(Z3, solve_cas)
     trace->print());
 }
 
-} // namespace test
+} // namespace ConcuBinE::test

@@ -4,6 +4,8 @@
 
 #include "encoder.hh"
 
+namespace ConcuBinE {
+
 std::string Z3::name () const { return "z3"; }
 
 bool Z3::sat (const std::string & formula)
@@ -121,3 +123,5 @@ Trace::ptr Z3::solve (Encoder & encoder, const std::string & constraints)
 
   return trace;
 }
+
+} // namespace ConcuBinE

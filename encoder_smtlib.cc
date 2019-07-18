@@ -4,7 +4,7 @@
 
 #include "smtlib.hh"
 
-namespace smtlib {
+namespace ConcuBinE::smtlib {
 
 //==============================================================================
 // smtlib::Encoder
@@ -26,68 +26,125 @@ const std::string & Encoder::exit_code_var = exit_code_sym;
 
 const std::string Encoder::accu_comment =
   comment(
-    ::Encoder::accu_comment + " - " + accu_sym + "_<step>_<thread>" + eol);
+    ConcuBinE::Encoder::accu_comment
+    + " - "
+    + accu_sym
+    + "_<step>_<thread>"
+    + eol);
 
 const std::string Encoder::mem_comment =
-  comment(::Encoder::mem_comment + " - " + mem_sym + "_<step>_<thread>" + eol);
+  comment(
+    ConcuBinE::Encoder::mem_comment
+    + " - "
+    + mem_sym
+    + "_<step>_<thread>"
+    + eol);
 
 const std::string Encoder::sb_adr_comment =
   comment(
-    ::Encoder::sb_adr_comment + " - " + sb_adr_sym + "_<step>_<thread>" + eol);
+    ConcuBinE::Encoder::sb_adr_comment
+    + " - "
+    + sb_adr_sym
+    + "_<step>_<thread>"
+    + eol);
 
 const std::string Encoder::sb_val_comment =
   comment(
-    ::Encoder::sb_val_comment + " - " + sb_val_sym + "_<step>_<thread>" + eol);
+    ConcuBinE::Encoder::sb_val_comment
+    + " - "
+    + sb_val_sym
+    + "_<step>_<thread>"
+    + eol);
 
 const std::string Encoder::sb_full_comment =
   comment(
-    ::Encoder::sb_full_comment + " - " + sb_full_sym + "_<step>_<thread>" + eol);
+    ConcuBinE::Encoder::sb_full_comment
+    + " - "
+    + sb_full_sym
+    + "_<step>_<thread>"
+    + eol);
 
 const std::string Encoder::stmt_comment =
   comment(
-    ::Encoder::stmt_comment + " - " + stmt_sym + "_<step>_<thread>_<pc>" + eol);
+    ConcuBinE::Encoder::stmt_comment
+    + " - "
+    + stmt_sym
+    + "_<step>_<thread>_<pc>"
+    + eol);
 
 const std::string Encoder::block_comment =
   comment(
-    ::Encoder::block_comment + " - " + block_sym + "_<step>_<id>_<thread>" + eol);
+    ConcuBinE::Encoder::block_comment
+    + " - "
+    + block_sym
+    + "_<step>_<id>_<thread>"
+    + eol);
 
 const std::string Encoder::halt_comment =
   comment(
-    ::Encoder::halt_comment + " - " + halt_sym + "_<step>_<thread>" + eol);
+    ConcuBinE::Encoder::halt_comment
+    + " - "
+    + halt_sym
+    + "_<step>_<thread>"
+    + eol);
 
 const std::string Encoder::heap_comment =
   comment(
-    ::Encoder::heap_comment + " - " + heap_sym + "_<step>" + eol);
+    ConcuBinE::Encoder::heap_comment
+    + " - "
+    + heap_sym
+    + "_<step>"
+    + eol);
 
 const std::string Encoder::exit_flag_comment =
   comment(
-    ::Encoder::exit_flag_comment + " - " + exit_flag_sym + "_<step>" + eol);
+    ConcuBinE::Encoder::exit_flag_comment
+    + " - "
+    + exit_flag_sym
+    + "_<step>"
+    + eol);
 
 const std::string Encoder::exit_code_comment =
-  comment(::Encoder::exit_code_comment + eol);
+  comment(ConcuBinE::Encoder::exit_code_comment + eol);
 
 const std::string Encoder::thread_comment =
   comment(
-    ::Encoder::thread_comment + " - " + thread_sym + "_<step>_<thread>" + eol);
+    ConcuBinE::Encoder::thread_comment
+    + " - "
+    + thread_sym
+    + "_<step>_<thread>"
+    + eol);
 
 const std::string Encoder::exec_comment =
   comment(
-    ::Encoder::exec_comment + " - " + exec_sym + "_<step>_<thread>_<pc>" + eol);
+    ConcuBinE::Encoder::exec_comment
+    + " - "
+    + exec_sym
+    + "_<step>_<thread>_<pc>"
+    + eol);
 
 const std::string Encoder::flush_comment =
   comment(
-    ::Encoder::flush_comment + " - " + flush_sym + "_<step>_<thread>" + eol);
+    ConcuBinE::Encoder::flush_comment
+    + " - "
+    + flush_sym
+    + "_<step>_<thread>"
+    + eol);
 
 const std::string Encoder::check_comment =
   comment(
-    ::Encoder::check_comment + " - " + check_sym + "_<step>_<id>" + eol);
+    ConcuBinE::Encoder::check_comment
+    + " - "
+    + check_sym
+    + "_<step>_<id>"
+    + eol);
 
 //------------------------------------------------------------------------------
 // constructors
 //------------------------------------------------------------------------------
 
 Encoder::Encoder (const Program::List::ptr & p, const size_t b) :
-  ::Encoder(p, b),
+  ConcuBinE::Encoder(p, b),
   step(0)
 {}
 
@@ -1126,4 +1183,4 @@ std::string Encoder::encode (const Instruction::Exit & e)
   return word2hex(e.arg);
 }
 
-} // namespace smtlib
+} // namespace ConcuBinE::smtlib

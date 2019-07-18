@@ -2,7 +2,7 @@
 
 #include "shell.hh"
 
-namespace test {
+namespace ConcuBinE::test {
 
 //==============================================================================
 // Shell tests
@@ -10,7 +10,7 @@ namespace test {
 
 struct Shell : public ::testing::Test
 {
-  ::Shell shell;
+  ConcuBinE::Shell shell;
 };
 
 // Shell::last_exit_code =======================================================
@@ -77,4 +77,4 @@ TEST_F(Shell, abuse)
   ASSERT_EQ("\n", actual);
 }
 
-} // namespace test
+} // namespace ConcuBinE::test

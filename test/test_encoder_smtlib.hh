@@ -1,9 +1,9 @@
 #include "test_encoder.hh"
 
-namespace test::encoder::smtlib {
+namespace ConcuBinE::test::encoder::smtlib {
 
 template <class E, class Impl = E>
-struct Encoder : public test::encoder::Encoder<E, Impl>
+struct Encoder : public encoder::Encoder<E, Impl>
 {
   virtual std::unique_ptr<E> init_encoder (std::unique_ptr<E> e)
     {
@@ -14,4 +14,4 @@ struct Encoder : public test::encoder::Encoder<E, Impl>
     }
 };
 
-} // namespace test::encoder::smtlib
+} // namespace ConcuBinE::test::encoder::smtlib

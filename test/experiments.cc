@@ -1,6 +1,13 @@
 #include <gtest/gtest.h>
 
+#include <bitset>
 #include <functional>
+#include <memory>
+
+#include "instruction.hh"
+#include "program.hh"
+
+namespace ConcuBinE {
 
 struct Experimental : public ::testing::Test
 {
@@ -20,8 +27,6 @@ TEST(Hashing, hash)
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifdef NIGNORE
-#include <memory>
-
 struct Thread;
 struct Encoder;
 
@@ -32,9 +37,9 @@ struct Instruction
   {
     virtual uint8_t type () const = 0;
 
-    virtual const string & symbol () const = 0;
+    virtual const std::string & symbol () const = 0;
     virtual void execute (Thread & t) const = 0;
-    virtual string encode (Encoder & e) const = 0;
+    virtual std::string encode (Encoder & e) const = 0;
 
     virtual bool is_nullary () const = 0;
     virtual bool is_unary () const = 0;
@@ -50,9 +55,9 @@ struct Instruction
 
     virtual uint8_t type () const;
 
-    virtual const string & symbol () const;
+    virtual const std::string & symbol () const;
     virtual void execute (Thread & t) const;
-    virtual string encode (Encoder & e) const;
+    virtual std::string encode (Encoder & e) const;
 
     virtual bool is_nullary () const;
     virtual bool is_unary () const;
@@ -60,30 +65,30 @@ struct Instruction
 
   struct Factory
     {
-      static unique_ptr<unordered_map<string, unique_ptr<Instruction> (*) ()>> nullary;
-      static unique_ptr<unordered_map<string, unique_ptr<Instruction> (*) (int)>> unary;
+      static unique_ptr<unordered_map<std::string, unique_ptr<Instruction> (*) ()>> nullary;
+      static unique_ptr<unordered_map<std::string, unique_ptr<Instruction> (*) (int)>> unary;
 
       template <class T>
-      static const string & add_nullary (const string && symbol)
+      static const std::string & add_nullary (const std::string && symbol)
         {
           if (!nullary)
-            nullary = make_unique<unordered_map<string, unique_ptr<Instruction> (*) ()>>();
+            nullary = make_unique<unordered_map<std::string, unique_ptr<Instruction> (*) ()>>();
 
           return nullary->emplace(symbol, [] () { return make_unique<Instruction>(T {}); }).first->first;
         }
 
       template <class T>
-      static const string & add_unary (const string && symbol)
+      static const std::string & add_unary (const std::string && symbol)
         {
           if (!unary)
-            unary = make_unique<unordered_map<string, unique_ptr<Instruction> (*) (int)>>();
+            unary = make_unique<unordered_map<std::string, unique_ptr<Instruction> (*) (int)>>();
 
           // return nullary->emplace(symbol, [] (int arg) { T t {{{0}, arg}}; return make_unique<Instruction>(t); }).first->first;
           return symbol;
         }
 
-      static unique_ptr<Instruction> create (string symbol) { return (*nullary)[symbol](); }
-      static unique_ptr<Instruction> create (string symbol, int arg) { return (*unary)[symbol](arg); };
+      static unique_ptr<Instruction> create (std::string symbol) { return (*nullary)[symbol](); }
+      static unique_ptr<Instruction> create (std::string symbol, int arg) { return (*unary)[symbol](arg); };
     };
 
   shared_ptr<Concept> op;
@@ -93,9 +98,9 @@ struct Instruction
 
   uint8_t type () const { return op->type(); }
 
-  const string & symbol () const { return op->symbol(); }
+  const std::string & symbol () const { return op->symbol(); }
   void execute (Thread & t) const { op->execute(t); }
-  string encode (Encoder & e) const { return op->encode(e); }
+  std::string encode (Encoder & e) const { return op->encode(e); }
 
   bool is_nullary () const { return op->is_nullary(); }
   bool is_unary () const { return op->is_unary(); }
@@ -115,60 +120,60 @@ struct Unary : public Nullary
 // concrete
 struct Fence : public Nullary
 {
-  // inline static const string symbol = "FENCE";
-  inline static const string & symbol = Instruction::Factory::add_nullary<Fence>("FENCE");
+  // inline static const std::string symbol = "FENCE";
+  inline static const std::string & symbol = Instruction::Factory::add_nullary<Fence>("FENCE");
 };
 
 struct Add : public Unary
 {
-  inline const static string symbol = "ADD";
-  // inline static const string & symbol = Instruction::Factory::add_unary<Add>("ADD");
+  inline const static std::string symbol = "ADD";
+  // inline static const std::string & symbol = Instruction::Factory::add_unary<Add>("ADD");
 };
 
 struct Store : public Unary
 {
-  inline const static string symbol = "STORE";
-  // inline static const string & symbol = Instruction::Factory::add_unary<Store>("STORE");
+  inline const static std::string symbol = "STORE";
+  // inline static const std::string & symbol = Instruction::Factory::add_unary<Store>("STORE");
 };
 
 struct Exit : public Unary
 {
-  inline const static string symbol = "EXIT";
-  // inline static const string & symbol = Instruction::Factory::add_unary<Exit>("EXIT");
+  inline const static std::string symbol = "EXIT";
+  // inline static const std::string & symbol = Instruction::Factory::add_unary<Exit>("EXIT");
 };
 
 // implementation
 struct Thread
 {
-  void execute (const Instruction & i) { cout << "executing "; i.execute(*this); }
+  void execute (const Instruction & i) { std::cout << "executing "; i.execute(*this); }
 
-  void execute (const Fence & f) { cout << f.symbol << endl; }
-  void execute (const Add & a) { cout << a.symbol << endl; }
-  void execute (const Store & s) { cout << s.symbol << endl; }
-  void execute (const Exit & e) { cout << e.symbol << endl; }
+  void execute (const Fence & f) { std::cout << f.symbol << eol; }
+  void execute (const Add & a) { std::cout << a.symbol << eol; }
+  void execute (const Store & s) { std::cout << s.symbol << eol; }
+  void execute (const Exit & e) { std::cout << e.symbol << eol; }
 };
 
 struct Encoder
 {
-  string encode (const Instruction & i) { return "encoding " + i.encode(*this); }
+  std::string encode (const Instruction & i) { return "encoding " + i.encode(*this); }
 
-  string encode (const Fence & f) { return f.symbol; }
-  string encode (const Add & a) { return a.symbol; }
-  string encode (const Store & s) { return s.symbol; }
-  string encode (const Exit & e) { return e.symbol; }
+  std::string encode (const Fence & f) { return f.symbol; }
+  std::string encode (const Add & a) { return a.symbol; }
+  std::string encode (const Store & s) { return s.symbol; }
+  std::string encode (const Exit & e) { return e.symbol; }
 };
 
 template <class T>
 uint8_t Instruction::Model<T>::type () const { return op.type; }
 
 template <class T>
-const string & Instruction::Model<T>::symbol () const { return op.symbol; }
+const std::string & Instruction::Model<T>::symbol () const { return op.symbol; }
 
 template <class T>
 void Instruction::Model<T>::execute (Thread & t) const { t.execute(op); }
 
 template <class T>
-string Instruction::Model<T>::encode (Encoder & e) const { return e.encode(op); }
+std::string Instruction::Model<T>::encode (Encoder & e) const { return e.encode(op); }
 
 template <class T>
 bool Instruction::Model<T>::is_nullary () const { return is_base_of<Nullary, T>(); }
@@ -176,8 +181,8 @@ bool Instruction::Model<T>::is_nullary () const { return is_base_of<Nullary, T>(
 template <class T>
 bool Instruction::Model<T>::is_unary () const { return is_base_of<Unary, T>(); }
 
-unique_ptr<unordered_map<string, unique_ptr<Instruction> (*) ()>> Instruction::Factory::nullary;
-unique_ptr<unordered_map<string, unique_ptr<Instruction> (*) (int)>> Instruction::Factory::unary;
+unique_ptr<unordered_map<std::string, unique_ptr<Instruction> (*) ()>> Instruction::Factory::nullary;
+unique_ptr<unordered_map<std::string, unique_ptr<Instruction> (*) (int)>> Instruction::Factory::unary;
 
 TEST(Experimental, type_erasure)
 {
@@ -196,27 +201,27 @@ TEST(Experimental, type_erasure)
 
   for (const Instruction & op : program)
     {
-      cout
+      std::cout
         << op.symbol()
         << (op.is_unary() ? " is unary " : " is nullary ")
         << "and has type " << to_string(op.type())
-        << endl
+        << eol
         << "  -> ";
 
       // op.execute(t);
       t.execute(op);
 
-      // cout << "  -> " << op.encode(e) << endl;
-      cout << "  -> " << e.encode(op) << endl;
+      // std::cout << "  -> " << op.encode(e) << eol;
+      std::cout << "  -> " << e.encode(op) << eol;
     }
 
-  cout << endl << "########################################" << endl << endl;
+  std::cout << eol << "########################################" << eol << eol;
 
   for (const auto & it : *Instruction::Factory::nullary)
     {
       const unique_ptr<Instruction> op = Instruction::Factory::create(it.first);
 
-      cout << "found " << op->symbol() << endl;
+      std::cout << "found " << op->symbol() << eol;
     }
 
   int arg = 0;
@@ -224,22 +229,20 @@ TEST(Experimental, type_erasure)
     {
       const unique_ptr<Instruction> op = Instruction::Factory::create(it.first, arg++);
 
-      cout << "found " << op->symbol() << endl;
+      std::cout << "found " << op->symbol() << eol;
     }
 }
 #endif
 
-#include <bitset>
-#include "instruction.hh"
-struct Thread
+struct Simulator
 {
   void execute (const Instruction & i) { std::cout << "executing "; i.execute(*this); }
 
-  void execute (const Instruction::Load & l) { std::cout << l.symbol << std::endl; }
-  // void execute (const Fence & f) { cout << f.symbol << endl; }
-  // void execute (const Add & a) { cout << a.symbol << endl; }
-  // void execute (const Store & s) { cout << s.symbol << endl; }
-  // void execute (const Exit & e) { cout << e.symbol << endl; }
+  void execute (const Instruction::Load & l) { std::cout << l.symbol << eol; }
+  // void execute (const Fence & f) { std::cout << f.symbol << eol; }
+  // void execute (const Add & a) { std::cout << a.symbol << eol; }
+  // void execute (const Store & s) { std::cout << s.symbol << eol; }
+  // void execute (const Exit & e) { std::cout << e.symbol << eol; }
 };
 
 struct Encoder
@@ -247,10 +250,10 @@ struct Encoder
   std::string encode (const Instruction & i) { return "encoding " + i.encode(*this); }
 
   std::string encode (const Instruction::Load & l) { return l.symbol; }
-  // string encode (const Fence & f) { return f.symbol; }
-  // string encode (const Add & a) { return a.symbol; }
-  // string encode (const Store & s) { return s.symbol; }
-  // string encode (const Exit & e) { return e.symbol; }
+  // std::string encode (const Fence & f) { return f.symbol; }
+  // std::string encode (const Add & a) { return a.symbol; }
+  // std::string encode (const Store & s) { return s.symbol; }
+  // std::string encode (const Exit & e) { return e.symbol; }
 };
 
 TEST(Experimental, Instruction)
@@ -268,67 +271,67 @@ TEST(Experimental, Instruction)
 
   for (const Instruction & op : program)
     {
-      cout
+      std::cout
         << op.symbol()
         << (op.is_unary() ? " is unary " : " is nullary ")
-        << "and has type " << bitset<8>(op.type())
-        << endl;
+        << "and has type " << std::bitset<8>(op.type())
+        << eol;
         // << "  -> ";
 //
       // // op.execute(t);
       // t.execute(op);
 //
-      // // cout << "  -> " << op.encode(e) << endl;
-      // cout << "  -> " << e.encode(op) << endl;
+      // // std::cout << "  -> " << op.encode(e) << eol;
+      // std::cout << "  -> " << e.encode(op) << eol;
     }
 
-  cout << endl << "########################################" << endl << endl;
+  std::cout << eol << "########################################" << eol << eol;
 
-  cout << "nullary instructions: " << endl;
-  for (const auto & it : *Instruction::Set::nullary)
+  std::cout << "nullary instructions: " << eol;
+  for (const auto & it : *Instruction::nullary_factory)
     {
-      const Instruction op = Instruction::Set::create(it.first);
+      const Instruction op = Instruction::create(it.first);
 
-      cout << "  " << op.symbol() << endl;
+      std::cout << "  " << op.symbol() << eol;
     }
-  cout << endl;
+  std::cout << eol;
 
-  cout << "unary instructions: " << endl;
-  for (const auto & it : *Instruction::Set::unary)
+  std::cout << "unary instructions: " << eol;
+  for (const auto & it : *Instruction::unary_factory)
     {
-      const Instruction op = Instruction::Set::create(it.first, 0);
+      const Instruction op = Instruction::create(it.first, 0);
 
-      cout << "  " << op.symbol() << endl;
+      std::cout << "  " << op.symbol() << eol;
     }
-  cout << endl;
+  std::cout << eol;
 
-  cout << "memory instructions: " << endl;
-  for (const auto & it : *Instruction::Set::memory)
+  std::cout << "memory instructions: " << eol;
+  for (const auto & it : *Instruction::memory_factory)
     {
-      const Instruction op = Instruction::Set::create(it.first, 0, false);
+      const Instruction op = Instruction::create(it.first, 0, false);
 
-      cout << "  " << op.symbol() << endl;
+      std::cout << "  " << op.symbol() << eol;
     }
 
-  cout << endl << "########################################" << endl << endl;
+  std::cout << eol << "########################################" << eol << eol;
 
   // Instruction op1 {Instruction::Load {1, true}};
-  Instruction op1 {Instruction::Set::create("LOAD", 1, true)};
+  Instruction op1 {Instruction::create("LOAD", 1, true)};
   Instruction::Concept * base = op1.model.get();
 
   Instruction op2 {op1};
   ASSERT_TRUE(op1.model);
   ASSERT_TRUE(op2.model);
   ASSERT_NE(op1.model.get(), op2.model.get());
-  cout << "copy constructed" << eol;
+  std::cout << "copy constructed" << eol;
 
-  Instruction op3 {move(op1)};
+  Instruction op3 {std::move(op1)};
   ASSERT_FALSE(op1.model);
   ASSERT_TRUE(op2.model);
   ASSERT_TRUE(op3.model);
   ASSERT_EQ(base, op3.model.get());
   ASSERT_NE(op2.model.get(), op3.model.get());
-  cout << "move constructed" << eol;
+  std::cout << "move constructed" << eol;
 
   op1 = op2;
   ASSERT_TRUE(op1.model);
@@ -336,34 +339,33 @@ TEST(Experimental, Instruction)
   ASSERT_TRUE(op3.model);
   ASSERT_NE(op1.model.get(), op2.model.get());
   ASSERT_NE(op1.model.get(), op3.model.get());
-  cout << "copy assigned" << eol;
+  std::cout << "copy assigned" << eol;
 
-  op2 = move(op3);
+  op2 = std::move(op3);
   ASSERT_TRUE(op1.model);
   ASSERT_TRUE(op2.model);
   ASSERT_FALSE(op3.model);
   ASSERT_NE(op1.model.get(), op2.model.get());
   ASSERT_EQ(base, op2.model.get());
-  cout << "move assigned" << eol;
+  std::cout << "move assigned" << eol;
 
-  cout << endl << "########################################" << endl << endl;
+  std::cout << eol << "########################################" << eol << eol;
 
   Instruction fence = Instruction::Fence {};
 
   ASSERT_EQ(&Instruction::Fence::symbol, &fence.symbol());
 
-  // cout << "trying to get arg of a nullary instruction... " << fence.arg() << endl;
+  // std::cout << "trying to get arg of a nullary instruction... " << fence.arg() << eol;
 
   // const Instruction::Unary & ref = fence;
 
   // (void) ref;
 }
 
-#include "program.hh"
 TEST(Experimental, Program)
 {
-  string path = "dummy.asm";
-  istringstream code {
+  std::string path = "dummy.asm";
+  std::istringstream code {
     "start: LOAD 1\n"
     "JMP start\n"
   };
@@ -375,11 +377,11 @@ TEST(Experimental, Program)
   Program p2 (p1);
   ASSERT_NE(&p1[0], &p2[0]);
   ASSERT_EQ(p1, p2);
-  cout << "copy constructed" << eol;
+  std::cout << "copy constructed" << eol;
 
   const Instruction * ptr = &p1[0];
 
-  Program p3 (move(p1));
+  Program p3 (std::move(p1));
   ASSERT_TRUE(p1.empty());
   ASSERT_TRUE(p1.path.empty());
   ASSERT_TRUE(p1.predecessors.empty());
@@ -389,13 +391,13 @@ TEST(Experimental, Program)
   ASSERT_TRUE(p1.labels.empty());
   ASSERT_EQ(p2, p3);
   ASSERT_EQ(ptr, &p3[0]);
-  cout << "move constructed" << eol;
+  std::cout << "move constructed" << eol;
 
   p1 = p2;
   ASSERT_EQ(p1, p3);
   ASSERT_NE(&p1[0], &p2[0]);
   ASSERT_NE(&p1[0], &p3[0]);
-  cout << "copy assigned" << eol;
+  std::cout << "copy assigned" << eol;
 
   p2 = move(p3);
   ASSERT_TRUE(p3.empty());
@@ -407,11 +409,13 @@ TEST(Experimental, Program)
   ASSERT_TRUE(p3.labels.empty());
   ASSERT_EQ(p1, p2);
   ASSERT_EQ(ptr, &p2[0]);
-  cout << "move assigned" << eol;
+  std::cout << "move assigned" << eol;
 
   Program::List p {p1, p2};
-  unique_ptr<Program::List> p_ptr = make_unique<Program::List>(move(p));
+  std::unique_ptr<Program::List> p_ptr = std::make_unique<Program::List>(std::move(p));
   ASSERT_TRUE(p.empty());
-  p = move(*p_ptr);
+  p = std::move(*p_ptr);
   ASSERT_FALSE(p.empty());
 }
+
+} // namespace ConcuBinE

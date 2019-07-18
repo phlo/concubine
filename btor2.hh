@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-namespace btor2 {
+namespace ConcuBinE::btor2 {
 
 //==============================================================================
 // BTOR2 std::string generators for commonly used expressions
@@ -827,6 +827,6 @@ inline std::string card_constraint_sinz (nid_t & nid,
   return os.str();
 }
 
-} // namespace btor2
+} // namespace ConcuBinE::btor2
 
 #endif

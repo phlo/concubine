@@ -3,6 +3,8 @@
 
 #include "boolector.hh"
 
+namespace ConcuBinE {
+
 struct BtorMC : public Boolector
 {
   BtorMC (size_t);
@@ -19,5 +21,7 @@ struct BtorMC : public Boolector
 
   virtual std::string name () const;
 };
+
+} // namespace ConcuBinE
 
 #endif

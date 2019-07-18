@@ -2,7 +2,7 @@
 
 #include <filesystem>
 
-namespace test {
+namespace ConcuBinE::test {
 
 //==============================================================================
 // smtlib::Relational tests
@@ -1575,4 +1575,4 @@ TEST_F(smtlib_Relational, EXIT)
     encoder->encode(exit));
 }
 
-} // namespace test
+} // namespace ConcuBinE::test

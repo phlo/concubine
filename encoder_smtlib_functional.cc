@@ -4,7 +4,7 @@
 
 #include "smtlib.hh"
 
-namespace smtlib {
+namespace ConcuBinE::smtlib {
 
 //==============================================================================
 // smtlib::Functional
@@ -347,4 +347,4 @@ void Functional::encode ()
   define_exit_code();
 }
 
-} // namespace smtlib
+} // namespace ConcuBinE::smtlib

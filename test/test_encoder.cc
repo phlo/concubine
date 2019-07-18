@@ -1,12 +1,12 @@
 #include "test_encoder.hh"
 
-namespace test {
+namespace ConcuBinE::test {
 
 //==============================================================================
 // Encoder tests
 //==============================================================================
 
-using Encoder = encoder::Encoder<::Encoder, smtlib::Functional>;
+using Encoder = encoder::Encoder<ConcuBinE::Encoder, smtlib::Functional>;
 
 // construction ================================================================
 
@@ -165,4 +165,4 @@ TEST_F(Encoder, str)
   ASSERT_EQ("foo", encoder->str());
 }
 
-} // namespace test
+} // namespace ConcuBinE::test

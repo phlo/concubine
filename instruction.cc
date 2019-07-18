@@ -5,6 +5,8 @@
 #include "encoder.hh"
 #include "simulator.hh"
 
+namespace ConcuBinE {
+
 //==============================================================================
 // Model<POD>
 //
@@ -38,10 +40,10 @@ struct Model : Instruction::Concept
       return std::make_unique<Model<POD>>(pod);
     }
 
-  bool is_nullary () const { return ::is_nullary<POD>; }
-  bool is_unary () const { return ::is_unary<POD>; }
-  bool is_memory () const { return ::is_memory<POD>; }
-  bool is_jump () const { return ::is_jump<POD>; }
+  bool is_nullary () const { return ConcuBinE::is_nullary<POD>; }
+  bool is_unary () const { return ConcuBinE::is_unary<POD>; }
+  bool is_memory () const { return ConcuBinE::is_memory<POD>; }
+  bool is_jump () const { return ConcuBinE::is_jump<POD>; }
 
   bool requires_flush () const
     {
@@ -55,7 +57,7 @@ struct Model : Instruction::Concept
 
   word_t arg () const
     {
-      if constexpr(::is_unary<POD>)
+      if constexpr(ConcuBinE::is_unary<POD>)
         return pod.arg;
       else
         { assert(false); return 0; }
@@ -63,7 +65,7 @@ struct Model : Instruction::Concept
 
   void arg (const word_t a [[maybe_unused]])
     {
-      if constexpr(::is_unary<POD>)
+      if constexpr(ConcuBinE::is_unary<POD>)
         pod.arg = a;
       else
         assert(false);
@@ -71,7 +73,7 @@ struct Model : Instruction::Concept
 
   bool indirect () const
     {
-      if constexpr(::is_memory<POD>)
+      if constexpr(ConcuBinE::is_memory<POD>)
         return pod.indirect;
       else
         { assert(false); return false; }
@@ -79,7 +81,7 @@ struct Model : Instruction::Concept
 
   void indirect (const bool i [[maybe_unused]])
     {
-      if constexpr(::is_memory<POD>)
+      if constexpr(ConcuBinE::is_memory<POD>)
         pod.indirect = i;
       else
         assert(false);
@@ -288,3 +290,5 @@ bool operator != (const Instruction & a, const Instruction & b)
 {
   return !(a == b);
 }
+
+} // namespace ConcuBinE

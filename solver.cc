@@ -4,6 +4,8 @@
 #include "parser.hh"
 #include "shell.hh"
 
+namespace ConcuBinE {
+
 //==============================================================================
 // Solver
 //==============================================================================
@@ -211,3 +213,5 @@ External::parse_variable (std::istringstream & line)
 
   return variable;
 }
+
+} // namespace ConcuBinE

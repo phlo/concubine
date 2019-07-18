@@ -8,6 +8,8 @@
 #include "instruction.hh"
 #include "program.hh"
 
+namespace ConcuBinE {
+
 //==============================================================================
 // Encoder base class
 //
@@ -243,7 +245,7 @@ namespace smtlib {
 // SMT-Lib v2.5 Encoder base class
 //==============================================================================
 
-struct Encoder : public ::Encoder
+struct Encoder : public ConcuBinE::Encoder
 {
   //----------------------------------------------------------------------------
   // static members
@@ -630,7 +632,7 @@ namespace btor2 {
 // BTOR2 Encoder class
 //==============================================================================
 
-struct Encoder : public ::Encoder
+struct Encoder : public ConcuBinE::Encoder
 {
   //----------------------------------------------------------------------------
   // member types
@@ -962,5 +964,6 @@ struct Encoder : public ::Encoder
 };
 
 } // namespace btor2
+} // namespace ConcuBinE
 
 #endif

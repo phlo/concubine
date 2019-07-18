@@ -4,6 +4,8 @@
 #include <random>
 #include <sstream>
 
+namespace ConcuBinE {
+
 //==============================================================================
 // functions
 //==============================================================================
@@ -54,136 +56,6 @@ Simulator::Simulator (const Program::List::ptr & p,
 //------------------------------------------------------------------------------
 // member functions
 //------------------------------------------------------------------------------
-
-// Simulator::check_and_resume -------------------------------------------------
-
-void Simulator::check_and_resume (word_t id)
-{
-  // all other threads already at this checkpoint (or halted)?
-  if (waiting_for_checkpoint[id].size() >= threads_per_checkpoint[id].size())
-    {
-      // reset number of waiting threads
-      waiting_for_checkpoint[id].clear();
-
-      // reactivate threads
-      for (const word_t t : threads_per_checkpoint[id])
-        {
-          state[t] = State::running;
-          active.push_back(t);
-        }
-    }
-}
-
-// Simulator::run --------------------------------------------------------------
-
-Trace::ptr Simulator::run (std::function<word_t()> scheduler)
-{
-  // activate threads
-  std::iota(active.begin(), active.end(), 0);
-
-  bool done = active.empty();
-
-  while (!done && ++step <= bound)
-    {
-      thread = scheduler();
-
-      trace->push_back_thread(step - 1, thread);
-
-      // flush store buffer or execute instruction
-      if (state[thread] == State::flushing)
-        flush();
-      else
-        execute();
-
-      // handle state transitions
-      switch (state[thread])
-        {
-        // keep 'em running
-        case State::running:
-
-        // checkpoint reached
-        case State::waiting: break;
-
-        // halted - quit if all the others also stopped
-        case State::halted:
-          {
-            // check if we were the last thread standing
-            done = true;
-            for (auto it = active.begin(); done && it != active.end(); ++it)
-              if (state[*it] != State::halted)
-                done = false;
-
-            break;
-          }
-
-        // exiting - return exit code
-        case State::exited: done = true; break;
-
-        default:
-          {
-            std::ostringstream m;
-            m << "illegal thread state transition "
-              << State::running
-              << " -> "
-              << state[thread];
-            throw std::runtime_error(m.str());
-          }
-        }
-    }
-
-  return move(trace);
-}
-
-// Simulator::simulate ---------------------------------------------------------
-
-Trace::ptr Simulator::simulate (const Program::List::ptr & programs,
-                                const size_t bound,
-                                const size_t seed)
-{
-  Simulator simulator {programs, bound, seed};
-
-  // Mersenne Twister pseudo-random number generator
-  std::mt19937_64 random(seed);
-
-  // random scheduler
-  return simulator.run([&simulator, &random] {
-    simulator.thread = simulator.active[random() % simulator.active.size()];
-
-    assert(simulator.state[simulator.thread] == State::running);
-
-    // rule 2, 5, 7: store buffer may be flushed at any time or must be empty
-    if (simulator.sb_full())
-      {
-        const Instruction & op =
-          (*simulator.programs)[simulator.thread][simulator.pc()];
-
-        if (random() % 2 || op.requires_flush())
-          simulator.state[simulator.thread] = State::flushing;
-      }
-
-    return simulator.thread;
-  });
-}
-
-// Simulator::replay -----------------------------------------------------------
-
-Trace::ptr Simulator::replay (const Trace & trace, const size_t bound)
-{
-  Simulator simulator {
-    trace.programs,
-    bound && bound < trace.length ? bound : trace.length - 1
-  };
-
-  // replay scheduler
-  Trace::iterator iterator = trace.begin();
-
-  return simulator.run([&simulator, &iterator] {
-    if (iterator->flush)
-      simulator.state[iterator->thread] = State::flushing;
-
-    return iterator++->thread;
-  });
-}
 
 // Simulator::pc ---------------------------------------------------------------
 
@@ -505,6 +377,136 @@ void Simulator::execute (const Instruction::Exit & e)
   state[thread] = State::exited;
 }
 
+// Simulator::check_and_resume -------------------------------------------------
+
+void Simulator::check_and_resume (word_t id)
+{
+  // all other threads already at this checkpoint (or halted)?
+  if (waiting_for_checkpoint[id].size() >= threads_per_checkpoint[id].size())
+    {
+      // reset number of waiting threads
+      waiting_for_checkpoint[id].clear();
+
+      // reactivate threads
+      for (const word_t t : threads_per_checkpoint[id])
+        {
+          state[t] = State::running;
+          active.push_back(t);
+        }
+    }
+}
+
+// Simulator::run --------------------------------------------------------------
+
+Trace::ptr Simulator::run (std::function<word_t()> scheduler)
+{
+  // activate threads
+  std::iota(active.begin(), active.end(), 0);
+
+  bool done = active.empty();
+
+  while (!done && ++step <= bound)
+    {
+      thread = scheduler();
+
+      trace->push_back_thread(step - 1, thread);
+
+      // flush store buffer or execute instruction
+      if (state[thread] == State::flushing)
+        flush();
+      else
+        execute();
+
+      // handle state transitions
+      switch (state[thread])
+        {
+        // keep 'em running
+        case State::running:
+
+        // checkpoint reached
+        case State::waiting: break;
+
+        // halted - quit if all the others also stopped
+        case State::halted:
+          {
+            // check if we were the last thread standing
+            done = true;
+            for (auto it = active.begin(); done && it != active.end(); ++it)
+              if (state[*it] != State::halted)
+                done = false;
+
+            break;
+          }
+
+        // exiting - return exit code
+        case State::exited: done = true; break;
+
+        default:
+          {
+            std::ostringstream m;
+            m << "illegal thread state transition "
+              << State::running
+              << " -> "
+              << state[thread];
+            throw std::runtime_error(m.str());
+          }
+        }
+    }
+
+  return move(trace);
+}
+
+// Simulator::simulate ---------------------------------------------------------
+
+Trace::ptr Simulator::simulate (const Program::List::ptr & programs,
+                                const size_t bound,
+                                const size_t seed)
+{
+  Simulator simulator {programs, bound, seed};
+
+  // Mersenne Twister pseudo-random number generator
+  std::mt19937_64 random(seed);
+
+  // random scheduler
+  return simulator.run([&simulator, &random] {
+    simulator.thread = simulator.active[random() % simulator.active.size()];
+
+    assert(simulator.state[simulator.thread] == State::running);
+
+    // rule 2, 5, 7: store buffer may be flushed at any time or must be empty
+    if (simulator.sb_full())
+      {
+        const Instruction & op =
+          (*simulator.programs)[simulator.thread][simulator.pc()];
+
+        if (random() % 2 || op.requires_flush())
+          simulator.state[simulator.thread] = State::flushing;
+      }
+
+    return simulator.thread;
+  });
+}
+
+// Simulator::replay -----------------------------------------------------------
+
+Trace::ptr Simulator::replay (const Trace & trace, const size_t bound)
+{
+  Simulator simulator {
+    trace.programs,
+    bound && bound < trace.length ? bound : trace.length - 1
+  };
+
+  // replay scheduler
+  Trace::iterator iterator = trace.begin();
+
+  return simulator.run([&simulator, &iterator] {
+    if (iterator->flush)
+      simulator.state[iterator->thread] = State::flushing;
+
+    return iterator++->thread;
+  });
+}
+
 //==============================================================================
 // non-member operators
 //==============================================================================
@@ -513,3 +515,5 @@ std::ostream & operator << (std::ostream & os, Simulator::State s)
 {
   return os << static_cast<char>(s);
 }
+
+} // namespace ConcuBinE

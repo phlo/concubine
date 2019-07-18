@@ -7,6 +7,8 @@
 
 #include "program.hh"
 
+namespace ConcuBinE {
+
 //==============================================================================
 // Trace class
 //==============================================================================
@@ -322,5 +324,7 @@ struct Trace
 //
 bool operator == (const Trace &, const Trace &);
 bool operator != (const Trace &, const Trace &);
+
+} // namespace ConcuBinE
 
 #endif

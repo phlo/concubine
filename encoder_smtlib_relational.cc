@@ -4,7 +4,7 @@
 
 #include "smtlib.hh"
 
-namespace smtlib {
+namespace ConcuBinE::smtlib {
 
 //==============================================================================
 // smtlib::Relational::State
@@ -713,4 +713,4 @@ std::string Relational::encode (const Instruction::Exit & e)
   return state;
 }
 
-} // namespace smtlib
+} // namespace ConcuBinE::smtlib

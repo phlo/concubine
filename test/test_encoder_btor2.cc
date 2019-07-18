@@ -6,7 +6,7 @@
 #include "btor2.hh"
 #include "btormc.hh"
 
-namespace test {
+namespace ConcuBinE::test {
 
 //==============================================================================
 // helper
@@ -3480,10 +3480,10 @@ TEST_F(btor2_Encoder, STORE)
 
   Instruction::Store store {Type::none, address};
 
-  encoder->update = ::Encoder::State::sb_adr;
+  encoder->update = State::sb_adr;
   ASSERT_EQ(encoder->nids_const[address], encoder->encode(store));
 
-  encoder->update = ::Encoder::State::sb_val;
+  encoder->update = State::sb_val;
   ASSERT_EQ(encoder->nids_accu[0], encoder->encode(store));
 }
 
@@ -3499,13 +3499,13 @@ TEST_F(btor2_Encoder, STORE_indirect)
 
   Instruction::Store store {Type::none, address, true};
 
-  encoder->update = ::Encoder::State::sb_adr;
+  encoder->update = State::sb_adr;
   ASSERT_EQ(
     encoder->nids_load[encoder->thread][address],
     encoder->encode(store));
   ASSERT_EQ(expected_load(nid, address), encoder->str());
 
-  encoder->update = ::Encoder::State::sb_val;
+  encoder->update = State::sb_val;
   ASSERT_EQ(encoder->nids_accu[0], encoder->encode(store));
 }
 
@@ -4081,7 +4081,7 @@ TEST_F(btor2_Encoder, CAS)
   expected = [this, &nid, &address, &nid_cas] {
     std::ostringstream s;
 
-    if (encoder->update == ::Encoder::State::accu)
+    if (encoder->update == State::accu)
       {
         s << expected_load(nid, address);
         s <<
@@ -4100,7 +4100,7 @@ TEST_F(btor2_Encoder, CAS)
             encoder->nids_const[0]);
         nid++;
       }
-    else if (encoder->update == ::Encoder::State::heap)
+    else if (encoder->update == State::heap)
       {
         s <<
           btor2::write(
@@ -4123,13 +4123,13 @@ TEST_F(btor2_Encoder, CAS)
     return s.str();
   };
 
-  encoder->update = ::Encoder::State::accu;
+  encoder->update = State::accu;
   nid_cas = encoder->encode(cas);
   ASSERT_EQ(expected(), encoder->str());
 
   encoder->formula.str("");
 
-  encoder->update = ::Encoder::State::heap;
+  encoder->update = State::heap;
   nid_cas = encoder->encode(cas);
   ASSERT_EQ(expected(), encoder->str());
 }
@@ -4151,7 +4151,7 @@ TEST_F(btor2_Encoder, CAS_indirect)
   expected = [this, &nid, &address, &nid_cas] {
     std::ostringstream s;
 
-    if (encoder->update == ::Encoder::State::accu)
+    if (encoder->update == State::accu)
       {
         s << expected_load(nid, address);
         s <<
@@ -4170,7 +4170,7 @@ TEST_F(btor2_Encoder, CAS_indirect)
             encoder->nids_const[0]);
         nid++;
       }
-    else if (encoder->update == ::Encoder::State::heap)
+    else if (encoder->update == State::heap)
       {
         s <<
           btor2::write(
@@ -4193,13 +4193,13 @@ TEST_F(btor2_Encoder, CAS_indirect)
     return s.str();
   };
 
-  encoder->update = ::Encoder::State::accu;
+  encoder->update = State::accu;
   nid_cas = encoder->encode(cas);
   ASSERT_EQ(expected(), encoder->str());
 
   encoder->formula.str("");
 
-  encoder->update = ::Encoder::State::heap;
+  encoder->update = State::heap;
   nid_cas = encoder->encode(cas);
   ASSERT_EQ(expected(), encoder->str());
 }
@@ -4212,4 +4212,4 @@ TEST_F(btor2_Encoder, EXIT)
   ASSERT_EQ("", encoder->str());
 }
 
-} // namespace test
+} // namespace ConcuBinE::test

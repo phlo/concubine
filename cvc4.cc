@@ -2,6 +2,8 @@
 
 #include "smtlib.hh"
 
+namespace ConcuBinE {
+
 std::string CVC4::name () const { return "cvc4"; }
 
 std::string CVC4::build_command ()
@@ -25,3 +27,5 @@ std::optional<CVC4::Variable> CVC4::parse_line (std::istringstream & line)
 
   return {};
 }
+
+} // namespace ConcuBinE

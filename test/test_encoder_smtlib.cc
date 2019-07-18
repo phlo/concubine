@@ -1,6 +1,6 @@
 #include "test_encoder_smtlib.hh"
 
-namespace test {
+namespace ConcuBinE::test {
 
 //==============================================================================
 // smtlib::Encoder tests
@@ -1745,10 +1745,10 @@ TEST_F(smtlib_Encoder, STORE)
 {
   Instruction::Store store {Type::none, 1};
 
-  encoder->update = ::Encoder::State::sb_adr;
+  encoder->update = State::sb_adr;
   ASSERT_EQ("#x0001", encoder->encode(store));
 
-  encoder->update = ::Encoder::State::sb_val;
+  encoder->update = State::sb_val;
   ASSERT_EQ("accu_0_0", encoder->encode(store));
 }
 
@@ -1756,10 +1756,10 @@ TEST_F(smtlib_Encoder, STORE_indirect)
 {
   Instruction::Store store {Type::none, 1, true};
 
-  encoder->update = ::Encoder::State::sb_adr;
+  encoder->update = State::sb_adr;
   ASSERT_EQ(encoder->load(store.arg), encoder->encode(store));
 
-  encoder->update = ::Encoder::State::sb_val;
+  encoder->update = State::sb_val;
   ASSERT_EQ("accu_0_0", encoder->encode(store));
 }
 
@@ -1936,13 +1936,13 @@ TEST_F(smtlib_Encoder, CAS)
 {
   Instruction::Cas cas {Type::none, 1};
 
-  encoder->update = ::Encoder::State::accu;
+  encoder->update = State::accu;
 
   ASSERT_EQ(
     "(ite (= mem_0_0 (select heap_0 #x0001)) #x0001 #x0000)",
     encoder->encode(cas));
 
-  encoder->update = ::Encoder::State::heap;
+  encoder->update = State::heap;
 
   ASSERT_EQ(
     "(ite "
@@ -1956,13 +1956,13 @@ TEST_F(smtlib_Encoder, CAS_indirect)
 {
   Instruction::Cas cas {Type::none, 1, true};
 
-  encoder->update = ::Encoder::State::accu;
+  encoder->update = State::accu;
 
   ASSERT_EQ(
     "(ite (= mem_0_0 (select heap_0 (select heap_0 #x0001))) #x0001 #x0000)",
     encoder->encode(cas));
 
-  encoder->update = ::Encoder::State::heap;
+  encoder->update = State::heap;
 
   ASSERT_EQ(
     "(ite "
@@ -1986,4 +1986,4 @@ TEST_F(smtlib_Encoder, EXIT)
   ASSERT_EQ("#x0001", encoder->encode(exit));
 }
 
-} // namespace test
+} // namespace ConcuBinE::test

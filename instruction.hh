@@ -8,6 +8,8 @@
 
 #include "common.hh"
 
+namespace ConcuBinE {
+
 //==============================================================================
 // macros
 //==============================================================================
@@ -269,5 +271,7 @@ struct Instruction
 //
 bool operator == (const Instruction &, const Instruction &);
 bool operator != (const Instruction &, const Instruction &);
+
+} // namespace ConcuBinE
 
 #endif

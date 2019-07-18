@@ -3,6 +3,8 @@
 
 #include "solver.hh"
 
+namespace ConcuBinE {
+
 class CVC4 : public External
 {
 private:
@@ -18,5 +20,7 @@ public:
 
   virtual std::string name () const;
 };
+
+} // namespace ConcuBinE
 
 #endif

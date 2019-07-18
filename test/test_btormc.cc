@@ -5,7 +5,7 @@
 #include "parser.hh"
 #include "simulator.hh"
 
-namespace test {
+namespace ConcuBinE::test {
 
 //==============================================================================
 // BtorMC tests
@@ -13,7 +13,7 @@ namespace test {
 
 struct BtorMC : public ::testing::Test
 {
-  ::BtorMC btormc = ::BtorMC(16);
+  ConcuBinE::BtorMC btormc = ConcuBinE::BtorMC(16);
   Encoder::ptr encoder;
   Program::List::ptr programs = std::make_shared<Program::List>();
   Trace::ptr trace;
@@ -251,4 +251,4 @@ TEST_F(BtorMC, print_model_cas)
   ASSERT_TRUE(sat);
 }
 
-} // namespace test
+} // namespace ConcuBinE::test

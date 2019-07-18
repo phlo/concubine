@@ -6,6 +6,8 @@
 #include "instruction.hh"
 #include "parser.hh"
 
+namespace ConcuBinE {
+
 //==============================================================================
 // Trace
 //==============================================================================
@@ -851,3 +853,5 @@ bool operator != (const Trace & a, const Trace & b)
 {
   return !(a == b);
 }
+
+} // namespace ConcuBinE

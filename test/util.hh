@@ -4,8 +4,8 @@
 #include <chrono>
 #include <functional>
 
-template<typename Duration>
-long time (std::function<void()> fun)
+template <class Duration, class Fun>
+long time (Fun fun)
 {
   using namespace std;
   using namespace std::chrono;

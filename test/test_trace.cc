@@ -5,7 +5,7 @@
 #include "instruction.hh"
 #include "parser.hh"
 
-namespace test {
+namespace ConcuBinE::test {
 
 //==============================================================================
 // Trace tests
@@ -13,6 +13,14 @@ namespace test {
 
 struct Trace : public ::testing::Test
 {
+  template <class T>
+  using update_map = ConcuBinE::Trace::update_map<T>;
+
+  template <class T>
+  using thread_map = ConcuBinE::Trace::thread_map<T>;
+
+  using heap_val_map = ConcuBinE::Trace::heap_val_map;
+
   std::string dummy_path = "dummy.trace";
   std::vector<std::string> check_program_paths = {
     "data/increment.check.thread.0.asm",
@@ -22,13 +30,13 @@ struct Trace : public ::testing::Test
   std::string check_trace_path = "data/increment.check.t2.k16.trace";
   std::string cas_trace_path = "data/increment.cas.t2.k16.trace";
 
-  ::Trace::ptr trace;
+  ConcuBinE::Trace::ptr trace;
 
   void create_dummy_trace (const size_t num_programs)
     {
       Program::List::ptr programs = std::make_unique<Program::List>();
       programs->resize(num_programs);
-      trace = std::make_unique<::Trace>(programs);
+      trace = std::make_unique<ConcuBinE::Trace>(programs);
     }
 };
 
@@ -37,7 +45,8 @@ struct Trace : public ::testing::Test
 TEST_F(Trace, parse_check)
 {
   trace =
-    std::make_unique<::Trace>(create_from_file<::Trace>(check_trace_path));
+    std::make_unique<ConcuBinE::Trace>(
+      create_from_file<ConcuBinE::Trace>(check_trace_path));
 
   ASSERT_EQ(17, trace->length);
 
@@ -46,7 +55,7 @@ TEST_F(Trace, parse_check)
   ASSERT_EQ(check_program_paths[1], trace->programs->at(1).path);
 
   ASSERT_EQ(
-    ::Trace::update_map<word_t>({
+    update_map<word_t>({
       {0,  0},
       {1,  1},
       {2,  0},
@@ -57,7 +66,7 @@ TEST_F(Trace, parse_check)
     trace->thread_updates);
 
   ASSERT_EQ(
-    ::Trace::update_map<word_t>({
+    update_map<word_t>({
       {0,  0},
       {2,  1},
       {4,  2},
@@ -70,7 +79,7 @@ TEST_F(Trace, parse_check)
       {16, 2}}),
     trace->pc_updates[0]);
   ASSERT_EQ(
-    ::Trace::update_map<word_t>({
+    update_map<word_t>({
       {1,  0},
       {6,  1},
       {10, 2},
@@ -79,33 +88,33 @@ TEST_F(Trace, parse_check)
     trace->pc_updates[1]);
 
   ASSERT_EQ(
-    ::Trace::update_map<word_t>({
+    update_map<word_t>({
       {0, 0},
       {8, 1}}),
     trace->accu_updates[0]);
   ASSERT_EQ(
-    ::Trace::update_map<word_t>({
+    update_map<word_t>({
       {1,  0},
       {12, 1}}),
     trace->accu_updates[1]);
 
-  ASSERT_EQ(::Trace::update_map<word_t>({{0, 0}}), trace->mem_updates[0]);
-  ASSERT_EQ(::Trace::update_map<word_t>({{1, 0}}), trace->mem_updates[1]);
+  ASSERT_EQ(update_map<word_t>({{0, 0}}), trace->mem_updates[0]);
+  ASSERT_EQ(update_map<word_t>({{1, 0}}), trace->mem_updates[1]);
 
   ASSERT_EQ(
-    ::Trace::thread_map<word_t>({
+    thread_map<word_t>({
       {{0, 0}},
       {{1, 0}}}),
     trace->sb_adr_updates);
 
   ASSERT_EQ(
-    ::Trace::thread_map<word_t>({
+    thread_map<word_t>({
       {{0, 0}, {9, 1}},
       {{1, 0}}}),
     trace->sb_val_updates);
 
   ASSERT_EQ(
-    ::Trace::thread_map<bool>({
+    thread_map<bool>({
       {{0, false}, {2, true}, {3, false}, {9, true}, {14, false}},
       {{1, false}}}),
     trace->sb_full_updates);
@@ -113,19 +122,21 @@ TEST_F(Trace, parse_check)
   ASSERT_EQ(std::unordered_set<size_t>({2, 13}), trace->flushes);
 
   ASSERT_EQ(
-    ::Trace::update_map<word_t>({
+    update_map<word_t>({
       {3, 0},
       {14, 0}}),
     trace->heap_adr_updates);
   ASSERT_EQ(
-    ::Trace::heap_val_map({
+    heap_val_map({
       {0, {{3, 0}, {14, 1}}}}),
     trace->heap_val_updates);
 }
 
 TEST_F(Trace, parse_cas)
 {
-  trace = std::make_unique<::Trace>(create_from_file<::Trace>(cas_trace_path));
+  trace =
+    std::make_unique<ConcuBinE::Trace>(
+      create_from_file<ConcuBinE::Trace>(cas_trace_path));
 
   ASSERT_EQ(17, trace->length);
 
@@ -134,7 +145,7 @@ TEST_F(Trace, parse_cas)
   ASSERT_EQ(cas_program_path, trace->programs->at(1).path);
 
   ASSERT_EQ(
-    ::Trace::update_map<word_t>({
+    update_map<word_t>({
       {0,  0},
       {1,  1},
       {3,  0},
@@ -147,7 +158,7 @@ TEST_F(Trace, parse_cas)
     trace->thread_updates);
 
   ASSERT_EQ(
-    ::Trace::update_map<word_t>({
+    update_map<word_t>({
       {0,  0},
       {3,  1},
       {6,  2},
@@ -158,7 +169,7 @@ TEST_F(Trace, parse_cas)
       {16, 3}}),
     trace->pc_updates[0]);
   ASSERT_EQ(
-    ::Trace::update_map<word_t>({
+    update_map<word_t>({
       {1,  0},
       {2,  1},
       {7,  2},
@@ -169,40 +180,40 @@ TEST_F(Trace, parse_cas)
     trace->pc_updates[1]);
 
   ASSERT_EQ(
-    ::Trace::update_map<word_t>({
+    update_map<word_t>({
       {0,  0},
       {14, 1},
       {15, 0}}),
     trace->accu_updates[0]);
   ASSERT_EQ(
-    ::Trace::update_map<word_t>({
+    update_map<word_t>({
       {1,  0},
       {11, 1}}),
     trace->accu_updates[1]);
 
   ASSERT_EQ(
-    ::Trace::update_map<word_t>({
+    update_map<word_t>({
       {0,  0}}),
     trace->mem_updates[0]);
   ASSERT_EQ(
-    ::Trace::update_map<word_t>({
+    update_map<word_t>({
       {1, 0}}),
     trace->mem_updates[1]);
 
   ASSERT_EQ(
-    ::Trace::thread_map<word_t>({
+    thread_map<word_t>({
       {{0, 0}},
       {{1, 0}}}),
     trace->sb_adr_updates);
 
   ASSERT_EQ(
-    ::Trace::thread_map<word_t>({
+    thread_map<word_t>({
       {{0, 0}},
       {{1, 0}}}),
     trace->sb_val_updates);
 
   ASSERT_EQ(
-    ::Trace::thread_map<bool>({
+    thread_map<bool>({
       {{0, false}, {3, true}, {5, false}},
       {{1, false}, {2, true}, {4, false}}}),
     trace->sb_full_updates);
@@ -210,11 +221,11 @@ TEST_F(Trace, parse_cas)
   ASSERT_EQ(std::unordered_set<size_t>({2, 3}), trace->flushes);
 
   ASSERT_EQ(
-    ::Trace::update_map<word_t>({
+    update_map<word_t>({
       {3, 0}, {4, 0}, {12, 0}}),
     trace->heap_adr_updates);
   ASSERT_EQ(
-    ::Trace::heap_val_map({
+    heap_val_map({
       {0, {{3, 0}, {12, 1}}}}),
     trace->heap_val_updates);
 }
@@ -227,7 +238,7 @@ TEST_F(Trace, parse_empty_line)
     "\n"
     "0\t8\tEXIT\t1\t0\t0\t0\t0\t0\t{}\n");
 
-  trace = std::make_unique<::Trace>(inbuf, dummy_path);
+  trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
 
   ASSERT_EQ(1, trace->size());
   ASSERT_EQ(1, trace->programs->size());
@@ -239,7 +250,8 @@ TEST_F(Trace, parse_file_not_found)
   try
     {
       trace =
-        std::make_unique<::Trace>(create_from_file<::Trace>("file_not_found"));
+        std::make_unique<ConcuBinE::Trace>(
+          create_from_file<ConcuBinE::Trace>("file_not_found"));
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -257,7 +269,7 @@ TEST_F(Trace, parse_no_program)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -276,7 +288,7 @@ TEST_F(Trace, parse_program_not_found)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -295,7 +307,7 @@ TEST_F(Trace, parse_missing_separator)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -312,7 +324,7 @@ TEST_F(Trace, parse_missing_trace)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -330,7 +342,7 @@ TEST_F(Trace, parse_unknown_thread_id)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -348,7 +360,7 @@ TEST_F(Trace, parse_illegal_thread_id)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -366,7 +378,7 @@ TEST_F(Trace, parse_illegal_pc)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -384,7 +396,7 @@ TEST_F(Trace, parse_unknown_label)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -402,7 +414,7 @@ TEST_F(Trace, parse_unknown_instruction)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -420,7 +432,7 @@ TEST_F(Trace, parse_unexpected_instruction)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -440,7 +452,7 @@ TEST_F(Trace, parse_illegal_argument_label_not_supported)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -460,7 +472,7 @@ TEST_F(Trace, parse_illegal_argument_unknown_label)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -478,7 +490,7 @@ TEST_F(Trace, parse_illegal_accu)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -498,7 +510,7 @@ TEST_F(Trace, parse_illegal_mem)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -518,7 +530,7 @@ TEST_F(Trace, parse_illegal_store_buffer_address)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -538,7 +550,7 @@ TEST_F(Trace, parse_illegal_store_buffer_value)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -558,7 +570,7 @@ TEST_F(Trace, parse_illegal_store_buffer_full)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -578,7 +590,7 @@ TEST_F(Trace, parse_illegal_heap)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -594,7 +606,7 @@ TEST_F(Trace, parse_illegal_heap)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -610,7 +622,7 @@ TEST_F(Trace, parse_illegal_heap)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -628,7 +640,7 @@ TEST_F(Trace, parse_illegal_heap)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -648,7 +660,7 @@ TEST_F(Trace, parse_missing_pc)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -666,7 +678,7 @@ TEST_F(Trace, parse_missing_instruction_symbol)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -684,7 +696,7 @@ TEST_F(Trace, parse_missing_instruction_argument)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -702,7 +714,7 @@ TEST_F(Trace, parse_missing_accu)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -722,7 +734,7 @@ TEST_F(Trace, parse_missing_mem)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -740,7 +752,7 @@ TEST_F(Trace, parse_missing_store_buffer_address)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -758,7 +770,7 @@ TEST_F(Trace, parse_missing_store_buffer_value)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -776,7 +788,7 @@ TEST_F(Trace, parse_missing_store_buffer_full)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -794,7 +806,7 @@ TEST_F(Trace, parse_missing_heap)
 
   try
     {
-      trace = std::make_unique<::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -866,7 +878,7 @@ TEST_F(Trace, push_back_thread)
 {
   create_dummy_trace(2);
 
-  auto & expected = updates<::Trace::update_map<word_t>, 1, 1>;
+  auto & expected = updates<update_map<word_t>, 1, 1>;
 
   for (const auto & [step, thread, _, __] : data)
     trace->push_back_thread(step, thread);
@@ -882,7 +894,7 @@ TEST_F(Trace, push_back_pc)
 {
   create_dummy_trace(2);
 
-  auto & expected = updates<::Trace::thread_map<word_t>, 1, 2>;
+  auto & expected = updates<thread_map<word_t>, 1, 2>;
 
   for (const auto & [step, thread, pc, _] : data)
     trace->push_back_pc(step, thread, pc);
@@ -899,7 +911,7 @@ TEST_F(Trace, push_back_accu)
 {
   create_dummy_trace(2);
 
-  auto & expected = updates<::Trace::thread_map<word_t>, 1, 2>;
+  auto & expected = updates<thread_map<word_t>, 1, 2>;
 
   for (const auto & [step, thread, accu, _] : data)
     trace->push_back_accu(step, thread, accu);
@@ -916,7 +928,7 @@ TEST_F(Trace, push_back_mem)
 {
   create_dummy_trace(2);
 
-  auto & expected = updates<::Trace::thread_map<word_t>, 1, 2>;
+  auto & expected = updates<thread_map<word_t>, 1, 2>;
 
   for (const auto & [step, thread, mem, _] : data)
     trace->push_back_mem(step, thread, mem);
@@ -933,7 +945,7 @@ TEST_F(Trace, push_back_sb_adr)
 {
   create_dummy_trace(2);
 
-  auto & expected = updates<::Trace::thread_map<word_t>, 1, 2>;
+  auto & expected = updates<thread_map<word_t>, 1, 2>;
 
   for (const auto & [step, thread, adr, _] : data)
     trace->push_back_sb_adr(step, thread, adr);
@@ -950,7 +962,7 @@ TEST_F(Trace, push_back_sb_val)
 {
   create_dummy_trace(2);
 
-  auto & expected = updates<::Trace::thread_map<word_t>, 1, 2>;
+  auto & expected = updates<thread_map<word_t>, 1, 2>;
 
   for (const auto & [step, thread, adr, _] : data)
     trace->push_back_sb_val(step, thread, adr);
@@ -967,7 +979,7 @@ TEST_F(Trace, push_back_sb_full)
 {
   create_dummy_trace(2);
 
-  auto & expected = updates<::Trace::thread_map<bool>, 1, 2>;
+  auto & expected = updates<thread_map<bool>, 1, 2>;
 
   for (const auto & [step, thread, full, _] : data)
     trace->push_back_sb_full(step, thread, full);
@@ -984,8 +996,8 @@ TEST_F(Trace, push_back_heap)
 {
   create_dummy_trace(2);
 
-  ::Trace::update_map<word_t> expected_adr;
-  auto & expected_val = updates<::Trace::heap_val_map, 2, 3>;
+  update_map<word_t> expected_adr;
+  auto & expected_val = updates<heap_val_map, 2, 3>;
 
   for (const auto & [step, thread, idx, val] : data)
     {
@@ -1109,7 +1121,9 @@ TEST_F(Trace, heap)
 
 TEST_F(Trace, print)
 {
-  trace = std::make_unique<::Trace>(create_from_file<::Trace>(cas_trace_path));
+  trace =
+    std::make_unique<ConcuBinE::Trace>(
+      create_from_file<ConcuBinE::Trace>(cas_trace_path));
 
   std::ifstream ifs(cas_trace_path);
   std::string expected((std::istreambuf_iterator<char>(ifs)),
@@ -1123,7 +1137,9 @@ TEST_F(Trace, print_indirect_addressing)
 {
   cas_trace_path = "data/indirect.addressing.trace";
 
-  trace = std::make_unique<::Trace>(create_from_file<::Trace>(cas_trace_path));
+  trace =
+    std::make_unique<ConcuBinE::Trace>(
+      create_from_file<ConcuBinE::Trace>(cas_trace_path));
 
   std::ifstream ifs(cas_trace_path);
   std::string expected((std::istreambuf_iterator<char>(ifs)),
@@ -1137,8 +1153,8 @@ TEST_F(Trace, print_indirect_addressing)
 TEST_F(Trace, iterator_check)
 {
   trace =
-    std::make_unique<::Trace>(
-      create_from_file<::Trace>("data/increment.check.t2.k16.trace"));
+    std::make_unique<ConcuBinE::Trace>(
+      create_from_file<ConcuBinE::Trace>("data/increment.check.t2.k16.trace"));
 
                     // 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16
   word_t tid[]      = {0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0};
@@ -1149,7 +1165,7 @@ TEST_F(Trace, iterator_check)
   word_t sb_val[]   = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1};
   word_t sb_full[]  = {0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0};
 
-  ::Trace::iterator it = trace->begin(), end = trace->end();
+  ConcuBinE::Trace::iterator it = trace->begin(), end = trace->end();
 
   for (size_t i = 0; it != end; i++, ++it)
     {
@@ -1182,7 +1198,9 @@ TEST_F(Trace, iterator_check)
 
 TEST_F(Trace, iterator_cas)
 {
-  trace = std::make_unique<::Trace>(create_from_file<::Trace>(cas_trace_path));
+  trace =
+    std::make_unique<ConcuBinE::Trace>(
+      create_from_file<ConcuBinE::Trace>(cas_trace_path));
 
                     // 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16
   word_t tid[]      = {0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0};
@@ -1193,7 +1211,7 @@ TEST_F(Trace, iterator_cas)
   word_t sb_val[]   = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   word_t sb_full[]  = {0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-  ::Trace::iterator it = trace->begin(), end = trace->end();
+  ConcuBinE::Trace::iterator it = trace->begin(), end = trace->end();
 
   for (size_t i = 0; it != end; i++, ++it)
     {
@@ -1248,14 +1266,14 @@ TEST_F(Trace, operator_equals)
   p2->at(1).push_back(Instruction::create("STORE", 1));
   p2->at(1).push_back(Instruction::create("ADDI", 1));
 
-  ::Trace s1(p1);
-  ::Trace s2(p2);
+  ConcuBinE::Trace s1(p1);
+  ConcuBinE::Trace s2(p2);
 
   // empty trace
   ASSERT_TRUE(s1 == s2);
 
   // non-empty trace
-  std::optional<::Trace::cell_t> heap;
+  std::optional<ConcuBinE::Trace::cell_t> heap;
   s1.push_back(0, 0, 0, 0, 0, 0, false, heap = {1, 0});
   s1.push_back(1, 0, 0, 0, 0, 0, false, heap);
   s1.push_back(0, 1, 1, 0, 0, 0, false, heap);
@@ -1282,7 +1300,7 @@ TEST_F(Trace, operator_equals)
   ASSERT_TRUE(s1 == s2);
 
   // traces differ
-  ::Trace s3 = s2;
+  ConcuBinE::Trace s3 = s2;
 
   s3.push_back(0, 2, 1, 0, 1, 1, false, heap = {1, 1}); // flush
 
@@ -1307,12 +1325,14 @@ TEST_F(Trace, operator_equals)
   ASSERT_TRUE(s1 == s2);
 
   // compare files
-  ::Trace::ptr sp1 =
-    std::make_unique<::Trace>(create_from_file<::Trace>(cas_trace_path));
-  ::Trace::ptr sp2 =
-    std::make_unique<::Trace>(create_from_file<::Trace>(cas_trace_path));
+  ConcuBinE::Trace::ptr sp1 =
+    std::make_unique<ConcuBinE::Trace>(
+      create_from_file<ConcuBinE::Trace>(cas_trace_path));
+  ConcuBinE::Trace::ptr sp2 =
+    std::make_unique<ConcuBinE::Trace>(
+      create_from_file<ConcuBinE::Trace>(cas_trace_path));
 
   ASSERT_TRUE(*sp1 == *sp2);
 }
 
-} // namespace test
+} // namespace ConcuBinE::test

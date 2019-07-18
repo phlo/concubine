@@ -10,6 +10,8 @@
 #include "z3.hh"
 #include "cvc4.hh"
 
+namespace ConcuBinE {
+
 //==============================================================================
 // global flags
 //==============================================================================
@@ -442,6 +444,8 @@ int solve (const char * name, const int argc, const char ** argv)
   return 0;
 }
 
+} // namespace ConcuBinE
+
 //==============================================================================
 // main
 //==============================================================================
@@ -453,23 +457,23 @@ int main (const int argc, const char ** argv)
       // forward to given command's main
       if (!strcmp(argv[1], "help"))
         {
-          return help(argv[0], argc - 2, argv + 2);
+          return ConcuBinE::help(argv[0], argc - 2, argv + 2);
         }
       else if (!strcmp(argv[1], "simulate"))
         {
-          return simulate(argv[0], argc - 2, argv + 2);
+          return ConcuBinE::simulate(argv[0], argc - 2, argv + 2);
         }
       else if (!strcmp(argv[1], "replay"))
         {
-          return replay(argv[0], argc - 2, argv + 2);
+          return ConcuBinE::replay(argv[0], argc - 2, argv + 2);
         }
       else if (!strcmp(argv[1], "solve"))
         {
-          return solve(argv[0], argc - 2, argv + 2);
+          return ConcuBinE::solve(argv[0], argc - 2, argv + 2);
         }
     }
 
   // found no command
-  print_usage_main(argv[0]);
+  ConcuBinE::print_usage_main(argv[0]);
   return -1;
 }

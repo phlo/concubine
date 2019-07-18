@@ -5,7 +5,7 @@
 #include "instruction.hh"
 #include "parser.hh"
 
-namespace test {
+namespace ConcuBinE::test {
 
 //==============================================================================
 // Program tests
@@ -17,12 +17,12 @@ struct Program : public ::testing::Test
 
   std::string path = "dummy.asm";
 
-  ::Program program;
+  ConcuBinE::Program program;
 
   void create_program (std::string code)
     {
       std::istringstream inbuf {code};
-      program = ::Program(inbuf, path);
+      program = ConcuBinE::Program(inbuf, path);
     }
 };
 
@@ -35,19 +35,19 @@ TEST_F(Program, construction)
     "JMP start\n"
   );
 
-  ::Program & p1 = program;
+  ConcuBinE::Program & p1 = program;
   ASSERT_FALSE(p1.empty());
   ASSERT_FALSE(p1.labels.empty());
 
   // copy construction
-  ::Program p2 (p1);
+  ConcuBinE::Program p2 (p1);
   ASSERT_NE(&p1[0], &p2[0]);
   ASSERT_EQ(p1, p2);
 
   const Instruction * ptr = &p1[0];
 
   // std::move construction
-  ::Program p3 (std::move(p1));
+  ConcuBinE::Program p3 (std::move(p1));
   ASSERT_TRUE(p1.empty());
   ASSERT_TRUE(p1.path.empty());
   ASSERT_TRUE(p1.predecessors.empty());
@@ -76,9 +76,9 @@ TEST_F(Program, construction)
   ASSERT_EQ(p1, p2);
   ASSERT_EQ(ptr, &p2[0]);
 
-  ::Program::List p {p1, p2};
-  std::unique_ptr<::Program::List> p_ptr =
-    std::make_unique<::Program::List>(std::move(p));
+  ConcuBinE::Program::List p {p1, p2};
+  std::unique_ptr<ConcuBinE::Program::List> p_ptr =
+    std::make_unique<ConcuBinE::Program::List>(std::move(p));
   ASSERT_TRUE(p.empty());
   p = std::move(*p_ptr);
   ASSERT_FALSE(p.empty());
@@ -88,7 +88,7 @@ TEST_F(Program, construction)
 
 TEST_F(Program, parse)
 {
-  program = create_from_file<::Program>("data/increment.cas.asm");
+  program = create_from_file<ConcuBinE::Program>("data/increment.cas.asm");
 
   ASSERT_EQ(7, program.size());
   ASSERT_EQ(1, program.checkpoints.size());
@@ -108,7 +108,8 @@ TEST_F(Program, parse)
   ASSERT_EQ("6 JMP LOOP",     program.print(true, 6));
 
   // indirect addressing
-  program = create_from_file<::Program>("data/indirect.addressing.asm");
+  program =
+    create_from_file<ConcuBinE::Program>("data/indirect.addressing.asm");
 
   ASSERT_EQ(6, program.size());
   ASSERT_EQ(0, program.checkpoints.size());
@@ -141,7 +142,7 @@ TEST_F(Program, parse_file_not_found)
 
   try
     {
-      program = create_from_file<::Program>(file);
+      program = create_from_file<ConcuBinE::Program>(file);
       ASSERT_TRUE(false);
     }
   catch (const std::exception & e)
@@ -394,7 +395,7 @@ TEST_F(Program, get_label)
 
 TEST_F(Program, print)
 {
-  program = create_from_file<::Program>("data/increment.cas.asm");
+  program = create_from_file<ConcuBinE::Program>("data/increment.cas.asm");
 
   ASSERT_EQ(
     "STORE 0\n"
@@ -422,7 +423,7 @@ TEST_F(Program, print)
 
 TEST_F(Program, operator_equals)
 {
-  ::Program p1, p2;
+  ConcuBinE::Program p1, p2;
 
   p1.path = "program_1.asm";
   p1.push_back(Instruction::create("LOAD", 1));
@@ -450,4 +451,4 @@ TEST_F(Program, operator_equals)
   ASSERT_TRUE(p1 != p2);
 }
 
-} // namespace test
+} // namespace ConcuBinE::test

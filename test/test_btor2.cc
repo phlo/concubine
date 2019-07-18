@@ -3,7 +3,7 @@
 #include "btor2.hh"
 #include "btormc.hh"
 
-namespace test {
+namespace ConcuBinE::test {
 
 //==============================================================================
 // BTOR2 std::string generator tests
@@ -977,4 +977,4 @@ TEST(btor2, cardinality_exactly_one_sinz_verify)
   ASSERT_FALSE(btormc.sat(spec));
 }
 
-} // namespace test
+} // namespace ConcuBinE::test

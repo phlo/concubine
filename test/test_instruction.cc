@@ -4,7 +4,7 @@
 
 #include "program.hh"
 
-namespace test {
+namespace ConcuBinE::test {
 
 //==============================================================================
 // Instruction tests
@@ -12,9 +12,9 @@ namespace test {
 
 struct Instruction : public ::testing::Test
 {
-  using Type = ::Instruction::Type;
+  using Type = ConcuBinE::Instruction::Type;
 
-  ::Instruction instruction;
+  ConcuBinE::Instruction instruction;
   Program program;
 };
 
@@ -22,17 +22,17 @@ struct Instruction : public ::testing::Test
 
 TEST_F(Instruction, construction)
 {
-  ::Instruction op1 (::Instruction::create("LOAD", 1, true));
-  ::Instruction::Concept * base = op1.model.get();
+  ConcuBinE::Instruction op1 (ConcuBinE::Instruction::create("LOAD", 1, true));
+  ConcuBinE::Instruction::Concept * base = op1.model.get();
 
   // copy construction
-  ::Instruction op2 (op1);
+  ConcuBinE::Instruction op2 (op1);
   ASSERT_TRUE(op1.model);
   ASSERT_TRUE(op2.model);
   ASSERT_NE(op1.model.get(), op2.model.get());
 
   // move construction
-  ::Instruction op3 (std::move(op1));
+  ConcuBinE::Instruction op3 (std::move(op1));
   ASSERT_FALSE(op1.model);
   ASSERT_TRUE(op2.model);
   ASSERT_TRUE(op3.model);
@@ -61,63 +61,63 @@ TEST_F(Instruction, construction)
 TEST_F(Instruction, create)
 {
   // normal
-  instruction = ::Instruction::create("EXIT", 0);
+  instruction = ConcuBinE::Instruction::create("EXIT", 0);
 
   ASSERT_EQ("EXIT", instruction.symbol());
   ASSERT_EQ(Type::control, instruction.type());
   ASSERT_EQ(0, instruction.arg());
 
   // negative arg
-  instruction = ::Instruction::create("LOAD", static_cast<word_t>(-1));
+  instruction = ConcuBinE::Instruction::create("LOAD", static_cast<word_t>(-1));
 
   ASSERT_EQ("LOAD", instruction.symbol());
   ASSERT_EQ(Type::accu | Type::read, instruction.type());
   ASSERT_EQ(word_max, instruction.arg());
 
   // arg overflow
-  instruction = ::Instruction::create("LOAD", word_t(word_max + 1));
+  instruction = ConcuBinE::Instruction::create("LOAD", word_t(word_max + 1));
 
   ASSERT_EQ("LOAD", instruction.symbol());
   ASSERT_EQ(Type::accu | Type::read, instruction.type());
   ASSERT_EQ(0, instruction.arg());
 
   // unknown instruction
-  try { instruction = ::Instruction::create("NOP"); } catch (...) {}
-  try { instruction = ::Instruction::create("NOP", 0); } catch (...) {}
+  try { instruction = ConcuBinE::Instruction::create("NOP"); } catch (...) {}
+  try { instruction = ConcuBinE::Instruction::create("NOP", 0); } catch (...) {}
 }
 
 // Instruction::contains =======================================================
 
 TEST_F(Instruction, contains)
 {
-  ASSERT_EQ(true, ::Instruction::contains("LOAD"));
-  ASSERT_EQ(true, ::Instruction::contains("STORE"));
-  ASSERT_EQ(true, ::Instruction::contains("FENCE"));
-  ASSERT_EQ(true, ::Instruction::contains("ADD"));
-  ASSERT_EQ(true, ::Instruction::contains("ADDI"));
-  ASSERT_EQ(true, ::Instruction::contains("SUB"));
-  ASSERT_EQ(true, ::Instruction::contains("SUBI"));
-  ASSERT_EQ(true, ::Instruction::contains("CMP"));
-  ASSERT_EQ(true, ::Instruction::contains("JMP"));
-  ASSERT_EQ(true, ::Instruction::contains("JZ"));
-  ASSERT_EQ(true, ::Instruction::contains("JNZ"));
-  ASSERT_EQ(true, ::Instruction::contains("JS"));
-  ASSERT_EQ(true, ::Instruction::contains("JNS"));
-  ASSERT_EQ(true, ::Instruction::contains("JNZNS"));
-  ASSERT_EQ(true, ::Instruction::contains("MEM"));
-  ASSERT_EQ(true, ::Instruction::contains("CAS"));
-  ASSERT_EQ(true, ::Instruction::contains("CHECK"));
-  ASSERT_EQ(true, ::Instruction::contains("HALT"));
-  ASSERT_EQ(true, ::Instruction::contains("EXIT"));
+  ASSERT_EQ(true, ConcuBinE::Instruction::contains("LOAD"));
+  ASSERT_EQ(true, ConcuBinE::Instruction::contains("STORE"));
+  ASSERT_EQ(true, ConcuBinE::Instruction::contains("FENCE"));
+  ASSERT_EQ(true, ConcuBinE::Instruction::contains("ADD"));
+  ASSERT_EQ(true, ConcuBinE::Instruction::contains("ADDI"));
+  ASSERT_EQ(true, ConcuBinE::Instruction::contains("SUB"));
+  ASSERT_EQ(true, ConcuBinE::Instruction::contains("SUBI"));
+  ASSERT_EQ(true, ConcuBinE::Instruction::contains("CMP"));
+  ASSERT_EQ(true, ConcuBinE::Instruction::contains("JMP"));
+  ASSERT_EQ(true, ConcuBinE::Instruction::contains("JZ"));
+  ASSERT_EQ(true, ConcuBinE::Instruction::contains("JNZ"));
+  ASSERT_EQ(true, ConcuBinE::Instruction::contains("JS"));
+  ASSERT_EQ(true, ConcuBinE::Instruction::contains("JNS"));
+  ASSERT_EQ(true, ConcuBinE::Instruction::contains("JNZNS"));
+  ASSERT_EQ(true, ConcuBinE::Instruction::contains("MEM"));
+  ASSERT_EQ(true, ConcuBinE::Instruction::contains("CAS"));
+  ASSERT_EQ(true, ConcuBinE::Instruction::contains("CHECK"));
+  ASSERT_EQ(true, ConcuBinE::Instruction::contains("HALT"));
+  ASSERT_EQ(true, ConcuBinE::Instruction::contains("EXIT"));
 
-  ASSERT_EQ(false, ::Instruction::contains("NOP"));
+  ASSERT_EQ(false, ConcuBinE::Instruction::contains("NOP"));
 }
 
 // Instruction::type ===========================================================
 
 TEST_F(Instruction, type)
 {
-  instruction = ::Instruction::create("EXIT", 0);
+  instruction = ConcuBinE::Instruction::create("EXIT", 0);
 
   ASSERT_EQ(Type::control, instruction.type());
 
@@ -129,7 +129,7 @@ TEST_F(Instruction, type)
 
 TEST_F(Instruction, arg)
 {
-  instruction = ::Instruction::create("EXIT", 1);
+  instruction = ConcuBinE::Instruction::create("EXIT", 1);
 
   ASSERT_EQ(1, instruction.arg());
 
@@ -141,7 +141,7 @@ TEST_F(Instruction, arg)
 
 TEST_F(Instruction, indirect)
 {
-  instruction = ::Instruction::create("LOAD", 0);
+  instruction = ConcuBinE::Instruction::create("LOAD", 0);
 
   ASSERT_FALSE(instruction.indirect());
 
@@ -155,49 +155,49 @@ TEST_F(Instruction, operator_equals)
 {
   // Nullary
   ASSERT_EQ(
-    ::Instruction::create("FENCE"),
-    ::Instruction::create("FENCE"));
+    ConcuBinE::Instruction::create("FENCE"),
+    ConcuBinE::Instruction::create("FENCE"));
 
   ASSERT_NE(
-    ::Instruction::create("FENCE"),
-    ::Instruction::create("HALT"));
+    ConcuBinE::Instruction::create("FENCE"),
+    ConcuBinE::Instruction::create("HALT"));
 
   // Unary
   ASSERT_EQ(
-    ::Instruction::create("ADDI", 1),
-    ::Instruction::create("ADDI", 1));
+    ConcuBinE::Instruction::create("ADDI", 1),
+    ConcuBinE::Instruction::create("ADDI", 1));
 
   ASSERT_NE(
-    ::Instruction::create("ADDI", 1),
-    ::Instruction::create("ADDI", 2));
+    ConcuBinE::Instruction::create("ADDI", 1),
+    ConcuBinE::Instruction::create("ADDI", 2));
 
   ASSERT_NE(
-    ::Instruction::create("ADDI", 1),
-    ::Instruction::create("SUBI", 1));
+    ConcuBinE::Instruction::create("ADDI", 1),
+    ConcuBinE::Instruction::create("SUBI", 1));
 
   // Memory
   ASSERT_EQ(
-    ::Instruction::create("STORE", 1),
-    ::Instruction::create("STORE", 1));
+    ConcuBinE::Instruction::create("STORE", 1),
+    ConcuBinE::Instruction::create("STORE", 1));
 
   ASSERT_NE(
-    ::Instruction::create("STORE", 1),
-    ::Instruction::create("STORE", 2));
+    ConcuBinE::Instruction::create("STORE", 1),
+    ConcuBinE::Instruction::create("STORE", 2));
 
   ASSERT_NE(
-    ::Instruction::create("STORE", 1, true),
-    ::Instruction::create("STORE", 1, false));
+    ConcuBinE::Instruction::create("STORE", 1, true),
+    ConcuBinE::Instruction::create("STORE", 1, false));
 
   ASSERT_NE(
-    ::Instruction::create("STORE", 1),
-    ::Instruction::create("LOAD", 1));
+    ConcuBinE::Instruction::create("STORE", 1),
+    ConcuBinE::Instruction::create("LOAD", 1));
 }
 
 // LOAD ========================================================================
 
 TEST_F(Instruction, LOAD)
 {
-  instruction = ::Instruction::create("LOAD", 0);
+  instruction = ConcuBinE::Instruction::create("LOAD", 0);
 
   ASSERT_EQ("LOAD", instruction.symbol());
   ASSERT_EQ(Type::accu | Type::read, instruction.type());
@@ -208,7 +208,7 @@ TEST_F(Instruction, LOAD)
 
 TEST_F(Instruction, STORE)
 {
-  instruction = ::Instruction::create("STORE", 0);
+  instruction = ConcuBinE::Instruction::create("STORE", 0);
 
   ASSERT_TRUE(instruction.is_nullary());
   ASSERT_TRUE(instruction.is_unary());
@@ -226,7 +226,7 @@ TEST_F(Instruction, STORE)
 
 TEST_F(Instruction, FENCE)
 {
-  instruction = ::Instruction::create("FENCE");
+  instruction = ConcuBinE::Instruction::create("FENCE");
 
   ASSERT_TRUE(instruction.is_nullary());
   ASSERT_FALSE(instruction.is_unary());
@@ -242,7 +242,7 @@ TEST_F(Instruction, FENCE)
 
 TEST_F(Instruction, ADD)
 {
-  instruction = ::Instruction::create("ADD", 0);
+  instruction = ConcuBinE::Instruction::create("ADD", 0);
 
   ASSERT_TRUE(instruction.is_nullary());
   ASSERT_TRUE(instruction.is_unary());
@@ -260,7 +260,7 @@ TEST_F(Instruction, ADD)
 
 TEST_F(Instruction, ADDI)
 {
-  instruction = ::Instruction::create("ADDI", 1);
+  instruction = ConcuBinE::Instruction::create("ADDI", 1);
 
   ASSERT_TRUE(instruction.is_nullary());
   ASSERT_TRUE(instruction.is_unary());
@@ -277,7 +277,7 @@ TEST_F(Instruction, ADDI)
 
 TEST_F(Instruction, SUB)
 {
-  instruction = ::Instruction::create("SUB", 0);
+  instruction = ConcuBinE::Instruction::create("SUB", 0);
 
   ASSERT_TRUE(instruction.is_nullary());
   ASSERT_TRUE(instruction.is_unary());
@@ -295,7 +295,7 @@ TEST_F(Instruction, SUB)
 
 TEST_F(Instruction, SUBI)
 {
-  instruction = ::Instruction::create("SUBI", 1);
+  instruction = ConcuBinE::Instruction::create("SUBI", 1);
 
   ASSERT_TRUE(instruction.is_nullary());
   ASSERT_TRUE(instruction.is_unary());
@@ -312,7 +312,7 @@ TEST_F(Instruction, SUBI)
 
 TEST_F(Instruction, MUL)
 {
-  instruction = ::Instruction::create("MUL", 0);
+  instruction = ConcuBinE::Instruction::create("MUL", 0);
 
   ASSERT_TRUE(instruction.is_nullary());
   ASSERT_TRUE(instruction.is_unary());
@@ -330,7 +330,7 @@ TEST_F(Instruction, MUL)
 
 TEST_F(Instruction, MULI)
 {
-  instruction = ::Instruction::create("MULI", 0);
+  instruction = ConcuBinE::Instruction::create("MULI", 0);
 
   ASSERT_TRUE(instruction.is_nullary());
   ASSERT_TRUE(instruction.is_unary());
@@ -347,7 +347,7 @@ TEST_F(Instruction, MULI)
 
 TEST_F(Instruction, CMP)
 {
-  instruction = ::Instruction::create("CMP", 0);
+  instruction = ConcuBinE::Instruction::create("CMP", 0);
 
   ASSERT_TRUE(instruction.is_nullary());
   ASSERT_TRUE(instruction.is_unary());
@@ -365,7 +365,7 @@ TEST_F(Instruction, CMP)
 
 TEST_F(Instruction, JMP)
 {
-  instruction = ::Instruction::create("JMP", word_max);
+  instruction = ConcuBinE::Instruction::create("JMP", word_max);
 
   ASSERT_TRUE(instruction.is_nullary());
   ASSERT_TRUE(instruction.is_unary());
@@ -382,7 +382,7 @@ TEST_F(Instruction, JMP)
 
 TEST_F(Instruction, JZ)
 {
-  instruction = ::Instruction::create("JZ", 0);
+  instruction = ConcuBinE::Instruction::create("JZ", 0);
 
   ASSERT_TRUE(instruction.is_nullary());
   ASSERT_TRUE(instruction.is_unary());
@@ -399,7 +399,7 @@ TEST_F(Instruction, JZ)
 
 TEST_F(Instruction, JNZ)
 {
-  instruction = ::Instruction::create("JNZ", 0);
+  instruction = ConcuBinE::Instruction::create("JNZ", 0);
 
   ASSERT_TRUE(instruction.is_nullary());
   ASSERT_TRUE(instruction.is_unary());
@@ -416,7 +416,7 @@ TEST_F(Instruction, JNZ)
 
 TEST_F(Instruction, JS)
 {
-  instruction = ::Instruction::create("JS", 0);
+  instruction = ConcuBinE::Instruction::create("JS", 0);
 
   ASSERT_TRUE(instruction.is_nullary());
   ASSERT_TRUE(instruction.is_unary());
@@ -433,7 +433,7 @@ TEST_F(Instruction, JS)
 
 TEST_F(Instruction, JNS)
 {
-  instruction = ::Instruction::create("JNS", 0);
+  instruction = ConcuBinE::Instruction::create("JNS", 0);
 
   ASSERT_TRUE(instruction.is_nullary());
   ASSERT_TRUE(instruction.is_unary());
@@ -450,7 +450,7 @@ TEST_F(Instruction, JNS)
 
 TEST_F(Instruction, JNZNS)
 {
-  instruction = ::Instruction::create("JNZNS", 0);
+  instruction = ConcuBinE::Instruction::create("JNZNS", 0);
 
   ASSERT_TRUE(instruction.is_nullary());
   ASSERT_TRUE(instruction.is_unary());
@@ -467,7 +467,7 @@ TEST_F(Instruction, JNZNS)
 
 TEST_F(Instruction, MEM)
 {
-  instruction = ::Instruction::create("MEM", 0);
+  instruction = ConcuBinE::Instruction::create("MEM", 0);
 
   ASSERT_TRUE(instruction.is_nullary());
   ASSERT_TRUE(instruction.is_unary());
@@ -485,7 +485,7 @@ TEST_F(Instruction, MEM)
 
 TEST_F(Instruction, CAS)
 {
-  instruction = ::Instruction::create("CAS", 0);
+  instruction = ConcuBinE::Instruction::create("CAS", 0);
 
   ASSERT_TRUE(instruction.is_nullary());
   ASSERT_TRUE(instruction.is_unary());
@@ -505,7 +505,7 @@ TEST_F(Instruction, CAS)
 
 TEST_F(Instruction, CHECK)
 {
-  instruction = ::Instruction::create("CHECK", 1);
+  instruction = ConcuBinE::Instruction::create("CHECK", 1);
 
   ASSERT_TRUE(instruction.is_nullary());
   ASSERT_TRUE(instruction.is_unary());
@@ -522,7 +522,7 @@ TEST_F(Instruction, CHECK)
 
 TEST_F(Instruction, HALT)
 {
-  instruction = ::Instruction::create("HALT");
+  instruction = ConcuBinE::Instruction::create("HALT");
 
   ASSERT_TRUE(instruction.is_nullary());
   ASSERT_FALSE(instruction.is_unary());
@@ -538,7 +538,7 @@ TEST_F(Instruction, HALT)
 
 TEST_F(Instruction, EXIT)
 {
-  instruction = ::Instruction::create("EXIT", 1);
+  instruction = ConcuBinE::Instruction::create("EXIT", 1);
 
   ASSERT_TRUE(instruction.is_nullary());
   ASSERT_TRUE(instruction.is_unary());
@@ -551,4 +551,4 @@ TEST_F(Instruction, EXIT)
   ASSERT_EQ(1, instruction.arg());
 }
 
-} // namespace test
+} // namespace ConcuBinE::test

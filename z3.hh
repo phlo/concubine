@@ -5,6 +5,8 @@
 
 #include <z3++.h>
 
+namespace ConcuBinE {
+
 struct Z3 : public Solver
 {
   virtual std::string name () const;
@@ -13,5 +15,7 @@ struct Z3 : public Solver
 
   virtual Trace::ptr solve (Encoder & encoder, const std::string & constraints);
 };
+
+} // namespace ConcuBinE
 
 #endif

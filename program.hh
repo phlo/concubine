@@ -10,6 +10,8 @@
 
 #include "common.hh"
 
+namespace ConcuBinE {
+
 //==============================================================================
 // forward declarations
 //==============================================================================
@@ -112,5 +114,7 @@ struct Program : public std::vector<Instruction>
 //
 bool operator == (const Program &, const Program &);
 bool operator != (const Program &, const Program &);
+
+} // namespace ConcuBinE
 
 #endif

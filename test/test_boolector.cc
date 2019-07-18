@@ -5,7 +5,7 @@
 #include "parser.hh"
 #include "simulator.hh"
 
-namespace test {
+namespace ConcuBinE::test {
 
 //==============================================================================
 // Boolector tests
@@ -14,7 +14,7 @@ namespace test {
 struct Boolector : public ::testing::Test
 {
   std::string constraints;
-  ::Boolector boolector;
+  ConcuBinE::Boolector boolector;
   Encoder::ptr encoder;
   Program::List::ptr programs = std::make_shared<Program::List>();
   Trace::ptr trace;
@@ -250,4 +250,4 @@ TEST_F(Boolector, print_model_cas)
   ASSERT_TRUE(sat);
 }
 
-} // namespace test
+} // namespace ConcuBinE::test

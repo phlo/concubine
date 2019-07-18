@@ -4,7 +4,7 @@
 
 #include "shell.hh"
 
-namespace test {
+namespace ConcuBinE::test {
 
 //==============================================================================
 // Main tests
@@ -364,4 +364,4 @@ TEST_F(Main, solve_file_not_found)
   ASSERT_EQ(expected, actual);
 }
 
-} // namespace test
+} // namespace ConcuBinE::test

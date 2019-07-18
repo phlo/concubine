@@ -3,6 +3,8 @@
 
 #include <sstream>
 
+namespace ConcuBinE {
+
 //==============================================================================
 // Shell
 //==============================================================================
@@ -35,5 +37,7 @@ public:
   //
   std::stringstream run (const std::string & cmd, const std::string & input);
 };
+
+} // namespace ConcuBinE
 
 #endif

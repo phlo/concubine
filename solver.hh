@@ -6,6 +6,8 @@
 
 #include "trace.hh"
 
+namespace ConcuBinE {
+
 //==============================================================================
 // forward declarations
 //==============================================================================
@@ -106,5 +108,7 @@ struct External : public Solver
 
   virtual Trace::ptr solve (Encoder & encoder, const std::string & constraints);
 };
+
+} // namespace ConcuBinE
 
 #endif

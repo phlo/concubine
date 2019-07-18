@@ -4,6 +4,8 @@
 
 #include "parser.hh"
 
+namespace ConcuBinE {
+
 std::string Boolector::name () const { return "boolector"; }
 
 std::string Boolector::build_command ()
@@ -119,3 +121,5 @@ Boolector::parse_line (std::istringstream & line)
 
   return {};
 }
+
+} // namespace ConcuBinE

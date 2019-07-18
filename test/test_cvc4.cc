@@ -7,7 +7,7 @@
 #include "publicate.hh"
 #include "cvc4.hh"
 
-namespace test {
+namespace ConcuBinE::test {
 
 //==============================================================================
 // CVC4 tests
@@ -15,7 +15,7 @@ namespace test {
 
 struct CVC4 : public ::testing::Test
 {
-  ::CVC4 cvc4;
+  ConcuBinE::CVC4 cvc4;
 };
 
 TEST_F(CVC4, sat)
@@ -98,4 +98,4 @@ TEST_F(CVC4, print_model_cas)
   ASSERT_TRUE(sat);
 }
 
-} // namespace test
+} // namespace ConcuBinE::test

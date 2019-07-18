@@ -3,11 +3,12 @@
 #include "encoder.hh"
 #include "parser.hh"
 
-namespace test::encoder {
+namespace ConcuBinE::test::encoder {
 
 template <class E, class Impl = E>
 struct Encoder: public ::testing::Test
 {
+  using State = ConcuBinE::Encoder::State;
   using Type = Instruction::Type;
 
   Program::List programs;
@@ -103,4 +104,4 @@ struct Encoder: public ::testing::Test
     }
 };
 
-} // namespace test::encoder
+} // namespace ConcuBinE::test::encoder

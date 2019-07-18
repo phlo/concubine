@@ -1,5 +1,7 @@
 #include "encoder.hh"
 
+namespace ConcuBinE {
+
 //==============================================================================
 // Encoder
 //==============================================================================
@@ -148,3 +150,5 @@ std::string Encoder::exit_pcs_to_string ()
 
   return ss.str();
 }
+
+} // namespace ConcuBinE

@@ -2,7 +2,7 @@
 
 #include <filesystem>
 
-namespace test {
+namespace ConcuBinE::test {
 
 //==============================================================================
 // smtlib::Functional tests
@@ -1045,4 +1045,4 @@ TEST_F(smtlib_Functional, encode_halt)
   encode({path, path}, "test.functional.t2.k10.smt2", 10, "/tmp/");
 }
 
-} // namespace test
+} // namespace ConcuBinE::test

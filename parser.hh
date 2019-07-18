@@ -3,6 +3,8 @@
 
 #include <fstream>
 
+namespace ConcuBinE {
+
 // error reporting helper
 //
 inline void parser_error (const std::string & file,
@@ -24,5 +26,7 @@ inline T create_from_file (const std::string & path)
   else
     throw std::runtime_error(path + " not found");
 }
+
+} // namespace ConcuBinE
 
 #endif

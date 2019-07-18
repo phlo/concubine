@@ -2,6 +2,8 @@
 
 #include "encoder.hh"
 
+namespace ConcuBinE {
+
 BtorMC::BtorMC(size_t b) : bound(b) {}
 
 std::string BtorMC::name () const { return "btormc"; }
@@ -115,3 +117,5 @@ std::optional<BtorMC::Variable> BtorMC::parse_variable (std::istringstream & lin
 
   return variable;
 }
+
+} // namespace ConcuBinE
