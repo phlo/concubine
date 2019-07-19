@@ -82,10 +82,6 @@ Encoder::Encoder (const Program::List::ptr & p, size_t b) :
         lst.reserve(lst.size() + pcs.size());
         lst.insert(lst.end(), pcs.begin(), pcs.end());
       }
-
-    // collect final halt statement (excluding control operations)
-    if (!(program.back().type() & Instruction::Type::control))
-      halt_pcs[thread].push_back(pc - 1);
   });
 }
 

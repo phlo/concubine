@@ -1466,7 +1466,7 @@ TEST_F(btor2_Encoder, define_sb_full)
 
 TEST_F(btor2_Encoder, define_stmt)
 {
-  add_dummy_programs(3, 3);
+  add_dummy_programs(3, 2);
   reset_encoder();
   init_state_definitions();
 
@@ -1549,7 +1549,7 @@ TEST_F(btor2_Encoder, define_stmt)
 
       s << eol;
 
-      // ADDI 1
+      // HALT
       pc++;
 
       s <<
@@ -2561,7 +2561,8 @@ TEST_F(btor2_Encoder, define_halt)
       "JNZ 3\n"
       "HALT\n"
       "SUBI 1\n"
-    ));
+      "HALT\n"));
+
   reset_encoder();
   init_state_definitions();
 
@@ -2590,7 +2591,7 @@ TEST_F(btor2_Encoder, define_halt)
           std::to_string(nid),
           encoder->sid_bool,
           encoder->nids_exec[thread][2],
-          encoder->nids_exec[thread][3]);
+          encoder->nids_exec[thread][4]);
       nid++;
       s <<
         btor2::lor(
@@ -3113,13 +3114,13 @@ TEST_F(btor2_Encoder, define_scheduling_constraints_single_thread)
 
 TEST_F(btor2_Encoder, define_store_buffer_constraints)
 {
-  // add_instruction_set(3);
   for (size_t i = 0; i < 3; i++)
     programs.push_back(create_program(
       "STORE 1\n"
       "FENCE\n"
       "CAS 1\n"
-    ));
+      "HALT\n"));
+
   reset_encoder();
   init_state_definitions();
 
@@ -3173,7 +3174,9 @@ TEST_F(btor2_Encoder, define_store_buffer_constraints)
 
 TEST_F(btor2_Encoder, define_store_buffer_constraints_no_barrier)
 {
-  add_dummy_programs(3);
+  for (size_t i = 0; i < 3; i++)
+    programs.push_back(create_program("JMP 0\n"));
+
   reset_encoder();
   init_state_definitions();
 

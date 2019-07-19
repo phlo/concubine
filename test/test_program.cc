@@ -99,28 +99,33 @@ TEST_F(Program, parse)
   ASSERT_EQ(1, program.label_to_pc.size());
   ASSERT_EQ(3, program.label_to_pc[program.pc_to_label[3]]);
 
-  ASSERT_EQ("0 STORE 0",      program.print(true, 0));
-  ASSERT_EQ("1 FENCE",        program.print(true, 1));
-  ASSERT_EQ("2 CHECK 0",      program.print(true, 2));
-  ASSERT_EQ("3 LOOP: MEM 0",  program.print(true, 3));
-  ASSERT_EQ("4 ADDI 1",       program.print(true, 4));
-  ASSERT_EQ("5 CAS 0",        program.print(true, 5));
-  ASSERT_EQ("6 JMP LOOP",     program.print(true, 6));
+  ASSERT_EQ(
+    "0 STORE 0\n"
+    "1 FENCE\n"
+    "2 CHECK 0\n"
+    "3 LOOP: MEM 0\n"
+    "4 ADDI 1\n"
+    "5 CAS 0\n"
+    "6 JMP LOOP\n",
+    program.print(true));
 
   // indirect addressing
   program =
     create_from_file<ConcuBinE::Program>("data/indirect.addressing.asm");
 
-  ASSERT_EQ(6, program.size());
+  ASSERT_EQ(7, program.size());
   ASSERT_EQ(0, program.checkpoints.size());
   ASSERT_EQ(0, program.labels.size());
 
-  ASSERT_EQ("0 STORE 1",    program.print(true, 0));
-  ASSERT_EQ("1 ADDI 1",     program.print(true, 1));
-  ASSERT_EQ("2 STORE [1]",  program.print(true, 2));
-  ASSERT_EQ("3 LOAD [0]",   program.print(true, 3));
-  ASSERT_EQ("4 ADD [1]",    program.print(true, 4));
-  ASSERT_EQ("5 CMP [1]",    program.print(true, 5));
+  ASSERT_EQ(
+    "0 STORE 1\n"
+    "1 ADDI 1\n"
+    "2 STORE [1]\n"
+    "3 LOAD [0]\n"
+    "4 ADD [1]\n"
+    "5 CMP [1]\n"
+    "6 HALT\n",
+    program.print(true));
 }
 
 TEST_F(Program, parse_empty_line)

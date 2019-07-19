@@ -31,9 +31,8 @@ struct Encoder: public ::testing::Test
 
   Program create_program (const std::string code)
     {
-      std::string path = "dummy.asm";
       std::istringstream inbuf {code};
-      return Program(inbuf, path);
+      return Program(inbuf, "dummy.asm");
     }
 
   void reset_encoder (const size_t bound = 1)

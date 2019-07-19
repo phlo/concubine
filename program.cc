@@ -164,9 +164,13 @@ Program::Program(std::istream & f, const std::string & p) : path(p)
         parser_error(path, pc, "unknown label [" + *label + "]");
       }
 
+  // insert final HALT (if missing)
+  if (!(back().type() & Instruction::Type::control))
+    push_back(Instruction::create("HALT"));
+
   // collect predecessors
   predecessors[0]; // explicitly add initial instruction
-  for (word_t pc = 0, last = size() - 1; pc <= last; pc++)
+  for (word_t pc = 0, final = size() - 1; pc <= final; pc++)
     {
       const Instruction & op = (*this)[pc];
 
@@ -183,7 +187,7 @@ Program::Program(std::istream & f, const std::string & p) : path(p)
 
           predecessors[target].insert(pc);
         }
-      else if (pc < last)
+      else if (pc < final)
         {
           using Halt = Instruction::Halt;
           using Exit = Instruction::Exit;

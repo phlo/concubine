@@ -311,7 +311,7 @@ TEST_F(smtlib_Functional, define_stmt)
     programs.push_back(create_program(
       "ADDI 1\n"
       "STORE 1\n"
-    ));
+      "HALT\n"));
 
   reset_encoder();
 
@@ -324,18 +324,30 @@ TEST_F(smtlib_Functional, define_stmt)
       "(ite stmt_0_0_0 "
         "exec_0_0_0 "
         "(and stmt_0_0_1 (not exec_0_0_1)))))\n"
+    "(assert (= stmt_1_0_2 "
+      "(ite stmt_0_0_1 "
+        "exec_0_0_1 "
+        "(and stmt_0_0_2 (not exec_0_0_2)))))\n"
     "\n"
     "(assert (= stmt_1_1_0 (and stmt_0_1_0 (not exec_0_1_0))))\n"
     "(assert (= stmt_1_1_1 "
       "(ite stmt_0_1_0 "
         "exec_0_1_0 "
         "(and stmt_0_1_1 (not exec_0_1_1)))))\n"
+    "(assert (= stmt_1_1_2 "
+      "(ite stmt_0_1_1 "
+        "exec_0_1_1 "
+        "(and stmt_0_1_2 (not exec_0_1_2)))))\n"
     "\n"
     "(assert (= stmt_1_2_0 (and stmt_0_2_0 (not exec_0_2_0))))\n"
     "(assert (= stmt_1_2_1 "
       "(ite stmt_0_2_0 "
         "exec_0_2_0 "
         "(and stmt_0_2_1 (not exec_0_2_1)))))\n"
+    "(assert (= stmt_1_2_2 "
+      "(ite stmt_0_2_1 "
+        "exec_0_2_1 "
+        "(and stmt_0_2_2 (not exec_0_2_2)))))\n"
     "\n",
     encoder->str());
 
@@ -352,18 +364,30 @@ TEST_F(smtlib_Functional, define_stmt)
       "(ite stmt_0_0_0 "
         "exec_0_0_0 "
         "(and stmt_0_0_1 (not exec_0_0_1)))))\n"
+    "(assert (= stmt_1_0_2 "
+      "(ite stmt_0_0_1 "
+        "exec_0_0_1 "
+        "(and stmt_0_0_2 (not exec_0_0_2)))))\n"
     "\n"
     "(assert (= stmt_1_1_0 (and stmt_0_1_0 (not exec_0_1_0))))\n"
     "(assert (= stmt_1_1_1 "
       "(ite stmt_0_1_0 "
         "exec_0_1_0 "
         "(and stmt_0_1_1 (not exec_0_1_1)))))\n"
+    "(assert (= stmt_1_1_2 "
+      "(ite stmt_0_1_1 "
+        "exec_0_1_1 "
+        "(and stmt_0_1_2 (not exec_0_1_2)))))\n"
     "\n"
     "(assert (= stmt_1_2_0 (and stmt_0_2_0 (not exec_0_2_0))))\n"
     "(assert (= stmt_1_2_1 "
       "(ite stmt_0_2_0 "
         "exec_0_2_0 "
         "(and stmt_0_2_1 (not exec_0_2_1)))))\n"
+    "(assert (= stmt_1_2_2 "
+      "(ite stmt_0_2_1 "
+        "exec_0_2_1 "
+        "(and stmt_0_2_2 (not exec_0_2_2)))))\n"
     "\n",
     encoder->str());
 }
@@ -374,8 +398,7 @@ TEST_F(smtlib_Functional, define_stmt_jmp)
     programs.push_back(create_program(
       "ADDI 1\n"
       "STORE 1\n"
-      "JMP 1\n"
-    ));
+      "JMP 1\n"));
 
   reset_encoder();
 
@@ -429,8 +452,7 @@ TEST_F(smtlib_Functional, define_stmt_jmp_conditional)
       "ADDI 1\n"
       "STORE 1\n"
       "JNZ 1\n"
-      "EXIT 1\n"
-    ));
+      "EXIT 1\n"));
 
   reset_encoder();
 
@@ -496,8 +518,7 @@ TEST_F(smtlib_Functional, define_stmt_jmp_start)
       "ADDI 1\n"
       "STORE 1\n"
       "JNZ 0\n"
-      "EXIT 1\n"
-    ));
+      "EXIT 1\n"));
 
   reset_encoder();
 
@@ -567,8 +588,7 @@ TEST_F(smtlib_Functional, define_stmt_jmp_twice)
       "STORE 1\n"
       "JZ 1\n"
       "JNZ 1\n"
-      "EXIT 1\n"
-    ));
+      "EXIT 1\n"));
 
   reset_encoder();
 
@@ -694,16 +714,17 @@ TEST_F(smtlib_Functional, define_halt)
       "JNZ 3\n"
       "HALT\n"
       "SUBI 1\n"
-    ));
+      "HALT\n"));
+
   reset_encoder();
 
   encoder->define_halt();
 
   ASSERT_EQ(
     "; halt variables - halt_<step>_<thread>\n"
-    "(assert (= halt_1_0 (or exec_0_0_2 exec_0_0_3 halt_0_0)))\n"
-    "(assert (= halt_1_1 (or exec_0_1_2 exec_0_1_3 halt_0_1)))\n"
-    "(assert (= halt_1_2 (or exec_0_2_2 exec_0_2_3 halt_0_2)))\n"
+    "(assert (= halt_1_0 (or exec_0_0_2 exec_0_0_4 halt_0_0)))\n"
+    "(assert (= halt_1_1 (or exec_0_1_2 exec_0_1_4 halt_0_1)))\n"
+    "(assert (= halt_1_2 (or exec_0_2_2 exec_0_2_4 halt_0_2)))\n"
     "\n",
     encoder->str());
 
@@ -715,9 +736,9 @@ TEST_F(smtlib_Functional, define_halt)
   verbose = true;
 
   ASSERT_EQ(
-    "(assert (= halt_1_0 (or exec_0_0_2 exec_0_0_3 halt_0_0)))\n"
-    "(assert (= halt_1_1 (or exec_0_1_2 exec_0_1_3 halt_0_1)))\n"
-    "(assert (= halt_1_2 (or exec_0_2_2 exec_0_2_3 halt_0_2)))\n"
+    "(assert (= halt_1_0 (or exec_0_0_2 exec_0_0_4 halt_0_0)))\n"
+    "(assert (= halt_1_1 (or exec_0_1_2 exec_0_1_4 halt_0_1)))\n"
+    "(assert (= halt_1_2 (or exec_0_2_2 exec_0_2_4 halt_0_2)))\n"
     "\n",
     encoder->str());
 }
@@ -803,8 +824,7 @@ TEST_F(smtlib_Functional, define_exit_flag)
     programs.push_back(create_program(
       "JNZ 2\n"
       "HALT\n"
-      "EXIT 1\n"
-    ));
+      "EXIT 1\n"));
 
   reset_encoder();
 
@@ -968,8 +988,7 @@ TEST_F(smtlib_Functional, define_states_check_exit)
   programs.push_back(
     create_program(
       "CHECK 0\n"
-      "EXIT 1\n"
-    ));
+      "EXIT 1\n"));
 
   reset_encoder();
 

@@ -519,7 +519,7 @@ TEST_F(smtlib_Encoder, declare_sb_full)
 
 TEST_F(smtlib_Encoder, declare_stmt)
 {
-  add_dummy_programs(3, 3);
+  add_dummy_programs(3, 2);
   reset_encoder();
 
   encoder->declare_stmt();
@@ -571,8 +571,7 @@ TEST_F(smtlib_Encoder, declare_block)
     programs.push_back(
       create_program(
         "CHECK 0\n"
-        "CHECK 1\n"
-      ));
+        "CHECK 1\n"));
 
   reset_encoder();
 
@@ -760,7 +759,7 @@ TEST_F(smtlib_Encoder, declare_thread)
 
 TEST_F(smtlib_Encoder, declare_exec)
 {
-  add_dummy_programs(3, 3);
+  add_dummy_programs(3, 2);
   reset_encoder();
 
   encoder->declare_exec();
@@ -846,7 +845,7 @@ TEST_F(smtlib_Encoder, declare_check)
 
   // 3 different checkpoint ids
   for (auto & p : programs)
-    p = create_program(p.print() + "CHECK " + std::to_string(check_id++) + eol);
+    p = create_program("CHECK " + std::to_string(check_id++) + eol + p.print());
 
   reset_encoder();
 
@@ -862,7 +861,7 @@ TEST_F(smtlib_Encoder, declare_check)
 
   // same checkpoint ids
   for (auto & p : programs)
-    p = create_program(p.print() + "CHECK " + std::to_string(check_id) + eol);
+    p = create_program("CHECK " + std::to_string(check_id) + eol + p.print());
 
   reset_encoder();
 
@@ -1064,7 +1063,7 @@ TEST_F(smtlib_Encoder, init_sb_full)
 
 TEST_F(smtlib_Encoder, init_stmt)
 {
-  add_dummy_programs(3, 3);
+  add_dummy_programs(3, 2);
   reset_encoder(0);
 
   encoder->init_stmt();
@@ -1116,8 +1115,7 @@ TEST_F(smtlib_Encoder, init_block)
     programs.push_back(
       create_program(
         "CHECK 0\n"
-        "CHECK 1\n"
-      ));
+        "CHECK 1\n"));
 
   reset_encoder(0);
 
@@ -1290,8 +1288,7 @@ TEST_F(smtlib_Encoder, init_states_check_exit)
   programs.push_back(
     create_program(
       "CHECK 0\n"
-      "EXIT 1\n"
-    ));
+      "EXIT 1\n"));
 
   reset_encoder(0);
 
@@ -1332,7 +1329,7 @@ TEST_F(smtlib_Encoder, init_states_check_exit)
 
 TEST_F(smtlib_Encoder, define_exec)
 {
-  add_dummy_programs(3, 3);
+  add_dummy_programs(3, 2);
   reset_encoder();
 
   encoder->define_exec();
@@ -1552,7 +1549,7 @@ TEST_F(smtlib_Encoder, define_store_buffer_constraints)
       "STORE 1\n"
       "FENCE\n"
       "CAS 1\n"
-    ));
+      "HALT\n"));
 
   reset_encoder();
 
@@ -1563,15 +1560,15 @@ TEST_F(smtlib_Encoder, define_store_buffer_constraints)
     "\n"
     "(assert "
       "(ite sb-full_1_0 "
-        "(=> (or stmt_1_0_0 stmt_1_0_1 stmt_1_0_2) (not thread_1_0)) "
+        "(=> (or stmt_1_0_0 stmt_1_0_1 stmt_1_0_2 stmt_1_0_3) (not thread_1_0)) "
         "(not flush_1_0)))\n"
     "(assert "
       "(ite sb-full_1_1 "
-        "(=> (or stmt_1_1_0 stmt_1_1_1 stmt_1_1_2) (not thread_1_1)) "
+        "(=> (or stmt_1_1_0 stmt_1_1_1 stmt_1_1_2 stmt_1_1_3) (not thread_1_1)) "
         "(not flush_1_1)))\n"
     "(assert "
       "(ite sb-full_1_2 "
-        "(=> (or stmt_1_2_0 stmt_1_2_1 stmt_1_2_2) (not thread_1_2)) "
+        "(=> (or stmt_1_2_0 stmt_1_2_1 stmt_1_2_2 stmt_1_2_3) (not thread_1_2)) "
         "(not flush_1_2)))\n"
     "\n",
     encoder->str());
@@ -1586,15 +1583,15 @@ TEST_F(smtlib_Encoder, define_store_buffer_constraints)
   ASSERT_EQ(
     "(assert "
       "(ite sb-full_1_0 "
-        "(=> (or stmt_1_0_0 stmt_1_0_1 stmt_1_0_2) (not thread_1_0)) "
+        "(=> (or stmt_1_0_0 stmt_1_0_1 stmt_1_0_2 stmt_1_0_3) (not thread_1_0)) "
         "(not flush_1_0)))\n"
     "(assert "
       "(ite sb-full_1_1 "
-        "(=> (or stmt_1_1_0 stmt_1_1_1 stmt_1_1_2) (not thread_1_1)) "
+        "(=> (or stmt_1_1_0 stmt_1_1_1 stmt_1_1_2 stmt_1_1_3) (not thread_1_1)) "
         "(not flush_1_1)))\n"
     "(assert "
       "(ite sb-full_1_2 "
-        "(=> (or stmt_1_2_0 stmt_1_2_1 stmt_1_2_2) (not thread_1_2)) "
+        "(=> (or stmt_1_2_0 stmt_1_2_1 stmt_1_2_2 stmt_1_2_3) (not thread_1_2)) "
         "(not flush_1_2)))\n"
     "\n",
     encoder->str());
@@ -1622,7 +1619,7 @@ TEST_F(smtlib_Encoder, define_checkpoint_constraints)
 
   // two different checkpoints
   for (auto & p : programs)
-    p = create_program(p.print() + "CHECK 2\n");
+    p = create_program("CHECK 2\n" + p.print());
 
   reset_encoder();
 
@@ -1642,7 +1639,7 @@ TEST_F(smtlib_Encoder, define_checkpoint_constraints)
 
   // two identical checkpoints
   for (auto & p : programs)
-    p = create_program(p.print() + "CHECK 1\n");
+    p = create_program("CHECK 1\n" + p.print());
 
   reset_encoder();
 

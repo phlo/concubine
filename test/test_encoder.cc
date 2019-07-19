@@ -50,15 +50,15 @@ TEST_F(Encoder, constructor_flush_pcs)
       "STORE 1\n"
       "FENCE\n"
       "CAS 1\n"
-    ));
+      "HALT\n"));
 
   reset_encoder();
 
   for (const auto & p : *encoder->programs)
-    ASSERT_EQ(3, p.size());
+    ASSERT_EQ(4, p.size());
 
   for (const auto & pcs : encoder->flush_pcs)
-    ASSERT_EQ(std::vector<word_t>({0, 1, 2}), pcs.second);
+    ASSERT_EQ(std::vector<word_t>({0, 1, 2, 3}), pcs.second);
 }
 
 TEST_F(Encoder, constructor_check_pcs)
@@ -67,8 +67,7 @@ TEST_F(Encoder, constructor_check_pcs)
     programs.push_back(create_program(
       "CHECK 1\n"
       "CHECK 2\n"
-      "CHECK 3\n"
-    ));
+      "CHECK 3\n"));
 
   reset_encoder();
 
@@ -90,14 +89,13 @@ TEST_F(Encoder, constructor_halt_pcs)
         programs.push_back(create_program(
           "JZ 2\n"
           "HALT\n"
-          "ADDI 1\n"
-        ));
+          "ADDI 1\n"));
     }
 
   reset_encoder();
 
-  ASSERT_EQ(std::vector<word_t>({1, 2}), encoder->halt_pcs[0]);
-  ASSERT_EQ(std::vector<word_t>({0}), encoder->halt_pcs[1]);
+  ASSERT_EQ(std::vector<word_t>({1, 3}), encoder->halt_pcs[0]);
+  ASSERT_EQ(std::vector<word_t>({1}), encoder->halt_pcs[1]);
 }
 
 TEST_F(Encoder, constructor_exit_pcs)
@@ -108,8 +106,7 @@ TEST_F(Encoder, constructor_exit_pcs)
       "EXIT 1\n"
       "JNZ 4\n"
       "EXIT 2\n"
-      "EXIT 3\n"
-    ));
+      "EXIT 3\n"));
 
   reset_encoder(0);
 
