@@ -129,7 +129,7 @@ TEST_F(Simulator, run_add_check_exit)
   ASSERT_EQ(2, simulator->active.size());
   ASSERT_EQ(2, simulator->programs->size());
   ASSERT_EQ(2, simulator->threads_per_checkpoint[1].size());
-  ASSERT_EQ(0, simulator->waiting_for_checkpoint[1].size());
+  ASSERT_EQ(0, simulator->waiting_for_checkpoint[1]);
 
   // run it
   trace = simulator->run([&] () -> word_t {
@@ -168,7 +168,7 @@ TEST_F(Simulator, run_add_check_exit)
           EXPECT_EQ(State::running, simulator->state[1]);
 
           EXPECT_EQ(1, simulator->active.size());
-          EXPECT_EQ(1, simulator->waiting_for_checkpoint[1].size());
+          EXPECT_EQ(1, simulator->waiting_for_checkpoint[1]);
 
           return simulator->thread = 1;
         }
@@ -183,7 +183,7 @@ TEST_F(Simulator, run_add_check_exit)
           EXPECT_EQ(State::running, simulator->state[1]);
 
           EXPECT_EQ(2, simulator->active.size());
-          EXPECT_EQ(0, simulator->waiting_for_checkpoint[1].size());
+          EXPECT_EQ(0, simulator->waiting_for_checkpoint[1]);
 
           return simulator->thread = 0;
         }
@@ -258,7 +258,7 @@ TEST_F(Simulator, run_race_condition)
   ASSERT_EQ(3, simulator->active.size());
   ASSERT_EQ(3, simulator->programs->size());
   ASSERT_EQ(3, simulator->threads_per_checkpoint[1].size());
-  ASSERT_EQ(0, simulator->waiting_for_checkpoint[1].size());
+  ASSERT_EQ(0, simulator->waiting_for_checkpoint[1]);
 
   // run it
   trace = simulator->run([&] () -> word_t {
@@ -287,7 +287,7 @@ TEST_F(Simulator, run_race_condition)
           EXPECT_EQ(0, simulator->trace->accu(2));
 
           EXPECT_EQ(2, simulator->active.size());
-          EXPECT_EQ(1, simulator->waiting_for_checkpoint[1].size());
+          EXPECT_EQ(1, simulator->waiting_for_checkpoint[1]);
           EXPECT_EQ(State::waiting, simulator->state[0]);
 
           return simulator->thread = 1;
@@ -414,7 +414,7 @@ TEST_F(Simulator, run_race_condition)
           EXPECT_EQ(1, simulator->trace->accu(2));
 
           EXPECT_EQ(1, simulator->active.size());
-          EXPECT_EQ(2, simulator->waiting_for_checkpoint[1].size());
+          EXPECT_EQ(2, simulator->waiting_for_checkpoint[1]);
           EXPECT_EQ(State::waiting, simulator->state[0]);
           EXPECT_EQ(State::halted, simulator->state[1]);
 
@@ -430,7 +430,7 @@ TEST_F(Simulator, run_race_condition)
           EXPECT_EQ(1, simulator->trace->accu(2));
 
           EXPECT_EQ(1, simulator->active.size());
-          EXPECT_EQ(0, simulator->waiting_for_checkpoint[1].size());
+          EXPECT_EQ(0, simulator->waiting_for_checkpoint[1]);
           EXPECT_EQ(State::running, simulator->state[0]);
           EXPECT_EQ(State::halted, simulator->state[1]);
           EXPECT_EQ(State::halted, simulator->state[2]);

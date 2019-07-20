@@ -84,9 +84,9 @@ struct Simulator
 
   // threads waiting for a specific checkpoint
   //
-  // checkpoint id -> list of threads
+  // checkpoint id -> number of threads
   //
-  std::unordered_map<word_t, std::unordered_set<word_t>> waiting_for_checkpoint;
+  std::unordered_map<word_t, word_t> waiting_for_checkpoint;
 
   //----------------------------------------------------------------------------
   // constructors
@@ -181,13 +181,9 @@ struct Simulator
   void execute (const Instruction::Halt &);
   void execute (const Instruction::Exit &);
 
-  // checks if all threads reached the given checkpoint and resumes them
-  //
-  void check_and_resume (word_t id);
-
   // run the simulator, using the specified scheduler
   //
-  Trace::ptr run (std::function<word_t()> scheduler);
+  Trace::ptr run (std::function<void()> scheduler);
 
   //----------------------------------------------------------------------------
   // public functions

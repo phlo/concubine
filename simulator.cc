@@ -51,6 +51,9 @@ Simulator::Simulator (const Program::List::ptr & p,
       for (const auto & [c, pcs] : (*programs)[thread].checkpoints)
         threads_per_checkpoint[c].insert(thread);
     }
+
+  // activate threads
+  std::iota(active.begin(), active.end(), 0);
 }
 
 //------------------------------------------------------------------------------
@@ -202,7 +205,6 @@ void Simulator::execute ()
   const Program & program = (*programs)[thread];
   const Instruction & op = program[pc()];
 
-  // execute instruction
   op.execute(*this);
 
   // set state to halted if it was the last command in the program
@@ -210,10 +212,8 @@ void Simulator::execute ()
     {
       // take care if last instruction was a CHECK (bypasses WAITING)
       if (state[thread] == State::waiting)
-        // remove from list of waiting threads
         threads_per_checkpoint[program.back().arg()].erase(thread);
       else
-        // remove from active threads
         erase(active, thread);
 
       state[thread] = State::halted;
@@ -366,10 +366,21 @@ void Simulator::execute (const Instruction::Check & c)
   erase(active, thread);
 
   // add to set of waiting threads
-  waiting_for_checkpoint[c.arg].insert(thread);
+  waiting_for_checkpoint[c.arg]++;
 
-  // all other threads already waiting at this checkpoint?
-  check_and_resume(c.arg);
+  // all other threads already at this checkpoint (or halted)?
+  if (waiting_for_checkpoint[c.arg] >= threads_per_checkpoint[c.arg].size())
+    {
+      // reset number of waiting threads
+      waiting_for_checkpoint[c.arg] = 0;
+
+      // reactivate threads
+      for (const word_t t : threads_per_checkpoint[c.arg])
+        {
+          state[t] = State::running;
+          active.push_back(t);
+        }
+    }
 }
 
 void Simulator::execute (const Instruction::Halt & h [[maybe_unused]])
@@ -383,37 +394,15 @@ void Simulator::execute (const Instruction::Exit & e)
   state[thread] = State::exited;
 }
 
-// Simulator::check_and_resume -------------------------------------------------
-
-void Simulator::check_and_resume (word_t id)
-{
-  // all other threads already at this checkpoint (or halted)?
-  if (waiting_for_checkpoint[id].size() >= threads_per_checkpoint[id].size())
-    {
-      // reset number of waiting threads
-      waiting_for_checkpoint[id].clear();
-
-      // reactivate threads
-      for (const word_t t : threads_per_checkpoint[id])
-        {
-          state[t] = State::running;
-          active.push_back(t);
-        }
-    }
-}
-
 // Simulator::run --------------------------------------------------------------
 
-Trace::ptr Simulator::run (std::function<word_t()> scheduler)
+Trace::ptr Simulator::run (std::function<void()> scheduler)
 {
-  // activate threads
-  std::iota(active.begin(), active.end(), 0);
-
   bool done = active.empty();
 
   while (!done && ++step <= bound)
     {
-      thread = scheduler();
+      scheduler();
 
       trace->push_back_thread(step - 1, thread);
 
@@ -426,13 +415,8 @@ Trace::ptr Simulator::run (std::function<word_t()> scheduler)
       // handle state transitions
       switch (state[thread])
         {
-        // keep 'em running
         case State::running:
-
-        // checkpoint reached
         case State::waiting: break;
-
-        // halted - quit if all the others also stopped
         case State::halted:
           {
             // check if we were the last thread standing
@@ -443,10 +427,7 @@ Trace::ptr Simulator::run (std::function<word_t()> scheduler)
 
             break;
           }
-
-        // exiting - return exit code
         case State::exited: done = true; break;
-
         default:
           {
             std::ostringstream m;
@@ -468,25 +449,22 @@ Trace::ptr Simulator::simulate (const Program::List::ptr & programs,
                                 const std::shared_ptr<MMap> & mmap,
                                 const size_t bound)
 {
-  Simulator sim {programs, mmap, bound};
+  Simulator s (programs, mmap, bound);
 
   // random scheduler
-  return sim.run([&sim] {
-    sim.thread = sim.active[sim.random() % sim.active.size()];
+  return s.run([&s] {
+    s.thread = s.active[s.random() % s.active.size()];
 
-    assert(sim.state[sim.thread] == State::running);
+    assert(s.state[s.thread] == State::running);
 
     // rule 2, 5, 7: store buffer may be flushed at any time or must be empty
-    if (sim.sb_full())
+    if (s.sb_full())
       {
-        const Instruction & op =
-          (*sim.programs)[sim.thread][sim.pc()];
+        const Instruction & op = (*s.programs)[s.thread][s.pc()];
 
-        if (sim.random() % 2 || op.requires_flush())
-          sim.state[sim.thread] = State::flushing;
+        if (s.random() % 2 || op.requires_flush())
+          s.state[s.thread] = State::flushing;
       }
-
-    return sim.thread;
   });
 }
 
@@ -494,20 +472,18 @@ Trace::ptr Simulator::simulate (const Program::List::ptr & programs,
 
 Trace::ptr Simulator::replay (const Trace & trace, const size_t bound)
 {
-  Simulator sim {
-    trace.programs,
-    {},
-    bound && bound < trace.length ? bound : trace.length - 1
-  };
+  Simulator s (trace.programs,
+               {},
+               bound && bound < trace.length ? bound : trace.length - 1);
 
   // replay scheduler
   Trace::iterator it = trace.begin();
 
-  return sim.run([&sim, &it] {
+  return s.run([&s, &it] {
     if (it->flush)
-      sim.state[it->thread] = State::flushing;
+      s.state[it->thread] = State::flushing;
 
-    return it++->thread;
+    s.thread = it++->thread;
   });
 }
 
