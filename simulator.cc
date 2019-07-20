@@ -208,7 +208,7 @@ void Simulator::execute ()
   op.execute(*this);
 
   // set state to halted if it was the last command in the program
-  if (op == program.back() && state[thread] != State::exited && !op.is_jump())
+  if (op == program.back() && !(op.type() & Instruction::Type::control))
     {
       // take care if last instruction was a CHECK (bypasses WAITING)
       if (state[thread] == State::waiting)
@@ -386,6 +386,7 @@ void Simulator::execute (const Instruction::Check & c)
 void Simulator::execute (const Instruction::Halt & h [[maybe_unused]])
 {
   state[thread] = State::halted;
+  erase(active, thread);
 }
 
 void Simulator::execute (const Instruction::Exit & e)
@@ -417,16 +418,7 @@ Trace::ptr Simulator::run (std::function<void()> scheduler)
         {
         case State::running:
         case State::waiting: break;
-        case State::halted:
-          {
-            // check if we were the last thread standing
-            done = true;
-            for (auto it = active.begin(); done && it != active.end(); ++it)
-              if (state[*it] != State::halted)
-                done = false;
-
-            break;
-          }
+        case State::halted: done = active.empty(); break;
         case State::exited: done = true; break;
         default:
           {
