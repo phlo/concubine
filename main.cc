@@ -201,7 +201,8 @@ int simulate (const char * name, const int argc, const char ** argv)
     }
 
   // run program with given seed
-  Trace::ptr trace = Simulator::simulate(programs, bound);
+  // TODO: MMap
+  Trace::ptr trace = Simulator::simulate(programs, {}, bound);
 
   // print the result
   std::cout << trace->print();

@@ -16,8 +16,10 @@ namespace ConcuBinE {
 // constructors
 //------------------------------------------------------------------------------
 
-Trace::Trace (const Program::List::ptr & p) :
+Trace::Trace (const Program::List::ptr & p,
+              const std::shared_ptr<MMap> & m) :
   programs(p),
+  mmap(m),
   length(0),
   exit(0)
 {
@@ -46,9 +48,14 @@ Trace::Trace(std::istream & file, const std::string & path) :
       if (line >> token && token.front() == '#')
         continue;
 
-      // check if all programs have been parsed
+      // check for memory map (all programs have been parsed)
       if (token == ".")
-        break;
+        {
+          if ((line >> token))
+            mmap = std::make_shared<MMap>(create_from_file<MMap>(token));
+
+          break;
+        }
 
       try
         {
@@ -342,6 +349,16 @@ void Trace::init_register_states ()
   sb_full_updates.resize(num_threads);
 }
 
+// Trace::init_heap ------------------------------------------------------------
+
+void Trace::init_heap (const word_t address, const word_t value)
+{
+  if (!mmap)
+    mmap = std::make_shared<MMap>();
+
+  (*mmap)[address] = value;
+}
+
 // Trace::push_back ------------------------------------------------------------
 
 template <typename T>
@@ -547,12 +564,15 @@ bool Trace::sb_full (const word_t thread) const
 
 // Trace::heap -----------------------------------------------------------------
 
-word_t Trace::heap (const word_t address) const
+std::optional<word_t> Trace::heap (const word_t address) const
 {
-  return
-    heap_val_updates.empty()
-      ? 0 // TODO: add randomness!
-      : heap_val_updates.at(address).crbegin()->second;
+  if (heap_val_updates.find(address) != heap_val_updates.end())
+    return heap_val_updates.at(address).crbegin()->second;
+
+  if (mmap && mmap->find(address) != mmap->end())
+    return (*mmap)[address];
+
+  return {};
 }
 
 // Trace::size -----------------------------------------------------------------
@@ -585,8 +605,13 @@ std::string Trace::print () const
   for (const Program & program : *programs)
     ss << program.path << eol;
 
-  // separator
-  ss << '.' << eol;
+  // separator + mmap
+  ss << '.';
+
+  if (mmap)
+    ss << ' ' << mmap->path;
+
+  ss << eol;
 
   // column headers
   ss << "# tid\tpc\tcmd\targ\taccu\tmem\tadr\tval\tfull\theap" << eol;
@@ -734,8 +759,11 @@ void Trace::iterator::init_iterators (thread_state_iterators<T> & iterators,
 // Trace::iterator::next_state -------------------------------------------------
 
 template <typename T>
-const T & Trace::iterator::next_state (update_map_iterator<T> & state)
+T Trace::iterator::next_state (update_map_iterator<T> & state)
 {
+  if (state.cur == state.end)
+    return 0;
+
   auto next = std::next(state.cur);
 
   while (next != state.end && next->first <= step)
@@ -748,10 +776,13 @@ const T & Trace::iterator::next_state (update_map_iterator<T> & state)
 
 const std::optional<Trace::cell_t> Trace::iterator::next_heap_state ()
 {
-  const word_t adr = next_state(heap_adr);
+  if (heap_adr.cur != heap_adr.end)
+    {
+      const word_t adr = next_state(heap_adr);
 
-  if (heap_adr.cur->first == step.step)
-    return {{adr, next_state(heap_val[adr])}};
+      if (heap_adr.cur->first == step.step)
+        return {{adr, next_state(heap_val[adr])}};
+    }
 
   return {};
 }

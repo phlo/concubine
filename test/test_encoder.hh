@@ -31,7 +31,7 @@ struct Encoder: public ::testing::Test
 
   Program create_program (const std::string code)
     {
-      std::istringstream inbuf {code};
+      std::istringstream inbuf (code);
       return Program(inbuf, "dummy.asm");
     }
 

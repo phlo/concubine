@@ -7,6 +7,7 @@
 #include "instruction.hh"
 
 // TODO: forward-declare
+#include "mmap.hh"
 #include "program.hh"
 #include "trace.hh"
 
@@ -41,6 +42,9 @@ struct Simulator
   //----------------------------------------------------------------------------
   // members
   //----------------------------------------------------------------------------
+
+  // Mersenne Twister pseudo-random number generator
+  std::mt19937_64 random;
 
   // list of programs
   //
@@ -88,7 +92,9 @@ struct Simulator
   // constructors
   //----------------------------------------------------------------------------
 
-  Simulator (const Program::List::ptr & programs, size_t bound = 0);
+  Simulator (const Program::List::ptr & programs,
+             const std::shared_ptr<MMap> & mmap = {},
+             size_t bound = 0);
 
   //----------------------------------------------------------------------------
   // private functions
@@ -127,7 +133,8 @@ struct Simulator
 
   // load value from given address
   //
-  word_t load (word_t address, bool indirect = false);
+  word_t load (word_t address);
+  word_t load (word_t address, bool indirect);
 
   // store given value at address
   //
@@ -189,6 +196,7 @@ struct Simulator
   // runs the simulator using a random trace
   //
   static Trace::ptr simulate (const Program::List::ptr & programs,
+                              const std::shared_ptr<MMap> & mmap,
                               size_t bound = 0);
 
   // replay the given trace (trace must match simulator configuration)

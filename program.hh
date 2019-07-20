@@ -112,6 +112,8 @@ struct Program : public std::vector<Instruction>
 
 // equality
 //
+// TODO: really needed - rely on base class?
+//
 bool operator == (const Program &, const Program &);
 bool operator != (const Program &, const Program &);
 

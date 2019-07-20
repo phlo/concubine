@@ -127,8 +127,7 @@ TEST_F(Trace, parse_check)
       {14, 0}}),
     trace->heap_adr_updates);
   ASSERT_EQ(
-    heap_val_map({
-      {0, {{3, 0}, {14, 1}}}}),
+    heap_val_map({{0, {{3, 0}, {14, 1}}}}),
     trace->heap_val_updates);
 }
 
@@ -192,12 +191,10 @@ TEST_F(Trace, parse_cas)
     trace->accu_updates[1]);
 
   ASSERT_EQ(
-    update_map<word_t>({
-      {0,  0}}),
+    update_map<word_t>({{0,  0}}),
     trace->mem_updates[0]);
   ASSERT_EQ(
-    update_map<word_t>({
-      {1, 0}}),
+    update_map<word_t>({{1, 0}}),
     trace->mem_updates[1]);
 
   ASSERT_EQ(
@@ -221,24 +218,36 @@ TEST_F(Trace, parse_cas)
   ASSERT_EQ(std::unordered_set<size_t>({2, 3}), trace->flushes);
 
   ASSERT_EQ(
-    update_map<word_t>({
-      {3, 0}, {4, 0}, {12, 0}}),
+    update_map<word_t>({{3, 0}, {4, 0}, {12, 0}}),
     trace->heap_adr_updates);
   ASSERT_EQ(
-    heap_val_map({
-      {0, {{3, 0}, {12, 1}}}}),
+    heap_val_map({{0, {{3, 0}, {12, 1}}}}),
     trace->heap_val_updates);
+}
+
+TEST_F(Trace, parse_mmap)
+{
+  std::istringstream file (
+    cas_program_path + "\n"
+    ". data/init.mmap\n"
+    "# tid\tpc\tcmd\targ\taccu\tmem\tadr\tval\tfull\theap\n"
+    "0\t0\tSTORE\t0\t0\t0\t0\t0\t0\t{}\t# 0\n");
+
+  trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
+
+  ASSERT_EQ(file.str(), trace->print());
+  ASSERT_EQ(create_from_file<MMap>("data/init.mmap"), *trace->mmap);
 }
 
 TEST_F(Trace, parse_empty_line)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     check_program_paths[0] + "\n"
     ".\n"
     "\n"
     "0\t8\tEXIT\t1\t0\t0\t0\t0\t0\t{}\n");
 
-  trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+  trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
 
   ASSERT_EQ(1, trace->size());
   ASSERT_EQ(1, trace->programs->size());
@@ -262,14 +271,14 @@ TEST_F(Trace, parse_file_not_found)
 
 TEST_F(Trace, parse_no_program)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     ".\n"
     "0\t0\tSTORE\t0\t0\t0\t0\t0\t0\t{}\n"
     "1\t0\tSTORE\t0\t0\t0\t0\t0\t0\t{}\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -280,7 +289,7 @@ TEST_F(Trace, parse_no_program)
 
 TEST_F(Trace, parse_program_not_found)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     dummy_path + "\n"
     ".\n"
     "0\t0\tSTORE\t0\t0\t0\t0\t0\t0\t{}\n"
@@ -288,7 +297,7 @@ TEST_F(Trace, parse_program_not_found)
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -299,7 +308,7 @@ TEST_F(Trace, parse_program_not_found)
 
 TEST_F(Trace, parse_missing_separator)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     cas_program_path + "\n" +
     cas_program_path + "\n"
     "0\t0\tSTORE\t0\t0\t0\t0\t0\t0\t{}\n"
@@ -307,7 +316,7 @@ TEST_F(Trace, parse_missing_separator)
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -318,13 +327,13 @@ TEST_F(Trace, parse_missing_separator)
 
 TEST_F(Trace, parse_missing_trace)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     cas_program_path + "\n"
     ".\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -335,14 +344,14 @@ TEST_F(Trace, parse_missing_trace)
 
 TEST_F(Trace, parse_unknown_thread_id)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     cas_program_path + "\n"
     ".\n"
     "1\t0\tSTORE\t0\t0\t0\t0\t0\t0\t{}\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -353,14 +362,14 @@ TEST_F(Trace, parse_unknown_thread_id)
 
 TEST_F(Trace, parse_illegal_thread_id)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     cas_program_path + "\n"
     ".\n"
     "wrong\t0\tSTORE\t0\t0\t0\t0\t0\t0\t{}\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -371,14 +380,14 @@ TEST_F(Trace, parse_illegal_thread_id)
 
 TEST_F(Trace, parse_illegal_pc)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     cas_program_path + "\n"
     ".\n" +
     "0\t1000\tSTORE\t0\t0\t0\t0\t0\t0\t{}\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -389,14 +398,14 @@ TEST_F(Trace, parse_illegal_pc)
 
 TEST_F(Trace, parse_unknown_label)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     cas_program_path + "\n"
     ".\n" +
     "0\tUNKNOWN\tSTORE\t0\t0\t0\t0\t0\t0\t{}\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -407,14 +416,14 @@ TEST_F(Trace, parse_unknown_label)
 
 TEST_F(Trace, parse_unknown_instruction)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     cas_program_path + "\n"
     ".\n" +
     "0\t0\tUNKNOWN\t0\t0\t0\t0\t0\t0\t{}\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -425,14 +434,14 @@ TEST_F(Trace, parse_unknown_instruction)
 
 TEST_F(Trace, parse_unexpected_instruction)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     cas_program_path + "\n"
     ".\n" +
     "0\t0\tCAS\t0\t0\t0\t0\t0\t0\t{}\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -445,14 +454,14 @@ TEST_F(Trace, parse_unexpected_instruction)
 
 TEST_F(Trace, parse_illegal_argument_label_not_supported)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     cas_program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\tILLEGAL\t0\t0\t0\t0\t0\t{}\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -465,14 +474,14 @@ TEST_F(Trace, parse_illegal_argument_label_not_supported)
 
 TEST_F(Trace, parse_illegal_argument_unknown_label)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     cas_program_path + "\n"
     ".\n" +
     "0\t6\tJMP\tILLEGAL\t0\t0\t0\t0\t0\t{}\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -483,14 +492,14 @@ TEST_F(Trace, parse_illegal_argument_unknown_label)
 
 TEST_F(Trace, parse_illegal_accu)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     cas_program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\tILLEGAL\t0\t0\t0\t0\t{}\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -503,14 +512,14 @@ TEST_F(Trace, parse_illegal_accu)
 
 TEST_F(Trace, parse_illegal_mem)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     cas_program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\t0\tILLEGAL\t0\t0\t0\t{}\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -523,14 +532,14 @@ TEST_F(Trace, parse_illegal_mem)
 
 TEST_F(Trace, parse_illegal_store_buffer_address)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     cas_program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\t0\t0\tILLEGAL\t0\t0\t{}\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -543,14 +552,14 @@ TEST_F(Trace, parse_illegal_store_buffer_address)
 
 TEST_F(Trace, parse_illegal_store_buffer_value)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     cas_program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\t0\t0\t0\tILLEGAL\t0\t{}\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -563,14 +572,14 @@ TEST_F(Trace, parse_illegal_store_buffer_value)
 
 TEST_F(Trace, parse_illegal_store_buffer_full)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     cas_program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\t0\t0\t0\t0\tILLEGAL\t{}\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -583,14 +592,14 @@ TEST_F(Trace, parse_illegal_store_buffer_full)
 
 TEST_F(Trace, parse_illegal_heap)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     cas_program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\t0\t0\t0\t0\t0\tILLEGAL\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -599,14 +608,14 @@ TEST_F(Trace, parse_illegal_heap)
     }
 
   // illegal set
-  inbuf.str(
+  file.str(
     cas_program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\t0\t0\t0\t0\t0\t{ILLEGAL}\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -615,14 +624,14 @@ TEST_F(Trace, parse_illegal_heap)
     }
 
   // illegal index
-  inbuf.str(
+  file.str(
     cas_program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\t0\t0\t0\t0\t0\t{(ILLEGAL,0)}\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -633,14 +642,14 @@ TEST_F(Trace, parse_illegal_heap)
     }
 
   // illegal value
-  inbuf.str(
+  file.str(
     cas_program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\t0\t0\t0\t0\t0\t{(0,ILLEGAL)}\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -653,14 +662,14 @@ TEST_F(Trace, parse_illegal_heap)
 
 TEST_F(Trace, parse_missing_pc)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     cas_program_path + "\n"
     ".\n" +
     "0\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -671,14 +680,14 @@ TEST_F(Trace, parse_missing_pc)
 
 TEST_F(Trace, parse_missing_instruction_symbol)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     cas_program_path + "\n"
     ".\n" +
     "0\t0\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -689,14 +698,14 @@ TEST_F(Trace, parse_missing_instruction_symbol)
 
 TEST_F(Trace, parse_missing_instruction_argument)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     cas_program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -707,14 +716,14 @@ TEST_F(Trace, parse_missing_instruction_argument)
 
 TEST_F(Trace, parse_missing_accu)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     cas_program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -727,14 +736,14 @@ TEST_F(Trace, parse_missing_accu)
 
 TEST_F(Trace, parse_missing_mem)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     cas_program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\t0\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -745,14 +754,14 @@ TEST_F(Trace, parse_missing_mem)
 
 TEST_F(Trace, parse_missing_store_buffer_address)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     cas_program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\t0\t0\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -763,14 +772,14 @@ TEST_F(Trace, parse_missing_store_buffer_address)
 
 TEST_F(Trace, parse_missing_store_buffer_value)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     cas_program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\t0\t0\t0\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -781,14 +790,14 @@ TEST_F(Trace, parse_missing_store_buffer_value)
 
 TEST_F(Trace, parse_missing_store_buffer_full)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     cas_program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\t0\t0\t0\t0\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
@@ -799,14 +808,14 @@ TEST_F(Trace, parse_missing_store_buffer_full)
 
 TEST_F(Trace, parse_missing_heap)
 {
-  std::istringstream inbuf(
+  std::istringstream file (
     cas_program_path + "\n"
     ".\n" +
     "0\t0\tSTORE\t0\t0\t0\t0\t0\t0\n");
 
   try
     {
-      trace = std::make_unique<ConcuBinE::Trace>(inbuf, dummy_path);
+      trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
       FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)

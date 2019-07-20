@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "mmap.hh"
 #include "program.hh"
 
 namespace ConcuBinE {
@@ -134,7 +135,7 @@ struct Trace
       // return current thread state and advance
       //
       template <typename T>
-      const T & next_state (update_map_iterator<T> & updates);
+      T next_state (update_map_iterator<T> & updates);
 
       // return current heap state update and advance
       //
@@ -180,11 +181,17 @@ struct Trace
   // members
   //----------------------------------------------------------------------------
 
-  // programs used to generate the trace
+  // programs used to produce the trace
   //
-  // might be copied to another Trace during replay
+  // NOTE: copied during replay
   //
   Program::List::ptr programs;
+
+  // memory map used to produce the trace
+  //
+  // NOTE: copied during replay
+  //
+  std::shared_ptr<MMap> mmap;
 
   // trace length
   //
@@ -237,7 +244,8 @@ struct Trace
 
   // construct from simulator/solver
   //
-  Trace (const Program::List::ptr & programs);
+  Trace (const Program::List::ptr & programs,
+         const std::shared_ptr<MMap> & mmap = {});
 
   // construct from file
   //
@@ -252,6 +260,10 @@ struct Trace
   template <typename T>
   void init_register_states (thread_map<T> & updates);
   void init_register_states ();
+
+  // initialize heap state (and add to memory map)
+  //
+  void init_heap (word_t address, word_t value);
 
   // append state update helper
   //
@@ -297,7 +309,7 @@ struct Trace
 
   // return most recent heap state
   //
-  word_t heap (word_t address) const;
+  std::optional<word_t> heap (word_t address) const;
 
   // return trace size (length)
   //

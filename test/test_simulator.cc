@@ -18,11 +18,13 @@ struct Simulator : public ::testing::Test
   Trace::ptr trace;
   std::unique_ptr<ConcuBinE::Simulator> simulator;
 
-  void create_simulator(std::initializer_list<Program> programs)
+  void create_simulator(std::initializer_list<Program> && programs,
+                        MMap && mmap = {})
     {
       simulator =
         std::make_unique<ConcuBinE::Simulator>(
-          std::make_shared<Program::List>(programs));
+          std::make_shared<Program::List>(programs),
+          std::make_shared<MMap>(mmap));
     }
 };
 
@@ -251,7 +253,7 @@ TEST_F(Simulator, run_race_condition)
   checker.push_back(Instruction::create("EXIT", 1));
   checker.push_back(Instruction::create("EXIT", 0));
 
-  create_simulator({checker, program, program});
+  create_simulator({checker, program, program}, {{1, 0}});
 
   ASSERT_EQ(3, simulator->active.size());
   ASSERT_EQ(3, simulator->programs->size());
@@ -632,7 +634,7 @@ TEST_F(Simulator, simulate_increment_check)
   programs->push_back(
     create_from_file<Program>("data/increment.check.thread.n.asm"));
 
-  trace = ConcuBinE::Simulator::simulate(programs, 16);
+  trace = ConcuBinE::Simulator::simulate(programs, {}, 16);
 
   ASSERT_EQ(
     Trace::update_map<word_t>({{3,0}, {14, 0}}),
@@ -655,7 +657,7 @@ TEST_F(Simulator, simulate_increment_cas)
   programs->push_back(increment);
   programs->push_back(increment);
 
-  trace = ConcuBinE::Simulator::simulate(programs, 16);
+  trace = ConcuBinE::Simulator::simulate(programs, {}, 16);
 
   ASSERT_EQ(
     Trace::update_map<word_t>({{3, 0}, {4, 0}, {12, 0}}),
@@ -664,6 +666,62 @@ TEST_F(Simulator, simulate_increment_cas)
   ASSERT_EQ(0, trace->exit);
   ASSERT_EQ(17, trace->length);
   ASSERT_EQ(expected, trace->print());
+}
+
+TEST_F(Simulator, simulate_load_uninitialized)
+{
+  Program::List::ptr programs = std::make_shared<Program::List>();
+
+  for (word_t i = 1; i <= 3; i++)
+    {
+      std::istringstream code ("LOAD " + std::to_string(i));
+      programs->push_back(Program(code, std::to_string(i) + ".asm"));
+    }
+
+  trace = ConcuBinE::Simulator::simulate(programs, {}, 0);
+
+  ASSERT_EQ(0, trace->exit);
+  ASSERT_EQ(6, trace->length);
+  ASSERT_EQ(
+    Trace::thread_map<word_t>({
+      {{0, 0}, {1, 63883}},
+      {{0, 0}, {2, 64750}},
+      {{0, 0}, {5, 18152}}
+    }),
+    trace->accu_updates);
+  ASSERT_EQ(
+    MMap({
+      {1, 63883},
+      {2, 64750},
+      {3, 18152},
+    }),
+    *trace->mmap);
+}
+
+TEST_F(Simulator, simulate_load_mmap)
+{
+  Program::List::ptr programs = std::make_shared<Program::List>();
+  std::shared_ptr<MMap> mmap =
+    std::make_shared<MMap>(create_from_file<MMap>("data/init.mmap"));
+
+  for (word_t i = 1; i <= 3; i++)
+    {
+      std::istringstream code ("LOAD " + std::to_string(i));
+      programs->push_back(Program(code, std::to_string(i) + ".asm"));
+    }
+
+  trace = ConcuBinE::Simulator::simulate(programs, mmap, 0);
+
+  ASSERT_EQ(0, trace->exit);
+  ASSERT_EQ(6, trace->length);
+  ASSERT_EQ(
+    Trace::thread_map<word_t>({
+      {{0, 0}, {1, 1}},
+      {{0, 0}, {3, 2}},
+      {{0, 0}, {2, 3}}
+    }),
+    trace->accu_updates);
+  ASSERT_EQ(*mmap, *trace->mmap);
 }
 
 // Simulator::replay ===========================================================

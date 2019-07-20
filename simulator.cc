@@ -27,9 +27,11 @@ inline void erase (C & container, T & val)
 //------------------------------------------------------------------------------
 
 Simulator::Simulator (const Program::List::ptr & p,
+                      const std::shared_ptr<MMap> & mmap,
                       const size_t b) :
+  random(seed),
   programs(p),
-  trace(std::make_unique<Trace>(p)),
+  trace(std::make_unique<Trace>(p, mmap)),
   step(0),
   bound(b ? b : static_cast<size_t>(-1)),
   state(p->size(), State::running),
@@ -132,22 +134,28 @@ void Simulator::sb_full (const bool value)
 
 // Simulator::load -------------------------------------------------------------
 
+word_t Simulator::load (const word_t address)
+{
+  if (sb_full() && sb_adr() == address)
+    return sb_val();
+
+  std::optional<word_t> value = trace->heap(address);
+
+  if (!value)
+    {
+      value = random();
+      trace->init_heap(address, *value);
+    }
+
+  return *value;
+}
+
 word_t Simulator::load (word_t address, const bool indirect)
 {
-  word_t adr = trace->sb_adr(thread);
-  word_t val = trace->sb_val(thread);
-  bool full = trace->sb_full(thread);
-
   if (indirect)
-    address =
-      full && adr == address
-        ? val
-        : trace->heap(address);
+    address = load(address);
 
-  return
-    full && adr == address
-      ? val
-      : trace->heap(address);
+  return load(address);
 }
 
 // Simulator::store ------------------------------------------------------------
@@ -457,30 +465,28 @@ Trace::ptr Simulator::run (std::function<word_t()> scheduler)
 // Simulator::simulate ---------------------------------------------------------
 
 Trace::ptr Simulator::simulate (const Program::List::ptr & programs,
+                                const std::shared_ptr<MMap> & mmap,
                                 const size_t bound)
 {
-  Simulator simulator {programs, bound};
-
-  // Mersenne Twister pseudo-random number generator
-  std::mt19937_64 random(seed);
+  Simulator sim {programs, mmap, bound};
 
   // random scheduler
-  return simulator.run([&simulator, &random] {
-    simulator.thread = simulator.active[random() % simulator.active.size()];
+  return sim.run([&sim] {
+    sim.thread = sim.active[sim.random() % sim.active.size()];
 
-    assert(simulator.state[simulator.thread] == State::running);
+    assert(sim.state[sim.thread] == State::running);
 
     // rule 2, 5, 7: store buffer may be flushed at any time or must be empty
-    if (simulator.sb_full())
+    if (sim.sb_full())
       {
         const Instruction & op =
-          (*simulator.programs)[simulator.thread][simulator.pc()];
+          (*sim.programs)[sim.thread][sim.pc()];
 
-        if (random() % 2 || op.requires_flush())
-          simulator.state[simulator.thread] = State::flushing;
+        if (sim.random() % 2 || op.requires_flush())
+          sim.state[sim.thread] = State::flushing;
       }
 
-    return simulator.thread;
+    return sim.thread;
   });
 }
 
@@ -488,19 +494,20 @@ Trace::ptr Simulator::simulate (const Program::List::ptr & programs,
 
 Trace::ptr Simulator::replay (const Trace & trace, const size_t bound)
 {
-  Simulator simulator {
+  Simulator sim {
     trace.programs,
+    {},
     bound && bound < trace.length ? bound : trace.length - 1
   };
 
   // replay scheduler
-  Trace::iterator iterator = trace.begin();
+  Trace::iterator it = trace.begin();
 
-  return simulator.run([&simulator, &iterator] {
-    if (iterator->flush)
-      simulator.state[iterator->thread] = State::flushing;
+  return sim.run([&sim, &it] {
+    if (it->flush)
+      sim.state[it->thread] = State::flushing;
 
-    return iterator++->thread;
+    return it++->thread;
   });
 }
 
