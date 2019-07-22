@@ -175,7 +175,7 @@ void Simulator::store (word_t address,
 
   if (flush)
     {
-      trace->push_back_heap(step, {address, value});
+      trace->push_back_heap(step, address, value);
     }
   else
     {
@@ -195,7 +195,7 @@ void Simulator::flush ()
   sb_full(false);
   state[thread] = State::running;
   trace->push_back_flush(step - 1);
-  trace->push_back_heap(step, {sb_adr(), sb_val()});
+  trace->push_back_heap(step, sb_adr(), sb_val());
 }
 
 // Simulator::execute ----------------------------------------------------------

@@ -40,6 +40,8 @@ struct Trace
 
   // heap cell -----------------------------------------------------------------
   //
+  // TODO: switch to std::pair<word_t, word_t>
+  //
   struct cell_t
     {
       word_t adr;
@@ -288,15 +290,19 @@ struct Trace
   void push_back_pc (size_t step, word_t thread, word_t pc);
   void push_back_accu (size_t step, word_t thread, word_t accu);
   void push_back_mem (size_t step, word_t thread, word_t mem);
-  void push_back_sb_adr (size_t step, word_t thread, word_t adr);
-  void push_back_sb_val (size_t step, word_t thread, word_t val);
+  void push_back_sb_adr (size_t step, word_t thread, word_t address);
+  void push_back_sb_val (size_t step, word_t thread, word_t value);
   void push_back_sb_full (size_t step, word_t thread, bool full);
-  void push_back_heap (size_t step, const cell_t & heap);
+  void push_back_heap (size_t step, const word_t address, const word_t value);
   void push_back_flush (size_t step);
 
   // return most recently scheduled thread's id
   //
   word_t thread () const;
+
+  // return true if a store buffer has been flushed in the given step
+  //
+  bool flush (word_t step) const;
 
   // return most recent register states
   //
@@ -323,7 +329,11 @@ struct Trace
   //
   iterator end () const;
 
-  // print trace
+  // print individual step
+  //
+  std::string print (const Step & step) const;
+
+  // print whole trace
   //
   std::string print () const;
 };

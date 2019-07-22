@@ -494,10 +494,10 @@ void Trace::push_back_sb_full (size_t step,
 
 // Trace::push_back_heap -------------------------------------------------------
 
-void Trace::push_back_heap (size_t step, const cell_t & heap)
+void Trace::push_back_heap (size_t step, const word_t adr, const word_t val)
 {
-  heap_adr_updates.emplace_hint(heap_adr_updates.end(), step, heap.adr);
-  push_back<word_t>(heap_val_updates[heap.adr], step, heap.val);
+  heap_adr_updates.emplace_hint(heap_adr_updates.end(), step, adr);
+  push_back<word_t>(heap_val_updates[adr], step, val);
 
   if (++step > length)
     length = step;
@@ -518,6 +518,13 @@ void Trace::push_back_flush (size_t step)
 word_t Trace::thread () const
 {
   return thread_updates.crbegin()->second;
+}
+
+// Trace::flush ----------------------------------------------------------------
+
+bool Trace::flush (const word_t step) const
+{
+  return flushes.find(step) != flushes.end();
 }
 
 // Trace::pc -------------------------------------------------------------------
@@ -595,11 +602,84 @@ Trace::iterator Trace::end () const
 
 // Trace::print ----------------------------------------------------------------
 
-std::string Trace::print () const
+std::string Trace::print (const Step & step) const
 {
   std::ostringstream ss;
 
   const char sep = '\t';
+
+  // thread id
+  ss << step.thread << sep;
+
+  // reference to program
+  const Program & program = (*programs)[step.thread];
+
+  // reference to current instruction
+  const Instruction & op = program[step.pc];
+
+  // program counter
+  try
+    {
+      ss << program.get_label(step.pc) << sep;
+    }
+  catch (...)
+    {
+      ss << step.pc << sep;
+    }
+
+  // instruction symbol / argument
+  if (step.flush)
+    {
+      ss << "FLUSH" << sep << '-' << sep;
+    }
+  else
+    {
+      ss << op.symbol() << sep;
+
+      std::string arg {'-'};
+
+      if (op.is_unary())
+        {
+          arg = std::to_string(op.arg());
+
+          if (op.is_memory())
+            {
+              if (op.indirect())
+                arg = '[' + arg + ']';
+            }
+          else if (op.is_jump())
+            try { arg = program.get_label(op.arg()); } catch (...) {}
+        }
+
+      ss << arg << sep;
+    }
+
+  // accumulator / CAS memory register
+  ss << step.accu << sep << step.mem << sep;
+
+  // store buffer
+  ss << step.sb_adr << sep << step.sb_val << sep << step.sb_full << sep;
+
+  // heap update
+  ss << '{';
+
+  if (step.heap)
+    ss << '(' << step.heap->adr << ',' << step.heap->val << ')';
+
+  ss << '}';
+
+  // step number
+  if (verbose)
+    ss << sep << "# " << std::to_string(step.step);
+
+  ss << eol;
+
+  return ss.str();
+}
+
+std::string Trace::print () const
+{
+  std::ostringstream ss;
 
   // trace metadata
   for (const Program & program : *programs)
@@ -617,73 +697,7 @@ std::string Trace::print () const
   ss << "# tid\tpc\tcmd\targ\taccu\tmem\tadr\tval\tfull\theap" << eol;
 
   for (const auto & step : *this)
-    {
-      // thread id
-      ss << step.thread << sep;
-
-      // reference to program
-      const Program & program = (*programs)[step.thread];
-
-      // reference to current instruction
-      const Instruction & op = program[step.pc];
-
-      // program counter
-      try
-        {
-          ss << program.get_label(step.pc) << sep;
-        }
-      catch (...)
-        {
-          ss << step.pc << sep;
-        }
-
-      // instruction symbol / argument
-      if (step.flush)
-        {
-          ss << "FLUSH" << sep << '-' << sep;
-        }
-      else
-        {
-          ss << op.symbol() << sep;
-
-          std::string arg {'-'};
-
-          if (op.is_unary())
-            {
-              arg = std::to_string(op.arg());
-
-              if (op.is_memory())
-                {
-                  if (op.indirect())
-                    arg = '[' + arg + ']';
-                }
-              else if (op.is_jump())
-                try { arg = program.get_label(op.arg()); } catch (...) {}
-            }
-
-          ss << arg << sep;
-        }
-
-      // accumulator / CAS memory register
-      ss << step.accu << sep << step.mem << sep;
-
-      // store buffer
-      ss << step.sb_adr << sep << step.sb_val << sep << step.sb_full << sep;
-
-      // heap update
-      ss << '{';
-
-      if (step.heap)
-        ss << '(' << step.heap->adr << ',' << step.heap->val << ')';
-
-      ss << '}';
-
-      // step number
-      if (verbose)
-        ss << sep << "# " << std::to_string(step.step);
-
-      ss << eol;
-    }
+    ss << print(step);
 
   return ss.str();
 }

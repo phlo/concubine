@@ -1011,7 +1011,7 @@ TEST_F(Trace, push_back_heap)
   for (const auto & [step, thread, idx, val] : data)
     {
       expected_adr.emplace_hint(expected_adr.end(), step, idx);
-      trace->push_back_heap(step, {idx, val});
+      trace->push_back_heap(step, idx, val);
     }
 
   ASSERT_EQ(data.size(), trace->size());
@@ -1121,7 +1121,7 @@ TEST_F(Trace, heap)
 
   for (const auto & [step, thread, adr, val] : data)
     {
-      trace->push_back_heap(step, {adr, val});
+      trace->push_back_heap(step, adr, val);
       ASSERT_EQ(val, trace->heap(adr));
     }
 }
