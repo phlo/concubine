@@ -20,7 +20,7 @@ std::string CVC4::build_formula (Encoder & formula,
     smtlib::get_model();
 }
 
-std::optional<CVC4::Variable> CVC4::parse_line (std::istringstream & line)
+CVC4::Symbol CVC4::parse_line (std::istringstream & line)
 {
   // TODO
   (void) line;

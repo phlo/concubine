@@ -52,15 +52,15 @@ GTEST_FILTER = --gtest_filter=
 # GTEST_FILTER += smtlib_Relational.*
 # GTEST_FILTER += btor2.*
 # GTEST_FILTER += btor2_Encoder.*
-GTEST_FILTER += Simulator.*
+# GTEST_FILTER += Simulator.*
 # GTEST_FILTER += Main.*
 # GTEST_FILTER += Experimental.*
 # GTEST_FILTER += Instruction.*
 # GTEST_FILTER += Program.*
-GTEST_FILTER += Trace.*
-GTEST_FILTER += MMap.*
+# GTEST_FILTER += Trace.*
+# GTEST_FILTER += MMap.*
 # GTEST_FILTER += Shell.*
-# GTEST_FILTER += Boolector.*
+GTEST_FILTER += Boolector.*
 # GTEST_FILTER += BtorMC.*
 # GTEST_FILTER += Z3.*
 # GTEST_FILTER += CVC4.*
@@ -93,9 +93,7 @@ valgrind: $(TEST_RUN)
 experiments: experimental
 	./$<
 
-EXPERIMENTS = experiments.cc \
-			  ../instruction.hh ../instruction.cc \
-			  ../program.hh ../program.cc
+EXPERIMENTS = experiments.cc
 
 experimental: $(EXPERIMENTS) $(GTEST_LIB)
 	$(CXX) $(CXXFLAGS) $^ $(TEST_MAIN) -o $@

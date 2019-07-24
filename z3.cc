@@ -90,7 +90,7 @@ Trace::ptr Z3::solve (Encoder & encoder, const std::string & constraints)
                 word_t mem =
                   eval_bv(c, m, symbol(Encoder::mem_sym, {step, thread}));
 
-                std::optional<Trace::cell_t> heap;
+                std::optional<std::pair<word_t, word_t>> heap;
 
                 const Instruction & op = program[pc];
 

@@ -295,7 +295,7 @@ Trace::Trace(std::istream & file, const std::string & path) :
         }
 
       // parse heap cell
-      std::optional<cell_t> heap;
+      std::optional<std::pair<word_t, word_t>> heap;
 
       if (!(line >> token))
         parser_error(path, line_num, "missing heap update");
@@ -392,7 +392,7 @@ void Trace::push_back (const word_t thread,
                        const word_t buffer_adr,
                        const word_t buffer_val,
                        const word_t buffer_full,
-                       std::optional<cell_t> & heap,
+                       std::optional<std::pair<word_t, word_t>> & heap,
                        const bool flush)
 {
   push_back<word_t>(thread_updates, length, thread);
@@ -405,8 +405,11 @@ void Trace::push_back (const word_t thread,
 
   if (heap)
     {
-      heap_adr_updates.emplace_hint(heap_adr_updates.end(), length, heap->adr);
-      push_back(heap_val_updates[heap->adr], length, heap->val);
+      heap_adr_updates.emplace_hint(
+        heap_adr_updates.end(),
+        length,
+        heap->first);
+      push_back(heap_val_updates[heap->second], length, heap->first);
       heap.reset();
     }
 
@@ -604,9 +607,9 @@ Trace::iterator Trace::end () const
 
 std::string Trace::print (const Step & step) const
 {
-  std::ostringstream ss;
+  constexpr char sep = '\t';
 
-  const char sep = '\t';
+  std::ostringstream ss;
 
   // thread id
   ss << step.thread << sep;
@@ -664,13 +667,13 @@ std::string Trace::print (const Step & step) const
   ss << '{';
 
   if (step.heap)
-    ss << '(' << step.heap->adr << ',' << step.heap->val << ')';
+    ss << '(' << step.heap->first << ',' << step.heap->second << ')';
 
   ss << '}';
 
   // step number
   if (verbose)
-    ss << sep << "# " << std::to_string(step.step);
+    ss << sep << "# " << std::to_string(step);
 
   ss << eol;
 
@@ -710,7 +713,7 @@ std::string Trace::print () const
 // constructors
 //------------------------------------------------------------------------------
 
-Trace::Step::Step (size_t s) : step(s) {}
+Trace::Step::Step (size_t k) : number(k) {}
 
 //------------------------------------------------------------------------------
 // member operators
@@ -718,11 +721,11 @@ Trace::Step::Step (size_t s) : step(s) {}
 
 // conversion to size_t
 //
-Trace::Step::operator size_t () const { return step; }
+Trace::Step::operator size_t () const { return number; }
 
 // increment
 //
-Trace::Step & Trace::Step::operator ++ () { step++; return *this; }
+Trace::Step & Trace::Step::operator ++ () { number++; return *this; }
 
 //==============================================================================
 // Trace::iterator
@@ -788,13 +791,13 @@ T Trace::iterator::next_state (update_map_iterator<T> & state)
 
 // Trace::iterator::next_heap_state --------------------------------------------
 
-const std::optional<Trace::cell_t> Trace::iterator::next_heap_state ()
+std::optional<std::pair<word_t, word_t>> Trace::iterator::next_heap_state ()
 {
   if (heap_adr.cur != heap_adr.end)
     {
       const word_t adr = next_state(heap_adr);
 
-      if (heap_adr.cur->first == step.step)
+      if (heap_adr.cur->first == step.number)
         return {{adr, next_state(heap_val[adr])}};
     }
 
@@ -843,7 +846,7 @@ Trace::iterator Trace::iterator::operator ++ (int)
 
 bool Trace::iterator::operator == (const iterator & other) const
 {
-  return trace == other.trace && step.step == other.step.step;
+  return trace == other.trace && step.number == other.step.number;
 }
 
 bool Trace::iterator::operator != (const iterator & other) const
@@ -895,6 +898,26 @@ bool operator == (const Trace & a, const Trace & b)
 }
 
 bool operator != (const Trace & a, const Trace & b)
+{
+  return !(a == b);
+}
+
+bool operator == (const Trace::Step & a, const Trace::Step & b)
+{
+  return
+    a.number == b.number &&
+    a.thread == b.thread &&
+    a.pc == b.pc &&
+    a.accu == b.accu &&
+    a.mem == b.mem &&
+    a.sb_adr == b.sb_adr &&
+    a.sb_val == b.sb_val &&
+    a.sb_full == b.sb_full &&
+    a.flush == b.flush &&
+    a.heap == b.heap;
+}
+
+bool operator != (const Trace::Step & a, const Trace::Step & b)
 {
   return !(a == b);
 }

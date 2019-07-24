@@ -19,7 +19,7 @@ std::string BtorMC::build_formula (Encoder & formula,
   return formula.str() + (constraints.empty() ? "" : constraints + eol);
 }
 
-std::optional<BtorMC::Variable> BtorMC::parse_line (std::istringstream & line)
+BtorMC::Symbol BtorMC::parse_line (std::istringstream & line)
 {
   switch (line.peek())
     {
@@ -34,16 +34,14 @@ std::optional<BtorMC::Variable> BtorMC::parse_line (std::istringstream & line)
     }
 }
 
-std::optional<BtorMC::Variable> BtorMC::parse_variable (std::istringstream & line)
+BtorMC::Symbol BtorMC::parse_symbol (std::istringstream & line)
 {
-  std::optional<Variable> variable {Variable()};
-
   std::ostringstream os;
 
   // cout << line.str() << eol;
 
   // if (!getline(line >> ws, name, '_'))
-    // runtime_error("missing variable");
+    // runtime_error("missing symbol");
 
   line >> std::ws;
 
@@ -58,64 +56,62 @@ std::optional<BtorMC::Variable> BtorMC::parse_variable (std::istringstream & lin
 
   if (name == Encoder::thread_sym)
     {
-      variable->type = Variable::Type::THREAD;
-      variable->thread = parse_attribute(line, "thread", '@');
-      variable->step = parse_attribute(line, "step") + 1;
+      thread = parse_symbol(line, "thread", '@');
+      step = parse_symbol(line, "step") + 1;
+      return Symbol::thread;
     }
   else if (name == Encoder::stmt_sym)
     {
-      variable->type = Variable::Type::EXEC;
-      variable->thread = parse_attribute(line, "thread");
-      variable->pc = parse_attribute(line, "pc", '#');
-      variable->step = parse_attribute(line, "step") + 1;
+      thread = parse_symbol(line, "thread");
+      pc = parse_symbol(line, "pc", '#');
+      step = parse_symbol(line, "step") + 1;
+      return Symbol::stmt;
     }
   else if (name == Encoder::accu_sym)
     {
-      variable->type = Variable::Type::ACCU;
-      variable->thread = parse_attribute(line, "thread", '#');
-      variable->step = parse_attribute(line, "step");
+      thread = parse_symbol(line, "thread", '#');
+      step = parse_symbol(line, "step");
+      return Symbol::accu;
     }
   else if (name == Encoder::mem_sym)
     {
-      variable->type = Variable::Type::MEM;
-      variable->thread = parse_attribute(line, "thread", '#');
-      variable->step = parse_attribute(line, "step");
+      thread = parse_symbol(line, "thread", '#');
+      step = parse_symbol(line, "step");
+      return Symbol::mem;
     }
   else if (name == Encoder::heap_sym)
     {
-      variable->type = Variable::Type::HEAP;
-      variable->step = parse_attribute(line, "step", '@');
+      step = parse_symbol(line, "step", '@');
+      return Symbol::heap;
     }
   else if (name == Encoder::exit_flag_sym)
     {
-      variable->type = Variable::Type::EXIT;
-      variable->step = parse_attribute(line, "step", '#');
+      step = parse_symbol(line, "step", '#');
+      return Symbol::exit_flag;
     }
   else if (name == Encoder::exit_code_sym)
     {
-      variable->type = Variable::Type::EXIT_CODE;
-      variable->step = parse_attribute(line, "step", '#');
+      step = parse_symbol(line, "step", '#');
+      return Symbol::exit_code;
     }
-  else
-    return {};
 
   /*
-  cout << "variable: ";
-  switch (variable->type)
+  cout << "symbol: ";
+  switch (symbol->type)
     {
-    case Variable::Type::THREAD: cout << "THREAD"; break;
-    case Variable::Type::EXEC: cout << "EXEC"; break;
-    case Variable::Type::ACCU: cout << "ACCU"; break;
-    case Variable::Type::MEM: cout << "MEM"; break;
-    case Variable::Type::HEAP: cout << "HEAP"; break;
-    case Variable::Type::EXIT: cout << "EXIT"; break;
-    case Variable::Type::EXIT_CODE: cout << "EXIT_CODE"; break;
+    case Symbol::Type::THREAD: cout << "THREAD"; break;
+    case Symbol::Type::EXEC: cout << "EXEC"; break;
+    case Symbol::Type::ACCU: cout << "ACCU"; break;
+    case Symbol::Type::MEM: cout << "MEM"; break;
+    case Symbol::Type::HEAP: cout << "HEAP"; break;
+    case Symbol::Type::EXIT: cout << "EXIT"; break;
+    case Symbol::Type::EXIT_CODE: cout << "EXIT_CODE"; break;
     default: ;
     }
-  cout << " step = " << variable->step << eol;
+  cout << " step = " << symbol->step << eol;
   */
 
-  return variable;
+  return Symbol::ignore;
 }
 
 } // namespace ConcuBinE

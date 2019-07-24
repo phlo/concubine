@@ -5,7 +5,7 @@
 
 namespace ConcuBinE {
 
-struct BtorMC : public Boolector
+struct BtorMC : Boolector
 {
   BtorMC (size_t);
 
@@ -15,9 +15,11 @@ struct BtorMC : public Boolector
 
   virtual std::string build_formula (Encoder &, const std::string &);
 
-  virtual std::optional<Variable> parse_line (std::istringstream &);
+  virtual Symbol parse_line (std::istringstream &);
 
-  virtual std::optional<Variable> parse_variable (std::istringstream &);
+  using Boolector::parse_symbol;
+
+  virtual Symbol parse_symbol (std::istringstream &);
 
   virtual std::string name () const;
 };

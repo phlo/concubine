@@ -11,7 +11,7 @@ class Boolector : public External
 
 protected:
 
-  virtual std::optional<Variable> parse_line (std::istringstream & line);
+  virtual Symbol parse_line (std::istringstream & line);
 
 public:
 

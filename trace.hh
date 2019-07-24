@@ -38,21 +38,11 @@ struct Trace
   //
   using heap_val_map = std::unordered_map<word_t, update_map<word_t>>;
 
-  // heap cell -----------------------------------------------------------------
-  //
-  // TODO: switch to std::pair<word_t, word_t>
-  //
-  struct cell_t
-    {
-      word_t adr;
-      word_t val;
-    };
-
   // state at a specific step --------------------------------------------------
   //
   struct Step
     {
-      size_t step;
+      size_t number;
       word_t thread;
       word_t pc;
       word_t accu;
@@ -61,10 +51,10 @@ struct Trace
       word_t sb_val;
       bool sb_full;
       bool flush;
-      std::optional<cell_t> heap;
+      std::optional<std::pair<word_t, word_t>> heap;
 
       Step () = default;
-      Step (size_t step);
+      Step (size_t k);
 
       operator size_t () const;
 
@@ -141,7 +131,7 @@ struct Trace
 
       // return current heap state update and advance
       //
-      const std::optional<cell_t> next_heap_state ();
+      std::optional<std::pair<word_t, word_t>> next_heap_state ();
 
       // assign next state
       //
@@ -281,7 +271,7 @@ struct Trace
                   word_t sb_adr,
                   word_t sb_val,
                   word_t sb_full,
-                  std::optional<cell_t> & heap,
+                  std::optional<std::pair<word_t, word_t>> & heap,
                   bool flush = false);
 
   // append individual state updates
@@ -346,6 +336,9 @@ struct Trace
 //
 bool operator == (const Trace &, const Trace &);
 bool operator != (const Trace &, const Trace &);
+
+bool operator == (const Trace::Step &, const Trace::Step &);
+bool operator != (const Trace::Step &, const Trace::Step &);
 
 } // namespace ConcuBinE
 

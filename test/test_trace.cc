@@ -1188,13 +1188,13 @@ TEST_F(Trace, iterator_check)
 
       if (i == 3)
         {
-          ASSERT_EQ(0, it->heap->adr);
-          ASSERT_EQ(0, it->heap->val);
+          ASSERT_EQ(0, it->heap->first);
+          ASSERT_EQ(0, it->heap->second);
         }
       else if (i == 14)
         {
-          ASSERT_EQ(0, it->heap->adr);
-          ASSERT_EQ(1, it->heap->val);
+          ASSERT_EQ(0, it->heap->first);
+          ASSERT_EQ(1, it->heap->second);
         }
       else
         ASSERT_FALSE(it->heap);
@@ -1234,13 +1234,13 @@ TEST_F(Trace, iterator_cas)
 
       if (i == 3 || i == 4)
         {
-          ASSERT_EQ(0, it->heap->adr);
-          ASSERT_EQ(0, it->heap->val);
+          ASSERT_EQ(0, it->heap->first);
+          ASSERT_EQ(0, it->heap->second);
         }
       else if (i == 12)
         {
-          ASSERT_EQ(0, it->heap->adr);
-          ASSERT_EQ(1, it->heap->val);
+          ASSERT_EQ(0, it->heap->first);
+          ASSERT_EQ(1, it->heap->second);
         }
       else
         ASSERT_FALSE(it->heap);
@@ -1282,7 +1282,7 @@ TEST_F(Trace, operator_equals)
   ASSERT_TRUE(s1 == s2);
 
   // non-empty trace
-  std::optional<ConcuBinE::Trace::cell_t> heap;
+  std::optional<std::pair<word_t, word_t>> heap;
   s1.push_back(0, 0, 0, 0, 0, 0, false, heap = {1, 0});
   s1.push_back(1, 0, 0, 0, 0, 0, false, heap);
   s1.push_back(0, 1, 1, 0, 0, 0, false, heap);

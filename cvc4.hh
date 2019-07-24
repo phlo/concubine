@@ -14,7 +14,7 @@ private:
   virtual std::string build_formula (Encoder & encoder,
                                      const std::string & constraints);
 
-  virtual std::optional<Variable> parse_line (std::istringstream &);
+  virtual Symbol parse_line (std::istringstream &);
 
 public:
 
