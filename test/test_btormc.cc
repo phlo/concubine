@@ -50,7 +50,6 @@ TEST_F(BtorMC, unsat)
 TEST_F(BtorMC, solve_check)
 {
   // concurrent increment using CHECK
-  std::string constraints;
   std::string increment_0 = "data/increment.check.thread.0.asm";
   std::string increment_n = "data/increment.check.thread.n.asm";
 
@@ -61,7 +60,7 @@ TEST_F(BtorMC, solve_check)
 
   encoder = std::make_unique<btor2::Encoder>(programs, 16);
 
-  trace = btormc.solve(*encoder, constraints);
+  trace = btormc.solve(*encoder);
 
   std::cout << "time to solve = " << btormc.time << "ms" << eol;
 
@@ -79,7 +78,6 @@ TEST_F(BtorMC, solve_check)
 TEST_F(BtorMC, solve_cas)
 {
   // concurrent increment using CAS
-  std::string constraints;
   std::string increment = "data/increment.cas.asm";
 
   programs = std::make_shared<Program::List>();
@@ -89,7 +87,7 @@ TEST_F(BtorMC, solve_cas)
 
   encoder = std::make_unique<btor2::Encoder>(programs, 16);
 
-  trace = btormc.solve(*encoder, constraints);
+  trace = btormc.solve(*encoder);
 
   std::cout << "time to solve = " << btormc.time << "ms" << eol;
 
@@ -122,8 +120,8 @@ TEST_F(BtorMC, print_model_check)
 
   bool sat = btormc.sat(formula);
 
-  std::ofstream trace_file("/tmp/btormc.check.out");
-  trace_file << btormc.std_out.str();
+  std::ofstream out("/tmp/btormc.check.out");
+  out << btormc.std_out.str();
 
   ASSERT_TRUE(sat);
 }
@@ -144,8 +142,8 @@ TEST_F(BtorMC, print_model_cas)
 
   bool sat = btormc.sat(formula);
 
-  std::ofstream trace_file("/tmp/btormc.cas.out");
-  trace_file << btormc.std_out.str();
+  std::ofstream out("/tmp/btormc.cas.out");
+  out << btormc.std_out.str();
 
   ASSERT_TRUE(sat);
 }

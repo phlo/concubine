@@ -13,7 +13,6 @@ namespace ConcuBinE::test {
 
 struct Boolector : public ::testing::Test
 {
-  std::string constraints;
   ConcuBinE::Boolector boolector;
   Encoder::ptr encoder;
   Program::List::ptr programs = std::make_shared<Program::List>();
@@ -51,7 +50,7 @@ TEST_F(Boolector, solve_check)
 
   encoder = std::make_unique<smtlib::Functional>(programs, 16);
 
-  trace = boolector.solve(*encoder, constraints);
+  trace = boolector.solve(*encoder);
 
   std::cout << "time to solve = " << boolector.time << "ms" << eol;
 
@@ -78,7 +77,7 @@ TEST_F(Boolector, solve_cas)
 
   encoder = std::make_unique<smtlib::Functional>(programs, 16);
 
-  trace = boolector.solve(*encoder, constraints);
+  trace = boolector.solve(*encoder);
 
   std::cout << "time to solve = " << boolector.time << "ms" << eol;
 
@@ -107,7 +106,7 @@ TEST_F(Boolector, print_model_check)
 
   encoder = std::make_unique<smtlib::Functional>(programs, 16);
 
-  std::string formula = boolector.build_formula(*encoder, constraints);
+  std::string formula = boolector.build_formula(*encoder, "");
 
   bool sat = boolector.sat(formula);
 
@@ -129,12 +128,12 @@ TEST_F(Boolector, print_model_cas)
 
   encoder = std::make_unique<smtlib::Functional>(programs, 16);
 
-  std::string formula = boolector.build_formula(*encoder, constraints);
+  std::string formula = boolector.build_formula(*encoder, "");
 
   bool sat = boolector.sat(formula);
 
-  std::ofstream outfile("/tmp/boolector.cas.out");
-  outfile << boolector.std_out.str();
+  std::ofstream out("/tmp/boolector.cas.out");
+  out << boolector.std_out.str();
 
   ASSERT_TRUE(sat);
 }

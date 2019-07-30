@@ -113,7 +113,8 @@ struct External : Solver
 
   virtual bool sat (const std::string & formula);
 
-  virtual Trace::ptr solve (Encoder & encoder, const std::string & constraints);
+  virtual Trace::ptr solve (Encoder & encoder,
+                            const std::string & constraints = "");
 
   // build command line for the specific solver
   //
