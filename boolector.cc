@@ -6,13 +6,22 @@
 
 namespace ConcuBinE {
 
-std::string Boolector::name () const { return "boolector"; }
+//==============================================================================
+// Boolector
+//==============================================================================
+
+//------------------------------------------------------------------------------
+// member functions
+//------------------------------------------------------------------------------
+
+// Boolector::build_command ----------------------------------------------------
 
 std::string Boolector::build_command ()
 {
-  // return "boolector --model-gen --output-number-format=dec";
-  return "boolector --model-gen";
+  return "boolector --model-gen"; // --output-number-format=dec
 }
+
+// Boolector::parse_line -------------------------------------------------------
 
 Boolector::Symbol Boolector::parse_line (std::istringstream & line)
 {
@@ -74,5 +83,9 @@ Boolector::Symbol Boolector::parse_line (std::istringstream & line)
 
   return Symbol::ignore;
 }
+
+// Boolector::name -------------------------------------------------------------
+
+std::string Boolector::name () const { return "boolector"; }
 
 } // namespace ConcuBinE

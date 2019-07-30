@@ -89,19 +89,6 @@ TEST_F(Boolector, solve_cas)
   ASSERT_EQ(*replay, *trace);
 }
 
-TEST_F(Boolector, DISABLED_encode_deadlock)
-{
-  // deadlock after 3 steps -> unsat
-  programs->push_back(create_from_file<Program>("data/deadlock.thread.0.asm"));
-  programs->push_back(create_from_file<Program>("data/deadlock.thread.1.asm"));
-
-  encoder = std::make_unique<smtlib::Functional>(programs, 3);
-
-  std::string formula = encoder->str();
-
-  ASSERT_FALSE(boolector.sat(formula));
-}
-
 // TODO: remove
 TEST_F(Boolector, print_model_check)
 {

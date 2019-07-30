@@ -290,6 +290,9 @@ struct Trace
   //
   word_t thread () const;
 
+  // return thread scheduled at a given step k
+  word_t thread (size_t k) const;
+
   // return true if a store buffer has been flushed in the given step
   //
   bool flush (word_t step) const;
@@ -303,9 +306,22 @@ struct Trace
   word_t sb_val (word_t thread) const;
   bool sb_full (word_t thread) const;
 
+  // return register state at a given step k
+  //
+  word_t pc (size_t k, word_t thread) const;
+  word_t accu (size_t k, word_t thread) const;
+  word_t mem (size_t k, word_t thread) const;
+  word_t sb_adr (size_t k, word_t thread) const;
+  word_t sb_val (size_t k, word_t thread) const;
+  bool sb_full (size_t k, word_t thread) const;
+
   // return most recent heap state
   //
   std::optional<word_t> heap (word_t address) const;
+
+  // return heap state for a given step k
+  //
+  std::optional<word_t> heap (size_t k, word_t address) const;
 
   // return trace size (length)
   //

@@ -18,4 +18,4 @@ data/increment.check.thread.n.asm
 0	7	FLUSH	-	1	0	0	1	1	{}	# 13
 0	7	JNZ	1	1	0	0	1	0	{(0,1)}	# 14
 0	1	FENCE	-	1	0	0	1	0	{}	# 15
-0	2	CHECK	0	1	0	0	1	0	{}	# 16
+1	5	FLUSH	-	1	0	0	1	1	{}	# 16

@@ -192,16 +192,25 @@ void Simulator::flush ()
   assert(sb_full());
   assert(state[thread] == State::flushing);
 
-  sb_full(false);
   state[thread] = State::running;
   trace->push_back_flush(step - 1);
-  trace->push_back_heap(step, sb_adr(), sb_val());
+
+  // skip state updates during final step
+  if (step <= bound)
+    {
+      sb_full(false);
+      trace->push_back_heap(step, sb_adr(), sb_val());
+    }
 }
 
 // Simulator::execute ----------------------------------------------------------
 
 void Simulator::execute ()
 {
+  // skip state updates during final step
+  if (step > bound)
+    return;
+
   const Program & program = (*programs)[thread];
   const Instruction & op = program[pc()];
 
@@ -401,11 +410,11 @@ Trace::ptr Simulator::run (std::function<void()> scheduler)
 {
   bool done = active.empty();
 
-  while (!done && ++step <= bound)
+  while (!done && step <= bound)
     {
       scheduler();
 
-      trace->push_back_thread(step - 1, thread);
+      trace->push_back_thread(step++, thread);
 
       // flush store buffer or execute instruction
       if (state[thread] == State::flushing)

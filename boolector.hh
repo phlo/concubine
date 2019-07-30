@@ -5,15 +5,21 @@
 
 namespace ConcuBinE {
 
+//==============================================================================
+// Boolector class
+//==============================================================================
+
 class Boolector : public External
 {
+private: //---------------------------------------------------------------------
+
   virtual std::string build_command ();
 
-protected:
+protected: //-------------------------------------------------------------------
 
   virtual Symbol parse_line (std::istringstream & line);
 
-public:
+public: //----------------------------------------------------------------------
 
   virtual std::string name () const;
 };

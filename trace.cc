@@ -57,10 +57,7 @@ Trace::Trace(std::istream & file, const std::string & path) :
           break;
         }
 
-      try
-        {
-          programs->push_back(create_from_file<Program>(token));
-        }
+      try { programs->push_back(create_from_file<Program>(token)); }
       catch (const std::exception & e)
         {
           parser_error(
@@ -119,10 +116,7 @@ Trace::Trace(std::istream & file, const std::string & path) :
           if (!(line >> token))
             parser_error(path, line_num, "missing program counter");
 
-          try
-            {
-              pc = program.get_pc(token);
-            }
+          try { pc = program.get_pc(token); }
           catch (...)
             {
               parser_error(path, line_num, "unknown label [" + token + "]");
@@ -198,10 +192,7 @@ Trace::Trace(std::istream & file, const std::string & path) :
           // arg is a label
           else if (op.is_jump())
             {
-              try
-                {
-                  arg = program.get_pc(token);
-                }
+              try { arg = program.get_pc(token); }
               catch (...)
                 {
                   parser_error(path, line_num, "unknown label [" + token + "]");
@@ -409,8 +400,7 @@ void Trace::push_back (const word_t thread,
         heap_adr_updates.end(),
         length,
         heap->first);
-      push_back(heap_val_updates[heap->second], length, heap->first);
-      heap.reset();
+      push_back(heap_val_updates[heap->first], length, heap->second);
     }
 
   if (flush)
@@ -520,7 +510,23 @@ void Trace::push_back_flush (size_t step)
 
 word_t Trace::thread () const
 {
+  assert(!thread_updates.empty());
+
   return thread_updates.crbegin()->second;
+}
+
+#define RETURN_STATE(update_map, k) \
+  do { \
+    auto rit = update_map.crbegin(); \
+    while (rit != update_map.crend() && rit->first > k) ++rit; \
+    return rit->second; \
+  } while (0)
+
+word_t Trace::thread (const size_t k) const
+{
+  assert(k < length);
+
+  RETURN_STATE(thread_updates, k);
 }
 
 // Trace::flush ----------------------------------------------------------------
@@ -534,42 +540,102 @@ bool Trace::flush (const word_t step) const
 
 word_t Trace::pc (const word_t thread) const
 {
+  assert(!pc_updates[thread].empty());
+
   return pc_updates[thread].crbegin()->second;
+}
+
+word_t Trace::pc (const size_t k, const word_t thread) const
+{
+  assert(k < length);
+  assert(thread < pc_updates.size());
+
+  RETURN_STATE(pc_updates[thread], k);
 }
 
 // Trace::accu -----------------------------------------------------------------
 
 word_t Trace::accu (const word_t thread) const
 {
+  assert(!accu_updates[thread].empty());
+
   return accu_updates[thread].crbegin()->second;
+}
+
+word_t Trace::accu (const size_t k, const word_t thread) const
+{
+  assert(k < length);
+  assert(thread < accu_updates.size());
+
+  RETURN_STATE(accu_updates[thread], k);
 }
 
 // Trace::mem ------------------------------------------------------------------
 
 word_t Trace::mem (const word_t thread) const
 {
+  assert(!mem_updates[thread].empty());
+
   return mem_updates[thread].crbegin()->second;
+}
+
+word_t Trace::mem (const size_t k, const word_t thread) const
+{
+  assert(k < length);
+  assert(thread < mem_updates.size());
+
+  RETURN_STATE(mem_updates[thread], k);
 }
 
 // Trace::sb_adr ---------------------------------------------------------------
 
 word_t Trace::sb_adr (const word_t thread) const
 {
+  assert(!sb_adr_updates[thread].empty());
+
   return sb_adr_updates[thread].crbegin()->second;
+}
+
+word_t Trace::sb_adr (const size_t k, const word_t thread) const
+{
+  assert(k < length);
+  assert(thread < sb_adr_updates.size());
+
+  RETURN_STATE(sb_adr_updates[thread], k);
 }
 
 // Trace::sb_val ---------------------------------------------------------------
 
 word_t Trace::sb_val (const word_t thread) const
 {
+  assert(!sb_val_updates[thread].empty());
+
   return sb_val_updates[thread].crbegin()->second;
+}
+
+word_t Trace::sb_val (const size_t k, const word_t thread) const
+{
+  assert(k < length);
+  assert(thread < sb_val_updates.size());
+
+  RETURN_STATE(sb_val_updates[thread], k);
 }
 
 // Trace::sb_full --------------------------------------------------------------
 
 bool Trace::sb_full (const word_t thread) const
 {
+  assert(!sb_full_updates[thread].empty());
+
   return sb_full_updates[thread].crbegin()->second;
+}
+
+bool Trace::sb_full (const size_t k, const word_t thread) const
+{
+  assert(k < length);
+  assert(thread < sb_full_updates.size());
+
+  RETURN_STATE(sb_full_updates[thread], k);
 }
 
 // Trace::heap -----------------------------------------------------------------
@@ -578,6 +644,17 @@ std::optional<word_t> Trace::heap (const word_t address) const
 {
   if (heap_val_updates.find(address) != heap_val_updates.end())
     return heap_val_updates.at(address).crbegin()->second;
+
+  if (mmap && mmap->find(address) != mmap->end())
+    return (*mmap)[address];
+
+  return {};
+}
+
+std::optional<word_t> Trace::heap (const size_t k, const word_t address) const
+{
+  if (heap_val_updates.find(address) != heap_val_updates.end())
+    RETURN_STATE(heap_val_updates.at(address), k);
 
   if (mmap && mmap->find(address) != mmap->end())
     return (*mmap)[address];

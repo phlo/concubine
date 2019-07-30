@@ -62,7 +62,8 @@ TEST_F(Trace, parse_check)
       {6,  1},
       {7,  0},
       {10, 1},
-      {13, 0}}),
+      {13, 0},
+      {16, 1}}),
     trace->thread_updates);
 
   ASSERT_EQ(
@@ -75,8 +76,7 @@ TEST_F(Trace, parse_check)
       {8,  5},
       {9,  6},
       {13, 7},
-      {15, 1},
-      {16, 2}}),
+      {15, 1}}),
     trace->pc_updates[0]);
   ASSERT_EQ(
     update_map<word_t>({
@@ -84,7 +84,8 @@ TEST_F(Trace, parse_check)
       {6,  1},
       {10, 2},
       {11, 3},
-      {12, 4}}),
+      {12, 4},
+      {16, 5}}),
     trace->pc_updates[1]);
 
   ASSERT_EQ(
@@ -110,16 +111,16 @@ TEST_F(Trace, parse_check)
   ASSERT_EQ(
     thread_map<word_t>({
       {{0, 0}, {9, 1}},
-      {{1, 0}}}),
+      {{1, 0}, {16, 1}}}),
     trace->sb_val_updates);
 
   ASSERT_EQ(
     thread_map<bool>({
       {{0, false}, {2, true}, {3, false}, {9, true}, {14, false}},
-      {{1, false}}}),
+      {{1, false}, {16, true}}}),
     trace->sb_full_updates);
 
-  ASSERT_EQ(std::unordered_set<size_t>({2, 13}), trace->flushes);
+  ASSERT_EQ(std::unordered_set<size_t>({2, 13, 16}), trace->flushes);
 
   ASSERT_EQ(
     update_map<word_t>({
@@ -1035,6 +1036,17 @@ TEST_F(Trace, thread)
     }
 }
 
+TEST_F(Trace, thread_k)
+{
+  create_dummy_trace(2);
+
+  for (const auto & [step, thread, _, __] : data)
+    trace->push_back_thread(step, thread);
+
+  for (const auto & [step, thread, _, __] : data)
+    ASSERT_EQ(thread, trace->thread(step));
+}
+
 // Trace::pc ===================================================================
 
 TEST_F(Trace, pc)
@@ -1046,6 +1058,17 @@ TEST_F(Trace, pc)
       trace->push_back_pc(step, thread, pc);
       ASSERT_EQ(pc, trace->pc(thread));
     }
+}
+
+TEST_F(Trace, pc_k)
+{
+  create_dummy_trace(2);
+
+  for (const auto & [step, thread, pc, _] : data)
+    trace->push_back_pc(step, thread, pc);
+
+  for (const auto & [step, thread, pc, _] : data)
+    ASSERT_EQ(pc, trace->pc(step, thread));
 }
 
 // Trace::accu =================================================================
@@ -1061,6 +1084,17 @@ TEST_F(Trace, accu)
     }
 }
 
+TEST_F(Trace, accu_k)
+{
+  create_dummy_trace(2);
+
+  for (const auto & [step, thread, accu, _] : data)
+    trace->push_back_accu(step, thread, accu);
+
+  for (const auto & [step, thread, accu, _] : data)
+    ASSERT_EQ(accu, trace->accu(step, thread));
+}
+
 // Trace::mem ==================================================================
 
 TEST_F(Trace, mem)
@@ -1072,6 +1106,17 @@ TEST_F(Trace, mem)
       trace->push_back_mem(step, thread, mem);
       ASSERT_EQ(mem, trace->mem(thread));
     }
+}
+
+TEST_F(Trace, mem_k)
+{
+  create_dummy_trace(2);
+
+  for (const auto & [step, thread, mem, _] : data)
+    trace->push_back_mem(step, thread, mem);
+
+  for (const auto & [step, thread, mem, _] : data)
+    ASSERT_EQ(mem, trace->mem(step, thread));
 }
 
 // Trace::sb_adr ===============================================================
@@ -1087,6 +1132,17 @@ TEST_F(Trace, sb_adr)
     }
 }
 
+TEST_F(Trace, sb_adr_k)
+{
+  create_dummy_trace(2);
+
+  for (const auto & [step, thread, sb_adr, _] : data)
+    trace->push_back_sb_adr(step, thread, sb_adr);
+
+  for (const auto & [step, thread, sb_adr, _] : data)
+    ASSERT_EQ(sb_adr, trace->sb_adr(step, thread));
+}
+
 // Trace::sb_val ===============================================================
 
 TEST_F(Trace, sb_val)
@@ -1098,6 +1154,17 @@ TEST_F(Trace, sb_val)
       trace->push_back_sb_val(step, thread, sb_val);
       ASSERT_EQ(sb_val, trace->sb_val(thread));
     }
+}
+
+TEST_F(Trace, sb_val_k)
+{
+  create_dummy_trace(2);
+
+  for (const auto & [step, thread, sb_val, _] : data)
+    trace->push_back_sb_val(step, thread, sb_val);
+
+  for (const auto & [step, thread, sb_val, _] : data)
+    ASSERT_EQ(sb_val, trace->sb_val(step, thread));
 }
 
 // Trace::sb_full ==============================================================
@@ -1113,17 +1180,39 @@ TEST_F(Trace, sb_full)
     }
 }
 
+TEST_F(Trace, sb_full_k)
+{
+  create_dummy_trace(2);
+
+  for (const auto & [step, thread, sb_full, _] : data)
+    trace->push_back_sb_full(step, thread, sb_full);
+
+  for (const auto & [step, thread, sb_full, _] : data)
+    ASSERT_EQ(sb_full, trace->sb_full(step, thread));
+}
+
 // Trace::heap =================================================================
 
 TEST_F(Trace, heap)
 {
   create_dummy_trace(2);
 
-  for (const auto & [step, thread, adr, val] : data)
+  for (const auto & [step, _, adr, val] : data)
     {
       trace->push_back_heap(step, adr, val);
       ASSERT_EQ(val, trace->heap(adr));
     }
+}
+
+TEST_F(Trace, heap_k)
+{
+  create_dummy_trace(2);
+
+  for (const auto & [step, _, adr, val] : data)
+    trace->push_back_heap(step, adr, val);
+
+  for (const auto & [step, _, adr, val] : data)
+    ASSERT_EQ(val, trace->heap(step, adr));
 }
 
 // Trace::print ================================================================
@@ -1166,13 +1255,13 @@ TEST_F(Trace, iterator_check)
       create_from_file<ConcuBinE::Trace>("data/increment.check.t2.k16.trace"));
 
                     // 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16
-  word_t tid[]      = {0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0};
-  word_t pc[]       = {0, 0, 1, 1, 2, 3, 1, 4, 5, 6, 2, 3, 4, 7, 7, 1, 2};
+  word_t tid[]      = {0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1};
+  word_t pc[]       = {0, 0, 1, 1, 2, 3, 1, 4, 5, 6, 2, 3, 4, 7, 7, 1, 5};
   word_t accu[]     = {0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1};
   word_t mem[]      = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   word_t sb_adr[]   = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   word_t sb_val[]   = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1};
-  word_t sb_full[]  = {0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0};
+  word_t sb_full[]  = {0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1};
 
   ConcuBinE::Trace::iterator it = trace->begin(), end = trace->end();
 

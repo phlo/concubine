@@ -29,8 +29,11 @@ std::string Solver::build_formula (Encoder & formula,
 bool External::sat (const std::string & input)
 {
   Shell shell;
+
   std_out = shell.run(build_command(), input);
+
   std::string sat;
+
   return (std_out >> sat) && sat == "sat";
 }
 
@@ -38,7 +41,10 @@ bool External::sat (const std::string & input)
 
 Trace::ptr External::solve (Encoder & formula, const std::string & constraints)
 {
-  sat(build_formula(formula, constraints));
+  std::string input = build_formula(formula, constraints);
+
+  sat(input);
+
   return build_trace(formula.programs);
 }
 
@@ -73,24 +79,29 @@ Trace::ptr External::build_trace (const Program::List::ptr & programs)
             {
               // detect an eventual heap update
               // reached next step: previous state at step - 1 fully visible
-              if (step && step == trace->length)
+              if (step > 1 && step == trace->length)
                 {
+                  const size_t k = step - 2;
+                  const word_t t = trace->thread(k);
+
                   // store buffer has been flushed
                   // NOTE: heap update visible one step after flush is set
-                  if (trace->flush(step - 2))
+                  if (trace->flush(k))
                     {
-                      address = trace->sb_adr(trace->thread());
+                      address = trace->sb_adr(t);
                       assert(heap.find(address) != heap.end());
                       trace->push_back_heap(step - 1, address, heap[address]);
                     }
-                  // atomic operation has been executed
+                  // CAS has been executed
                   else if (op && op->type() & Instruction::Type::atomic)
-                    {
-                      address = op->indirect() ? heap[op->arg()] : op->arg();
-                      trace->push_back_heap(step - 1, address, heap[address]);
-                    }
+                    if (trace->accu(k, t))
+                      {
+                        address = op->indirect() ? heap[op->arg()] : op->arg();
+                        trace->push_back_heap(step - 1, address, heap[address]);
+                      }
 
-                  op = &(*programs)[thread][trace->pc(thread)];
+                  // TODO: get correct thread, pc and accu for step - 2
+                  op = &(*programs)[t][trace->pc(t)];
 
                   // reset heap map for the next step
                   heap = {};
@@ -209,17 +220,26 @@ External::Symbol External::parse_symbol (std::istringstream & line)
       thread = parse_symbol(line, "thread");
       return Symbol::sb_full;
     }
-  else if (name == Encoder::heap_sym)
-    {
-      step = parse_symbol(line, "step");
-      return Symbol::heap;
-    }
   else if (name == Encoder::stmt_sym)
     {
       step = parse_symbol(line, "step");
       thread = parse_symbol(line, "thread");
       pc = parse_symbol(line, "pc");
       return Symbol::stmt;
+    }
+  else if (name == Encoder::heap_sym)
+    {
+      step = parse_symbol(line, "step");
+      return Symbol::heap;
+    }
+  else if (name == Encoder::exit_flag_sym)
+    {
+      step = parse_symbol(line, "step");
+      return Symbol::exit_flag; // TODO
+    }
+  else if (name == Encoder::exit_code_sym)
+    {
+      return Symbol::exit_code;
     }
   else if (name == Encoder::thread_sym)
     {
@@ -232,15 +252,6 @@ External::Symbol External::parse_symbol (std::istringstream & line)
       step = parse_symbol(line, "step");
       thread = parse_symbol(line, "thread");
       return Symbol::flush;
-    }
-  else if (name == Encoder::exit_flag_sym)
-    {
-      step = parse_symbol(line, "step");
-      return Symbol::exit_flag; // TODO
-    }
-  else if (name == Encoder::exit_code_sym)
-    {
-      return Symbol::exit_code;
     }
 
   return Symbol::ignore;

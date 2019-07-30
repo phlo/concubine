@@ -771,7 +771,7 @@ struct Encoder : public ConcuBinE::Encoder
   //
   // checkpoint id -> nid
   //
-  nid_map nids_check;
+  std::map<word_t, std::string> nids_check;
 
   // array read nodes
   //
