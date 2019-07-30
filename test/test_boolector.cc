@@ -53,6 +53,8 @@ TEST_F(Boolector, solve_check)
 
   trace = boolector.solve(*encoder, constraints);
 
+  std::cout << "time to solve = " << boolector.time << "ms" << eol;
+
   // std::cout << trace->print();
 
   Simulator simulator (programs);
@@ -77,6 +79,8 @@ TEST_F(Boolector, solve_cas)
   encoder = std::make_unique<smtlib::Functional>(programs, 16);
 
   trace = boolector.solve(*encoder, constraints);
+
+  std::cout << "time to solve = " << boolector.time << "ms" << eol;
 
   // std::cout << trace->print();
 

@@ -63,6 +63,8 @@ TEST_F(BtorMC, solve_check)
 
   trace = btormc.solve(*encoder, constraints);
 
+  std::cout << "time to solve = " << btormc.time << "ms" << eol;
+
   // std::cout << trace->print();
 
   Simulator simulator {programs};
@@ -88,6 +90,8 @@ TEST_F(BtorMC, solve_cas)
   encoder = std::make_unique<btor2::Encoder>(programs, 16);
 
   trace = btormc.solve(*encoder, constraints);
+
+  std::cout << "time to solve = " << btormc.time << "ms" << eol;
 
   // std::cout << trace->print();
 

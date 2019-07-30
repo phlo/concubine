@@ -1,6 +1,7 @@
 #include "solver.hh"
 
 #include <cassert>
+#include <chrono>
 
 #include "encoder.hh"
 #include "parser.hh"
@@ -28,12 +29,17 @@ std::string Solver::build_formula (Encoder & formula,
 
 bool External::sat (const std::string & input)
 {
+  using namespace std::chrono;
+
   Shell shell;
+
+  high_resolution_clock::time_point t = high_resolution_clock::now();
 
   std_out = shell.run(build_command(), input);
 
-  std::string sat;
+  time = duration_cast<milliseconds>(high_resolution_clock::now() - t).count();
 
+  std::string sat;
   return (std_out >> sat) && sat == "sat";
 }
 
@@ -41,10 +47,7 @@ bool External::sat (const std::string & input)
 
 Trace::ptr External::solve (Encoder & formula, const std::string & constraints)
 {
-  std::string input = build_formula(formula, constraints);
-
-  sat(input);
-
+  sat(build_formula(formula, constraints));
   return build_trace(formula.programs);
 }
 
