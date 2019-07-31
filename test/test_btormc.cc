@@ -62,7 +62,7 @@ TEST_F(BtorMC, solve_check)
 
   trace = btormc.solve(*encoder);
 
-  std::cout << "time to solve = " << btormc.time << "ms" << eol;
+  std::cout << "time to solve = " << btormc.time << " ms" << eol;
 
   // std::cout << trace->print();
 
@@ -89,7 +89,7 @@ TEST_F(BtorMC, solve_cas)
 
   trace = btormc.solve(*encoder);
 
-  std::cout << "time to solve = " << btormc.time << "ms" << eol;
+  std::cout << "time to solve = " << btormc.time << " ms" << eol;
 
   // std::cout << trace->print();
 

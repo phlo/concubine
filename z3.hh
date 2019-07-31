@@ -7,13 +7,22 @@
 
 namespace ConcuBinE {
 
+//==============================================================================
+// Z3 class
+//==============================================================================
+
 struct Z3 : public Solver
 {
+  //----------------------------------------------------------------------------
+  // member functions
+  //----------------------------------------------------------------------------
+
   virtual std::string name () const;
 
   virtual bool sat (const std::string & formula);
 
-  virtual Trace::ptr solve (Encoder & encoder, const std::string & constraints);
+  virtual Trace::ptr solve (Encoder & encoder,
+                            const std::string & constraints = "");
 };
 
 } // namespace ConcuBinE

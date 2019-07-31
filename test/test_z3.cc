@@ -2,6 +2,7 @@
 
 #include "encoder.hh"
 #include "parser.hh"
+#include "simulator.hh"
 #include "z3.hh"
 
 namespace ConcuBinE::test {
@@ -48,28 +49,17 @@ TEST_F(Z3, solve_check)
 
   trace = z3.solve(*encoder, constraints);
 
-  ASSERT_EQ(
-    "data/increment.check.thread.0.asm\n"
-    "data/increment.check.thread.n.asm\n"
-    ".\n"
-    "# tid	pc	cmd	arg	accu	mem	heap\n"
-    "0	0	STORE	0	0	0	{(0,0)}\n"
-    "1	0	CHECK	0	0	0	{}\n"
-    "0	2	LOAD	0	0	0	{}\n"
-    "0	3	ADDI	1	1	0	{}\n"
-    "0	4	STORE	0	1	0	{(0,1)}\n"
-    "0	5	CHECK	1	1	0	{}\n"
-    "1	2	LOAD	0	1	0	{}\n"
-    "1	3	ADDI	1	2	0	{}\n"
-    "1	4	STORE	0	2	0	{(0,2)}\n"
-    "1	5	JNZ	0	2	0	{}\n"
-    "0	6	JNZ	1	1	0	{}\n"
-    "1	0	CHECK	0	2	0	{}\n"
-    "0	2	LOAD	0	2	0	{}\n"
-    "0	3	ADDI	1	3	0	{}\n"
-    "0	4	STORE	0	3	0	{(0,3)}\n"
-    "0	5	CHECK	1	3	0	{}\n",
-    trace->print());
+  std::cout << "time to solve = " << z3.time << " ms" << eol;
+
+  // std::cout << trace->print();
+
+  Simulator simulator (programs);
+
+  Trace::ptr replay (simulator.replay(*trace));
+
+  // std::cout << replay->print();
+
+  ASSERT_EQ(*replay, *trace);
 }
 
 TEST_F(Z3, solve_cas)
@@ -87,28 +77,17 @@ TEST_F(Z3, solve_cas)
 
   trace = z3.solve(*encoder, constraints);
 
-  ASSERT_EQ(
-    "data/increment.cas.asm\n"
-    "data/increment.cas.asm\n"
-    ".\n"
-    "# tid	pc	cmd	arg	accu	mem	heap\n"
-    "1	0	STORE	0	0	0	{(0,0)}\n"
-    "0	0	STORE	0	0	0	{}\n"
-    "1	1	CHECK	0	0	0	{}\n"
-    "1	LOOP	MEM	0	0	0	{}\n"
-    "1	3	ADDI	1	1	0	{}\n"
-    "1	4	CAS	0	1	0	{(0,1)}\n"
-    "1	5	JMP	LOOP	1	0	{}\n"
-    "1	LOOP	MEM	0	1	1	{}\n"
-    "1	3	ADDI	1	2	1	{}\n"
-    "1	4	CAS	0	1	1	{(0,2)}\n"
-    "1	5	JMP	LOOP	1	1	{}\n"
-    "1	LOOP	MEM	0	2	2	{}\n"
-    "1	3	ADDI	1	3	2	{}\n"
-    "1	4	CAS	0	1	2	{(0,3)}\n"
-    "1	5	JMP	LOOP	1	2	{}\n"
-    "1	LOOP	MEM	0	3	3	{}\n",
-    trace->print());
+  std::cout << "time to solve = " << z3.time << " ms" << eol;
+
+  // std::cout << trace->print();
+
+  Simulator simulator (programs);
+
+  Trace::ptr replay (simulator.replay(*trace));
+
+  // std::cout << replay->print();
+
+  ASSERT_EQ(*replay, *trace);
 }
 
 } // namespace ConcuBinE::test

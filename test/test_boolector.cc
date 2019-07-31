@@ -52,7 +52,7 @@ TEST_F(Boolector, solve_check)
 
   trace = boolector.solve(*encoder);
 
-  std::cout << "time to solve = " << boolector.time << "ms" << eol;
+  std::cout << "time to solve = " << boolector.time << " ms" << eol;
 
   // std::cout << trace->print();
 
@@ -79,7 +79,7 @@ TEST_F(Boolector, solve_cas)
 
   trace = boolector.solve(*encoder);
 
-  std::cout << "time to solve = " << boolector.time << "ms" << eol;
+  std::cout << "time to solve = " << boolector.time << " ms" << eol;
 
   // std::cout << trace->print();
 

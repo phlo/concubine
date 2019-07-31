@@ -970,6 +970,9 @@ bool operator == (const Trace & a, const Trace & b)
     a.pc_updates == b.pc_updates &&
     a.accu_updates == b.accu_updates &&
     a.mem_updates == b.mem_updates &&
+    a.sb_adr_updates == b.sb_adr_updates &&
+    a.sb_val_updates == b.sb_val_updates &&
+    a.sb_full_updates == b.sb_full_updates &&
     a.heap_adr_updates == b.heap_adr_updates &&
     a.heap_val_updates == b.heap_val_updates;
 }
