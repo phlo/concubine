@@ -32,14 +32,14 @@ struct Solver
   // member functions
   //----------------------------------------------------------------------------
 
+  // returns the solver's name
+  //
+  virtual std::string name () const = 0;
+
   // build formula for the specific solver
   //
   virtual std::string build_formula (Encoder & encoder,
                                      const std::string & constraints);
-
-  // returns the solver's name
-  //
-  virtual std::string name () const = 0;
 
   // evaluate arbitrary formula
   //
@@ -95,13 +95,13 @@ struct External : Solver
   //
   word_t pc;
 
-  // current address
-  //
-  word_t address;
-
   // current value
   //
   word_t value;
+
+  // current heap state (might contain spurious elements)
+  //
+  std::unordered_map<word_t, word_t> heap;
 
   // the solver's stdout
   //

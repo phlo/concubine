@@ -21,12 +21,10 @@ struct BtorMC : public ::testing::Test
 
 TEST_F(BtorMC, sat)
 {
-  std::string formula =
+  ASSERT_TRUE(btormc.sat(
     "1 sort bitvec 1\n"
     "2 state 1 x\n"
-    "3 bad 2\n";
-
-  ASSERT_TRUE(btormc.sat(formula));
+    "3 bad 2\n"));
   ASSERT_EQ(
     "sat\n"
     "b0 \n"
@@ -39,11 +37,9 @@ TEST_F(BtorMC, sat)
 
 TEST_F(BtorMC, unsat)
 {
-  std::string formula =
+  ASSERT_FALSE(btormc.sat(
     "1 sort bitvec 1\n"
-    "2 state 1 x\n";
-
-  ASSERT_FALSE(btormc.sat(formula));
+    "2 state 1 x\n"));
   ASSERT_EQ("", btormc.std_out.str());
 }
 

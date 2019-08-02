@@ -5,9 +5,19 @@
 
 namespace ConcuBinE {
 
-class CVC4 : public External
+//==============================================================================
+// CVC4 class
+//
+// NOTE: seems like CVC4 always assigns uninitialized array elements with zero
+//==============================================================================
+
+struct CVC4 : public External
 {
-private:
+  //----------------------------------------------------------------------------
+  // member functions
+  //----------------------------------------------------------------------------
+
+  virtual std::string name () const;
 
   virtual std::string build_command ();
 
@@ -15,10 +25,6 @@ private:
                                      const std::string & constraints);
 
   virtual Symbol parse_line (std::istringstream &);
-
-public:
-
-  virtual std::string name () const;
 };
 
 } // namespace ConcuBinE

@@ -1,7 +1,5 @@
 #include "boolector.hh"
 
-#include <iomanip>
-
 #include "parser.hh"
 
 namespace ConcuBinE {
@@ -43,6 +41,8 @@ Boolector::Symbol Boolector::parse_line (std::istringstream & line)
   try { value = stoul(token, nullptr, 2); }
   catch (const std::logic_error &)
     {
+      word_t address;
+
       // array element index
       try
         {
@@ -63,6 +63,8 @@ Boolector::Symbol Boolector::parse_line (std::istringstream & line)
         {
           throw std::runtime_error("illegal array value [" + token + "]");
         }
+
+      heap[address] = value;
     }
 
   // parse symbol

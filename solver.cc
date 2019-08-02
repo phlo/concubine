@@ -57,11 +57,8 @@ Trace::ptr External::build_trace (const Program::List::ptr & programs)
 {
   Trace::ptr trace = std::make_unique<Trace>(programs);
 
-  // heap updates found in the model (might contain spurious elements)
-  std::unordered_map<word_t, word_t> heap;
-
   // instruction at step - 2, leading to the previous step's state update
-  const Instruction * op = NULL;
+  const Instruction * op = nullptr;
 
   // current line number
   size_t lineno = 2;
@@ -91,23 +88,23 @@ Trace::ptr External::build_trace (const Program::List::ptr & programs)
                   // NOTE: heap update visible one step after flush is set
                   if (trace->flush(k))
                     {
-                      address = trace->sb_adr(t);
-                      assert(heap.find(address) != heap.end());
+                      word_t address = trace->sb_adr(t);
                       trace->push_back_heap(step - 1, address, heap[address]);
                     }
                   // CAS has been executed
                   else if (op && op->type() & Instruction::Type::atomic)
                     if (trace->accu(k, t))
                       {
-                        address = op->indirect() ? heap[op->arg()] : op->arg();
+                        word_t address = op->indirect() ? heap[op->arg()] : op->arg();
                         trace->push_back_heap(step - 1, address, heap[address]);
                       }
 
-                  // TODO: get correct thread, pc and accu for step - 2
+                  // instruction executed at step - 2
                   op = &(*programs)[t][trace->pc(t)];
 
                   // reset heap map for the next step
-                  heap = {};
+                  // NOTE: really necessary?
+                  heap.clear();
                 }
 
               switch (symbol)
@@ -132,10 +129,6 @@ Trace::ptr External::build_trace (const Program::List::ptr & programs)
                   trace->push_back_sb_full(step, thread, value);
                   break;
 
-                case Symbol::heap:
-                  heap[address] = value;
-                  break;
-
                 case Symbol::thread:
                   trace->push_back_thread(step, thread);
                   break;
@@ -149,7 +142,8 @@ Trace::ptr External::build_trace (const Program::List::ptr & programs)
                   trace->push_back_flush(step);
                   break;
 
-                case Symbol::exit_flag: break;
+                case Symbol::exit_flag:
+                  break;
 
                 case Symbol::exit_code:
                   trace->exit = value;
@@ -174,16 +168,21 @@ size_t External::parse_symbol (std::istringstream & line,
                                const std::string & name,
                                const char delimiter)
 {
-  std::string token;
+  if (line.peek() != delimiter)
+    {
+      std::string token;
+      line >> token;
+      throw std::runtime_error("missing delimiter [" + token + "]");
+    }
 
-  if (!getline(line, token, delimiter))
+  line.get(); // discard delimiter
+
+  size_t val;
+
+  if (!(line >> val))
     throw std::runtime_error("missing " + name);
 
-  try { return stoul(token); }
-  catch (...)
-    {
-      throw std::runtime_error("illegal " + name + " [" + token + "]");
-    }
+  return val;
 }
 
 External::Symbol External::parse_symbol (std::istringstream & line)
@@ -192,6 +191,8 @@ External::Symbol External::parse_symbol (std::istringstream & line)
 
   if (!getline(line >> std::ws, name, '_'))
     throw std::runtime_error("missing symbol");
+
+  line.unget(); // restore initial delimiter
 
   if (name == Encoder::accu_sym)
     {

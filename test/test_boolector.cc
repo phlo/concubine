@@ -21,19 +21,13 @@ struct Boolector : public ::testing::Test
 
 TEST_F(Boolector, sat)
 {
-  std::string formula = "(assert true)(check-sat)";
-
-  ASSERT_TRUE(boolector.sat(formula));
-
+  ASSERT_TRUE(boolector.sat("(assert true)(check-sat)"));
   ASSERT_EQ("sat\n", boolector.std_out.str());
 }
 
 TEST_F(Boolector, unsat)
 {
-  std::string formula = "(assert false)(check-sat)";
-
-  ASSERT_FALSE(boolector.sat(formula));
-
+  ASSERT_FALSE(boolector.sat("(assert false)(check-sat)"));
   ASSERT_EQ("unsat\n", boolector.std_out.str());
 }
 

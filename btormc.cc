@@ -77,41 +77,43 @@ BtorMC::Symbol BtorMC::parse_symbol (std::istringstream & line)
   if (name.empty())
     throw std::runtime_error("missing symbol");
 
+  line.unget();
+
   if (name == Encoder::accu_sym)
     {
-      thread = parse_symbol(line, "thread", '#');
-      step = parse_symbol(line, "step");
+      thread = parse_symbol(line, "thread");
+      step = parse_symbol(line, "step", '#');
       return Symbol::accu;
     }
   else if (name == Encoder::mem_sym)
     {
-      thread = parse_symbol(line, "thread", '#');
-      step = parse_symbol(line, "step");
+      thread = parse_symbol(line, "thread");
+      step = parse_symbol(line, "step", '#');
       return Symbol::mem;
     }
   else if (name == Encoder::sb_adr_sym)
     {
-      thread = parse_symbol(line, "thread", '#');
-      step = parse_symbol(line, "step");
+      thread = parse_symbol(line, "thread");
+      step = parse_symbol(line, "step", '#');
       return Symbol::sb_adr;
     }
   else if (name == Encoder::sb_val_sym)
     {
-      thread = parse_symbol(line, "thread", '#');
-      step = parse_symbol(line, "step");
+      thread = parse_symbol(line, "thread");
+      step = parse_symbol(line, "step", '#');
       return Symbol::sb_val;
     }
   else if (name == Encoder::sb_full_sym)
     {
-      thread = parse_symbol(line, "thread", '#');
-      step = parse_symbol(line, "step");
+      thread = parse_symbol(line, "thread");
+      step = parse_symbol(line, "step", '#');
       return Symbol::sb_full;
     }
   else if (name == Encoder::stmt_sym)
     {
       thread = parse_symbol(line, "thread");
-      pc = parse_symbol(line, "pc", '#');
-      step = parse_symbol(line, "step");
+      pc = parse_symbol(line, "pc");
+      step = parse_symbol(line, "step", '#');
       return Symbol::stmt;
     }
   else if (name == Encoder::heap_sym)
@@ -131,14 +133,14 @@ BtorMC::Symbol BtorMC::parse_symbol (std::istringstream & line)
     }
   else if (name == Encoder::thread_sym)
     {
-      thread = parse_symbol(line, "thread", '@');
-      step = parse_symbol(line, "step");
+      thread = parse_symbol(line, "thread");
+      step = parse_symbol(line, "step", '@');
       return Symbol::thread;
     }
   else if (name == Encoder::flush_sym)
     {
-      thread = parse_symbol(line, "thread", '@');
-      step = parse_symbol(line, "step");
+      thread = parse_symbol(line, "thread");
+      step = parse_symbol(line, "step", '@');
       return Symbol::flush;
     }
 

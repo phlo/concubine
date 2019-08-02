@@ -21,16 +21,12 @@ struct Z3 : public ::testing::Test
 
 TEST_F(Z3, sat)
 {
-  std::string formula = "(assert true)(check-sat)";
-
-  ASSERT_TRUE(z3.sat(formula));
+  ASSERT_TRUE(z3.sat("(assert true)(check-sat)"));
 }
 
 TEST_F(Z3, unsat)
 {
-  std::string formula = "(assert false)(check-sat)";
-
-  ASSERT_FALSE(z3.sat(formula));
+  ASSERT_FALSE(z3.sat("(assert false)(check-sat)"));
 }
 
 TEST_F(Z3, solve_check)
