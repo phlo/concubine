@@ -909,7 +909,6 @@ TEST_F(Trace, push_back_pc)
   for (const auto & [step, thread, pc, _] : data)
     trace->push_back_pc(step, thread, pc);
 
-  ASSERT_EQ(data.size(), trace->size());
   ASSERT_EQ(4, trace->pc_updates[0].size());
   ASSERT_EQ(4, trace->pc_updates[1].size());
   ASSERT_EQ(expected, trace->pc_updates);
@@ -926,7 +925,6 @@ TEST_F(Trace, push_back_accu)
   for (const auto & [step, thread, accu, _] : data)
     trace->push_back_accu(step, thread, accu);
 
-  ASSERT_EQ(data.size(), trace->size());
   ASSERT_EQ(4, trace->accu_updates[0].size());
   ASSERT_EQ(4, trace->accu_updates[1].size());
   ASSERT_EQ(expected, trace->accu_updates);
@@ -943,7 +941,6 @@ TEST_F(Trace, push_back_mem)
   for (const auto & [step, thread, mem, _] : data)
     trace->push_back_mem(step, thread, mem);
 
-  ASSERT_EQ(data.size(), trace->size());
   ASSERT_EQ(4, trace->mem_updates[0].size());
   ASSERT_EQ(4, trace->mem_updates[1].size());
   ASSERT_EQ(expected, trace->mem_updates);
@@ -960,7 +957,6 @@ TEST_F(Trace, push_back_sb_adr)
   for (const auto & [step, thread, adr, _] : data)
     trace->push_back_sb_adr(step, thread, adr);
 
-  ASSERT_EQ(data.size(), trace->size());
   ASSERT_EQ(4, trace->sb_adr_updates[0].size());
   ASSERT_EQ(4, trace->sb_adr_updates[1].size());
   ASSERT_EQ(expected, trace->sb_adr_updates);
@@ -977,7 +973,6 @@ TEST_F(Trace, push_back_sb_val)
   for (const auto & [step, thread, adr, _] : data)
     trace->push_back_sb_val(step, thread, adr);
 
-  ASSERT_EQ(data.size(), trace->size());
   ASSERT_EQ(4, trace->sb_val_updates[0].size());
   ASSERT_EQ(4, trace->sb_val_updates[1].size());
   ASSERT_EQ(expected, trace->sb_val_updates);
@@ -994,7 +989,6 @@ TEST_F(Trace, push_back_sb_full)
   for (const auto & [step, thread, full, _] : data)
     trace->push_back_sb_full(step, thread, full);
 
-  ASSERT_EQ(data.size(), trace->size());
   ASSERT_EQ(4, trace->sb_full_updates[0].size());
   ASSERT_EQ(4, trace->sb_full_updates[1].size());
   ASSERT_EQ(expected, trace->sb_full_updates);
@@ -1065,7 +1059,10 @@ TEST_F(Trace, pc_k)
   create_dummy_trace(2);
 
   for (const auto & [step, thread, pc, _] : data)
-    trace->push_back_pc(step, thread, pc);
+    {
+      trace->push_back_thread(step, thread);
+      trace->push_back_pc(step, thread, pc);
+    }
 
   for (const auto & [step, thread, pc, _] : data)
     ASSERT_EQ(pc, trace->pc(step, thread));
@@ -1089,7 +1086,10 @@ TEST_F(Trace, accu_k)
   create_dummy_trace(2);
 
   for (const auto & [step, thread, accu, _] : data)
-    trace->push_back_accu(step, thread, accu);
+    {
+      trace->push_back_thread(step, thread);
+      trace->push_back_accu(step, thread, accu);
+    }
 
   for (const auto & [step, thread, accu, _] : data)
     ASSERT_EQ(accu, trace->accu(step, thread));
@@ -1113,7 +1113,10 @@ TEST_F(Trace, mem_k)
   create_dummy_trace(2);
 
   for (const auto & [step, thread, mem, _] : data)
-    trace->push_back_mem(step, thread, mem);
+    {
+      trace->push_back_thread(step, thread);
+      trace->push_back_mem(step, thread, mem);
+    }
 
   for (const auto & [step, thread, mem, _] : data)
     ASSERT_EQ(mem, trace->mem(step, thread));
@@ -1137,7 +1140,10 @@ TEST_F(Trace, sb_adr_k)
   create_dummy_trace(2);
 
   for (const auto & [step, thread, sb_adr, _] : data)
-    trace->push_back_sb_adr(step, thread, sb_adr);
+    {
+      trace->push_back_thread(step, thread);
+      trace->push_back_sb_adr(step, thread, sb_adr);
+    }
 
   for (const auto & [step, thread, sb_adr, _] : data)
     ASSERT_EQ(sb_adr, trace->sb_adr(step, thread));
@@ -1161,7 +1167,10 @@ TEST_F(Trace, sb_val_k)
   create_dummy_trace(2);
 
   for (const auto & [step, thread, sb_val, _] : data)
-    trace->push_back_sb_val(step, thread, sb_val);
+    {
+      trace->push_back_thread(step, thread);
+      trace->push_back_sb_val(step, thread, sb_val);
+    }
 
   for (const auto & [step, thread, sb_val, _] : data)
     ASSERT_EQ(sb_val, trace->sb_val(step, thread));
@@ -1185,7 +1194,10 @@ TEST_F(Trace, sb_full_k)
   create_dummy_trace(2);
 
   for (const auto & [step, thread, sb_full, _] : data)
-    trace->push_back_sb_full(step, thread, sb_full);
+    {
+      trace->push_back_thread(step, thread);
+      trace->push_back_sb_full(step, thread, sb_full);
+    }
 
   for (const auto & [step, thread, sb_full, _] : data)
     ASSERT_EQ(sb_full, trace->sb_full(step, thread));

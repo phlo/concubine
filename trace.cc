@@ -419,7 +419,9 @@ void Trace::push_back (const word_t thread,
 
 void Trace::push_back_thread (size_t step, const word_t thread)
 {
-  if (push_back<word_t>(thread_updates, step, thread) && step >= length)
+  push_back<word_t>(thread_updates, step, thread);
+
+  if (step >= length)
     length = ++step;
 }
 
