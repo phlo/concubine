@@ -133,7 +133,7 @@ TEST_F(CVC4, solve_indirect_uninitialized)
   programs->push_back(Program(p0, "load.store.0.asm"));
   programs->push_back(Program(p1, "load.store.1.asm"));
 
-  encoder = std::make_unique<smtlib::Functional>(programs, 9);
+  encoder = std::make_unique<smtlib::Functional>(programs, 16);
 
   trace = cvc4.solve(*encoder);
 

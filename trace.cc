@@ -352,28 +352,34 @@ void Trace::init_heap (const word_t address, const word_t value)
 
 // Trace::push_back ------------------------------------------------------------
 
-template <typename T>
-void Trace::push_back (Trace::update_map<T> & updates,
+template <class T>
+bool Trace::push_back (Trace::update_map<T> & updates,
                        const size_t step,
-                       const T val)
+                       const T value)
 {
   if (updates.empty())
     {
-      updates.insert({step, val});
+      updates[step] = value;
+      return true;
     }
   else
     {
-      auto end = updates.end();
-      auto prev = std::prev(end);
+      auto end = updates.cend();
+      auto prev = updates.crbegin();
 
       // ensure that no update exists for this step
       if (prev->first == step)
         throw std::runtime_error("update already exists");
 
       // insert if value doesn't change
-      if (prev->second != val)
-        updates.insert(end, {step, val});
+      if (prev->second != value)
+        {
+          updates.emplace_hint(end, step, value);
+          return true;
+        }
     }
+
+  return false;
 }
 
 void Trace::push_back (const word_t thread,
@@ -413,40 +419,32 @@ void Trace::push_back (const word_t thread,
 
 void Trace::push_back_thread (size_t step, const word_t thread)
 {
-  push_back<word_t>(thread_updates, step, thread);
-
-  if (++step > length)
-    length = step;
+  if (push_back<word_t>(thread_updates, step, thread) && step >= length)
+    length = ++step;
 }
 
 // Trace::push_back_pc ---------------------------------------------------------
 
 void Trace::push_back_pc (size_t step, const word_t thread, const word_t pc)
 {
-  push_back<word_t>(pc_updates.at(thread), step, pc);
-
-  if (++step > length)
-    length = step;
+  if (push_back<word_t>(pc_updates[thread], step, pc) && step >= length)
+    length = ++step;
 }
 
 // Trace::push_back_accu -------------------------------------------------------
 
 void Trace::push_back_accu (size_t step, const word_t thread, const word_t accu)
 {
-  push_back<word_t>(accu_updates.at(thread), step, accu);
-
-  if (++step > length)
-    length = step;
+  if (push_back<word_t>(accu_updates[thread], step, accu) && step >= length)
+    length = ++step;
 }
 
 // Trace::push_back_mem --------------------------------------------------------
 
 void Trace::push_back_mem (size_t step, const word_t thread, const word_t mem)
 {
-  push_back<word_t>(mem_updates.at(thread), step, mem);
-
-  if (++step > length)
-    length = step;
+  if (push_back<word_t>(mem_updates[thread], step, mem) && step >= length)
+    length = ++step;
 }
 
 // Trace::push_back_sb_adr -----------------------------------------------------
@@ -455,10 +453,8 @@ void Trace::push_back_sb_adr (size_t step,
                               const word_t thread,
                               const word_t adr)
 {
-  push_back<word_t>(sb_adr_updates.at(thread), step, adr);
-
-  if (++step > length)
-    length = step;
+  if (push_back<word_t>(sb_adr_updates[thread], step, adr) && step >= length)
+    length = ++step;
 }
 
 // Trace::push_back_sb_val -----------------------------------------------------
@@ -467,10 +463,8 @@ void Trace::push_back_sb_val (size_t step,
                               const word_t thread,
                               const word_t val)
 {
-  push_back<word_t>(sb_val_updates.at(thread), step, val);
-
-  if (++step > length)
-    length = step;
+  if (push_back<word_t>(sb_val_updates[thread], step, val) && step >= length)
+    length = ++step;
 }
 
 // Trace::push_back_sb_full ----------------------------------------------------
@@ -479,10 +473,8 @@ void Trace::push_back_sb_full (size_t step,
                                const word_t thread,
                                const bool full)
 {
-  push_back<bool>(sb_full_updates.at(thread), step, full);
-
-  if (++step > length)
-    length = step;
+  if (push_back<bool>(sb_full_updates[thread], step, full) && step >= length)
+    length = ++step;
 }
 
 // Trace::push_back_heap -------------------------------------------------------
@@ -492,8 +484,8 @@ void Trace::push_back_heap (size_t step, const word_t adr, const word_t val)
   heap_adr_updates.emplace_hint(heap_adr_updates.end(), step, adr);
   push_back<word_t>(heap_val_updates[adr], step, val);
 
-  if (++step > length)
-    length = step;
+  if (step >= length)
+    length = ++step;
 }
 
 // Trace::push_back_flush ------------------------------------------------------
@@ -502,8 +494,8 @@ void Trace::push_back_flush (size_t step)
 {
   flushes.insert(step);
 
-  if (++step > length)
-    length = step;
+  if (step >= length)
+    length = ++step;
 }
 
 // Trace::thread ---------------------------------------------------------------

@@ -55,10 +55,9 @@ Trace::ptr External::solve (Encoder & formula, const std::string & constraints)
 
 Trace::ptr External::build_trace (const Program::List::ptr & programs)
 {
-  Trace::ptr trace = std::make_unique<Trace>(programs);
-
-  // current line number
   size_t lineno = 2;
+  size_t next = 2;
+  Trace::ptr trace = std::make_unique<Trace>(programs);
 
   for (std::string line_buf; getline(std_out, line_buf); lineno++)
     {
@@ -77,9 +76,9 @@ Trace::ptr External::build_trace (const Program::List::ptr & programs)
 
           // detect an eventual heap update
           // reached next step: previous state at step - 1 fully visible
-          if (step > 1 && step == trace->length)
+          if (step > 1 && step == next)
             {
-              const size_t k = step - 2;
+              const size_t k = next++ - 2;
               const word_t t = trace->thread(k);
 
               // instruction responsible for state at step - 1
@@ -116,49 +115,46 @@ Trace::ptr External::build_trace (const Program::List::ptr & programs)
               heap.clear();
             }
 
-          switch (symbol)
+          if (symbol == Symbol::accu)
             {
-            case Symbol::accu:
               trace->push_back_accu(step, thread, value);
-              break;
-
-            case Symbol::mem:
+            }
+          else if (symbol == Symbol::mem)
+            {
               trace->push_back_mem(step, thread, value);
-              break;
-
-            case Symbol::sb_adr:
+            }
+          else if (symbol == Symbol::sb_adr)
+            {
               trace->push_back_sb_adr(step, thread, value);
-              break;
-
-            case Symbol::sb_val:
+            }
+          else if (symbol == Symbol::sb_val)
+            {
               trace->push_back_sb_val(step, thread, value);
-              break;
-
-            case Symbol::sb_full:
+            }
+          else if (symbol == Symbol::sb_full)
+            {
               trace->push_back_sb_full(step, thread, value);
-              break;
-
-            case Symbol::thread:
-              trace->push_back_thread(step, thread);
-              break;
-
-            case Symbol::stmt:
+            }
+          else if (symbol == Symbol::stmt)
+            {
               trace->push_back_pc(step, thread, pc);
+            }
+          else if (symbol == Symbol::exit_flag)
+            {
               break;
-
-            case Symbol::flush:
+            }
+          else if (symbol == Symbol::exit_code)
+            {
+              trace->exit = value;
+            }
+          else if (symbol == Symbol::thread)
+            {
+              trace->push_back_thread(step, thread);
+            }
+          else if (symbol == Symbol::flush)
+            {
               trace->push_back_thread(step, thread);
               trace->push_back_flush(step);
-              break;
-
-            case Symbol::exit_flag:
-              break;
-
-            case Symbol::exit_code:
-              trace->exit = value;
-              break;
-
-            default: break;
             }
         }
       catch (const std::exception & e)

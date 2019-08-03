@@ -259,8 +259,8 @@ struct Trace
 
   // append state update helper
   //
-  template <typename T>
-  void push_back (update_map<T> & updates, const size_t step, const T val);
+  template <class T>
+  bool push_back (update_map<T> & updates, size_t step, T value);
 
   // append state update after executing an instruction
   //

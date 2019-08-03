@@ -114,7 +114,7 @@ TEST_F(BtorMC, solve_indirect_uninitialized)
   programs->push_back(Program(p0, "load.store.0.asm"));
   programs->push_back(Program(p1, "load.store.1.asm"));
 
-  encoder = std::make_unique<btor2::Encoder>(programs, 9);
+  encoder = std::make_unique<btor2::Encoder>(programs, 16);
 
   trace = btormc.solve(*encoder);
 
