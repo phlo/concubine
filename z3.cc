@@ -89,14 +89,18 @@ Trace::ptr Z3::solve (Encoder & encoder, const std::string & constraints)
 
   time = duration_cast<milliseconds>(high_resolution_clock::now() - t).count();
 
-  Trace::ptr trace = std::make_unique<Trace>(encoder.programs);
+  const Program::List::ptr & programs = encoder.programs;
+
+  Trace::ptr trace = std::make_unique<Trace>(programs);
 
   for (size_t step = 0; step <= encoder.bound; step++)
     {
       // heap state
       if (step)
         {
-          word_t thread = trace->thread();
+          const word_t thread = trace->thread();
+          const Instruction & op = (*programs)[thread][trace->pc(thread)];
+          const std::string heap = smtlib::Encoder::heap_var(step);
 
           if (trace->flush(step - 1))
             {
@@ -105,30 +109,34 @@ Trace::ptr Z3::solve (Encoder & encoder, const std::string & constraints)
                 trace->sb_adr(thread),
                 trace->sb_val(thread));
             }
-          else
+          else if (op.type() & Instruction::Type::atomic && trace->accu(thread))
             {
-              const Instruction & op =
-                (*encoder.programs)[thread][trace->pc(thread)];
+              const word_t adr =
+                op.indirect()
+                  ? eval_array(c, m, heap, op.arg())
+                  : op.arg();
 
-              if (op.type() & Instruction::Type::atomic && trace->accu(thread))
-                {
-                  std::string sym = smtlib::Encoder::heap_var(step);
+              trace->push_back_heap(
+                step,
+                adr,
+                eval_array(c, m, heap, adr));
+            }
 
-                  word_t address =
-                    op.indirect()
-                      ? eval_array(c, m, sym, op.arg())
-                      : op.arg();
+          if (op.type() & Instruction::Type::read)
+            {
+              word_t adr = op.arg();
 
-                  trace->push_back_heap(
-                    step,
-                    address,
-                    eval_array(c, m, sym, address));
-                }
+              if (!trace->heap(adr))
+                trace->init_heap(adr, eval_array(c, m, heap, adr));
+
+              if (op.indirect())
+                if (!trace->heap(adr = eval_array(c, m, heap, adr)))
+                  trace->init_heap(adr, eval_array(c, m, heap, adr));
             }
         }
 
       // thread states
-      for (word_t thread = 0; thread < encoder.programs->size(); thread++)
+      for (word_t thread = 0; thread < programs->size(); thread++)
         {
           if (eval_bool(c, m, smtlib::Encoder::thread_var(step, thread)))
             {
@@ -161,7 +169,7 @@ Trace::ptr Z3::solve (Encoder & encoder, const std::string & constraints)
             thread,
             eval_bool(c, m, smtlib::Encoder::sb_full_var(step, thread)));
 
-          const Program & program = (*encoder.programs)[thread];
+          const Program & program = (*programs)[thread];
 
           for (word_t pc = 0; pc < program.size(); pc++)
             if (eval_bool(c, m, smtlib::Encoder::stmt_var(step, thread, pc)))

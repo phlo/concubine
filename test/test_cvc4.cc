@@ -117,7 +117,7 @@ TEST_F(CVC4, DISABLED_solve_multiple_addresses)
   ASSERT_EQ(*replay, *trace);
 }
 
-TEST_F(CVC4, DISABLED_solve_indirect_uninitialized)
+TEST_F(CVC4, solve_indirect_uninitialized)
 {
   std::istringstream p0 (
     "LOAD [0]\n"
@@ -133,7 +133,7 @@ TEST_F(CVC4, DISABLED_solve_indirect_uninitialized)
   programs->push_back(Program(p0, "load.store.0.asm"));
   programs->push_back(Program(p1, "load.store.1.asm"));
 
-  encoder = std::make_unique<smtlib::Functional>(programs, 16);
+  encoder = std::make_unique<smtlib::Functional>(programs, 9);
 
   trace = cvc4.solve(*encoder);
 

@@ -57,9 +57,6 @@ Trace::ptr External::build_trace (const Program::List::ptr & programs)
 {
   Trace::ptr trace = std::make_unique<Trace>(programs);
 
-  // instruction at step - 2, leading to the previous step's state update
-  const Instruction * op = nullptr;
-
   // current line number
   size_t lineno = 2;
 
@@ -75,82 +72,93 @@ Trace::ptr External::build_trace (const Program::List::ptr & programs)
           std::istringstream line(line_buf);
           Symbol symbol = parse_line(line);
 
-          if (symbol != Symbol::ignore)
+          if (symbol == Symbol::ignore)
+            continue;
+
+          // detect an eventual heap update
+          // reached next step: previous state at step - 1 fully visible
+          if (step > 1 && step == trace->length)
             {
-              // detect an eventual heap update
-              // reached next step: previous state at step - 1 fully visible
-              if (step > 1 && step == trace->length)
+              const size_t k = step - 2;
+              const word_t t = trace->thread(k);
+
+              // instruction responsible for state at step - 1
+              const Instruction & op = (*programs)[t][trace->pc(k, t)];
+
+              // store buffer has been flushed
+              // NOTE: heap update visible one step after flush is set
+              if (trace->flush(k))
                 {
-                  const size_t k = step - 2;
-                  const word_t t = trace->thread(k);
-
-                  // store buffer has been flushed
-                  // NOTE: heap update visible one step after flush is set
-                  if (trace->flush(k))
-                    {
-                      word_t address = trace->sb_adr(t);
-                      trace->push_back_heap(step - 1, address, heap[address]);
-                    }
-                  // CAS has been executed
-                  else if (op && op->type() & Instruction::Type::atomic)
-                    if (trace->accu(k, t))
-                      {
-                        word_t address = op->indirect() ? heap[op->arg()] : op->arg();
-                        trace->push_back_heap(step - 1, address, heap[address]);
-                      }
-
-                  // instruction executed at step - 2
-                  op = &(*programs)[t][trace->pc(t)];
-
-                  // reset heap map for the next step
-                  // NOTE: really necessary?
-                  heap.clear();
+                  const word_t adr = trace->sb_adr(t);
+                  trace->push_back_heap(step - 1, adr, heap[adr]);
+                }
+              // CAS has been executed
+              else if (op.type() & Instruction::Type::atomic && trace->accu(t))
+                {
+                  const word_t adr = op.indirect() ? heap[op.arg()] : op.arg();
+                  trace->push_back_heap(step - 1, adr, heap[adr]);
                 }
 
-              switch (symbol)
+              // detect uninitialized reads
+              if (op.type() & Instruction::Type::read)
                 {
-                case Symbol::accu:
-                  trace->push_back_accu(step, thread, value);
-                  break;
+                  word_t adr = op.arg();
 
-                case Symbol::mem:
-                  trace->push_back_mem(step, thread, value);
-                  break;
+                  if (!trace->heap(adr))
+                    trace->init_heap(adr, heap[adr]);
 
-                case Symbol::sb_adr:
-                  trace->push_back_sb_adr(step, thread, value);
-                  break;
-
-                case Symbol::sb_val:
-                  trace->push_back_sb_val(step, thread, value);
-                  break;
-
-                case Symbol::sb_full:
-                  trace->push_back_sb_full(step, thread, value);
-                  break;
-
-                case Symbol::thread:
-                  trace->push_back_thread(step, thread);
-                  break;
-
-                case Symbol::stmt:
-                  trace->push_back_pc(step, thread, pc);
-                  break;
-
-                case Symbol::flush:
-                  trace->push_back_thread(step, thread);
-                  trace->push_back_flush(step);
-                  break;
-
-                case Symbol::exit_flag:
-                  break;
-
-                case Symbol::exit_code:
-                  trace->exit = value;
-                  break;
-
-                default: break;
+                  if (op.indirect() && !trace->heap(adr = heap[adr]))
+                    trace->init_heap(adr, heap[adr]);
                 }
+
+              // reset heap map for the next step
+              // NOTE: really necessary?
+              heap.clear();
+            }
+
+          switch (symbol)
+            {
+            case Symbol::accu:
+              trace->push_back_accu(step, thread, value);
+              break;
+
+            case Symbol::mem:
+              trace->push_back_mem(step, thread, value);
+              break;
+
+            case Symbol::sb_adr:
+              trace->push_back_sb_adr(step, thread, value);
+              break;
+
+            case Symbol::sb_val:
+              trace->push_back_sb_val(step, thread, value);
+              break;
+
+            case Symbol::sb_full:
+              trace->push_back_sb_full(step, thread, value);
+              break;
+
+            case Symbol::thread:
+              trace->push_back_thread(step, thread);
+              break;
+
+            case Symbol::stmt:
+              trace->push_back_pc(step, thread, pc);
+              break;
+
+            case Symbol::flush:
+              trace->push_back_thread(step, thread);
+              trace->push_back_flush(step);
+              break;
+
+            case Symbol::exit_flag:
+              break;
+
+            case Symbol::exit_code:
+              trace->exit = value;
+              break;
+
+            default: break;
             }
         }
       catch (const std::exception & e)

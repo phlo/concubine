@@ -98,6 +98,39 @@ TEST_F(BtorMC, solve_cas)
   ASSERT_EQ(*replay, *trace);
 }
 
+TEST_F(BtorMC, solve_indirect_uninitialized)
+{
+  std::istringstream p0 (
+    "LOAD [0]\n"
+    "ADDI 1\n"
+    "STORE [0]\n"
+    "HALT\n");
+  std::istringstream p1 (
+    "LOAD [1]\n"
+    "ADDI 1\n"
+    "STORE [1]\n"
+    "HALT\n");
+
+  programs->push_back(Program(p0, "load.store.0.asm"));
+  programs->push_back(Program(p1, "load.store.1.asm"));
+
+  encoder = std::make_unique<btor2::Encoder>(programs, 9);
+
+  trace = btormc.solve(*encoder);
+
+  std::cout << "time to solve = " << btormc.time << " ms" << eol;
+
+  std::cout << trace->print();
+
+  Simulator simulator (programs);
+
+  Trace::ptr replay (simulator.replay(*trace));
+
+  std::cout << replay->print();
+
+  ASSERT_EQ(*replay, *trace);
+}
+
 // TODO: remove
 TEST_F(BtorMC, print_model_check)
 {

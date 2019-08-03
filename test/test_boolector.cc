@@ -86,6 +86,39 @@ TEST_F(Boolector, solve_cas)
   ASSERT_EQ(*replay, *trace);
 }
 
+TEST_F(Boolector, solve_indirect_uninitialized)
+{
+  std::istringstream p0 (
+    "LOAD [0]\n"
+    "ADDI 1\n"
+    "STORE [0]\n"
+    "HALT\n");
+  std::istringstream p1 (
+    "LOAD [1]\n"
+    "ADDI 1\n"
+    "STORE [1]\n"
+    "HALT\n");
+
+  programs->push_back(Program(p0, "load.store.0.asm"));
+  programs->push_back(Program(p1, "load.store.1.asm"));
+
+  encoder = std::make_unique<smtlib::Functional>(programs, 9);
+
+  trace = boolector.solve(*encoder);
+
+  std::cout << "time to solve = " << boolector.time << " ms" << eol;
+
+  std::cout << trace->print();
+
+  Simulator simulator (programs);
+
+  Trace::ptr replay (simulator.replay(*trace));
+
+  std::cout << replay->print();
+
+  ASSERT_EQ(*replay, *trace);
+}
+
 // TODO: remove
 TEST_F(Boolector, print_model_check)
 {
