@@ -58,7 +58,7 @@ TEST_F(BtorMC, solve_check)
 
   trace = btormc.solve(*encoder);
 
-  std::cout << "time to solve = " << btormc.time << " ms" << eol;
+  // std::cout << "time to solve = " << btormc.time << " ms" << eol;
 
   // std::cout << trace->print();
 
@@ -85,7 +85,7 @@ TEST_F(BtorMC, solve_cas)
 
   trace = btormc.solve(*encoder);
 
-  std::cout << "time to solve = " << btormc.time << " ms" << eol;
+  // std::cout << "time to solve = " << btormc.time << " ms" << eol;
 
   // std::cout << trace->print();
 
@@ -118,15 +118,15 @@ TEST_F(BtorMC, solve_indirect_uninitialized)
 
   trace = btormc.solve(*encoder);
 
-  std::cout << "time to solve = " << btormc.time << " ms" << eol;
+  // std::cout << "time to solve = " << btormc.time << " ms" << eol;
 
-  std::cout << trace->print();
+  // std::cout << trace->print();
 
   Simulator simulator (programs);
 
   Trace::ptr replay (simulator.replay(*trace));
 
-  std::cout << replay->print();
+  // std::cout << replay->print();
 
   ASSERT_EQ(*replay, *trace);
 }

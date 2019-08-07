@@ -46,7 +46,7 @@ TEST_F(Boolector, solve_check)
 
   trace = boolector.solve(*encoder);
 
-  std::cout << "time to solve = " << boolector.time << " ms" << eol;
+  // std::cout << "time to solve = " << boolector.time << " ms" << eol;
 
   // std::cout << trace->print();
 
@@ -73,7 +73,7 @@ TEST_F(Boolector, solve_cas)
 
   trace = boolector.solve(*encoder);
 
-  std::cout << "time to solve = " << boolector.time << " ms" << eol;
+  // std::cout << "time to solve = " << boolector.time << " ms" << eol;
 
   // std::cout << trace->print();
 
@@ -106,15 +106,15 @@ TEST_F(Boolector, solve_indirect_uninitialized)
 
   trace = boolector.solve(*encoder);
 
-  std::cout << "time to solve = " << boolector.time << " ms" << eol;
+  // std::cout << "time to solve = " << boolector.time << " ms" << eol;
 
-  std::cout << trace->print();
+  // std::cout << trace->print();
 
   Simulator simulator (programs);
 
   Trace::ptr replay (simulator.replay(*trace));
 
-  std::cout << replay->print();
+  // std::cout << replay->print();
 
   ASSERT_EQ(*replay, *trace);
 }

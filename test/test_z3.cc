@@ -45,7 +45,7 @@ TEST_F(Z3, solve_check)
 
   trace = z3.solve(*encoder, constraints);
 
-  std::cout << "time to solve = " << z3.time << " ms" << eol;
+  // std::cout << "time to solve = " << z3.time << " ms" << eol;
 
   // std::cout << trace->print();
 
@@ -73,7 +73,7 @@ TEST_F(Z3, solve_cas)
 
   trace = z3.solve(*encoder, constraints);
 
-  std::cout << "time to solve = " << z3.time << " ms" << eol;
+  // std::cout << "time to solve = " << z3.time << " ms" << eol;
 
   // std::cout << trace->print();
 
@@ -106,15 +106,15 @@ TEST_F(Z3, solve_indirect_uninitialized)
 
   trace = z3.solve(*encoder);
 
-  std::cout << "time to solve = " << z3.time << " ms" << eol;
+  // std::cout << "time to solve = " << z3.time << " ms" << eol;
 
-  std::cout << trace->print();
+  // std::cout << trace->print();
 
   Simulator simulator (programs);
 
   Trace::ptr replay (simulator.replay(*trace));
 
-  std::cout << replay->print();
+  // std::cout << replay->print();
 
   ASSERT_EQ(*replay, *trace);
 }

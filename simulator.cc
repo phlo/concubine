@@ -477,6 +477,10 @@ Trace::ptr Simulator::replay (const Trace & trace, const size_t bound)
                {},
                bound && bound < trace.length ? bound : trace.length - 1);
 
+  // copy memory map
+  if (trace.mmap)
+    s.trace->mmap = trace.mmap;
+
   // replay scheduler
   Trace::iterator it = trace.begin();
 

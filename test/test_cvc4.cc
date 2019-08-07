@@ -46,7 +46,7 @@ TEST_F(CVC4, solve_check)
 
   trace = cvc4.solve(*encoder);
 
-  std::cout << "time to solve = " << cvc4.time << " ms" << eol;
+  // std::cout << "time to solve = " << cvc4.time << " ms" << eol;
 
   // std::cout << trace->print();
 
@@ -71,7 +71,7 @@ TEST_F(CVC4, solve_cas)
 
   trace = cvc4.solve(*encoder);
 
-  std::cout << "time to solve = " << cvc4.time << " ms" << eol;
+  // std::cout << "time to solve = " << cvc4.time << " ms" << eol;
 
   // std::cout << trace->print();
 
@@ -80,39 +80,6 @@ TEST_F(CVC4, solve_cas)
   Trace::ptr replay (simulator.replay(*trace));
 
   // std::cout << replay->print();
-
-  ASSERT_EQ(*replay, *trace);
-}
-
-TEST_F(CVC4, DISABLED_solve_multiple_addresses)
-{
-  std::istringstream p0 (
-    "STORE 0\n"
-    "ADDI 1\n"
-    "STORE 0\n"
-    "HALT\n");
-  std::istringstream p1 (
-    "STORE 1\n"
-    "ADDI 1\n"
-    "STORE 1\n"
-    "HALT\n");
-
-  programs->push_back(Program(p0, "load.store.0.asm"));
-  programs->push_back(Program(p1, "load.store.1.asm"));
-
-  encoder = std::make_unique<smtlib::Functional>(programs, 16);
-
-  trace = cvc4.solve(*encoder);
-
-  std::cout << "time to solve = " << cvc4.time << " ms" << eol;
-
-  std::cout << trace->print();
-
-  Simulator simulator (programs);
-
-  Trace::ptr replay (simulator.replay(*trace));
-
-  std::cout << replay->print();
 
   ASSERT_EQ(*replay, *trace);
 }
@@ -137,15 +104,15 @@ TEST_F(CVC4, solve_indirect_uninitialized)
 
   trace = cvc4.solve(*encoder);
 
-  std::cout << "time to solve = " << cvc4.time << " ms" << eol;
+  // std::cout << "time to solve = " << cvc4.time << " ms" << eol;
 
-  std::cout << trace->print();
+  // std::cout << trace->print();
 
   Simulator simulator (programs);
 
   Trace::ptr replay (simulator.replay(*trace));
 
-  std::cout << replay->print();
+  // std::cout << replay->print();
 
   ASSERT_EQ(*replay, *trace);
 }
@@ -185,63 +152,6 @@ TEST_F(CVC4, print_model_cas)
   bool sat = cvc4.sat(cvc4.build_formula(*encoder, constraints));
 
   std::ofstream outfile("/tmp/cvc4.cas.out");
-  outfile << cvc4.std_out.str();
-
-  ASSERT_TRUE(sat);
-}
-
-TEST_F(CVC4, DISABLED_print_multiple_addresses)
-{
-  std::istringstream p0 (
-    "STORE 0\n"
-    "ADDI 1\n"
-    "STORE 0\n"
-    "HALT\n");
-  std::istringstream p1 (
-    "STORE 1\n"
-    "ADDI 1\n"
-    "STORE 1\n"
-    "HALT\n");
-
-  programs->push_back(Program(p0, "dummy.asm"));
-  programs->push_back(Program(p1, "dummy.asm"));
-
-  encoder = std::make_unique<smtlib::Functional>(programs, 16);
-
-  bool sat = cvc4.sat(cvc4.build_formula(*encoder, ""));
-
-  std::ofstream outfile("/tmp/cvc4.multiple-addresses.out");
-  outfile << cvc4.std_out.str();
-
-  ASSERT_TRUE(sat);
-}
-
-TEST_F(CVC4, DISABLED_print_indirect_uninitialized)
-{
-  std::istringstream p0 (
-    "LOAD [0]\n"
-    "ADDI 1\n"
-    "STORE [0]\n"
-    "HALT\n");
-  std::istringstream p1 (
-    "LOAD [1]\n"
-    "ADDI 1\n"
-    "STORE [1]\n"
-    "HALT\n");
-
-  programs->push_back(Program(p0, "dummy.asm"));
-  programs->push_back(Program(p1, "dummy.asm"));
-
-  encoder = std::make_unique<smtlib::Functional>(programs, 16);
-
-  std::string formula = cvc4.build_formula(*encoder, "");
-
-  std::ofstream f("/tmp/cvc4.indirect.uninitialized.smt2");
-  f << formula;
-
-  bool sat = cvc4.sat(formula);
-
-  std::ofstream outfile("/tmp/cvc4.indirect.uninitialized.out");
   outfile << cvc4.std_out.str();
 
   ASSERT_TRUE(sat);
