@@ -268,22 +268,22 @@
 ; blocking variables - block_<id>_<thread>
 178 init 1 35 4
 179 or 1 48 35
-180 ite 1 63 4 179
+180 ite 1 62 4 179
 181 next 1 35 180 block_0_0
 
 182 init 1 36 4
 183 or 1 55 36
-184 ite 1 63 4 183
+184 ite 1 62 4 183
 185 next 1 36 184 block_0_1
 
 186 init 1 37 4
 187 or 1 52 37
-188 ite 1 62 4 187
+188 ite 1 63 4 187
 189 next 1 37 188 block_1_0
 
 190 init 1 38 4
 191 or 1 56 38
-192 ite 1 62 4 191
+192 ite 1 63 4 191
 193 next 1 38 192 block_1_1
 
 ; heap variable
