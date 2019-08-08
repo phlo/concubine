@@ -50,9 +50,7 @@ TEST_F(CVC4, solve_check)
 
   // std::cout << trace->print();
 
-  Simulator simulator (programs);
-
-  Trace::ptr replay (simulator.replay(*trace));
+  Trace::ptr replay = Simulator().replay(*trace);
 
   // std::cout << replay->print();
 
@@ -75,9 +73,7 @@ TEST_F(CVC4, solve_cas)
 
   // std::cout << trace->print();
 
-  Simulator simulator (programs);
-
-  Trace::ptr replay (simulator.replay(*trace));
+  Trace::ptr replay = Simulator().replay(*trace);
 
   // std::cout << replay->print();
 
@@ -108,9 +104,7 @@ TEST_F(CVC4, solve_indirect_uninitialized)
 
   // std::cout << trace->print();
 
-  Simulator simulator (programs);
-
-  Trace::ptr replay (simulator.replay(*trace));
+  Trace::ptr replay = Simulator().replay(*trace);
 
   // std::cout << replay->print();
 

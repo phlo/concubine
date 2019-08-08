@@ -202,7 +202,7 @@ int simulate (const char * name, const int argc, const char ** argv)
 
   // run program with given seed
   // TODO: MMap
-  Trace::ptr trace = Simulator::simulate(programs, {}, bound);
+  Trace::ptr trace = Simulator().simulate(programs, {}, bound);
 
   // print the result
   std::cout << trace->print();
@@ -265,7 +265,7 @@ int replay (const char * name, const int argc, const char ** argv)
         std::make_unique<Trace>(create_from_file<Trace>(trace_path));
 
       // run given trace
-      trace = Simulator::replay(*trace, bound);
+      trace = Simulator().replay(*trace, bound);
 
       // print the result
       std::cout << trace->print();

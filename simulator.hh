@@ -7,7 +7,6 @@
 #include "instruction.hh"
 
 // TODO: forward-declare
-#include "mmap.hh"
 #include "program.hh"
 #include "trace.hh"
 
@@ -16,6 +15,8 @@ namespace ConcuBinE {
 //==============================================================================
 // forward declarations
 //==============================================================================
+
+class MMap;
 
 //==============================================================================
 // Simulator class
@@ -44,23 +45,24 @@ struct Simulator
   //----------------------------------------------------------------------------
 
   // Mersenne Twister pseudo-random number generator
+  //
   std::mt19937_64 random;
 
   // list of programs
   //
-  Program::List::ptr programs;
+  const Program::List * programs;
 
   // generated trace
   //
   Trace::ptr trace;
 
-  // current step
-  //
-  size_t step;
-
   // bound
   //
   size_t bound;
+
+  // current step
+  //
+  size_t step;
 
   // current thread
   //
@@ -92,13 +94,17 @@ struct Simulator
   // constructors
   //----------------------------------------------------------------------------
 
-  Simulator (const Program::List::ptr & programs,
-             const std::shared_ptr<MMap> & mmap = {},
-             size_t bound = 0);
+  Simulator ();
 
   //----------------------------------------------------------------------------
   // private functions
   //----------------------------------------------------------------------------
+
+  // (re)initialize
+  //
+  void init (const Program::List::ptr & programs,
+             const std::shared_ptr<MMap> & mmap,
+             size_t bound);
 
   // program counter
   //
@@ -189,15 +195,15 @@ struct Simulator
   // public functions
   //----------------------------------------------------------------------------
 
-  // runs the simulator using a random trace
+  // simulate given programs using a random scheduler
   //
-  static Trace::ptr simulate (const Program::List::ptr & programs,
-                              const std::shared_ptr<MMap> & mmap,
-                              size_t bound = 0);
+  Trace::ptr simulate (const Program::List::ptr & programs,
+                       const std::shared_ptr<MMap> & mmap = {},
+                       size_t bound = 0);
 
-  // replay the given trace (trace must match simulator configuration)
+  // replay given trace
   //
-  static Trace::ptr replay (const Trace & trace, size_t bound = 0);
+  Trace::ptr replay (const Trace & trace, size_t bound = 0);
 };
 
 //==============================================================================

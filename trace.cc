@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include "instruction.hh"
+#include "mmap.hh"
 #include "parser.hh"
 
 namespace ConcuBinE {

@@ -26,18 +26,33 @@ inline void erase (C & container, T & val)
 // constructors
 //------------------------------------------------------------------------------
 
-Simulator::Simulator (const Program::List::ptr & p,
-                      const std::shared_ptr<MMap> & mmap,
-                      const size_t b) :
-  random(seed),
-  programs(p),
-  trace(std::make_unique<Trace>(p, mmap)),
-  step(0),
-  bound(b ? b : static_cast<size_t>(-1)),
-  state(p->size(), State::running),
-  active(p->size())
+Simulator::Simulator () : random(seed) {}
+
+//------------------------------------------------------------------------------
+// member functions
+//------------------------------------------------------------------------------
+
+// Simulator::init -------------------------------------------------------------
+
+void Simulator::init (const Program::List::ptr & p,
+                      const std::shared_ptr<MMap> & m,
+                      const size_t b)
 {
-  for (thread = 0; thread < programs->size(); thread++)
+  const size_t num_threads = p->size();
+
+  programs = p.get();
+  trace = std::make_unique<Trace>(p, m);
+  bound = b ? b : static_cast<size_t>(-1);
+  step = 0;
+
+  // initialize state vector
+  state.assign(num_threads, State::running);
+
+  // activate threads
+  active.resize(num_threads);
+  std::iota(active.begin(), active.end(), 0);
+
+  for (thread = 0; thread < num_threads; thread++)
     {
       // initialize register states
       pc(0);
@@ -52,13 +67,9 @@ Simulator::Simulator (const Program::List::ptr & p,
         threads_per_checkpoint[c].insert(thread);
     }
 
-  // activate threads
-  std::iota(active.begin(), active.end(), 0);
+  // reset waiting map
+  waiting_for_checkpoint.clear();
 }
-
-//------------------------------------------------------------------------------
-// member functions
-//------------------------------------------------------------------------------
 
 // Simulator::pc ---------------------------------------------------------------
 
@@ -408,6 +419,8 @@ void Simulator::execute (const Instruction::Exit & e)
 
 Trace::ptr Simulator::run (std::function<void()> scheduler)
 {
+  assert(trace);
+
   bool done = active.empty();
 
   while (!done && step <= bound)
@@ -441,54 +454,48 @@ Trace::ptr Simulator::run (std::function<void()> scheduler)
         }
     }
 
-  return move(trace);
+  return std::move(trace);
 }
 
 // Simulator::simulate ---------------------------------------------------------
 
-Trace::ptr Simulator::simulate (const Program::List::ptr & programs,
-                                const std::shared_ptr<MMap> & mmap,
-                                const size_t bound)
+Trace::ptr Simulator::simulate (const Program::List::ptr & p,
+                                const std::shared_ptr<MMap> & m,
+                                const size_t b)
 {
-  Simulator s (programs, mmap, bound);
+  init(p, m, b);
 
   // random scheduler
-  return s.run([&s] {
-    s.thread = s.active[s.random() % s.active.size()];
+  return run([this] {
+    thread = active[random() % active.size()];
 
-    assert(s.state[s.thread] == State::running);
+    assert(state[thread] == State::running);
 
     // rule 2, 5, 7: store buffer may be flushed at any time or must be empty
-    if (s.sb_full())
+    if (sb_full())
       {
-        const Instruction & op = (*s.programs)[s.thread][s.pc()];
+        const Instruction & op = (*programs)[thread][pc()];
 
-        if (s.random() % 2 || op.requires_flush())
-          s.state[s.thread] = State::flushing;
+        if (random() % 2 || op.requires_flush())
+          state[thread] = State::flushing;
       }
   });
 }
 
 // Simulator::replay -----------------------------------------------------------
 
-Trace::ptr Simulator::replay (const Trace & trace, const size_t bound)
+Trace::ptr Simulator::replay (const Trace & t, const size_t b)
 {
-  Simulator s (trace.programs,
-               {},
-               bound && bound < trace.length ? bound : trace.length - 1);
-
-  // copy memory map
-  if (trace.mmap)
-    s.trace->mmap = trace.mmap;
+  init(t.programs, t.mmap, b && b < t.length ? bound : t.length - 1);
 
   // replay scheduler
-  Trace::iterator it = trace.begin();
+  Trace::iterator it = t.begin();
 
-  return s.run([&s, &it] {
+  return run([this, &it] {
     if (it->flush)
-      s.state[it->thread] = State::flushing;
+      state[it->thread] = State::flushing;
 
-    s.thread = it++->thread;
+    thread = it++->thread;
   });
 }
 

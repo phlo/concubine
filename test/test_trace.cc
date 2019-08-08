@@ -3,6 +3,7 @@
 #include "trace.hh"
 
 #include "instruction.hh"
+#include "mmap.hh"
 #include "parser.hh"
 
 namespace ConcuBinE::test {
