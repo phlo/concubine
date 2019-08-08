@@ -25,8 +25,7 @@ struct Encoder: public ::testing::Test
         init_encoder(
           std::make_unique<Impl>(
             std::make_shared<Program::List>(programs),
-            bound,
-            false));
+            bound));
     }
 
   Program create_program (const std::string code)

@@ -163,7 +163,7 @@ const std::string Encoder::msb = std::to_string(word_size - 1);
 // constructors
 //------------------------------------------------------------------------------
 
-Encoder::Encoder (const Program::List::ptr & p, const size_t b, const bool e) :
+Encoder::Encoder (const Program::List::ptr & p, const size_t b) :
   ConcuBinE::Encoder(p, b),
   node(1)
 {
@@ -176,8 +176,6 @@ Encoder::Encoder (const Program::List::ptr & p, const size_t b, const bool e) :
       if (program[pc].is_unary())
         nids_const[program[pc].arg()];
   });
-
-  if (e) encode();
 }
 
 //------------------------------------------------------------------------------

@@ -701,7 +701,7 @@ TEST_F(smtlib_Functional, define_block_empty)
 {
   encoder->define_block();
 
-  ASSERT_EQ("", encoder->str());
+  ASSERT_EQ("", encoder->formula.str());
 }
 
 // smtlib::Functional::define_halt =============================================
@@ -747,7 +747,7 @@ TEST_F(smtlib_Functional, define_halt_empty)
 {
   encoder->define_halt();
 
-  ASSERT_EQ("", encoder->str());
+  ASSERT_EQ("", encoder->formula.str());
 }
 
 // smtlib::Functional::define_heap =============================================
@@ -859,7 +859,7 @@ TEST_F(smtlib_Functional, define_exit_flag_empty)
 {
   encoder->define_exit_flag();
 
-  ASSERT_EQ("", encoder->str());
+  ASSERT_EQ("", encoder->formula.str());
 }
 
 // smtlib::Functional::define_exit_code ========================================

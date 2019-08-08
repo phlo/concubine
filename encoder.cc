@@ -91,7 +91,13 @@ Encoder::Encoder (const Program::List::ptr & p, size_t b) :
 
 // Encode::str -----------------------------------------------------------------
 
-std::string Encoder::str () { return formula.str(); }
+std::string Encoder::str ()
+{
+  if (!formula.tellp())
+    encode();
+
+  return formula.str();
+}
 
 //------------------------------------------------------------------------------
 // DEBUG

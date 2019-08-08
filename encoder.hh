@@ -451,9 +451,7 @@ struct Functional : public Encoder
   // constructors
   //----------------------------------------------------------------------------
 
-  Functional (const Program::List::ptr & programs,
-              size_t bound,
-              bool encode = true);
+  using Encoder::Encoder;
 
   //----------------------------------------------------------------------------
   // private member functions
@@ -525,9 +523,7 @@ struct Relational : public Encoder
   // constructors
   //----------------------------------------------------------------------------
 
-  Relational (const Program::List::ptr & programs,
-              size_t bound,
-              bool encode = true);
+  using Encoder::Encoder;
 
   //----------------------------------------------------------------------------
   // private member functions
@@ -807,9 +803,7 @@ struct Encoder : public ConcuBinE::Encoder
   // constructors
   //----------------------------------------------------------------------------
 
-  Encoder (const Program::List::ptr & programs,
-           size_t bound,
-           bool encode = true);
+  Encoder (const Program::List::ptr & programs, size_t bound);
 
   //----------------------------------------------------------------------------
   // private member functions

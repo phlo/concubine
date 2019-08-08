@@ -610,7 +610,7 @@ TEST_F(smtlib_Encoder, declare_block_empty)
 {
   encoder->declare_block();
 
-  ASSERT_EQ("", encoder->str());
+  ASSERT_EQ("", encoder->formula.str());
 }
 
 // smtlib::Encoder::declare_halt ===============================================
@@ -649,7 +649,7 @@ TEST_F(smtlib_Encoder, declare_halt_empty)
 {
   encoder->declare_halt();
 
-  ASSERT_EQ("", encoder->str());
+  ASSERT_EQ("", encoder->formula.str());
 }
 
 // smtlib::Encoder::declare_heap ===============================================
@@ -707,7 +707,7 @@ TEST_F(smtlib_Encoder, declare_exit_flag_empty)
 {
   encoder->declare_exit_flag();
 
-  ASSERT_EQ("", encoder->str());
+  ASSERT_EQ("", encoder->formula.str());
 }
 
 // smtlib::Encoder::declare_exit_code ==========================================
@@ -896,7 +896,7 @@ TEST_F(smtlib_Encoder, declare_check_empty)
 {
   encoder->declare_check();
 
-  ASSERT_EQ("", encoder->str());
+  ASSERT_EQ("", encoder->formula.str());
 }
 
 // smtlib::Encoder::init_accu ==================================================
@@ -1154,7 +1154,7 @@ TEST_F(smtlib_Encoder, init_block_empty)
 {
   encoder->init_block();
 
-  ASSERT_EQ("", encoder->str());
+  ASSERT_EQ("", encoder->formula.str());
 }
 
 // smtlib::Encoder::init_halt ==================================================
@@ -1193,7 +1193,7 @@ TEST_F(smtlib_Encoder, init_halt_empty)
 {
   encoder->init_halt();
 
-  ASSERT_EQ("", encoder->str());
+  ASSERT_EQ("", encoder->formula.str());
 }
 
 // smtlib::Encoder::init_exit_flag =============================================
@@ -1225,7 +1225,7 @@ TEST_F(smtlib_Encoder, init_exit_flag_empty)
 {
   encoder->init_exit_flag();
 
-  ASSERT_EQ("", encoder->str());
+  ASSERT_EQ("", encoder->formula.str());
 }
 
 // smtlib::Encoder::init_states ================================================
@@ -1416,7 +1416,7 @@ TEST_F(smtlib_Encoder, define_check_empty)
 {
   encoder->define_check();
 
-  ASSERT_EQ("", encoder->str());
+  ASSERT_EQ("", encoder->formula.str());
 }
 
 // smtlib::Encoder::define_scheduling_constraints ==============================
@@ -1679,7 +1679,7 @@ TEST_F(smtlib_Encoder, define_checkpoint_constraints_empty)
 {
   encoder->define_checkpoint_constraints();
 
-  ASSERT_EQ("", encoder->str());
+  ASSERT_EQ("", encoder->formula.str());
 }
 
 // smtlib::Encoder::define_halt_constraints ====================================
@@ -1719,7 +1719,7 @@ TEST_F(smtlib_Encoder, define_halt_constraints_empty)
 {
   encoder->define_halt_constraints();
 
-  ASSERT_EQ("", encoder->str());
+  ASSERT_EQ("", encoder->formula.str());
 }
 
 // smtlib::Encoder::encode =====================================================

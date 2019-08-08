@@ -242,23 +242,23 @@ TEST_F(btor2_Encoder, load)
   word_t address = 0;
 
   ASSERT_EQ(encoder->nids_load[thread][address], encoder->load(address));
-  ASSERT_EQ(expected_load(nid, address), encoder->str());
+  ASSERT_EQ(expected_load(nid, address), encoder->formula.str());
   encoder->formula.str("");
 
   // another load with the same address
   ASSERT_EQ(encoder->nids_load[thread][address], encoder->load(address));
-  ASSERT_EQ("", encoder->str());
+  ASSERT_EQ("", encoder->formula.str());
 
   // another load with a different address
   address = 1;
   ASSERT_EQ(encoder->nids_load[thread][address], encoder->load(address));
-  ASSERT_EQ(expected_load(nid, address), encoder->str());
+  ASSERT_EQ(expected_load(nid, address), encoder->formula.str());
   encoder->formula.str("");
 
   // another load from a different thread
   thread = 1;
   ASSERT_EQ(encoder->nids_load[thread][address], encoder->load(address));
-  ASSERT_EQ(expected_load(nid, address), encoder->str());
+  ASSERT_EQ(expected_load(nid, address), encoder->formula.str());
 }
 
 TEST_F(btor2_Encoder, load_indirect)
@@ -274,21 +274,21 @@ TEST_F(btor2_Encoder, load_indirect)
   ASSERT_EQ(
     encoder->nids_load_indirect[thread][address],
     encoder->load(address, true));
-  ASSERT_EQ(expected_load_indirect(nid, address), encoder->str());
+  ASSERT_EQ(expected_load_indirect(nid, address), encoder->formula.str());
   encoder->formula.str("");
 
   // another load with the same address
   ASSERT_EQ(
     encoder->nids_load_indirect[thread][address],
     encoder->load(address, true));
-  ASSERT_EQ("", encoder->str());
+  ASSERT_EQ("", encoder->formula.str());
 
   // another load with a different address
   address = 1;
   ASSERT_EQ(
     encoder->nids_load_indirect[thread][address],
     encoder->load(address, true));
-  ASSERT_EQ(expected_load_indirect(nid, address), encoder->str());
+  ASSERT_EQ(expected_load_indirect(nid, address), encoder->formula.str());
   encoder->formula.str("");
 
   // another load from a different thread
@@ -296,7 +296,7 @@ TEST_F(btor2_Encoder, load_indirect)
   ASSERT_EQ(
     encoder->nids_load_indirect[thread][address],
     encoder->load(address, true));
-  ASSERT_EQ(expected_load_indirect(nid, address), encoder->str());
+  ASSERT_EQ(expected_load_indirect(nid, address), encoder->formula.str());
 }
 
 // btor2::Encoder::declare_sorts ===============================================
@@ -680,7 +680,7 @@ TEST_F(btor2_Encoder, declare_block_empty)
 {
   encoder->declare_block();
 
-  ASSERT_EQ("", encoder->str());
+  ASSERT_EQ("", encoder->formula.str());
 }
 
 // btor2::Encoder::declare_halt ================================================
@@ -727,7 +727,7 @@ TEST_F(btor2_Encoder, declare_halt_empty)
 {
   encoder->declare_halt();
 
-  ASSERT_EQ("", encoder->str());
+  ASSERT_EQ("", encoder->formula.str());
 }
 
 // btor2::Encoder::declare_heap ================================================
@@ -798,7 +798,7 @@ TEST_F(btor2_Encoder, declare_exit_flag_empty)
 {
   encoder->declare_exit_flag();
 
-  ASSERT_EQ("", encoder->str());
+  ASSERT_EQ("", encoder->formula.str());
 }
 
 // btor2::Encoder::declare_exit_code ===========================================
@@ -1009,7 +1009,7 @@ TEST_F(btor2_Encoder, define_check)
 TEST_F(btor2_Encoder, define_check_empty)
 {
   encoder->define_check();
-  ASSERT_EQ("", encoder->str());
+  ASSERT_EQ("", encoder->formula.str());
 }
 
 // btor2::Encoder::define_accu =================================================
@@ -2548,7 +2548,7 @@ TEST_F(btor2_Encoder, define_block)
 TEST_F(btor2_Encoder, define_block_empty)
 {
   encoder->define_block();
-  ASSERT_EQ("", encoder->str());
+  ASSERT_EQ("", encoder->formula.str());
 }
 
 // btor2::Encoder::define_halt =================================================
@@ -2631,7 +2631,7 @@ TEST_F(btor2_Encoder, define_halt)
 TEST_F(btor2_Encoder, define_halt_empty)
 {
   encoder->define_halt();
-  ASSERT_EQ("", encoder->str());
+  ASSERT_EQ("", encoder->formula.str());
 }
 
 // btor2::Encoder::define_heap =================================================
@@ -2877,7 +2877,7 @@ TEST_F(btor2_Encoder, define_exit_flag)
 TEST_F(btor2_Encoder, define_exit_flag_empty)
 {
   encoder->define_exit_flag();
-  ASSERT_EQ("", encoder->str());
+  ASSERT_EQ("", encoder->formula.str());
 }
 
 // btor2::Encoder::define_exit_code ============================================
@@ -3272,7 +3272,7 @@ TEST_F(btor2_Encoder, define_checkpoint_constraints)
 TEST_F(btor2_Encoder, define_checkpoint_constraints_empty)
 {
   encoder->define_checkpoint_constraints();
-  ASSERT_EQ("", encoder->str());
+  ASSERT_EQ("", encoder->formula.str());
 }
 
 // btor2::Encoder::define_halt_constraints =====================================
@@ -3326,7 +3326,7 @@ TEST_F(btor2_Encoder, define_halt_constraints)
 TEST_F(btor2_Encoder, define_halt_constraints_empty)
 {
   encoder->define_checkpoint_constraints();
-  ASSERT_EQ("", encoder->str());
+  ASSERT_EQ("", encoder->formula.str());
 }
 
 // btor2::Encoder::define_bound ================================================
@@ -3866,7 +3866,7 @@ TEST_F(btor2_Encoder, JMP)
   Instruction::Jmp jmp {Type::none, 0};
 
   ASSERT_EQ("", encoder->encode(jmp));
-  ASSERT_EQ("", encoder->str());
+  ASSERT_EQ("", encoder->formula.str());
 }
 
 TEST_F(btor2_Encoder, JZ)
@@ -4212,7 +4212,7 @@ TEST_F(btor2_Encoder, EXIT)
   Instruction::Exit exit {Type::none, 1};
 
   ASSERT_EQ(encoder->nids_const[1], encoder->encode(exit));
-  ASSERT_EQ("", encoder->str());
+  ASSERT_EQ("", encoder->formula.str());
 }
 
 } // namespace ConcuBinE::test
