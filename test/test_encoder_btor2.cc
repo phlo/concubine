@@ -2771,6 +2771,97 @@ TEST_F(btor2_Encoder, define_heap)
   verbose = true;
 }
 
+TEST_F(btor2_Encoder, define_heap_mmap)
+{
+  mmap[0] = mmap[1];
+  reset_encoder();
+  init_state_definitions();
+
+  btor2::nid_t nid = encoder->node;
+
+  encoder->define_heap();
+
+  expected = [this, &nid] {
+    std::ostringstream s;
+
+    if (verbose)
+      s << encoder->heap_comment;
+
+    std::string nid_init = std::to_string(nid++);
+
+    s << btor2::state(nid_init, encoder->sid_heap, "mmap");
+
+    for (const auto & [adr, val] : *encoder->mmap)
+      s <<
+        btor2::write(
+          nid_init = std::to_string(nid++),
+          encoder->sid_heap,
+          nid_init,
+          encoder->nids_const[adr],
+          encoder->nids_const[val]);
+
+    s <<
+      btor2::init(
+        std::to_string(nid++),
+        encoder->sid_heap,
+        encoder->nid_heap,
+        nid_init);
+    s <<
+      btor2::next(
+        std::to_string(nid++),
+        encoder->sid_heap,
+        encoder->nid_heap,
+        encoder->nid_heap,
+        encoder->heap_sym);
+    s << eol;
+
+    return s.str();
+  };
+
+  ASSERT_EQ(expected(), encoder->str());
+
+  // verbosity
+  reset_encoder();
+  init_state_definitions();
+
+  verbose = false;
+  nid = encoder->node;
+  encoder->define_heap();
+  ASSERT_EQ(expected(), encoder->str());
+  verbose = true;
+}
+
+TEST_F(btor2_Encoder, define_heap_mmap_empty)
+{
+  expected = [this] {
+    std::ostringstream s;
+
+    if (verbose)
+      s << encoder->heap_comment;
+
+    s <<
+      btor2::next(
+        std::to_string(encoder->node - 1),
+        encoder->sid_heap,
+        encoder->nid_heap,
+        encoder->nid_heap,
+        encoder->heap_sym) <<
+      eol;
+
+    return s.str();
+  };
+
+  init_state_definitions();
+  encoder->define_heap();
+  ASSERT_EQ(expected(), encoder->str());
+
+  reset_encoder();
+  init_state_definitions();
+  encoder->mmap.reset();
+  encoder->define_heap();
+  ASSERT_EQ(expected(), encoder->str());
+}
+
 // btor2::Encoder::define_exit_flag ============================================
 
 TEST_F(btor2_Encoder, define_exit_flag)

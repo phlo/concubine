@@ -50,9 +50,12 @@ const std::string Encoder::check_comment     = "checkpoint variables";
 // constructors
 //------------------------------------------------------------------------------
 
-Encoder::Encoder (const Program::List::ptr & p, size_t b) :
+Encoder::Encoder (const Program::List::ptr & p,
+                  const std::shared_ptr<MMap> & m,
+                  size_t b) :
   programs(p),
   num_threads(p->size()),
+  mmap(m),
   bound(b),
   use_sinz_constraint(num_threads > 4)
 {

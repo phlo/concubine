@@ -2,6 +2,7 @@
 
 #include <cassert>
 
+#include "mmap.hh"
 #include "smtlib.hh"
 
 namespace ConcuBinE::smtlib {
@@ -143,8 +144,10 @@ const std::string Encoder::check_comment =
 // constructors
 //------------------------------------------------------------------------------
 
-Encoder::Encoder (const Program::List::ptr & p, const size_t b) :
-  ConcuBinE::Encoder(p, b),
+Encoder::Encoder (const Program::List::ptr & p,
+                  const std::shared_ptr<MMap> & m,
+                  const size_t b) :
+  ConcuBinE::Encoder(p, m, b),
   step(0)
 {}
 
@@ -763,6 +766,22 @@ void Encoder::init_halt ()
   formula << eol;
 }
 
+// smtlib::Encoder::init_heap --------------------------------------------------
+
+void Encoder::init_heap ()
+{
+  if (!mmap || mmap->empty())
+    return;
+
+  if (verbose)
+    formula << heap_comment;
+
+  for (const auto & [adr, val] : *mmap)
+    formula << assign(select(heap_var(), word2hex(adr)), word2hex(val)) << eol;
+
+  formula << eol;
+}
+
 // smtlib::Encoder::init_exit_flag ---------------------------------------------
 
 void Encoder::init_exit_flag ()
@@ -793,6 +812,8 @@ void Encoder::init_states ()
   init_stmt();
   init_block();
   init_halt();
+
+  init_heap();
   init_exit_flag();
 }
 

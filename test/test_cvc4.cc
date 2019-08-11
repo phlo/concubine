@@ -42,7 +42,7 @@ TEST_F(CVC4, solve_check)
   programs->push_back(create_from_file<Program>(increment_0));
   programs->push_back(create_from_file<Program>(increment_n));
 
-  encoder = std::make_unique<smtlib::Functional>(programs, 16);
+  encoder = std::make_unique<smtlib::Functional>(programs, nullptr, 16);
 
   trace = cvc4.solve(*encoder);
 
@@ -65,7 +65,7 @@ TEST_F(CVC4, solve_cas)
   programs->push_back(create_from_file<Program>(increment));
   programs->push_back(create_from_file<Program>(increment));
 
-  encoder = std::make_unique<smtlib::Functional>(programs, 16);
+  encoder = std::make_unique<smtlib::Functional>(programs, nullptr, 16);
 
   trace = cvc4.solve(*encoder);
 
@@ -96,7 +96,7 @@ TEST_F(CVC4, solve_indirect_uninitialized)
   programs->push_back(Program(p0, "load.store.0.asm"));
   programs->push_back(Program(p1, "load.store.1.asm"));
 
-  encoder = std::make_unique<smtlib::Functional>(programs, 16);
+  encoder = std::make_unique<smtlib::Functional>(programs, nullptr, 16);
 
   trace = cvc4.solve(*encoder);
 
@@ -122,7 +122,7 @@ TEST_F(CVC4, print_model_check)
   programs->push_back(create_from_file<Program>(increment_0));
   programs->push_back(create_from_file<Program>(increment_n));
 
-  encoder = std::make_unique<smtlib::Functional>(programs, 16);
+  encoder = std::make_unique<smtlib::Functional>(programs, nullptr, 16);
 
   bool sat = cvc4.sat(cvc4.build_formula(*encoder, constraints));
 
@@ -141,7 +141,7 @@ TEST_F(CVC4, print_model_cas)
   programs->push_back(create_from_file<Program>(increment_cas));
   programs->push_back(create_from_file<Program>(increment_cas));
 
-  encoder = std::make_unique<smtlib::Functional>(programs, 16);
+  encoder = std::make_unique<smtlib::Functional>(programs, nullptr, 16);
 
   bool sat = cvc4.sat(cvc4.build_formula(*encoder, constraints));
 

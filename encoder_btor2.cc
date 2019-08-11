@@ -4,6 +4,7 @@
 #include <cassert>
 
 #include "btor2.hh"
+#include "mmap.hh"
 
 namespace ConcuBinE::btor2 {
 
@@ -163,8 +164,10 @@ const std::string Encoder::msb = std::to_string(word_size - 1);
 // constructors
 //------------------------------------------------------------------------------
 
-Encoder::Encoder (const Program::List::ptr & p, const size_t b) :
-  ConcuBinE::Encoder(p, b),
+Encoder::Encoder (const Program::List::ptr & p,
+                  const std::shared_ptr<MMap> & m,
+                  const size_t b) :
+  ConcuBinE::Encoder(p, m, b),
   node(1)
 {
   // collect constants
@@ -176,6 +179,10 @@ Encoder::Encoder (const Program::List::ptr & p, const size_t b) :
       if (program[pc].is_unary())
         nids_const[program[pc].arg()];
   });
+
+  if (mmap && !mmap->empty())
+    for (const auto & [adr, val] : *mmap)
+      nids_const[adr] = nids_const[val];
 }
 
 //------------------------------------------------------------------------------
@@ -1242,6 +1249,26 @@ void Encoder::define_heap ()
   if (verbose)
     formula << heap_comment;
 
+  // init
+  if (mmap && !mmap->empty())
+    {
+      std::string nid_init = nid();
+
+      formula << state(nid_init, sid_heap, "mmap");
+
+      for (const auto & [adr, val] : *mmap)
+        formula <<
+          write(
+            nid_init = nid(),
+            sid_heap,
+            nid_init,
+            nids_const[adr],
+            nids_const[val]);
+
+      formula << init(nid(), sid_heap, nid_heap, nid_init);
+    }
+
+  // next
   update = State::heap;
 
   std::string nid_next = nid_heap;

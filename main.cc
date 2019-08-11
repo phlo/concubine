@@ -396,15 +396,18 @@ int solve (const char * name, const int argc, const char ** argv)
       while (i < argc)
         programs->push_back(create_from_file<Program>(argv[i++]));
 
+      // memory map
+      std::shared_ptr<MMap> mmap;
+
       // encode program
       std::unique_ptr<Encoder> encoder;
 
       if (encoder_name == "smtlib-functional")
-        encoder = std::make_unique<smtlib::Functional>(programs, bound);
+        encoder = std::make_unique<smtlib::Functional>(programs, mmap, bound);
       else if (encoder_name == "smtlib-relational")
-        encoder = std::make_unique<smtlib::Relational>(programs, bound);
+        encoder = std::make_unique<smtlib::Relational>(programs, mmap, bound);
       else if (encoder_name == "btor2")
-        encoder = std::make_unique<btor2::Encoder>(programs, bound);
+        encoder = std::make_unique<btor2::Encoder>(programs, mmap, bound);
       else
         {
           print_error("unknown encoder [" + encoder_name + "]");

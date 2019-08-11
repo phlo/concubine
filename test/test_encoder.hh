@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "encoder.hh"
+#include "mmap.hh"
 #include "parser.hh"
 
 namespace ConcuBinE::test::encoder {
@@ -12,6 +13,7 @@ struct Encoder: public ::testing::Test
   using Type = Instruction::Type;
 
   Program::List programs;
+  MMap mmap;
   std::unique_ptr<E> encoder = create_encoder();
 
   virtual std::unique_ptr<E> init_encoder (std::unique_ptr<E> e)
@@ -25,6 +27,7 @@ struct Encoder: public ::testing::Test
         init_encoder(
           std::make_unique<Impl>(
             std::make_shared<Program::List>(programs),
+            std::make_shared<MMap>(mmap),
             bound));
     }
 
@@ -87,6 +90,7 @@ struct Encoder: public ::testing::Test
       encoder =
         std::make_unique<Impl>(
           std::make_shared<Program::List>(programs),
+          std::make_shared<MMap>(mmap),
           bound);
 
       std::ifstream ifs(dir + file);

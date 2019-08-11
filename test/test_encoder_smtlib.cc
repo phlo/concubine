@@ -1196,6 +1196,46 @@ TEST_F(smtlib_Encoder, init_halt_empty)
   ASSERT_EQ("", encoder->formula.str());
 }
 
+// smtlib::Encoder::init_heap ==================================================
+
+TEST_F(smtlib_Encoder, init_heap)
+{
+  mmap[0] = mmap[1] = 1;
+  reset_encoder(0);
+
+  encoder->init_heap();
+
+  ASSERT_EQ(
+    "; heap variable - heap_<step>\n"
+    "(assert (= (select heap_0 #x0000) #x0001))\n"
+    "(assert (= (select heap_0 #x0001) #x0001))\n"
+    "\n",
+    encoder->str());
+
+  // verbosity
+  reset_encoder(0);
+
+  verbose = false;
+  encoder->init_heap();
+  verbose = true;
+
+  ASSERT_EQ(
+    "(assert (= (select heap_0 #x0000) #x0001))\n"
+    "(assert (= (select heap_0 #x0001) #x0001))\n"
+    "\n",
+    encoder->str());
+}
+
+TEST_F(smtlib_Encoder, init_heap_empty)
+{
+  encoder->init_heap();
+  ASSERT_EQ("", encoder->formula.str());
+
+  encoder->mmap.reset();
+  encoder->init_heap();
+  ASSERT_EQ("", encoder->formula.str());
+}
+
 // smtlib::Encoder::init_exit_flag =============================================
 
 TEST_F(smtlib_Encoder, init_exit_flag)

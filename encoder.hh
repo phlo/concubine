@@ -11,6 +11,12 @@
 namespace ConcuBinE {
 
 //==============================================================================
+// forward declarations
+//==============================================================================
+
+class MMap;
+
+//==============================================================================
 // Encoder base class
 //
 // Encodes the given Programs into a SMT formula.
@@ -97,6 +103,10 @@ struct Encoder
   //
   const size_t num_threads;
 
+  // reference to initial memory layout
+  //
+  std::shared_ptr<MMap> mmap;
+
   // bound
   //
   const size_t bound;
@@ -149,7 +159,9 @@ struct Encoder
   // constructors
   //----------------------------------------------------------------------------
 
-  Encoder (const Program::List::ptr & programs, size_t bound);
+  Encoder (const Program::List::ptr & programs,
+           const std::shared_ptr<MMap> & mmap,
+           size_t bound);
 
   //----------------------------------------------------------------------------
   // private member functions
@@ -295,7 +307,9 @@ struct Encoder : public ConcuBinE::Encoder
   // constructors
   //----------------------------------------------------------------------------
 
-  Encoder (const Program::List::ptr & programs, size_t bound);
+  Encoder (const Program::List::ptr & programs,
+           const std::shared_ptr<MMap> & mmap,
+           size_t bound);
 
   //----------------------------------------------------------------------------
   // private member functions
@@ -382,6 +396,7 @@ struct Encoder : public ConcuBinE::Encoder
   void init_block ();
   void init_halt ();
 
+  void init_heap ();
   void init_exit_flag ();
 
   void init_states (); // all of the above
@@ -803,7 +818,9 @@ struct Encoder : public ConcuBinE::Encoder
   // constructors
   //----------------------------------------------------------------------------
 
-  Encoder (const Program::List::ptr & programs, size_t bound);
+  Encoder (const Program::List::ptr & programs,
+           const std::shared_ptr<MMap> & mmap,
+           size_t bound);
 
   //----------------------------------------------------------------------------
   // private member functions
