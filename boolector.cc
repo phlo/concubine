@@ -12,16 +12,16 @@ namespace ConcuBinE {
 // member functions
 //------------------------------------------------------------------------------
 
-// Boolector::build_command ----------------------------------------------------
+// Boolector::command ----------------------------------------------------------
 
-std::string Boolector::build_command ()
+std::string Boolector::command ()
 {
   return "boolector --model-gen"; // --output-number-format=dec
 }
 
-// Boolector::parse_line -------------------------------------------------------
+// Boolector::parse ------------------------------------------------------------
 
-Boolector::Symbol Boolector::parse_line (std::istringstream & line)
+Boolector::Symbol Boolector::parse (std::istringstream & line)
 {
   std::string token;
 
@@ -68,19 +68,19 @@ Boolector::Symbol Boolector::parse_line (std::istringstream & line)
     }
 
   // parse symbol
-  Symbol symbol = parse_symbol(line);
+  Symbol sym = symbol(line);
 
-  switch (symbol)
+  switch (sym)
     {
     case Symbol::stmt:
     case Symbol::exit_flag:
     case Symbol::thread:
     case Symbol::flush:
       if (value)
-        return symbol;
+        return sym;
       break;
 
-    default: return symbol;
+    default: return sym;
     }
 
   return Symbol::ignore;

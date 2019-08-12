@@ -124,7 +124,7 @@ TEST_F(CVC4, print_model_check)
 
   encoder = std::make_unique<smtlib::Functional>(programs, nullptr, 16);
 
-  bool sat = cvc4.sat(cvc4.build_formula(*encoder, constraints));
+  bool sat = cvc4.sat(cvc4.formula(*encoder, constraints));
 
   std::ofstream outfile("/tmp/cvc4.check.out");
   outfile << cvc4.std_out.str();
@@ -143,7 +143,7 @@ TEST_F(CVC4, print_model_cas)
 
   encoder = std::make_unique<smtlib::Functional>(programs, nullptr, 16);
 
-  bool sat = cvc4.sat(cvc4.build_formula(*encoder, constraints));
+  bool sat = cvc4.sat(cvc4.formula(*encoder, constraints));
 
   std::ofstream outfile("/tmp/cvc4.cas.out");
   outfile << cvc4.std_out.str();

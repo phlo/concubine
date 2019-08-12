@@ -47,11 +47,11 @@ GTEST_FILTER = --gtest_filter=
 # GTEST_FILTER += "*"
 # GTEST_FILTER += Encoder.*
 # GTEST_FILTER += smtlib.*
-GTEST_FILTER += smtlib_Encoder.*
+# GTEST_FILTER += smtlib_Encoder.*
 # GTEST_FILTER += smtlib_Functional.*
 # GTEST_FILTER += smtlib_Relational.*
 # GTEST_FILTER += btor2.*
-GTEST_FILTER += btor2_Encoder.*
+# GTEST_FILTER += btor2_Encoder.*
 # GTEST_FILTER += Simulator.*
 # GTEST_FILTER += Main.*
 # GTEST_FILTER += Experimental.*
@@ -60,10 +60,10 @@ GTEST_FILTER += btor2_Encoder.*
 # GTEST_FILTER += Trace.*
 # GTEST_FILTER += MMap.*
 # GTEST_FILTER += Shell.*
-# GTEST_FILTER += Boolector.*
-# GTEST_FILTER += BtorMC.*
-# GTEST_FILTER += Z3.*
-# GTEST_FILTER += CVC4.*
+GTEST_FILTER += Boolector.*
+GTEST_FILTER += BtorMC.*
+GTEST_FILTER += Z3.*
+GTEST_FILTER += CVC4.*
 
 GTEST_FILTER := $(shell echo ${GTEST_FILTER} | sed -e 's/ /:/g')
 

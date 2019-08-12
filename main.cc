@@ -435,7 +435,7 @@ int solve (const char * name, const int argc, const char ** argv)
 
       // print formula if we're pretending
       if (pretend)
-        std::cout << solver->build_formula(*encoder, constraints);
+        std::cout << solver->formula(*encoder, constraints);
       else
         std::cout << solver->solve(*encoder, constraints)->print();
     }

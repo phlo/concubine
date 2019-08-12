@@ -127,7 +127,7 @@ TEST_F(Boolector, print_model_check)
 
   encoder = std::make_unique<smtlib::Functional>(programs, nullptr, 16);
 
-  std::string formula = boolector.build_formula(*encoder, "");
+  std::string formula = boolector.formula(*encoder, "");
 
   bool sat = boolector.sat(formula);
 
@@ -149,7 +149,7 @@ TEST_F(Boolector, print_model_cas)
 
   encoder = std::make_unique<smtlib::Functional>(programs, nullptr, 16);
 
-  std::string formula = boolector.build_formula(*encoder, "");
+  std::string formula = boolector.formula(*encoder, "");
 
   bool sat = boolector.sat(formula);
 

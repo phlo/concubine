@@ -16,25 +16,24 @@ namespace ConcuBinE {
 
 std::string CVC4::name () const { return "cvc4"; }
 
-// CVC4::build_command ---------------------------------------------------------
+// CVC4::command ---------------------------------------------------------------
 
-std::string CVC4::build_command ()
+std::string CVC4::command ()
 {
   return "cvc4 -L smt2 -m --output-lang=cvc4";
 }
 
 // CVC4::build_formula ---------------------------------------------------------
 
-std::string CVC4::build_formula (Encoder & formula,
-                                 const std::string & constraints)
+std::string CVC4::formula (Encoder & encoder, const std::string & constraints)
 {
   return
-    Solver::build_formula(formula, constraints) +
+    Solver::formula(encoder, constraints) +
     smtlib::check_sat() + eol +
     smtlib::get_model();
 }
 
-// CVC4::parse_line ------------------------------------------------------------
+// CVC4::parse -----------------------------------------------------------------
 
 inline
 bool parse_bool (std::istringstream & line, std::string & token)
@@ -51,16 +50,16 @@ word_t parse_bv (std::istringstream & line, std::string & token)
   catch (...) { throw std::runtime_error("illegal value [" + token + "]"); }
 }
 
-CVC4::Symbol CVC4::parse_line (std::istringstream & line)
+CVC4::Symbol CVC4::parse (std::istringstream & line)
 {
-  Symbol symbol = parse_symbol(line);
+  Symbol sym = symbol(line);
 
   std::string token;
 
   if (!std::getline(line, token, '='))
     throw std::runtime_error("missing value");
 
-  switch (symbol)
+  switch (sym)
     {
     case Symbol::accu:
     case Symbol::mem:
@@ -68,11 +67,11 @@ CVC4::Symbol CVC4::parse_line (std::istringstream & line)
     case Symbol::sb_val:
     case Symbol::exit_code:
       value = parse_bv(line, token);
-      return symbol;
+      return sym;
 
     case Symbol::sb_full:
       value = parse_bool(line, token);
-      return symbol;
+      return sym;
 
     case Symbol::heap:
       while (line && token != "WITH")
@@ -93,18 +92,18 @@ CVC4::Symbol CVC4::parse_line (std::istringstream & line)
           heap[address] = value;
         }
 
-      return symbol;
+      return sym;
 
     case Symbol::stmt:
     case Symbol::exit_flag:
     case Symbol::thread:
     case Symbol::flush:
       if (parse_bool(line, token))
-        return symbol;
+        return sym;
       else
         return Symbol::ignore;
 
-    default: return symbol;
+    default: return sym;
     }
 }
 

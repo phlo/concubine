@@ -139,7 +139,7 @@ TEST_F(BtorMC, print_model_check)
 
   encoder = std::make_unique<btor2::Encoder>(programs, nullptr, 16);
 
-  std::string formula = btormc.build_formula(*encoder, "");
+  std::string formula = btormc.formula(*encoder, "");
 
   bool sat = btormc.sat(formula);
 
@@ -161,7 +161,7 @@ TEST_F(BtorMC, print_model_cas)
 
   encoder = std::make_unique<btor2::Encoder>(programs, nullptr, 16);
 
-  std::string formula = btormc.build_formula(*encoder, "");
+  std::string formula = btormc.formula(*encoder, "");
 
   bool sat = btormc.sat(formula);
 

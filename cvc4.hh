@@ -19,12 +19,12 @@ struct CVC4 : public External
 
   virtual std::string name () const;
 
-  virtual std::string build_command ();
+  virtual std::string command ();
 
-  virtual std::string build_formula (Encoder & encoder,
-                                     const std::string & constraints);
+  virtual std::string formula (Encoder & encoder,
+                               const std::string & constraints);
 
-  virtual Symbol parse_line (std::istringstream &);
+  virtual Symbol parse (std::istringstream &);
 };
 
 } // namespace ConcuBinE

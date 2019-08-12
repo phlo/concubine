@@ -25,15 +25,11 @@ struct BtorMC : public Boolector
 
   virtual std::string name () const;
 
-  virtual std::string build_formula (Encoder &, const std::string &);
+  virtual std::string command ();
 
-  virtual std::string build_command ();
+  virtual Symbol symbol (std::istringstream &);
 
-  using Boolector::parse_symbol;
-
-  virtual Symbol parse_symbol (std::istringstream &);
-
-  virtual Symbol parse_line (std::istringstream &);
+  virtual Symbol parse (std::istringstream &);
 };
 
 } // namespace ConcuBinE

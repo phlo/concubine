@@ -80,7 +80,7 @@ Trace::ptr Z3::solve (Encoder & encoder, const std::string & constraints)
 
   high_resolution_clock::time_point t = high_resolution_clock::now();
 
-  s.from_string(build_formula(encoder, constraints).c_str());
+  s.from_string(formula(encoder, constraints).c_str());
 
   if (s.check() != z3::sat)
     throw std::runtime_error("formula is not sat");

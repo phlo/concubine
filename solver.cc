@@ -13,12 +13,11 @@ namespace ConcuBinE {
 // Solver
 //==============================================================================
 
-// Solver::build_formula -------------------------------------------------------
+// Solver::formula -------------------------------------------------------------
 
-std::string Solver::build_formula (Encoder & formula,
-                                   const std::string & constraints)
+std::string Solver::formula (Encoder & encoder, const std::string & constraints)
 {
-  return formula.str() + eol + (constraints.empty() ? "" : constraints + eol);
+  return encoder.str() + (constraints.empty() ? "" : eol + constraints);
 }
 
 //==============================================================================
@@ -35,7 +34,7 @@ bool External::sat (const std::string & input)
 
   high_resolution_clock::time_point t = high_resolution_clock::now();
 
-  std_out = shell.run(build_command(), input);
+  std_out = shell.run(command(), input);
 
   time = duration_cast<milliseconds>(high_resolution_clock::now() - t).count();
 
@@ -45,15 +44,15 @@ bool External::sat (const std::string & input)
 
 // External::solve -------------------------------------------------------------
 
-Trace::ptr External::solve (Encoder & formula, const std::string & constraints)
+Trace::ptr External::solve (Encoder & encoder, const std::string & constraints)
 {
-  sat(build_formula(formula, constraints));
-  return build_trace(formula.programs);
+  sat(formula(encoder, constraints));
+  return trace(encoder.programs);
 }
 
-// External::build_trace -------------------------------------------------------
+// External::trace -------------------------------------------------------------
 
-Trace::ptr External::build_trace (const Program::List::ptr & programs)
+Trace::ptr External::trace (const Program::List::ptr & programs)
 {
   size_t lineno = 2;
   size_t next = 2;
@@ -69,7 +68,7 @@ Trace::ptr External::build_trace (const Program::List::ptr & programs)
       try
         {
           std::istringstream line(line_buf);
-          Symbol symbol = parse_line(line);
+          Symbol symbol = parse(line);
 
           if (symbol == Symbol::ignore)
             continue;
@@ -166,11 +165,11 @@ Trace::ptr External::build_trace (const Program::List::ptr & programs)
   return trace;
 }
 
-// External::parse_symbol ------------------------------------------------------
+// External::attribute ---------------------------------------------------------
 
-size_t External::parse_symbol (std::istringstream & line,
-                               const std::string & name,
-                               const char delimiter)
+size_t External::attribute (std::istringstream & line,
+                            const std::string & name,
+                            const char delimiter)
 {
   if (line.peek() != delimiter)
     {
@@ -189,7 +188,9 @@ size_t External::parse_symbol (std::istringstream & line,
   return val;
 }
 
-External::Symbol External::parse_symbol (std::istringstream & line)
+// External::symbol ------------------------------------------------------------
+
+External::Symbol External::symbol (std::istringstream & line)
 {
   std::string name;
 
@@ -200,49 +201,49 @@ External::Symbol External::parse_symbol (std::istringstream & line)
 
   if (name == Encoder::accu_sym)
     {
-      step = parse_symbol(line, "step");
-      thread = parse_symbol(line, "thread");
+      step = attribute(line, "step");
+      thread = attribute(line, "thread");
       return Symbol::accu;
     }
   else if (name == Encoder::mem_sym)
     {
-      step = parse_symbol(line, "step");
-      thread = parse_symbol(line, "thread");
+      step = attribute(line, "step");
+      thread = attribute(line, "thread");
       return Symbol::mem;
     }
   else if (name == Encoder::sb_adr_sym)
     {
-      step = parse_symbol(line, "step");
-      thread = parse_symbol(line, "thread");
+      step = attribute(line, "step");
+      thread = attribute(line, "thread");
       return Symbol::sb_adr;
     }
   else if (name == Encoder::sb_val_sym)
     {
-      step = parse_symbol(line, "step");
-      thread = parse_symbol(line, "thread");
+      step = attribute(line, "step");
+      thread = attribute(line, "thread");
       return Symbol::sb_val;
     }
   else if (name == Encoder::sb_full_sym)
     {
-      step = parse_symbol(line, "step");
-      thread = parse_symbol(line, "thread");
+      step = attribute(line, "step");
+      thread = attribute(line, "thread");
       return Symbol::sb_full;
     }
   else if (name == Encoder::stmt_sym)
     {
-      step = parse_symbol(line, "step");
-      thread = parse_symbol(line, "thread");
-      pc = parse_symbol(line, "pc");
+      step = attribute(line, "step");
+      thread = attribute(line, "thread");
+      pc = attribute(line, "pc");
       return Symbol::stmt;
     }
   else if (name == Encoder::heap_sym)
     {
-      step = parse_symbol(line, "step");
+      step = attribute(line, "step");
       return Symbol::heap;
     }
   else if (name == Encoder::exit_flag_sym)
     {
-      step = parse_symbol(line, "step");
+      step = attribute(line, "step");
       return Symbol::exit_flag; // TODO
     }
   else if (name == Encoder::exit_code_sym)
@@ -251,14 +252,14 @@ External::Symbol External::parse_symbol (std::istringstream & line)
     }
   else if (name == Encoder::thread_sym)
     {
-      step = parse_symbol(line, "step");
-      thread = parse_symbol(line, "thread");
+      step = attribute(line, "step");
+      thread = attribute(line, "thread");
       return Symbol::thread;
     }
   else if (name == Encoder::flush_sym)
     {
-      step = parse_symbol(line, "step");
-      thread = parse_symbol(line, "thread");
+      step = attribute(line, "step");
+      thread = attribute(line, "thread");
       return Symbol::flush;
     }
 

@@ -38,8 +38,8 @@ struct Solver
 
   // build formula for the specific solver
   //
-  virtual std::string build_formula (Encoder & encoder,
-                                     const std::string & constraints);
+  virtual std::string formula (Encoder & encoder,
+                               const std::string & constraints);
 
   // evaluate arbitrary formula
   //
@@ -118,25 +118,25 @@ struct External : Solver
 
   // build command line for the specific solver
   //
-  virtual std::string build_command () = 0;
+  virtual std::string command () = 0;
 
   // build trace based on the specific solver's output
   //
-  Trace::ptr build_trace (const Program::List::ptr & programs);
+  Trace::ptr trace (const Program::List::ptr & programs);
 
   // parse integer attribute of current symbol
   //
-  size_t parse_symbol (std::istringstream & line,
-                       const std::string & name,
-                       char delimiter = '_');
+  size_t attribute (std::istringstream & line,
+                    const std::string & name,
+                    char delimiter = '_');
 
   // parse current variable's symbol
   //
-  virtual Symbol parse_symbol (std::istringstream & line);
+  virtual Symbol symbol (std::istringstream & line);
 
   // parse variable
   //
-  virtual Symbol parse_line (std::istringstream & line) = 0;
+  virtual Symbol parse (std::istringstream & line) = 0;
 };
 
 } // namespace ConcuBinE
