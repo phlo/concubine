@@ -96,9 +96,6 @@ Encoder::Encoder (const Program::List::ptr & p,
 
 std::string Encoder::str ()
 {
-  if (!formula.tellp())
-    encode();
-
   return formula.str();
 }
 

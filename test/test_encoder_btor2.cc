@@ -1,6 +1,5 @@
 #include "test_encoder.hh"
 
-#include <filesystem>
 #include <functional>
 
 #include "btor2.hh"
@@ -15,7 +14,7 @@ namespace ConcuBinE::test {
 // TODO remove - debug only
 void evaluate (const std::string & formula)
 {
-  BtorMC btormc(20);
+  BtorMC btormc;
   std::cout << "running btormc..." << eol;
   btormc.sat(formula);
 }
@@ -24,385 +23,452 @@ void evaluate (const std::string & formula)
 // btor2::Encoder tests
 //==============================================================================
 
-struct btor2_Encoder : public encoder::Encoder<btor2::Encoder>
+using E = btor2::Encoder;
+
+void init_declarations (E & encoder, const bool clear_formula = true)
 {
-  void init_declarations (const bool clear_formula = true)
+  encoder.declare_sorts();
+  encoder.declare_constants();
+
+  encoder.thread = encoder.pc = 0;
+
+  if (clear_formula)
+    encoder.formula.str("");
+}
+
+void init_definitions (E & encoder, const bool clear_formula = true)
+{
+  init_declarations(encoder, clear_formula);
+
+  encoder.declare_states();
+  encoder.declare_inputs();
+
+  encoder.thread = encoder.pc = 0;
+
+  if (clear_formula)
+    encoder.formula.str("");
+}
+
+void init_state_definitions (E & encoder, const bool clear_formula = true)
+{
+  init_definitions(encoder, clear_formula);
+
+  encoder.define_transitions();
+
+  encoder.thread = encoder.pc = 0;
+
+  if (clear_formula)
+    encoder.formula.str("");
+}
+
+std::string expected_load (E & encoder,
+                           btor2::nid_t & nid,
+                           const word_t address)
+{
+  std::ostringstream s;
+  const word_t & thread = encoder.thread;
+
+  if (!thread)
     {
-      encoder->declare_sorts();
-      encoder->declare_constants();
-
-      encoder->thread = encoder->pc = 0;
-
-      if (clear_formula)
-        encoder->formula.str("");
-    }
-
-  void init_definitions (const bool clear_formula = true)
-    {
-      init_declarations(clear_formula);
-
-      encoder->declare_states();
-      encoder->declare_inputs();
-
-      encoder->thread = encoder->pc = 0;
-
-      if (clear_formula)
-        encoder->formula.str("");
-    }
-
-  void init_state_definitions (const bool clear_formula = true)
-    {
-      init_definitions(clear_formula);
-
-      encoder->define_transitions();
-
-      encoder->thread = encoder->pc = 0;
-
-      if (clear_formula)
-        encoder->formula.str("");
-    }
-
-  std::function<std::string()> expected = [] { return ""; };
-
-  std::string expected_load (btor2::nid_t & nid, const word_t address)
-    {
-      std::ostringstream s;
-      const word_t & thread = encoder->thread;
-
-      if (!thread)
-        {
-          s <<
-            btor2::read(
-              encoder->nids_read[address],
-              encoder->sid_bv,
-              encoder->nid_heap,
-              encoder->nids_const[address]);
-          nid++;
-        }
-
       s <<
-        btor2::eq(
-          encoder->nids_eq_sb_adr_adr[thread][address],
-          encoder->sid_bool,
-          encoder->nids_sb_adr[thread],
-          encoder->nids_const[address]);
+        btor2::read(
+          encoder.nids_read[address],
+          encoder.sid_bv,
+          encoder.nid_heap,
+          encoder.nids_const[address]);
       nid++;
+    }
+
+  s <<
+    btor2::eq(
+      encoder.nids_eq_sb_adr_adr[thread][address],
+      encoder.sid_bool,
+      encoder.nids_sb_adr[thread],
+      encoder.nids_const[address]);
+  nid++;
+  s <<
+    btor2::land(
+      std::to_string(nid),
+      encoder.sid_bool,
+      encoder.nids_sb_full[thread],
+      encoder.nids_eq_sb_adr_adr[thread][address]);
+  nid++;
+  s <<
+    btor2::ite(
+      encoder.nids_load[thread][address],
+      encoder.sid_bv,
+      std::to_string(nid - 1),
+      encoder.nids_sb_val[thread],
+      encoder.nids_read[address]);
+  nid++;
+
+  return s.str();
+}
+
+std::string expected_load_indirect (E & encoder,
+                                    btor2::nid_t & nid,
+                                    const word_t address)
+{
+  std::ostringstream s;
+  const word_t & thread = encoder.thread;
+
+  if (!thread)
+    {
       s <<
-        btor2::land(
+        btor2::read(
+          encoder.nids_read[address],
+          encoder.sid_bv,
+          encoder.nid_heap,
+          encoder.nids_const[address]);
+      nid++;
+    }
+
+  s <<
+    btor2::eq(
+      encoder.nids_eq_sb_adr_adr[thread][address],
+      encoder.sid_bool,
+      encoder.nids_sb_adr[thread],
+      encoder.nids_const[address]);
+  nid++;
+
+  if (!thread)
+    {
+      s <<
+        btor2::read(
+          encoder.nids_read_indirect[address],
+          encoder.sid_bv,
+          encoder.nid_heap,
+          encoder.nids_read[address]);
+      nid++;
+    }
+
+  s <<
+    btor2::eq(
+      std::to_string(nid),
+      encoder.sid_bool,
+      encoder.nids_sb_adr[thread],
+      encoder.nids_read[address]);
+  nid++;
+
+  std::string nid_ite_eq_sb_adr_read_adr = std::to_string(nid);
+
+  s <<
+    btor2::ite(
+      nid_ite_eq_sb_adr_read_adr,
+      encoder.sid_bv,
+      std::to_string(nid - 1),
+      encoder.nids_sb_val[thread],
+      encoder.nids_read_indirect[address]);
+  nid++;
+
+  if (!address || thread)
+    {
+      s <<
+        btor2::read(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_sb_full[thread],
-          encoder->nids_eq_sb_adr_adr[thread][address]);
+          encoder.sid_bv,
+          encoder.nid_heap,
+          encoder.nids_sb_val[thread]);
       nid++;
       s <<
-        btor2::ite(
-          encoder->nids_load[thread][address],
-          encoder->sid_bv,
-          std::to_string(nid - 1),
-          encoder->nids_sb_val[thread],
-          encoder->nids_read[address]);
-      nid++;
-
-      return s.str();
-    }
-
-  std::string expected_load_indirect (btor2::nid_t & nid, const word_t address)
-    {
-      std::ostringstream s;
-      const word_t & thread = encoder->thread;
-
-      if (!thread)
-        {
-          s <<
-            btor2::read(
-              encoder->nids_read[address],
-              encoder->sid_bv,
-              encoder->nid_heap,
-              encoder->nids_const[address]);
-          nid++;
-        }
-
-      s <<
-        btor2::eq(
-          encoder->nids_eq_sb_adr_adr[thread][address],
-          encoder->sid_bool,
-          encoder->nids_sb_adr[thread],
-          encoder->nids_const[address]);
-      nid++;
-
-      if (!thread)
-        {
-          s <<
-            btor2::read(
-              encoder->nids_read_indirect[address],
-              encoder->sid_bv,
-              encoder->nid_heap,
-              encoder->nids_read[address]);
-          nid++;
-        }
-
-      s <<
-        btor2::eq(
+        btor2::read(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_sb_adr[thread],
-          encoder->nids_read[address]);
+          encoder.sid_bv,
+          encoder.nid_heap,
+          std::to_string(nid - 1));
       nid++;
-
-      std::string nid_ite_eq_sb_adr_read_adr = std::to_string(nid);
-
-      s <<
-        btor2::ite(
-          nid_ite_eq_sb_adr_read_adr,
-          encoder->sid_bv,
-          std::to_string(nid - 1),
-          encoder->nids_sb_val[thread],
-          encoder->nids_read_indirect[address]);
-      nid++;
-
-      if (!address || thread)
-        {
-          s <<
-            btor2::read(
-              std::to_string(nid),
-              encoder->sid_bv,
-              encoder->nid_heap,
-              encoder->nids_sb_val[thread]);
-          nid++;
-          s <<
-            btor2::read(
-              std::to_string(nid),
-              encoder->sid_bv,
-              encoder->nid_heap,
-              std::to_string(nid - 1));
-          nid++;
-          s <<
-            btor2::eq(
-              std::to_string(nid),
-              encoder->sid_bool,
-              encoder->nids_sb_adr[thread],
-              std::to_string(nid - 2));
-          nid++;
-          s<<
-            btor2::ite(
-              encoder->nids_ite_eq_sb_adr_read_sb_val[thread],
-              encoder->sid_bv,
-              std::to_string(nid - 1),
-              encoder->nids_sb_val[thread],
-              std::to_string(nid - 2));
-          nid++;
-        }
-
       s <<
         btor2::eq(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_sb_val[thread],
-          encoder->nids_const[address]);
+          encoder.sid_bool,
+          encoder.nids_sb_adr[thread],
+          std::to_string(nid - 2));
       nid++;
-      s <<
+      s<<
         btor2::ite(
-          std::to_string(nid),
-          encoder->sid_bv,
+          encoder.nids_ite_eq_sb_adr_read_sb_val[thread],
+          encoder.sid_bv,
           std::to_string(nid - 1),
-          encoder->nids_sb_val[thread],
-          encoder->nids_ite_eq_sb_adr_read_sb_val[thread]);
+          encoder.nids_sb_val[thread],
+          std::to_string(nid - 2));
       nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder->sid_bv,
-          encoder->nids_eq_sb_adr_adr[thread][address],
-          std::to_string(nid - 1),
-          nid_ite_eq_sb_adr_read_adr);
-      nid++;
-      s <<
-        btor2::ite(
-          encoder->nids_load_indirect[thread][address],
-          encoder->sid_bv,
-          encoder->nids_sb_full[thread],
-          std::to_string(nid - 1),
-          encoder->nids_read_indirect[address]);
-      nid++;
-
-      return s.str();
     }
-};
+
+  s <<
+    btor2::eq(
+      std::to_string(nid),
+      encoder.sid_bool,
+      encoder.nids_sb_val[thread],
+      encoder.nids_const[address]);
+  nid++;
+  s <<
+    btor2::ite(
+      std::to_string(nid),
+      encoder.sid_bv,
+      std::to_string(nid - 1),
+      encoder.nids_sb_val[thread],
+      encoder.nids_ite_eq_sb_adr_read_sb_val[thread]);
+  nid++;
+  s <<
+    btor2::ite(
+      std::to_string(nid),
+      encoder.sid_bv,
+      encoder.nids_eq_sb_adr_adr[thread][address],
+      std::to_string(nid - 1),
+      nid_ite_eq_sb_adr_read_adr);
+  nid++;
+  s <<
+    btor2::ite(
+      encoder.nids_load_indirect[thread][address],
+      encoder.sid_bv,
+      encoder.nids_sb_full[thread],
+      std::to_string(nid - 1),
+      encoder.nids_read_indirect[address]);
+  nid++;
+
+  return s.str();
+}
 
 // btor2::Encoder::load ========================================================
 
-TEST_F(btor2_Encoder, load)
+TEST(btor2_Encoder, load)
 {
-  add_dummy_programs(2);
-  reset_encoder();
-  init_definitions();
+  auto encoder = create<E>(dummy(2));
 
-  btor2::nid_t nid = encoder->node;
-  word_t & thread = encoder->thread;
+  init_definitions(encoder);
+
+  btor2::nid_t nid = encoder.node;
+  word_t & thread = encoder.thread;
   word_t address = 0;
 
-  ASSERT_EQ(encoder->nids_load[thread][address], encoder->load(address));
-  ASSERT_EQ(expected_load(nid, address), encoder->formula.str());
-  encoder->formula.str("");
+  ASSERT_EQ(encoder.nids_load[thread][address], encoder.load(address));
+  ASSERT_EQ(expected_load(encoder, nid, address), encoder.formula.str());
+  encoder.formula.str("");
 
   // another load with the same address
-  ASSERT_EQ(encoder->nids_load[thread][address], encoder->load(address));
-  ASSERT_EQ("", encoder->formula.str());
+  ASSERT_EQ(encoder.nids_load[thread][address], encoder.load(address));
+  ASSERT_EQ("", encoder.formula.str());
 
   // another load with a different address
   address = 1;
-  ASSERT_EQ(encoder->nids_load[thread][address], encoder->load(address));
-  ASSERT_EQ(expected_load(nid, address), encoder->formula.str());
-  encoder->formula.str("");
+  ASSERT_EQ(encoder.nids_load[thread][address], encoder.load(address));
+  ASSERT_EQ(expected_load(encoder, nid, address), encoder.formula.str());
+  encoder.formula.str("");
 
   // another load from a different thread
   thread = 1;
-  ASSERT_EQ(encoder->nids_load[thread][address], encoder->load(address));
-  ASSERT_EQ(expected_load(nid, address), encoder->formula.str());
+  ASSERT_EQ(encoder.nids_load[thread][address], encoder.load(address));
+  ASSERT_EQ(expected_load(encoder, nid, address), encoder.formula.str());
 }
 
-TEST_F(btor2_Encoder, load_indirect)
+TEST(btor2_Encoder, load_indirect)
 {
-  add_dummy_programs(2);
-  reset_encoder();
-  init_definitions();
+  auto encoder = create<E>(dummy(2));
 
-  btor2::nid_t nid = encoder->node;
-  word_t & thread = encoder->thread;
+  init_definitions(encoder);
+
+  btor2::nid_t nid = encoder.node;
+  word_t & thread = encoder.thread;
   word_t address = 0;
 
   ASSERT_EQ(
-    encoder->nids_load_indirect[thread][address],
-    encoder->load(address, true));
-  ASSERT_EQ(expected_load_indirect(nid, address), encoder->formula.str());
-  encoder->formula.str("");
+    encoder.nids_load_indirect[thread][address],
+    encoder.load(address, true));
+  ASSERT_EQ(
+    expected_load_indirect(encoder, nid, address),
+    encoder.formula.str());
+  encoder.formula.str("");
 
   // another load with the same address
   ASSERT_EQ(
-    encoder->nids_load_indirect[thread][address],
-    encoder->load(address, true));
-  ASSERT_EQ("", encoder->formula.str());
+    encoder.nids_load_indirect[thread][address],
+    encoder.load(address, true));
+  ASSERT_EQ("", encoder.formula.str());
 
   // another load with a different address
   address = 1;
   ASSERT_EQ(
-    encoder->nids_load_indirect[thread][address],
-    encoder->load(address, true));
-  ASSERT_EQ(expected_load_indirect(nid, address), encoder->formula.str());
-  encoder->formula.str("");
+    encoder.nids_load_indirect[thread][address],
+    encoder.load(address, true));
+  ASSERT_EQ(
+    expected_load_indirect(encoder, nid, address),
+    encoder.formula.str());
+  encoder.formula.str("");
 
   // another load from a different thread
   thread = 1;
   ASSERT_EQ(
-    encoder->nids_load_indirect[thread][address],
-    encoder->load(address, true));
-  ASSERT_EQ(expected_load_indirect(nid, address), encoder->formula.str());
+    encoder.nids_load_indirect[thread][address],
+    encoder.load(address, true));
+  ASSERT_EQ(
+    expected_load_indirect(encoder, nid, address),
+    encoder.formula.str());
 }
 
 // btor2::Encoder::declare_sorts ===============================================
 
-TEST_F(btor2_Encoder, declare_sorts)
+TEST(btor2_Encoder, declare_sorts)
 {
-  encoder->declare_sorts();
+  auto encoder = create<E>();
 
-  expected = [this] {
+  encoder.declare_sorts();
+
+  auto expected = [&encoder] {
     std::ostringstream s;
 
     if (verbose)
       s << btor2::comment_section("sorts");
 
-    s << encoder->sid_bool << " sort bitvec 1\n"
-      << encoder->sid_bv << " sort bitvec 16\n"
-      << encoder->sid_heap << " sort array 2 2\n"
+    s << encoder.sid_bool << " sort bitvec 1\n"
+      << encoder.sid_bv << " sort bitvec 16\n"
+      << encoder.sid_heap << " sort array 2 2\n"
       << eol;
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
+  reset(encoder);
 
   verbose = false;
-  encoder->declare_sorts();
-  ASSERT_EQ(expected(), encoder->str());
+  encoder.declare_sorts();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
 // btor2::Encoder::declare_constants ===========================================
 
-TEST_F(btor2_Encoder, declare_constants)
+TEST(btor2_Encoder, declare_constants)
 {
-  programs.resize(3);
-  for (size_t thread = 0; thread < 3; thread++)
+  auto programs = std::make_shared<Program::List>(3);
+
+  for (size_t tid = 0; tid < 3; tid++)
     for (size_t pc = 0; pc < 3; pc++)
-      programs[thread].push_back(
-        Instruction::create("ADDI", thread + pc + 1));
+      (*programs)[tid].push_back(Instruction::create("ADDI", tid + pc + 1));
 
-  reset_encoder();
+  auto encoder = create<E>(programs);
 
-  encoder->declare_sorts();
-  encoder->formula.str("");
+  encoder.declare_sorts();
+  encoder.formula.str("");
 
-  encoder->declare_constants();
+  encoder.declare_constants();
 
-  expected = [this] {
+  auto expected = [&encoder] {
     std::ostringstream s;
 
     if (verbose)
       s << btor2::comment_section("constants");
 
-    s << encoder->nid_false << " zero 1\n"
-      << encoder->nid_true << " one 1\n"
+    s << encoder.nid_false << " zero 1\n"
+      << encoder.nid_true << " one 1\n"
       << eol
-      << encoder->nids_const[0] << " zero 2\n"
-      << encoder->nids_const[1] << " one 2\n"
-      << encoder->nids_const[2] << " constd 2 2\n"
-      << encoder->nids_const[3] << " constd 2 3\n"
-      << encoder->nids_const[4] << " constd 2 4\n"
-      << encoder->nids_const[5] << " constd 2 5\n"
+      << encoder.nids_const[0] << " zero 2\n"
+      << encoder.nids_const[1] << " one 2\n"
+      << encoder.nids_const[2] << " constd 2 2\n"
+      << encoder.nids_const[3] << " constd 2 3\n"
+      << encoder.nids_const[4] << " constd 2 4\n"
+      << encoder.nids_const[5] << " constd 2 5\n"
       << eol;
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
+  reset(encoder);
 
-  encoder->declare_sorts();
-  encoder->formula.str("");
+  encoder.declare_sorts();
+  encoder.formula.str("");
 
   verbose = false;
-  encoder->declare_constants();
-  ASSERT_EQ(expected(), encoder->str());
+  encoder.declare_constants();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
+}
+
+// btor2::Encoder::define_mmap =================================================
+
+TEST(btor2_Encoder, define_mmap)
+{
+  auto encoder = create<E>(lst(), mmap({{0, 0}, {1, 0}}));
+
+  init_state_definitions(encoder);
+
+  btor2::nid_t nid = encoder.node;
+
+  encoder.define_mmap();
+
+  auto expected = [&encoder, &nid] {
+    std::ostringstream s;
+
+    if (verbose)
+      s << btor2::comment_section("memory map");
+
+    std::string nid_init = std::to_string(nid++);
+
+    s << btor2::state(nid_init, encoder.sid_heap, "mmap");
+
+    for (const auto & [adr, val] : *encoder.mmap)
+      s <<
+        btor2::write(
+          nid_init = std::to_string(nid++),
+          encoder.sid_heap,
+          nid_init,
+          encoder.nids_const[adr],
+          encoder.nids_const[val]);
+
+    s << eol;
+
+    return s.str();
+  };
+
+  ASSERT_EQ(expected(), encoder.str());
+
+  // verbosity
+  reset(encoder);
+  init_state_definitions(encoder);
+
+  verbose = false;
+  nid = encoder.node;
+  encoder.define_mmap();
+  ASSERT_EQ(expected(), encoder.str());
+  verbose = true;
+}
+
+TEST(btor2_Encoder, define_mmap_empty)
+{
+  auto encoder = create<E>();
+
+  encoder.define_mmap();
+
+  ASSERT_EQ("", encoder.formula.str());
 }
 
 // btor2::Encoder::declare_accu ================================================
 
-TEST_F(btor2_Encoder, declare_accu)
+TEST(btor2_Encoder, declare_accu)
 {
-  add_dummy_programs(3);
-  reset_encoder();
-  init_declarations();
+  auto encoder = create<E>(dummy(3));
 
-  encoder->declare_accu();
+  init_declarations(encoder);
 
-  expected = [this] {
+  encoder.declare_accu();
+
+  auto expected = [&encoder] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->accu_comment;
+      s << encoder.accu_comment;
 
-    encoder->iterate_threads([this, &s] {
+    encoder.iterate_threads([&encoder, &s] {
       s <<
         btor2::state(
-          encoder->nids_accu[encoder->thread],
-          encoder->sid_bv,
-          encoder->accu_var());
+          encoder.nids_accu[encoder.thread],
+          encoder.sid_bv,
+          encoder.accu_var());
     });
 
     s << eol;
@@ -410,40 +476,40 @@ TEST_F(btor2_Encoder, declare_accu)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_declarations();
+  reset(encoder);
+  init_declarations(encoder);
 
   verbose = false;
-  encoder->declare_accu();
-  ASSERT_EQ(expected(), encoder->str());
+  encoder.declare_accu();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
 // btor2::Encoder::declare_mem =================================================
 
-TEST_F(btor2_Encoder, declare_mem)
+TEST(btor2_Encoder, declare_mem)
 {
-  add_dummy_programs(3);
-  reset_encoder();
-  init_declarations();
+  auto encoder = create<E>(dummy(3));
 
-  encoder->declare_mem();
+  init_declarations(encoder);
 
-  expected = [this] {
+  encoder.declare_mem();
+
+  auto expected = [&encoder] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->mem_comment;
+      s << encoder.mem_comment;
 
-    encoder->iterate_threads([this, &s] {
+    encoder.iterate_threads([&encoder, &s] {
       s <<
         btor2::state(
-          encoder->nids_mem[encoder->thread],
-          encoder->sid_bv,
-          encoder->mem_var());
+          encoder.nids_mem[encoder.thread],
+          encoder.sid_bv,
+          encoder.mem_var());
     });
 
     s << eol;
@@ -451,40 +517,40 @@ TEST_F(btor2_Encoder, declare_mem)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_declarations();
+  reset(encoder);
+  init_declarations(encoder);
 
   verbose = false;
-  encoder->declare_mem();
-  ASSERT_EQ(expected(), encoder->str());
+  encoder.declare_mem();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
 // btor2::Encoder::declare_sb_adr ==============================================
 
-TEST_F(btor2_Encoder, declare_sb_adr)
+TEST(btor2_Encoder, declare_sb_adr)
 {
-  add_dummy_programs(3);
-  reset_encoder();
-  init_declarations();
+  auto encoder = create<E>(dummy(3));
 
-  encoder->declare_sb_adr();
+  init_declarations(encoder);
 
-  expected = [this] {
+  encoder.declare_sb_adr();
+
+  auto expected = [&encoder] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->sb_adr_comment;
+      s << encoder.sb_adr_comment;
 
-    encoder->iterate_threads([this, &s] {
+    encoder.iterate_threads([&encoder, &s] {
       s <<
         btor2::state(
-          encoder->nids_sb_adr[encoder->thread],
-          encoder->sid_bv,
-          encoder->sb_adr_var());
+          encoder.nids_sb_adr[encoder.thread],
+          encoder.sid_bv,
+          encoder.sb_adr_var());
     });
 
     s << eol;
@@ -492,40 +558,40 @@ TEST_F(btor2_Encoder, declare_sb_adr)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_declarations();
+  reset(encoder);
+  init_declarations(encoder);
 
   verbose = false;
-  encoder->declare_sb_adr();
-  ASSERT_EQ(expected(), encoder->str());
+  encoder.declare_sb_adr();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
 // btor2::Encoder::declare_sb_val ==============================================
 
-TEST_F(btor2_Encoder, declare_sb_val)
+TEST(btor2_Encoder, declare_sb_val)
 {
-  add_dummy_programs(3);
-  reset_encoder();
-  init_declarations();
+  auto encoder = create<E>(dummy(3));
 
-  encoder->declare_sb_val();
+  init_declarations(encoder);
 
-  expected = [this] {
+  encoder.declare_sb_val();
+
+  auto expected = [&encoder] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->sb_val_comment;
+      s << encoder.sb_val_comment;
 
-    encoder->iterate_threads([this, &s] {
+    encoder.iterate_threads([&encoder, &s] {
       s <<
         btor2::state(
-          encoder->nids_sb_val[encoder->thread],
-          encoder->sid_bv,
-          encoder->sb_val_var());
+          encoder.nids_sb_val[encoder.thread],
+          encoder.sid_bv,
+          encoder.sb_val_var());
     });
 
     s << eol;
@@ -533,40 +599,40 @@ TEST_F(btor2_Encoder, declare_sb_val)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_declarations();
+  reset(encoder);
+  init_declarations(encoder);
 
   verbose = false;
-  encoder->declare_sb_val();
-  ASSERT_EQ(expected(), encoder->str());
+  encoder.declare_sb_val();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
 // btor2::Encoder::declare_sb_full =============================================
 
-TEST_F(btor2_Encoder, declare_sb_full)
+TEST(btor2_Encoder, declare_sb_full)
 {
-  add_dummy_programs(3);
-  reset_encoder();
-  init_declarations();
+  auto encoder = create<E>(dummy(3));
 
-  encoder->declare_sb_full();
+  init_declarations(encoder);
 
-  expected = [this] {
+  encoder.declare_sb_full();
+
+  auto expected = [&encoder] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->sb_full_comment;
+      s << encoder.sb_full_comment;
 
-    encoder->iterate_threads([this, &s] {
+    encoder.iterate_threads([&encoder, &s] {
       s <<
         btor2::state(
-          encoder->nids_sb_full[encoder->thread],
-          encoder->sid_bool,
-          encoder->sb_full_var());
+          encoder.nids_sb_full[encoder.thread],
+          encoder.sid_bool,
+          encoder.sb_full_var());
     });
 
     s << eol;
@@ -574,44 +640,44 @@ TEST_F(btor2_Encoder, declare_sb_full)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_declarations();
+  reset(encoder);
+  init_declarations(encoder);
 
   verbose = false;
-  encoder->declare_sb_full();
-  ASSERT_EQ(expected(), encoder->str());
+  encoder.declare_sb_full();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
 // btor2::Encoder::declare_stmt ================================================
 
-TEST_F(btor2_Encoder, declare_stmt)
+TEST(btor2_Encoder, declare_stmt)
 {
-  add_dummy_programs(3, 3);
-  reset_encoder();
-  init_declarations();
+  auto encoder = create<E>(dummy(3, 3));
 
-  encoder->declare_stmt();
+  init_declarations(encoder);
 
-  expected = [this] {
+  encoder.declare_stmt();
+
+  auto expected = [&encoder] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->stmt_comment;
+      s << encoder.stmt_comment;
 
-    encoder->iterate_programs([this, &s] (const Program & program) {
-      word_t & thread = encoder->thread;
-      word_t & pc = encoder->pc;
+    encoder.iterate_programs([&encoder, &s] (const Program & program) {
+      word_t & thread = encoder.thread;
+      word_t & pc = encoder.pc;
 
       for (pc = 0; pc < program.size(); pc++)
         s <<
           btor2::state(
-            encoder->nids_stmt[thread][pc],
-            encoder->sid_bool,
-            encoder->stmt_var());
+            encoder.nids_stmt[thread][pc],
+            encoder.sid_bool,
+            encoder.stmt_var());
 
       s << eol;
     });
@@ -619,44 +685,42 @@ TEST_F(btor2_Encoder, declare_stmt)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_declarations();
+  reset(encoder);
+  init_declarations(encoder);
 
   verbose = false;
-  encoder->declare_stmt();
-  ASSERT_EQ(expected(), encoder->str());
+  encoder.declare_stmt();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
 // btor2::Encoder::declare_block ===============================================
 
-TEST_F(btor2_Encoder, declare_block)
+TEST(btor2_Encoder, declare_block)
 {
-  for (size_t i = 0; i < 3; i++)
-    programs.push_back(
-      create_program(
-        "CHECK 0\n"
-        "CHECK 1\n"
-      ));
+  const auto code =
+    "CHECK 0\n"
+    "CHECK 1\n";
 
-  reset_encoder();
-  init_declarations();
+  auto encoder = create<E>(dup(prog(code), 3));
 
-  encoder->declare_block();
+  init_declarations(encoder);
 
-  expected = [this] {
+  encoder.declare_block();
+
+  auto expected = [&encoder] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->block_comment;
+      s << encoder.block_comment;
 
-    for (const auto & [c, threads] : encoder->nids_block)
+    for (const auto & [c, threads] : encoder.nids_block)
       {
         for (const auto & [t, nid] : threads)
-          s << btor2::state(nid, encoder->sid_bool, encoder->block_var(c, t));
+          s << btor2::state(nid, encoder.sid_bool, encoder.block_var(c, t));
 
         s << eol;
       }
@@ -664,46 +728,48 @@ TEST_F(btor2_Encoder, declare_block)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_declarations();
+  reset(encoder);
+  init_declarations(encoder);
 
   verbose = false;
-  encoder->declare_block();
-  ASSERT_EQ(expected(), encoder->str());
+  encoder.declare_block();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
-TEST_F(btor2_Encoder, declare_block_empty)
+TEST(btor2_Encoder, declare_block_empty)
 {
-  encoder->declare_block();
+  auto encoder = create<E>();
 
-  ASSERT_EQ("", encoder->formula.str());
+  encoder.declare_block();
+
+  ASSERT_EQ("", encoder.formula.str());
 }
 
 // btor2::Encoder::declare_halt ================================================
-TEST_F(btor2_Encoder, declare_halt)
+TEST(btor2_Encoder, declare_halt)
 {
-  add_dummy_programs(3);
-  reset_encoder();
-  init_declarations();
+  auto encoder = create<E>(dummy(3));
 
-  encoder->declare_halt();
+  init_declarations(encoder);
 
-  expected = [this] {
+  encoder.declare_halt();
+
+  auto expected = [&encoder] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->halt_comment;
+      s << encoder.halt_comment;
 
-    encoder->iterate_threads([this, &s] {
+    encoder.iterate_threads([&encoder, &s] {
       s <<
         btor2::state(
-          encoder->nids_halt[encoder->thread],
-          encoder->sid_bool,
-          encoder->halt_var());
+          encoder.nids_halt[encoder.thread],
+          encoder.sid_bool,
+          encoder.halt_var());
     });
 
     s << eol;
@@ -711,151 +777,157 @@ TEST_F(btor2_Encoder, declare_halt)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_declarations();
+  reset(encoder);
+  init_declarations(encoder);
 
   verbose = false;
-  encoder->declare_halt();
-  ASSERT_EQ(expected(), encoder->str());
+  encoder.declare_halt();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
-TEST_F(btor2_Encoder, declare_halt_empty)
+TEST(btor2_Encoder, declare_halt_empty)
 {
-  encoder->declare_halt();
+  auto encoder = create<E>();
 
-  ASSERT_EQ("", encoder->formula.str());
+  encoder.declare_halt();
+
+  ASSERT_EQ("", encoder.formula.str());
 }
 
 // btor2::Encoder::declare_heap ================================================
 
-TEST_F(btor2_Encoder, declare_heap)
+TEST(btor2_Encoder, declare_heap)
 {
-  init_declarations();
+  auto encoder = create<E>();
 
-  encoder->declare_heap();
+  init_declarations(encoder);
 
-  expected = [this] {
+  encoder.declare_heap();
+
+  auto expected = [&encoder] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->heap_comment;
+      s << encoder.heap_comment;
 
-    s << encoder->nid_heap + " state 3 heap\n\n";
+    s << encoder.nid_heap + " state 3 heap\n\n";
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_declarations();
+  reset(encoder);
+  init_declarations(encoder);
 
   verbose = false;
-  encoder->declare_heap();
-  ASSERT_EQ(expected(), encoder->str());
+  encoder.declare_heap();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
 // btor2::Encoder::declare_exit_flag ===========================================
 
-TEST_F(btor2_Encoder, declare_exit_flag)
+TEST(btor2_Encoder, declare_exit_flag)
 {
-  programs.push_back(create_program("EXIT 1\n"));
-  reset_encoder();
-  init_declarations();
+  auto encoder = create<E>(lst(prog("EXIT 1")));
 
-  encoder->declare_exit_flag();
+  init_declarations(encoder);
 
-  expected = [this] {
+  encoder.declare_exit_flag();
+
+  auto expected = [&encoder] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->exit_flag_comment;
+      s << encoder.exit_flag_comment;
 
-    s << encoder->nid_exit_flag + " state 1 exit\n\n";
+    s << encoder.nid_exit_flag + " state 1 exit\n\n";
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_declarations();
+  reset(encoder);
+  init_declarations(encoder);
 
   verbose = false;
-  encoder->declare_exit_flag();
-  ASSERT_EQ(expected(), encoder->str());
+  encoder.declare_exit_flag();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
-TEST_F(btor2_Encoder, declare_exit_flag_empty)
+TEST(btor2_Encoder, declare_exit_flag_empty)
 {
-  encoder->declare_exit_flag();
+  auto encoder = create<E>();
 
-  ASSERT_EQ("", encoder->formula.str());
+  encoder.declare_exit_flag();
+
+  ASSERT_EQ("", encoder.formula.str());
 }
 
 // btor2::Encoder::declare_exit_code ===========================================
 
-TEST_F(btor2_Encoder, declare_exit_code)
+TEST(btor2_Encoder, declare_exit_code)
 {
-  programs.push_back(create_program("EXIT 1\n"));
-  reset_encoder();
-  init_declarations();
+  auto encoder = create<E>(lst(prog("EXIT 1")));
 
-  encoder->declare_exit_code();
+  init_declarations(encoder);
 
-  expected = [this] {
+  encoder.declare_exit_code();
+
+  auto expected = [&encoder] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->exit_code_comment;
+      s << encoder.exit_code_comment;
 
-    s << encoder->nid_exit_code + " state 2 exit-code\n\n";
+    s << encoder.nid_exit_code + " state 2 exit-code\n\n";
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_declarations();
+  reset(encoder);
+  init_declarations(encoder);
 
   verbose = false;
-  encoder->declare_exit_code();
-  ASSERT_EQ(expected(), encoder->str());
+  encoder.declare_exit_code();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
 // btor2::Encoder::declare_thread ==============================================
 
-TEST_F(btor2_Encoder, declare_thread)
+TEST(btor2_Encoder, declare_thread)
 {
-  add_dummy_programs(3);
-  reset_encoder();
-  init_declarations();
+  auto encoder = create<E>(dummy(3));
 
-  encoder->declare_thread();
+  init_declarations(encoder);
 
-  expected = [this] {
+  encoder.declare_thread();
+
+  auto expected = [&encoder] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->thread_comment;
+      s << encoder.thread_comment;
 
-    encoder->iterate_threads([this, &s] {
+    encoder.iterate_threads([&encoder, &s] {
       s <<
         btor2::input(
-          encoder->nids_thread[encoder->thread],
-          encoder->sid_bool,
-          encoder->thread_var());
+          encoder.nids_thread[encoder.thread],
+          encoder.sid_bool,
+          encoder.thread_var());
     });
 
     s << eol;
@@ -863,40 +935,40 @@ TEST_F(btor2_Encoder, declare_thread)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_declarations();
+  reset(encoder);
+  init_declarations(encoder);
 
   verbose = false;
-  encoder->declare_thread();
-  ASSERT_EQ(expected(), encoder->str());
+  encoder.declare_thread();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
 // btor2::Encoder::declare_flush ===============================================
 
-TEST_F(btor2_Encoder, declare_flush)
+TEST(btor2_Encoder, declare_flush)
 {
-  add_dummy_programs(3);
-  reset_encoder();
-  init_declarations();
+  auto encoder = create<E>(dummy(3));
 
-  encoder->declare_flush();
+  init_declarations(encoder);
 
-  expected = [this] {
+  encoder.declare_flush();
+
+  auto expected = [&encoder] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->flush_comment;
+      s << encoder.flush_comment;
 
-    encoder->iterate_threads([this, &s] {
+    encoder.iterate_threads([&encoder, &s] {
       s <<
         btor2::input(
-          encoder->nids_flush[encoder->thread],
-          encoder->sid_bool,
-          encoder->flush_var());
+          encoder.nids_flush[encoder.thread],
+          encoder.sid_bool,
+          encoder.flush_var());
     });
 
     s << eol;
@@ -904,46 +976,46 @@ TEST_F(btor2_Encoder, declare_flush)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_declarations();
+  reset(encoder);
+  init_declarations(encoder);
 
   verbose = false;
-  encoder->declare_flush();
-  ASSERT_EQ(expected(), encoder->str());
+  encoder.declare_flush();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
 // btor2::Encoder::define_exec =================================================
 
-TEST_F(btor2_Encoder, define_exec)
+TEST(btor2_Encoder, define_exec)
 {
-  add_dummy_programs(3, 3);
-  reset_encoder();
-  init_definitions();
+  auto encoder = create<E>(dummy(3, 3));
 
-  encoder->define_exec();
+  init_definitions(encoder);
 
-  expected = [this] {
+  encoder.define_exec();
+
+  auto expected = [&encoder] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->exec_comment;
+      s << encoder.exec_comment;
 
-    encoder->iterate_programs([this, &s] (const Program & program) {
-      word_t & thread = encoder->thread;
-      word_t & pc = encoder->pc;
+    encoder.iterate_programs([&encoder, &s] (const Program & program) {
+      word_t & thread = encoder.thread;
+      word_t & pc = encoder.pc;
 
       for (pc = 0; pc < program.size(); pc++)
         s <<
           btor2::land(
-            encoder->nids_exec[thread][pc],
-            encoder->sid_bool,
-            encoder->nids_stmt[thread][pc],
-            encoder->nids_thread[thread],
-            encoder->exec_var());
+            encoder.nids_exec[thread][pc],
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            encoder.nids_thread[thread],
+            encoder.exec_var());
 
       s << eol;
     });
@@ -951,97 +1023,100 @@ TEST_F(btor2_Encoder, define_exec)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_definitions();
+  reset(encoder);
+  init_definitions(encoder);
 
   verbose = false;
-  encoder->define_exec();
-  ASSERT_EQ(expected(), encoder->str());
+  encoder.define_exec();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
 // btor2::Encoder::define_check ================================================
 
-TEST_F(btor2_Encoder, define_check)
+TEST(btor2_Encoder, define_check)
 {
-  add_instruction_set(3);
-  reset_encoder();
-  init_definitions();
+  auto encoder = create<E>(dup(prog(instruction_set), 3));
 
-  btor2::nid_t nid = encoder->node;
+  init_definitions(encoder);
 
-  encoder->define_check();
+  btor2::nid_t nid = encoder.node;
 
-  expected = [this, &nid] {
+  encoder.define_check();
+
+  auto expected = [&encoder, &nid] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->check_comment;
+      s << encoder.check_comment;
 
     std::vector<std::string> blocks;
 
-    for (const auto & [c, threads] : encoder->nids_block)
+    for (const auto & [c, threads] : encoder.nids_block)
       for (const auto & [t, nid_block] : threads)
         blocks.push_back(nid_block);
 
-    s << btor2::land(nid, encoder->sid_bool, blocks, encoder->check_var(1));
+    s << btor2::land(nid, encoder.sid_bool, blocks, encoder.check_var(1));
     s << eol;
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_definitions();
+  reset(encoder);
+  init_definitions(encoder);
 
   verbose = false;
-  nid = encoder->node;
-  encoder->define_check();
-  ASSERT_EQ(expected(), encoder->str());
+  nid = encoder.node;
+  encoder.define_check();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
-TEST_F(btor2_Encoder, define_check_empty)
+TEST(btor2_Encoder, define_check_empty)
 {
-  encoder->define_check();
-  ASSERT_EQ("", encoder->formula.str());
+  auto encoder = create<E>();
+
+  encoder.define_check();
+
+  ASSERT_EQ("", encoder.formula.str());
 }
 
 // btor2::Encoder::define_accu =================================================
 
-TEST_F(btor2_Encoder, define_accu)
+TEST(btor2_Encoder, define_accu)
 {
-  add_instruction_set(3);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dup(prog(instruction_set), 3));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
 
-  encoder->define_accu();
+  btor2::nid_t nid = encoder.node;
 
-  expected = [this, &nid] {
+  encoder.define_accu();
+
+  auto expected = [&encoder, &nid] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->accu_comment;
+      s << encoder.accu_comment;
 
-    encoder->iterate_threads([this, &nid, &s] {
-      word_t & thread = encoder->thread;
-      word_t & pc = encoder->pc = 0;
+    encoder.iterate_threads([&encoder, &nid, &s] {
+      word_t & thread = encoder.thread;
+      word_t & pc = encoder.pc = 0;
       word_t address = 1;
 
       // init
       s <<
         btor2::init(
           std::to_string(nid),
-          encoder->sid_bv,
-          encoder->nids_accu[thread],
-          encoder->nids_const[0]);
+          encoder.sid_bv,
+          encoder.nids_accu[thread],
+          encoder.nids_const[0]);
       nid++;
 
       // LOAD
@@ -1049,43 +1124,43 @@ TEST_F(btor2_Encoder, define_accu)
         {
           s <<
             btor2::read(
-              encoder->nids_read[address],
-              encoder->sid_bv,
-              encoder->nid_heap,
-              encoder->nids_const[address]);
+              encoder.nids_read[address],
+              encoder.sid_bv,
+              encoder.nid_heap,
+              encoder.nids_const[address]);
           nid++;
         }
 
       s <<
         btor2::eq(
-          encoder->nids_eq_sb_adr_adr[thread][address],
-          encoder->sid_bool,
-          encoder->nids_sb_adr[thread],
-          encoder->nids_const[address]);
+          encoder.nids_eq_sb_adr_adr[thread][address],
+          encoder.sid_bool,
+          encoder.nids_sb_adr[thread],
+          encoder.nids_const[address]);
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_sb_full[thread],
-          encoder->nids_eq_sb_adr_adr[thread][address]);
+          encoder.sid_bool,
+          encoder.nids_sb_full[thread],
+          encoder.nids_eq_sb_adr_adr[thread][address]);
       nid++;
       s <<
         btor2::ite(
-          encoder->nids_load[thread][address],
-          encoder->sid_bv,
+          encoder.nids_load[thread][address],
+          encoder.sid_bv,
           std::to_string(nid - 1),
-          encoder->nids_sb_val[thread],
-          encoder->nids_read[address]);
+          encoder.nids_sb_val[thread],
+          encoder.nids_read[address]);
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bv,
-          encoder->nids_exec[thread][pc],
-          encoder->nids_load[thread][address],
-          encoder->nids_accu[thread],
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          encoder.sid_bv,
+          encoder.nids_exec[thread][pc],
+          encoder.nids_load[thread][address],
+          encoder.nids_accu[thread],
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
 
       // ADD
@@ -1094,18 +1169,18 @@ TEST_F(btor2_Encoder, define_accu)
       s <<
         btor2::add(
           std::to_string(nid),
-          encoder->sid_bv,
-          encoder->nids_accu[thread],
-          encoder->nids_load[thread][address]);
+          encoder.sid_bv,
+          encoder.nids_accu[thread],
+          encoder.nids_load[thread][address]);
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bv,
-          encoder->nids_exec[thread][pc],
+          encoder.sid_bv,
+          encoder.nids_exec[thread][pc],
           std::to_string(nid - 1),
           std::to_string(nid - 2),
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
 
       // ADDI
@@ -1114,18 +1189,18 @@ TEST_F(btor2_Encoder, define_accu)
       s <<
         btor2::add(
           std::to_string(nid),
-          encoder->sid_bv,
-          encoder->nids_accu[thread],
-          encoder->nids_const[1]);
+          encoder.sid_bv,
+          encoder.nids_accu[thread],
+          encoder.nids_const[1]);
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bv,
-          encoder->nids_exec[thread][pc],
+          encoder.sid_bv,
+          encoder.nids_exec[thread][pc],
           std::to_string(nid - 1),
           std::to_string(nid - 2),
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
 
       // SUB
@@ -1134,18 +1209,18 @@ TEST_F(btor2_Encoder, define_accu)
       s <<
         btor2::sub(
           std::to_string(nid),
-          encoder->sid_bv,
-          encoder->nids_accu[thread],
-          encoder->nids_load[thread][address]);
+          encoder.sid_bv,
+          encoder.nids_accu[thread],
+          encoder.nids_load[thread][address]);
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bv,
-          encoder->nids_exec[thread][pc],
+          encoder.sid_bv,
+          encoder.nids_exec[thread][pc],
           std::to_string(nid - 1),
           std::to_string(nid - 2),
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
 
       // SUBI
@@ -1154,89 +1229,129 @@ TEST_F(btor2_Encoder, define_accu)
       s <<
         btor2::sub(
           std::to_string(nid),
-          encoder->sid_bv,
-          encoder->nids_accu[thread],
-          encoder->nids_const[1]);
+          encoder.sid_bv,
+          encoder.nids_accu[thread],
+          encoder.nids_const[1]);
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bv,
-          encoder->nids_exec[thread][pc],
+          encoder.sid_bv,
+          encoder.nids_exec[thread][pc],
           std::to_string(nid - 1),
           std::to_string(nid - 2),
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          verbose ? encoder.debug_symbol(thread, pc) : "");
+      nid++;
+
+      // MUL
+      pc = 6;
+
+      s <<
+        btor2::mul(
+          std::to_string(nid),
+          encoder.sid_bv,
+          encoder.nids_accu[thread],
+          encoder.nids_load[thread][address]);
+      nid++;
+      s <<
+        btor2::ite(
+          std::to_string(nid),
+          encoder.sid_bv,
+          encoder.nids_exec[thread][pc],
+          std::to_string(nid - 1),
+          std::to_string(nid - 2),
+          verbose ? encoder.debug_symbol(thread, pc) : "");
+      nid++;
+
+      // MULI
+      pc = 7;
+
+      s <<
+        btor2::mul(
+          std::to_string(nid),
+          encoder.sid_bv,
+          encoder.nids_accu[thread],
+          encoder.nids_const[1]);
+      nid++;
+      s <<
+        btor2::ite(
+          std::to_string(nid),
+          encoder.sid_bv,
+          encoder.nids_exec[thread][pc],
+          std::to_string(nid - 1),
+          std::to_string(nid - 2),
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
 
       // CMP
-      pc = 6;
+      pc = 8;
 
       s <<
         btor2::sub(
           std::to_string(nid),
-          encoder->sid_bv,
-          encoder->nids_accu[thread],
-          encoder->nids_load[thread][address]);
+          encoder.sid_bv,
+          encoder.nids_accu[thread],
+          encoder.nids_load[thread][address]);
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bv,
-          encoder->nids_exec[thread][pc],
+          encoder.sid_bv,
+          encoder.nids_exec[thread][pc],
           std::to_string(nid - 1),
           std::to_string(nid - 2),
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
 
       // MEM
-      pc = 13;
+      pc = 15;
 
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bv,
-          encoder->nids_exec[thread][pc],
-          encoder->nids_load[thread][address],
+          encoder.sid_bv,
+          encoder.nids_exec[thread][pc],
+          encoder.nids_load[thread][address],
           std::to_string(nid - 1),
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
 
       // CAS
-      pc = 14;
+      pc = 16;
 
       s <<
         btor2::eq(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_mem[thread],
-          encoder->nids_load[thread][address]);
+          encoder.sid_bool,
+          encoder.nids_mem[thread],
+          encoder.nids_load[thread][address]);
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bv,
+          encoder.sid_bv,
           std::to_string(nid - 1),
-          encoder->nids_const[1],
-          encoder->nids_const[0]);
+          encoder.nids_const[1],
+          encoder.nids_const[0]);
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bv,
-          encoder->nids_exec[thread][pc],
+          encoder.sid_bv,
+          encoder.nids_exec[thread][pc],
           std::to_string(nid - 1),
           std::to_string(nid - 3),
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
 
       // next
       s <<
         btor2::next(
           std::to_string(nid),
-          encoder->sid_bv,
-          encoder->nids_accu[thread],
+          encoder.sid_bv,
+          encoder.nids_accu[thread],
           std::to_string(nid - 1),
-          encoder->accu_var());
+          encoder.accu_var());
       nid++;
 
       s << eol;
@@ -1245,64 +1360,64 @@ TEST_F(btor2_Encoder, define_accu)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_state_definitions();
+  reset(encoder);
+  init_state_definitions(encoder);
 
   verbose = false;
-  nid = encoder->node;
-  encoder->define_accu();
-  ASSERT_EQ(expected(), encoder->str());
+  nid = encoder.node;
+  encoder.define_accu();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
 // btor2::Encoder::define_sb_adr ===============================================
 
-TEST_F(btor2_Encoder, define_sb_adr)
+TEST(btor2_Encoder, define_sb_adr)
 {
-  add_instruction_set(3);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dup(prog(instruction_set), 3));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
 
-  encoder->define_sb_adr();
+  btor2::nid_t nid = encoder.node;
 
-  expected = [this, &nid] {
+  encoder.define_sb_adr();
+
+  auto expected = [&encoder, &nid] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->sb_adr_comment;
+      s << encoder.sb_adr_comment;
 
-    encoder->iterate_threads([this, &nid, &s] {
-      word_t & thread = encoder->thread;
-      word_t & pc = encoder->pc = 1; // STORE
+    encoder.iterate_threads([&encoder, &nid, &s] {
+      word_t & thread = encoder.thread;
+      word_t & pc = encoder.pc = 1; // STORE
 
       s <<
         btor2::init(
           std::to_string(nid),
-          encoder->sid_bv,
-          encoder->nids_sb_adr[thread],
-          encoder->nids_const[0]);
+          encoder.sid_bv,
+          encoder.nids_sb_adr[thread],
+          encoder.nids_const[0]);
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bv,
-          encoder->nids_exec[thread][pc],
-          encoder->nids_const[1],
-          encoder->nids_sb_adr[thread],
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          encoder.sid_bv,
+          encoder.nids_exec[thread][pc],
+          encoder.nids_const[1],
+          encoder.nids_sb_adr[thread],
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
       s <<
         btor2::next(
           std::to_string(nid),
-          encoder->sid_bv,
-          encoder->nids_sb_adr[thread],
+          encoder.sid_bv,
+          encoder.nids_sb_adr[thread],
           std::to_string(nid - 1),
-          encoder->sb_adr_var());
+          encoder.sb_adr_var());
       nid++;
 
       s << eol;
@@ -1311,64 +1426,64 @@ TEST_F(btor2_Encoder, define_sb_adr)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_state_definitions();
+  reset(encoder);
+  init_state_definitions(encoder);
 
   verbose = false;
-  nid = encoder->node;
-  encoder->define_sb_adr();
-  ASSERT_EQ(expected(), encoder->str());
+  nid = encoder.node;
+  encoder.define_sb_adr();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
 // btor2::Encoder::define_sb_val ===============================================
 
-TEST_F(btor2_Encoder, define_sb_val)
+TEST(btor2_Encoder, define_sb_val)
 {
-  add_instruction_set(3);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dup(prog(instruction_set), 3));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
 
-  encoder->define_sb_val();
+  btor2::nid_t nid = encoder.node;
 
-  expected = [this, &nid] {
+  encoder.define_sb_val();
+
+  auto expected = [&encoder, &nid] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->sb_val_comment;
+      s << encoder.sb_val_comment;
 
-    encoder->iterate_threads([this, &nid, &s] {
-      word_t & thread = encoder->thread;
-      word_t & pc = encoder->pc = 1; // STORE
+    encoder.iterate_threads([&encoder, &nid, &s] {
+      word_t & thread = encoder.thread;
+      word_t & pc = encoder.pc = 1; // STORE
 
       s <<
         btor2::init(
           std::to_string(nid),
-          encoder->sid_bv,
-          encoder->nids_sb_val[thread],
-          encoder->nids_const[0]);
+          encoder.sid_bv,
+          encoder.nids_sb_val[thread],
+          encoder.nids_const[0]);
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bv,
-          encoder->nids_exec[thread][pc],
-          encoder->nids_accu[thread],
-          encoder->nids_sb_val[thread],
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          encoder.sid_bv,
+          encoder.nids_exec[thread][pc],
+          encoder.nids_accu[thread],
+          encoder.nids_sb_val[thread],
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
       s <<
         btor2::next(
           std::to_string(nid),
-          encoder->sid_bv,
-          encoder->nids_sb_val[thread],
+          encoder.sid_bv,
+          encoder.nids_sb_val[thread],
           std::to_string(nid - 1),
-          encoder->sb_val_var());
+          encoder.sb_val_var());
       nid++;
 
       s << eol;
@@ -1377,70 +1492,70 @@ TEST_F(btor2_Encoder, define_sb_val)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_state_definitions();
+  reset(encoder);
+  init_state_definitions(encoder);
 
   verbose = false;
-  nid = encoder->node;
-  encoder->define_sb_val();
-  ASSERT_EQ(expected(), encoder->str());
+  nid = encoder.node;
+  encoder.define_sb_val();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
 // btor2::Encoder::define_sb_full ==============================================
 
-TEST_F(btor2_Encoder, define_sb_full)
+TEST(btor2_Encoder, define_sb_full)
 {
-  add_instruction_set(3);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dup(prog(instruction_set), 3));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
 
-  encoder->define_sb_full();
+  btor2::nid_t nid = encoder.node;
 
-  expected = [this, &nid] {
+  encoder.define_sb_full();
+
+  auto expected = [&encoder, &nid] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->sb_full_comment;
+      s << encoder.sb_full_comment;
 
-    encoder->iterate_threads([this, &nid, &s] {
-      word_t & thread = encoder->thread;
-      word_t & pc = encoder->pc = 1; // STORE
+    encoder.iterate_threads([&encoder, &nid, &s] {
+      word_t & thread = encoder.thread;
+      word_t & pc = encoder.pc = 1; // STORE
 
       s <<
         btor2::init(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_sb_full[thread],
-          encoder->nid_false);
+          encoder.sid_bool,
+          encoder.nids_sb_full[thread],
+          encoder.nid_false);
       nid++;
       s <<
         btor2::lor(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_exec[thread][pc],
-          encoder->nids_sb_full[thread]);
+          encoder.sid_bool,
+          encoder.nids_exec[thread][pc],
+          encoder.nids_sb_full[thread]);
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_flush[thread],
-          encoder->nid_false,
+          encoder.sid_bool,
+          encoder.nids_flush[thread],
+          encoder.nid_false,
           std::to_string(nid - 1));
       nid++;
       s <<
         btor2::next(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_sb_full[thread],
+          encoder.sid_bool,
+          encoder.nids_sb_full[thread],
           std::to_string(nid - 1),
-          encoder->sb_full_var());
+          encoder.sb_full_var());
       nid++;
 
       s << eol;
@@ -1449,64 +1564,64 @@ TEST_F(btor2_Encoder, define_sb_full)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_state_definitions();
+  reset(encoder);
+  init_state_definitions(encoder);
 
   verbose = false;
-  nid = encoder->node;
-  encoder->define_sb_full();
-  ASSERT_EQ(expected(), encoder->str());
+  nid = encoder.node;
+  encoder.define_sb_full();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
 // btor2::Encoder::define_stmt =================================================
 
-TEST_F(btor2_Encoder, define_stmt)
+TEST(btor2_Encoder, define_stmt)
 {
-  add_dummy_programs(3, 2);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(3, 2));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
 
-  encoder->define_stmt();
+  btor2::nid_t nid = encoder.node;
 
-  expected = [this, &nid] {
+  encoder.define_stmt();
+
+  auto expected = [&encoder, &nid] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->stmt_comment;
+      s << encoder.stmt_comment;
 
-    encoder->iterate_threads([this, &nid, &s] {
-      word_t & thread = encoder->thread;
-      word_t & pc = encoder->pc = 0;
+    encoder.iterate_threads([&encoder, &nid, &s] {
+      word_t & thread = encoder.thread;
+      word_t & pc = encoder.pc = 0;
 
       // ADDI 1
       s <<
         btor2::init(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          encoder->nid_true);
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          encoder.nid_true);
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          btor2::lnot(encoder->nids_exec[thread][pc]),
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          btor2::lnot(encoder.nids_exec[thread][pc]),
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
       s <<
         btor2::next(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
           std::to_string(nid - 1),
-          encoder->stmt_var());
+          encoder.stmt_var());
       nid++;
 
       s << eol;
@@ -1517,34 +1632,34 @@ TEST_F(btor2_Encoder, define_stmt)
       s <<
         btor2::init(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          encoder->nid_false);
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          encoder.nid_false);
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          btor2::lnot(encoder->nids_exec[thread][pc]),
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          btor2::lnot(encoder.nids_exec[thread][pc]),
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc - 1u],
-          encoder->nids_exec[thread][pc - 1u],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc - 1u],
+          encoder.nids_exec[thread][pc - 1u],
           std::to_string(nid - 1),
-          verbose ? encoder->debug_symbol(thread, pc - 1u) : "");
+          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
       nid++;
       s <<
         btor2::next(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
           std::to_string(nid - 1),
-          encoder->stmt_var());
+          encoder.stmt_var());
       nid++;
 
       s << eol;
@@ -1555,34 +1670,34 @@ TEST_F(btor2_Encoder, define_stmt)
       s <<
         btor2::init(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          encoder->nid_false);
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          encoder.nid_false);
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          btor2::lnot(encoder->nids_exec[thread][pc]),
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          btor2::lnot(encoder.nids_exec[thread][pc]),
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc - 1u],
-          encoder->nids_exec[thread][pc - 1u],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc - 1u],
+          encoder.nids_exec[thread][pc - 1u],
           std::to_string(nid - 1),
-          verbose ? encoder->debug_symbol(thread, pc - 1u) : "");
+          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
       nid++;
       s <<
         btor2::next(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
           std::to_string(nid - 1),
-          encoder->stmt_var());
+          encoder.stmt_var());
       nid++;
 
       s << eol;
@@ -1591,68 +1706,67 @@ TEST_F(btor2_Encoder, define_stmt)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_state_definitions();
+  reset(encoder);
+  init_state_definitions(encoder);
 
   verbose = false;
-  nid = encoder->node;
-  encoder->define_stmt();
-  ASSERT_EQ(expected(), encoder->str());
+  nid = encoder.node;
+  encoder.define_stmt();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
-TEST_F(btor2_Encoder, define_stmt_jmp)
+TEST(btor2_Encoder, define_stmt_jmp)
 {
-  for (size_t i = 0; i < 3; i++)
-    programs.push_back(create_program(
-      "ADDI 1\n"
-      "STORE 1\n"
-      "JMP 1\n"
-    ));
+  const auto code =
+    "ADDI 1\n"
+    "STORE 1\n"
+    "JMP 1\n";
 
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dup(prog(code), 3));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
 
-  encoder->define_stmt();
+  btor2::nid_t nid = encoder.node;
 
-  expected = [this, &nid] {
+  encoder.define_stmt();
+
+  auto expected = [&encoder, &nid] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->stmt_comment;
+      s << encoder.stmt_comment;
 
-    encoder->iterate_threads([this, &nid, &s] {
-      word_t & thread = encoder->thread;
-      word_t & pc = encoder->pc = 0;
+    encoder.iterate_threads([&encoder, &nid, &s] {
+      word_t & thread = encoder.thread;
+      word_t & pc = encoder.pc = 0;
 
       // ADDI 1
       s <<
         btor2::init(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          encoder->nid_true);
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          encoder.nid_true);
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          btor2::lnot(encoder->nids_exec[thread][pc]),
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          btor2::lnot(encoder.nids_exec[thread][pc]),
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
       s <<
         btor2::next(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
           std::to_string(nid - 1),
-          encoder->stmt_var());
+          encoder.stmt_var());
       nid++;
 
       s << eol;
@@ -1663,43 +1777,43 @@ TEST_F(btor2_Encoder, define_stmt_jmp)
       s <<
         btor2::init(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          encoder->nid_false);
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          encoder.nid_false);
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          btor2::lnot(encoder->nids_exec[thread][pc]),
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          btor2::lnot(encoder.nids_exec[thread][pc]),
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc - 1u],
-          encoder->nids_exec[thread][pc - 1u],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc - 1u],
+          encoder.nids_exec[thread][pc - 1u],
           std::to_string(nid - 1),
-          verbose ? encoder->debug_symbol(thread, pc - 1u) : "");
+          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][2],
-          encoder->nids_exec[thread][2],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][2],
+          encoder.nids_exec[thread][2],
           std::to_string(nid - 1),
-          verbose ? encoder->debug_symbol(thread, 2) : "");
+          verbose ? encoder.debug_symbol(thread, 2) : "");
       nid++;
       s <<
         btor2::next(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
           std::to_string(nid - 1),
-          encoder->stmt_var());
+          encoder.stmt_var());
       nid++;
 
       s << eol;
@@ -1710,34 +1824,34 @@ TEST_F(btor2_Encoder, define_stmt_jmp)
       s <<
         btor2::init(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          encoder->nid_false);
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          encoder.nid_false);
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          btor2::lnot(encoder->nids_exec[thread][pc]),
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          btor2::lnot(encoder.nids_exec[thread][pc]),
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc - 1u],
-          encoder->nids_exec[thread][pc - 1u],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc - 1u],
+          encoder.nids_exec[thread][pc - 1u],
           std::to_string(nid - 1),
-          verbose ? encoder->debug_symbol(thread, pc - 1u) : "");
+          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
       nid++;
       s <<
         btor2::next(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
           std::to_string(nid - 1),
-          encoder->stmt_var());
+          encoder.stmt_var());
       nid++;
 
       s << eol;
@@ -1746,69 +1860,68 @@ TEST_F(btor2_Encoder, define_stmt_jmp)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_state_definitions();
+  reset(encoder);
+  init_state_definitions(encoder);
 
   verbose = false;
-  nid = encoder->node;
-  encoder->define_stmt();
-  ASSERT_EQ(expected(), encoder->str());
+  nid = encoder.node;
+  encoder.define_stmt();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
-TEST_F(btor2_Encoder, define_stmt_jmp_conditional)
+TEST(btor2_Encoder, define_stmt_jmp_conditional)
 {
-  for (size_t i = 0; i < 3; i++)
-    programs.push_back(create_program(
-      "ADDI 1\n"
-      "STORE 1\n"
-      "JNZ 1\n"
-      "EXIT 1\n"
-    ));
+  const auto code =
+    "ADDI 1\n"
+    "STORE 1\n"
+    "JNZ 1\n"
+    "EXIT 1\n";
 
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dup(prog(code), 3));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
 
-  encoder->define_stmt();
+  btor2::nid_t nid = encoder.node;
 
-  expected = [this, &nid] {
+  encoder.define_stmt();
+
+  auto expected = [&encoder, &nid] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->stmt_comment;
+      s << encoder.stmt_comment;
 
-    encoder->iterate_threads([this, &nid, &s] {
-      word_t & thread = encoder->thread;
-      word_t & pc = encoder->pc = 0;
+    encoder.iterate_threads([&encoder, &nid, &s] {
+      word_t & thread = encoder.thread;
+      word_t & pc = encoder.pc = 0;
 
       // ADDI 1
       s <<
         btor2::init(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          encoder->nid_true);
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          encoder.nid_true);
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          btor2::lnot(encoder->nids_exec[thread][pc]),
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          btor2::lnot(encoder.nids_exec[thread][pc]),
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
       s <<
         btor2::next(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
           std::to_string(nid - 1),
-          encoder->stmt_var());
+          encoder.stmt_var());
       nid++;
 
       s << eol;
@@ -1819,57 +1932,57 @@ TEST_F(btor2_Encoder, define_stmt_jmp_conditional)
       s <<
         btor2::init(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          encoder->nid_false);
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          encoder.nid_false);
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          btor2::lnot(encoder->nids_exec[thread][pc]),
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          btor2::lnot(encoder.nids_exec[thread][pc]),
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc - 1u],
-          encoder->nids_exec[thread][pc - 1u],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc - 1u],
+          encoder.nids_exec[thread][pc - 1u],
           std::to_string(nid - 1),
-          verbose ? encoder->debug_symbol(thread, pc - 1u) : "");
+          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
       nid++;
       s <<
         btor2::ne(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_accu[thread],
-          encoder->nids_const[0]);
+          encoder.sid_bool,
+          encoder.nids_accu[thread],
+          encoder.nids_const[0]);
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_exec[thread][2],
+          encoder.sid_bool,
+          encoder.nids_exec[thread][2],
           std::to_string(nid - 1));
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][2],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][2],
           std::to_string(nid - 1),
           std::to_string(nid - 3),
-          verbose ? encoder->debug_symbol(thread, 2) : "");
+          verbose ? encoder.debug_symbol(thread, 2) : "");
       nid++;
       s <<
         btor2::next(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
           std::to_string(nid - 1),
-          encoder->stmt_var());
+          encoder.stmt_var());
       nid++;
 
       s << eol;
@@ -1880,34 +1993,34 @@ TEST_F(btor2_Encoder, define_stmt_jmp_conditional)
       s <<
         btor2::init(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          encoder->nid_false);
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          encoder.nid_false);
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          btor2::lnot(encoder->nids_exec[thread][pc]),
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          btor2::lnot(encoder.nids_exec[thread][pc]),
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc - 1u],
-          encoder->nids_exec[thread][pc - 1u],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc - 1u],
+          encoder.nids_exec[thread][pc - 1u],
           std::to_string(nid - 1),
-          verbose ? encoder->debug_symbol(thread, pc - 1u) : "");
+          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
       nid++;
       s <<
         btor2::next(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
           std::to_string(nid - 1),
-          encoder->stmt_var());
+          encoder.stmt_var());
       nid++;
 
       s << eol;
@@ -1918,41 +2031,41 @@ TEST_F(btor2_Encoder, define_stmt_jmp_conditional)
       s <<
         btor2::init(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          encoder->nid_false);
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          encoder.nid_false);
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          btor2::lnot(encoder->nids_exec[thread][pc]),
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          btor2::lnot(encoder.nids_exec[thread][pc]),
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_exec[thread][2],
+          encoder.sid_bool,
+          encoder.nids_exec[thread][2],
           btor2::lnot(std::to_string(nid - 10)));
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc - 1u],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc - 1u],
           std::to_string(nid - 1),
           std::to_string(nid - 2),
-          verbose ? encoder->debug_symbol(thread, pc - 1u) : "");
+          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
       nid++;
       s <<
         btor2::next(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
           std::to_string(nid - 1),
-          encoder->stmt_var());
+          encoder.stmt_var());
       nid++;
 
       s << eol;
@@ -1961,92 +2074,91 @@ TEST_F(btor2_Encoder, define_stmt_jmp_conditional)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_state_definitions();
+  reset(encoder);
+  init_state_definitions(encoder);
 
   verbose = false;
-  nid = encoder->node;
-  encoder->define_stmt();
-  ASSERT_EQ(expected(), encoder->str());
+  nid = encoder.node;
+  encoder.define_stmt();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
-TEST_F(btor2_Encoder, define_stmt_jmp_start)
+TEST(btor2_Encoder, define_stmt_jmp_start)
 {
-  for (size_t i = 0; i < 3; i++)
-    programs.push_back(create_program(
-      "ADDI 1\n"
-      "STORE 1\n"
-      "JNZ 0\n"
-      "EXIT 1\n"
-    ));
+  const auto code =
+    "ADDI 1\n"
+    "STORE 1\n"
+    "JNZ 0\n"
+    "EXIT 1\n";
 
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dup(prog(code), 3));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
 
-  encoder->define_stmt();
+  btor2::nid_t nid = encoder.node;
 
-  expected = [this, &nid] {
+  encoder.define_stmt();
+
+  auto expected = [&encoder, &nid] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->stmt_comment;
+      s << encoder.stmt_comment;
 
-    encoder->iterate_threads([this, &nid, &s] {
-      word_t & thread = encoder->thread;
-      word_t & pc = encoder->pc = 0;
+    encoder.iterate_threads([&encoder, &nid, &s] {
+      word_t & thread = encoder.thread;
+      word_t & pc = encoder.pc = 0;
 
       // ADDI 1
       s <<
         btor2::init(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          encoder->nid_true);
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          encoder.nid_true);
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          btor2::lnot(encoder->nids_exec[thread][pc]),
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          btor2::lnot(encoder.nids_exec[thread][pc]),
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
       s <<
         btor2::ne(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_accu[thread],
-          encoder->nids_const[0]);
+          encoder.sid_bool,
+          encoder.nids_accu[thread],
+          encoder.nids_const[0]);
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_exec[thread][2],
+          encoder.sid_bool,
+          encoder.nids_exec[thread][2],
           std::to_string(nid - 1));
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][2],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][2],
           std::to_string(nid - 1),
           std::to_string(nid - 3),
-          verbose ? encoder->debug_symbol(thread, 2) : "");
+          verbose ? encoder.debug_symbol(thread, 2) : "");
       nid++;
       s <<
         btor2::next(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
           std::to_string(nid - 1),
-          encoder->stmt_var());
+          encoder.stmt_var());
       nid++;
 
       s << eol;
@@ -2057,34 +2169,34 @@ TEST_F(btor2_Encoder, define_stmt_jmp_start)
       s <<
         btor2::init(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          encoder->nid_false);
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          encoder.nid_false);
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          btor2::lnot(encoder->nids_exec[thread][pc]),
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          btor2::lnot(encoder.nids_exec[thread][pc]),
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc - 1u],
-          encoder->nids_exec[thread][pc - 1u],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc - 1u],
+          encoder.nids_exec[thread][pc - 1u],
           std::to_string(nid - 1),
-          verbose ? encoder->debug_symbol(thread, pc - 1u) : "");
+          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
       nid++;
       s <<
         btor2::next(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
           std::to_string(nid - 1),
-          encoder->stmt_var());
+          encoder.stmt_var());
       nid++;
 
       s << eol;
@@ -2095,34 +2207,34 @@ TEST_F(btor2_Encoder, define_stmt_jmp_start)
       s <<
         btor2::init(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          encoder->nid_false);
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          encoder.nid_false);
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          btor2::lnot(encoder->nids_exec[thread][pc]),
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          btor2::lnot(encoder.nids_exec[thread][pc]),
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc - 1u],
-          encoder->nids_exec[thread][pc - 1u],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc - 1u],
+          encoder.nids_exec[thread][pc - 1u],
           std::to_string(nid - 1),
-          verbose ? encoder->debug_symbol(thread, pc - 1u) : "");
+          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
       nid++;
       s <<
         btor2::next(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
           std::to_string(nid - 1),
-          encoder->stmt_var());
+          encoder.stmt_var());
       nid++;
 
       s << eol;
@@ -2133,41 +2245,41 @@ TEST_F(btor2_Encoder, define_stmt_jmp_start)
       s <<
         btor2::init(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          encoder->nid_false);
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          encoder.nid_false);
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          btor2::lnot(encoder->nids_exec[thread][pc]),
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          btor2::lnot(encoder.nids_exec[thread][pc]),
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_exec[thread][2],
+          encoder.sid_bool,
+          encoder.nids_exec[thread][2],
           btor2::lnot(std::to_string(nid - 14)));
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc - 1u],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc - 1u],
           std::to_string(nid - 1),
           std::to_string(nid - 2),
-          verbose ? encoder->debug_symbol(thread, pc - 1u) : "");
+          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
       nid++;
       s <<
         btor2::next(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
           std::to_string(nid - 1),
-          encoder->stmt_var());
+          encoder.stmt_var());
       nid++;
 
       s << eol;
@@ -2176,70 +2288,69 @@ TEST_F(btor2_Encoder, define_stmt_jmp_start)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_state_definitions();
+  reset(encoder);
+  init_state_definitions(encoder);
 
   verbose = false;
-  nid = encoder->node;
-  encoder->define_stmt();
-  ASSERT_EQ(expected(), encoder->str());
+  nid = encoder.node;
+  encoder.define_stmt();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
-TEST_F(btor2_Encoder, define_stmt_jmp_twice)
+TEST(btor2_Encoder, define_stmt_jmp_twice)
 {
-  for (size_t i = 0; i < 3; i++)
-    programs.push_back(create_program(
-      "ADDI 1\n"
-      "STORE 1\n"
-      "JZ 1\n"
-      "JNZ 1\n"
-      "EXIT 1\n"
-    ));
+  const auto code =
+    "ADDI 1\n"
+    "STORE 1\n"
+    "JZ 1\n"
+    "JNZ 1\n"
+    "EXIT 1\n";
 
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dup(prog(code), 3));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
 
-  encoder->define_stmt();
+  btor2::nid_t nid = encoder.node;
 
-  expected = [this, &nid] {
+  encoder.define_stmt();
+
+  auto expected = [&encoder, &nid] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->stmt_comment;
+      s << encoder.stmt_comment;
 
-    encoder->iterate_threads([this, &nid, &s] {
-      word_t & thread = encoder->thread;
-      word_t & pc = encoder->pc = 0;
+    encoder.iterate_threads([&encoder, &nid, &s] {
+      word_t & thread = encoder.thread;
+      word_t & pc = encoder.pc = 0;
 
       // ADDI 1
       s <<
         btor2::init(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          encoder->nid_true);
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          encoder.nid_true);
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          btor2::lnot(encoder->nids_exec[thread][pc]),
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          btor2::lnot(encoder.nids_exec[thread][pc]),
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
       s <<
         btor2::next(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
           std::to_string(nid - 1),
-          encoder->stmt_var());
+          encoder.stmt_var());
       nid++;
 
       s << eol;
@@ -2250,80 +2361,80 @@ TEST_F(btor2_Encoder, define_stmt_jmp_twice)
       s <<
         btor2::init(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          encoder->nid_false);
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          encoder.nid_false);
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          btor2::lnot(encoder->nids_exec[thread][pc]),
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          btor2::lnot(encoder.nids_exec[thread][pc]),
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc - 1u],
-          encoder->nids_exec[thread][pc - 1u],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc - 1u],
+          encoder.nids_exec[thread][pc - 1u],
           std::to_string(nid - 1),
-          verbose ? encoder->debug_symbol(thread, pc - 1u) : "");
+          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
       nid++;
       s <<
         btor2::eq(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_accu[thread],
-          encoder->nids_const[0]);
+          encoder.sid_bool,
+          encoder.nids_accu[thread],
+          encoder.nids_const[0]);
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_exec[thread][2],
+          encoder.sid_bool,
+          encoder.nids_exec[thread][2],
           std::to_string(nid - 1));
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][2],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][2],
           std::to_string(nid - 1),
           std::to_string(nid - 3),
-          verbose ? encoder->debug_symbol(thread, 2) : "");
+          verbose ? encoder.debug_symbol(thread, 2) : "");
       nid++;
       s <<
         btor2::ne(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_accu[thread],
-          encoder->nids_const[0]);
+          encoder.sid_bool,
+          encoder.nids_accu[thread],
+          encoder.nids_const[0]);
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_exec[thread][3],
+          encoder.sid_bool,
+          encoder.nids_exec[thread][3],
           std::to_string(nid - 1));
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][3],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][3],
           std::to_string(nid - 1),
           std::to_string(nid - 3),
-          verbose ? encoder->debug_symbol(thread, 3) : "");
+          verbose ? encoder.debug_symbol(thread, 3) : "");
       nid++;
       s <<
         btor2::next(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
           std::to_string(nid - 1),
-          encoder->stmt_var());
+          encoder.stmt_var());
       nid++;
 
       s << eol;
@@ -2334,34 +2445,34 @@ TEST_F(btor2_Encoder, define_stmt_jmp_twice)
       s <<
         btor2::init(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          encoder->nid_false);
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          encoder.nid_false);
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          btor2::lnot(encoder->nids_exec[thread][pc]),
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          btor2::lnot(encoder.nids_exec[thread][pc]),
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc - 1u],
-          encoder->nids_exec[thread][pc - 1u],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc - 1u],
+          encoder.nids_exec[thread][pc - 1u],
           std::to_string(nid - 1),
-          verbose ? encoder->debug_symbol(thread, pc - 1u) : "");
+          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
       nid++;
       s <<
         btor2::next(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
           std::to_string(nid - 1),
-          encoder->stmt_var());
+          encoder.stmt_var());
       nid++;
 
       s << eol;
@@ -2372,41 +2483,41 @@ TEST_F(btor2_Encoder, define_stmt_jmp_twice)
       s <<
         btor2::init(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          encoder->nid_false);
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          encoder.nid_false);
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          btor2::lnot(encoder->nids_exec[thread][pc]),
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          btor2::lnot(encoder.nids_exec[thread][pc]),
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_exec[thread][2],
+          encoder.sid_bool,
+          encoder.nids_exec[thread][2],
           btor2::lnot(std::to_string(nid - 13)));
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc - 1u],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc - 1u],
           std::to_string(nid - 1),
           std::to_string(nid - 2),
-          verbose ? encoder->debug_symbol(thread, pc - 1u) : "");
+          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
       nid++;
       s <<
         btor2::next(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
           std::to_string(nid - 1),
-          encoder->stmt_var());
+          encoder.stmt_var());
       nid++;
 
       s << eol;
@@ -2417,41 +2528,41 @@ TEST_F(btor2_Encoder, define_stmt_jmp_twice)
       s <<
         btor2::init(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          encoder->nid_false);
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          encoder.nid_false);
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
-          btor2::lnot(encoder->nids_exec[thread][pc]),
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
+          btor2::lnot(encoder.nids_exec[thread][pc]),
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_exec[thread][3],
+          encoder.sid_bool,
+          encoder.nids_exec[thread][3],
           btor2::lnot(std::to_string(nid - 15)));
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc - 1u],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc - 1u],
           std::to_string(nid - 1),
           std::to_string(nid - 2),
-          verbose ? encoder->debug_symbol(thread, pc - 1u) : "");
+          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
       nid++;
       s <<
         btor2::next(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_stmt[thread][pc],
+          encoder.sid_bool,
+          encoder.nids_stmt[thread][pc],
           std::to_string(nid - 1),
-          encoder->stmt_var());
+          encoder.stmt_var());
       nid++;
 
       s << eol;
@@ -2460,70 +2571,70 @@ TEST_F(btor2_Encoder, define_stmt_jmp_twice)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_state_definitions();
+  reset(encoder);
+  init_state_definitions(encoder);
 
   verbose = false;
-  nid = encoder->node;
-  encoder->define_stmt();
-  ASSERT_EQ(expected(), encoder->str());
+  nid = encoder.node;
+  encoder.define_stmt();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
 // btor2::Encoder::define_block ================================================
 
-TEST_F(btor2_Encoder, define_block)
+TEST(btor2_Encoder, define_block)
 {
-  add_instruction_set(3);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dup(prog(instruction_set), 3));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
 
-  encoder->define_block();
+  btor2::nid_t nid = encoder.node;
 
-  expected = [this, &nid] {
+  encoder.define_block();
+
+  auto expected = [&encoder, &nid] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->block_comment;
+      s << encoder.block_comment;
 
-    encoder->iterate_threads([this, &nid, &s] {
-      word_t & thread = encoder->thread;
-      word_t & pc = encoder->pc = 15; // CHECK
+    encoder.iterate_threads([&encoder, &nid, &s] {
+      word_t & thread = encoder.thread;
+      word_t & pc = encoder.pc = 17; // CHECK
 
       s <<
         btor2::init(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_block[1][thread],
-          encoder->nid_false);
+          encoder.sid_bool,
+          encoder.nids_block[1][thread],
+          encoder.nid_false);
       nid++;
       s <<
         btor2::lor(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_exec[thread][pc],
-          encoder->nids_block[1][thread]);
+          encoder.sid_bool,
+          encoder.nids_exec[thread][pc],
+          encoder.nids_block[1][thread]);
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_check[1],
-          encoder->nid_false,
+          encoder.sid_bool,
+          encoder.nids_check[1],
+          encoder.nid_false,
           std::to_string(nid - 1));
       nid++;
       s <<
         btor2::next(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_block[1][thread],
+          encoder.sid_bool,
+          encoder.nids_block[1][thread],
           std::to_string(nid - 1),
-          encoder->block_var(1, thread));
+          encoder.block_var(1, thread));
       nid++;
 
       s << eol;
@@ -2532,81 +2643,84 @@ TEST_F(btor2_Encoder, define_block)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_state_definitions();
+  reset(encoder);
+  init_state_definitions(encoder);
 
   verbose = false;
-  nid = encoder->node;
-  encoder->define_block();
-  ASSERT_EQ(expected(), encoder->str());
+  nid = encoder.node;
+  encoder.define_block();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
-TEST_F(btor2_Encoder, define_block_empty)
+TEST(btor2_Encoder, define_block_empty)
 {
-  encoder->define_block();
-  ASSERT_EQ("", encoder->formula.str());
+  auto encoder = create<E>();
+
+  encoder.define_block();
+
+  ASSERT_EQ("", encoder.formula.str());
 }
 
 // btor2::Encoder::define_halt =================================================
 
-TEST_F(btor2_Encoder, define_halt)
+TEST(btor2_Encoder, define_halt)
 {
-  for (size_t i = 0; i < 3; i++)
-    programs.push_back(create_program(
-      "ADDI 1\n"
-      "JNZ 3\n"
-      "HALT\n"
-      "SUBI 1\n"
-      "HALT\n"));
+  const auto code =
+    "ADDI 1\n"
+    "JNZ 3\n"
+    "HALT\n"
+    "SUBI 1\n"
+    "HALT\n";
 
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dup(prog(code), 3));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
 
-  encoder->define_halt();
+  btor2::nid_t nid = encoder.node;
 
-  expected = [this, &nid] {
+  encoder.define_halt();
+
+  auto expected = [&encoder, &nid] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->halt_comment;
+      s << encoder.halt_comment;
 
-    encoder->iterate_threads([this, &nid, &s] {
-      const word_t & thread = encoder->thread;
+    encoder.iterate_threads([&encoder, &nid, &s] {
+      const word_t & thread = encoder.thread;
 
       s <<
         btor2::init(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_halt[thread],
-          encoder->nid_false);
+          encoder.sid_bool,
+          encoder.nids_halt[thread],
+          encoder.nid_false);
       nid++;
       s <<
         btor2::lor(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_exec[thread][2],
-          encoder->nids_exec[thread][4]);
+          encoder.sid_bool,
+          encoder.nids_exec[thread][2],
+          encoder.nids_exec[thread][4]);
       nid++;
       s <<
         btor2::lor(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_halt[thread],
+          encoder.sid_bool,
+          encoder.nids_halt[thread],
           std::to_string(nid - 1));
       nid++;
       s <<
         btor2::next(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_halt[thread],
+          encoder.sid_bool,
+          encoder.nids_halt[thread],
           std::to_string(nid - 1),
-          encoder->halt_var());
+          encoder.halt_var());
       nid++;
 
       s << eol;
@@ -2615,142 +2729,145 @@ TEST_F(btor2_Encoder, define_halt)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_state_definitions();
+  reset(encoder);
+  init_state_definitions(encoder);
 
   verbose = false;
-  nid = encoder->node;
-  encoder->define_halt();
-  ASSERT_EQ(expected(), encoder->str());
+  nid = encoder.node;
+  encoder.define_halt();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
-TEST_F(btor2_Encoder, define_halt_empty)
+TEST(btor2_Encoder, define_halt_empty)
 {
-  encoder->define_halt();
-  ASSERT_EQ("", encoder->formula.str());
+  auto encoder = create<E>();
+
+  encoder.define_halt();
+
+  ASSERT_EQ("", encoder.formula.str());
 }
 
 // btor2::Encoder::define_heap =================================================
 
-TEST_F(btor2_Encoder, define_heap)
+TEST(btor2_Encoder, define_heap)
 {
-  add_instruction_set(3);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dup(prog(instruction_set), 3));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
 
-  encoder->define_heap();
+  btor2::nid_t nid = encoder.node;
 
-  expected = [this, &nid] {
+  encoder.define_heap();
+
+  auto expected = [&encoder, &nid] {
     std::ostringstream s;
 
-    std::string nid_next = encoder->nid_heap;
+    std::string nid_next = encoder.nid_heap;
 
     if (verbose)
-      s << encoder->heap_comment;
+      s << encoder.heap_comment;
 
-    encoder->iterate_threads([this, &nid, &s, &nid_next] {
-      word_t & thread = encoder->thread;
-      word_t & pc = encoder->pc = 14; // CAS
+    encoder.iterate_threads([&encoder, &nid, &s, &nid_next] {
+      word_t & thread = encoder.thread;
+      word_t & pc = encoder.pc = 16; // CAS
       word_t address = 1;
 
       s <<
         btor2::write(
           std::to_string(nid),
-          encoder->sid_heap,
-          encoder->nid_heap,
-          encoder->nids_sb_adr[thread],
-          encoder->nids_sb_val[thread]);
+          encoder.sid_heap,
+          encoder.nid_heap,
+          encoder.nids_sb_adr[thread],
+          encoder.nids_sb_val[thread]);
       nid++;
       s <<
         btor2::ite(
           nid_next = std::to_string(nid),
-          encoder->sid_heap,
-          encoder->nids_flush[thread],
+          encoder.sid_heap,
+          encoder.nids_flush[thread],
           std::to_string(nid - 1),
           nid_next,
-          verbose ? encoder->flush_var() : "");
+          verbose ? encoder.flush_var() : "");
       nid++;
 
       if (!thread)
         {
           s <<
             btor2::read(
-              encoder->nids_read[address],
-              encoder->sid_bv,
-              encoder->nid_heap,
-              encoder->nids_const[address]);
+              encoder.nids_read[address],
+              encoder.sid_bv,
+              encoder.nid_heap,
+              encoder.nids_const[address]);
           nid++;
         }
 
       s <<
         btor2::eq(
-          encoder->nids_eq_sb_adr_adr[thread][address],
-          encoder->sid_bool,
-          encoder->nids_sb_adr[thread],
-          encoder->nids_const[address]);
+          encoder.nids_eq_sb_adr_adr[thread][address],
+          encoder.sid_bool,
+          encoder.nids_sb_adr[thread],
+          encoder.nids_const[address]);
       nid++;
       s <<
         btor2::land(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_sb_full[thread],
-          encoder->nids_eq_sb_adr_adr[thread][address]);
+          encoder.sid_bool,
+          encoder.nids_sb_full[thread],
+          encoder.nids_eq_sb_adr_adr[thread][address]);
       nid++;
       s <<
         btor2::ite(
-          encoder->nids_load[thread][address],
-          encoder->sid_bv,
+          encoder.nids_load[thread][address],
+          encoder.sid_bv,
           std::to_string(nid - 1),
-          encoder->nids_sb_val[thread],
-          encoder->nids_read[address]);
+          encoder.nids_sb_val[thread],
+          encoder.nids_read[address]);
       nid++;
       s <<
         btor2::eq(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_mem[thread],
-          encoder->nids_load[thread][address]);
+          encoder.sid_bool,
+          encoder.nids_mem[thread],
+          encoder.nids_load[thread][address]);
       nid++;
       s <<
         btor2::write(
           std::to_string(nid),
-          encoder->sid_heap,
-          encoder->nid_heap,
-          encoder->nids_const[address],
-          encoder->nids_accu[thread]);
+          encoder.sid_heap,
+          encoder.nid_heap,
+          encoder.nids_const[address],
+          encoder.nids_accu[thread]);
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_heap,
+          encoder.sid_heap,
           std::to_string(nid - 2),
           std::to_string(nid - 1),
-          encoder->nid_heap);
+          encoder.nid_heap);
       nid++;
       s <<
         btor2::ite(
           nid_next = std::to_string(nid),
-          encoder->sid_heap,
-          encoder->nids_exec[thread][pc],
+          encoder.sid_heap,
+          encoder.nids_exec[thread][pc],
           std::to_string(nid - 1),
           nid_next,
-          verbose ? encoder->debug_symbol(thread, pc) : "");
+          verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
     });
 
     s <<
       btor2::next(
         std::to_string(nid),
-        encoder->sid_heap,
-        encoder->nid_heap,
+        encoder.sid_heap,
+        encoder.nid_heap,
         nid_next,
-        encoder->heap_sym);
+        encoder.heap_sym);
     nid++;
 
     s << eol;
@@ -2758,191 +2875,140 @@ TEST_F(btor2_Encoder, define_heap)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_state_definitions();
+  reset(encoder);
+  init_state_definitions(encoder);
 
   verbose = false;
-  nid = encoder->node;
-  encoder->define_heap();
-  ASSERT_EQ(expected(), encoder->str());
+  nid = encoder.node;
+  encoder.define_heap();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
-TEST_F(btor2_Encoder, define_heap_mmap)
+TEST(btor2_Encoder, define_heap_mmap)
 {
-  mmap[0] = mmap[1];
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(lst(), mmap({{0, 0}, {1, 0}}));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
 
-  encoder->define_heap();
+  btor2::nid_t nid = encoder.node;
 
-  expected = [this, &nid] {
+  encoder.define_heap();
+
+  auto expected = [&encoder, &nid] {
     std::ostringstream s;
 
+    std::string nid_next = encoder.nid_heap;
+
     if (verbose)
-      s << encoder->heap_comment;
-
-    std::string nid_init = std::to_string(nid++);
-
-    s << btor2::state(nid_init, encoder->sid_heap, "mmap");
-
-    for (const auto & [adr, val] : *encoder->mmap)
-      s <<
-        btor2::write(
-          nid_init = std::to_string(nid++),
-          encoder->sid_heap,
-          nid_init,
-          encoder->nids_const[adr],
-          encoder->nids_const[val]);
+      s << encoder.heap_comment;
 
     s <<
       btor2::init(
         std::to_string(nid++),
-        encoder->sid_heap,
-        encoder->nid_heap,
-        nid_init);
+        encoder.sid_heap,
+        encoder.nid_heap,
+        encoder.nid_mmap);
     s <<
       btor2::next(
-        std::to_string(nid++),
-        encoder->sid_heap,
-        encoder->nid_heap,
-        encoder->nid_heap,
-        encoder->heap_sym);
+        std::to_string(nid),
+        encoder.sid_heap,
+        encoder.nid_heap,
+        nid_next,
+        encoder.heap_sym);
+
     s << eol;
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
-
-  // verbosity
-  reset_encoder();
-  init_state_definitions();
-
-  verbose = false;
-  nid = encoder->node;
-  encoder->define_heap();
-  ASSERT_EQ(expected(), encoder->str());
-  verbose = true;
-}
-
-TEST_F(btor2_Encoder, define_heap_mmap_empty)
-{
-  expected = [this] {
-    std::ostringstream s;
-
-    if (verbose)
-      s << encoder->heap_comment;
-
-    s <<
-      btor2::next(
-        std::to_string(encoder->node - 1),
-        encoder->sid_heap,
-        encoder->nid_heap,
-        encoder->nid_heap,
-        encoder->heap_sym) <<
-      eol;
-
-    return s.str();
-  };
-
-  init_state_definitions();
-  encoder->define_heap();
-  ASSERT_EQ(expected(), encoder->str());
-
-  reset_encoder();
-  init_state_definitions();
-  encoder->mmap.reset();
-  encoder->define_heap();
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 }
 
 // btor2::Encoder::define_exit_flag ============================================
 
-TEST_F(btor2_Encoder, define_exit_flag)
+TEST(btor2_Encoder, define_exit_flag)
 {
-  for (size_t i = 0; i < 3; i++)
-    programs.push_back(create_program(
-      "JNZ 2\n"
-      "HALT\n"
-      "EXIT 1\n"
-    ));
-  reset_encoder();
-  init_state_definitions(false);
-  encoder->define_halt();
-  encoder->formula.str("");
+  const auto code =
+    "JNZ 2\n"
+    "HALT\n"
+    "EXIT 1\n";
 
-  btor2::nid_t nid = encoder->node;
+  auto encoder = create<E>(dup(prog(code), 3));
 
-  encoder->define_exit_flag();
+  init_state_definitions(encoder, false);
+  encoder.define_halt();
+  encoder.formula.str("");
 
-  expected = [this, &nid] {
+  btor2::nid_t nid = encoder.node;
+
+  encoder.define_exit_flag();
+
+  auto expected = [&encoder, &nid] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->exit_flag_comment;
+      s << encoder.exit_flag_comment;
 
     s <<
       btor2::init(
         std::to_string(nid),
-        encoder->sid_bool,
-        encoder->nid_exit_flag,
-        encoder->nid_false);
+        encoder.sid_bool,
+        encoder.nid_exit_flag,
+        encoder.nid_false);
     nid++;
     s <<
       btor2::land(
         std::to_string(nid),
-        encoder->sid_bool,
-        encoder->nids_halt_next[0],
-        encoder->nids_halt_next[1]);
+        encoder.sid_bool,
+        encoder.nids_halt_next[0],
+        encoder.nids_halt_next[1]);
     nid++;
     s <<
       btor2::land(
         std::to_string(nid),
-        encoder->sid_bool,
-        encoder->nids_halt_next[2],
+        encoder.sid_bool,
+        encoder.nids_halt_next[2],
         std::to_string(nid - 1));
     nid++;
     s <<
       btor2::lor(
         std::to_string(nid),
-        encoder->sid_bool,
-        encoder->nid_exit_flag,
+        encoder.sid_bool,
+        encoder.nid_exit_flag,
         std::to_string(nid - 1));
     nid++;
     s <<
       btor2::lor(
         std::to_string(nid),
-        encoder->sid_bool,
-        encoder->nids_exec[0][2],
+        encoder.sid_bool,
+        encoder.nids_exec[0][2],
         std::to_string(nid - 1));
     nid++;
     s <<
       btor2::lor(
         std::to_string(nid),
-        encoder->sid_bool,
-        encoder->nids_exec[1][2],
+        encoder.sid_bool,
+        encoder.nids_exec[1][2],
         std::to_string(nid - 1));
     nid++;
     s <<
       btor2::lor(
         std::to_string(nid),
-        encoder->sid_bool,
-        encoder->nids_exec[2][2],
+        encoder.sid_bool,
+        encoder.nids_exec[2][2],
         std::to_string(nid - 1));
     nid++;
     s <<
       btor2::next(
         std::to_string(nid),
-        encoder->sid_bool,
-        encoder->nid_exit_flag,
+        encoder.sid_bool,
+        encoder.nid_exit_flag,
         std::to_string(nid - 1),
-        encoder->exit_flag_sym);
+        encoder.exit_flag_sym);
     nid++;
 
     s << eol;
@@ -2950,88 +3016,89 @@ TEST_F(btor2_Encoder, define_exit_flag)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_state_definitions(false);
-  encoder->define_halt();
-  encoder->formula.str("");
+  reset(encoder);
+  init_state_definitions(encoder, false);
+  encoder.define_halt();
+  encoder.formula.str("");
 
   verbose = false;
-  nid = encoder->node;
-  encoder->define_exit_flag();
-  ASSERT_EQ(expected(), encoder->str());
+  nid = encoder.node;
+  encoder.define_exit_flag();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
-TEST_F(btor2_Encoder, define_exit_flag_empty)
+TEST(btor2_Encoder, define_exit_flag_empty)
 {
-  encoder->define_exit_flag();
-  ASSERT_EQ("", encoder->formula.str());
+  auto encoder = create<E>();
+
+  encoder.define_exit_flag();
+
+  ASSERT_EQ("", encoder.formula.str());
 }
 
 // btor2::Encoder::define_exit_code ============================================
 
-TEST_F(btor2_Encoder, define_exit_code)
+TEST(btor2_Encoder, define_exit_code)
 {
-  for (size_t i = 0; i < 3; i++)
-    programs.push_back(create_program("EXIT " + std::to_string(i) + eol));
+  auto encoder = create<E>(lst(prog("EXIT 0"), prog("EXIT 1"), prog("EXIT 2")));
 
-  reset_encoder();
-  init_state_definitions();
+  init_state_definitions(encoder);
 
-  btor2::nid_t nid = encoder->node;
+  btor2::nid_t nid = encoder.node;
 
-  encoder->define_exit_code();
+  encoder.define_exit_code();
 
-  expected = [this, &nid] {
+  auto expected = [&encoder, &nid] {
     std::ostringstream s;
 
     if (verbose)
-      s << encoder->exit_code_comment;
+      s << encoder.exit_code_comment;
 
     s <<
       btor2::init(
         std::to_string(nid),
-        encoder->sid_bv,
-        encoder->nid_exit_code,
-        encoder->nids_const[0]);
+        encoder.sid_bv,
+        encoder.nid_exit_code,
+        encoder.nids_const[0]);
     nid++;
     s <<
       btor2::ite(
         std::to_string(nid),
-        encoder->sid_bv,
-        encoder->nids_exec[0][0],
-        encoder->nids_const[0],
-        encoder->nid_exit_code,
-        verbose ? encoder->debug_symbol(0, 0) : "");
+        encoder.sid_bv,
+        encoder.nids_exec[0][0],
+        encoder.nids_const[0],
+        encoder.nid_exit_code,
+        verbose ? encoder.debug_symbol(0, 0) : "");
     nid++;
     s <<
       btor2::ite(
         std::to_string(nid),
-        encoder->sid_bv,
-        encoder->nids_exec[1][0],
-        encoder->nids_const[1],
+        encoder.sid_bv,
+        encoder.nids_exec[1][0],
+        encoder.nids_const[1],
         std::to_string(nid - 1),
-        verbose ? encoder->debug_symbol(1, 0) : "");
+        verbose ? encoder.debug_symbol(1, 0) : "");
     nid++;
     s <<
       btor2::ite(
         std::to_string(nid),
-        encoder->sid_bv,
-        encoder->nids_exec[2][0],
-        encoder->nids_const[2],
+        encoder.sid_bv,
+        encoder.nids_exec[2][0],
+        encoder.nids_const[2],
         std::to_string(nid - 1),
-        verbose ? encoder->debug_symbol(2, 0) : "");
+        verbose ? encoder.debug_symbol(2, 0) : "");
     nid++;
     s <<
       btor2::next(
         std::to_string(nid),
-        encoder->sid_bv,
-        encoder->nid_exit_code,
+        encoder.sid_bv,
+        encoder.nid_exit_code,
         std::to_string(nid - 1),
-        encoder->exit_code_sym);
+        encoder.exit_code_sym);
     nid++;
 
     s << eol;
@@ -3039,32 +3106,32 @@ TEST_F(btor2_Encoder, define_exit_code)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_state_definitions();
+  reset(encoder);
+  init_state_definitions(encoder);
 
   verbose = false;
-  nid = encoder->node;
-  encoder->define_exit_code();
-  ASSERT_EQ(expected(), encoder->str());
+  nid = encoder.node;
+  encoder.define_exit_code();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
 // btor2::Encoder::define_scheduling_constraints ===============================
 
-TEST_F(btor2_Encoder, define_scheduling_constraints)
+TEST(btor2_Encoder, define_scheduling_constraints)
 {
-  add_dummy_programs(2);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(2));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
 
-  encoder->define_scheduling_constraints();
+  btor2::nid_t nid = encoder.node;
 
-  expected = [this, &nid] {
+  encoder.define_scheduling_constraints();
+
+  auto expected = [&encoder, &nid] {
     std::ostringstream s;
 
     if (verbose)
@@ -3074,46 +3141,45 @@ TEST_F(btor2_Encoder, define_scheduling_constraints)
 
     args.insert(
       args.end(),
-      encoder->nids_thread.begin(),
-      encoder->nids_thread.end());
+      encoder.nids_thread.begin(),
+      encoder.nids_thread.end());
 
     args.insert(
       args.end(),
-      encoder->nids_flush.begin(),
-      encoder->nids_flush.end());
+      encoder.nids_flush.begin(),
+      encoder.nids_flush.end());
 
-    args.push_back(encoder->nid_exit_flag);
+    args.push_back(encoder.nid_exit_flag);
 
-    s << btor2::card_constraint_naive(nid, encoder->sid_bool, args) << eol;
+    s << btor2::card_constraint_naive(nid, encoder.sid_bool, args) << eol;
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_state_definitions();
+  reset(encoder);
+  init_state_definitions(encoder);
 
   verbose = false;
-  nid = encoder->node;
-  encoder->define_scheduling_constraints();
-  ASSERT_EQ(expected(), encoder->str());
+  nid = encoder.node;
+  encoder.define_scheduling_constraints();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
-TEST_F(btor2_Encoder, define_scheduling_constraints_exit)
+TEST(btor2_Encoder, define_scheduling_constraints_exit)
 {
-  programs.push_back(create_program("EXIT 1"));
-  programs.push_back(create_program("EXIT 1"));
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dup(prog("EXIT 1"), 2));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
 
-  encoder->define_scheduling_constraints();
+  btor2::nid_t nid = encoder.node;
 
-  expected = [this, &nid] {
+  encoder.define_scheduling_constraints();
+
+  auto expected = [&encoder, &nid] {
     std::ostringstream s;
 
     if (verbose)
@@ -3123,45 +3189,45 @@ TEST_F(btor2_Encoder, define_scheduling_constraints_exit)
 
     args.insert(
       args.end(),
-      encoder->nids_thread.begin(),
-      encoder->nids_thread.end());
+      encoder.nids_thread.begin(),
+      encoder.nids_thread.end());
 
     args.insert(
       args.end(),
-      encoder->nids_flush.begin(),
-      encoder->nids_flush.end());
+      encoder.nids_flush.begin(),
+      encoder.nids_flush.end());
 
-    args.push_back(encoder->nid_exit_flag);
+    args.push_back(encoder.nid_exit_flag);
 
-    s << btor2::card_constraint_naive(nid, encoder->sid_bool, args) << eol;
+    s << btor2::card_constraint_naive(nid, encoder.sid_bool, args) << eol;
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_state_definitions();
+  reset(encoder);
+  init_state_definitions(encoder);
 
   verbose = false;
-  nid = encoder->node;
-  encoder->define_scheduling_constraints();
-  ASSERT_EQ(expected(), encoder->str());
+  nid = encoder.node;
+  encoder.define_scheduling_constraints();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
-TEST_F(btor2_Encoder, define_scheduling_constraints_single_thread)
+TEST(btor2_Encoder, define_scheduling_constraints_single_thread)
 {
-  add_dummy_programs(1);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(1));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
 
-  encoder->define_scheduling_constraints();
+  btor2::nid_t nid = encoder.node;
 
-  expected = [this, &nid] {
+  encoder.define_scheduling_constraints();
+
+  auto expected = [&encoder, &nid] {
     std::ostringstream s;
 
     if (verbose)
@@ -3169,176 +3235,183 @@ TEST_F(btor2_Encoder, define_scheduling_constraints_single_thread)
 
     std::vector<std::string> args;
 
-    args.reserve(encoder->num_threads * 2);
+    args.reserve(encoder.num_threads * 2);
 
     args.insert(
       args.end(),
-      encoder->nids_thread.begin(),
-      encoder->nids_thread.end());
+      encoder.nids_thread.begin(),
+      encoder.nids_thread.end());
 
     args.insert(
       args.end(),
-      encoder->nids_flush.begin(),
-      encoder->nids_flush.end());
+      encoder.nids_flush.begin(),
+      encoder.nids_flush.end());
 
-    args.push_back(encoder->nid_exit_flag);
+    args.push_back(encoder.nid_exit_flag);
 
-    s << btor2::card_constraint_naive(nid, encoder->sid_bool, args) << eol;
+    s << btor2::card_constraint_naive(nid, encoder.sid_bool, args) << eol;
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_state_definitions();
+  reset(encoder);
+  init_state_definitions(encoder);
 
   verbose = false;
-  nid = encoder->node;
-  encoder->define_scheduling_constraints();
-  ASSERT_EQ(expected(), encoder->str());
+  nid = encoder.node;
+  encoder.define_scheduling_constraints();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
 // btor2::Encoder::define_store_buffer_constraints =============================
 
-TEST_F(btor2_Encoder, define_store_buffer_constraints)
+TEST(btor2_Encoder, define_store_buffer_constraints)
 {
-  for (size_t i = 0; i < 3; i++)
-    programs.push_back(create_program(
-      "STORE 1\n"
-      "FENCE\n"
-      "CAS 1\n"
-      "HALT\n"));
+  const auto code =
+    "STORE 1\n"
+    "FENCE\n"
+    "CAS 1\n"
+    "HALT\n";
 
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dup(prog(code), 3));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
 
-  encoder->define_store_buffer_constraints();
+  btor2::nid_t nid = encoder.node;
 
-  expected = [this, &nid] {
+  encoder.define_store_buffer_constraints();
+
+  auto expected = [&encoder, &nid] {
     std::ostringstream s;
 
     if (verbose)
       s << btor2::comment_section("store buffer constraints");
 
-    encoder->iterate_threads([this, &nid, &s] {
+    encoder.iterate_threads([&encoder, &nid, &s] {
       s <<
-        btor2::lor(nid, encoder->sid_bool, encoder->nids_stmt[encoder->thread]);
+        btor2::lor(nid, encoder.sid_bool, encoder.nids_stmt[encoder.thread]);
       s <<
         btor2::implies(
           std::to_string(nid),
-          encoder->sid_bool,
+          encoder.sid_bool,
           std::to_string(nid - 1),
-          btor2::lnot(encoder->nids_thread[encoder->thread]));
+          btor2::lnot(encoder.nids_thread[encoder.thread]));
       nid++;
       s <<
         btor2::ite(
           std::to_string(nid),
-          encoder->sid_bool,
-          encoder->nids_sb_full[encoder->thread],
+          encoder.sid_bool,
+          encoder.nids_sb_full[encoder.thread],
           std::to_string(nid - 1),
-          btor2::lnot(encoder->nids_flush[encoder->thread]));
+          btor2::lnot(encoder.nids_flush[encoder.thread]));
       nid++;
-      s << btor2::constraint(nid, encoder->flush_var());
+      s << btor2::constraint(nid, encoder.flush_var());
       s << eol;
     });
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_state_definitions();
+  reset(encoder);
+  init_state_definitions(encoder);
 
   verbose = false;
-  nid = encoder->node;
-  encoder->define_store_buffer_constraints();
-  ASSERT_EQ(expected(), encoder->str());
+  nid = encoder.node;
+  encoder.define_store_buffer_constraints();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
-TEST_F(btor2_Encoder, define_store_buffer_constraints_no_barrier)
+TEST(btor2_Encoder, define_store_buffer_constraints_no_barrier)
 {
-  for (size_t i = 0; i < 3; i++)
-    programs.push_back(create_program("JMP 0\n"));
+  auto encoder = create<E>(dup(prog("JMP 0"), 3));
 
-  reset_encoder();
-  init_state_definitions();
+  init_state_definitions(encoder);
 
-  btor2::nid_t nid = encoder->node;
+  btor2::nid_t nid = encoder.node;
 
-  encoder->define_store_buffer_constraints();
+  encoder.define_store_buffer_constraints();
 
-  expected = [this, &nid] {
+  auto expected = [&encoder, &nid] {
     std::ostringstream s;
 
     if (verbose)
       s << btor2::comment_section("store buffer constraints");
 
-    encoder->iterate_threads([this, &nid, &s] {
+    encoder.iterate_threads([&encoder, &nid, &s] {
       s <<
         btor2::implies(
           std::to_string(nid),
-          encoder->sid_bool,
-          btor2::lnot(encoder->nids_sb_full[encoder->thread]),
-          btor2::lnot(encoder->nids_flush[encoder->thread]));
+          encoder.sid_bool,
+          btor2::lnot(encoder.nids_sb_full[encoder.thread]),
+          btor2::lnot(encoder.nids_flush[encoder.thread]));
       nid++;
-      s << btor2::constraint(nid, encoder->flush_var());
+      s << btor2::constraint(nid, encoder.flush_var());
       s << eol;
     });
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
+
+  // verbosity
+  reset(encoder);
+  init_state_definitions(encoder);
+
+  verbose = false;
+  nid = encoder.node;
+  encoder.define_store_buffer_constraints();
+  ASSERT_EQ(expected(), encoder.str());
+  verbose = true;
 }
 
 // btor2::Encoder::define_checkpoint_constraints ===============================
 
-TEST_F(btor2_Encoder, define_checkpoint_constraints)
+TEST(btor2_Encoder, define_checkpoint_constraints)
 {
-  for (size_t i = 0; i < 3; i++)
-    programs.push_back(create_program("CHECK 1\n"));
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dup(prog("CHECK 1"), 3));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
 
-  encoder->define_checkpoint_constraints();
+  btor2::nid_t nid = encoder.node;
 
-  expected = [this, &nid] {
+  encoder.define_checkpoint_constraints();
+
+  auto expected = [&encoder, &nid] {
     std::ostringstream s;
 
     if (verbose)
       s << btor2::comment_section("checkpoint constraints");
 
-    for (const auto & [id, threads] : encoder->nids_block)
+    for (const auto & [id, threads] : encoder.nids_block)
       {
-        std::string nid_not_check = btor2::lnot(encoder->nids_check[1]);
+        std::string nid_not_check = btor2::lnot(encoder.nids_check[1]);
 
         for (const auto & [thread, nid_block] : threads)
           {
             s <<
               btor2::land(
                 std::to_string(nid),
-                encoder->sid_bool,
+                encoder.sid_bool,
                 nid_block,
                 nid_not_check);
             nid++;
             s <<
               btor2::implies(
                 std::to_string(nid),
-                encoder->sid_bool,
+                encoder.sid_bool,
                 std::to_string(nid - 1),
-                btor2::lnot(encoder->nids_thread[thread]));
+                btor2::lnot(encoder.nids_thread[thread]));
             nid++;
-            s << btor2::constraint(nid, encoder->block_var(id, thread));
+            s << btor2::constraint(nid, encoder.block_var(id, thread));
 
             s << eol;
           }
@@ -3347,53 +3420,56 @@ TEST_F(btor2_Encoder, define_checkpoint_constraints)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_state_definitions();
+  reset(encoder);
+  init_state_definitions(encoder);
 
   verbose = false;
-  nid = encoder->node;
-  encoder->define_checkpoint_constraints();
-  ASSERT_EQ(expected(), encoder->str());
+  nid = encoder.node;
+  encoder.define_checkpoint_constraints();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
-TEST_F(btor2_Encoder, define_checkpoint_constraints_empty)
+TEST(btor2_Encoder, define_checkpoint_constraints_empty)
 {
-  encoder->define_checkpoint_constraints();
-  ASSERT_EQ("", encoder->formula.str());
+  auto encoder = create<E>();
+
+  encoder.define_checkpoint_constraints();
+
+  ASSERT_EQ("", encoder.formula.str());
 }
 
 // btor2::Encoder::define_halt_constraints =====================================
 
-TEST_F(btor2_Encoder, define_halt_constraints)
+TEST(btor2_Encoder, define_halt_constraints)
 {
-  add_dummy_programs(3);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(3));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
 
-  encoder->define_halt_constraints();
+  btor2::nid_t nid = encoder.node;
 
-  expected = [this, &nid] {
+  encoder.define_halt_constraints();
+
+  auto expected = [&encoder, &nid] {
     std::ostringstream s;
 
     if (verbose)
       s << btor2::comment_section("halt constraints");
 
-    for (const auto & [t, nid_halt] : encoder->nids_halt)
+    for (const auto & [t, nid_halt] : encoder.nids_halt)
       {
         s <<
           btor2::implies(
             std::to_string(nid),
-            encoder->sid_bool,
+            encoder.sid_bool,
             nid_halt,
-            btor2::lnot(encoder->nids_thread[t]));
+            btor2::lnot(encoder.nids_thread[t]));
         nid++;
-        s << btor2::constraint(nid, encoder->halt_var(t));
+        s << btor2::constraint(nid, encoder.halt_var(t));
 
         s << eol;
       }
@@ -3401,36 +3477,41 @@ TEST_F(btor2_Encoder, define_halt_constraints)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_state_definitions();
+  reset(encoder);
+  init_state_definitions(encoder);
 
   verbose = false;
-  nid = encoder->node;
-  encoder->define_halt_constraints();
-  ASSERT_EQ(expected(), encoder->str());
+  nid = encoder.node;
+  encoder.define_halt_constraints();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
-TEST_F(btor2_Encoder, define_halt_constraints_empty)
+TEST(btor2_Encoder, define_halt_constraints_empty)
 {
-  encoder->define_checkpoint_constraints();
-  ASSERT_EQ("", encoder->formula.str());
+  auto encoder = create<E>();
+
+  encoder.define_checkpoint_constraints();
+
+  ASSERT_EQ("", encoder.formula.str());
 }
 
 // btor2::Encoder::define_bound ================================================
 
-TEST_F(btor2_Encoder, define_bound)
+TEST(btor2_Encoder, define_bound)
 {
-  init_state_definitions();
+  auto encoder = create<E>();
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
 
-  encoder->define_bound();
+  btor2::nid_t nid = encoder.node;
 
-  expected = [this, &nid] {
+  encoder.define_bound();
+
+  auto expected = [&encoder, &nid] {
     std::ostringstream s;
 
     if (verbose)
@@ -3440,38 +3521,38 @@ TEST_F(btor2_Encoder, define_bound)
 
     std::string nid_ctr = std::to_string(nid);
 
-    s << btor2::state(nid_ctr, encoder->sid_bv, "k");
+    s << btor2::state(nid_ctr, encoder.sid_bv, "k");
     nid++;
     s <<
       btor2::init(
         std::to_string(nid),
-        encoder->sid_bv,
+        encoder.sid_bv,
         nid_ctr,
-        encoder->nids_const[0]);
+        encoder.nids_const[0]);
     nid++;
     s <<
       btor2::add(
         std::to_string(nid),
-        encoder->sid_bv,
-        encoder->nids_const[1],
+        encoder.sid_bv,
+        encoder.nids_const[1],
         nid_ctr);
     nid++;
     s <<
       btor2::next(
         std::to_string(nid),
-        encoder->sid_bv,
+        encoder.sid_bv,
         nid_ctr,
         std::to_string(nid - 1));
     nid++;
     s << eol;
     if (verbose)
-      s << btor2::comment("bound (" + std::to_string(encoder->bound) + ")")
+      s << btor2::comment("bound (" + std::to_string(encoder.bound) + ")")
         << eol;
     s <<
       btor2::eq(
         std::to_string(nid),
-        encoder->sid_bool,
-        encoder->nids_const[encoder->bound],
+        encoder.sid_bool,
+        encoder.nids_const[encoder.bound],
         nid_ctr);
     nid++;
     s << btor2::bad(std::to_string(nid), std::to_string(nid - 1));
@@ -3479,639 +3560,627 @@ TEST_F(btor2_Encoder, define_bound)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 
   // verbosity
-  reset_encoder();
-  init_state_definitions();
+  reset(encoder);
+  init_state_definitions(encoder);
 
   verbose = false;
-  nid = encoder->node;
-  encoder->define_bound();
-  ASSERT_EQ(expected(), encoder->str());
+  nid = encoder.node;
+  encoder.define_bound();
+  ASSERT_EQ(expected(), encoder.str());
   verbose = true;
 }
 
 // btor2::Encoder::encode ======================================================
 
-TEST_F(btor2_Encoder, encode_check)
+TEST(btor2_Encoder, encode_check)
 {
-  // concurrent increment using CHECK
-  encode(
-    {"increment.check.thread.0.asm", "increment.check.thread.n.asm"},
-    "increment.check.t2.k16.btor2",
-    16);
+  encode_check<E>("increment.check.t2.k16.btor2");
 }
 
-TEST_F(btor2_Encoder, encode_cas)
+TEST(btor2_Encoder, encode_cas)
 {
-  // concurrent increment using CAS
-  encode(
-    {"increment.cas.asm", "increment.cas.asm"},
-    "increment.cas.t2.k16.btor2",
-    16);
+  encode_cas<E>("increment.cas.t2.k16.btor2");
 }
 
-TEST_F(btor2_Encoder, encode_halt)
+TEST(btor2_Encoder, encode_halt)
 {
-  const std::string path = "halt.asm";
-
-  if (!std::filesystem::exists("/tmp/" + path))
-    {
-      std::ofstream file("/tmp/" + path);
-      file <<
-        "JNZ 2\n"
-        "HALT\n"
-        "EXIT 1\n";
-    }
-
-  encode({path, path}, "test.t2.k10.btor2", 10, "/tmp/");
+  encode_halt<E>("halt.t2.k10.btor2");
 }
 
-TEST_F(btor2_Encoder, LOAD)
+TEST(btor2_Encoder, litmus_intel_1)
 {
-  add_dummy_programs(1);
-  reset_encoder();
-  init_state_definitions();
+  litmus_intel_1<E>("formula.btor2");
+}
 
-  btor2::nid_t nid = encoder->node;
+TEST(btor2_Encoder, LOAD)
+{
+  auto encoder = create<E>(dummy(1));
+
+  init_state_definitions(encoder);
+
+  btor2::nid_t nid = encoder.node;
 
   word_t address = 0;
 
-  Instruction::Load load {Type::none, address};
+  Instruction::Load load {Instruction::Type::none, address};
 
   ASSERT_EQ(
-    encoder->nids_load[encoder->thread][address],
-    encoder->encode(load));
-  ASSERT_EQ(expected_load(nid, address), encoder->str());
+    encoder.nids_load[encoder.thread][address],
+    encoder.encode(load));
+  ASSERT_EQ(expected_load(encoder, nid, address), encoder.str());
 }
 
-TEST_F(btor2_Encoder, LOAD_indirect)
+TEST(btor2_Encoder, LOAD_indirect)
 {
-  add_dummy_programs(1);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(1));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
+
+  btor2::nid_t nid = encoder.node;
 
   word_t address = 0;
 
-  Instruction::Load load {Type::none, address, true};
+  Instruction::Load load {Instruction::Type::none, address, true};
 
   ASSERT_EQ(
-    encoder->nids_load_indirect[encoder->thread][address],
-    encoder->encode(load));
-  ASSERT_EQ(expected_load_indirect(nid, address), encoder->str());
+    encoder.nids_load_indirect[encoder.thread][address],
+    encoder.encode(load));
+  ASSERT_EQ(expected_load_indirect(encoder, nid, address), encoder.str());
 }
 
-TEST_F(btor2_Encoder, STORE)
+TEST(btor2_Encoder, STORE)
 {
-  add_dummy_programs(1);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(1));
+
+  init_state_definitions(encoder);
 
   word_t address = 0;
 
-  Instruction::Store store {Type::none, address};
+  Instruction::Store store {Instruction::Type::none, address};
 
-  encoder->update = State::sb_adr;
-  ASSERT_EQ(encoder->nids_const[address], encoder->encode(store));
+  encoder.update = E::State::sb_adr;
+  ASSERT_EQ(encoder.nids_const[address], encoder.encode(store));
 
-  encoder->update = State::sb_val;
-  ASSERT_EQ(encoder->nids_accu[0], encoder->encode(store));
+  encoder.update = E::State::sb_val;
+  ASSERT_EQ(encoder.nids_accu[0], encoder.encode(store));
 }
 
-TEST_F(btor2_Encoder, STORE_indirect)
+TEST(btor2_Encoder, STORE_indirect)
 {
-  add_dummy_programs(1);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(1));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
+
+  btor2::nid_t nid = encoder.node;
 
   word_t address = 0;
 
-  Instruction::Store store {Type::none, address, true};
+  Instruction::Store store {Instruction::Type::none, address, true};
 
-  encoder->update = State::sb_adr;
+  encoder.update = E::State::sb_adr;
   ASSERT_EQ(
-    encoder->nids_load[encoder->thread][address],
-    encoder->encode(store));
-  ASSERT_EQ(expected_load(nid, address), encoder->str());
+    encoder.nids_load[encoder.thread][address],
+    encoder.encode(store));
+  ASSERT_EQ(expected_load(encoder, nid, address), encoder.str());
 
-  encoder->update = State::sb_val;
-  ASSERT_EQ(encoder->nids_accu[0], encoder->encode(store));
+  encoder.update = E::State::sb_val;
+  ASSERT_EQ(encoder.nids_accu[0], encoder.encode(store));
 }
 
-TEST_F(btor2_Encoder, ADD)
+TEST(btor2_Encoder, ADD)
 {
-  add_dummy_programs(1);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(1));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
+
+  btor2::nid_t nid = encoder.node;
 
   word_t address = 0;
 
-  Instruction::Add add {Type::none, address};
+  Instruction::Add add {Instruction::Type::none, address};
 
-  std::string nid_add = encoder->encode(add);
+  std::string nid_add = encoder.encode(add);
 
-  expected = [this, &nid, &address, &nid_add] {
+  auto expected = [this, &encoder, &nid, &address, &nid_add] {
     std::ostringstream s;
 
-    s << expected_load(nid, address);
+    s << expected_load(encoder, nid, address);
     s <<
       btor2::add(
         nid_add,
-        encoder->sid_bv,
-        encoder->nids_accu[encoder->thread],
+        encoder.sid_bv,
+        encoder.nids_accu[encoder.thread],
         std::to_string(nid - 1));
     nid++;
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 }
 
-TEST_F(btor2_Encoder, ADD_indirect)
+TEST(btor2_Encoder, ADD_indirect)
 {
-  add_dummy_programs(1);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(1));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
+
+  btor2::nid_t nid = encoder.node;
 
   word_t address = 0;
 
-  Instruction::Add add {Type::none, address, true};
+  Instruction::Add add {Instruction::Type::none, address, true};
 
-  std::string nid_add = encoder->encode(add);
+  std::string nid_add = encoder.encode(add);
 
-  expected = [this, &nid, &address, &nid_add] {
+  auto expected = [this, &encoder, &nid, &address, &nid_add] {
     std::ostringstream s;
 
-    s << expected_load_indirect(nid, address);
+    s << expected_load_indirect(encoder, nid, address);
     s <<
       btor2::add(
         nid_add,
-        encoder->sid_bv,
-        encoder->nids_accu[encoder->thread],
+        encoder.sid_bv,
+        encoder.nids_accu[encoder.thread],
         std::to_string(nid - 1));
     nid++;
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 }
 
-TEST_F(btor2_Encoder, ADDI)
+TEST(btor2_Encoder, ADDI)
 {
-  add_dummy_programs(1);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(1));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
+
+  btor2::nid_t nid = encoder.node;
 
   word_t value = 0;
 
-  Instruction::Addi addi {Type::none, value};
+  Instruction::Addi addi {Instruction::Type::none, value};
 
-  std::string nid_addi = encoder->encode(addi);
+  std::string nid_addi = encoder.encode(addi);
 
-  expected = [this, &nid, &value, &nid_addi] {
+  auto expected = [&encoder, &nid, &value, &nid_addi] {
     std::ostringstream s;
 
     s <<
       btor2::add(
         nid_addi,
-        encoder->sid_bv,
-        encoder->nids_accu[encoder->thread],
-        encoder->nids_const[value]);
+        encoder.sid_bv,
+        encoder.nids_accu[encoder.thread],
+        encoder.nids_const[value]);
     nid++;
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 }
 
-TEST_F(btor2_Encoder, SUB)
+TEST(btor2_Encoder, SUB)
 {
-  add_dummy_programs(1);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(1));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
+
+  btor2::nid_t nid = encoder.node;
 
   word_t address = 0;
 
-  Instruction::Sub sub {Type::none, address};
+  Instruction::Sub sub {Instruction::Type::none, address};
 
-  std::string nid_sub = encoder->encode(sub);
+  std::string nid_sub = encoder.encode(sub);
 
-  expected = [this, &nid, &address, &nid_sub] {
+  auto expected = [this, &encoder, &nid, &address, &nid_sub] {
     std::ostringstream s;
 
-    s << expected_load(nid, address);
+    s << expected_load(encoder, nid, address);
     s <<
       btor2::sub(
         nid_sub,
-        encoder->sid_bv,
-        encoder->nids_accu[encoder->thread],
+        encoder.sid_bv,
+        encoder.nids_accu[encoder.thread],
         std::to_string(nid - 1));
     nid++;
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 }
 
-TEST_F(btor2_Encoder, SUB_indirect)
+TEST(btor2_Encoder, SUB_indirect)
 {
-  add_dummy_programs(1);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(1));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
+
+  btor2::nid_t nid = encoder.node;
 
   word_t address = 0;
 
-  Instruction::Sub sub {Type::none, address, true};
+  Instruction::Sub sub {Instruction::Type::none, address, true};
 
-  std::string nid_sub = encoder->encode(sub);
+  std::string nid_sub = encoder.encode(sub);
 
-  expected = [this, &nid, &address, &nid_sub] {
+  auto expected = [this, &encoder, &nid, &address, &nid_sub] {
     std::ostringstream s;
 
-    s << expected_load_indirect(nid, address);
+    s << expected_load_indirect(encoder, nid, address);
     s <<
       btor2::sub(
         nid_sub,
-        encoder->sid_bv,
-        encoder->nids_accu[encoder->thread],
+        encoder.sid_bv,
+        encoder.nids_accu[encoder.thread],
         std::to_string(nid - 1));
     nid++;
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 }
 
-TEST_F(btor2_Encoder, SUBI)
+TEST(btor2_Encoder, SUBI)
 {
-  add_dummy_programs(1);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(1));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
+
+  btor2::nid_t nid = encoder.node;
 
   word_t value = 0;
 
-  Instruction::Subi subi {Type::none, value};
+  Instruction::Subi subi {Instruction::Type::none, value};
 
-  std::string nid_subi = encoder->encode(subi);
+  std::string nid_subi = encoder.encode(subi);
 
-  expected = [this, &nid, &value, &nid_subi] {
+  auto expected = [&encoder, &nid, &value, &nid_subi] {
     std::ostringstream s;
 
     s <<
       btor2::sub(
         nid_subi,
-        encoder->sid_bv,
-        encoder->nids_accu[encoder->thread],
-        encoder->nids_const[value]);
+        encoder.sid_bv,
+        encoder.nids_accu[encoder.thread],
+        encoder.nids_const[value]);
     nid++;
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 }
 
-TEST_F(btor2_Encoder, MUL)
+TEST(btor2_Encoder, MUL)
 {
-  add_dummy_programs(1);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(1));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
+
+  btor2::nid_t nid = encoder.node;
 
   word_t address = 0;
 
-  Instruction::Mul mul {Type::none, address};
+  Instruction::Mul mul {Instruction::Type::none, address};
 
-  std::string nid_mul = encoder->encode(mul);
+  std::string nid_mul = encoder.encode(mul);
 
-  expected = [this, &nid, &address, &nid_mul] {
+  auto expected = [this, &encoder, &nid, &address, &nid_mul] {
     std::ostringstream s;
 
-    s << expected_load(nid, address);
+    s << expected_load(encoder, nid, address);
     s <<
       btor2::mul(
         nid_mul,
-        encoder->sid_bv,
-        encoder->nids_accu[encoder->thread],
+        encoder.sid_bv,
+        encoder.nids_accu[encoder.thread],
         std::to_string(nid - 1));
     nid++;
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 }
 
-TEST_F(btor2_Encoder, MUL_indirect)
+TEST(btor2_Encoder, MUL_indirect)
 {
-  add_dummy_programs(1);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(1));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
+
+  btor2::nid_t nid = encoder.node;
 
   word_t address = 0;
 
-  Instruction::Mul mul {Type::none, address, true};
+  Instruction::Mul mul {Instruction::Type::none, address, true};
 
-  std::string nid_mul = encoder->encode(mul);
+  std::string nid_mul = encoder.encode(mul);
 
-  expected = [this, &nid, &address, &nid_mul] {
+  auto expected = [this, &encoder, &nid, &address, &nid_mul] {
     std::ostringstream s;
 
-    s << expected_load_indirect(nid, address);
+    s << expected_load_indirect(encoder, nid, address);
     s <<
       btor2::mul(
         nid_mul,
-        encoder->sid_bv,
-        encoder->nids_accu[encoder->thread],
+        encoder.sid_bv,
+        encoder.nids_accu[encoder.thread],
         std::to_string(nid - 1));
     nid++;
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 }
 
-TEST_F(btor2_Encoder, MULI)
+TEST(btor2_Encoder, MULI)
 {
-  add_dummy_programs(1);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(1));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
+
+  btor2::nid_t nid = encoder.node;
 
   word_t value = 0;
 
-  Instruction::Muli muli {Type::none, value};
+  Instruction::Muli muli {Instruction::Type::none, value};
 
-  std::string nid_muli = encoder->encode(muli);
+  std::string nid_muli = encoder.encode(muli);
 
-  expected = [this, &nid, &value, &nid_muli] {
+  auto expected = [&encoder, &nid, &value, &nid_muli] {
     std::ostringstream s;
 
     s <<
       btor2::mul(
         nid_muli,
-        encoder->sid_bv,
-        encoder->nids_accu[encoder->thread],
-        encoder->nids_const[value]);
+        encoder.sid_bv,
+        encoder.nids_accu[encoder.thread],
+        encoder.nids_const[value]);
     nid++;
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 }
 
-TEST_F(btor2_Encoder, CMP)
+TEST(btor2_Encoder, CMP)
 {
-  add_dummy_programs(1);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(1));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
+
+  btor2::nid_t nid = encoder.node;
 
   word_t address = 0;
 
-  Instruction::Cmp cmp {Type::none, address};
+  Instruction::Cmp cmp {Instruction::Type::none, address};
 
-  std::string nid_cmp = encoder->encode(cmp);
+  std::string nid_cmp = encoder.encode(cmp);
 
-  expected = [this, &nid, &address, &nid_cmp] {
+  auto expected = [this, &encoder, &nid, &address, &nid_cmp] {
     std::ostringstream s;
 
-    s << expected_load(nid, address);
+    s << expected_load(encoder, nid, address);
     s <<
       btor2::sub(
         nid_cmp,
-        encoder->sid_bv,
-        encoder->nids_accu[encoder->thread],
+        encoder.sid_bv,
+        encoder.nids_accu[encoder.thread],
         std::to_string(nid - 1));
     nid++;
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 }
 
-TEST_F(btor2_Encoder, CMP_indirect)
+TEST(btor2_Encoder, CMP_indirect)
 {
-  add_dummy_programs(1);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(1));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
+
+  btor2::nid_t nid = encoder.node;
 
   word_t address = 0;
 
-  Instruction::Cmp cmp {Type::none, address, true};
+  Instruction::Cmp cmp {Instruction::Type::none, address, true};
 
-  std::string nid_cmp = encoder->encode(cmp);
+  std::string nid_cmp = encoder.encode(cmp);
 
-  expected = [this, &nid, &address, &nid_cmp] {
+  auto expected = [this, &encoder, &nid, &address, &nid_cmp] {
     std::ostringstream s;
 
-    s << expected_load_indirect(nid, address);
+    s << expected_load_indirect(encoder, nid, address);
     s <<
       btor2::sub(
         nid_cmp,
-        encoder->sid_bv,
-        encoder->nids_accu[encoder->thread],
+        encoder.sid_bv,
+        encoder.nids_accu[encoder.thread],
         std::to_string(nid - 1));
     nid++;
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 }
 
-TEST_F(btor2_Encoder, JMP)
+TEST(btor2_Encoder, JMP)
 {
-  Instruction::Jmp jmp {Type::none, 0};
+  auto encoder = create<E>(dummy(1));
 
-  ASSERT_EQ("", encoder->encode(jmp));
-  ASSERT_EQ("", encoder->formula.str());
+  Instruction::Jmp jmp {Instruction::Type::none, 0};
+
+  ASSERT_EQ("", encoder.encode(jmp));
+  ASSERT_EQ("", encoder.formula.str());
 }
 
-TEST_F(btor2_Encoder, JZ)
+TEST(btor2_Encoder, JZ)
 {
-  add_dummy_programs(1);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(1));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
 
-  Instruction::Jz jz {Type::none, 0};
+  btor2::nid_t nid = encoder.node;
 
-  std::string nid_jz = encoder->encode(jz);
+  Instruction::Jz jz {Instruction::Type::none, 0};
 
-  expected = [this, &nid, &nid_jz] {
+  std::string nid_jz = encoder.encode(jz);
+
+  auto expected = [&encoder, &nid, &nid_jz] {
     std::ostringstream s;
 
     s <<
       btor2::eq(
         nid_jz,
-        encoder->sid_bool,
-        encoder->nids_accu[encoder->thread],
-        encoder->nids_const[0]);
+        encoder.sid_bool,
+        encoder.nids_accu[encoder.thread],
+        encoder.nids_const[0]);
     nid++;
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 }
 
-TEST_F(btor2_Encoder, JNZ)
+TEST(btor2_Encoder, JNZ)
 {
-  add_dummy_programs(1);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(1));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
 
-  Instruction::Jnz jnz {Type::none, 0};
+  btor2::nid_t nid = encoder.node;
 
-  std::string nid_jnz = encoder->encode(jnz);
+  Instruction::Jnz jnz {Instruction::Type::none, 0};
 
-  expected = [this, &nid, &nid_jnz] {
+  std::string nid_jnz = encoder.encode(jnz);
+
+  auto expected = [&encoder, &nid, &nid_jnz] {
     std::ostringstream s;
 
     s <<
       btor2::ne(
         nid_jnz,
-        encoder->sid_bool,
-        encoder->nids_accu[encoder->thread],
-        encoder->nids_const[0]);
+        encoder.sid_bool,
+        encoder.nids_accu[encoder.thread],
+        encoder.nids_const[0]);
     nid++;
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 }
 
-TEST_F(btor2_Encoder, JS)
+TEST(btor2_Encoder, JS)
 {
-  add_dummy_programs(1);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(1));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
 
-  Instruction::Js js {Type::none, 0};
+  btor2::nid_t nid = encoder.node;
 
-  std::string nid_js = encoder->encode(js);
+  Instruction::Js js {Instruction::Type::none, 0};
 
-  expected = [this, &nid, &nid_js] {
+  std::string nid_js = encoder.encode(js);
+
+  auto expected = [&encoder, &nid, &nid_js] {
     std::ostringstream s;
 
     s <<
       btor2::slice(
         nid_js,
-        encoder->sid_bool,
-        encoder->nids_accu[encoder->thread],
-        encoder->msb,
-        encoder->msb);
+        encoder.sid_bool,
+        encoder.nids_accu[encoder.thread],
+        encoder.msb,
+        encoder.msb);
     nid++;
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 }
 
-TEST_F(btor2_Encoder, JNS)
+TEST(btor2_Encoder, JNS)
 {
-  add_dummy_programs(1);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(1));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
 
-  Instruction::Jns jns {Type::none, 0};
+  btor2::nid_t nid = encoder.node;
 
-  std::string nid_jns = encoder->encode(jns);
+  Instruction::Jns jns {Instruction::Type::none, 0};
 
-  expected = [this, &nid, &nid_jns] {
+  std::string nid_jns = encoder.encode(jns);
+
+  auto expected = [&encoder, &nid, &nid_jns] {
     std::ostringstream s;
 
     s <<
       btor2::slice(
         nid_jns.substr(1),
-        encoder->sid_bool,
-        encoder->nids_accu[encoder->thread],
-        encoder->msb,
-        encoder->msb);
+        encoder.sid_bool,
+        encoder.nids_accu[encoder.thread],
+        encoder.msb,
+        encoder.msb);
     nid++;
 
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 }
 
-TEST_F(btor2_Encoder, JNZNS)
+TEST(btor2_Encoder, JNZNS)
 {
-  add_dummy_programs(1);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(1));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
 
-  Instruction::Jnzns jnzns {Type::none, 0};
+  btor2::nid_t nid = encoder.node;
 
-  std::string nid_jnzns = encoder->encode(jnzns);
+  Instruction::Jnzns jnzns {Instruction::Type::none, 0};
 
-  expected = [this, &nid, &nid_jnzns] {
+  std::string nid_jnzns = encoder.encode(jnzns);
+
+  auto expected = [&encoder, &nid, &nid_jnzns] {
     std::ostringstream s;
 
     s <<
       btor2::ne(
         std::to_string(nid),
-        encoder->sid_bool,
-        encoder->nids_accu[encoder->thread],
-        encoder->nids_const[0]);
+        encoder.sid_bool,
+        encoder.nids_accu[encoder.thread],
+        encoder.nids_const[0]);
     nid++;
     s <<
       btor2::slice(
         std::to_string(nid),
-        encoder->sid_bool,
-        encoder->nids_accu[encoder->thread],
-        encoder->msb,
-        encoder->msb);
+        encoder.sid_bool,
+        encoder.nids_accu[encoder.thread],
+        encoder.msb,
+        encoder.msb);
     nid++;
     s <<
       btor2::land(
         nid_jnzns,
-        encoder->sid_bool,
+        encoder.sid_bool,
         std::to_string(nid - 2),
         btor2::lnot(std::to_string(nid - 1)));
     nid++;
@@ -4119,191 +4188,193 @@ TEST_F(btor2_Encoder, JNZNS)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder->str());
+  ASSERT_EQ(expected(), encoder.str());
 }
 
-TEST_F(btor2_Encoder, MEM)
+TEST(btor2_Encoder, MEM)
 {
-  add_dummy_programs(1);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(1));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
+
+  btor2::nid_t nid = encoder.node;
 
   word_t address = 0;
 
-  Instruction::Mem mem {Type::none, address};
+  Instruction::Mem mem {Instruction::Type::none, address};
 
   ASSERT_EQ(
-    encoder->nids_load[encoder->thread][address],
-    encoder->encode(mem));
-  ASSERT_EQ(expected_load(nid, address), encoder->str());
+    encoder.nids_load[encoder.thread][address],
+    encoder.encode(mem));
+  ASSERT_EQ(expected_load(encoder, nid, address), encoder.str());
 }
 
-TEST_F(btor2_Encoder, MEM_indirect)
+TEST(btor2_Encoder, MEM_indirect)
 {
-  add_dummy_programs(1);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(1));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
+
+  btor2::nid_t nid = encoder.node;
 
   word_t address = 0;
 
-  Instruction::Mem mem {Type::none, address, true};
+  Instruction::Mem mem {Instruction::Type::none, address, true};
 
   ASSERT_EQ(
-    encoder->nids_load_indirect[encoder->thread][address],
-    encoder->encode(mem));
-  ASSERT_EQ(expected_load_indirect(nid, address), encoder->str());
+    encoder.nids_load_indirect[encoder.thread][address],
+    encoder.encode(mem));
+  ASSERT_EQ(expected_load_indirect(encoder, nid, address), encoder.str());
 }
 
-TEST_F(btor2_Encoder, CAS)
+TEST(btor2_Encoder, CAS)
 {
-  add_dummy_programs(1);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(1));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
+
+  btor2::nid_t nid = encoder.node;
 
   word_t address = 0;
 
-  Instruction::Cas cas {Type::none, address};
+  Instruction::Cas cas {Instruction::Type::none, address};
 
   std::string nid_cas;
 
-  expected = [this, &nid, &address, &nid_cas] {
+  auto expected = [this, &encoder, &nid, &address, &nid_cas] {
     std::ostringstream s;
 
-    if (encoder->update == State::accu)
+    if (encoder.update == E::State::accu)
       {
-        s << expected_load(nid, address);
+        s << expected_load(encoder, nid, address);
         s <<
           btor2::eq(
-            encoder->nids_cas[encoder->thread][address],
-            encoder->sid_bool,
-            encoder->nids_mem[encoder->thread],
-            encoder->nids_load[encoder->thread][address]);
+            encoder.nids_cas[encoder.thread][address],
+            encoder.sid_bool,
+            encoder.nids_mem[encoder.thread],
+            encoder.nids_load[encoder.thread][address]);
         nid++;
         s <<
           btor2::ite(
             nid_cas,
-            encoder->sid_bv,
-            encoder->nids_cas[encoder->thread][address],
-            encoder->nids_const[1],
-            encoder->nids_const[0]);
+            encoder.sid_bv,
+            encoder.nids_cas[encoder.thread][address],
+            encoder.nids_const[1],
+            encoder.nids_const[0]);
         nid++;
       }
-    else if (encoder->update == State::heap)
+    else if (encoder.update == E::State::heap)
       {
         s <<
           btor2::write(
             std::to_string(nid),
-            encoder->sid_heap,
-            encoder->nid_heap,
-            encoder->nids_const[address],
-            encoder->nids_accu[encoder->thread]);
+            encoder.sid_heap,
+            encoder.nid_heap,
+            encoder.nids_const[address],
+            encoder.nids_accu[encoder.thread]);
         nid++;
         s <<
           btor2::ite(
             nid_cas,
-            encoder->sid_heap,
-            encoder->nids_cas[encoder->thread][address],
+            encoder.sid_heap,
+            encoder.nids_cas[encoder.thread][address],
             std::to_string(nid - 1),
-            encoder->nid_heap);
+            encoder.nid_heap);
         nid++;
       }
 
     return s.str();
   };
 
-  encoder->update = State::accu;
-  nid_cas = encoder->encode(cas);
-  ASSERT_EQ(expected(), encoder->str());
+  encoder.update = E::State::accu;
+  nid_cas = encoder.encode(cas);
+  ASSERT_EQ(expected(), encoder.str());
 
-  encoder->formula.str("");
+  encoder.formula.str("");
 
-  encoder->update = State::heap;
-  nid_cas = encoder->encode(cas);
-  ASSERT_EQ(expected(), encoder->str());
+  encoder.update = E::State::heap;
+  nid_cas = encoder.encode(cas);
+  ASSERT_EQ(expected(), encoder.str());
 }
 
-TEST_F(btor2_Encoder, CAS_indirect)
+TEST(btor2_Encoder, CAS_indirect)
 {
-  add_dummy_programs(1);
-  reset_encoder();
-  init_state_definitions();
+  auto encoder = create<E>(dummy(1));
 
-  btor2::nid_t nid = encoder->node;
+  init_state_definitions(encoder);
+
+  btor2::nid_t nid = encoder.node;
 
   word_t address = 0;
 
-  Instruction::Cas cas {Type::none, address, true};
+  Instruction::Cas cas {Instruction::Type::none, address, true};
 
   std::string nid_cas;
 
-  expected = [this, &nid, &address, &nid_cas] {
+  auto expected = [this, &encoder, &nid, &address, &nid_cas] {
     std::ostringstream s;
 
-    if (encoder->update == State::accu)
+    if (encoder.update == E::State::accu)
       {
-        s << expected_load(nid, address);
+        s << expected_load(encoder, nid, address);
         s <<
           btor2::eq(
-            encoder->nids_cas_indirect[encoder->thread][address],
-            encoder->sid_bool,
-            encoder->nids_mem[encoder->thread],
-            encoder->nids_load[encoder->thread][address]);
+            encoder.nids_cas_indirect[encoder.thread][address],
+            encoder.sid_bool,
+            encoder.nids_mem[encoder.thread],
+            encoder.nids_load[encoder.thread][address]);
         nid++;
         s <<
           btor2::ite(
             nid_cas,
-            encoder->sid_bv,
-            encoder->nids_cas_indirect[encoder->thread][address],
-            encoder->nids_const[1],
-            encoder->nids_const[0]);
+            encoder.sid_bv,
+            encoder.nids_cas_indirect[encoder.thread][address],
+            encoder.nids_const[1],
+            encoder.nids_const[0]);
         nid++;
       }
-    else if (encoder->update == State::heap)
+    else if (encoder.update == E::State::heap)
       {
         s <<
           btor2::write(
             std::to_string(nid),
-            encoder->sid_heap,
-            encoder->nid_heap,
-            encoder->nids_load[encoder->thread][address],
-            encoder->nids_accu[encoder->thread]);
+            encoder.sid_heap,
+            encoder.nid_heap,
+            encoder.nids_load[encoder.thread][address],
+            encoder.nids_accu[encoder.thread]);
         nid++;
         s <<
           btor2::ite(
             nid_cas,
-            encoder->sid_heap,
-            encoder->nids_cas_indirect[encoder->thread][address],
+            encoder.sid_heap,
+            encoder.nids_cas_indirect[encoder.thread][address],
             std::to_string(nid - 1),
-            encoder->nid_heap);
+            encoder.nid_heap);
         nid++;
       }
 
     return s.str();
   };
 
-  encoder->update = State::accu;
-  nid_cas = encoder->encode(cas);
-  ASSERT_EQ(expected(), encoder->str());
+  encoder.update = E::State::accu;
+  nid_cas = encoder.encode(cas);
+  ASSERT_EQ(expected(), encoder.str());
 
-  encoder->formula.str("");
+  encoder.formula.str("");
 
-  encoder->update = State::heap;
-  nid_cas = encoder->encode(cas);
-  ASSERT_EQ(expected(), encoder->str());
+  encoder.update = E::State::heap;
+  nid_cas = encoder.encode(cas);
+  ASSERT_EQ(expected(), encoder.str());
 }
 
-TEST_F(btor2_Encoder, EXIT)
+TEST(btor2_Encoder, EXIT)
 {
-  Instruction::Exit exit {Type::none, 1};
+  auto encoder = create<E>(dummy(1));
 
-  ASSERT_EQ(encoder->nids_const[1], encoder->encode(exit));
-  ASSERT_EQ("", encoder->formula.str());
+  Instruction::Exit exit {Instruction::Type::none, 1};
+
+  ASSERT_EQ(encoder.nids_const[1], encoder.encode(exit));
+  ASSERT_EQ("", encoder.formula.str());
 }
 
 } // namespace ConcuBinE::test

@@ -23,7 +23,7 @@ namespace ConcuBinE {
 // constructors
 //------------------------------------------------------------------------------
 
-Program::Program(std::istream & f, const std::string & p) : path(p)
+Program::Program (std::istream & f, const std::string & p) : path(p)
 {
   std::string token;
 

@@ -645,6 +645,30 @@ void Encoder::declare_constants ()
   formula << eol;
 }
 
+// btor2::Encoder::define_mmap -------------------------------------------------
+
+void Encoder::define_mmap ()
+{
+  if (!mmap || mmap->empty())
+    return;
+
+  if (verbose)
+    formula << comment_section("memory map");
+
+  formula << state(nid_mmap = nid(), sid_heap, "mmap");
+
+  for (const auto & [adr, val] : *mmap)
+    formula <<
+      write(
+        nid_mmap = nid(),
+        sid_heap,
+        nid_mmap,
+        nids_const[adr],
+        nids_const[val]);
+
+  formula << eol;
+}
+
 // btor2::Encoder::declare_accu ------------------------------------------------
 
 void Encoder::declare_accu ()
@@ -1251,22 +1275,7 @@ void Encoder::define_heap ()
 
   // init
   if (mmap && !mmap->empty())
-    {
-      std::string nid_init = nid();
-
-      formula << state(nid_init, sid_heap, "mmap");
-
-      for (const auto & [adr, val] : *mmap)
-        formula <<
-          write(
-            nid_init = nid(),
-            sid_heap,
-            nid_init,
-            nids_const[adr],
-            nids_const[val]);
-
-      formula << init(nid(), sid_heap, nid_heap, nid_init);
-    }
+    formula << init(nid(), sid_heap, nid_heap, nid_mmap);
 
   // next
   update = State::heap;
@@ -1583,12 +1592,12 @@ void Encoder::encode ()
 {
   declare_sorts();
   declare_constants();
+  define_mmap();
   declare_states();
   declare_inputs();
   define_transitions();
   define_states();
   define_constraints();
-  define_bound();
 }
 
 std::string Encoder::encode (const Instruction::Load & l)

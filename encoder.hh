@@ -101,7 +101,7 @@ struct Encoder
 
   // number of threads (short hand for programs->size())
   //
-  const size_t num_threads;
+  size_t num_threads;
 
   // reference to initial memory layout
   //
@@ -109,11 +109,11 @@ struct Encoder
 
   // bound
   //
-  const size_t bound;
+  size_t bound;
 
   // use Sinz's cardinality constraint (num_threads > 4)
   //
-  const bool use_sinz_constraint;
+  bool use_sinz_constraint;
 
   // SMT formula buffer
   //
@@ -237,6 +237,8 @@ struct Encoder
   //----------------------------------------------------------------------------
 
   // returns the SMT formula as string
+  //
+  // TODO: really necessary?
   //
   std::string str ();
 
@@ -492,6 +494,10 @@ struct Functional : public Encoder
   // main encoding function
   //
   virtual void encode ();
+
+  // double-dispatched instruction encoding functions
+  //
+  using Encoder::encode;
 };
 
 //==============================================================================
@@ -718,6 +724,10 @@ struct Encoder : public ConcuBinE::Encoder
   //
   std::map<word_t, std::string> nids_const;
 
+  // memory map state node used in heap initialization
+  //
+  std::string nid_mmap;
+
   // register state nodes
   //
   // thread -> nid
@@ -873,6 +883,10 @@ struct Encoder : public ConcuBinE::Encoder
   // constant declarations
   //
   void declare_constants ();
+
+  // memory map definition
+  //
+  void define_mmap ();
 
   // state variable declarations
   //
