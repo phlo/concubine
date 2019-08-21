@@ -36,6 +36,22 @@ struct Program : public std::vector<Instruction>
     };
 
   //----------------------------------------------------------------------------
+  // static member functions
+  //----------------------------------------------------------------------------
+
+  // create program list
+  //
+  template <class ... P>
+  static Program::List::ptr list (P && ... program)
+  {
+    auto programs = std::make_shared<Program::List>();
+
+    (programs->push_back(program), ...);
+
+    return programs;
+  }
+
+  //----------------------------------------------------------------------------
   // members
   //----------------------------------------------------------------------------
 

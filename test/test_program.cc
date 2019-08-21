@@ -331,6 +331,26 @@ TEST_F(Program, parse_predecessors_halt)
     }
 }
 
+// Program::list ===============================================================
+
+TEST_F(Program, list)
+{
+  ConcuBinE::Program p0, p1;
+
+  p0.path = "p1.asm";
+  p0.push_back(Instruction::create("EXIT", 0));
+
+  p1.path = "p2.asm";
+  p1.push_back(Instruction::create("EXIT", 1));
+
+  auto lst = ConcuBinE::Program::list(p0, p1);
+
+  ASSERT_EQ(p0, lst->at(0));
+  ASSERT_EQ(p1, lst->at(1));
+
+  ASSERT_TRUE(ConcuBinE::Program::list()->empty());
+}
+
 // Program::push_back ==========================================================
 
 TEST_F(Program, push_back)

@@ -857,11 +857,10 @@ TEST_F(Simulator, simulate_increment_check)
   std::string expected((std::istreambuf_iterator<char>(trace_file)),
                         std::istreambuf_iterator<char>());
 
-  Program::List::ptr programs = std::make_shared<Program::List>();
-  programs->push_back(
-    create_from_file<Program>("data/increment.check.thread.0.asm"));
-  programs->push_back(
-    create_from_file<Program>("data/increment.check.thread.n.asm"));
+  auto programs =
+    Program::list(
+      create_from_file<Program>("data/increment.check.thread.0.asm"),
+      create_from_file<Program>("data/increment.check.thread.n.asm"));
 
   trace = simulator.simulate(programs, {}, 16);
 
@@ -882,11 +881,7 @@ TEST_F(Simulator, simulate_increment_cas)
 
   Program increment = create_from_file<Program>("data/increment.cas.asm");
 
-  Program::List::ptr programs = std::make_shared<Program::List>();
-  programs->push_back(increment);
-  programs->push_back(increment);
-
-  trace = simulator.simulate(programs, {}, 16);
+  trace = simulator.simulate(Program::list(increment, increment), {}, 16);
 
   ASSERT_EQ(
     Trace::update_map<word_t>({{3, 0}, {4, 0}, {12, 0}}),
@@ -899,7 +894,7 @@ TEST_F(Simulator, simulate_increment_cas)
 
 TEST_F(Simulator, simulate_load_uninitialized)
 {
-  Program::List::ptr programs = std::make_shared<Program::List>();
+  Program::List::ptr programs = Program::list();
 
   for (word_t i = 1; i <= 3; i++)
     {
@@ -929,7 +924,7 @@ TEST_F(Simulator, simulate_load_uninitialized)
 
 TEST_F(Simulator, simulate_load_mmap)
 {
-  Program::List::ptr programs = std::make_shared<Program::List>();
+  Program::List::ptr programs = Program::list();
   std::shared_ptr<MMap> mmap =
     std::make_shared<MMap>(create_from_file<MMap>("data/init.mmap"));
 

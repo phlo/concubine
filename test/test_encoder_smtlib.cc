@@ -704,7 +704,7 @@ TEST(smtlib_Encoder, declare_heap)
 
 TEST(smtlib_Encoder, declare_exit_flag)
 {
-  auto encoder = create<E>(lst(prog("EXIT 1")));
+  auto encoder = create<E>(Program::list(prog("EXIT 1")));
 
   encoder.declare_exit_flag();
 
@@ -1219,7 +1219,7 @@ TEST(smtlib_Encoder, init_halt_empty)
 
 TEST(smtlib_Encoder, init_heap)
 {
-  auto encoder = create<E>(lst(), mmap({{0, 1}, {1, 1}}), 0);
+  auto encoder = create<E>(Program::list(), mmap({{0, 1}, {1, 1}}), 0);
 
   encoder.init_heap();
 
@@ -1260,7 +1260,7 @@ TEST(smtlib_Encoder, init_heap_empty)
 
 TEST(smtlib_Encoder, init_exit_flag)
 {
-  auto encoder = create<E>(lst(prog("EXIT 1")), mmap({}), 0);
+  auto encoder = create<E>(Program::list(prog("EXIT 1")), mmap({}), 0);
 
   encoder.init_exit_flag();
 
@@ -1293,7 +1293,7 @@ TEST(smtlib_Encoder, init_exit_flag_empty)
 
 TEST(smtlib_Encoder, init_states)
 {
-  auto encoder = create<E>(lst(prog("JMP 0")), mmap({}), 0);
+  auto encoder = create<E>(Program::list(prog("JMP 0")), mmap({}), 0);
 
   encoder.init_states();
 
@@ -1349,7 +1349,7 @@ TEST(smtlib_Encoder, init_states_check_exit)
     "CHECK 0\n"
     "EXIT 1\n";
 
-  auto encoder = create<E>(lst(prog(code)), mmap({}), 0);
+  auto encoder = create<E>(Program::list(prog(code)), mmap({}), 0);
 
   encoder.init_states();
 
@@ -1572,7 +1572,7 @@ TEST(smtlib_Encoder, define_scheduling_constraints_exit)
 
 TEST(smtlib_Encoder, define_scheduling_constraints_single_thread)
 {
-  auto encoder = create<E>(lst(prog("JMP 0")));
+  auto encoder = create<E>(Program::list(prog("JMP 0")));
 
   encoder.define_scheduling_constraints();
 

@@ -48,23 +48,11 @@ inline Program prog (const std::string & code,
   return Program(inbuf, path);
 }
 
-// create program list
-//
-template <class ... P>
-inline std::shared_ptr<Program::List> lst (P && ... program)
-{
-  auto programs = std::make_shared<Program::List>();
-
-  (programs->push_back(program), ...);
-
-  return programs;
-}
-
 // create program list containing duplicates of a given program
 //
 inline std::shared_ptr<Program::List> dup (Program && p, size_t times)
 {
-  auto programs = lst();
+  auto programs = Program::list();
 
   while (times--)
     programs->push_back(p);
@@ -82,7 +70,7 @@ inline std::shared_ptr<Program::List> dummy (const word_t threads,
   for (size_t i = 0; i < size; i++)
     code << "ADDI 1\n";
 
-  auto programs = lst();
+  auto programs = Program::list();
 
   for (size_t i = 0; i < threads; i++)
     programs->push_back(prog(code.str()));
@@ -105,7 +93,7 @@ inline Encoder init (Encoder e) { return e; }
 // create encoder
 //
 template <class Encoder>
-inline Encoder create (const std::shared_ptr<Program::List> & p = lst(),
+inline Encoder create (const Program::List::ptr & p = Program::list(),
                        const std::shared_ptr<MMap> & m = {},
                        const size_t b = 1)
 {
@@ -169,7 +157,7 @@ template <class Encoder>
 inline void encode_check (const std::filesystem::path & formula)
 {
   encode_simulation<Encoder>(
-    lst(
+    Program::list(
       create_from_file<Program>("data/increment.check.thread.0.asm"),
       create_from_file<Program>("data/increment.check.thread.n.asm")),
     {},
@@ -183,7 +171,7 @@ template <class Encoder>
 inline void encode_cas (const std::filesystem::path & formula)
 {
   encode_simulation<Encoder>(
-    lst(
+    Program::list(
       create_from_file<Program>("data/increment.cas.asm"),
       create_from_file<Program>("data/increment.cas.asm")),
     {},
@@ -203,7 +191,7 @@ inline void encode_halt (const std::filesystem::path & formula)
     "EXIT 1\n";
 
   encode_simulation<Encoder>(
-    lst(prog(code, name), prog(code, name)),
+    Program::list(prog(code, name), prog(code, name)),
     {},
     10,
     "data/" / formula);
@@ -231,12 +219,12 @@ inline void litmus_intel_1 (const std::filesystem::path & formula)
   const std::filesystem::path dir("../examples/litmus/intel/1");
 
   encode_litmus<Encoder>(
-  lst(
-    create_from_file<Program>(dir / "processor.0.asm"),
-    create_from_file<Program>(dir / "processor.1.asm")),
-  mmap(create_from_file<MMap>(dir / "init.mmap")),
-  8,
-  dir / formula);
+    Program::list(
+      create_from_file<Program>(dir / "processor.0.asm"),
+      create_from_file<Program>(dir / "processor.1.asm")),
+    mmap(create_from_file<MMap>(dir / "init.mmap")),
+    8,
+    dir / formula);
 }
 
 } // namespace ConcuBinE::test

@@ -886,7 +886,8 @@ TEST(smtlib_Functional, define_exit_flag_empty)
 
 TEST(smtlib_Functional, define_exit_code)
 {
-  auto encoder = create<E>(lst(prog("EXIT 0"), prog("EXIT 1"), prog("EXIT 2")));
+  auto encoder =
+    create<E>(Program::list(prog("EXIT 0"), prog("EXIT 1"), prog("EXIT 2")));
 
   encoder.define_exit_code();
 
@@ -946,7 +947,7 @@ TEST(smtlib_Functional, define_exit_code_empty)
 
 TEST(smtlib_Functional, define_states)
 {
-  auto encoder = create<E>(lst(prog("JMP 0")));
+  auto encoder = create<E>(Program::list(prog("JMP 0")));
 
   encoder.define_states();
 
@@ -1007,7 +1008,7 @@ TEST(smtlib_Functional, define_states_check_exit)
     "CHECK 0\n"
     "EXIT 1\n";
 
-  auto encoder = create<E>(lst(prog(code)));
+  auto encoder = create<E>(Program::list(prog(code)));
 
   encoder.define_states();
 
