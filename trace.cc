@@ -661,6 +661,10 @@ std::optional<word_t> Trace::heap (const size_t k, const word_t address) const
 
 size_t Trace::size () const { return length; }
 
+// Trace::empty ----------------------------------------------------------------
+
+bool Trace::empty () const { return !size(); }
+
 // Trace::begin ----------------------------------------------------------------
 
 Trace::iterator Trace::begin () const

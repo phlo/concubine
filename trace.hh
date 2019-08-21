@@ -332,6 +332,10 @@ struct Trace
   //
   size_t size () const;
 
+  // true if trace is empty
+  //
+  bool empty () const;
+
   // return an iterator to the beginning
   //
   iterator begin () const;
