@@ -126,7 +126,12 @@ inline auto encode (const std::shared_ptr<Program::List> & programs,
   std::string expected((std::istreambuf_iterator<char>(ifs)),
                         std::istreambuf_iterator<char>());
 
-  static const auto & tmp = std::filesystem::temp_directory_path();
+  auto tmp = std::filesystem::temp_directory_path() / "concubine";
+  for (const auto & p : formula.parent_path())
+    if (p != "..")
+      tmp /= p;
+
+  std::filesystem::create_directories(tmp);
   std::ofstream ofs(tmp / formula.filename());
   ofs << encoder.str();
 
@@ -223,7 +228,23 @@ inline void litmus_intel_1 (const std::filesystem::path & formula)
       create_from_file<Program>(dir / "processor.0.asm"),
       create_from_file<Program>(dir / "processor.1.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
-    8,
+    9,
+    dir / formula);
+}
+
+// stores are not reordered with earlier loads
+//
+template <class Encoder>
+inline void litmus_intel_2 (const std::filesystem::path & formula)
+{
+  const std::filesystem::path dir("../examples/litmus/intel/2");
+
+  encode_litmus<Encoder>(
+    Program::list(
+      create_from_file<Program>(dir / "processor.0.asm"),
+      create_from_file<Program>(dir / "processor.1.asm")),
+    mmap(create_from_file<MMap>(dir / "init.mmap")),
+    10,
     dir / formula);
 }
 

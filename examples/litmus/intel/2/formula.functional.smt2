@@ -35,6 +35,7 @@
 (declare-fun stmt_0_1_0 () Bool)
 (declare-fun stmt_0_1_1 () Bool)
 (declare-fun stmt_0_1_2 () Bool)
+(declare-fun stmt_0_1_3 () Bool)
 
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_0_0 () Bool)
@@ -64,6 +65,7 @@
 (declare-fun exec_0_1_0 () Bool)
 (declare-fun exec_0_1_1 () Bool)
 (declare-fun exec_0_1_2 () Bool)
+(declare-fun exec_0_1_3 () Bool)
 
 ; store buffer flush variables - flush_<step>_<thread>
 (declare-fun flush_0_0 () Bool)
@@ -80,6 +82,7 @@
 (assert (= exec_0_1_0 (and stmt_0_1_0 thread_0_1)))
 (assert (= exec_0_1_1 (and stmt_0_1_1 thread_0_1)))
 (assert (= exec_0_1_2 (and stmt_0_1_2 thread_0_1)))
+(assert (= exec_0_1_3 (and stmt_0_1_3 thread_0_1)))
 
 ; state variable initializations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -112,6 +115,7 @@
 (assert stmt_0_1_0)
 (assert (not stmt_0_1_1))
 (assert (not stmt_0_1_2))
+(assert (not stmt_0_1_3))
 
 ; halt variables - halt_<step>_<thread>
 (assert (not halt_0_0))
@@ -140,8 +144,8 @@
 
 ; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (ite sb-full_0_0 (=> (or stmt_0_0_1 stmt_0_0_2 stmt_0_0_3) (not thread_0_0)) (not flush_0_0)))
-(assert (ite sb-full_0_1 (=> stmt_0_1_2 (not thread_0_1)) (not flush_0_1)))
+(assert (ite sb-full_0_0 (=> (or stmt_0_0_2 stmt_0_0_3) (not thread_0_0)) (not flush_0_0)))
+(assert (ite sb-full_0_1 (=> (or stmt_0_1_2 stmt_0_1_3) (not thread_0_1)) (not flush_0_1)))
 
 ; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -183,6 +187,7 @@
 (declare-fun stmt_1_1_0 () Bool)
 (declare-fun stmt_1_1_1 () Bool)
 (declare-fun stmt_1_1_2 () Bool)
+(declare-fun stmt_1_1_3 () Bool)
 
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_1_0 () Bool)
@@ -209,6 +214,7 @@
 (declare-fun exec_1_1_0 () Bool)
 (declare-fun exec_1_1_1 () Bool)
 (declare-fun exec_1_1_2 () Bool)
+(declare-fun exec_1_1_3 () Bool)
 
 ; store buffer flush variables - flush_<step>_<thread>
 (declare-fun flush_1_0 () Bool)
@@ -225,28 +231,29 @@
 (assert (= exec_1_1_0 (and stmt_1_1_0 thread_1_1)))
 (assert (= exec_1_1_1 (and stmt_1_1_1 thread_1_1)))
 (assert (= exec_1_1_2 (and stmt_1_1_2 thread_1_1)))
+(assert (= exec_1_1_3 (and stmt_1_1_3 thread_1_1)))
 
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; accu variables - accu_<step>_<thread>
-(assert (= accu_1_0 (ite exec_0_0_0 (bvadd accu_0_0 #x0001) accu_0_0)))
-(assert (= accu_1_1 (ite exec_0_1_0 (ite (and sb-full_0_1 (= sb-adr_0_1 #x0001)) sb-val_0_1 (select heap_0 #x0001)) (ite exec_0_1_1 (ite (and sb-full_0_1 (= sb-adr_0_1 #x0000)) sb-val_0_1 (select heap_0 #x0000)) accu_0_1))))
+(assert (= accu_1_0 (ite exec_0_0_0 (ite (and sb-full_0_0 (= sb-adr_0_0 #x0000)) sb-val_0_0 (select heap_0 #x0000)) (ite exec_0_0_1 (bvadd accu_0_0 #x0001) accu_0_0))))
+(assert (= accu_1_1 (ite exec_0_1_0 (ite (and sb-full_0_1 (= sb-adr_0_1 #x0001)) sb-val_0_1 (select heap_0 #x0001)) (ite exec_0_1_1 (bvadd accu_0_1 #x0001) accu_0_1))))
 
 ; mem variables - mem_<step>_<thread>
-(assert (= mem_1_0 mem_0_0))
-(assert (= mem_1_1 mem_0_1))
+(assert (= mem_1_0 (ite exec_0_0_0 (ite (and sb-full_0_0 (= sb-adr_0_0 #x0000)) sb-val_0_0 (select heap_0 #x0000)) mem_0_0)))
+(assert (= mem_1_1 (ite exec_0_1_0 (ite (and sb-full_0_1 (= sb-adr_0_1 #x0001)) sb-val_0_1 (select heap_0 #x0001)) mem_0_1)))
 
 ; store buffer address variables - sb-adr_<step>_<thread>
-(assert (= sb-adr_1_0 (ite exec_0_0_1 #x0000 (ite exec_0_0_2 #x0001 sb-adr_0_0))))
-(assert (= sb-adr_1_1 sb-adr_0_1))
+(assert (= sb-adr_1_0 (ite exec_0_0_2 #x0001 sb-adr_0_0)))
+(assert (= sb-adr_1_1 (ite exec_0_1_2 #x0000 sb-adr_0_1)))
 
 ; store buffer value variables - sb-val_<step>_<thread>
-(assert (= sb-val_1_0 (ite exec_0_0_1 accu_0_0 (ite exec_0_0_2 accu_0_0 sb-val_0_0))))
-(assert (= sb-val_1_1 sb-val_0_1))
+(assert (= sb-val_1_0 (ite exec_0_0_2 accu_0_0 sb-val_0_0)))
+(assert (= sb-val_1_1 (ite exec_0_1_2 accu_0_1 sb-val_0_1)))
 
 ; store buffer full variables - sb-full_<step>_<thread>
-(assert (= sb-full_1_0 (ite flush_0_0 false (or exec_0_0_2 exec_0_0_1 sb-full_0_0))))
-(assert (= sb-full_1_1 (ite flush_0_1 false sb-full_0_1)))
+(assert (= sb-full_1_0 (ite flush_0_0 false (or exec_0_0_2 sb-full_0_0))))
+(assert (= sb-full_1_1 (ite flush_0_1 false (or exec_0_1_2 sb-full_0_1))))
 
 ; statement activation variables - stmt_<step>_<thread>_<pc>
 (assert (= stmt_1_0_0 (and stmt_0_0_0 (not exec_0_0_0))))
@@ -257,10 +264,11 @@
 (assert (= stmt_1_1_0 (and stmt_0_1_0 (not exec_0_1_0))))
 (assert (= stmt_1_1_1 (ite stmt_0_1_0 exec_0_1_0 (and stmt_0_1_1 (not exec_0_1_1)))))
 (assert (= stmt_1_1_2 (ite stmt_0_1_1 exec_0_1_1 (and stmt_0_1_2 (not exec_0_1_2)))))
+(assert (= stmt_1_1_3 (ite stmt_0_1_2 exec_0_1_2 (and stmt_0_1_3 (not exec_0_1_3)))))
 
 ; halt variables - halt_<step>_<thread>
 (assert (= halt_1_0 (or exec_0_0_3 halt_0_0)))
-(assert (= halt_1_1 (or exec_0_1_2 halt_0_1)))
+(assert (= halt_1_1 (or exec_0_1_3 halt_0_1)))
 
 ; heap variable - heap_<step>
 (assert (= heap_1 (ite flush_0_0 (store heap_0 sb-adr_0_0 sb-val_0_0) (ite flush_0_1 (store heap_0 sb-adr_0_1 sb-val_0_1) heap_0))))
@@ -284,8 +292,8 @@
 
 ; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (ite sb-full_1_0 (=> (or stmt_1_0_1 stmt_1_0_2 stmt_1_0_3) (not thread_1_0)) (not flush_1_0)))
-(assert (ite sb-full_1_1 (=> stmt_1_1_2 (not thread_1_1)) (not flush_1_1)))
+(assert (ite sb-full_1_0 (=> (or stmt_1_0_2 stmt_1_0_3) (not thread_1_0)) (not flush_1_0)))
+(assert (ite sb-full_1_1 (=> (or stmt_1_1_2 stmt_1_1_3) (not thread_1_1)) (not flush_1_1)))
 
 ; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -327,6 +335,7 @@
 (declare-fun stmt_2_1_0 () Bool)
 (declare-fun stmt_2_1_1 () Bool)
 (declare-fun stmt_2_1_2 () Bool)
+(declare-fun stmt_2_1_3 () Bool)
 
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_2_0 () Bool)
@@ -353,6 +362,7 @@
 (declare-fun exec_2_1_0 () Bool)
 (declare-fun exec_2_1_1 () Bool)
 (declare-fun exec_2_1_2 () Bool)
+(declare-fun exec_2_1_3 () Bool)
 
 ; store buffer flush variables - flush_<step>_<thread>
 (declare-fun flush_2_0 () Bool)
@@ -369,28 +379,29 @@
 (assert (= exec_2_1_0 (and stmt_2_1_0 thread_2_1)))
 (assert (= exec_2_1_1 (and stmt_2_1_1 thread_2_1)))
 (assert (= exec_2_1_2 (and stmt_2_1_2 thread_2_1)))
+(assert (= exec_2_1_3 (and stmt_2_1_3 thread_2_1)))
 
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; accu variables - accu_<step>_<thread>
-(assert (= accu_2_0 (ite exec_1_0_0 (bvadd accu_1_0 #x0001) accu_1_0)))
-(assert (= accu_2_1 (ite exec_1_1_0 (ite (and sb-full_1_1 (= sb-adr_1_1 #x0001)) sb-val_1_1 (select heap_1 #x0001)) (ite exec_1_1_1 (ite (and sb-full_1_1 (= sb-adr_1_1 #x0000)) sb-val_1_1 (select heap_1 #x0000)) accu_1_1))))
+(assert (= accu_2_0 (ite exec_1_0_0 (ite (and sb-full_1_0 (= sb-adr_1_0 #x0000)) sb-val_1_0 (select heap_1 #x0000)) (ite exec_1_0_1 (bvadd accu_1_0 #x0001) accu_1_0))))
+(assert (= accu_2_1 (ite exec_1_1_0 (ite (and sb-full_1_1 (= sb-adr_1_1 #x0001)) sb-val_1_1 (select heap_1 #x0001)) (ite exec_1_1_1 (bvadd accu_1_1 #x0001) accu_1_1))))
 
 ; mem variables - mem_<step>_<thread>
-(assert (= mem_2_0 mem_1_0))
-(assert (= mem_2_1 mem_1_1))
+(assert (= mem_2_0 (ite exec_1_0_0 (ite (and sb-full_1_0 (= sb-adr_1_0 #x0000)) sb-val_1_0 (select heap_1 #x0000)) mem_1_0)))
+(assert (= mem_2_1 (ite exec_1_1_0 (ite (and sb-full_1_1 (= sb-adr_1_1 #x0001)) sb-val_1_1 (select heap_1 #x0001)) mem_1_1)))
 
 ; store buffer address variables - sb-adr_<step>_<thread>
-(assert (= sb-adr_2_0 (ite exec_1_0_1 #x0000 (ite exec_1_0_2 #x0001 sb-adr_1_0))))
-(assert (= sb-adr_2_1 sb-adr_1_1))
+(assert (= sb-adr_2_0 (ite exec_1_0_2 #x0001 sb-adr_1_0)))
+(assert (= sb-adr_2_1 (ite exec_1_1_2 #x0000 sb-adr_1_1)))
 
 ; store buffer value variables - sb-val_<step>_<thread>
-(assert (= sb-val_2_0 (ite exec_1_0_1 accu_1_0 (ite exec_1_0_2 accu_1_0 sb-val_1_0))))
-(assert (= sb-val_2_1 sb-val_1_1))
+(assert (= sb-val_2_0 (ite exec_1_0_2 accu_1_0 sb-val_1_0)))
+(assert (= sb-val_2_1 (ite exec_1_1_2 accu_1_1 sb-val_1_1)))
 
 ; store buffer full variables - sb-full_<step>_<thread>
-(assert (= sb-full_2_0 (ite flush_1_0 false (or exec_1_0_2 exec_1_0_1 sb-full_1_0))))
-(assert (= sb-full_2_1 (ite flush_1_1 false sb-full_1_1)))
+(assert (= sb-full_2_0 (ite flush_1_0 false (or exec_1_0_2 sb-full_1_0))))
+(assert (= sb-full_2_1 (ite flush_1_1 false (or exec_1_1_2 sb-full_1_1))))
 
 ; statement activation variables - stmt_<step>_<thread>_<pc>
 (assert (= stmt_2_0_0 (and stmt_1_0_0 (not exec_1_0_0))))
@@ -401,10 +412,11 @@
 (assert (= stmt_2_1_0 (and stmt_1_1_0 (not exec_1_1_0))))
 (assert (= stmt_2_1_1 (ite stmt_1_1_0 exec_1_1_0 (and stmt_1_1_1 (not exec_1_1_1)))))
 (assert (= stmt_2_1_2 (ite stmt_1_1_1 exec_1_1_1 (and stmt_1_1_2 (not exec_1_1_2)))))
+(assert (= stmt_2_1_3 (ite stmt_1_1_2 exec_1_1_2 (and stmt_1_1_3 (not exec_1_1_3)))))
 
 ; halt variables - halt_<step>_<thread>
 (assert (= halt_2_0 (or exec_1_0_3 halt_1_0)))
-(assert (= halt_2_1 (or exec_1_1_2 halt_1_1)))
+(assert (= halt_2_1 (or exec_1_1_3 halt_1_1)))
 
 ; heap variable - heap_<step>
 (assert (= heap_2 (ite flush_1_0 (store heap_1 sb-adr_1_0 sb-val_1_0) (ite flush_1_1 (store heap_1 sb-adr_1_1 sb-val_1_1) heap_1))))
@@ -428,8 +440,8 @@
 
 ; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (ite sb-full_2_0 (=> (or stmt_2_0_1 stmt_2_0_2 stmt_2_0_3) (not thread_2_0)) (not flush_2_0)))
-(assert (ite sb-full_2_1 (=> stmt_2_1_2 (not thread_2_1)) (not flush_2_1)))
+(assert (ite sb-full_2_0 (=> (or stmt_2_0_2 stmt_2_0_3) (not thread_2_0)) (not flush_2_0)))
+(assert (ite sb-full_2_1 (=> (or stmt_2_1_2 stmt_2_1_3) (not thread_2_1)) (not flush_2_1)))
 
 ; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -471,6 +483,7 @@
 (declare-fun stmt_3_1_0 () Bool)
 (declare-fun stmt_3_1_1 () Bool)
 (declare-fun stmt_3_1_2 () Bool)
+(declare-fun stmt_3_1_3 () Bool)
 
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_3_0 () Bool)
@@ -497,6 +510,7 @@
 (declare-fun exec_3_1_0 () Bool)
 (declare-fun exec_3_1_1 () Bool)
 (declare-fun exec_3_1_2 () Bool)
+(declare-fun exec_3_1_3 () Bool)
 
 ; store buffer flush variables - flush_<step>_<thread>
 (declare-fun flush_3_0 () Bool)
@@ -513,28 +527,29 @@
 (assert (= exec_3_1_0 (and stmt_3_1_0 thread_3_1)))
 (assert (= exec_3_1_1 (and stmt_3_1_1 thread_3_1)))
 (assert (= exec_3_1_2 (and stmt_3_1_2 thread_3_1)))
+(assert (= exec_3_1_3 (and stmt_3_1_3 thread_3_1)))
 
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; accu variables - accu_<step>_<thread>
-(assert (= accu_3_0 (ite exec_2_0_0 (bvadd accu_2_0 #x0001) accu_2_0)))
-(assert (= accu_3_1 (ite exec_2_1_0 (ite (and sb-full_2_1 (= sb-adr_2_1 #x0001)) sb-val_2_1 (select heap_2 #x0001)) (ite exec_2_1_1 (ite (and sb-full_2_1 (= sb-adr_2_1 #x0000)) sb-val_2_1 (select heap_2 #x0000)) accu_2_1))))
+(assert (= accu_3_0 (ite exec_2_0_0 (ite (and sb-full_2_0 (= sb-adr_2_0 #x0000)) sb-val_2_0 (select heap_2 #x0000)) (ite exec_2_0_1 (bvadd accu_2_0 #x0001) accu_2_0))))
+(assert (= accu_3_1 (ite exec_2_1_0 (ite (and sb-full_2_1 (= sb-adr_2_1 #x0001)) sb-val_2_1 (select heap_2 #x0001)) (ite exec_2_1_1 (bvadd accu_2_1 #x0001) accu_2_1))))
 
 ; mem variables - mem_<step>_<thread>
-(assert (= mem_3_0 mem_2_0))
-(assert (= mem_3_1 mem_2_1))
+(assert (= mem_3_0 (ite exec_2_0_0 (ite (and sb-full_2_0 (= sb-adr_2_0 #x0000)) sb-val_2_0 (select heap_2 #x0000)) mem_2_0)))
+(assert (= mem_3_1 (ite exec_2_1_0 (ite (and sb-full_2_1 (= sb-adr_2_1 #x0001)) sb-val_2_1 (select heap_2 #x0001)) mem_2_1)))
 
 ; store buffer address variables - sb-adr_<step>_<thread>
-(assert (= sb-adr_3_0 (ite exec_2_0_1 #x0000 (ite exec_2_0_2 #x0001 sb-adr_2_0))))
-(assert (= sb-adr_3_1 sb-adr_2_1))
+(assert (= sb-adr_3_0 (ite exec_2_0_2 #x0001 sb-adr_2_0)))
+(assert (= sb-adr_3_1 (ite exec_2_1_2 #x0000 sb-adr_2_1)))
 
 ; store buffer value variables - sb-val_<step>_<thread>
-(assert (= sb-val_3_0 (ite exec_2_0_1 accu_2_0 (ite exec_2_0_2 accu_2_0 sb-val_2_0))))
-(assert (= sb-val_3_1 sb-val_2_1))
+(assert (= sb-val_3_0 (ite exec_2_0_2 accu_2_0 sb-val_2_0)))
+(assert (= sb-val_3_1 (ite exec_2_1_2 accu_2_1 sb-val_2_1)))
 
 ; store buffer full variables - sb-full_<step>_<thread>
-(assert (= sb-full_3_0 (ite flush_2_0 false (or exec_2_0_2 exec_2_0_1 sb-full_2_0))))
-(assert (= sb-full_3_1 (ite flush_2_1 false sb-full_2_1)))
+(assert (= sb-full_3_0 (ite flush_2_0 false (or exec_2_0_2 sb-full_2_0))))
+(assert (= sb-full_3_1 (ite flush_2_1 false (or exec_2_1_2 sb-full_2_1))))
 
 ; statement activation variables - stmt_<step>_<thread>_<pc>
 (assert (= stmt_3_0_0 (and stmt_2_0_0 (not exec_2_0_0))))
@@ -545,10 +560,11 @@
 (assert (= stmt_3_1_0 (and stmt_2_1_0 (not exec_2_1_0))))
 (assert (= stmt_3_1_1 (ite stmt_2_1_0 exec_2_1_0 (and stmt_2_1_1 (not exec_2_1_1)))))
 (assert (= stmt_3_1_2 (ite stmt_2_1_1 exec_2_1_1 (and stmt_2_1_2 (not exec_2_1_2)))))
+(assert (= stmt_3_1_3 (ite stmt_2_1_2 exec_2_1_2 (and stmt_2_1_3 (not exec_2_1_3)))))
 
 ; halt variables - halt_<step>_<thread>
 (assert (= halt_3_0 (or exec_2_0_3 halt_2_0)))
-(assert (= halt_3_1 (or exec_2_1_2 halt_2_1)))
+(assert (= halt_3_1 (or exec_2_1_3 halt_2_1)))
 
 ; heap variable - heap_<step>
 (assert (= heap_3 (ite flush_2_0 (store heap_2 sb-adr_2_0 sb-val_2_0) (ite flush_2_1 (store heap_2 sb-adr_2_1 sb-val_2_1) heap_2))))
@@ -572,8 +588,8 @@
 
 ; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (ite sb-full_3_0 (=> (or stmt_3_0_1 stmt_3_0_2 stmt_3_0_3) (not thread_3_0)) (not flush_3_0)))
-(assert (ite sb-full_3_1 (=> stmt_3_1_2 (not thread_3_1)) (not flush_3_1)))
+(assert (ite sb-full_3_0 (=> (or stmt_3_0_2 stmt_3_0_3) (not thread_3_0)) (not flush_3_0)))
+(assert (ite sb-full_3_1 (=> (or stmt_3_1_2 stmt_3_1_3) (not thread_3_1)) (not flush_3_1)))
 
 ; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -615,6 +631,7 @@
 (declare-fun stmt_4_1_0 () Bool)
 (declare-fun stmt_4_1_1 () Bool)
 (declare-fun stmt_4_1_2 () Bool)
+(declare-fun stmt_4_1_3 () Bool)
 
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_4_0 () Bool)
@@ -641,6 +658,7 @@
 (declare-fun exec_4_1_0 () Bool)
 (declare-fun exec_4_1_1 () Bool)
 (declare-fun exec_4_1_2 () Bool)
+(declare-fun exec_4_1_3 () Bool)
 
 ; store buffer flush variables - flush_<step>_<thread>
 (declare-fun flush_4_0 () Bool)
@@ -657,28 +675,29 @@
 (assert (= exec_4_1_0 (and stmt_4_1_0 thread_4_1)))
 (assert (= exec_4_1_1 (and stmt_4_1_1 thread_4_1)))
 (assert (= exec_4_1_2 (and stmt_4_1_2 thread_4_1)))
+(assert (= exec_4_1_3 (and stmt_4_1_3 thread_4_1)))
 
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; accu variables - accu_<step>_<thread>
-(assert (= accu_4_0 (ite exec_3_0_0 (bvadd accu_3_0 #x0001) accu_3_0)))
-(assert (= accu_4_1 (ite exec_3_1_0 (ite (and sb-full_3_1 (= sb-adr_3_1 #x0001)) sb-val_3_1 (select heap_3 #x0001)) (ite exec_3_1_1 (ite (and sb-full_3_1 (= sb-adr_3_1 #x0000)) sb-val_3_1 (select heap_3 #x0000)) accu_3_1))))
+(assert (= accu_4_0 (ite exec_3_0_0 (ite (and sb-full_3_0 (= sb-adr_3_0 #x0000)) sb-val_3_0 (select heap_3 #x0000)) (ite exec_3_0_1 (bvadd accu_3_0 #x0001) accu_3_0))))
+(assert (= accu_4_1 (ite exec_3_1_0 (ite (and sb-full_3_1 (= sb-adr_3_1 #x0001)) sb-val_3_1 (select heap_3 #x0001)) (ite exec_3_1_1 (bvadd accu_3_1 #x0001) accu_3_1))))
 
 ; mem variables - mem_<step>_<thread>
-(assert (= mem_4_0 mem_3_0))
-(assert (= mem_4_1 mem_3_1))
+(assert (= mem_4_0 (ite exec_3_0_0 (ite (and sb-full_3_0 (= sb-adr_3_0 #x0000)) sb-val_3_0 (select heap_3 #x0000)) mem_3_0)))
+(assert (= mem_4_1 (ite exec_3_1_0 (ite (and sb-full_3_1 (= sb-adr_3_1 #x0001)) sb-val_3_1 (select heap_3 #x0001)) mem_3_1)))
 
 ; store buffer address variables - sb-adr_<step>_<thread>
-(assert (= sb-adr_4_0 (ite exec_3_0_1 #x0000 (ite exec_3_0_2 #x0001 sb-adr_3_0))))
-(assert (= sb-adr_4_1 sb-adr_3_1))
+(assert (= sb-adr_4_0 (ite exec_3_0_2 #x0001 sb-adr_3_0)))
+(assert (= sb-adr_4_1 (ite exec_3_1_2 #x0000 sb-adr_3_1)))
 
 ; store buffer value variables - sb-val_<step>_<thread>
-(assert (= sb-val_4_0 (ite exec_3_0_1 accu_3_0 (ite exec_3_0_2 accu_3_0 sb-val_3_0))))
-(assert (= sb-val_4_1 sb-val_3_1))
+(assert (= sb-val_4_0 (ite exec_3_0_2 accu_3_0 sb-val_3_0)))
+(assert (= sb-val_4_1 (ite exec_3_1_2 accu_3_1 sb-val_3_1)))
 
 ; store buffer full variables - sb-full_<step>_<thread>
-(assert (= sb-full_4_0 (ite flush_3_0 false (or exec_3_0_2 exec_3_0_1 sb-full_3_0))))
-(assert (= sb-full_4_1 (ite flush_3_1 false sb-full_3_1)))
+(assert (= sb-full_4_0 (ite flush_3_0 false (or exec_3_0_2 sb-full_3_0))))
+(assert (= sb-full_4_1 (ite flush_3_1 false (or exec_3_1_2 sb-full_3_1))))
 
 ; statement activation variables - stmt_<step>_<thread>_<pc>
 (assert (= stmt_4_0_0 (and stmt_3_0_0 (not exec_3_0_0))))
@@ -689,10 +708,11 @@
 (assert (= stmt_4_1_0 (and stmt_3_1_0 (not exec_3_1_0))))
 (assert (= stmt_4_1_1 (ite stmt_3_1_0 exec_3_1_0 (and stmt_3_1_1 (not exec_3_1_1)))))
 (assert (= stmt_4_1_2 (ite stmt_3_1_1 exec_3_1_1 (and stmt_3_1_2 (not exec_3_1_2)))))
+(assert (= stmt_4_1_3 (ite stmt_3_1_2 exec_3_1_2 (and stmt_3_1_3 (not exec_3_1_3)))))
 
 ; halt variables - halt_<step>_<thread>
 (assert (= halt_4_0 (or exec_3_0_3 halt_3_0)))
-(assert (= halt_4_1 (or exec_3_1_2 halt_3_1)))
+(assert (= halt_4_1 (or exec_3_1_3 halt_3_1)))
 
 ; heap variable - heap_<step>
 (assert (= heap_4 (ite flush_3_0 (store heap_3 sb-adr_3_0 sb-val_3_0) (ite flush_3_1 (store heap_3 sb-adr_3_1 sb-val_3_1) heap_3))))
@@ -716,8 +736,8 @@
 
 ; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (ite sb-full_4_0 (=> (or stmt_4_0_1 stmt_4_0_2 stmt_4_0_3) (not thread_4_0)) (not flush_4_0)))
-(assert (ite sb-full_4_1 (=> stmt_4_1_2 (not thread_4_1)) (not flush_4_1)))
+(assert (ite sb-full_4_0 (=> (or stmt_4_0_2 stmt_4_0_3) (not thread_4_0)) (not flush_4_0)))
+(assert (ite sb-full_4_1 (=> (or stmt_4_1_2 stmt_4_1_3) (not thread_4_1)) (not flush_4_1)))
 
 ; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -759,6 +779,7 @@
 (declare-fun stmt_5_1_0 () Bool)
 (declare-fun stmt_5_1_1 () Bool)
 (declare-fun stmt_5_1_2 () Bool)
+(declare-fun stmt_5_1_3 () Bool)
 
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_5_0 () Bool)
@@ -785,6 +806,7 @@
 (declare-fun exec_5_1_0 () Bool)
 (declare-fun exec_5_1_1 () Bool)
 (declare-fun exec_5_1_2 () Bool)
+(declare-fun exec_5_1_3 () Bool)
 
 ; store buffer flush variables - flush_<step>_<thread>
 (declare-fun flush_5_0 () Bool)
@@ -801,28 +823,29 @@
 (assert (= exec_5_1_0 (and stmt_5_1_0 thread_5_1)))
 (assert (= exec_5_1_1 (and stmt_5_1_1 thread_5_1)))
 (assert (= exec_5_1_2 (and stmt_5_1_2 thread_5_1)))
+(assert (= exec_5_1_3 (and stmt_5_1_3 thread_5_1)))
 
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; accu variables - accu_<step>_<thread>
-(assert (= accu_5_0 (ite exec_4_0_0 (bvadd accu_4_0 #x0001) accu_4_0)))
-(assert (= accu_5_1 (ite exec_4_1_0 (ite (and sb-full_4_1 (= sb-adr_4_1 #x0001)) sb-val_4_1 (select heap_4 #x0001)) (ite exec_4_1_1 (ite (and sb-full_4_1 (= sb-adr_4_1 #x0000)) sb-val_4_1 (select heap_4 #x0000)) accu_4_1))))
+(assert (= accu_5_0 (ite exec_4_0_0 (ite (and sb-full_4_0 (= sb-adr_4_0 #x0000)) sb-val_4_0 (select heap_4 #x0000)) (ite exec_4_0_1 (bvadd accu_4_0 #x0001) accu_4_0))))
+(assert (= accu_5_1 (ite exec_4_1_0 (ite (and sb-full_4_1 (= sb-adr_4_1 #x0001)) sb-val_4_1 (select heap_4 #x0001)) (ite exec_4_1_1 (bvadd accu_4_1 #x0001) accu_4_1))))
 
 ; mem variables - mem_<step>_<thread>
-(assert (= mem_5_0 mem_4_0))
-(assert (= mem_5_1 mem_4_1))
+(assert (= mem_5_0 (ite exec_4_0_0 (ite (and sb-full_4_0 (= sb-adr_4_0 #x0000)) sb-val_4_0 (select heap_4 #x0000)) mem_4_0)))
+(assert (= mem_5_1 (ite exec_4_1_0 (ite (and sb-full_4_1 (= sb-adr_4_1 #x0001)) sb-val_4_1 (select heap_4 #x0001)) mem_4_1)))
 
 ; store buffer address variables - sb-adr_<step>_<thread>
-(assert (= sb-adr_5_0 (ite exec_4_0_1 #x0000 (ite exec_4_0_2 #x0001 sb-adr_4_0))))
-(assert (= sb-adr_5_1 sb-adr_4_1))
+(assert (= sb-adr_5_0 (ite exec_4_0_2 #x0001 sb-adr_4_0)))
+(assert (= sb-adr_5_1 (ite exec_4_1_2 #x0000 sb-adr_4_1)))
 
 ; store buffer value variables - sb-val_<step>_<thread>
-(assert (= sb-val_5_0 (ite exec_4_0_1 accu_4_0 (ite exec_4_0_2 accu_4_0 sb-val_4_0))))
-(assert (= sb-val_5_1 sb-val_4_1))
+(assert (= sb-val_5_0 (ite exec_4_0_2 accu_4_0 sb-val_4_0)))
+(assert (= sb-val_5_1 (ite exec_4_1_2 accu_4_1 sb-val_4_1)))
 
 ; store buffer full variables - sb-full_<step>_<thread>
-(assert (= sb-full_5_0 (ite flush_4_0 false (or exec_4_0_2 exec_4_0_1 sb-full_4_0))))
-(assert (= sb-full_5_1 (ite flush_4_1 false sb-full_4_1)))
+(assert (= sb-full_5_0 (ite flush_4_0 false (or exec_4_0_2 sb-full_4_0))))
+(assert (= sb-full_5_1 (ite flush_4_1 false (or exec_4_1_2 sb-full_4_1))))
 
 ; statement activation variables - stmt_<step>_<thread>_<pc>
 (assert (= stmt_5_0_0 (and stmt_4_0_0 (not exec_4_0_0))))
@@ -833,10 +856,11 @@
 (assert (= stmt_5_1_0 (and stmt_4_1_0 (not exec_4_1_0))))
 (assert (= stmt_5_1_1 (ite stmt_4_1_0 exec_4_1_0 (and stmt_4_1_1 (not exec_4_1_1)))))
 (assert (= stmt_5_1_2 (ite stmt_4_1_1 exec_4_1_1 (and stmt_4_1_2 (not exec_4_1_2)))))
+(assert (= stmt_5_1_3 (ite stmt_4_1_2 exec_4_1_2 (and stmt_4_1_3 (not exec_4_1_3)))))
 
 ; halt variables - halt_<step>_<thread>
 (assert (= halt_5_0 (or exec_4_0_3 halt_4_0)))
-(assert (= halt_5_1 (or exec_4_1_2 halt_4_1)))
+(assert (= halt_5_1 (or exec_4_1_3 halt_4_1)))
 
 ; heap variable - heap_<step>
 (assert (= heap_5 (ite flush_4_0 (store heap_4 sb-adr_4_0 sb-val_4_0) (ite flush_4_1 (store heap_4 sb-adr_4_1 sb-val_4_1) heap_4))))
@@ -860,8 +884,8 @@
 
 ; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (ite sb-full_5_0 (=> (or stmt_5_0_1 stmt_5_0_2 stmt_5_0_3) (not thread_5_0)) (not flush_5_0)))
-(assert (ite sb-full_5_1 (=> stmt_5_1_2 (not thread_5_1)) (not flush_5_1)))
+(assert (ite sb-full_5_0 (=> (or stmt_5_0_2 stmt_5_0_3) (not thread_5_0)) (not flush_5_0)))
+(assert (ite sb-full_5_1 (=> (or stmt_5_1_2 stmt_5_1_3) (not thread_5_1)) (not flush_5_1)))
 
 ; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -903,6 +927,7 @@
 (declare-fun stmt_6_1_0 () Bool)
 (declare-fun stmt_6_1_1 () Bool)
 (declare-fun stmt_6_1_2 () Bool)
+(declare-fun stmt_6_1_3 () Bool)
 
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_6_0 () Bool)
@@ -929,6 +954,7 @@
 (declare-fun exec_6_1_0 () Bool)
 (declare-fun exec_6_1_1 () Bool)
 (declare-fun exec_6_1_2 () Bool)
+(declare-fun exec_6_1_3 () Bool)
 
 ; store buffer flush variables - flush_<step>_<thread>
 (declare-fun flush_6_0 () Bool)
@@ -945,28 +971,29 @@
 (assert (= exec_6_1_0 (and stmt_6_1_0 thread_6_1)))
 (assert (= exec_6_1_1 (and stmt_6_1_1 thread_6_1)))
 (assert (= exec_6_1_2 (and stmt_6_1_2 thread_6_1)))
+(assert (= exec_6_1_3 (and stmt_6_1_3 thread_6_1)))
 
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; accu variables - accu_<step>_<thread>
-(assert (= accu_6_0 (ite exec_5_0_0 (bvadd accu_5_0 #x0001) accu_5_0)))
-(assert (= accu_6_1 (ite exec_5_1_0 (ite (and sb-full_5_1 (= sb-adr_5_1 #x0001)) sb-val_5_1 (select heap_5 #x0001)) (ite exec_5_1_1 (ite (and sb-full_5_1 (= sb-adr_5_1 #x0000)) sb-val_5_1 (select heap_5 #x0000)) accu_5_1))))
+(assert (= accu_6_0 (ite exec_5_0_0 (ite (and sb-full_5_0 (= sb-adr_5_0 #x0000)) sb-val_5_0 (select heap_5 #x0000)) (ite exec_5_0_1 (bvadd accu_5_0 #x0001) accu_5_0))))
+(assert (= accu_6_1 (ite exec_5_1_0 (ite (and sb-full_5_1 (= sb-adr_5_1 #x0001)) sb-val_5_1 (select heap_5 #x0001)) (ite exec_5_1_1 (bvadd accu_5_1 #x0001) accu_5_1))))
 
 ; mem variables - mem_<step>_<thread>
-(assert (= mem_6_0 mem_5_0))
-(assert (= mem_6_1 mem_5_1))
+(assert (= mem_6_0 (ite exec_5_0_0 (ite (and sb-full_5_0 (= sb-adr_5_0 #x0000)) sb-val_5_0 (select heap_5 #x0000)) mem_5_0)))
+(assert (= mem_6_1 (ite exec_5_1_0 (ite (and sb-full_5_1 (= sb-adr_5_1 #x0001)) sb-val_5_1 (select heap_5 #x0001)) mem_5_1)))
 
 ; store buffer address variables - sb-adr_<step>_<thread>
-(assert (= sb-adr_6_0 (ite exec_5_0_1 #x0000 (ite exec_5_0_2 #x0001 sb-adr_5_0))))
-(assert (= sb-adr_6_1 sb-adr_5_1))
+(assert (= sb-adr_6_0 (ite exec_5_0_2 #x0001 sb-adr_5_0)))
+(assert (= sb-adr_6_1 (ite exec_5_1_2 #x0000 sb-adr_5_1)))
 
 ; store buffer value variables - sb-val_<step>_<thread>
-(assert (= sb-val_6_0 (ite exec_5_0_1 accu_5_0 (ite exec_5_0_2 accu_5_0 sb-val_5_0))))
-(assert (= sb-val_6_1 sb-val_5_1))
+(assert (= sb-val_6_0 (ite exec_5_0_2 accu_5_0 sb-val_5_0)))
+(assert (= sb-val_6_1 (ite exec_5_1_2 accu_5_1 sb-val_5_1)))
 
 ; store buffer full variables - sb-full_<step>_<thread>
-(assert (= sb-full_6_0 (ite flush_5_0 false (or exec_5_0_2 exec_5_0_1 sb-full_5_0))))
-(assert (= sb-full_6_1 (ite flush_5_1 false sb-full_5_1)))
+(assert (= sb-full_6_0 (ite flush_5_0 false (or exec_5_0_2 sb-full_5_0))))
+(assert (= sb-full_6_1 (ite flush_5_1 false (or exec_5_1_2 sb-full_5_1))))
 
 ; statement activation variables - stmt_<step>_<thread>_<pc>
 (assert (= stmt_6_0_0 (and stmt_5_0_0 (not exec_5_0_0))))
@@ -977,10 +1004,11 @@
 (assert (= stmt_6_1_0 (and stmt_5_1_0 (not exec_5_1_0))))
 (assert (= stmt_6_1_1 (ite stmt_5_1_0 exec_5_1_0 (and stmt_5_1_1 (not exec_5_1_1)))))
 (assert (= stmt_6_1_2 (ite stmt_5_1_1 exec_5_1_1 (and stmt_5_1_2 (not exec_5_1_2)))))
+(assert (= stmt_6_1_3 (ite stmt_5_1_2 exec_5_1_2 (and stmt_5_1_3 (not exec_5_1_3)))))
 
 ; halt variables - halt_<step>_<thread>
 (assert (= halt_6_0 (or exec_5_0_3 halt_5_0)))
-(assert (= halt_6_1 (or exec_5_1_2 halt_5_1)))
+(assert (= halt_6_1 (or exec_5_1_3 halt_5_1)))
 
 ; heap variable - heap_<step>
 (assert (= heap_6 (ite flush_5_0 (store heap_5 sb-adr_5_0 sb-val_5_0) (ite flush_5_1 (store heap_5 sb-adr_5_1 sb-val_5_1) heap_5))))
@@ -1004,8 +1032,8 @@
 
 ; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (ite sb-full_6_0 (=> (or stmt_6_0_1 stmt_6_0_2 stmt_6_0_3) (not thread_6_0)) (not flush_6_0)))
-(assert (ite sb-full_6_1 (=> stmt_6_1_2 (not thread_6_1)) (not flush_6_1)))
+(assert (ite sb-full_6_0 (=> (or stmt_6_0_2 stmt_6_0_3) (not thread_6_0)) (not flush_6_0)))
+(assert (ite sb-full_6_1 (=> (or stmt_6_1_2 stmt_6_1_3) (not thread_6_1)) (not flush_6_1)))
 
 ; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1047,6 +1075,7 @@
 (declare-fun stmt_7_1_0 () Bool)
 (declare-fun stmt_7_1_1 () Bool)
 (declare-fun stmt_7_1_2 () Bool)
+(declare-fun stmt_7_1_3 () Bool)
 
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_7_0 () Bool)
@@ -1073,6 +1102,7 @@
 (declare-fun exec_7_1_0 () Bool)
 (declare-fun exec_7_1_1 () Bool)
 (declare-fun exec_7_1_2 () Bool)
+(declare-fun exec_7_1_3 () Bool)
 
 ; store buffer flush variables - flush_<step>_<thread>
 (declare-fun flush_7_0 () Bool)
@@ -1089,28 +1119,29 @@
 (assert (= exec_7_1_0 (and stmt_7_1_0 thread_7_1)))
 (assert (= exec_7_1_1 (and stmt_7_1_1 thread_7_1)))
 (assert (= exec_7_1_2 (and stmt_7_1_2 thread_7_1)))
+(assert (= exec_7_1_3 (and stmt_7_1_3 thread_7_1)))
 
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; accu variables - accu_<step>_<thread>
-(assert (= accu_7_0 (ite exec_6_0_0 (bvadd accu_6_0 #x0001) accu_6_0)))
-(assert (= accu_7_1 (ite exec_6_1_0 (ite (and sb-full_6_1 (= sb-adr_6_1 #x0001)) sb-val_6_1 (select heap_6 #x0001)) (ite exec_6_1_1 (ite (and sb-full_6_1 (= sb-adr_6_1 #x0000)) sb-val_6_1 (select heap_6 #x0000)) accu_6_1))))
+(assert (= accu_7_0 (ite exec_6_0_0 (ite (and sb-full_6_0 (= sb-adr_6_0 #x0000)) sb-val_6_0 (select heap_6 #x0000)) (ite exec_6_0_1 (bvadd accu_6_0 #x0001) accu_6_0))))
+(assert (= accu_7_1 (ite exec_6_1_0 (ite (and sb-full_6_1 (= sb-adr_6_1 #x0001)) sb-val_6_1 (select heap_6 #x0001)) (ite exec_6_1_1 (bvadd accu_6_1 #x0001) accu_6_1))))
 
 ; mem variables - mem_<step>_<thread>
-(assert (= mem_7_0 mem_6_0))
-(assert (= mem_7_1 mem_6_1))
+(assert (= mem_7_0 (ite exec_6_0_0 (ite (and sb-full_6_0 (= sb-adr_6_0 #x0000)) sb-val_6_0 (select heap_6 #x0000)) mem_6_0)))
+(assert (= mem_7_1 (ite exec_6_1_0 (ite (and sb-full_6_1 (= sb-adr_6_1 #x0001)) sb-val_6_1 (select heap_6 #x0001)) mem_6_1)))
 
 ; store buffer address variables - sb-adr_<step>_<thread>
-(assert (= sb-adr_7_0 (ite exec_6_0_1 #x0000 (ite exec_6_0_2 #x0001 sb-adr_6_0))))
-(assert (= sb-adr_7_1 sb-adr_6_1))
+(assert (= sb-adr_7_0 (ite exec_6_0_2 #x0001 sb-adr_6_0)))
+(assert (= sb-adr_7_1 (ite exec_6_1_2 #x0000 sb-adr_6_1)))
 
 ; store buffer value variables - sb-val_<step>_<thread>
-(assert (= sb-val_7_0 (ite exec_6_0_1 accu_6_0 (ite exec_6_0_2 accu_6_0 sb-val_6_0))))
-(assert (= sb-val_7_1 sb-val_6_1))
+(assert (= sb-val_7_0 (ite exec_6_0_2 accu_6_0 sb-val_6_0)))
+(assert (= sb-val_7_1 (ite exec_6_1_2 accu_6_1 sb-val_6_1)))
 
 ; store buffer full variables - sb-full_<step>_<thread>
-(assert (= sb-full_7_0 (ite flush_6_0 false (or exec_6_0_2 exec_6_0_1 sb-full_6_0))))
-(assert (= sb-full_7_1 (ite flush_6_1 false sb-full_6_1)))
+(assert (= sb-full_7_0 (ite flush_6_0 false (or exec_6_0_2 sb-full_6_0))))
+(assert (= sb-full_7_1 (ite flush_6_1 false (or exec_6_1_2 sb-full_6_1))))
 
 ; statement activation variables - stmt_<step>_<thread>_<pc>
 (assert (= stmt_7_0_0 (and stmt_6_0_0 (not exec_6_0_0))))
@@ -1121,10 +1152,11 @@
 (assert (= stmt_7_1_0 (and stmt_6_1_0 (not exec_6_1_0))))
 (assert (= stmt_7_1_1 (ite stmt_6_1_0 exec_6_1_0 (and stmt_6_1_1 (not exec_6_1_1)))))
 (assert (= stmt_7_1_2 (ite stmt_6_1_1 exec_6_1_1 (and stmt_6_1_2 (not exec_6_1_2)))))
+(assert (= stmt_7_1_3 (ite stmt_6_1_2 exec_6_1_2 (and stmt_6_1_3 (not exec_6_1_3)))))
 
 ; halt variables - halt_<step>_<thread>
 (assert (= halt_7_0 (or exec_6_0_3 halt_6_0)))
-(assert (= halt_7_1 (or exec_6_1_2 halt_6_1)))
+(assert (= halt_7_1 (or exec_6_1_3 halt_6_1)))
 
 ; heap variable - heap_<step>
 (assert (= heap_7 (ite flush_6_0 (store heap_6 sb-adr_6_0 sb-val_6_0) (ite flush_6_1 (store heap_6 sb-adr_6_1 sb-val_6_1) heap_6))))
@@ -1148,8 +1180,8 @@
 
 ; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (ite sb-full_7_0 (=> (or stmt_7_0_1 stmt_7_0_2 stmt_7_0_3) (not thread_7_0)) (not flush_7_0)))
-(assert (ite sb-full_7_1 (=> stmt_7_1_2 (not thread_7_1)) (not flush_7_1)))
+(assert (ite sb-full_7_0 (=> (or stmt_7_0_2 stmt_7_0_3) (not thread_7_0)) (not flush_7_0)))
+(assert (ite sb-full_7_1 (=> (or stmt_7_1_2 stmt_7_1_3) (not thread_7_1)) (not flush_7_1)))
 
 ; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1191,6 +1223,7 @@
 (declare-fun stmt_8_1_0 () Bool)
 (declare-fun stmt_8_1_1 () Bool)
 (declare-fun stmt_8_1_2 () Bool)
+(declare-fun stmt_8_1_3 () Bool)
 
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_8_0 () Bool)
@@ -1217,6 +1250,7 @@
 (declare-fun exec_8_1_0 () Bool)
 (declare-fun exec_8_1_1 () Bool)
 (declare-fun exec_8_1_2 () Bool)
+(declare-fun exec_8_1_3 () Bool)
 
 ; store buffer flush variables - flush_<step>_<thread>
 (declare-fun flush_8_0 () Bool)
@@ -1233,28 +1267,29 @@
 (assert (= exec_8_1_0 (and stmt_8_1_0 thread_8_1)))
 (assert (= exec_8_1_1 (and stmt_8_1_1 thread_8_1)))
 (assert (= exec_8_1_2 (and stmt_8_1_2 thread_8_1)))
+(assert (= exec_8_1_3 (and stmt_8_1_3 thread_8_1)))
 
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; accu variables - accu_<step>_<thread>
-(assert (= accu_8_0 (ite exec_7_0_0 (bvadd accu_7_0 #x0001) accu_7_0)))
-(assert (= accu_8_1 (ite exec_7_1_0 (ite (and sb-full_7_1 (= sb-adr_7_1 #x0001)) sb-val_7_1 (select heap_7 #x0001)) (ite exec_7_1_1 (ite (and sb-full_7_1 (= sb-adr_7_1 #x0000)) sb-val_7_1 (select heap_7 #x0000)) accu_7_1))))
+(assert (= accu_8_0 (ite exec_7_0_0 (ite (and sb-full_7_0 (= sb-adr_7_0 #x0000)) sb-val_7_0 (select heap_7 #x0000)) (ite exec_7_0_1 (bvadd accu_7_0 #x0001) accu_7_0))))
+(assert (= accu_8_1 (ite exec_7_1_0 (ite (and sb-full_7_1 (= sb-adr_7_1 #x0001)) sb-val_7_1 (select heap_7 #x0001)) (ite exec_7_1_1 (bvadd accu_7_1 #x0001) accu_7_1))))
 
 ; mem variables - mem_<step>_<thread>
-(assert (= mem_8_0 mem_7_0))
-(assert (= mem_8_1 mem_7_1))
+(assert (= mem_8_0 (ite exec_7_0_0 (ite (and sb-full_7_0 (= sb-adr_7_0 #x0000)) sb-val_7_0 (select heap_7 #x0000)) mem_7_0)))
+(assert (= mem_8_1 (ite exec_7_1_0 (ite (and sb-full_7_1 (= sb-adr_7_1 #x0001)) sb-val_7_1 (select heap_7 #x0001)) mem_7_1)))
 
 ; store buffer address variables - sb-adr_<step>_<thread>
-(assert (= sb-adr_8_0 (ite exec_7_0_1 #x0000 (ite exec_7_0_2 #x0001 sb-adr_7_0))))
-(assert (= sb-adr_8_1 sb-adr_7_1))
+(assert (= sb-adr_8_0 (ite exec_7_0_2 #x0001 sb-adr_7_0)))
+(assert (= sb-adr_8_1 (ite exec_7_1_2 #x0000 sb-adr_7_1)))
 
 ; store buffer value variables - sb-val_<step>_<thread>
-(assert (= sb-val_8_0 (ite exec_7_0_1 accu_7_0 (ite exec_7_0_2 accu_7_0 sb-val_7_0))))
-(assert (= sb-val_8_1 sb-val_7_1))
+(assert (= sb-val_8_0 (ite exec_7_0_2 accu_7_0 sb-val_7_0)))
+(assert (= sb-val_8_1 (ite exec_7_1_2 accu_7_1 sb-val_7_1)))
 
 ; store buffer full variables - sb-full_<step>_<thread>
-(assert (= sb-full_8_0 (ite flush_7_0 false (or exec_7_0_2 exec_7_0_1 sb-full_7_0))))
-(assert (= sb-full_8_1 (ite flush_7_1 false sb-full_7_1)))
+(assert (= sb-full_8_0 (ite flush_7_0 false (or exec_7_0_2 sb-full_7_0))))
+(assert (= sb-full_8_1 (ite flush_7_1 false (or exec_7_1_2 sb-full_7_1))))
 
 ; statement activation variables - stmt_<step>_<thread>_<pc>
 (assert (= stmt_8_0_0 (and stmt_7_0_0 (not exec_7_0_0))))
@@ -1265,10 +1300,11 @@
 (assert (= stmt_8_1_0 (and stmt_7_1_0 (not exec_7_1_0))))
 (assert (= stmt_8_1_1 (ite stmt_7_1_0 exec_7_1_0 (and stmt_7_1_1 (not exec_7_1_1)))))
 (assert (= stmt_8_1_2 (ite stmt_7_1_1 exec_7_1_1 (and stmt_7_1_2 (not exec_7_1_2)))))
+(assert (= stmt_8_1_3 (ite stmt_7_1_2 exec_7_1_2 (and stmt_7_1_3 (not exec_7_1_3)))))
 
 ; halt variables - halt_<step>_<thread>
 (assert (= halt_8_0 (or exec_7_0_3 halt_7_0)))
-(assert (= halt_8_1 (or exec_7_1_2 halt_7_1)))
+(assert (= halt_8_1 (or exec_7_1_3 halt_7_1)))
 
 ; heap variable - heap_<step>
 (assert (= heap_8 (ite flush_7_0 (store heap_7 sb-adr_7_0 sb-val_7_0) (ite flush_7_1 (store heap_7 sb-adr_7_1 sb-val_7_1) heap_7))))
@@ -1292,8 +1328,8 @@
 
 ; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (ite sb-full_8_0 (=> (or stmt_8_0_1 stmt_8_0_2 stmt_8_0_3) (not thread_8_0)) (not flush_8_0)))
-(assert (ite sb-full_8_1 (=> stmt_8_1_2 (not thread_8_1)) (not flush_8_1)))
+(assert (ite sb-full_8_0 (=> (or stmt_8_0_2 stmt_8_0_3) (not thread_8_0)) (not flush_8_0)))
+(assert (ite sb-full_8_1 (=> (or stmt_8_1_2 stmt_8_1_3) (not thread_8_1)) (not flush_8_1)))
 
 ; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1335,6 +1371,7 @@
 (declare-fun stmt_9_1_0 () Bool)
 (declare-fun stmt_9_1_1 () Bool)
 (declare-fun stmt_9_1_2 () Bool)
+(declare-fun stmt_9_1_3 () Bool)
 
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_9_0 () Bool)
@@ -1361,6 +1398,7 @@
 (declare-fun exec_9_1_0 () Bool)
 (declare-fun exec_9_1_1 () Bool)
 (declare-fun exec_9_1_2 () Bool)
+(declare-fun exec_9_1_3 () Bool)
 
 ; store buffer flush variables - flush_<step>_<thread>
 (declare-fun flush_9_0 () Bool)
@@ -1377,28 +1415,29 @@
 (assert (= exec_9_1_0 (and stmt_9_1_0 thread_9_1)))
 (assert (= exec_9_1_1 (and stmt_9_1_1 thread_9_1)))
 (assert (= exec_9_1_2 (and stmt_9_1_2 thread_9_1)))
+(assert (= exec_9_1_3 (and stmt_9_1_3 thread_9_1)))
 
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; accu variables - accu_<step>_<thread>
-(assert (= accu_9_0 (ite exec_8_0_0 (bvadd accu_8_0 #x0001) accu_8_0)))
-(assert (= accu_9_1 (ite exec_8_1_0 (ite (and sb-full_8_1 (= sb-adr_8_1 #x0001)) sb-val_8_1 (select heap_8 #x0001)) (ite exec_8_1_1 (ite (and sb-full_8_1 (= sb-adr_8_1 #x0000)) sb-val_8_1 (select heap_8 #x0000)) accu_8_1))))
+(assert (= accu_9_0 (ite exec_8_0_0 (ite (and sb-full_8_0 (= sb-adr_8_0 #x0000)) sb-val_8_0 (select heap_8 #x0000)) (ite exec_8_0_1 (bvadd accu_8_0 #x0001) accu_8_0))))
+(assert (= accu_9_1 (ite exec_8_1_0 (ite (and sb-full_8_1 (= sb-adr_8_1 #x0001)) sb-val_8_1 (select heap_8 #x0001)) (ite exec_8_1_1 (bvadd accu_8_1 #x0001) accu_8_1))))
 
 ; mem variables - mem_<step>_<thread>
-(assert (= mem_9_0 mem_8_0))
-(assert (= mem_9_1 mem_8_1))
+(assert (= mem_9_0 (ite exec_8_0_0 (ite (and sb-full_8_0 (= sb-adr_8_0 #x0000)) sb-val_8_0 (select heap_8 #x0000)) mem_8_0)))
+(assert (= mem_9_1 (ite exec_8_1_0 (ite (and sb-full_8_1 (= sb-adr_8_1 #x0001)) sb-val_8_1 (select heap_8 #x0001)) mem_8_1)))
 
 ; store buffer address variables - sb-adr_<step>_<thread>
-(assert (= sb-adr_9_0 (ite exec_8_0_1 #x0000 (ite exec_8_0_2 #x0001 sb-adr_8_0))))
-(assert (= sb-adr_9_1 sb-adr_8_1))
+(assert (= sb-adr_9_0 (ite exec_8_0_2 #x0001 sb-adr_8_0)))
+(assert (= sb-adr_9_1 (ite exec_8_1_2 #x0000 sb-adr_8_1)))
 
 ; store buffer value variables - sb-val_<step>_<thread>
-(assert (= sb-val_9_0 (ite exec_8_0_1 accu_8_0 (ite exec_8_0_2 accu_8_0 sb-val_8_0))))
-(assert (= sb-val_9_1 sb-val_8_1))
+(assert (= sb-val_9_0 (ite exec_8_0_2 accu_8_0 sb-val_8_0)))
+(assert (= sb-val_9_1 (ite exec_8_1_2 accu_8_1 sb-val_8_1)))
 
 ; store buffer full variables - sb-full_<step>_<thread>
-(assert (= sb-full_9_0 (ite flush_8_0 false (or exec_8_0_2 exec_8_0_1 sb-full_8_0))))
-(assert (= sb-full_9_1 (ite flush_8_1 false sb-full_8_1)))
+(assert (= sb-full_9_0 (ite flush_8_0 false (or exec_8_0_2 sb-full_8_0))))
+(assert (= sb-full_9_1 (ite flush_8_1 false (or exec_8_1_2 sb-full_8_1))))
 
 ; statement activation variables - stmt_<step>_<thread>_<pc>
 (assert (= stmt_9_0_0 (and stmt_8_0_0 (not exec_8_0_0))))
@@ -1409,10 +1448,11 @@
 (assert (= stmt_9_1_0 (and stmt_8_1_0 (not exec_8_1_0))))
 (assert (= stmt_9_1_1 (ite stmt_8_1_0 exec_8_1_0 (and stmt_8_1_1 (not exec_8_1_1)))))
 (assert (= stmt_9_1_2 (ite stmt_8_1_1 exec_8_1_1 (and stmt_8_1_2 (not exec_8_1_2)))))
+(assert (= stmt_9_1_3 (ite stmt_8_1_2 exec_8_1_2 (and stmt_8_1_3 (not exec_8_1_3)))))
 
 ; halt variables - halt_<step>_<thread>
 (assert (= halt_9_0 (or exec_8_0_3 halt_8_0)))
-(assert (= halt_9_1 (or exec_8_1_2 halt_8_1)))
+(assert (= halt_9_1 (or exec_8_1_3 halt_8_1)))
 
 ; heap variable - heap_<step>
 (assert (= heap_9 (ite flush_8_0 (store heap_8 sb-adr_8_0 sb-val_8_0) (ite flush_8_1 (store heap_8 sb-adr_8_1 sb-val_8_1) heap_8))))
@@ -1436,13 +1476,161 @@
 
 ; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (ite sb-full_9_0 (=> (or stmt_9_0_1 stmt_9_0_2 stmt_9_0_3) (not thread_9_0)) (not flush_9_0)))
-(assert (ite sb-full_9_1 (=> stmt_9_1_2 (not thread_9_1)) (not flush_9_1)))
+(assert (ite sb-full_9_0 (=> (or stmt_9_0_2 stmt_9_0_3) (not thread_9_0)) (not flush_9_0)))
+(assert (ite sb-full_9_1 (=> (or stmt_9_1_2 stmt_9_1_3) (not thread_9_1)) (not flush_9_1)))
 
 ; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (assert (=> halt_9_0 (not thread_9_0)))
 (assert (=> halt_9_1 (not thread_9_1)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; step 10
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; state variable declarations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; accu variables - accu_<step>_<thread>
+(declare-fun accu_10_0 () (_ BitVec 16))
+(declare-fun accu_10_1 () (_ BitVec 16))
+
+; mem variables - mem_<step>_<thread>
+(declare-fun mem_10_0 () (_ BitVec 16))
+(declare-fun mem_10_1 () (_ BitVec 16))
+
+; store buffer address variables - sb-adr_<step>_<thread>
+(declare-fun sb-adr_10_0 () (_ BitVec 16))
+(declare-fun sb-adr_10_1 () (_ BitVec 16))
+
+; store buffer value variables - sb-val_<step>_<thread>
+(declare-fun sb-val_10_0 () (_ BitVec 16))
+(declare-fun sb-val_10_1 () (_ BitVec 16))
+
+; store buffer full variables - sb-full_<step>_<thread>
+(declare-fun sb-full_10_0 () Bool)
+(declare-fun sb-full_10_1 () Bool)
+
+; statement activation variables - stmt_<step>_<thread>_<pc>
+(declare-fun stmt_10_0_0 () Bool)
+(declare-fun stmt_10_0_1 () Bool)
+(declare-fun stmt_10_0_2 () Bool)
+(declare-fun stmt_10_0_3 () Bool)
+
+(declare-fun stmt_10_1_0 () Bool)
+(declare-fun stmt_10_1_1 () Bool)
+(declare-fun stmt_10_1_2 () Bool)
+(declare-fun stmt_10_1_3 () Bool)
+
+; halt variables - halt_<step>_<thread>
+(declare-fun halt_10_0 () Bool)
+(declare-fun halt_10_1 () Bool)
+
+; heap variable - heap_<step>
+(declare-fun heap_10 () (Array (_ BitVec 16) (_ BitVec 16)))
+
+; exit flag variable - exit_<step>
+(declare-fun exit_10 () Bool)
+
+; transition variable declarations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; thread activation variables - thread_<step>_<thread>
+(declare-fun thread_10_0 () Bool)
+(declare-fun thread_10_1 () Bool)
+
+; statement execution variables - exec_<step>_<thread>_<pc>
+(declare-fun exec_10_0_0 () Bool)
+(declare-fun exec_10_0_1 () Bool)
+(declare-fun exec_10_0_2 () Bool)
+(declare-fun exec_10_0_3 () Bool)
+
+(declare-fun exec_10_1_0 () Bool)
+(declare-fun exec_10_1_1 () Bool)
+(declare-fun exec_10_1_2 () Bool)
+(declare-fun exec_10_1_3 () Bool)
+
+; store buffer flush variables - flush_<step>_<thread>
+(declare-fun flush_10_0 () Bool)
+(declare-fun flush_10_1 () Bool)
+
+; transition variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; statement execution variables - exec_<step>_<thread>_<pc>
+(assert (= exec_10_0_0 (and stmt_10_0_0 thread_10_0)))
+(assert (= exec_10_0_1 (and stmt_10_0_1 thread_10_0)))
+(assert (= exec_10_0_2 (and stmt_10_0_2 thread_10_0)))
+(assert (= exec_10_0_3 (and stmt_10_0_3 thread_10_0)))
+
+(assert (= exec_10_1_0 (and stmt_10_1_0 thread_10_1)))
+(assert (= exec_10_1_1 (and stmt_10_1_1 thread_10_1)))
+(assert (= exec_10_1_2 (and stmt_10_1_2 thread_10_1)))
+(assert (= exec_10_1_3 (and stmt_10_1_3 thread_10_1)))
+
+; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; accu variables - accu_<step>_<thread>
+(assert (= accu_10_0 (ite exec_9_0_0 (ite (and sb-full_9_0 (= sb-adr_9_0 #x0000)) sb-val_9_0 (select heap_9 #x0000)) (ite exec_9_0_1 (bvadd accu_9_0 #x0001) accu_9_0))))
+(assert (= accu_10_1 (ite exec_9_1_0 (ite (and sb-full_9_1 (= sb-adr_9_1 #x0001)) sb-val_9_1 (select heap_9 #x0001)) (ite exec_9_1_1 (bvadd accu_9_1 #x0001) accu_9_1))))
+
+; mem variables - mem_<step>_<thread>
+(assert (= mem_10_0 (ite exec_9_0_0 (ite (and sb-full_9_0 (= sb-adr_9_0 #x0000)) sb-val_9_0 (select heap_9 #x0000)) mem_9_0)))
+(assert (= mem_10_1 (ite exec_9_1_0 (ite (and sb-full_9_1 (= sb-adr_9_1 #x0001)) sb-val_9_1 (select heap_9 #x0001)) mem_9_1)))
+
+; store buffer address variables - sb-adr_<step>_<thread>
+(assert (= sb-adr_10_0 (ite exec_9_0_2 #x0001 sb-adr_9_0)))
+(assert (= sb-adr_10_1 (ite exec_9_1_2 #x0000 sb-adr_9_1)))
+
+; store buffer value variables - sb-val_<step>_<thread>
+(assert (= sb-val_10_0 (ite exec_9_0_2 accu_9_0 sb-val_9_0)))
+(assert (= sb-val_10_1 (ite exec_9_1_2 accu_9_1 sb-val_9_1)))
+
+; store buffer full variables - sb-full_<step>_<thread>
+(assert (= sb-full_10_0 (ite flush_9_0 false (or exec_9_0_2 sb-full_9_0))))
+(assert (= sb-full_10_1 (ite flush_9_1 false (or exec_9_1_2 sb-full_9_1))))
+
+; statement activation variables - stmt_<step>_<thread>_<pc>
+(assert (= stmt_10_0_0 (and stmt_9_0_0 (not exec_9_0_0))))
+(assert (= stmt_10_0_1 (ite stmt_9_0_0 exec_9_0_0 (and stmt_9_0_1 (not exec_9_0_1)))))
+(assert (= stmt_10_0_2 (ite stmt_9_0_1 exec_9_0_1 (and stmt_9_0_2 (not exec_9_0_2)))))
+(assert (= stmt_10_0_3 (ite stmt_9_0_2 exec_9_0_2 (and stmt_9_0_3 (not exec_9_0_3)))))
+
+(assert (= stmt_10_1_0 (and stmt_9_1_0 (not exec_9_1_0))))
+(assert (= stmt_10_1_1 (ite stmt_9_1_0 exec_9_1_0 (and stmt_9_1_1 (not exec_9_1_1)))))
+(assert (= stmt_10_1_2 (ite stmt_9_1_1 exec_9_1_1 (and stmt_9_1_2 (not exec_9_1_2)))))
+(assert (= stmt_10_1_3 (ite stmt_9_1_2 exec_9_1_2 (and stmt_9_1_3 (not exec_9_1_3)))))
+
+; halt variables - halt_<step>_<thread>
+(assert (= halt_10_0 (or exec_9_0_3 halt_9_0)))
+(assert (= halt_10_1 (or exec_9_1_3 halt_9_1)))
+
+; heap variable - heap_<step>
+(assert (= heap_10 (ite flush_9_0 (store heap_9 sb-adr_9_0 sb-val_9_0) (ite flush_9_1 (store heap_9 sb-adr_9_1 sb-val_9_1) heap_9))))
+
+; exit flag variable - exit_<step>
+(assert (= exit_10 (or exit_9 (and halt_10_0 halt_10_1))))
+
+; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (or thread_10_0 flush_10_0 thread_10_1 flush_10_1 exit_10))
+(assert (or (not thread_10_0) (not flush_10_0)))
+(assert (or (not thread_10_0) (not thread_10_1)))
+(assert (or (not thread_10_0) (not flush_10_1)))
+(assert (or (not thread_10_0) (not exit_10)))
+(assert (or (not flush_10_0) (not thread_10_1)))
+(assert (or (not flush_10_0) (not flush_10_1)))
+(assert (or (not flush_10_0) (not exit_10)))
+(assert (or (not thread_10_1) (not flush_10_1)))
+(assert (or (not thread_10_1) (not exit_10)))
+(assert (or (not flush_10_1) (not exit_10)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_10_0 (=> (or stmt_10_0_2 stmt_10_0_3) (not thread_10_0)) (not flush_10_0)))
+(assert (ite sb-full_10_1 (=> (or stmt_10_1_2 stmt_10_1_3) (not thread_10_1)) (not flush_10_1)))
+
+; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> halt_10_0 (not thread_10_0)))
+(assert (=> halt_10_1 (not thread_10_1)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; exit code

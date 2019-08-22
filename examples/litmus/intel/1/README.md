@@ -1,4 +1,4 @@
-# Stores Are Not Reordered with Other Stores
+# Stores Are Not Reordered With Other Stores
 
 > Example 8-1, [P.265](https://software.intel.com/sites/default/files/managed/7c/f1/253668-sdm-vol-3a.pdf#page=265)
 
@@ -12,8 +12,17 @@ The Intel-64 memory-ordering model allows neither loads nor stores to be reorder
 | STORE 0     | LOAD 1      |
 | STORE 1     | LOAD 0      |
 
-* Initially `[0] = [1] = 0`
+* initially `[0] = [1] = 0`
 * `accu_1 = {1, 0}` is not allowed
 
 The disallowed return values could be exhibited only if processor 0’s two stores are reordered (with the two loads occurring between them) or if processor 1’s two loads are reordered (with the two stores occurring between them).
 If `accu_1 = 1`, the store to `[1]` occurs before the load from `[1]`. Because the Intel-64 memory-ordering model does not allow stores to be reordered, the earlier store to `[0]` occurs before the load from `[1]`. Because the Intel-64 memory-ordering model does not allow loads to be reordered, the store to `[0]` also occurs before the later load from `[0]`. Thus `accu_1 = 1`.
+
+## Bound = 9
+
+| Processor | Instructions[^1]  | Flushes | Total |
+| --------- | ----------------  | ------- | ----- |
+| 0         | 4                 | 2       | 6     |
+| 1         | 3                 | 0       | 3     |
+
+[^1]: including final `HALT`

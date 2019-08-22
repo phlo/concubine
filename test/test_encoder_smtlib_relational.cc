@@ -316,6 +316,11 @@ TEST(smtlib_Relational, litmus_intel_1)
   litmus_intel_1<E>("formula.relational.smt2");
 }
 
+TEST(smtlib_Relational, litmus_intel_2)
+{
+  litmus_intel_2<E>("formula.relational.smt2");
+}
+
 TEST(smtlib_Relational, LOAD)
 {
   auto encoder = create<E>(Program::list(prog(instruction_set)));

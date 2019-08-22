@@ -3596,6 +3596,11 @@ TEST(btor2_Encoder, litmus_intel_1)
   litmus_intel_1<E>("formula.btor2");
 }
 
+TEST(btor2_Encoder, litmus_intel_2)
+{
+  litmus_intel_2<E>("formula.btor2");
+}
+
 TEST(btor2_Encoder, LOAD)
 {
   auto encoder = create<E>(dummy(1));
@@ -3685,7 +3690,7 @@ TEST(btor2_Encoder, ADD)
 
   std::string nid_add = encoder.encode(add);
 
-  auto expected = [this, &encoder, &nid, &address, &nid_add] {
+  auto expected = [&encoder, &nid, &address, &nid_add] {
     std::ostringstream s;
 
     s << expected_load(encoder, nid, address);
@@ -3717,7 +3722,7 @@ TEST(btor2_Encoder, ADD_indirect)
 
   std::string nid_add = encoder.encode(add);
 
-  auto expected = [this, &encoder, &nid, &address, &nid_add] {
+  auto expected = [&encoder, &nid, &address, &nid_add] {
     std::ostringstream s;
 
     s << expected_load_indirect(encoder, nid, address);
@@ -3780,7 +3785,7 @@ TEST(btor2_Encoder, SUB)
 
   std::string nid_sub = encoder.encode(sub);
 
-  auto expected = [this, &encoder, &nid, &address, &nid_sub] {
+  auto expected = [&encoder, &nid, &address, &nid_sub] {
     std::ostringstream s;
 
     s << expected_load(encoder, nid, address);
@@ -3812,7 +3817,7 @@ TEST(btor2_Encoder, SUB_indirect)
 
   std::string nid_sub = encoder.encode(sub);
 
-  auto expected = [this, &encoder, &nid, &address, &nid_sub] {
+  auto expected = [&encoder, &nid, &address, &nid_sub] {
     std::ostringstream s;
 
     s << expected_load_indirect(encoder, nid, address);
@@ -3875,7 +3880,7 @@ TEST(btor2_Encoder, MUL)
 
   std::string nid_mul = encoder.encode(mul);
 
-  auto expected = [this, &encoder, &nid, &address, &nid_mul] {
+  auto expected = [&encoder, &nid, &address, &nid_mul] {
     std::ostringstream s;
 
     s << expected_load(encoder, nid, address);
@@ -3907,7 +3912,7 @@ TEST(btor2_Encoder, MUL_indirect)
 
   std::string nid_mul = encoder.encode(mul);
 
-  auto expected = [this, &encoder, &nid, &address, &nid_mul] {
+  auto expected = [&encoder, &nid, &address, &nid_mul] {
     std::ostringstream s;
 
     s << expected_load_indirect(encoder, nid, address);
@@ -3970,7 +3975,7 @@ TEST(btor2_Encoder, CMP)
 
   std::string nid_cmp = encoder.encode(cmp);
 
-  auto expected = [this, &encoder, &nid, &address, &nid_cmp] {
+  auto expected = [&encoder, &nid, &address, &nid_cmp] {
     std::ostringstream s;
 
     s << expected_load(encoder, nid, address);
@@ -4002,7 +4007,7 @@ TEST(btor2_Encoder, CMP_indirect)
 
   std::string nid_cmp = encoder.encode(cmp);
 
-  auto expected = [this, &encoder, &nid, &address, &nid_cmp] {
+  auto expected = [&encoder, &nid, &address, &nid_cmp] {
     std::ostringstream s;
 
     s << expected_load_indirect(encoder, nid, address);
@@ -4242,7 +4247,7 @@ TEST(btor2_Encoder, CAS)
 
   std::string nid_cas;
 
-  auto expected = [this, &encoder, &nid, &address, &nid_cas] {
+  auto expected = [&encoder, &nid, &address, &nid_cas] {
     std::ostringstream s;
 
     if (encoder.update == E::State::accu)
@@ -4312,7 +4317,7 @@ TEST(btor2_Encoder, CAS_indirect)
 
   std::string nid_cas;
 
-  auto expected = [this, &encoder, &nid, &address, &nid_cas] {
+  auto expected = [&encoder, &nid, &address, &nid_cas] {
     std::ostringstream s;
 
     if (encoder.update == E::State::accu)
