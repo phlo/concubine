@@ -2,8 +2,8 @@
 
 > Example 8-2, [P.265](https://software.intel.com/sites/default/files/managed/7c/f1/253668-sdm-vol-3a.pdf#page=265)
 
-The Intel-64 memory-ordering model ensures that a store by a processor may not occur before a previous load by
-the same processor. This is illustrated by the following example:
+The Intel-64 memory-ordering model ensures that a store by a processor may not occur before a previous load by the same processor.
+This is illustrated by the following example:
 
 ## Example 8-2. Stores Are Not Reordered with Older Loads
 
