@@ -52,25 +52,26 @@ GTEST_FILTER += smtlib_Functional.*
 GTEST_FILTER += smtlib_Relational.*
 # GTEST_FILTER += btor2.*
 GTEST_FILTER += btor2_Encoder.*
-# GTEST_FILTER += Simulator.*
+GTEST_FILTER += Simulator.*
 # GTEST_FILTER += Main.*
 # GTEST_FILTER += Experimental.*
-# GTEST_FILTER += Instruction.*
-# GTEST_FILTER += Program.*
-# GTEST_FILTER += Trace.*
+GTEST_FILTER += Instruction.*
+GTEST_FILTER += Program.*
+GTEST_FILTER += Trace.*
 # GTEST_FILTER += MMap.*
 # GTEST_FILTER += Shell.*
-# GTEST_FILTER += Boolector.*
-# GTEST_FILTER += BtorMC.litmus*
-# GTEST_FILTER += Z3.*
-# GTEST_FILTER += CVC4.*
+GTEST_FILTER += Boolector.*
+GTEST_FILTER += BtorMC.*
+GTEST_FILTER += Z3.*
+GTEST_FILTER += CVC4.*
 
 GTEST_FILTER := $(shell echo ${GTEST_FILTER} | sed -e 's/ /:/g')
 
 # run tests
 .PHONY: run
 run: $(TEST_RUN)
-	./$(TEST_RUN) $(GTEST_FILTER)
+	rm -rf /tmp/concubine
+	cd .. && test/$(TEST_RUN) $(GTEST_FILTER)
 
 # debug tests
 .PHONY: debug

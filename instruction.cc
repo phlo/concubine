@@ -26,7 +26,7 @@ template <class POD>
 constexpr bool is_jump = std::is_base_of<Instruction::Jmp, POD>::value;
 
 template <class POD>
-struct Model : Instruction::Concept
+struct Model : public Instruction::Concept
 {
   using Type = Instruction::Type;
 

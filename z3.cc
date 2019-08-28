@@ -11,10 +11,6 @@ namespace ConcuBinE {
 // Z3
 //==============================================================================
 
-//------------------------------------------------------------------------------
-// member functions
-//------------------------------------------------------------------------------
-
 // Z3::name --------------------------------------------------------------------
 
 std::string Z3::name () const { return "z3"; }
@@ -41,23 +37,24 @@ bool Z3::sat (const std::string & formula)
 
 // Z3::solve -------------------------------------------------------------------
 
-inline
-bool eval_bool (z3::context & c, const z3::model & m, const std::string & sym)
+inline bool eval_bool (z3::context & c,
+                       const z3::model & m,
+                       const std::string & sym)
 {
   return m.eval(c.bool_const(sym.c_str())).is_true();
 }
 
-inline
-word_t eval_bv (z3::context & c, const z3::model & m, const std::string & sym)
+inline word_t eval_bv (z3::context & c,
+                       const z3::model & m,
+                       const std::string & sym)
 {
   return m.eval(c.bv_const(sym.c_str(), word_size)).get_numeral_uint();
 }
 
-inline
-word_t eval_array (z3::context & c,
-                   const z3::model & m,
-                   const std::string & sym,
-                   const word_t idx)
+inline word_t eval_array (z3::context & c,
+                          const z3::model & m,
+                          const std::string & sym,
+                          const word_t idx)
 {
   return
     m.eval(
@@ -71,7 +68,7 @@ word_t eval_array (z3::context & c,
     .get_numeral_uint();
 }
 
-Trace::ptr Z3::solve (Encoder & encoder, const std::string & constraints)
+Trace::ptr Z3::solve (Encoder & encoder)
 {
   using namespace std::chrono;
 
@@ -80,7 +77,7 @@ Trace::ptr Z3::solve (Encoder & encoder, const std::string & constraints)
 
   high_resolution_clock::time_point t = high_resolution_clock::now();
 
-  s.from_string(formula(encoder, constraints).c_str());
+  s.from_string(formula(encoder).c_str());
 
   if (s.check() != z3::sat)
     throw std::runtime_error("formula is not sat");

@@ -8,23 +8,13 @@ namespace ConcuBinE {
 // BtorMC
 //==============================================================================
 
-//------------------------------------------------------------------------------
-// constructors
-//------------------------------------------------------------------------------
-
-BtorMC::BtorMC(size_t b) : bound(b) {}
-
-//------------------------------------------------------------------------------
-// member functions
-//------------------------------------------------------------------------------
-
 // BtorMC::name ----------------------------------------------------------------
 
 std::string BtorMC::name () const { return "btormc"; }
 
 // BtorMC::command -------------------------------------------------------------
 
-std::string BtorMC::command ()
+std::string BtorMC::command () const
 {
   return "btormc --trace-gen-full -kmax " + std::to_string(bound);
 }
@@ -137,6 +127,22 @@ BtorMC::Symbol BtorMC::symbol (std::istringstream & line)
     }
 
   return Symbol::ignore;
+}
+
+// BtorMC::sat -----------------------------------------------------------------
+
+bool BtorMC::sat (const std::string & formula, const size_t b)
+{
+  bound = b;
+  return Boolector::sat(formula);
+}
+
+// BtorMC::solve ---------------------------------------------------------------
+
+Trace::ptr BtorMC::solve (Encoder & encoder)
+{
+  bound = encoder.bound;
+  return Boolector::solve(encoder);
 }
 
 } // namespace ConcuBinE

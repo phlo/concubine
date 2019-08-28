@@ -15,39 +15,111 @@ namespace ConcuBinE {
 
 // Solver::formula -------------------------------------------------------------
 
-std::string Solver::formula (Encoder & encoder, const std::string & constraints)
-{
-  return encoder.str() + (constraints.empty() ? "" : eol + constraints);
-}
+std::string Solver::formula (Encoder & encoder) const { return encoder.str(); }
 
 //==============================================================================
 // External
 //==============================================================================
 
-// External::sat ---------------------------------------------------------------
+// External::attribute ---------------------------------------------------------
 
-bool External::sat (const std::string & input)
+size_t External::attribute (std::istringstream & line,
+                            const std::string & name,
+                            const char delimiter)
 {
-  using namespace std::chrono;
+  if (line.peek() != delimiter)
+    {
+      std::string token;
+      line >> token;
+      throw std::runtime_error("missing delimiter [" + token + "]");
+    }
 
-  Shell shell;
+  line.get(); // discard delimiter
 
-  high_resolution_clock::time_point t = high_resolution_clock::now();
+  size_t val;
 
-  std_out = shell.run(command(), input);
+  if (!(line >> val))
+    throw std::runtime_error("missing " + name);
 
-  time = duration_cast<milliseconds>(high_resolution_clock::now() - t).count();
-
-  std::string sat;
-  return (std_out >> sat) && sat == "sat";
+  return val;
 }
 
-// External::solve -------------------------------------------------------------
+// External::symbol ------------------------------------------------------------
 
-Trace::ptr External::solve (Encoder & encoder, const std::string & constraints)
+External::Symbol External::symbol (std::istringstream & line)
 {
-  sat(formula(encoder, constraints));
-  return trace(encoder.programs);
+  std::string name;
+
+  if (!getline(line >> std::ws, name, '_'))
+    throw std::runtime_error("missing symbol");
+
+  line.unget(); // restore initial delimiter
+
+  if (name == Encoder::accu_sym)
+    {
+      step = attribute(line, "step");
+      thread = attribute(line, "thread");
+      return Symbol::accu;
+    }
+  else if (name == Encoder::mem_sym)
+    {
+      step = attribute(line, "step");
+      thread = attribute(line, "thread");
+      return Symbol::mem;
+    }
+  else if (name == Encoder::sb_adr_sym)
+    {
+      step = attribute(line, "step");
+      thread = attribute(line, "thread");
+      return Symbol::sb_adr;
+    }
+  else if (name == Encoder::sb_val_sym)
+    {
+      step = attribute(line, "step");
+      thread = attribute(line, "thread");
+      return Symbol::sb_val;
+    }
+  else if (name == Encoder::sb_full_sym)
+    {
+      step = attribute(line, "step");
+      thread = attribute(line, "thread");
+      return Symbol::sb_full;
+    }
+  else if (name == Encoder::stmt_sym)
+    {
+      step = attribute(line, "step");
+      thread = attribute(line, "thread");
+      pc = attribute(line, "pc");
+      return Symbol::stmt;
+    }
+  else if (name == Encoder::heap_sym)
+    {
+      step = attribute(line, "step");
+      return Symbol::heap;
+    }
+  else if (name == Encoder::exit_flag_sym)
+    {
+      step = attribute(line, "step");
+      return Symbol::exit_flag; // TODO
+    }
+  else if (name == Encoder::exit_code_sym)
+    {
+      return Symbol::exit_code;
+    }
+  else if (name == Encoder::thread_sym)
+    {
+      step = attribute(line, "step");
+      thread = attribute(line, "thread");
+      return Symbol::thread;
+    }
+  else if (name == Encoder::flush_sym)
+    {
+      step = attribute(line, "step");
+      thread = attribute(line, "thread");
+      return Symbol::flush;
+    }
+
+  return Symbol::ignore;
 }
 
 // External::trace -------------------------------------------------------------
@@ -165,105 +237,30 @@ Trace::ptr External::trace (const Program::List::ptr & programs)
   return trace;
 }
 
-// External::attribute ---------------------------------------------------------
+// External::sat ---------------------------------------------------------------
 
-size_t External::attribute (std::istringstream & line,
-                            const std::string & name,
-                            const char delimiter)
+bool External::sat (const std::string & input)
 {
-  if (line.peek() != delimiter)
-    {
-      std::string token;
-      line >> token;
-      throw std::runtime_error("missing delimiter [" + token + "]");
-    }
+  using namespace std::chrono;
 
-  line.get(); // discard delimiter
+  Shell shell;
 
-  size_t val;
+  high_resolution_clock::time_point t = high_resolution_clock::now();
 
-  if (!(line >> val))
-    throw std::runtime_error("missing " + name);
+  std_out = shell.run(command(), input);
 
-  return val;
+  time = duration_cast<milliseconds>(high_resolution_clock::now() - t).count();
+
+  std::string sat;
+  return (std_out >> sat) && sat == "sat";
 }
 
-// External::symbol ------------------------------------------------------------
+// External::solve -------------------------------------------------------------
 
-External::Symbol External::symbol (std::istringstream & line)
+Trace::ptr External::solve (Encoder & encoder)
 {
-  std::string name;
-
-  if (!getline(line >> std::ws, name, '_'))
-    throw std::runtime_error("missing symbol");
-
-  line.unget(); // restore initial delimiter
-
-  if (name == Encoder::accu_sym)
-    {
-      step = attribute(line, "step");
-      thread = attribute(line, "thread");
-      return Symbol::accu;
-    }
-  else if (name == Encoder::mem_sym)
-    {
-      step = attribute(line, "step");
-      thread = attribute(line, "thread");
-      return Symbol::mem;
-    }
-  else if (name == Encoder::sb_adr_sym)
-    {
-      step = attribute(line, "step");
-      thread = attribute(line, "thread");
-      return Symbol::sb_adr;
-    }
-  else if (name == Encoder::sb_val_sym)
-    {
-      step = attribute(line, "step");
-      thread = attribute(line, "thread");
-      return Symbol::sb_val;
-    }
-  else if (name == Encoder::sb_full_sym)
-    {
-      step = attribute(line, "step");
-      thread = attribute(line, "thread");
-      return Symbol::sb_full;
-    }
-  else if (name == Encoder::stmt_sym)
-    {
-      step = attribute(line, "step");
-      thread = attribute(line, "thread");
-      pc = attribute(line, "pc");
-      return Symbol::stmt;
-    }
-  else if (name == Encoder::heap_sym)
-    {
-      step = attribute(line, "step");
-      return Symbol::heap;
-    }
-  else if (name == Encoder::exit_flag_sym)
-    {
-      step = attribute(line, "step");
-      return Symbol::exit_flag; // TODO
-    }
-  else if (name == Encoder::exit_code_sym)
-    {
-      return Symbol::exit_code;
-    }
-  else if (name == Encoder::thread_sym)
-    {
-      step = attribute(line, "step");
-      thread = attribute(line, "thread");
-      return Symbol::thread;
-    }
-  else if (name == Encoder::flush_sym)
-    {
-      step = attribute(line, "step");
-      thread = attribute(line, "thread");
-      return Symbol::flush;
-    }
-
-  return Symbol::ignore;
+  sat(formula(encoder));
+  return trace(encoder.programs);
 }
 
 } // namespace ConcuBinE

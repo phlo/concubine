@@ -8,29 +8,26 @@ namespace ConcuBinE {
 // CVC4
 //==============================================================================
 
-//------------------------------------------------------------------------------
-// member functions
-//------------------------------------------------------------------------------
-
 // CVC4::name ------------------------------------------------------------------
 
 std::string CVC4::name () const { return "cvc4"; }
 
-// CVC4::command ---------------------------------------------------------------
+// CVC4::formula ---------------------------------------------------------------
 
-std::string CVC4::command ()
-{
-  return "cvc4 -L smt2 -m --output-lang=cvc4";
-}
-
-// CVC4::build_formula ---------------------------------------------------------
-
-std::string CVC4::formula (Encoder & encoder, const std::string & constraints)
+std::string CVC4::formula (Encoder & encoder) const
 {
   return
-    Solver::formula(encoder, constraints) +
-    smtlib::check_sat() + eol +
+    External::formula(encoder) +
+    smtlib::check_sat() +
+    eol +
     smtlib::get_model();
+}
+
+// CVC4::command ---------------------------------------------------------------
+
+std::string CVC4::command () const
+{
+  return "cvc4 -L smt2 -m --output-lang=cvc4";
 }
 
 // CVC4::parse -----------------------------------------------------------------

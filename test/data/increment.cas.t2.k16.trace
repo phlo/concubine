@@ -1,5 +1,5 @@
-data/increment.cas.asm
-data/increment.cas.asm
+test/data/increment.cas.asm
+test/data/increment.cas.asm
 .
 # tid	pc	cmd	arg	accu	mem	adr	val	full	heap
 0	0	STORE	0	0	0	0	0	0	{}	# 0

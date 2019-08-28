@@ -8,7 +8,7 @@
 namespace ConcuBinE {
 
 //==============================================================================
-// Z3 class
+// Z3
 //==============================================================================
 
 struct Z3 : public Solver
@@ -17,12 +17,17 @@ struct Z3 : public Solver
   // member functions
   //----------------------------------------------------------------------------
 
+  // return z3's name
+  //
   virtual std::string name () const;
 
+  // evaluate arbitrary formula
+  //
   virtual bool sat (const std::string & formula);
 
-  virtual Trace::ptr solve (Encoder & encoder,
-                            const std::string & constraints = "");
+  // run z3 and return trace
+  //
+  virtual Trace::ptr solve (Encoder & encoder);
 };
 
 } // namespace ConcuBinE

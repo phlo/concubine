@@ -853,16 +853,17 @@ TEST_F(Simulator, run_final_flush)
 
 TEST_F(Simulator, simulate_increment_check)
 {
-  std::ifstream trace_file("data/increment.check.t2.k16.trace");
+  std::ifstream trace_file("test/data/increment.check.t2.k16.trace");
   std::string expected((std::istreambuf_iterator<char>(trace_file)),
                         std::istreambuf_iterator<char>());
 
-  auto programs =
-    Program::list(
-      create_from_file<Program>("data/increment.check.thread.0.asm"),
-      create_from_file<Program>("data/increment.check.thread.n.asm"));
-
-  trace = simulator.simulate(programs, {}, 16);
+  trace =
+    simulator.simulate(
+      std::make_shared<Program::List>(
+        create_from_file<Program>("test/data/increment.check.thread.0.asm"),
+        create_from_file<Program>("test/data/increment.check.thread.n.asm")),
+      {},
+      16);
 
   ASSERT_EQ(
     Trace::update_map<word_t>({{3,0}, {14, 0}}),
@@ -875,13 +876,17 @@ TEST_F(Simulator, simulate_increment_check)
 
 TEST_F(Simulator, simulate_increment_cas)
 {
-  std::ifstream trace_file("data/increment.cas.t2.k16.trace");
+  std::ifstream trace_file("test/data/increment.cas.t2.k16.trace");
   std::string expected((std::istreambuf_iterator<char>(trace_file)),
                         std::istreambuf_iterator<char>());
 
-  Program increment = create_from_file<Program>("data/increment.cas.asm");
+  auto increment = create_from_file<Program>("test/data/increment.cas.asm");
 
-  trace = simulator.simulate(Program::list(increment, increment), {}, 16);
+  trace =
+    simulator.simulate(
+      std::make_shared<Program::List>(increment, increment),
+      {},
+      16);
 
   ASSERT_EQ(
     Trace::update_map<word_t>({{3, 0}, {4, 0}, {12, 0}}),
@@ -894,7 +899,7 @@ TEST_F(Simulator, simulate_increment_cas)
 
 TEST_F(Simulator, simulate_load_uninitialized)
 {
-  Program::List::ptr programs = Program::list();
+  auto programs = std::make_shared<Program::List>();
 
   for (word_t i = 1; i <= 3; i++)
     {
@@ -924,9 +929,9 @@ TEST_F(Simulator, simulate_load_uninitialized)
 
 TEST_F(Simulator, simulate_load_mmap)
 {
-  Program::List::ptr programs = Program::list();
-  std::shared_ptr<MMap> mmap =
-    std::make_shared<MMap>(create_from_file<MMap>("data/init.mmap"));
+  auto programs = std::make_shared<Program::List>();
+  auto mmap =
+    std::make_shared<MMap>(create_from_file<MMap>("test/data/init.mmap"));
 
   for (word_t i = 1; i <= 3; i++)
     {
@@ -952,7 +957,7 @@ TEST_F(Simulator, simulate_load_mmap)
 
 TEST_F(Simulator, replay_increment_check)
 {
-  std::string trace_path = "data/increment.check.t2.k16.trace";
+  const std::string trace_path = "test/data/increment.check.t2.k16.trace";
 
   std::ifstream sfs(trace_path);
   std::string expected((std::istreambuf_iterator<char>(sfs)),
@@ -971,7 +976,7 @@ TEST_F(Simulator, replay_increment_check)
 
 TEST_F(Simulator, replay_increment_cas)
 {
-  std::string trace_path = "data/increment.cas.t2.k16.trace";
+  const std::string trace_path = "test/data/increment.cas.t2.k16.trace";
 
   std::ifstream sfs(trace_path);
   std::string expected((std::istreambuf_iterator<char>(sfs)),

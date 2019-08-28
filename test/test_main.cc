@@ -12,7 +12,7 @@ namespace ConcuBinE::test {
 
 struct Main : public ::testing::Test
 {
-  std::string executable = "../concubine";
+  std::string executable = "./concubine";
 
   Shell shell;
 };
@@ -47,13 +47,13 @@ TEST_F(Main, illegal_command_line)
 TEST_F(Main, simulate_increment_check)
 {
   // read expected trace from file
-  std::ifstream trace_file("data/increment.check.t2.k16.trace");
+  std::ifstream trace_file("test/data/increment.check.t2.k16.trace");
   std::string expected((std::istreambuf_iterator<char>(trace_file)),
                         std::istreambuf_iterator<char>());
 
   std::string args = " simulate -v -s 0 -k 16 ";
-  std::string increment_0 = " data/increment.check.thread.0.asm ";
-  std::string increment_n = " data/increment.check.thread.n.asm ";
+  std::string increment_0 = " test/data/increment.check.thread.0.asm ";
+  std::string increment_n = " test/data/increment.check.thread.n.asm ";
   std::string cmd = executable + args + increment_0 + " " + increment_n;
 
   std::string actual = shell.run(cmd).str();
@@ -65,12 +65,12 @@ TEST_F(Main, simulate_increment_check)
 TEST_F(Main, simulate_increment_cas)
 {
   // read expected trace from file
-  std::ifstream trace_file("data/increment.cas.t2.k16.trace");
+  std::ifstream trace_file("test/data/increment.cas.t2.k16.trace");
   std::string expected((std::istreambuf_iterator<char>(trace_file)),
                         std::istreambuf_iterator<char>());
 
   std::string args = " simulate -v -s 0 -k 16 ";
-  std::string increment = "data/increment.cas.asm";
+  std::string increment = "test/data/increment.cas.asm";
   std::string cmd = executable + args + increment + " " + increment;
 
   std::string actual = shell.run(cmd).str();
@@ -150,7 +150,7 @@ TEST_F(Main, simulate_illegal_bound)
 
 TEST_F(Main, replay_increment_check)
 {
-  std::string trace_path = "data/increment.check.t2.k16.trace";
+  std::string trace_path = "test/data/increment.check.t2.k16.trace";
 
   // read expected trace from file
   std::ifstream sfs(trace_path);
@@ -168,7 +168,7 @@ TEST_F(Main, replay_increment_check)
 
 TEST_F(Main, replay_increment_cas)
 {
-  std::string trace_path = "data/increment.cas.t2.k16.trace";
+  std::string trace_path = "test/data/increment.cas.t2.k16.trace";
 
   // read expected trace from file
   std::ifstream sfs(trace_path);
@@ -237,12 +237,12 @@ TEST_F(Main, replay_illegal_bound)
 TEST_F(Main, solve_pretend_functional_cas)
 {
   std::string args = " solve -v -p 12 ";
-  std::string program_file = "data/increment.cas.asm";
+  std::string program_file = "test/data/increment.cas.asm";
 
   std::string cmd = executable + args + program_file + " " + program_file;
 
   // read expected smt formula from file
-  std::ifstream ffs("data/increment.cas.functional.t2.k12.smt2");
+  std::ifstream ffs("test/data/increment.cas.functional.t2.k12.smt2");
   std::string expected((std::istreambuf_iterator<char>(ffs)),
                         std::istreambuf_iterator<char>());
 
@@ -255,7 +255,7 @@ TEST_F(Main, solve_pretend_functional_cas)
 TEST_F(Main, solve_cas)
 {
   std::string args = " solve -v 8 ";
-  std::string program = "data/increment.cas.asm";
+  std::string program = "test/data/increment.cas.asm";
   std::string cmd = executable + args + program + " " + program;
 
   std::string expected = "sat";
@@ -268,7 +268,7 @@ TEST_F(Main, solve_cas)
 TEST_F(Main, solve_illegal_args)
 {
   executable = executable + " solve ";
-  std::string program = "data/increment.cas.asm";
+  std::string program = "test/data/increment.cas.asm";
 
   // no arguments
   std::string expected = "error: too few arguments\n";
@@ -358,7 +358,7 @@ TEST_F(Main, solve_file_not_found)
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual);
 
-  actual = shell.run(cmd + "data/increment.cas.asm file_not_found").str();
+  actual = shell.run(cmd + "test/data/increment.cas.asm file_not_found").str();
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual);

@@ -11,16 +11,26 @@ namespace ConcuBinE {
 
 class Boolector : public External
 {
+  //----------------------------------------------------------------------------
+  // member functions
+  //----------------------------------------------------------------------------
+
 private: //---------------------------------------------------------------------
 
-  virtual std::string command ();
+  // build command line for running boolector
+  //
+  virtual std::string command () const;
 
 protected: //-------------------------------------------------------------------
 
+  // parse variable
+  //
   virtual Symbol parse (std::istringstream & line);
 
 public: //----------------------------------------------------------------------
 
+  // return boolector's name
+  //
   virtual std::string name () const;
 };
 

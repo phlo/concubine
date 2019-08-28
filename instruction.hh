@@ -17,21 +17,21 @@ namespace ConcuBinE {
 // simplify declaration of instruction PODs ------------------------------------
 //
 #define DECLARE_NULLARY(classname, baseclass, _symbol, _type) \
-  struct classname : baseclass \
+  struct classname : public baseclass \
   { \
     inline static const std::string & symbol = \
       add_nullary<classname>(_symbol, _type); \
   }; \
 
 #define DECLARE_UNARY(classname, baseclass, _symbol, _type) \
-  struct classname : baseclass \
+  struct classname : public baseclass \
   { \
     inline static const std::string & symbol = \
       add_unary<classname>(_symbol, _type); \
   }; \
 
 #define DECLARE_MEMORY(classname, baseclass, _symbol, _type) \
-  struct classname : baseclass \
+  struct classname : public baseclass \
   { \
     inline static const std::string & symbol = \
       add_memory<classname>(_symbol, _type); \
@@ -41,8 +41,8 @@ namespace ConcuBinE {
 // forward declarations
 //==============================================================================
 
-struct Simulator;
 struct Encoder;
+struct Simulator;
 
 //==============================================================================
 // Instruction class
@@ -133,8 +133,8 @@ struct Instruction
   // instruction PODs ----------------------------------------------------------
   //
   struct Nullary { uint8_t type = Type::none; };
-  struct Unary : Nullary { word_t arg = 0; };
-  struct Memory : Unary { bool indirect = false; };
+  struct Unary : public Nullary { word_t arg = 0; };
+  struct Memory : public Unary { bool indirect = false; };
 
   DECLARE_MEMORY  (Load,  Memory,   "LOAD",   accu | read)
   DECLARE_MEMORY  (Store, Memory,   "STORE",  write)

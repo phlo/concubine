@@ -38,8 +38,7 @@ struct Solver
 
   // build formula for the specific solver
   //
-  virtual std::string formula (Encoder & encoder,
-                               const std::string & constraints);
+  virtual std::string formula (Encoder & encoder) const;
 
   // evaluate arbitrary formula
   //
@@ -47,8 +46,7 @@ struct Solver
 
   // run solver and return trace
   //
-  virtual Trace::ptr solve (Encoder & encoder,
-                            const std::string & constraints) = 0;
+  virtual Trace::ptr solve (Encoder & encoder) = 0;
 };
 
 //==============================================================================
@@ -57,7 +55,7 @@ struct Solver
 // Base class for solvers running in a forked process.
 //==============================================================================
 
-struct External : Solver
+struct External : public Solver
 {
   //----------------------------------------------------------------------------
   // member types
@@ -111,18 +109,9 @@ struct External : Solver
   // member functions
   //----------------------------------------------------------------------------
 
-  virtual bool sat (const std::string & formula);
-
-  virtual Trace::ptr solve (Encoder & encoder,
-                            const std::string & constraints = "");
-
-  // build command line for the specific solver
+  // build command line for running the specific solver
   //
-  virtual std::string command () = 0;
-
-  // build trace based on the specific solver's output
-  //
-  Trace::ptr trace (const Program::List::ptr & programs);
+  virtual std::string command () const = 0;
 
   // parse integer attribute of current symbol
   //
@@ -137,6 +126,18 @@ struct External : Solver
   // parse variable
   //
   virtual Symbol parse (std::istringstream & line) = 0;
+
+  // build trace based on the specific solver's output
+  //
+  Trace::ptr trace (const Program::List::ptr & programs);
+
+  // evaluate arbitrary formula
+  //
+  virtual bool sat (const std::string & formula);
+
+  // run solver and return trace
+  //
+  virtual Trace::ptr solve (Encoder & encoder);
 };
 
 } // namespace ConcuBinE

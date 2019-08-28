@@ -24,12 +24,11 @@ struct Trace : public ::testing::Test
 
   std::string dummy_path = "dummy.trace";
   std::vector<std::string> check_program_paths = {
-    "data/increment.check.thread.0.asm",
-    "data/increment.check.thread.n.asm"
-  };
-  std::string cas_program_path = "data/increment.cas.asm";
-  std::string check_trace_path = "data/increment.check.t2.k16.trace";
-  std::string cas_trace_path = "data/increment.cas.t2.k16.trace";
+    "test/data/increment.check.thread.0.asm",
+    "test/data/increment.check.thread.n.asm"};
+  std::string cas_program_path = "test/data/increment.cas.asm";
+  std::string check_trace_path = "test/data/increment.check.t2.k16.trace";
+  std::string cas_trace_path = "test/data/increment.cas.t2.k16.trace";
 
   ConcuBinE::Trace::ptr trace;
 
@@ -231,14 +230,14 @@ TEST_F(Trace, parse_mmap)
 {
   std::istringstream file (
     cas_program_path + "\n"
-    ". data/init.mmap\n"
+    ". test/data/init.mmap\n"
     "# tid\tpc\tcmd\targ\taccu\tmem\tadr\tval\tfull\theap\n"
     "0\t0\tSTORE\t0\t0\t0\t0\t0\t0\t{}\t# 0\n");
 
   trace = std::make_unique<ConcuBinE::Trace>(file, dummy_path);
 
   ASSERT_EQ(file.str(), trace->print());
-  ASSERT_EQ(create_from_file<MMap>("data/init.mmap"), *trace->mmap);
+  ASSERT_EQ(create_from_file<MMap>("test/data/init.mmap"), *trace->mmap);
 }
 
 TEST_F(Trace, parse_empty_line)
@@ -1246,7 +1245,7 @@ TEST_F(Trace, print)
 
 TEST_F(Trace, print_indirect_addressing)
 {
-  cas_trace_path = "data/indirect.addressing.trace";
+  cas_trace_path = "test/data/indirect.addressing.trace";
 
   trace =
     std::make_unique<ConcuBinE::Trace>(
@@ -1265,7 +1264,8 @@ TEST_F(Trace, iterator_check)
 {
   trace =
     std::make_unique<ConcuBinE::Trace>(
-      create_from_file<ConcuBinE::Trace>("data/increment.check.t2.k16.trace"));
+      create_from_file<ConcuBinE::Trace>(
+        "test/data/increment.check.t2.k16.trace"));
 
                     // 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16
   word_t tid[]      = {0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1};

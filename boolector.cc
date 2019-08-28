@@ -8,13 +8,9 @@ namespace ConcuBinE {
 // Boolector
 //==============================================================================
 
-//------------------------------------------------------------------------------
-// member functions
-//------------------------------------------------------------------------------
-
 // Boolector::command ----------------------------------------------------------
 
-std::string Boolector::command ()
+std::string Boolector::command () const
 {
   return "boolector --model-gen"; // --output-number-format=dec
 }
