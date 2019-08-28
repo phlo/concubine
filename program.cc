@@ -32,8 +32,7 @@ Program::Program (std::istream & f, const std::string & p) : path(p)
   size_t line_num = 1;
 
   // list of jump instructions at pc referencing a certain label
-  std::vector<
-    std::tuple<std::string, word_t, const std::string *>> labelled_jumps;
+  std::vector<std::tuple<std::string, word_t, std::string>> labelled_jumps;
 
   for (std::string line_buf; std::getline(f, line_buf); line_num++)
     {
@@ -50,10 +49,8 @@ Program::Program (std::istream & f, const std::string & p) : path(p)
       // found label?
       else if (token.back() == ':')
         {
-          word_t pc = size();
-
-          const std::string * label =
-            &*labels.insert(token.substr(0, token.size() - 1)).first;
+          const word_t pc = size();
+          const std::string label = token.substr(0, token.size() - 1);
 
           // store label and the pc it was defined
           label_to_pc[label] = pc;
@@ -135,11 +132,7 @@ Program::Program (std::istream & f, const std::string & p) : path(p)
                       word_t pc = size();
 
                       // add std::tuple to the list of labelled jumps
-                      labelled_jumps.push_back(
-                        make_tuple(
-                          symbol,
-                          pc,
-                          &*labels.insert(token).first));
+                      labelled_jumps.push_back(make_tuple(symbol, pc, token));
                     }
                   // error: not a jump instruction
                   else
@@ -156,12 +149,11 @@ Program::Program (std::istream & f, const std::string & p) : path(p)
     try
       {
         // check if label exists and replace dummy
-        (*this)[pc] =
-          Instruction::create(sym, label_to_pc.at(label));
+        (*this)[pc] = Instruction::create(sym, label_to_pc.at(label));
       }
     catch (...)
       {
-        parser_error(path, pc, "unknown label [" + *label + "]");
+        parser_error(path, pc, "unknown label [" + label + "]");
       }
 
   // insert final HALT (if missing)
@@ -217,19 +209,19 @@ void Program::push_back (Instruction && op)
     checkpoints[op.arg()].push_back(size());
 
   // append instruction
-  std::vector<Instruction>::push_back(op);
+  std::vector<Instruction>::push_back(std::move(op));
 }
 
 // Program::get_pc -------------------------------------------------------------
 
 word_t Program::get_pc (const std::string label) const
 {
-  const auto it = labels.find(label);
+  const auto it = label_to_pc.find(label);
 
-  if (it == labels.end())
+  if (it == label_to_pc.end())
     throw std::runtime_error("unknown label [" + label + "]");
 
-  return label_to_pc.at(&*it);
+  return it->second;
 }
 
 // Program::get_label ----------------------------------------------------------
@@ -243,7 +235,7 @@ std::string Program::get_label (const word_t pc) const
       std::runtime_error(
         "no label for program counter [" + std::to_string(pc) + "]");
 
-  return *it->second;
+  return it->second;
 }
 
 // Program::print --------------------------------------------------------------
@@ -269,7 +261,7 @@ std::string Program::print (const bool include_pc, const word_t pc) const
   // check if instruction is referenced by a label
   auto label_it = pc_to_label.find(pc);
   if (label_it != pc_to_label.end())
-    ss << *label_it->second << ": ";
+    ss << label_it->second << ": ";
 
   // instruction symbol
   const Instruction & op = (*this)[pc];
@@ -284,7 +276,7 @@ std::string Program::print (const bool include_pc, const word_t pc) const
       label_it = pc_to_label.find(op.arg());
       if (op.is_jump() && label_it != pc_to_label.end())
         {
-          ss << *label_it->second;
+          ss << label_it->second;
         }
       else if (op.is_memory())
         {
@@ -317,7 +309,11 @@ bool operator == (const Program & a, const Program & b)
     if (a[i] != b[i])
       return false;
 
-  return true;
+  return
+    a.predecessors == b.predecessors &&
+    a.checkpoints == b.checkpoints &&
+    a.pc_to_label == b.pc_to_label &&
+    a.label_to_pc == b.label_to_pc;
 }
 
 bool operator != (const Program & a, const Program & b)

@@ -342,7 +342,7 @@ TEST(btor2_Encoder, declare_sorts)
 
 TEST(btor2_Encoder, declare_constants)
 {
-  auto programs = std::make_shared<Program::List>(3);
+  auto programs = lst(3);
 
   for (size_t tid = 0; tid < 3; tid++)
     for (size_t pc = 0; pc < 3; pc++)
@@ -393,7 +393,7 @@ TEST(btor2_Encoder, declare_constants)
 
 TEST(btor2_Encoder, define_mmap)
 {
-  auto encoder = create<E>(Program::list(), mmap({{0, 0}, {1, 0}}));
+  auto encoder = create<E>(lst(), mmap({{0, 0}, {1, 0}}));
 
   init_state_definitions(encoder);
 
@@ -835,7 +835,7 @@ TEST(btor2_Encoder, declare_heap)
 
 TEST(btor2_Encoder, declare_exit_flag)
 {
-  auto encoder = create<E>(Program::list(prog("EXIT 1")));
+  auto encoder = create<E>(lst(prog("EXIT 1")));
 
   init_declarations(encoder);
 
@@ -877,7 +877,7 @@ TEST(btor2_Encoder, declare_exit_flag_empty)
 
 TEST(btor2_Encoder, declare_exit_code)
 {
-  auto encoder = create<E>(Program::list(prog("EXIT 1")));
+  auto encoder = create<E>(lst(prog("EXIT 1")));
 
   init_declarations(encoder);
 
@@ -2890,7 +2890,7 @@ TEST(btor2_Encoder, define_heap)
 
 TEST(btor2_Encoder, define_heap_mmap)
 {
-  auto encoder = create<E>(Program::list(), mmap({{0, 0}, {1, 0}}));
+  auto encoder = create<E>(lst(), mmap({{0, 0}, {1, 0}}));
 
   init_state_definitions(encoder);
 
@@ -3044,8 +3044,7 @@ TEST(btor2_Encoder, define_exit_flag_empty)
 
 TEST(btor2_Encoder, define_exit_code)
 {
-  auto encoder =
-    create<E>(Program::list(prog("EXIT 0"), prog("EXIT 1"), prog("EXIT 2")));
+  auto encoder = create<E>(lst(prog("EXIT 0"), prog("EXIT 1"), prog("EXIT 2")));
 
   init_state_definitions(encoder);
 
@@ -3599,6 +3598,11 @@ TEST(btor2_Encoder, litmus_intel_1)
 TEST(btor2_Encoder, litmus_intel_2)
 {
   litmus_intel_2<E>("formula.btor2");
+}
+
+TEST(btor2_Encoder, litmus_intel_3)
+{
+  litmus_intel_3<E>("formula.btor2");
 }
 
 TEST(btor2_Encoder, LOAD)

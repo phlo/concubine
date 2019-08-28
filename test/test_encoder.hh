@@ -1,8 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <filesystem>
-
 #include "encoder.hh"
+#include "filesystem.hh"
 #include "mmap.hh"
 #include "parser.hh"
 
@@ -48,11 +47,18 @@ inline Program prog (const std::string & code,
   return Program(inbuf, path);
 }
 
-// create program list containing duplicates of a given program
+// create program list pointer from arbitrary number of programs
+template <class ... P>
+inline std::shared_ptr<Program::List> lst (P && ... programs)
+{
+  return std::make_shared<Program::List>(std::move(programs)...);
+}
+
+// create program list pointer containing duplicates of a given program
 //
 inline std::shared_ptr<Program::List> dup (Program && p, size_t times)
 {
-  auto programs = Program::list();
+  auto programs = lst();
 
   while (times--)
     programs->push_back(p);
@@ -60,7 +66,7 @@ inline std::shared_ptr<Program::List> dup (Program && p, size_t times)
   return programs;
 }
 
-// create program list containing dummy programs
+// create program list pointer containing dummy programs
 //
 inline std::shared_ptr<Program::List> dummy (const word_t threads,
                                              const word_t size = 1)
@@ -70,7 +76,7 @@ inline std::shared_ptr<Program::List> dummy (const word_t threads,
   for (size_t i = 0; i < size; i++)
     code << "ADDI 1\n";
 
-  auto programs = Program::list();
+  auto programs = lst();
 
   for (size_t i = 0; i < threads; i++)
     programs->push_back(prog(code.str()));
@@ -93,7 +99,7 @@ inline Encoder init (Encoder e) { return e; }
 // create encoder
 //
 template <class Encoder>
-inline Encoder create (const Program::List::ptr & p = Program::list(),
+inline Encoder create (const Program::List::ptr & p = lst(),
                        const std::shared_ptr<MMap> & m = {},
                        const size_t b = 1)
 {
@@ -118,22 +124,18 @@ inline auto encode (const std::shared_ptr<Program::List> & programs,
                     const size_t bound,
                     const std::filesystem::path & formula)
 {
-  Encoder encoder (programs, mmap, bound);
+  auto encoder = std::make_unique<Encoder>(programs, mmap, bound);
 
-  encoder.encode();
+  encoder->encode();
 
   std::ifstream ifs(formula);
-  std::string expected((std::istreambuf_iterator<char>(ifs)),
-                        std::istreambuf_iterator<char>());
+  auto expected =
+    std::make_unique<std::string>(
+      (std::istreambuf_iterator<char>(ifs)),
+      std::istreambuf_iterator<char>());
 
-  auto tmp = std::filesystem::temp_directory_path() / "concubine";
-  for (const auto & p : formula.parent_path())
-    if (p != "..")
-      tmp /= p;
-
-  std::filesystem::create_directories(tmp);
-  std::ofstream ofs(tmp / formula.filename());
-  ofs << encoder.str();
+  std::ofstream ofs(fs::mktmp(formula));
+  ofs << encoder->str();
 
   return std::make_pair(std::move(encoder), std::move(expected));
 }
@@ -151,9 +153,9 @@ inline void encode_simulation (const std::shared_ptr<Program::List> & programs,
   auto [encoder, expected] = encode<Encoder>(programs, mmap, bound, formula);
 
   if constexpr (std::is_base_of<btor2::Encoder, Encoder>::value)
-    encoder.define_bound();
+    encoder->define_bound();
 
-  ASSERT_EQ(expected, encoder.str());
+  ASSERT_EQ(*expected, encoder->str());
 }
 
 // concurrent increment using checkpoints
@@ -162,12 +164,12 @@ template <class Encoder>
 inline void encode_check (const std::filesystem::path & formula)
 {
   encode_simulation<Encoder>(
-    Program::list(
-      create_from_file<Program>("data/increment.check.thread.0.asm"),
-      create_from_file<Program>("data/increment.check.thread.n.asm")),
+    lst(
+      create_from_file<Program>("test/data/increment.check.thread.0.asm"),
+      create_from_file<Program>("test/data/increment.check.thread.n.asm")),
     {},
     16,
-    "data/" / formula);
+    "test/data/" / formula);
 }
 
 // concurrent increment using compare and swap
@@ -176,12 +178,12 @@ template <class Encoder>
 inline void encode_cas (const std::filesystem::path & formula)
 {
   encode_simulation<Encoder>(
-    Program::list(
-      create_from_file<Program>("data/increment.cas.asm"),
-      create_from_file<Program>("data/increment.cas.asm")),
+    lst(
+      create_from_file<Program>("test/data/increment.cas.asm"),
+      create_from_file<Program>("test/data/increment.cas.asm")),
     {},
     16,
-    "data/" / formula);
+    "test/data/" / formula);
 }
 
 // halting mechanism
@@ -196,10 +198,10 @@ inline void encode_halt (const std::filesystem::path & formula)
     "EXIT 1\n";
 
   encode_simulation<Encoder>(
-    Program::list(prog(code, name), prog(code, name)),
+    lst(prog(code, name), prog(code, name)),
     {},
     10,
-    "data/" / formula);
+    "test/data/" / formula);
 }
 
 // =============================================================================
@@ -213,7 +215,7 @@ inline void encode_litmus (const std::shared_ptr<Program::List> & programs,
                            const std::filesystem::path & formula)
 {
   auto [encoder, expected] = encode<Encoder>(programs, mmap, bound, formula);
-  ASSERT_EQ(expected, encoder.str());
+  ASSERT_EQ(*expected, encoder->str());
 }
 
 // stores are not reordered with other stores
@@ -221,10 +223,10 @@ inline void encode_litmus (const std::shared_ptr<Program::List> & programs,
 template <class Encoder>
 inline void litmus_intel_1 (const std::filesystem::path & formula)
 {
-  const std::filesystem::path dir("../examples/litmus/intel/1");
+  const std::filesystem::path dir("examples/litmus/intel/1");
 
   encode_litmus<Encoder>(
-    Program::list(
+    lst(
       create_from_file<Program>(dir / "processor.0.asm"),
       create_from_file<Program>(dir / "processor.1.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
@@ -237,10 +239,26 @@ inline void litmus_intel_1 (const std::filesystem::path & formula)
 template <class Encoder>
 inline void litmus_intel_2 (const std::filesystem::path & formula)
 {
-  const std::filesystem::path dir("../examples/litmus/intel/2");
+  const std::filesystem::path dir("examples/litmus/intel/2");
 
   encode_litmus<Encoder>(
-    Program::list(
+    lst(
+      create_from_file<Program>(dir / "processor.0.asm"),
+      create_from_file<Program>(dir / "processor.1.asm")),
+    mmap(create_from_file<MMap>(dir / "init.mmap")),
+    10,
+    dir / formula);
+}
+
+// loads may be reordered with earlier stores to different locations
+//
+template <class Encoder>
+inline void litmus_intel_3 (const std::filesystem::path & formula)
+{
+  const std::filesystem::path dir("examples/litmus/intel/3");
+
+  encode_litmus<Encoder>(
+    lst(
       create_from_file<Program>(dir / "processor.0.asm"),
       create_from_file<Program>(dir / "processor.1.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),

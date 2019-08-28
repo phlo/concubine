@@ -170,14 +170,14 @@ struct Encoder
   // iteration helpers
   //
   template <class Functor>
-  void iterate_threads (const Functor fun)
+  void iterate_threads (const Functor & fun)
     {
       for (thread = 0; thread < num_threads; thread++)
         fun();
     }
 
   template <class Functor>
-  void iterate_programs (const Functor fun)
+  void iterate_programs (const Functor & fun)
     {
       thread = 0;
       for (const Program & program : *programs)
@@ -188,7 +188,7 @@ struct Encoder
     }
 
   template <class Functor>
-  void iterate_programs_reverse (const Functor fun)
+  void iterate_programs_reverse (const Functor & fun)
     {
       thread = num_threads - 1;
       for (auto rit = programs->rbegin(); rit != programs->rend(); ++rit)

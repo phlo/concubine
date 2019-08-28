@@ -11,50 +11,48 @@ namespace ConcuBinE::test {
 // Program tests
 //==============================================================================
 
-struct Program : public ::testing::Test
+const std::string dummy_path = "dummy.asm";
+
+Program create_program (const std::string & code,
+                        const std::string & path = dummy_path)
 {
-  using Predecessors = std::set<word_t>;
-
-  std::string path = "dummy.asm";
-
-  ConcuBinE::Program program;
-
-  void create_program (std::string code)
-    {
-      std::istringstream inbuf {code};
-      program = ConcuBinE::Program(inbuf, path);
-    }
-};
+  std::istringstream inbuf(code);
+  return Program(inbuf, path);
+}
 
 // construction ================================================================
 
-TEST_F(Program, construction)
+TEST(Program, construction)
 {
-  create_program(
-    "start: LOAD 1\n"
-    "JMP start\n"
-  );
+  auto p1 =
+    create_program(
+      "start: LOAD 1\n"
+      "CHECK 0\n"
+      "JMP start\n");
 
-  ConcuBinE::Program & p1 = program;
   ASSERT_FALSE(p1.empty());
-  ASSERT_FALSE(p1.labels.empty());
+  ASSERT_FALSE(p1.predecessors.empty());
+  ASSERT_FALSE(p1.checkpoints.empty());
+  ASSERT_FALSE(p1.pc_to_label.empty());
+  ASSERT_FALSE(p1.label_to_pc.empty());
 
   // copy construction
-  ConcuBinE::Program p2 (p1);
-  ASSERT_NE(&p1[0], &p2[0]);
+  Program p2 (p1);
+  ASSERT_EQ(p1.size(), p2.size());
+  for (size_t i = 0; i < p1.size(); i++)
+    ASSERT_NE(&p1[i], &p2[i]);
   ASSERT_EQ(p1, p2);
 
   const Instruction * ptr = &p1[0];
 
-  // std::move construction
-  ConcuBinE::Program p3 (std::move(p1));
+  // move construction
+  Program p3 (std::move(p1));
   ASSERT_TRUE(p1.empty());
   ASSERT_TRUE(p1.path.empty());
   ASSERT_TRUE(p1.predecessors.empty());
   ASSERT_TRUE(p1.checkpoints.empty());
   ASSERT_TRUE(p1.pc_to_label.empty());
   ASSERT_TRUE(p1.label_to_pc.empty());
-  ASSERT_TRUE(p1.labels.empty());
   ASSERT_EQ(p2, p3);
   ASSERT_EQ(ptr, &p3[0]);
 
@@ -72,13 +70,12 @@ TEST_F(Program, construction)
   ASSERT_TRUE(p3.checkpoints.empty());
   ASSERT_TRUE(p3.pc_to_label.empty());
   ASSERT_TRUE(p3.label_to_pc.empty());
-  ASSERT_TRUE(p3.labels.empty());
   ASSERT_EQ(p1, p2);
   ASSERT_EQ(ptr, &p2[0]);
 
-  ConcuBinE::Program::List p {p1, p2};
-  std::unique_ptr<ConcuBinE::Program::List> p_ptr =
-    std::make_unique<ConcuBinE::Program::List>(std::move(p));
+  Program::List p {p1, p2};
+  std::unique_ptr<Program::List> p_ptr =
+    std::make_unique<Program::List>(std::move(p));
   ASSERT_TRUE(p.empty());
   p = std::move(*p_ptr);
   ASSERT_FALSE(p.empty());
@@ -86,16 +83,15 @@ TEST_F(Program, construction)
 
 // parser ======================================================================
 
-TEST_F(Program, parse)
+TEST(Program, parse)
 {
-  program = create_from_file<ConcuBinE::Program>("data/increment.cas.asm");
+  auto program = create_from_file<Program>("test/data/increment.cas.asm");
 
   ASSERT_EQ(7, program.size());
   ASSERT_EQ(1, program.checkpoints.size());
   ASSERT_EQ(2, program.checkpoints[0][0]);
-  ASSERT_EQ(1, program.labels.size());
   ASSERT_EQ(1, program.pc_to_label.size());
-  ASSERT_EQ("LOOP", *program.pc_to_label[3]);
+  ASSERT_EQ("LOOP", program.pc_to_label[3]);
   ASSERT_EQ(1, program.label_to_pc.size());
   ASSERT_EQ(3, program.label_to_pc[program.pc_to_label[3]]);
 
@@ -110,12 +106,10 @@ TEST_F(Program, parse)
     program.print(true));
 
   // indirect addressing
-  program =
-    create_from_file<ConcuBinE::Program>("data/indirect.addressing.asm");
+  program = create_from_file<Program>("test/data/indirect.addressing.asm");
 
   ASSERT_EQ(7, program.size());
   ASSERT_EQ(0, program.checkpoints.size());
-  ASSERT_EQ(0, program.labels.size());
 
   ASSERT_EQ(
     "0 STORE 1\n"
@@ -128,12 +122,13 @@ TEST_F(Program, parse)
     program.print(true));
 }
 
-TEST_F(Program, parse_empty_line)
+TEST(Program, parse_empty_line)
 {
-  create_program(
-    "ADDI 1\n"
-    "\n"
-    "EXIT 1\n");
+  auto program =
+    create_program(
+      "ADDI 1\n"
+      "\n"
+      "EXIT 1\n");
 
   ASSERT_EQ(2, program.size());
 
@@ -141,12 +136,12 @@ TEST_F(Program, parse_empty_line)
   ASSERT_EQ("1 EXIT 1", program.print(true, 1));
 }
 
-TEST_F(Program, parse_file_not_found)
+TEST(Program, parse_file_not_found)
 {
   try
     {
-      program = create_from_file<ConcuBinE::Program>("file");
-      ASSERT_TRUE(false);
+      create_from_file<Program>("file");
+      FAIL() << "should throw an std::exception";
     }
   catch (const std::exception & e)
     {
@@ -154,7 +149,7 @@ TEST_F(Program, parse_file_not_found)
     }
 }
 
-TEST_F(Program, parse_illegal_instruction)
+TEST(Program, parse_illegal_instruction)
 {
   // illegal instruction
   try
@@ -164,7 +159,7 @@ TEST_F(Program, parse_illegal_instruction)
     }
   catch (const std::exception & e)
     {
-      ASSERT_EQ(path + ":1: 'NOP' unknown instruction", e.what());
+      ASSERT_EQ(dummy_path + ":1: 'NOP' unknown instruction", e.what());
     }
 
   // illegal instruction argument (label)
@@ -175,7 +170,7 @@ TEST_F(Program, parse_illegal_instruction)
     }
   catch (const std::exception & e)
     {
-      ASSERT_EQ(path + ":1: 'ADD' does not support labels", e.what());
+      ASSERT_EQ(dummy_path + ":1: 'ADD' does not support labels", e.what());
     }
 
   // illegal instruction argument (indirect addressing)
@@ -187,7 +182,7 @@ TEST_F(Program, parse_illegal_instruction)
   catch (const std::exception & e)
     {
       ASSERT_EQ(
-        path + ":1: 'CHECK' does not support indirect addressing",
+        dummy_path + ":1: 'CHECK' does not support indirect addressing",
         e.what());
     }
 
@@ -200,12 +195,12 @@ TEST_F(Program, parse_illegal_instruction)
   catch (const std::exception & e)
     {
       ASSERT_EQ(
-        path + ":1: indirect addressing does not support labels",
+        dummy_path + ":1: indirect addressing does not support labels",
         e.what());
     }
 }
 
-TEST_F(Program, parse_missing_label)
+TEST(Program, parse_missing_label)
 {
   // missing label
   try
@@ -217,7 +212,7 @@ TEST_F(Program, parse_missing_label)
     }
   catch (const std::exception & e)
     {
-      ASSERT_EQ(path + ":1: unknown label [LABEL]", e.what());
+      ASSERT_EQ(dummy_path + ":1: unknown label [LABEL]", e.what());
     }
 
   // misspelled label
@@ -230,11 +225,11 @@ TEST_F(Program, parse_missing_label)
     }
   catch (const std::exception & e)
     {
-      ASSERT_EQ(path + ":1: unknown label [LABERL]", e.what());
+      ASSERT_EQ(dummy_path + ":1: unknown label [LABERL]", e.what());
     }
 }
 
-TEST_F(Program, parse_illegal_jump)
+TEST(Program, parse_illegal_jump)
 {
   try
     {
@@ -243,47 +238,50 @@ TEST_F(Program, parse_illegal_jump)
     }
   catch (const std::exception & e)
     {
-      ASSERT_EQ(path + ": illegal jump [0]", e.what());
+      ASSERT_EQ(dummy_path + ": illegal jump [0]", e.what());
     }
 }
 
-TEST_F(Program, parse_predecessors)
+TEST(Program, parse_predecessors)
 {
-  create_program(
-    "ADDI 1\n"
-    "ADDI 1\n"
-    "ADDI 1\n");
+  auto program =
+    create_program(
+      "ADDI 1\n"
+      "ADDI 1\n"
+      "ADDI 1\n");
 
-  ASSERT_EQ(Predecessors(), program.predecessors.at(0));
-  ASSERT_EQ(Predecessors({0}), program.predecessors.at(1));
-  ASSERT_EQ(Predecessors({1}), program.predecessors.at(2));
+  ASSERT_EQ(std::set<word_t>(), program.predecessors.at(0));
+  ASSERT_EQ(std::set<word_t>({0}), program.predecessors.at(1));
+  ASSERT_EQ(std::set<word_t>({1}), program.predecessors.at(2));
 }
 
-TEST_F(Program, parse_predecessors_jnz)
+TEST(Program, parse_predecessors_jnz)
 {
-  create_program(
-    "ADDI 1\n"
-    "ADDI 1\n"
-    "JNZ 1\n");
+  auto program =
+    create_program(
+      "ADDI 1\n"
+      "ADDI 1\n"
+      "JNZ 1\n");
 
-  ASSERT_EQ(Predecessors(), program.predecessors.at(0));
-  ASSERT_EQ(Predecessors({0, 2}), program.predecessors.at(1));
-  ASSERT_EQ(Predecessors({1}), program.predecessors.at(2));
+  ASSERT_EQ(std::set<word_t>(), program.predecessors.at(0));
+  ASSERT_EQ(std::set<word_t>({0, 2}), program.predecessors.at(1));
+  ASSERT_EQ(std::set<word_t>({1}), program.predecessors.at(2));
 }
 
-TEST_F(Program, parse_predecessors_jnz_initial)
+TEST(Program, parse_predecessors_jnz_initial)
 {
-  create_program(
-    "ADDI 1\n"
-    "ADDI 1\n"
-    "JNZ 0\n");
+  auto program =
+    create_program(
+      "ADDI 1\n"
+      "ADDI 1\n"
+      "JNZ 0\n");
 
-  ASSERT_EQ(Predecessors({2}), program.predecessors.at(0));
-  ASSERT_EQ(Predecessors({0}), program.predecessors.at(1));
-  ASSERT_EQ(Predecessors({1}), program.predecessors.at(2));
+  ASSERT_EQ(std::set<word_t>({2}), program.predecessors.at(0));
+  ASSERT_EQ(std::set<word_t>({0}), program.predecessors.at(1));
+  ASSERT_EQ(std::set<word_t>({1}), program.predecessors.at(2));
 }
 
-TEST_F(Program, parse_predecessors_jmp)
+TEST(Program, parse_predecessors_jmp)
 {
   try
     {
@@ -295,11 +293,11 @@ TEST_F(Program, parse_predecessors_jmp)
     }
   catch (const std::exception & e)
     {
-      ASSERT_EQ(path + ": unreachable instruction [1]", e.what());
+      ASSERT_EQ(dummy_path + ": unreachable instruction [1]", e.what());
     }
 }
 
-TEST_F(Program, parse_predecessors_exit)
+TEST(Program, parse_predecessors_exit)
 {
   try
     {
@@ -311,11 +309,11 @@ TEST_F(Program, parse_predecessors_exit)
     }
   catch (const std::exception & e)
     {
-      ASSERT_EQ(path + ": unreachable instruction [2]", e.what());
+      ASSERT_EQ(dummy_path + ": unreachable instruction [2]", e.what());
     }
 }
 
-TEST_F(Program, parse_predecessors_halt)
+TEST(Program, parse_predecessors_halt)
 {
   try
     {
@@ -327,34 +325,16 @@ TEST_F(Program, parse_predecessors_halt)
     }
   catch (const std::exception & e)
     {
-      ASSERT_EQ(path + ": unreachable instruction [2]", e.what());
+      ASSERT_EQ(dummy_path + ": unreachable instruction [2]", e.what());
     }
-}
-
-// Program::list ===============================================================
-
-TEST_F(Program, list)
-{
-  ConcuBinE::Program p0, p1;
-
-  p0.path = "p1.asm";
-  p0.push_back(Instruction::create("EXIT", 0));
-
-  p1.path = "p2.asm";
-  p1.push_back(Instruction::create("EXIT", 1));
-
-  auto lst = ConcuBinE::Program::list(p0, p1);
-
-  ASSERT_EQ(p0, lst->at(0));
-  ASSERT_EQ(p1, lst->at(1));
-
-  ASSERT_TRUE(ConcuBinE::Program::list()->empty());
 }
 
 // Program::push_back ==========================================================
 
-TEST_F(Program, push_back)
+TEST(Program, push_back)
 {
+  Program program;
+
   program.push_back(Instruction::create("ADD", 1));
   ASSERT_EQ(1, program.size());
   ASSERT_EQ(0, program.checkpoints.size());
@@ -368,12 +348,12 @@ TEST_F(Program, push_back)
 
 // Program::get_pc =============================================================
 
-TEST_F(Program, get_pc)
+TEST(Program, get_pc)
 {
-  create_program(
-    "LABEL: ADDI 1\n"
-    "JMP LABEL\n"
-  );
+  auto program =
+    create_program(
+      "LABEL: ADDI 1\n"
+      "JMP LABEL\n");
 
   ASSERT_EQ(0, program.get_pc("LABEL"));
 
@@ -391,12 +371,12 @@ TEST_F(Program, get_pc)
 
 // Program::get_label ==========================================================
 
-TEST_F(Program, get_label)
+TEST(Program, get_label)
 {
-  create_program(
-    "LABEL: ADDI 1\n"
-    "JMP LABEL\n"
-  );
+  auto program =
+    create_program(
+      "LABEL: ADDI 1\n"
+      "JMP LABEL\n");
 
   ASSERT_EQ("LABEL", program.get_label(0));
 
@@ -416,9 +396,9 @@ TEST_F(Program, get_label)
 
 // Program::print ==============================================================
 
-TEST_F(Program, print)
+TEST(Program, print)
 {
-  program = create_from_file<ConcuBinE::Program>("data/increment.cas.asm");
+  auto program = create_from_file<Program>("test/data/increment.cas.asm");
 
   ASSERT_EQ(
     "STORE 0\n"
@@ -444,9 +424,9 @@ TEST_F(Program, print)
 
 // operator equals =============================================================
 
-TEST_F(Program, operator_equals)
+TEST(Program, operator_equals)
 {
-  ConcuBinE::Program p1, p2;
+  Program p1, p2;
 
   p1.path = "program_1.asm";
   p1.push_back(Instruction::create("LOAD", 1));
@@ -472,6 +452,44 @@ TEST_F(Program, operator_equals)
   p2.push_back(Instruction::create("JNZ", 0));
 
   ASSERT_TRUE(p1 != p2);
+}
+
+//==============================================================================
+// Program::List tests
+//==============================================================================
+
+// construction ================================================================
+
+TEST(Program, list)
+{
+  auto p0 = create_program("EXIT 0", "p0.asm");
+  auto p1 = create_program("EXIT 0", "p1.asm");
+
+  auto i0 = &p0[0];
+  auto i1 = &p1[0];
+
+  // copy construction
+  auto lst = Program::List(p0, p1);
+
+  ASSERT_EQ(p0, lst.at(0));
+  ASSERT_EQ(p1, lst.at(1));
+
+  ASSERT_NE(i0, &lst.at(0)[0]);
+  ASSERT_NE(i1, &lst.at(1)[0]);
+
+  // move construction
+  lst = Program::List(std::move(p0), std::move(p1));
+
+  ASSERT_NE(p0, lst.at(0));
+  ASSERT_NE(p1, lst.at(1));
+
+  ASSERT_TRUE(p0.empty());
+  ASSERT_TRUE(p1.empty());
+
+  ASSERT_EQ(i0, &lst.at(0)[0]);
+  ASSERT_EQ(i1, &lst.at(1)[0]);
+
+  ASSERT_TRUE(Program::List().empty());
 }
 
 } // namespace ConcuBinE::test

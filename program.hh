@@ -28,28 +28,49 @@ struct Program : public std::vector<Instruction>
   // member types
   //----------------------------------------------------------------------------
 
+  // program list --------------------------------------------------------------
+  //
   struct List : public std::vector<Program>
     {
       using ptr = std::shared_ptr<List>;
 
-      using std::vector<Program>::vector; // inherit constructor
+      //------------------------------------------------------------------------
+      // constructors
+      //------------------------------------------------------------------------
+
+      // inherit constructors from std::vector
+      //
+      using std::vector<Program>::vector;
+
+      // alias for checking if parameter pack is of class T
+      //
+      template <typename T, typename ... Ts>
+      using all_base_of = std::conjunction<std::is_base_of<T, Ts>...>;
+
+      // alias for restricting variadic overloads to parameters of class T
+      //
+      template <typename T, typename ... Ts>
+      using enable_if_all_base_of =
+        typename std::enable_if<all_base_of<T, Ts...>::value>::type;
+
+      // variadic copy constructor for arguments of type Program
+      //
+      template <class ... Ts, typename = enable_if_all_base_of<Program, Ts...>>
+      List (const Ts & ... program) : std::vector<Program>()
+        {
+          reserve(sizeof...(Ts));
+          (push_back(program), ...);
+        }
+
+      // variadic move constructor for arguments of type Program
+      //
+      template <class ... Ts, typename = enable_if_all_base_of<Program, Ts...>>
+      List (Ts && ... program) : std::vector<Program>()
+        {
+          reserve(sizeof...(Ts));
+          (push_back(std::move(program)), ...);
+        }
     };
-
-  //----------------------------------------------------------------------------
-  // static member functions
-  //----------------------------------------------------------------------------
-
-  // create program list
-  //
-  template <class ... P>
-  static Program::List::ptr list (P && ... program)
-  {
-    auto programs = std::make_shared<Program::List>();
-
-    (programs->push_back(program), ...);
-
-    return programs;
-  }
 
   //----------------------------------------------------------------------------
   // members
@@ -73,17 +94,13 @@ struct Program : public std::vector<Instruction>
   //
   // pc -> label
   //
-  std::unordered_map<word_t, const std::string *> pc_to_label;
+  std::unordered_map<word_t, std::string> pc_to_label;
 
   // maps labels to the corresponding program counter
   //
   // label -> pc
   //
-  std::unordered_map<const std::string *, word_t> label_to_pc;
-
-  // jump labels
-  //
-  std::unordered_set<std::string> labels;
+  std::unordered_map<std::string, word_t> label_to_pc;
 
   //----------------------------------------------------------------------------
   // constructors

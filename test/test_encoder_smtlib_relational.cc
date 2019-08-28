@@ -39,7 +39,7 @@ TEST(smtlib_Relational, imply_thread_executed)
     "CHECK 0\n"
     "EXIT 1\n";
 
-  auto encoder = create<E>(Program::list(prog(code)));
+  auto encoder = create<E>(lst(prog(code)));
 
   encoder.imply_thread_executed();
 
@@ -102,7 +102,7 @@ TEST(smtlib_Relational, imply_thread_not_executed)
     "CHECK 0\n"
     "EXIT 1\n";
 
-  auto encoder = create<E>(Program::list(prog(code)));
+  auto encoder = create<E>(lst(prog(code)));
 
   encoder.imply_thread_not_executed();
 
@@ -127,7 +127,7 @@ TEST(smtlib_Relational, imply_thread_not_executed)
 
 TEST(smtlib_Relational, imply_thread_flushed)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.imply_thread_flushed();
 
@@ -145,7 +145,7 @@ TEST(smtlib_Relational, imply_thread_flushed)
 
 TEST(smtlib_Relational, imply_machine_exited)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.imply_machine_exited();
 
@@ -162,7 +162,7 @@ TEST(smtlib_Relational, imply_machine_exited)
 
 TEST(smtlib_Relational, define_states)
 {
-  auto encoder = create<E>(Program::list(prog("JMP 0")));
+  auto encoder = create<E>(lst(prog("JMP 0")));
 
   encoder.define_states();
 
@@ -237,7 +237,7 @@ TEST(smtlib_Relational, define_states_check_exit)
     "CHECK 0\n"
     "EXIT 1\n";
 
-  auto encoder = create<E>(Program::list(prog(code)));
+  auto encoder = create<E>(lst(prog(code)));
 
   encoder.define_states();
 
@@ -321,9 +321,14 @@ TEST(smtlib_Relational, litmus_intel_2)
   litmus_intel_2<E>("formula.relational.smt2");
 }
 
+TEST(smtlib_Relational, litmus_intel_3)
+{
+  litmus_intel_3<E>("formula.relational.smt2");
+}
+
 TEST(smtlib_Relational, LOAD)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   Instruction::Load load {Instruction::Type::none, 1};
 
@@ -365,7 +370,7 @@ TEST(smtlib_Relational, LOAD)
 
 TEST(smtlib_Relational, LOAD_indirect)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   Instruction::Load load {Instruction::Type::none, 1, true};
 
@@ -415,7 +420,7 @@ TEST(smtlib_Relational, LOAD_indirect)
 
 TEST(smtlib_Relational, STORE)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.pc = 1;
 
@@ -456,7 +461,7 @@ TEST(smtlib_Relational, STORE)
 
 TEST(smtlib_Relational, STORE_indirect)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.pc = 1;
 
@@ -500,7 +505,7 @@ TEST(smtlib_Relational, STORE_indirect)
 
 TEST(smtlib_Relational, ADD)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.pc = 2;
 
@@ -546,7 +551,7 @@ TEST(smtlib_Relational, ADD)
 
 TEST(smtlib_Relational, ADD_indirect)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.pc = 2;
 
@@ -600,7 +605,7 @@ TEST(smtlib_Relational, ADD_indirect)
 
 TEST(smtlib_Relational, ADDI)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.pc = 3;
 
@@ -641,7 +646,7 @@ TEST(smtlib_Relational, ADDI)
 
 TEST(smtlib_Relational, SUB)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.pc = 4;
 
@@ -687,7 +692,7 @@ TEST(smtlib_Relational, SUB)
 
 TEST(smtlib_Relational, SUB_indirect)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.pc = 4;
 
@@ -741,7 +746,7 @@ TEST(smtlib_Relational, SUB_indirect)
 
 TEST(smtlib_Relational, SUBI)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.pc = 5;
 
@@ -782,7 +787,7 @@ TEST(smtlib_Relational, SUBI)
 
 TEST(smtlib_Relational, MUL)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.pc = 4;
 
@@ -828,7 +833,7 @@ TEST(smtlib_Relational, MUL)
 
 TEST(smtlib_Relational, MUL_indirect)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.pc = 4;
 
@@ -882,7 +887,7 @@ TEST(smtlib_Relational, MUL_indirect)
 
 TEST(smtlib_Relational, MULI)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.pc = 5;
 
@@ -923,7 +928,7 @@ TEST(smtlib_Relational, MULI)
 
 TEST(smtlib_Relational, CMP)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.pc = 8;
 
@@ -969,7 +974,7 @@ TEST(smtlib_Relational, CMP)
 
 TEST(smtlib_Relational, CMP_indirect)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.pc = 8;
 
@@ -1023,7 +1028,7 @@ TEST(smtlib_Relational, CMP_indirect)
 
 TEST(smtlib_Relational, JMP)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.pc = 9;
 
@@ -1064,7 +1069,7 @@ TEST(smtlib_Relational, JMP)
 
 TEST(smtlib_Relational, JZ)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.pc = 10;
 
@@ -1109,7 +1114,7 @@ TEST(smtlib_Relational, JZ)
 
 TEST(smtlib_Relational, JNZ)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.pc = 11;
 
@@ -1154,7 +1159,7 @@ TEST(smtlib_Relational, JNZ)
 
 TEST(smtlib_Relational, JS)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.pc = 12;
 
@@ -1199,7 +1204,7 @@ TEST(smtlib_Relational, JS)
 
 TEST(smtlib_Relational, JNS)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.pc = 13;
 
@@ -1244,7 +1249,7 @@ TEST(smtlib_Relational, JNS)
 
 TEST(smtlib_Relational, JNZNS)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.pc = 14;
 
@@ -1295,7 +1300,7 @@ TEST(smtlib_Relational, JNZNS)
 
 TEST(smtlib_Relational, MEM)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.pc = 15;
 
@@ -1342,7 +1347,7 @@ TEST(smtlib_Relational, MEM)
 
 TEST(smtlib_Relational, MEM_indirect)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.pc = 15;
 
@@ -1405,7 +1410,7 @@ TEST(smtlib_Relational, MEM_indirect)
 
 TEST(smtlib_Relational, CAS)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.pc = 16;
 
@@ -1452,7 +1457,7 @@ TEST(smtlib_Relational, CAS)
 
 TEST(smtlib_Relational, CAS_indirect)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.pc = 16;
 
@@ -1499,7 +1504,7 @@ TEST(smtlib_Relational, CAS_indirect)
 
 TEST(smtlib_Relational, CHECK)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.pc = 17;
 
@@ -1540,7 +1545,7 @@ TEST(smtlib_Relational, CHECK)
 
 TEST(smtlib_Relational, EXIT)
 {
-  auto encoder = create<E>(Program::list(prog(instruction_set)));
+  auto encoder = create<E>(lst(prog(instruction_set)));
 
   encoder.pc = 18;
 

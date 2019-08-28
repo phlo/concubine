@@ -28,7 +28,7 @@ Trace::Trace (const Program::List::ptr & p,
 }
 
 Trace::Trace(std::istream & file, const std::string & path) :
-  programs(Program::list()),
+  programs(std::make_shared<Program::List>()),
   length(0),
   exit(0)
 {

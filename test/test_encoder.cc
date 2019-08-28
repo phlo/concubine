@@ -77,7 +77,7 @@ TEST(Encoder, constructor_check_pcs)
 
 TEST(Encoder, constructor_halt_pcs)
 {
-  auto programs = Program::list();
+  auto programs = lst();
 
   for (size_t i = 0; i < 2; i++)
     if (i)
