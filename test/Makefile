@@ -45,9 +45,9 @@ TEST_RUN := run_all_tests
 GTEST_FILTER = --gtest_filter=
 
 # GTEST_FILTER += "*"
-GTEST_FILTER += Encoder.*
+# GTEST_FILTER += Encoder.*
 # GTEST_FILTER += smtlib.*
-GTEST_FILTER += smtlib_Encoder.*
+# GTEST_FILTER += smtlib_Encoder.*
 GTEST_FILTER += smtlib_Functional.*
 GTEST_FILTER += smtlib_Relational.*
 # GTEST_FILTER += btor2.*

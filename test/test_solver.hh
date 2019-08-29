@@ -365,6 +365,67 @@ struct Solver : public ::testing::Test
           ASSERT_FALSE(solver.sat(solver.formula(e)));
         });
     }
+
+  // intra-processor forwarding is allowed
+  //
+  void litmus_intel_5 ()
+    {
+      const std::filesystem::path dir("examples/litmus/intel/5");
+
+      constexpr size_t bound = 12;
+
+      encode_litmus(
+        dir,
+        std::make_shared<Program::List>(
+          create_from_file<Program>(dir / "processor.0.asm"),
+          create_from_file<Program>(dir / "processor.1.asm")),
+        std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
+        bound,
+        [] (std::ostringstream & ss) {
+          ss <<
+            smtlib::comment_section("litmus test constraints") <<
+            smtlib::assertion(
+              smtlib::land({
+                smtlib::equality({
+                  smtlib::Encoder::mem_var(bound, 0),
+                  smtlib::word2hex(0)}),
+                smtlib::equality({
+                  smtlib::Encoder::mem_var(bound, 1),
+                  smtlib::word2hex(0)})})) <<
+            eol;
+        },
+        [] (std::ostringstream & ss, btor2::Encoder & e) {
+          ss <<
+            btor2::comment_section("litmus test constraints") <<
+            btor2::eq(
+              e.nid(),
+              e.sid_bool,
+              e.nids_const[0],
+              e.nids_mem[0]) <<
+            btor2::eq(
+              e.nid(),
+              e.sid_bool,
+              e.nids_const[0],
+              e.nids_mem[1]) <<
+            btor2::land(
+              e.nid(),
+              e.sid_bool,
+              std::to_string(e.node - 2),
+              std::to_string(e.node - 1)) <<
+            btor2::land(
+              e.nid(),
+              e.sid_bool,
+              e.nid_exit_flag,
+              std::to_string(e.node - 1)) <<
+            btor2::bad(e.node);
+        },
+        [this, bound] (E & e) {
+          auto trace = solver.solve(e);
+          // std::cout << trace->print();
+          ASSERT_EQ(bound, trace->size());
+          ASSERT_EQ(*Simulator().replay(*trace), *trace);
+        });
+    }
 };
 
 }

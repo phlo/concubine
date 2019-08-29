@@ -280,4 +280,20 @@ inline void litmus_intel_4 (const std::filesystem::path & formula)
     dir / formula);
 }
 
+// intra-processor forwarding is allowed
+//
+template <class Encoder>
+inline void litmus_intel_5 (const std::filesystem::path & formula)
+{
+  const std::filesystem::path dir("examples/litmus/intel/5");
+
+  encode_litmus<Encoder>(
+    lst(
+      create_from_file<Program>(dir / "processor.0.asm"),
+      create_from_file<Program>(dir / "processor.1.asm")),
+    mmap(create_from_file<MMap>(dir / "init.mmap")),
+    12,
+    dir / formula);
+}
+
 } // namespace ConcuBinE::test
