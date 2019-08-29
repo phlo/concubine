@@ -296,4 +296,21 @@ inline void litmus_intel_5 (const std::filesystem::path & formula)
     dir / formula);
 }
 
+// stores are transitively visible
+//
+template <class Encoder>
+inline void litmus_intel_6 (const std::filesystem::path & formula)
+{
+  const std::filesystem::path dir("examples/litmus/intel/6");
+
+  encode_litmus<Encoder>(
+    lst(
+      create_from_file<Program>(dir / "processor.0.asm"),
+      create_from_file<Program>(dir / "processor.1.asm"),
+      create_from_file<Program>(dir / "processor.2.asm")),
+    mmap(create_from_file<MMap>(dir / "init.mmap")),
+    13,
+    dir / formula);
+}
+
 } // namespace ConcuBinE::test

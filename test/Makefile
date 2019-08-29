@@ -104,10 +104,8 @@ $(TEST_RUN): $(GTEST_LIB) $(OBJ) $(TEST_OBJ) $(TEST_MAIN)
 	$(CXX) $(CXXFLAGS) $^ $(LDFLAGS) -o $@
 
 # build googletest library
-$(GTEST_DIR):
+$(GTEST_LIB):
 	git submodule update --init
-
-$(GTEST_LIB): $(GTEST_DIR)
 	CXXFLAGS="" $(MAKE) -C $(dir $(GTEST_LIB)) $(notdir $(GTEST_LIB))
 
 # delete generated files

@@ -35,5 +35,6 @@ TEST_F(Boolector, litmus_intel_2) { litmus_intel_2(); }
 TEST_F(Boolector, litmus_intel_3) { litmus_intel_3(); }
 TEST_F(Boolector, litmus_intel_4) { litmus_intel_4(); }
 TEST_F(Boolector, litmus_intel_5) { litmus_intel_5(); }
+TEST_F(Boolector, litmus_intel_6) { litmus_intel_6(); }
 
 } // namespace ConcuBinE::test
