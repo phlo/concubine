@@ -3590,35 +3590,15 @@ TEST(btor2_Encoder, encode_halt)
   encode_halt<E>("halt.t2.k10.btor2");
 }
 
-TEST(btor2_Encoder, litmus_intel_1)
-{
-  litmus_intel_1<E>("formula.btor2");
-}
+const std::string formula = "formula.btor2";
 
-TEST(btor2_Encoder, litmus_intel_2)
-{
-  litmus_intel_2<E>("formula.btor2");
-}
-
-TEST(btor2_Encoder, litmus_intel_3)
-{
-  litmus_intel_3<E>("formula.btor2");
-}
-
-TEST(btor2_Encoder, litmus_intel_4)
-{
-  litmus_intel_4<E>("formula.btor2");
-}
-
-TEST(btor2_Encoder, litmus_intel_5)
-{
-  litmus_intel_5<E>("formula.btor2");
-}
-
-TEST(btor2_Encoder, litmus_intel_6)
-{
-  litmus_intel_6<E>("formula.btor2");
-}
+TEST(btor2_Encoder, litmus_intel_1) { litmus_intel_1<E>(formula); }
+TEST(btor2_Encoder, litmus_intel_2) { litmus_intel_2<E>(formula); }
+TEST(btor2_Encoder, litmus_intel_3) { litmus_intel_3<E>(formula); }
+TEST(btor2_Encoder, litmus_intel_4) { litmus_intel_4<E>(formula); }
+TEST(btor2_Encoder, litmus_intel_5) { litmus_intel_5<E>(formula); }
+TEST(btor2_Encoder, litmus_intel_6) { litmus_intel_6<E>(formula); }
+TEST(btor2_Encoder, litmus_intel_7) { litmus_intel_7<E>(formula); }
 
 TEST(btor2_Encoder, LOAD)
 {
