@@ -3605,6 +3605,11 @@ TEST(btor2_Encoder, litmus_intel_3)
   litmus_intel_3<E>("formula.btor2");
 }
 
+TEST(btor2_Encoder, litmus_intel_4)
+{
+  litmus_intel_4<E>("formula.btor2");
+}
+
 TEST(btor2_Encoder, LOAD)
 {
   auto encoder = create<E>(dummy(1));

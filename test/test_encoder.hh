@@ -234,7 +234,7 @@ inline void litmus_intel_1 (const std::filesystem::path & formula)
     dir / formula);
 }
 
-// stores are not reordered with earlier loads
+// stores are not reordered with older loads
 //
 template <class Encoder>
 inline void litmus_intel_2 (const std::filesystem::path & formula)
@@ -250,7 +250,7 @@ inline void litmus_intel_2 (const std::filesystem::path & formula)
     dir / formula);
 }
 
-// loads may be reordered with earlier stores to different locations
+// loads may be reordered with older stores
 //
 template <class Encoder>
 inline void litmus_intel_3 (const std::filesystem::path & formula)
@@ -263,6 +263,20 @@ inline void litmus_intel_3 (const std::filesystem::path & formula)
       create_from_file<Program>(dir / "processor.1.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
     10,
+    dir / formula);
+}
+
+// loads are not reordered with older stores to the same location
+//
+template <class Encoder>
+inline void litmus_intel_4 (const std::filesystem::path & formula)
+{
+  const std::filesystem::path dir("examples/litmus/intel/4");
+
+  encode_litmus<Encoder>(
+    lst(create_from_file<Program>(dir / "processor.0.asm")),
+    mmap(create_from_file<MMap>(dir / "init.mmap")),
+    5,
     dir / formula);
 }
 

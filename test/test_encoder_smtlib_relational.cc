@@ -326,6 +326,11 @@ TEST(smtlib_Relational, litmus_intel_3)
   litmus_intel_3<E>("formula.relational.smt2");
 }
 
+TEST(smtlib_Relational, litmus_intel_4)
+{
+  litmus_intel_4<E>("formula.relational.smt2");
+}
+
 TEST(smtlib_Relational, LOAD)
 {
   auto encoder = create<E>(lst(prog(instruction_set)));

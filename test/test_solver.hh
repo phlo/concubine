@@ -103,18 +103,6 @@ struct Solver : public ::testing::Test
   // litmus tests
   //----------------------------------------------------------------------------
 
-  // update (constraints) file
-  //
-  void update (const std::filesystem::path & file)
-    {
-      auto tmp = fs::mktmp(file);
-      if (fs::diff(tmp, file))
-        std::filesystem::copy(
-          tmp,
-          file,
-          std::filesystem::copy_options::overwrite_existing);
-    }
-
   // generic litmus test function
   //
   template <class SMTLib, class BTOR2, class Test>
@@ -153,9 +141,11 @@ struct Solver : public ::testing::Test
 
       test(*encoder);
 
-      update(path);
+      fs::update(path);
     }
 
+  // stores are not reordered with other stores
+  //
   void litmus_intel_1 ()
     {
       const std::filesystem::path dir("examples/litmus/intel/1");
@@ -214,6 +204,8 @@ struct Solver : public ::testing::Test
         });
     }
 
+  // stores are not reordered with older loads
+  //
   void litmus_intel_2 ()
     {
       const std::filesystem::path dir("examples/litmus/intel/2");
@@ -270,6 +262,8 @@ struct Solver : public ::testing::Test
         });
     }
 
+  // loads may be reordered with older stores
+  //
   void litmus_intel_3 ()
     {
       const std::filesystem::path dir("examples/litmus/intel/3");
@@ -325,6 +319,50 @@ struct Solver : public ::testing::Test
           auto trace = solver.solve(e);
           // std::cout << trace->print();
           ASSERT_EQ(bound, trace->size());
+          ASSERT_EQ(*Simulator().replay(*trace), *trace);
+        });
+    }
+
+  // loads are not reordered with older stores to the same location
+  //
+  void litmus_intel_4 ()
+    {
+      const std::filesystem::path dir("examples/litmus/intel/4");
+
+      constexpr size_t bound = 5;
+
+      encode_litmus(
+        dir,
+        std::make_shared<Program::List>(
+          create_from_file<Program>(dir / "processor.0.asm")),
+        std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
+        bound,
+        [] (std::ostringstream & ss) {
+          ss <<
+            smtlib::comment_section("litmus test constraints") <<
+            smtlib::assertion(
+              smtlib::equality({
+                smtlib::Encoder::mem_var(bound, 0),
+                smtlib::word2hex(0)})) <<
+            eol;
+        },
+        [] (std::ostringstream & ss, btor2::Encoder & e) {
+          ss <<
+            btor2::comment_section("litmus test constraints") <<
+            btor2::eq(
+              e.nid(),
+              e.sid_bool,
+              e.nids_const[0],
+              e.nids_mem[0]) <<
+            btor2::land(
+              e.nid(),
+              e.sid_bool,
+              e.nid_exit_flag,
+              std::to_string(e.node - 1)) <<
+            btor2::bad(e.node);
+        },
+        [this, bound] (E & e) {
+          ASSERT_FALSE(solver.sat(solver.formula(e)));
         });
     }
 };

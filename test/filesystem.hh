@@ -41,6 +41,18 @@ inline bool diff (const std::filesystem::path & a,
   return !((ba == end) && (bb == end));
 }
 
+// update file if it differs
+//
+inline void update (const std::filesystem::path & file)
+{
+  auto tmp = mktmp(file);
+  if (diff(tmp, file))
+    std::filesystem::copy(
+      tmp,
+      file,
+      std::filesystem::copy_options::overwrite_existing);
+}
+
 } // namespace ConcuBinE::test::fs
 
 #endif

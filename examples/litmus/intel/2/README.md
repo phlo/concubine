@@ -1,4 +1,4 @@
-# Stores Are Not Reordered With Earlier Loads
+# Stores Are Not Reordered with Earlier Loads
 
 > Example 8-2, [P.265](https://software.intel.com/sites/default/files/managed/7c/f1/253668-sdm-vol-3a.pdf#page=265)
 

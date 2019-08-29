@@ -1,4 +1,4 @@
-# Stores Are Not Reordered With Other Stores
+# Neither Loads Nor Stores Are Reordered with Like Operations
 
 > Example 8-1, [P.265](https://software.intel.com/sites/default/files/managed/7c/f1/253668-sdm-vol-3a.pdf#page=265)
 
