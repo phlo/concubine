@@ -60,10 +60,10 @@ GTEST_FILTER = --gtest_filter=
 # GTEST_FILTER += Trace.*
 # GTEST_FILTER += MMap.*
 # GTEST_FILTER += Shell.*
-# GTEST_FILTER += Boolector.*
-# GTEST_FILTER += BtorMC.*
+GTEST_FILTER += Boolector.*
+GTEST_FILTER += BtorMC.*
 GTEST_FILTER += Z3.*
-# GTEST_FILTER += CVC4.*
+GTEST_FILTER += CVC4.*
 
 GTEST_FILTER := $(shell echo ${GTEST_FILTER} | sed -e 's/ /:/g')
 

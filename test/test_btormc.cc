@@ -8,7 +8,7 @@ namespace ConcuBinE::test {
 // BtorMC tests
 //==============================================================================
 
-using BtorMC = Solver<BtorMC, btor2::Encoder>;
+using BtorMC = Solver<BtorMC>;
 
 // BtorMC::sat =================================================================
 
@@ -38,16 +38,23 @@ TEST_F(BtorMC, unsat)
 
 // BtorMC::solve ===============================================================
 
-TEST_F(BtorMC, solve_check) { solve_check(); }
-TEST_F(BtorMC, solve_cas) { solve_cas(); }
-TEST_F(BtorMC, solve_indirect) { solve_indirect(); }
+using E = btor2::Encoder;
 
-TEST_F(BtorMC, litmus_intel_1) { litmus_intel_1(); }
-TEST_F(BtorMC, litmus_intel_2) { litmus_intel_2(); }
-TEST_F(BtorMC, litmus_intel_3) { litmus_intel_3(); }
-TEST_F(BtorMC, litmus_intel_4) { litmus_intel_4(); }
-TEST_F(BtorMC, litmus_intel_5) { litmus_intel_5(); }
-TEST_F(BtorMC, litmus_intel_6) { litmus_intel_6(); }
-TEST_F(BtorMC, litmus_intel_7) { litmus_intel_7(); }
+// simulation tests
+//
+TEST_F(BtorMC, solve_check) { solve_check<E>(); }
+TEST_F(BtorMC, solve_cas) { solve_cas<E>(); }
+TEST_F(BtorMC, solve_indirect) { solve_indirect<E>(); }
+TEST_F(BtorMC, solve_halt) { solve_halt<E>(); }
+
+// litmus tests
+//
+TEST_F(BtorMC, litmus_intel_1) { litmus_intel_1<E>(); }
+TEST_F(BtorMC, litmus_intel_2) { litmus_intel_2<E>(); }
+TEST_F(BtorMC, litmus_intel_3) { litmus_intel_3<E>(); }
+TEST_F(BtorMC, litmus_intel_4) { litmus_intel_4<E>(); }
+TEST_F(BtorMC, litmus_intel_5) { litmus_intel_5<E>(); }
+TEST_F(BtorMC, litmus_intel_6) { litmus_intel_6<E>(); }
+TEST_F(BtorMC, litmus_intel_7) { litmus_intel_7<E>(); }
 
 } // namespace ConcuBinE::test
