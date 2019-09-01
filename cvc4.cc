@@ -32,18 +32,16 @@ std::string CVC4::command () const
 
 // CVC4::parse -----------------------------------------------------------------
 
-inline
-bool parse_bool (std::istringstream & line, std::string & token)
+inline bool parse_bool (std::istringstream & line, std::string & token)
 {
   line >> token;
   return token == "TRUE;";
 }
 
-inline
-word_t parse_bv (std::istringstream & line, std::string & token)
+inline word_t parse_bv (std::istringstream & line, std::string & token)
 {
   line.seekg(static_cast<long>(line.tellg()) + 5) >> token;
-  try { return std::stoul(token, NULL, 2); }
+  try { return std::stoul(token, nullptr, 2); }
   catch (...) { throw std::runtime_error("illegal value [" + token + "]"); }
 }
 
@@ -81,8 +79,8 @@ CVC4::Symbol CVC4::parse (std::istringstream & line)
 
           word_t address = parse_bv(line, token);
 
-          // skip " := 0bin"
-          line.seekg(static_cast<long>(line.tellg()) + 8);
+          // skip " := "
+          line >> token;
 
           value = parse_bv(line, token);
 
