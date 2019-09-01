@@ -337,19 +337,35 @@ std::shared_ptr<std::string> Relational::set_halt () const
   if (halt_pcs.empty())
     return {};
 
-  std::vector<std::string> args;
-  args.reserve(halt_pcs.size());
+  if (num_threads > 1)
+    {
+      std::vector<std::string> args;
+      args.reserve(halt_pcs.size());
 
-  for (const auto & it : halt_pcs)
-    args.push_back(halt_var(step, it.first));
+      for (const auto & it : halt_pcs)
+        if (thread != it.first)
+          args.push_back(halt_var(step, it.first));
 
-  return
-    std::make_shared<std::string>(
-      land({
-        halt_var(),
-        implication(
-          land(args),
-          exit_flag_var())}));
+      return
+        std::make_shared<std::string>(
+          land({
+            halt_var(),
+            ite(
+              land(args),
+              land({
+                exit_flag_var(),
+                equality({exit_code_var, word2hex(0)})}),
+              lnot(exit_flag_var()))}));
+    }
+  else
+    {
+      return
+        std::make_shared<std::string>(
+          land({
+            halt_var(),
+            exit_flag_var(),
+            equality({exit_code_var, word2hex(0)})}));
+    }
 }
 
 // smtlib::Relational::restore_halt --------------------------------------------
@@ -424,18 +440,9 @@ void Relational::imply_thread_executed ()
   const State tmp = state = *this;
 
   for (pc = 0; pc < program.size(); pc++, state = tmp)
-    {
-      // halts (final statement)
-      if (halt_pcs.find(thread) != halt_pcs.end() && pc == halt_pcs[thread].back())
-        {
-          state.halt = set_halt();
-          state.exit_flag = {};
-        }
-
-      formula
-        << imply(exec_var(prev, thread, pc), program[pc].encode(*this))
-        << eol;
-    }
+    formula <<
+      imply(exec_var(prev, thread, pc), program[pc].encode(*this)) <<
+      eol;
 }
 
 // smtlib::Relational::imply_thread_not_executed -------------------------------
@@ -462,16 +469,16 @@ void Relational::imply_thread_not_executed ()
 
 void Relational::imply_thread_flushed ()
 {
-  std::vector<std::string> args {
+  std::vector<std::string> args({
     lnot(sb_full_var()),
     equality({
       heap_var(),
       store(
         heap_var(prev),
         sb_adr_var(prev, thread),
-        sb_val_var(prev, thread))})};
+        sb_val_var(prev, thread))})});
 
-  if (!exit_pcs.empty())
+  if (!halt_pcs.empty() || !exit_pcs.empty())
     args.push_back(lnot(exit_flag_var()));
 
   formula << imply(flush_var(prev, thread), land(args)) << eol;
@@ -487,7 +494,18 @@ void Relational::imply_thread_flushed ()
 void Relational::imply_machine_exited ()
 {
   if (halt_pcs.empty() && exit_pcs.empty())
-    return;
+    {
+      // set exit code for programs running in an infinite loop
+      if (step == bound)
+        {
+          if (verbose)
+            formula << comment("exit code") << eol;
+
+          formula << assign(exit_code_var, word2hex(0)) << eol << eol;
+        }
+
+      return;
+    }
 
   if (verbose)
     formula << comment("exited") << eol;
@@ -502,6 +520,7 @@ void Relational::imply_machine_exited ()
         exit_flag_var()})) <<
     eol;
 
+  // set exit if machine didn't exit within bound
   if (step == bound)
     formula <<
       imply(
@@ -686,6 +705,7 @@ std::string Relational::encode (const Instruction::Check & c)
 
 std::string Relational::encode (const Instruction::Halt & h [[maybe_unused]])
 {
+  state.stmt = set_stmt(word_max); // hack: disable all stmt variables
   state.halt = set_halt();
   state.exit_flag = {};
 

@@ -1,0 +1,3 @@
+JNZ 2
+HALT
+EXIT 1

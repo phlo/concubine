@@ -177,10 +177,10 @@ inline void encode_check (const std::filesystem::path & formula)
 template <class Encoder>
 inline void encode_cas (const std::filesystem::path & formula)
 {
+  const auto program = create_from_file<Program>("test/data/increment.cas.asm");
+
   encode_simulation<Encoder>(
-    lst(
-      create_from_file<Program>("test/data/increment.cas.asm"),
-      create_from_file<Program>("test/data/increment.cas.asm")),
+    lst(program, program),
     {},
     16,
     "test/data/" / formula);
@@ -191,14 +191,10 @@ inline void encode_cas (const std::filesystem::path & formula)
 template <class Encoder>
 inline void encode_halt (const std::filesystem::path & formula)
 {
-  const auto name = "halt.asm";
-  const auto code =
-    "JNZ 2\n"
-    "HALT\n"
-    "EXIT 1\n";
+  const auto program = create_from_file<Program>("test/data/halt.asm");
 
   encode_simulation<Encoder>(
-    lst(prog(code, name), prog(code, name)),
+    lst(program, program),
     {},
     10,
     "test/data/" / formula);

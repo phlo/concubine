@@ -193,6 +193,9 @@ TEST(smtlib_Relational, define_states)
       "(and "
         "(not sb-full_1_0) "
         "(= heap_1 (store heap_0 sb-adr_0_0 sb-val_0_0)))))\n"
+    "\n"
+    "; exit code\n"
+    "(assert (= exit-code #x0000))\n"
     "\n",
     encoder.str());
 
@@ -227,6 +230,8 @@ TEST(smtlib_Relational, define_states)
       "(and "
         "(not sb-full_1_0) "
         "(= heap_1 (store heap_0 sb-adr_0_0 sb-val_0_0)))))\n"
+    "\n"
+    "(assert (= exit-code #x0000))\n"
     "\n",
     encoder.str());
 }

@@ -2740,6 +2740,9 @@
 
 (assert (=> flush_15_1 (and (not sb-full_16_1) (= heap_16 (store heap_15 sb-adr_15_1 sb-val_15_1)))))
 
+; exit code
+(assert (= exit-code #x0000))
+
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (assert (or thread_16_0 flush_16_0 thread_16_1 flush_16_1))
