@@ -106,18 +106,19 @@ Trace::ptr Z3::solve (Encoder & encoder)
                 trace->sb_adr(thread),
                 trace->sb_val(thread));
             }
-          else if (op.type() & Instruction::Type::atomic && trace->accu(thread))
-            {
-              const word_t adr =
-                op.indirect()
-                  ? eval_array(c, m, heap, op.arg())
-                  : op.arg();
+          else if (op.type() & Instruction::Type::atomic)
+            if (eval_bv(c, m, smtlib::Encoder::accu_var(step, thread)))
+              {
+                const word_t adr =
+                  op.indirect()
+                    ? eval_array(c, m, heap, op.arg())
+                    : op.arg();
 
-              trace->push_back_heap(
-                step,
-                adr,
-                eval_array(c, m, heap, adr));
-            }
+                trace->push_back_heap(
+                  step,
+                  adr,
+                  eval_array(c, m, heap, adr));
+              }
 
           if (op.type() & Instruction::Type::read)
             {
