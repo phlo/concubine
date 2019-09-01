@@ -415,11 +415,17 @@ int solve (const char * name, const int argc, const char ** argv)
           return -1;
         }
 
+      encoder->encode();
+
+      // append constraints from file
+      if (!constraints.empty())
+        encoder->formula << constraints;
+
       // select solver
       std::unique_ptr<Solver> solver;
 
       if (encoder_name == "btor2")
-        solver = std::make_unique<BtorMC>(bound);
+        solver = std::make_unique<BtorMC>();
       else if (solver_name == "boolector")
         solver = std::make_unique<Boolector>();
       else if (solver_name == "z3")
@@ -435,9 +441,9 @@ int solve (const char * name, const int argc, const char ** argv)
 
       // print formula if we're pretending
       if (pretend)
-        std::cout << solver->formula(*encoder, constraints);
+        std::cout << solver->formula(*encoder);
       else
-        std::cout << solver->solve(*encoder, constraints)->print();
+        std::cout << solver->solve(*encoder)->print();
     }
   catch (const std::exception & e)
     {
