@@ -129,7 +129,7 @@ struct External : public Solver
 
   // build trace based on the specific solver's output
   //
-  Trace::ptr trace (const Program::List::ptr & programs);
+  Trace::ptr trace (const Encoder & encoder);
 
   // evaluate arbitrary formula
   //
