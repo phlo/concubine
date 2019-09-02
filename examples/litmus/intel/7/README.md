@@ -35,7 +35,3 @@ Because the memory-ordering model ensures that any two stores appear to execute 
 | 3         | 3                 | 0       | 3     |
 
 [^1]: including final `HALT`
-
-## Notes
-
-* Using `MEM` instead of `LOAD` to ignore `ADDI`.

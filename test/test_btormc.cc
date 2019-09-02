@@ -56,5 +56,6 @@ TEST_F(BtorMC, litmus_intel_4) { litmus_intel_4<E>(); }
 TEST_F(BtorMC, litmus_intel_5) { litmus_intel_5<E>(); }
 TEST_F(BtorMC, litmus_intel_6) { litmus_intel_6<E>(); }
 TEST_F(BtorMC, litmus_intel_7) { litmus_intel_7<E>(); }
+TEST_F(BtorMC, litmus_intel_8) { litmus_intel_8<E>(); }
 
 } // namespace ConcuBinE::test

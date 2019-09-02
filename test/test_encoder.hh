@@ -327,4 +327,22 @@ inline void litmus_intel_7 (const std::filesystem::path & formula)
     dir / formula);
 }
 
+// locked instructions have a total order
+//
+template <class Encoder>
+inline void litmus_intel_8 (const std::filesystem::path & formula)
+{
+  const std::filesystem::path dir("examples/litmus/intel/8");
+
+  encode_litmus<Encoder>(
+    lst(
+      create_from_file<Program>(dir / "processor.0.asm"),
+      create_from_file<Program>(dir / "processor.1.asm"),
+      create_from_file<Program>(dir / "processor.2.asm"),
+      create_from_file<Program>(dir / "processor.3.asm")),
+    mmap(create_from_file<MMap>(dir / "init.mmap")),
+    12,
+    dir / formula);
+}
+
 } // namespace ConcuBinE::test

@@ -48,10 +48,10 @@ GTEST_FILTER = --gtest_filter=
 # GTEST_FILTER += Encoder.*
 # GTEST_FILTER += smtlib.*
 # GTEST_FILTER += smtlib_Encoder.*
-# GTEST_FILTER += smtlib_Functional.*
-# GTEST_FILTER += smtlib_Relational.*
+GTEST_FILTER += smtlib_Functional.*
+GTEST_FILTER += smtlib_Relational.*
 # GTEST_FILTER += btor2.*
-# GTEST_FILTER += btor2_Encoder.*
+GTEST_FILTER += btor2_Encoder.*
 # GTEST_FILTER += Simulator.*
 # GTEST_FILTER += Main.*
 # GTEST_FILTER += Experimental.*
