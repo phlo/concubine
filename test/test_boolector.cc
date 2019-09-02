@@ -72,4 +72,7 @@ TEST_F(Boolector, litmus_intel_8_relational) { litmus_intel_8<R>(); }
 TEST_F(Boolector, litmus_intel_9_functional) { litmus_intel_9<F>(); }
 TEST_F(Boolector, litmus_intel_9_relational) { litmus_intel_9<R>(); }
 
+TEST_F(Boolector, litmus_intel_10_functional) { litmus_intel_10<F>(); }
+TEST_F(Boolector, litmus_intel_10_relational) { litmus_intel_10<R>(); }
+
 } // namespace ConcuBinE::test

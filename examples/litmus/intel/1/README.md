@@ -11,14 +11,15 @@ This is illustrated by the following example:
 | Processor 0 | Processor 1 |
 | ----------- | ----------- |
 | ADDI 1      |             |
-| STORE 0     | LOAD 1      |
+| STORE 0     | MEM 1       |
 | STORE 1     | LOAD 0      |
 
 * initially `[0] = [1] = 0`
-* `accu_1 = {1, 0}` is not allowed
+* `mem_1 = 1` and `accu_1 = 0` is not allowed
 
 The disallowed return values could be exhibited only if processor 0’s two stores are reordered (with the two loads occurring between them) or if processor 1’s two loads are reordered (with the two stores occurring between them).
-If `accu_1 = 1`, the store to `[1]` occurs before the load from `[1]`.
+
+If `mem_1 = 1`, the store to `[1]` occurs before the load from `[1]`.
 Because the Intel-64 memory-ordering model does not allow stores to be reordered, the earlier store to `[0]` occurs before the load from `[1]`.
 Because the Intel-64 memory-ordering model does not allow loads to be reordered, the store to `[0]` also occurs before the later load from `[0]`.
 Thus `accu_1 = 1`.

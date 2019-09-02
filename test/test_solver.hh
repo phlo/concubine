@@ -255,7 +255,7 @@ struct Solver : public ::testing::Test
     {
       const std::filesystem::path dir("examples/litmus/intel/1");
 
-      constexpr size_t bound = 8;
+      constexpr size_t bound = 9;
 
       encode_litmus<Encoder>(
         dir,
@@ -265,23 +265,16 @@ struct Solver : public ::testing::Test
         std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
         bound,
         [] (std::ostringstream & ss) {
-          std::vector<std::string> args;
-          args.reserve(bound - 1);
-
-          for (size_t k = 1; k < bound; k++)
-            args.push_back(
-              "\n    " +
-              smtlib::land({
-                smtlib::equality({
-                  smtlib::Encoder::accu_var(k, 1),
-                  smtlib::word2hex(1)}),
-                smtlib::equality({
-                  smtlib::Encoder::accu_var(k + 1, 1),
-                  smtlib::word2hex(0)})}));
-
           ss <<
             smtlib::comment_section("litmus test constraints") <<
-            smtlib::assertion("\n  " + smtlib::lor(args)) <<
+            smtlib::assertion(
+              smtlib::land({
+                smtlib::equality({
+                  smtlib::Encoder::mem_var(bound, 1),
+                  smtlib::word2hex(1)}),
+                smtlib::equality({
+                  smtlib::Encoder::accu_var(bound, 1),
+                  smtlib::word2hex(0)})})) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {
@@ -291,16 +284,21 @@ struct Solver : public ::testing::Test
               e.nid(),
               e.sid_bool,
               e.nids_const[1],
-              e.nids_accu[1]) <<
+              e.nids_mem[1]) <<
             btor2::eq(
               e.nid(),
               e.sid_bool,
               e.nids_const[0],
-              "59") <<
+              e.nids_accu[1]) <<
             btor2::land(
               e.nid(),
               e.sid_bool,
               std::to_string(e.node - 2),
+              std::to_string(e.node - 1)) <<
+            btor2::land(
+              e.nid(),
+              e.sid_bool,
+              e.nid_exit_flag,
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
@@ -803,6 +801,63 @@ struct Solver : public ::testing::Test
               e.sid_bool,
               e.nids_const[0],
               e.nids_mem[1]) <<
+            btor2::land(
+              e.nid(),
+              e.sid_bool,
+              std::to_string(e.node - 2),
+              std::to_string(e.node - 1)) <<
+            btor2::land(
+              e.nid(),
+              e.sid_bool,
+              e.nid_exit_flag,
+              std::to_string(e.node - 1)) <<
+            btor2::bad(e.node);
+        },
+        assert_unsat<Encoder>());
+    }
+
+  // stores are not reordered with locks
+  //
+  template <class Encoder>
+  void litmus_intel_10 ()
+    {
+      const std::filesystem::path dir("examples/litmus/intel/10");
+
+      constexpr size_t bound = 8;
+
+      encode_litmus<Encoder>(
+        dir,
+        std::make_shared<Program::List>(
+          create_from_file<Program>(dir / "processor.0.asm"),
+          create_from_file<Program>(dir / "processor.1.asm")),
+        std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
+        bound,
+        [] (std::ostringstream & ss) {
+          ss <<
+            smtlib::comment_section("litmus test constraints") <<
+            smtlib::assertion(
+              smtlib::land({
+                smtlib::equality({
+                  smtlib::Encoder::mem_var(bound, 1),
+                  smtlib::word2hex(1)}),
+                smtlib::equality({
+                  smtlib::Encoder::accu_var(bound, 1),
+                  smtlib::word2hex(0)})})) <<
+            eol;
+        },
+        [] (std::ostringstream & ss, btor2::Encoder & e) {
+          ss <<
+            btor2::comment_section("litmus test constraints") <<
+            btor2::eq(
+              e.nid(),
+              e.sid_bool,
+              e.nids_const[1],
+              e.nids_mem[1]) <<
+            btor2::eq(
+              e.nid(),
+              e.sid_bool,
+              e.nids_const[0],
+              e.nids_accu[1]) <<
             btor2::land(
               e.nid(),
               e.sid_bool,

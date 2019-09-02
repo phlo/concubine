@@ -1,0 +1,3 @@
+ADDI 1
+CAS 0
+STORE 1
