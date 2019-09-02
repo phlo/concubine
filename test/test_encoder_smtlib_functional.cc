@@ -1072,5 +1072,6 @@ TEST(smtlib_Functional, litmus_intel_5) { litmus_intel_5<E>(formula); }
 TEST(smtlib_Functional, litmus_intel_6) { litmus_intel_6<E>(formula); }
 TEST(smtlib_Functional, litmus_intel_7) { litmus_intel_7<E>(formula); }
 TEST(smtlib_Functional, litmus_intel_8) { litmus_intel_8<E>(formula); }
+TEST(smtlib_Functional, litmus_intel_9) { litmus_intel_9<E>(formula); }
 
 } // namespace ConcuBinE::test

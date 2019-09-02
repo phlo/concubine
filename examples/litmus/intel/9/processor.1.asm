@@ -1,0 +1,3 @@
+ADDI 1
+CAS 1
+MEM 0

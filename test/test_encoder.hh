@@ -345,4 +345,20 @@ inline void litmus_intel_8 (const std::filesystem::path & formula)
     dir / formula);
 }
 
+// loads are not reordered with locks
+//
+template <class Encoder>
+inline void litmus_intel_9 (const std::filesystem::path & formula)
+{
+  const std::filesystem::path dir("examples/litmus/intel/9");
+
+  encode_litmus<Encoder>(
+    lst(
+      create_from_file<Program>(dir / "processor.0.asm"),
+      create_from_file<Program>(dir / "processor.1.asm")),
+    mmap(create_from_file<MMap>(dir / "init.mmap")),
+    8,
+    dir / formula);
+}
+
 } // namespace ConcuBinE::test

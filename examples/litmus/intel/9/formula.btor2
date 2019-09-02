@@ -1,0 +1,297 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; sorts
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+1 sort bitvec 1
+2 sort bitvec 16
+3 sort array 2 2
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; constants
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+4 zero 1
+5 one 1
+
+6 zero 2
+7 one 2
+8 constd 2 8
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; memory map
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+9 state 3 mmap
+10 write 3 9 6 6
+11 write 3 10 7 6
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; state variable declarations
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; accu variables - accu_<thread>
+12 state 2 accu_0
+13 state 2 accu_1
+
+; mem variables - mem_<thread>
+14 state 2 mem_0
+15 state 2 mem_1
+
+; store buffer address variables - sb-adr_<thread>
+16 state 2 sb-adr_0
+17 state 2 sb-adr_1
+
+; store buffer value variables - sb-val_<thread>
+18 state 2 sb-val_0
+19 state 2 sb-val_1
+
+; store buffer full variables - sb-full_<thread>
+20 state 1 sb-full_0
+21 state 1 sb-full_1
+
+; statement activation variables - stmt_<thread>_<pc>
+22 state 1 stmt_0_0
+23 state 1 stmt_0_1
+24 state 1 stmt_0_2
+25 state 1 stmt_0_3
+
+26 state 1 stmt_1_0
+27 state 1 stmt_1_1
+28 state 1 stmt_1_2
+29 state 1 stmt_1_3
+
+; halt variables - halt_<thread>
+30 state 1 halt_0
+31 state 1 halt_1
+
+; heap variable
+32 state 3 heap
+
+; exit flag variable
+33 state 1 exit
+
+; exit code variable
+34 state 2 exit-code
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; input variable declarations
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; thread activation variables - thread_<thread>
+35 input 1 thread_0
+36 input 1 thread_1
+
+; store buffer flush variables - flush_<thread>
+37 input 1 flush_0
+38 input 1 flush_1
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; transition variable definitions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; statement execution variables - exec_<thread>_<pc>
+39 and 1 22 35 exec_0_0
+40 and 1 23 35 exec_0_1
+41 and 1 24 35 exec_0_2
+42 and 1 25 35 exec_0_3
+
+43 and 1 26 36 exec_1_0
+44 and 1 27 36 exec_1_1
+45 and 1 28 36 exec_1_2
+46 and 1 29 36 exec_1_3
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; state variable definitions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; accu variables - accu_<thread>
+47 init 2 12 6
+48 add 2 12 7
+49 ite 2 39 48 12 0:0:ADDI:1
+50 read 2 32 6
+51 eq 1 16 6
+52 and 1 20 51
+53 ite 2 52 18 50
+54 eq 1 14 53
+55 ite 2 54 7 6
+56 ite 2 40 55 49 0:1:CAS:0
+57 read 2 32 7
+58 eq 1 16 7
+59 and 1 20 58
+60 ite 2 59 18 57
+61 ite 2 41 60 56 0:2:MEM:1
+62 next 2 12 61 accu_0
+
+63 init 2 13 6
+64 add 2 13 7
+65 ite 2 43 64 13 1:0:ADDI:1
+66 eq 1 17 7
+67 and 1 21 66
+68 ite 2 67 19 57
+69 eq 1 15 68
+70 ite 2 69 7 6
+71 ite 2 44 70 65 1:1:CAS:1
+72 eq 1 17 6
+73 and 1 21 72
+74 ite 2 73 19 50
+75 ite 2 45 74 71 1:2:MEM:0
+76 next 2 13 75 accu_1
+
+; mem variables - mem_<thread>
+77 init 2 14 6
+78 ite 2 41 60 14 0:2:MEM:1
+79 next 2 14 78 mem_0
+
+80 init 2 15 6
+81 ite 2 45 74 15 1:2:MEM:0
+82 next 2 15 81 mem_1
+
+; store buffer address variables - sb-adr_<thread>
+83 init 2 16 6
+84 next 2 16 16 sb-adr_0
+
+85 init 2 17 6
+86 next 2 17 17 sb-adr_1
+
+; store buffer value variables - sb-val_<thread>
+87 init 2 18 6
+88 next 2 18 18 sb-val_0
+
+89 init 2 19 6
+90 next 2 19 19 sb-val_1
+
+; store buffer full variables - sb-full_<thread>
+91 init 1 20 4
+92 ite 1 37 4 20
+93 next 1 20 92 sb-full_0
+
+94 init 1 21 4
+95 ite 1 38 4 21
+96 next 1 21 95 sb-full_1
+
+; statement activation variables - stmt_<thread>_<pc>
+97 init 1 22 5
+98 and 1 22 -39 0:0:ADDI:1
+99 next 1 22 98 stmt_0_0
+
+100 init 1 23 4
+101 and 1 23 -40 0:1:CAS:0
+102 ite 1 22 39 101 0:0:ADDI:1
+103 next 1 23 102 stmt_0_1
+
+104 init 1 24 4
+105 and 1 24 -41 0:2:MEM:1
+106 ite 1 23 40 105 0:1:CAS:0
+107 next 1 24 106 stmt_0_2
+
+108 init 1 25 4
+109 and 1 25 -42 0:3:HALT
+110 ite 1 24 41 109 0:2:MEM:1
+111 next 1 25 110 stmt_0_3
+
+112 init 1 26 5
+113 and 1 26 -43 1:0:ADDI:1
+114 next 1 26 113 stmt_1_0
+
+115 init 1 27 4
+116 and 1 27 -44 1:1:CAS:1
+117 ite 1 26 43 116 1:0:ADDI:1
+118 next 1 27 117 stmt_1_1
+
+119 init 1 28 4
+120 and 1 28 -45 1:2:MEM:0
+121 ite 1 27 44 120 1:1:CAS:1
+122 next 1 28 121 stmt_1_2
+
+123 init 1 29 4
+124 and 1 29 -46 1:3:HALT
+125 ite 1 28 45 124 1:2:MEM:0
+126 next 1 29 125 stmt_1_3
+
+; halt variables - halt_<thread>
+127 init 1 30 4
+128 or 1 42 30
+129 next 1 30 128 halt_0
+
+130 init 1 31 4
+131 or 1 46 31
+132 next 1 31 131 halt_1
+
+; heap variable
+133 init 3 32 11
+134 write 3 32 16 18
+135 ite 3 37 134 32 flush_0
+136 write 3 32 6 12
+137 ite 3 54 136 32
+138 ite 3 40 137 135 0:1:CAS:0
+139 write 3 32 17 19
+140 ite 3 38 139 138 flush_1
+141 write 3 32 7 13
+142 ite 3 69 141 32
+143 ite 3 44 142 140 1:1:CAS:1
+144 next 3 32 143 heap
+
+; exit flag variable
+145 init 1 33 4
+146 and 1 128 131
+147 or 1 33 146
+148 next 1 33 147 exit
+
+; exit code variable
+149 init 2 34 6
+150 next 2 34 34 exit-code
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; scheduling constraints
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+151 or 1 35 36
+152 or 1 37 151
+153 or 1 38 152
+154 or 1 33 153
+155 constraint 154
+156 nand 1 35 36
+157 nand 1 35 37
+158 nand 1 35 38
+159 nand 1 35 33
+160 nand 1 36 37
+161 nand 1 36 38
+162 nand 1 36 33
+163 nand 1 37 38
+164 nand 1 37 33
+165 nand 1 38 33
+166 and 1 156 157
+167 and 1 158 166
+168 and 1 159 167
+169 and 1 160 168
+170 and 1 161 169
+171 and 1 162 170
+172 and 1 163 171
+173 and 1 164 172
+174 and 1 165 173
+175 constraint 174
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; store buffer constraints
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+176 or 1 23 25
+177 implies 1 176 -35
+178 ite 1 20 177 -37
+179 constraint 178 flush_0
+
+180 or 1 27 29
+181 implies 1 180 -36
+182 ite 1 21 181 -38
+183 constraint 182 flush_1
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; halt constraints
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+184 implies 1 30 -35
+185 constraint 184 halt_0
+
+186 implies 1 31 -36
+187 constraint 186 halt_1
+
