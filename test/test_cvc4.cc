@@ -80,4 +80,7 @@ TEST_F(CVC4, litmus_intel_9_relational) { litmus_intel_9<R>(); }
 TEST_F(CVC4, litmus_intel_10_functional) { litmus_intel_10<F>(); }
 TEST_F(CVC4, litmus_intel_10_relational) { litmus_intel_10<R>(); }
 
+TEST_F(CVC4, litmus_amd_1_functional) { litmus_amd_1<F>(); }
+TEST_F(CVC4, litmus_amd_1_relational) { litmus_amd_1<R>(); }
+
 } // namespace ConcuBinE::test

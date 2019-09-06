@@ -256,7 +256,7 @@ struct Solver : public ::testing::Test
       update(path);
     }
 
-  // stores are not reordered with other stores
+  // Intel 1: stores are not reordered with other stores
   //
   template <class Encoder>
   void litmus_intel_1 ()
@@ -313,7 +313,7 @@ struct Solver : public ::testing::Test
         litmus_unsat<Encoder>());
     }
 
-  // stores are not reordered with older loads
+  // Intel 2: stores are not reordered with older loads
   //
   template <class Encoder>
   void litmus_intel_2 ()
@@ -370,7 +370,7 @@ struct Solver : public ::testing::Test
         litmus_unsat<Encoder>());
     }
 
-  // loads may be reordered with older stores
+  // Intel 3: loads may be reordered with older stores
   //
   template <class Encoder>
   void litmus_intel_3 ()
@@ -427,7 +427,7 @@ struct Solver : public ::testing::Test
         litmus_sat<Encoder>(dir));
     }
 
-  // loads are not reordered with older stores to the same location
+  // Intel 4: loads are not reordered with older stores to the same location
   //
   template <class Encoder>
   void litmus_intel_4 ()
@@ -469,7 +469,7 @@ struct Solver : public ::testing::Test
         litmus_unsat<Encoder>());
     }
 
-  // intra-processor forwarding is allowed
+  // Intel 5: intra-processor forwarding is allowed
   //
   template <class Encoder>
   void litmus_intel_5 ()
@@ -526,7 +526,7 @@ struct Solver : public ::testing::Test
         litmus_sat<Encoder>(dir));
     }
 
-  // stores are transitively visible
+  // Intel 6: stores are transitively visible
   //
   template <class Encoder>
   void litmus_intel_6 ()
@@ -597,7 +597,7 @@ struct Solver : public ::testing::Test
         litmus_unsat<Encoder>());
     }
 
-  // stores are seen in a consistent order by other processors
+  // Intel 7: stores are seen in a consistent order by other processors
   //
   template <class Encoder>
   void litmus_intel_7 ()
@@ -682,7 +682,7 @@ struct Solver : public ::testing::Test
         litmus_unsat<Encoder>());
     }
 
-  // locked instructions have a total order
+  // Intel 8: locked instructions have a total order
   //
   template <class Encoder>
   void litmus_intel_8 ()
@@ -767,7 +767,7 @@ struct Solver : public ::testing::Test
         litmus_unsat<Encoder>());
     }
 
-  // loads are not reordered with locks
+  // Intel 9: loads are not reordered with locks
   //
   template <class Encoder>
   void litmus_intel_9 ()
@@ -824,7 +824,7 @@ struct Solver : public ::testing::Test
         litmus_unsat<Encoder>());
     }
 
-  // stores are not reordered with locks
+  // Intel 10: stores are not reordered with locks
   //
   template <class Encoder>
   void litmus_intel_10 ()
@@ -832,6 +832,63 @@ struct Solver : public ::testing::Test
       const std::filesystem::path dir("examples/litmus/intel/10");
 
       constexpr size_t bound = 8;
+
+      litmus<Encoder>(
+        dir,
+        std::make_shared<Program::List>(
+          create_from_file<Program>(dir / "processor.0.asm"),
+          create_from_file<Program>(dir / "processor.1.asm")),
+        std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
+        bound,
+        [] (std::ostringstream & ss) {
+          ss <<
+            smtlib::comment_section("litmus test constraints") <<
+            smtlib::assertion(
+              smtlib::land({
+                smtlib::equality({
+                  smtlib::Encoder::mem_var(bound, 1),
+                  smtlib::word2hex(1)}),
+                smtlib::equality({
+                  smtlib::Encoder::accu_var(bound, 1),
+                  smtlib::word2hex(0)})})) <<
+            eol;
+        },
+        [] (std::ostringstream & ss, btor2::Encoder & e) {
+          ss <<
+            btor2::comment_section("litmus test constraints") <<
+            btor2::eq(
+              e.nid(),
+              e.sid_bool,
+              e.nids_const[1],
+              e.nids_mem[1]) <<
+            btor2::eq(
+              e.nid(),
+              e.sid_bool,
+              e.nids_const[0],
+              e.nids_accu[1]) <<
+            btor2::land(
+              e.nid(),
+              e.sid_bool,
+              std::to_string(e.node - 2),
+              std::to_string(e.node - 1)) <<
+            btor2::land(
+              e.nid(),
+              e.sid_bool,
+              e.nid_exit_flag,
+              std::to_string(e.node - 1)) <<
+            btor2::bad(e.node);
+        },
+        litmus_unsat<Encoder>());
+    }
+
+  // AMD 1: loads and stores are not reordered
+  //
+  template <class Encoder>
+  void litmus_amd_1 ()
+    {
+      const std::filesystem::path dir("examples/litmus/amd/1");
+
+      constexpr size_t bound = 9;
 
       litmus<Encoder>(
         dir,

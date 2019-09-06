@@ -213,7 +213,7 @@ inline void encode_halt ()
 // litmus test encodings
 // =============================================================================
 
-// stores are not reordered with other stores
+// Intel 1: stores are not reordered with other stores
 //
 template <class Encoder>
 inline void encode_litmus_intel_1 ()
@@ -229,7 +229,7 @@ inline void encode_litmus_intel_1 ()
     9);
 }
 
-// stores are not reordered with older loads
+// Intel 2: stores are not reordered with older loads
 //
 template <class Encoder>
 inline void encode_litmus_intel_2 ()
@@ -245,7 +245,7 @@ inline void encode_litmus_intel_2 ()
     10);
 }
 
-// loads may be reordered with older stores
+// Intel 3: loads may be reordered with older stores
 //
 template <class Encoder>
 inline void encode_litmus_intel_3 ()
@@ -261,7 +261,7 @@ inline void encode_litmus_intel_3 ()
     10);
 }
 
-// loads are not reordered with older stores to the same location
+// Intel 4: loads are not reordered with older stores to the same location
 //
 template <class Encoder>
 inline void encode_litmus_intel_4 ()
@@ -275,7 +275,7 @@ inline void encode_litmus_intel_4 ()
     5);
 }
 
-// intra-processor forwarding is allowed
+// Intel 5: intra-processor forwarding is allowed
 //
 template <class Encoder>
 inline void encode_litmus_intel_5 ()
@@ -291,7 +291,7 @@ inline void encode_litmus_intel_5 ()
     12);
 }
 
-// stores are transitively visible
+// Intel 6: stores are transitively visible
 //
 template <class Encoder>
 inline void encode_litmus_intel_6 ()
@@ -308,7 +308,7 @@ inline void encode_litmus_intel_6 ()
     13);
 }
 
-// stores are seen in a consistent order by other processors
+// Intel 7: stores are seen in a consistent order by other processors
 //
 template <class Encoder>
 inline void encode_litmus_intel_7 ()
@@ -326,7 +326,7 @@ inline void encode_litmus_intel_7 ()
     14);
 }
 
-// locked instructions have a total order
+// Intel 8: locked instructions have a total order
 //
 template <class Encoder>
 inline void encode_litmus_intel_8 ()
@@ -344,7 +344,7 @@ inline void encode_litmus_intel_8 ()
     12);
 }
 
-// loads are not reordered with locks
+// Intel 9: loads are not reordered with locks
 //
 template <class Encoder>
 inline void encode_litmus_intel_9 ()
@@ -360,7 +360,7 @@ inline void encode_litmus_intel_9 ()
     8);
 }
 
-// stores are not reordered with locks
+// Intel 10: stores are not reordered with locks
 //
 template <class Encoder>
 inline void encode_litmus_intel_10 ()
@@ -374,6 +374,22 @@ inline void encode_litmus_intel_10 ()
       create_from_file<Program>(dir / "processor.1.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
     8);
+}
+
+// AMD 1: loads and stores are not reordered
+//
+template <class Encoder>
+inline void encode_litmus_amd_1 ()
+{
+  const std::filesystem::path dir("examples/litmus/amd/1");
+
+  encode<Encoder>(
+    dir / "formula",
+    lst(
+      create_from_file<Program>(dir / "processor.0.asm"),
+      create_from_file<Program>(dir / "processor.1.asm")),
+    mmap(create_from_file<MMap>(dir / "init.mmap")),
+    9);
 }
 
 } // namespace ConcuBinE::test

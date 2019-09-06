@@ -3569,6 +3569,8 @@ TEST(btor2_Encoder, encode_litmus_intel_8) { encode_litmus_intel_8<E>(); }
 TEST(btor2_Encoder, encode_litmus_intel_9) { encode_litmus_intel_9<E>(); }
 TEST(btor2_Encoder, encode_litmus_intel_10) { encode_litmus_intel_10<E>(); }
 
+TEST(btor2_Encoder, encode_litmus_amd_1) { encode_litmus_amd_1<E>(); }
+
 TEST(btor2_Encoder, LOAD)
 {
   auto encoder = create<E>(dummy(1));
