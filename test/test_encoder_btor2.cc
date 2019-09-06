@@ -3570,6 +3570,7 @@ TEST(btor2_Encoder, encode_litmus_intel_9) { encode_litmus_intel_9<E>(); }
 TEST(btor2_Encoder, encode_litmus_intel_10) { encode_litmus_intel_10<E>(); }
 
 TEST(btor2_Encoder, encode_litmus_amd_1) { encode_litmus_amd_1<E>(); }
+TEST(btor2_Encoder, encode_litmus_amd_2) { encode_litmus_amd_2<E>(); }
 
 TEST(btor2_Encoder, LOAD)
 {

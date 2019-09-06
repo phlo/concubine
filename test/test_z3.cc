@@ -81,4 +81,7 @@ TEST_F(Z3, litmus_intel_10_relational) { litmus_intel_10<R>(); }
 TEST_F(Z3, litmus_amd_1_functional) { litmus_amd_1<F>(); }
 TEST_F(Z3, litmus_amd_1_relational) { litmus_amd_1<R>(); }
 
+TEST_F(Z3, litmus_amd_2_functional) { litmus_amd_2<F>(); }
+TEST_F(Z3, litmus_amd_2_relational) { litmus_amd_2<R>(); }
+
 } // namespace ConcuBinE::test
