@@ -170,28 +170,6 @@ std::string expected_load_indirect (E & encoder,
           encoder.nid_heap,
           encoder.nids_sb_val[thread]);
       nid++;
-      s <<
-        btor2::read(
-          std::to_string(nid),
-          encoder.sid_bv,
-          encoder.nid_heap,
-          std::to_string(nid - 1));
-      nid++;
-      s <<
-        btor2::eq(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_sb_adr[thread],
-          std::to_string(nid - 2));
-      nid++;
-      s<<
-        btor2::ite(
-          encoder.nids_ite_eq_sb_adr_read_sb_val[thread],
-          encoder.sid_bv,
-          std::to_string(nid - 1),
-          encoder.nids_sb_val[thread],
-          std::to_string(nid - 2));
-      nid++;
     }
 
   s <<
@@ -207,7 +185,7 @@ std::string expected_load_indirect (E & encoder,
       encoder.sid_bv,
       std::to_string(nid - 1),
       encoder.nids_sb_val[thread],
-      encoder.nids_ite_eq_sb_adr_read_sb_val[thread]);
+      encoder.nids_read_sb_val[thread]);
   nid++;
   s <<
     btor2::ite(
@@ -3575,33 +3553,21 @@ TEST(btor2_Encoder, define_bound)
 
 // btor2::Encoder::encode ======================================================
 
-TEST(btor2_Encoder, encode_check)
-{
-  encode_check<E>("increment.check.t2.k16.btor2");
-}
+TEST(btor2_Encoder, encode_check) { encode_check<E>(); }
+TEST(btor2_Encoder, encode_cas) { encode_cas<E>(); }
+TEST(btor2_Encoder, encode_indirect) { encode_indirect<E>(); }
+TEST(btor2_Encoder, encode_halt) { encode_halt<E>(); }
 
-TEST(btor2_Encoder, encode_cas)
-{
-  encode_cas<E>("increment.cas.t2.k16.btor2");
-}
-
-TEST(btor2_Encoder, encode_halt)
-{
-  encode_halt<E>("halt.t2.k10.btor2");
-}
-
-const std::string formula = "formula.btor2";
-
-TEST(btor2_Encoder, litmus_intel_1) { litmus_intel_1<E>(formula); }
-TEST(btor2_Encoder, litmus_intel_2) { litmus_intel_2<E>(formula); }
-TEST(btor2_Encoder, litmus_intel_3) { litmus_intel_3<E>(formula); }
-TEST(btor2_Encoder, litmus_intel_4) { litmus_intel_4<E>(formula); }
-TEST(btor2_Encoder, litmus_intel_5) { litmus_intel_5<E>(formula); }
-TEST(btor2_Encoder, litmus_intel_6) { litmus_intel_6<E>(formula); }
-TEST(btor2_Encoder, litmus_intel_7) { litmus_intel_7<E>(formula); }
-TEST(btor2_Encoder, litmus_intel_8) { litmus_intel_8<E>(formula); }
-TEST(btor2_Encoder, litmus_intel_9) { litmus_intel_9<E>(formula); }
-TEST(btor2_Encoder, litmus_intel_10) { litmus_intel_10<E>(formula); }
+TEST(btor2_Encoder, encode_litmus_intel_1) { encode_litmus_intel_1<E>(); }
+TEST(btor2_Encoder, encode_litmus_intel_2) { encode_litmus_intel_2<E>(); }
+TEST(btor2_Encoder, encode_litmus_intel_3) { encode_litmus_intel_3<E>(); }
+TEST(btor2_Encoder, encode_litmus_intel_4) { encode_litmus_intel_4<E>(); }
+TEST(btor2_Encoder, encode_litmus_intel_5) { encode_litmus_intel_5<E>(); }
+TEST(btor2_Encoder, encode_litmus_intel_6) { encode_litmus_intel_6<E>(); }
+TEST(btor2_Encoder, encode_litmus_intel_7) { encode_litmus_intel_7<E>(); }
+TEST(btor2_Encoder, encode_litmus_intel_8) { encode_litmus_intel_8<E>(); }
+TEST(btor2_Encoder, encode_litmus_intel_9) { encode_litmus_intel_9<E>(); }
+TEST(btor2_Encoder, encode_litmus_intel_10) { encode_litmus_intel_10<E>(); }
 
 TEST(btor2_Encoder, LOAD)
 {

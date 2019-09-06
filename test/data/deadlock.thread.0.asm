@@ -1,2 +1,0 @@
-CHECK 0
-CHECK 1

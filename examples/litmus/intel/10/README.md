@@ -1,4 +1,4 @@
-# Loads Are Not Reordered with Locked Instructions
+# Stores Are Not Reordered with Locked Instructions
 
 > Example 8-10, [P.268](https://software.intel.com/sites/default/files/managed/7c/f1/253668-sdm-vol-3a.pdf#page=268)
 

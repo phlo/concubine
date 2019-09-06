@@ -339,26 +339,37 @@ std::string Encoder::assign (const std::string & var,
 
 std::string Encoder::load (const word_t adr, const bool indirect)
 {
-  /*
-  (ite sb-full
-    (ite (= sb-adr #....)
-      sb-val
-      (select heap #....))
-    (select heap #....))
-  */
-  /*
-  (ite sb-full
-    (ite (= sb-adr #....)                   ; sb-full
-      (ite (= sb-val #....)                   ; (= sb-adr #....)
-        #.... | sb-val                          ; (= sb-val #....)
-        (ite (= sb-adr (select heap sb-val))    ; (not (= sb-val #....))
-          sb-val                                  ; (= sb-adr (select heap sb-val))
-          (select heap (select heap sb-val))))    ; (not (= sb-adr (select heap sb-val)))
-      (ite (= sb-adr (select heap #....))     ; (not (= sb-adr #....))
-        sb-val                                  ; (= sb-adr (select heap #....))
-        (select (select heap #....))))          ; (not (= sb-adr (select heap #....)))
-    (select (select heap #x....)))          ; (not sb-full)
-  */
+  // direct ////////////////////////////////////////////////////////////////////
+  //
+  // sb-adr == address ? sb-val : heap[address]
+  //
+  // indirect //////////////////////////////////////////////////////////////////
+  //
+  // * store buffer is full
+  //   * store buffer contains address
+  //     * store buffer value equals address
+  //       * return store buffer value
+  //     * store buffer value does not equal address
+  //       * return heap[store buffer value]
+  //   * store buffer does not contain address
+  //     * store buffer address equals heap[address]
+  //       * return return store buffer value
+  //     * store buffer address does not equal heap[address]
+  //       * return heap[heap[address]]
+  // * store buffer is empty
+  //   * return heap[heap[address]]
+  //
+  // sb-full
+  // ? sb-adr == address
+  //   ? sb-val == address
+  //     ? sb-val (e.g. LOAD 0 | sb = {0, 0})
+  //     : heap[sb-val] (e.g. LOAD 0 | sb = {0, 1}, heap = {{1, 1}})
+  //   : sb-adr == heap[address]
+  //     ? sb-val (e.g. LOAD 0 | sb = {1, 0}, heap = {{0, 1}})
+  //     : heap[heap[address]] (e.g. LOAD 0 | sb = {1, x}, heap = {{0, 0}})
+  // : heap[heap[address]] (e.g. LOAD 0 | sb = {}, heap = {{0, 0}})
+  //
+  //////////////////////////////////////////////////////////////////////////////
 
   std::string address = word2hex(adr);
 
@@ -371,8 +382,6 @@ std::string Encoder::load (const word_t adr, const bool indirect)
 
   if (indirect)
     {
-      std::string load_sb = select(heap, sb_val);
-      std::string load_sb_indirect = select(heap, load_sb);
       std::string load_indirect = select(heap, load);
 
       return
@@ -383,10 +392,7 @@ std::string Encoder::load (const word_t adr, const bool indirect)
             ite(
               equality({sb_val, address}),
               sb_val,
-              ite(
-                equality({sb_adr, load_sb}),
-                sb_val,
-                load_sb_indirect)),
+              select(heap, sb_val)),
             ite(
               equality({sb_adr, load}),
               sb_val,
@@ -395,11 +401,7 @@ std::string Encoder::load (const word_t adr, const bool indirect)
     }
   else
     {
-      return
-        ite(
-          land({sb_full, equality({sb_adr, address})}),
-          sb_val,
-          load);
+      return ite(land({sb_full, equality({sb_adr, address})}), sb_val, load);
     }
 }
 

@@ -31,17 +31,22 @@ using R = smtlib::Relational;
 
 // simulation tests
 //
-TEST_F(Boolector, solve_check_functional) { solve_check<F>(); }
-TEST_F(Boolector, solve_check_relational) { solve_check<R>(); }
+TEST_F(Boolector, simulate_check_functional) { simulate_check<F>(); }
+TEST_F(Boolector, simulate_check_relational) { simulate_check<R>(); }
 
-TEST_F(Boolector, solve_cas_functional) { solve_cas<F>(); }
-TEST_F(Boolector, solve_cas_relational) { solve_cas<R>(); }
+TEST_F(Boolector, simulate_cas_functional) { simulate_cas<F>(); }
+TEST_F(Boolector, simulate_cas_relational) { simulate_cas<R>(); }
 
-TEST_F(Boolector, solve_indirect_functional) { solve_indirect<F>(); }
-TEST_F(Boolector, solve_indirect_relational) { solve_indirect<R>(); }
+TEST_F(Boolector, simulate_indirect_functional) { simulate_indirect<F>(); }
+TEST_F(Boolector, simulate_indirect_relational) { simulate_indirect<R>(); }
 
-TEST_F(Boolector, solve_halt_functional) { solve_halt<F>(); }
-TEST_F(Boolector, solve_halt_relational) { solve_halt<R>(); }
+TEST_F(Boolector, simulate_halt_functional) { simulate_halt<F>(); }
+TEST_F(Boolector, simulate_halt_relational) { simulate_halt<R>(); }
+
+// feature tests
+//
+TEST_F(Boolector, verify_indirect_functional) { verify_indirect<F>(); }
+TEST_F(Boolector, verify_indirect_relational) { verify_indirect<R>(); }
 
 // litmus tests
 //

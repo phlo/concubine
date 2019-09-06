@@ -358,17 +358,18 @@ std::string Encoder::debug_symbol (const word_t t, const word_t p)
 
 std::string Encoder::load (const word_t address, const bool indirect)
 {
-  //////////////////////////////////////////////////////////////////////////////
+  // direct ////////////////////////////////////////////////////////////////////
+  //
+  // sb-adr == address ? sb-val : heap[address]
+  //
+  // indirect //////////////////////////////////////////////////////////////////
   //
   // * store buffer is full
   //   * store buffer contains address
   //     * store buffer value equals address
   //       * return store buffer value
   //     * store buffer value does not equal address
-  //       * store buffer address equals heap[store buffer value]
-  //         * return return store buffer value
-  //       * store buffer address does not equal heap[store buffer value]
-  //         * return heap[heap[store buffer value]]
+  //       * return heap[store buffer value]
   //   * store buffer does not contain address
   //     * store buffer address equals heap[address]
   //       * return return store buffer value
@@ -377,25 +378,15 @@ std::string Encoder::load (const word_t address, const bool indirect)
   // * store buffer is empty
   //   * return heap[heap[address]]
   //
-  // direct ////////////////////////////////////////////////////////////////////
-  //
-  // sb-adr == address
-  //   ? sb-val
-  //   : heap[address]
-  //
-  // indirect //////////////////////////////////////////////////////////////////
-  //
   // sb-full
   // ? sb-adr == address
   //   ? sb-val == address
   //     ? sb-val (e.g. LOAD 0 | sb = {0, 0})
-  //     : sb-adr == heap[sb-val]
-  //       ? sb-val (e.b. LOAD 0 | sb = {0, 1}, heap = {{1, 0}})
-  //       : heap[heap[sb-val]] (e.g. LOAD 0 | sb = {0, 1}, heap = {{1, 1}})
+  //     : heap[sb-val] (e.g. LOAD 0 | sb = {0, 1}, heap = {{1, 1}})
   //   : sb-adr == heap[address]
   //     ? sb-val (e.g. LOAD 0 | sb = {1, 0}, heap = {{0, 1}})
-  //     : heap[heap[address]] (e.g. LOAD 0 | sb = {1, x}, heap = {{0, 0}}
-  // : heap[heap[address]] (e.g. LOAD 0 | sb = {}, heap = {{0, 0}}
+  //     : heap[heap[address]] (e.g. LOAD 0 | sb = {1, x}, heap = {{0, 0}})
+  // : heap[heap[address]] (e.g. LOAD 0 | sb = {}, heap = {{0, 0}})
   //
   //////////////////////////////////////////////////////////////////////////////
 
@@ -443,9 +434,7 @@ std::string Encoder::load (const word_t address, const bool indirect)
               address,
               [this, &nid_read_adr] {
                 std::string nid_read = nid();
-
                 formula << read(nid_read, sid_bv, nid_heap, nid_read_adr);
-
                 return nid_read;
               });
 
@@ -460,7 +449,7 @@ std::string Encoder::load (const word_t address, const bool indirect)
               nid_read_adr);
 
           // sb-adr == heap[address]
-          // ? sb-val_t
+          // ? sb-val
           // : heap[heap[address]]
           std::string nid_ite_eq_sb_adr_read_adr = nid();
 
@@ -472,54 +461,15 @@ std::string Encoder::load (const word_t address, const bool indirect)
               nid_sb_val,
               nid_read_indirect);
 
-          // sb-adr == heap[sb-val]
-          // ? sb-val (e.b. LOAD 0 | sb = {0, 1}, heap = {{1, 0}})
-          // : heap[heap[sb-val]] (e.g. LOAD 0 | sb = {0, 1}, heap = {{1, 1}})
-          std::string nid_ite_eq_sb_adr_read_sb_val =
+          // heap[sb-val]
+          std::string nid_read_sb_val =
             lookup(
-              nids_ite_eq_sb_adr_read_sb_val,
+              nids_read_sb_val,
               thread,
-              [this, &nid_sb_adr, &nid_sb_val] {
-
-                // heap[sb-val]]
-                std::string nid_read_sb_val = nid();
-
-                formula << read(nid_read_sb_val, sid_bv, nid_heap, nid_sb_val);
-
-                // heap[heap[sb-val]]
-                std::string nid_read_sb_val_indirect = nid();
-
-                formula <<
-                  read(
-                    nid_read_sb_val_indirect,
-                    sid_bv,
-                    nid_heap,
-                    nid_read_sb_val);
-
-                // sb-adr == heap[sb-val]
-                std::string nid_eq_sb_adr_read_sb_val = nid();
-
-                formula <<
-                  eq(
-                    nid_eq_sb_adr_read_sb_val,
-                    sid_bool,
-                    nid_sb_adr,
-                    nid_read_sb_val);
-
-                // sb-adr == heap[sb-val]
-                // ? sb-val
-                // : heap[heap[sb-val]]
-                std::string nid_ite = nid();
-
-                formula <<
-                  ite(
-                    nid_ite,
-                    sid_bv,
-                    nid_eq_sb_adr_read_sb_val,
-                    nid_sb_val,
-                    nid_read_sb_val_indirect);
-
-                return nid_ite;
+              [this, &nid_sb_val] {
+                std::string nid_read = nid();
+                formula << read(nid_read, sid_bv, nid_heap, nid_sb_val);
+                return nid_read;
               });
 
           // sb-val == address
@@ -529,9 +479,7 @@ std::string Encoder::load (const word_t address, const bool indirect)
 
           // sb-val == address
           // ? sb-val
-          // : sb-adr == heap[sb-val]
-          //   ? sb-val
-          //   : heap[heap[sb-val]]
+          // : heap[sb-val]
           std::string nid_ite_eq_sb_val_adr = nid();
 
           formula <<
@@ -540,17 +488,15 @@ std::string Encoder::load (const word_t address, const bool indirect)
               sid_bv,
               nid_eq_sb_val_adr,
               nid_sb_val,
-              nid_ite_eq_sb_adr_read_sb_val);
+              nid_read_sb_val);
 
           // sb-adr == address
           // ? sb-val == address
-          //   ? sb-val (e.g. LOAD 0 | sb = {0, 0})
-          //   : sb-adr == heap[sb-val]
-          //     ? sb-val (e.b. LOAD 0 | sb = {0, 1}, heap = {{1, 0}})
-          //     : heap[heap[sb-val]] (e.g. LOAD 0 | sb = {0, 1}, heap = {{1, 1}})
+          //   ? sb-val
+          //   : heap[sb-val]
           // : sb-adr == heap[address]
-          //   ? sb-val (e.g. LOAD 0 | sb = {1, 0}, heap = {{0, 1}})
-          //   : heap[heap[address]] (e.g. LOAD 0 | sb = {1, x}, heap = {{0, 0}}
+          //   ? sb-val
+          //   : heap[heap[address]]
           std::string nid_ite_eq_sb_adr_adr = nid();
 
           formula <<
@@ -565,9 +511,7 @@ std::string Encoder::load (const word_t address, const bool indirect)
           // ? sb-adr == address
           //   ? sb-val == address
           //     ? sb-val
-          //     : sb-adr == heap[sb-val]
-          //       ? sb-val
-          //       : heap[heap[sb-val]]
+          //     : heap[sb-val]
           //   : sb-adr == heap[address]
           //     ? sb-val
           //     : heap[heap[address]]

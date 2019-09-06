@@ -42,10 +42,14 @@ using E = btor2::Encoder;
 
 // simulation tests
 //
-TEST_F(BtorMC, solve_check) { solve_check<E>(); }
-TEST_F(BtorMC, solve_cas) { solve_cas<E>(); }
-TEST_F(BtorMC, solve_indirect) { solve_indirect<E>(); }
-TEST_F(BtorMC, solve_halt) { solve_halt<E>(); }
+TEST_F(BtorMC, simulate_check) { simulate_check<E>(); }
+TEST_F(BtorMC, simulate_cas) { simulate_cas<E>(); }
+TEST_F(BtorMC, simulate_indirect) { simulate_indirect<E>(); }
+TEST_F(BtorMC, simulate_halt) { simulate_halt<E>(); }
+
+// feature tests
+//
+TEST_F(BtorMC, verify_indirect_functional) { verify_indirect<E>(); }
 
 // litmus tests
 //

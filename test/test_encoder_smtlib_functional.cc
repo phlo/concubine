@@ -1047,32 +1047,20 @@ TEST(smtlib_Functional, define_states_check_exit)
 
 // smtlib::Functional::encode ==================================================
 
-TEST(smtlib_Functional, encode_check)
-{
-  encode_check<E>("increment.check.functional.t2.k16.smt2");
-}
+TEST(smtlib_Functional, encode_check) { encode_check<E>(); }
+TEST(smtlib_Functional, encode_cas) { encode_cas<E>(); }
+TEST(smtlib_Functional, encode_indirect) { encode_indirect<E>(); }
+TEST(smtlib_Functional, encode_halt) { encode_halt<E>(); }
 
-TEST(smtlib_Functional, encode_cas)
-{
-  encode_cas<E>("increment.cas.functional.t2.k16.smt2");
-}
-
-TEST(smtlib_Functional, encode_halt)
-{
-  encode_halt<E>("halt.functional.t2.k10.smt2");
-}
-
-const std::string formula = "formula.functional.smt2";
-
-TEST(smtlib_Functional, litmus_intel_1) { litmus_intel_1<E>(formula); }
-TEST(smtlib_Functional, litmus_intel_2) { litmus_intel_2<E>(formula); }
-TEST(smtlib_Functional, litmus_intel_3) { litmus_intel_3<E>(formula); }
-TEST(smtlib_Functional, litmus_intel_4) { litmus_intel_4<E>(formula); }
-TEST(smtlib_Functional, litmus_intel_5) { litmus_intel_5<E>(formula); }
-TEST(smtlib_Functional, litmus_intel_6) { litmus_intel_6<E>(formula); }
-TEST(smtlib_Functional, litmus_intel_7) { litmus_intel_7<E>(formula); }
-TEST(smtlib_Functional, litmus_intel_8) { litmus_intel_8<E>(formula); }
-TEST(smtlib_Functional, litmus_intel_9) { litmus_intel_9<E>(formula); }
-TEST(smtlib_Functional, litmus_intel_10) { litmus_intel_10<E>(formula); }
+TEST(smtlib_Functional, encode_litmus_intel_1) { encode_litmus_intel_1<E>(); }
+TEST(smtlib_Functional, encode_litmus_intel_2) { encode_litmus_intel_2<E>(); }
+TEST(smtlib_Functional, encode_litmus_intel_3) { encode_litmus_intel_3<E>(); }
+TEST(smtlib_Functional, encode_litmus_intel_4) { encode_litmus_intel_4<E>(); }
+TEST(smtlib_Functional, encode_litmus_intel_5) { encode_litmus_intel_5<E>(); }
+TEST(smtlib_Functional, encode_litmus_intel_6) { encode_litmus_intel_6<E>(); }
+TEST(smtlib_Functional, encode_litmus_intel_7) { encode_litmus_intel_7<E>(); }
+TEST(smtlib_Functional, encode_litmus_intel_8) { encode_litmus_intel_8<E>(); }
+TEST(smtlib_Functional, encode_litmus_intel_9) { encode_litmus_intel_9<E>(); }
+TEST(smtlib_Functional, encode_litmus_intel_10) { encode_litmus_intel_10<E>(); }
 
 } // namespace ConcuBinE::test

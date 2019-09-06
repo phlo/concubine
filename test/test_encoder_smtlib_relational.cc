@@ -301,33 +301,21 @@ TEST(smtlib_Relational, define_states_check_exit)
 
 // smtlib::Relational::encode ==================================================
 
-TEST(smtlib_Relational, encode_check)
-{
-  encode_check<E>("increment.check.relational.t2.k16.smt2");
-}
+TEST(smtlib_Relational, encode_check) { encode_check<E>(); }
+TEST(smtlib_Relational, encode_cas) { encode_cas<E>(); }
+TEST(smtlib_Relational, encode_indirect) { encode_indirect<E>(); }
+TEST(smtlib_Relational, encode_halt) { encode_halt<E>(); }
 
-TEST(smtlib_Relational, encode_cas)
-{
-  encode_cas<E>("increment.cas.relational.t2.k16.smt2");
-}
-
-TEST(smtlib_Relational, encode_halt)
-{
-  encode_halt<E>("halt.relational.t2.k10.smt2");
-}
-
-const std::string formula = "formula.relational.smt2";
-
-TEST(smtlib_Relational, litmus_intel_1) { litmus_intel_1<E>(formula); }
-TEST(smtlib_Relational, litmus_intel_2) { litmus_intel_2<E>(formula); }
-TEST(smtlib_Relational, litmus_intel_3) { litmus_intel_3<E>(formula); }
-TEST(smtlib_Relational, litmus_intel_4) { litmus_intel_4<E>(formula); }
-TEST(smtlib_Relational, litmus_intel_5) { litmus_intel_5<E>(formula); }
-TEST(smtlib_Relational, litmus_intel_6) { litmus_intel_6<E>(formula); }
-TEST(smtlib_Relational, litmus_intel_7) { litmus_intel_7<E>(formula); }
-TEST(smtlib_Relational, litmus_intel_8) { litmus_intel_8<E>(formula); }
-TEST(smtlib_Relational, litmus_intel_9) { litmus_intel_9<E>(formula); }
-TEST(smtlib_Relational, litmus_intel_10) { litmus_intel_10<E>(formula); }
+TEST(smtlib_Relational, encode_litmus_intel_1) { encode_litmus_intel_1<E>(); }
+TEST(smtlib_Relational, encode_litmus_intel_2) { encode_litmus_intel_2<E>(); }
+TEST(smtlib_Relational, encode_litmus_intel_3) { encode_litmus_intel_3<E>(); }
+TEST(smtlib_Relational, encode_litmus_intel_4) { encode_litmus_intel_4<E>(); }
+TEST(smtlib_Relational, encode_litmus_intel_5) { encode_litmus_intel_5<E>(); }
+TEST(smtlib_Relational, encode_litmus_intel_6) { encode_litmus_intel_6<E>(); }
+TEST(smtlib_Relational, encode_litmus_intel_7) { encode_litmus_intel_7<E>(); }
+TEST(smtlib_Relational, encode_litmus_intel_8) { encode_litmus_intel_8<E>(); }
+TEST(smtlib_Relational, encode_litmus_intel_9) { encode_litmus_intel_9<E>(); }
+TEST(smtlib_Relational, encode_litmus_intel_10) { encode_litmus_intel_10<E>(); }
 
 TEST(smtlib_Relational, LOAD)
 {
@@ -375,22 +363,13 @@ TEST(smtlib_Relational, LOAD_indirect)
 {
   auto encoder = create<E>(lst(prog(instruction_set)));
 
-  Instruction::Load load {Instruction::Type::none, 1, true};
+  Instruction::Load l {Instruction::Type::none, 1, true};
+
+  const auto load = encoder.load(l.arg, l.indirect);
 
   ASSERT_EQ(
     "(and "
-      "(= accu_1_0 "
-        "(ite sb-full_0_0 "
-          "(ite (= sb-adr_0_0 #x0001) "
-            "(ite (= sb-val_0_0 #x0001) "
-              "sb-val_0_0 "
-              "(ite (= sb-adr_0_0 (select heap_0 sb-val_0_0)) "
-                "sb-val_0_0 "
-                "(select heap_0 (select heap_0 sb-val_0_0)))) "
-            "(ite (= sb-adr_0_0 (select heap_0 #x0001)) "
-              "sb-val_0_0 "
-              "(select heap_0 (select heap_0 #x0001)))) "
-          "(select heap_0 (select heap_0 #x0001)))) "
+      "(= accu_1_0 " + load + ") "
       "(= mem_1_0 mem_0_0) "
       "(= sb-adr_1_0 sb-adr_0_0) "
       "(= sb-val_1_0 sb-val_0_0) "
@@ -418,7 +397,7 @@ TEST(smtlib_Relational, LOAD_indirect)
       "(= block_1_1_0 (ite check_0_1 false block_0_1_0)) "
       "(= heap_1 heap_0) "
       "(not exit_1))",
-    encoder.encode(load));
+    encoder.encode(l));
 }
 
 TEST(smtlib_Relational, STORE)
@@ -560,22 +539,11 @@ TEST(smtlib_Relational, ADD_indirect)
 
   Instruction::Add add {Instruction::Type::none, 1, true};
 
+  const auto load = encoder.load(add.arg, add.indirect);
+
   ASSERT_EQ(
     "(and "
-      "(= accu_1_0 "
-        "(bvadd "
-          "accu_0_0 "
-          "(ite sb-full_0_0 "
-            "(ite (= sb-adr_0_0 #x0001) "
-              "(ite (= sb-val_0_0 #x0001) "
-                "sb-val_0_0 "
-                "(ite (= sb-adr_0_0 (select heap_0 sb-val_0_0)) "
-                  "sb-val_0_0 "
-                  "(select heap_0 (select heap_0 sb-val_0_0)))) "
-              "(ite (= sb-adr_0_0 (select heap_0 #x0001)) "
-                "sb-val_0_0 "
-                "(select heap_0 (select heap_0 #x0001)))) "
-            "(select heap_0 (select heap_0 #x0001))))) "
+      "(= accu_1_0 (bvadd accu_0_0 " + load + ")) "
       "(= mem_1_0 mem_0_0) "
       "(= sb-adr_1_0 sb-adr_0_0) "
       "(= sb-val_1_0 sb-val_0_0) "
@@ -701,22 +669,11 @@ TEST(smtlib_Relational, SUB_indirect)
 
   Instruction::Sub sub {Instruction::Type::none, 1, true};
 
+  const auto load = encoder.load(sub.arg, sub.indirect);
+
   ASSERT_EQ(
     "(and "
-      "(= accu_1_0 "
-        "(bvsub "
-          "accu_0_0 "
-          "(ite sb-full_0_0 "
-            "(ite (= sb-adr_0_0 #x0001) "
-              "(ite (= sb-val_0_0 #x0001) "
-                "sb-val_0_0 "
-                "(ite (= sb-adr_0_0 (select heap_0 sb-val_0_0)) "
-                  "sb-val_0_0 "
-                  "(select heap_0 (select heap_0 sb-val_0_0)))) "
-              "(ite (= sb-adr_0_0 (select heap_0 #x0001)) "
-                "sb-val_0_0 "
-                "(select heap_0 (select heap_0 #x0001)))) "
-            "(select heap_0 (select heap_0 #x0001))))) "
+      "(= accu_1_0 (bvsub accu_0_0 " + load + ")) "
       "(= mem_1_0 mem_0_0) "
       "(= sb-adr_1_0 sb-adr_0_0) "
       "(= sb-val_1_0 sb-val_0_0) "
@@ -842,22 +799,11 @@ TEST(smtlib_Relational, MUL_indirect)
 
   Instruction::Mul mul {Instruction::Type::none, 1, true};
 
+  const auto load = encoder.load(mul.arg, mul.indirect);
+
   ASSERT_EQ(
     "(and "
-      "(= accu_1_0 "
-        "(bvmul "
-          "accu_0_0 "
-          "(ite sb-full_0_0 "
-            "(ite (= sb-adr_0_0 #x0001) "
-              "(ite (= sb-val_0_0 #x0001) "
-                "sb-val_0_0 "
-                "(ite (= sb-adr_0_0 (select heap_0 sb-val_0_0)) "
-                  "sb-val_0_0 "
-                  "(select heap_0 (select heap_0 sb-val_0_0)))) "
-              "(ite (= sb-adr_0_0 (select heap_0 #x0001)) "
-                "sb-val_0_0 "
-                "(select heap_0 (select heap_0 #x0001)))) "
-            "(select heap_0 (select heap_0 #x0001))))) "
+      "(= accu_1_0 (bvmul accu_0_0 " + load + ")) "
       "(= mem_1_0 mem_0_0) "
       "(= sb-adr_1_0 sb-adr_0_0) "
       "(= sb-val_1_0 sb-val_0_0) "
@@ -983,22 +929,11 @@ TEST(smtlib_Relational, CMP_indirect)
 
   Instruction::Cmp cmp {Instruction::Type::none, 1, true};
 
+  const auto load = encoder.load(cmp.arg, cmp.indirect);
+
   ASSERT_EQ(
     "(and "
-      "(= accu_1_0 "
-        "(bvsub "
-          "accu_0_0 "
-          "(ite sb-full_0_0 "
-            "(ite (= sb-adr_0_0 #x0001) "
-              "(ite (= sb-val_0_0 #x0001) "
-                "sb-val_0_0 "
-                "(ite (= sb-adr_0_0 (select heap_0 sb-val_0_0)) "
-                  "sb-val_0_0 "
-                  "(select heap_0 (select heap_0 sb-val_0_0)))) "
-              "(ite (= sb-adr_0_0 (select heap_0 #x0001)) "
-                "sb-val_0_0 "
-                "(select heap_0 (select heap_0 #x0001)))) "
-            "(select heap_0 (select heap_0 #x0001))))) "
+      "(= accu_1_0 (bvsub accu_0_0 " + load + ")) "
       "(= mem_1_0 mem_0_0) "
       "(= sb-adr_1_0 sb-adr_0_0) "
       "(= sb-val_1_0 sb-val_0_0) "
@@ -1356,32 +1291,12 @@ TEST(smtlib_Relational, MEM_indirect)
 
   Instruction::Mem mem {Instruction::Type::none, 1, true};
 
+  const auto load = encoder.load(mem.arg, mem.indirect);
+
   ASSERT_EQ(
     "(and "
-      "(= accu_1_0 "
-        "(ite sb-full_0_0 "
-          "(ite (= sb-adr_0_0 #x0001) "
-            "(ite (= sb-val_0_0 #x0001) "
-              "sb-val_0_0 "
-              "(ite (= sb-adr_0_0 (select heap_0 sb-val_0_0)) "
-                "sb-val_0_0 "
-                "(select heap_0 (select heap_0 sb-val_0_0)))) "
-            "(ite (= sb-adr_0_0 (select heap_0 #x0001)) "
-              "sb-val_0_0 "
-              "(select heap_0 (select heap_0 #x0001)))) "
-          "(select heap_0 (select heap_0 #x0001)))) "
-      "(= mem_1_0 "
-        "(ite sb-full_0_0 "
-          "(ite (= sb-adr_0_0 #x0001) "
-            "(ite (= sb-val_0_0 #x0001) "
-              "sb-val_0_0 "
-              "(ite (= sb-adr_0_0 (select heap_0 sb-val_0_0)) "
-                "sb-val_0_0 "
-                "(select heap_0 (select heap_0 sb-val_0_0)))) "
-            "(ite (= sb-adr_0_0 (select heap_0 #x0001)) "
-              "sb-val_0_0 "
-              "(select heap_0 (select heap_0 #x0001)))) "
-          "(select heap_0 (select heap_0 #x0001)))) "
+      "(= accu_1_0 " + load + ") "
+      "(= mem_1_0 " + load + ") "
       "(= sb-adr_1_0 sb-adr_0_0) "
       "(= sb-val_1_0 sb-val_0_0) "
       "(= sb-full_1_0 sb-full_0_0) "

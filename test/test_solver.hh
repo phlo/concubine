@@ -2,7 +2,7 @@
 
 #include "btor2.hh"
 #include "encoder.hh"
-#include "filesystem.hh"
+#include "fs.hh"
 #include "mmap.hh"
 #include "parser.hh"
 #include "simulator.hh"
@@ -22,40 +22,6 @@ struct Solver : public ::testing::Test
 {
   S solver;
 
-  template <class Encoder>
-  std::string mkext ()
-    {
-      if constexpr(std::is_base_of<smtlib::Encoder, Encoder>::value)
-        return ".smt2";
-      else
-        return ".btor2";
-    }
-
-  template <class Encoder>
-  auto mkpath (const std::string & stem, const std::string & ext)
-    {
-      auto path = stem;
-
-      if constexpr(std::is_base_of<smtlib::Encoder, Encoder>::value)
-        {
-          if constexpr(std::is_base_of<smtlib::Functional, Encoder>::value)
-            path += ".functional";
-          else
-            path += ".relational";
-        }
-
-      return fs::mktmp(path += ext);
-    }
-
-  void mktmp (const std::filesystem::path & file, const std::string & content)
-    {
-      if (!std::filesystem::exists(file))
-        {
-          std::ofstream ofs(file);
-          ofs << content;
-        }
-    }
-
   //----------------------------------------------------------------------------
   // simulation tests
   //----------------------------------------------------------------------------
@@ -63,11 +29,13 @@ struct Solver : public ::testing::Test
   // generic simulation test function
   //
   template <class Encoder>
-  void simulate (std::string && stem,
+  void simulate (const std::filesystem::path & stem,
                  const Program::List::ptr & programs,
                  const std::shared_ptr<MMap> & mmap,
                  const size_t bound)
     {
+      using namespace fs;
+
       Encoder encoder(programs, mmap, bound);
 
       encoder.encode();
@@ -75,26 +43,21 @@ struct Solver : public ::testing::Test
       if constexpr(std::is_base_of<btor2::Encoder, Encoder>::value)
         encoder.define_bound();
 
-      auto trace = solver.solve(encoder);
+      const auto trace = solver.solve(encoder);
 
       ASSERT_FALSE(trace->empty());
 
       // std::cout << "time to solve = " << solver.time << " ms" << eol;
 
-      auto replay = Simulator().replay(*trace);
+      const auto replay = Simulator().replay(*trace);
+      const auto sext = '.' + solver.name();
 
-      stem +=
-        ".t" + std::to_string(programs->size()) +
-        ".k" + std::to_string(bound);
-
-      auto sext = '.' + solver.name();
-
-      mktmp(mkpath<Encoder>(stem, mkext<Encoder>()), encoder.str());
-      mktmp(mkpath<Encoder>(stem, sext + ".trace"), trace->print());
-      mktmp(mkpath<Encoder>(stem, sext + ".replay.trace"), replay->print());
+      write(mktmp(stem, ext<Encoder>(programs->size(), bound)), encoder.str());
+      write(mktmp(stem, ext<Encoder>(sext + ".trace")), trace->print());
+      write(mktmp(stem, ext<Encoder>(sext + ".replay.trace")), replay->print());
 
       if constexpr(std::is_base_of<External, S>::value)
-        mktmp(mkpath<Encoder>(stem, sext + ".model"), solver.std_out.str());
+        write(mktmp(stem, ext<Encoder>(sext + ".model")), solver.std_out.str());
 
       ASSERT_EQ(*replay, *trace);
     }
@@ -102,13 +65,15 @@ struct Solver : public ::testing::Test
   // concurrent increment using checkpoints
   //
   template <class Encoder>
-  void solve_check ()
+  void simulate_check ()
     {
+      const std::string basename = "test/data/increment.check";
+
       simulate<Encoder>(
-        "test/data/increment.check",
+        basename,
         std::make_shared<Program::List>(
-          create_from_file<Program>("test/data/increment.check.thread.0.asm"),
-          create_from_file<Program>("test/data/increment.check.thread.n.asm")),
+          create_from_file<Program>(basename + ".thread.0.asm"),
+          create_from_file<Program>(basename + ".thread.n.asm")),
         nullptr,
         16);
     }
@@ -116,91 +81,135 @@ struct Solver : public ::testing::Test
   // concurrent increment using compare and swap
   //
   template <class Encoder>
-  void solve_cas ()
+  void simulate_cas ()
     {
-      auto program = create_from_file<Program>("test/data/increment.cas.asm");
+      const std::string basename = "test/data/increment.cas";
+      const auto program = create_from_file<Program>(basename + ".asm");
 
       simulate<Encoder>(
-        "test/data/increment.cas",
+        basename,
         std::make_shared<Program::List>(program, program),
         nullptr,
         16);
     }
 
-  // uninitialized indirect addressing
+  // indirect addressing
   //
   template <class Encoder>
-  void solve_indirect ()
+  void simulate_indirect ()
     {
-      std::istringstream p0 (
-        "LOAD [0]\n"
-        "ADDI 1\n"
-        "STORE [0]\n"
-        "HALT\n");
-      std::istringstream p1 (
-        "LOAD [1]\n"
-        "ADDI 1\n"
-        "STORE [1]\n"
-        "HALT\n");
+      const std::string basename = "test/data/indirect.addressing";
 
       simulate<Encoder>(
-        "test/data/indirect.addressing",
+        basename,
         std::make_shared<Program::List>(
-          Program(p0, "load.store.0.asm"),
-          Program(p1, "load.store.1.asm")),
+          create_from_file<Program>(basename + ".asm")),
         nullptr,
-        16);
+        9);
     }
 
   // halting mechanism
   //
   template <class Encoder>
-  void solve_halt ()
+  void simulate_halt ()
     {
-      auto program = create_from_file<Program>("test/data/halt.asm");
+      const std::string basename = "test/data/halt";
+      const auto program = create_from_file<Program>(basename + ".asm");
 
       simulate<Encoder>(
-        "test/data/halt",
+        basename,
         std::make_shared<Program::List>(program, program),
         nullptr,
         10);
     }
 
   //----------------------------------------------------------------------------
+  // feature tests
+  //----------------------------------------------------------------------------
+
+  // verify indirect addressing
+  //
+  template <class Encoder>
+  void verify_indirect ()
+    {
+      constexpr size_t bound = 9;
+
+      Encoder encoder(
+        std::make_shared<Program::List>(
+          create_from_file<Program>("test/data/indirect.addressing.asm")),
+        nullptr,
+        bound);
+
+      encoder.encode();
+
+      if constexpr(std::is_base_of<smtlib::Encoder, Encoder>::value)
+        encoder.formula <<
+          smtlib::assertion(
+            smtlib::lnot(
+              smtlib::equality({
+                smtlib::Encoder::accu_var(bound, 0),
+                smtlib::word2hex(0)}))) <<
+          eol;
+      else
+        encoder.formula <<
+          btor2::ne(
+            encoder.nid(),
+            encoder.sid_bool,
+            encoder.nids_const[0],
+            encoder.nids_accu[0]) <<
+          btor2::land(
+            encoder.nid(),
+            encoder.sid_bool,
+            encoder.nid_exit_flag,
+            std::to_string(encoder.node - 1)) <<
+          btor2::bad(encoder.node);
+
+      ASSERT_FALSE(solver.sat(solver.formula(encoder)));
+    }
+
+  //----------------------------------------------------------------------------
   // litmus tests
   //----------------------------------------------------------------------------
 
+  // litmus test conditions for allowed examples
+  //
   template <class Encoder>
-  auto assert_sat (const std::filesystem::path & dir)
+  auto litmus_sat (const std::filesystem::path & dir)
     {
       return [this, &dir] (Encoder & e)
         {
-          auto trace = solver.solve(e);
+          using namespace fs;
+
+          const auto trace = solver.solve(e);
 
           ASSERT_FALSE(trace->empty());
 
           // std::cout << "time to solve = " << solver.time << " ms" << eol;
 
-          auto replay = Simulator().replay(*trace);
-          auto stem = dir / solver.name();
+          const auto replay = Simulator().replay(*trace);
+          const auto stem = dir / solver.name();
 
-          mktmp(mkpath<Encoder>(dir / "formula", mkext<Encoder>()), e.str());
-          mktmp(mkpath<Encoder>(stem, ".trace"), trace->print());
-          mktmp(mkpath<Encoder>(stem, ".replay.trace"), replay->print());
+          write(mktmp(dir / "formula", ext<Encoder>()), e.str());
+          write(mktmp(stem, ".trace"), trace->print());
+          write(mktmp(stem, ".replay.trace"), replay->print());
 
           if constexpr(std::is_base_of<External, S>::value)
-            mktmp(mkpath<Encoder>(stem, ".model"), solver.std_out.str());
+            write(mktmp(stem, ".model"), solver.std_out.str());
 
           ASSERT_EQ(e.bound, trace->size());
           ASSERT_EQ(*replay, *trace);
         };
     }
 
+  // litmus test conditions for disallowed examples
+  //
   template <class Encoder>
-  auto assert_unsat ()
+  auto litmus_unsat ()
     {
       return [this] (Encoder & encoder)
         {
+          using namespace fs;
+
           ASSERT_FALSE(solver.sat(solver.formula(encoder)));
         };
     }
@@ -208,14 +217,16 @@ struct Solver : public ::testing::Test
   // generic litmus test function
   //
   template <class Encoder, class SMTLib, class BTOR2, class Test>
-  void encode_litmus (const std::filesystem::path & dir,
-                      const std::shared_ptr<Program::List> & programs,
-                      const std::shared_ptr<MMap> & mmap,
-                      const size_t bound,
-                      const SMTLib & constraints_smtlib [[maybe_unused]],
-                      const BTOR2 & constraints_btor2 [[maybe_unused]],
-                      const Test & test)
+  void litmus (const std::filesystem::path & dir,
+               const std::shared_ptr<Program::List> & programs,
+               const std::shared_ptr<MMap> & mmap,
+               const size_t bound,
+               const SMTLib & constraints_smtlib [[maybe_unused]],
+               const BTOR2 & constraints_btor2 [[maybe_unused]],
+               const Test & test)
     {
+      using namespace fs;
+
       Encoder encoder(programs, mmap, bound);
 
       encoder.encode();
@@ -227,25 +238,22 @@ struct Solver : public ::testing::Test
       if constexpr(std::is_base_of<smtlib::Encoder, Encoder>::value)
         {
           constraints_smtlib(ss);
-          std::ofstream ofs(fs::mktmp(path = dir / "constraints.smt2"));
+          std::ofstream ofs(mktmp(path = dir / "constraints.smt2"));
           constraints = ss.str();
           ofs << constraints;
         }
       else
         {
           constraints_btor2(ss, encoder);
-          std::ofstream ofs(fs::mktmp(path = dir / "constraints.btor2"));
+          std::ofstream ofs(mktmp(path = dir / "constraints.btor2"));
           constraints = ss.str();
           ofs << constraints;
         }
 
       encoder.formula << constraints;
-
-      mktmp(mkpath<Encoder>(dir / "formula", mkext<Encoder>()), encoder.str());
-
+      write(mktmp(dir / "formula", ext<Encoder>()), encoder.str());
       test(encoder);
-
-      fs::update(path);
+      update(path);
     }
 
   // stores are not reordered with other stores
@@ -257,7 +265,7 @@ struct Solver : public ::testing::Test
 
       constexpr size_t bound = 9;
 
-      encode_litmus<Encoder>(
+      litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
           create_from_file<Program>(dir / "processor.0.asm"),
@@ -302,7 +310,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        assert_unsat<Encoder>());
+        litmus_unsat<Encoder>());
     }
 
   // stores are not reordered with older loads
@@ -314,7 +322,7 @@ struct Solver : public ::testing::Test
 
       constexpr size_t bound = 10;
 
-      encode_litmus<Encoder>(
+      litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
           create_from_file<Program>(dir / "processor.0.asm"),
@@ -359,7 +367,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        assert_unsat<Encoder>());
+        litmus_unsat<Encoder>());
     }
 
   // loads may be reordered with older stores
@@ -371,7 +379,7 @@ struct Solver : public ::testing::Test
 
       constexpr size_t bound = 10;
 
-      encode_litmus<Encoder>(
+      litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
           create_from_file<Program>(dir / "processor.0.asm"),
@@ -416,7 +424,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        assert_sat<Encoder>(dir));
+        litmus_sat<Encoder>(dir));
     }
 
   // loads are not reordered with older stores to the same location
@@ -428,7 +436,7 @@ struct Solver : public ::testing::Test
 
       constexpr size_t bound = 5;
 
-      encode_litmus<Encoder>(
+      litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
           create_from_file<Program>(dir / "processor.0.asm")),
@@ -458,7 +466,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        assert_unsat<Encoder>());
+        litmus_unsat<Encoder>());
     }
 
   // intra-processor forwarding is allowed
@@ -470,7 +478,7 @@ struct Solver : public ::testing::Test
 
       constexpr size_t bound = 12;
 
-      encode_litmus<Encoder>(
+      litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
           create_from_file<Program>(dir / "processor.0.asm"),
@@ -515,7 +523,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        assert_sat<Encoder>(dir));
+        litmus_sat<Encoder>(dir));
     }
 
   // stores are transitively visible
@@ -527,7 +535,7 @@ struct Solver : public ::testing::Test
 
       constexpr size_t bound = 13;
 
-      encode_litmus<Encoder>(
+      litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
           create_from_file<Program>(dir / "processor.0.asm"),
@@ -586,7 +594,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        assert_unsat<Encoder>());
+        litmus_unsat<Encoder>());
     }
 
   // stores are seen in a consistent order by other processors
@@ -598,7 +606,7 @@ struct Solver : public ::testing::Test
 
       constexpr size_t bound = 14;
 
-      encode_litmus<Encoder>(
+      litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
           create_from_file<Program>(dir / "processor.0.asm"),
@@ -671,7 +679,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        assert_unsat<Encoder>());
+        litmus_unsat<Encoder>());
     }
 
   // locked instructions have a total order
@@ -683,7 +691,7 @@ struct Solver : public ::testing::Test
 
       constexpr size_t bound = 12;
 
-      encode_litmus<Encoder>(
+      litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
           create_from_file<Program>(dir / "processor.0.asm"),
@@ -756,7 +764,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        assert_unsat<Encoder>());
+        litmus_unsat<Encoder>());
     }
 
   // loads are not reordered with locks
@@ -768,7 +776,7 @@ struct Solver : public ::testing::Test
 
       constexpr size_t bound = 8;
 
-      encode_litmus<Encoder>(
+      litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
           create_from_file<Program>(dir / "processor.0.asm"),
@@ -813,7 +821,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        assert_unsat<Encoder>());
+        litmus_unsat<Encoder>());
     }
 
   // stores are not reordered with locks
@@ -825,7 +833,7 @@ struct Solver : public ::testing::Test
 
       constexpr size_t bound = 8;
 
-      encode_litmus<Encoder>(
+      litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
           create_from_file<Program>(dir / "processor.0.asm"),
@@ -870,7 +878,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        assert_unsat<Encoder>());
+        litmus_unsat<Encoder>());
     }
 };
 

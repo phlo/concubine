@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "encoder.hh"
-#include "filesystem.hh"
+#include "fs.hh"
 #include "mmap.hh"
 #include "parser.hh"
 
@@ -118,263 +118,262 @@ inline void reset (Encoder & e, const std::optional<size_t> & bound = {})
 //
 // NOTE: encoded formula stored in /tmp
 //
-template <class Encoder>
-inline auto encode (const std::shared_ptr<Program::List> & programs,
+template <class Encoder, bool simulation = false>
+inline void encode (std::filesystem::path && basename,
+                    const std::shared_ptr<Program::List> & programs,
                     const std::shared_ptr<MMap> & mmap,
-                    const size_t bound,
-                    const std::filesystem::path & formula)
+                    const size_t bound)
 {
-  auto encoder = std::make_unique<Encoder>(programs, mmap, bound);
+  Encoder encoder(programs, mmap, bound);
 
-  encoder->encode();
+  encoder.encode();
 
-  std::ifstream ifs(formula);
-  auto expected =
-    std::make_unique<std::string>(
-      (std::istreambuf_iterator<char>(ifs)),
-      std::istreambuf_iterator<char>());
+  if constexpr (simulation && std::is_base_of<btor2::Encoder, Encoder>::value)
+    encoder.define_bound();
 
-  std::ofstream ofs(fs::mktmp(formula));
-  ofs << encoder->str();
+  if constexpr (simulation)
+    basename += fs::ext<Encoder>(programs->size(), bound);
+  else
+    basename += fs::ext<Encoder>();
 
-  return std::make_pair(std::move(encoder), std::move(expected));
+  std::ifstream ifs(basename);
+  const std::string expected((std::istreambuf_iterator<char>(ifs)),
+                              std::istreambuf_iterator<char>());
+  const std::string actual = encoder.str();
+
+  fs::write(fs::mktmp(basename), actual);
+  ASSERT_EQ(expected, actual);
 }
 
 // =============================================================================
 // simulation test encodings
 // =============================================================================
 
-template <class Encoder>
-inline void encode_simulation (const std::shared_ptr<Program::List> & programs,
-                               const std::shared_ptr<MMap> & mmap,
-                               const size_t bound,
-                               const std::filesystem::path & formula)
-{
-  auto [encoder, expected] = encode<Encoder>(programs, mmap, bound, formula);
-
-  if constexpr (std::is_base_of<btor2::Encoder, Encoder>::value)
-    encoder->define_bound();
-
-  ASSERT_EQ(*expected, encoder->str());
-}
-
 // concurrent increment using checkpoints
 //
 template <class Encoder>
-inline void encode_check (const std::filesystem::path & formula)
+inline void encode_check ()
 {
-  encode_simulation<Encoder>(
+  const std::string basename = "test/data/increment.check";
+
+  encode<Encoder, true>(
+    basename,
     lst(
-      create_from_file<Program>("test/data/increment.check.thread.0.asm"),
-      create_from_file<Program>("test/data/increment.check.thread.n.asm")),
-    {},
-    16,
-    "test/data/" / formula);
+      create_from_file<Program>(basename + ".thread.0.asm"),
+      create_from_file<Program>(basename + ".thread.n.asm")),
+    nullptr,
+    16);
 }
 
 // concurrent increment using compare and swap
 //
 template <class Encoder>
-inline void encode_cas (const std::filesystem::path & formula)
+inline void encode_cas ()
 {
-  const auto program = create_from_file<Program>("test/data/increment.cas.asm");
+  const std::string basename = "test/data/increment.cas";
+  const auto program = create_from_file<Program>(basename + ".asm");
 
-  encode_simulation<Encoder>(
+  encode<Encoder, true>(
+    basename,
     lst(program, program),
-    {},
-    16,
-    "test/data/" / formula);
+    nullptr,
+    16);
+}
+
+// indirect addressing
+//
+template <class Encoder>
+inline void encode_indirect ()
+{
+  const std::string basename = "test/data/indirect.addressing";
+
+  encode<Encoder, true>(
+    basename,
+    lst(create_from_file<Program>(basename + ".asm")),
+    nullptr,
+    9);
 }
 
 // halting mechanism
 //
 template <class Encoder>
-inline void encode_halt (const std::filesystem::path & formula)
+inline void encode_halt ()
 {
-  const auto program = create_from_file<Program>("test/data/halt.asm");
+  const std::string basename = "test/data/halt";
+  const auto program = create_from_file<Program>(basename + ".asm");
 
-  encode_simulation<Encoder>(
+  encode<Encoder, true>(
+    basename,
     lst(program, program),
-    {},
-    10,
-    "test/data/" / formula);
+    nullptr,
+    10);
 }
 
 // =============================================================================
 // litmus test encodings
 // =============================================================================
 
-template <class Encoder>
-inline void encode_litmus (const std::shared_ptr<Program::List> & programs,
-                           const std::shared_ptr<MMap> & mmap,
-                           const size_t bound,
-                           const std::filesystem::path & formula)
-{
-  auto [encoder, expected] = encode<Encoder>(programs, mmap, bound, formula);
-  ASSERT_EQ(*expected, encoder->str());
-}
-
 // stores are not reordered with other stores
 //
 template <class Encoder>
-inline void litmus_intel_1 (const std::filesystem::path & formula)
+inline void encode_litmus_intel_1 ()
 {
   const std::filesystem::path dir("examples/litmus/intel/1");
 
-  encode_litmus<Encoder>(
+  encode<Encoder>(
+    dir / "formula",
     lst(
       create_from_file<Program>(dir / "processor.0.asm"),
       create_from_file<Program>(dir / "processor.1.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
-    9,
-    dir / formula);
+    9);
 }
 
 // stores are not reordered with older loads
 //
 template <class Encoder>
-inline void litmus_intel_2 (const std::filesystem::path & formula)
+inline void encode_litmus_intel_2 ()
 {
   const std::filesystem::path dir("examples/litmus/intel/2");
 
-  encode_litmus<Encoder>(
+  encode<Encoder>(
+    dir / "formula",
     lst(
       create_from_file<Program>(dir / "processor.0.asm"),
       create_from_file<Program>(dir / "processor.1.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
-    10,
-    dir / formula);
+    10);
 }
 
 // loads may be reordered with older stores
 //
 template <class Encoder>
-inline void litmus_intel_3 (const std::filesystem::path & formula)
+inline void encode_litmus_intel_3 ()
 {
   const std::filesystem::path dir("examples/litmus/intel/3");
 
-  encode_litmus<Encoder>(
+  encode<Encoder>(
+    dir / "formula",
     lst(
       create_from_file<Program>(dir / "processor.0.asm"),
       create_from_file<Program>(dir / "processor.1.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
-    10,
-    dir / formula);
+    10);
 }
 
 // loads are not reordered with older stores to the same location
 //
 template <class Encoder>
-inline void litmus_intel_4 (const std::filesystem::path & formula)
+inline void encode_litmus_intel_4 ()
 {
   const std::filesystem::path dir("examples/litmus/intel/4");
 
-  encode_litmus<Encoder>(
+  encode<Encoder>(
+    dir / "formula",
     lst(create_from_file<Program>(dir / "processor.0.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
-    5,
-    dir / formula);
+    5);
 }
 
 // intra-processor forwarding is allowed
 //
 template <class Encoder>
-inline void litmus_intel_5 (const std::filesystem::path & formula)
+inline void encode_litmus_intel_5 ()
 {
   const std::filesystem::path dir("examples/litmus/intel/5");
 
-  encode_litmus<Encoder>(
+  encode<Encoder>(
+    dir / "formula",
     lst(
       create_from_file<Program>(dir / "processor.0.asm"),
       create_from_file<Program>(dir / "processor.1.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
-    12,
-    dir / formula);
+    12);
 }
 
 // stores are transitively visible
 //
 template <class Encoder>
-inline void litmus_intel_6 (const std::filesystem::path & formula)
+inline void encode_litmus_intel_6 ()
 {
   const std::filesystem::path dir("examples/litmus/intel/6");
 
-  encode_litmus<Encoder>(
+  encode<Encoder>(
+    dir / "formula",
     lst(
       create_from_file<Program>(dir / "processor.0.asm"),
       create_from_file<Program>(dir / "processor.1.asm"),
       create_from_file<Program>(dir / "processor.2.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
-    13,
-    dir / formula);
+    13);
 }
 
 // stores are seen in a consistent order by other processors
 //
 template <class Encoder>
-inline void litmus_intel_7 (const std::filesystem::path & formula)
+inline void encode_litmus_intel_7 ()
 {
   const std::filesystem::path dir("examples/litmus/intel/7");
 
-  encode_litmus<Encoder>(
+  encode<Encoder>(
+    dir / "formula",
     lst(
       create_from_file<Program>(dir / "processor.0.asm"),
       create_from_file<Program>(dir / "processor.1.asm"),
       create_from_file<Program>(dir / "processor.2.asm"),
       create_from_file<Program>(dir / "processor.3.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
-    14,
-    dir / formula);
+    14);
 }
 
 // locked instructions have a total order
 //
 template <class Encoder>
-inline void litmus_intel_8 (const std::filesystem::path & formula)
+inline void encode_litmus_intel_8 ()
 {
   const std::filesystem::path dir("examples/litmus/intel/8");
 
-  encode_litmus<Encoder>(
+  encode<Encoder>(
+    dir / "formula",
     lst(
       create_from_file<Program>(dir / "processor.0.asm"),
       create_from_file<Program>(dir / "processor.1.asm"),
       create_from_file<Program>(dir / "processor.2.asm"),
       create_from_file<Program>(dir / "processor.3.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
-    12,
-    dir / formula);
+    12);
 }
 
 // loads are not reordered with locks
 //
 template <class Encoder>
-inline void litmus_intel_9 (const std::filesystem::path & formula)
+inline void encode_litmus_intel_9 ()
 {
   const std::filesystem::path dir("examples/litmus/intel/9");
 
-  encode_litmus<Encoder>(
+  encode<Encoder>(
+    dir / "formula",
     lst(
       create_from_file<Program>(dir / "processor.0.asm"),
       create_from_file<Program>(dir / "processor.1.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
-    8,
-    dir / formula);
+    8);
 }
 
 // stores are not reordered with locks
 //
 template <class Encoder>
-inline void litmus_intel_10 (const std::filesystem::path & formula)
+inline void encode_litmus_intel_10 ()
 {
   const std::filesystem::path dir("examples/litmus/intel/10");
 
-  encode_litmus<Encoder>(
+  encode<Encoder>(
+    dir / "formula",
     lst(
       create_from_file<Program>(dir / "processor.0.asm"),
       create_from_file<Program>(dir / "processor.1.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
-    8,
-    dir / formula);
+    8);
 }
 
 } // namespace ConcuBinE::test

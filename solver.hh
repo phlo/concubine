@@ -127,6 +127,10 @@ struct External : public Solver
   //
   virtual Symbol parse (std::istringstream & line) = 0;
 
+  // detect an eventual heap update
+  //
+  void update_heap (Trace & trace, size_t prev, size_t cur);
+
   // build trace based on the specific solver's output
   //
   Trace::ptr trace (const Encoder & encoder);

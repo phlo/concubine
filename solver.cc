@@ -100,7 +100,7 @@ External::Symbol External::symbol (std::istringstream & line)
   else if (name == Encoder::exit_flag_sym)
     {
       step = attribute(line, "step");
-      return Symbol::exit_flag; // TODO
+      return Symbol::exit_flag;
     }
   else if (name == Encoder::exit_code_sym)
     {
@@ -120,6 +120,46 @@ External::Symbol External::symbol (std::istringstream & line)
     }
 
   return Symbol::ignore;
+}
+
+// External::update_heap -------------------------------------------------------
+
+void External::update_heap (Trace & trace, const size_t prev, const size_t cur)
+{
+  const word_t t = trace.thread(prev);
+
+  // instruction responsible for state in the previous step
+  const Instruction & op = (*trace.programs)[t][trace.pc(prev, t)];
+
+  // store buffer has been flushed
+  // NOTE: heap update visible one step after flush is set
+  if (trace.flush(prev))
+    {
+      const word_t adr = trace.sb_adr(t);
+      trace.push_back_heap(cur, adr, heap[adr]);
+    }
+  // CAS has been executed
+  else if (op.type() & Instruction::Type::atomic && trace.accu(t))
+    {
+      const word_t adr = op.indirect() ? heap[op.arg()] : op.arg();
+      trace.push_back_heap(cur, adr, heap[adr]);
+    }
+
+  // detect uninitialized reads
+  if (op.type() & Instruction::Type::read)
+    {
+      word_t adr = op.arg();
+
+      if (!trace.heap(adr))
+        trace.init_heap(adr, heap[adr]);
+
+      if (op.indirect() && !trace.heap(adr = heap[adr]))
+        trace.init_heap(adr, heap[adr]);
+    }
+
+  // reset heap map for the next step
+  // NOTE: really necessary?
+  heap.clear();
 }
 
 // External::trace -------------------------------------------------------------
@@ -150,43 +190,7 @@ Trace::ptr External::trace (const Encoder & encoder)
           // detect an eventual heap update
           // reached next step: previous state at step - 1 fully visible
           if (step > 1 && step == next)
-            {
-              const size_t k = next++ - 2;
-              const word_t t = trace->thread(k);
-
-              // instruction responsible for state at step - 1
-              const Instruction & op = (*programs)[t][trace->pc(k, t)];
-
-              // store buffer has been flushed
-              // NOTE: heap update visible one step after flush is set
-              if (trace->flush(k))
-                {
-                  const word_t adr = trace->sb_adr(t);
-                  trace->push_back_heap(step - 1, adr, heap[adr]);
-                }
-              // CAS has been executed
-              else if (op.type() & Instruction::Type::atomic && trace->accu(t))
-                {
-                  const word_t adr = op.indirect() ? heap[op.arg()] : op.arg();
-                  trace->push_back_heap(step - 1, adr, heap[adr]);
-                }
-
-              // detect uninitialized reads
-              if (op.type() & Instruction::Type::read)
-                {
-                  word_t adr = op.arg();
-
-                  if (!trace->heap(adr))
-                    trace->init_heap(adr, heap[adr]);
-
-                  if (op.indirect() && !trace->heap(adr = heap[adr]))
-                    trace->init_heap(adr, heap[adr]);
-                }
-
-              // reset heap map for the next step
-              // NOTE: really necessary?
-              heap.clear();
-            }
+            update_heap(*trace, next++ - 2, step - 1);
 
           if (symbol == Symbol::accu)
             {
@@ -235,6 +239,10 @@ Trace::ptr External::trace (const Encoder & encoder)
           parser_error(name(), lineno, e.what());
         }
     }
+
+  // detect final heap update
+  if (next > encoder.bound)
+    update_heap(*trace, next - 2, step);
 
   return trace;
 }

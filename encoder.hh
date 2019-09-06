@@ -807,11 +807,11 @@ struct Encoder : public ConcuBinE::Encoder
   //
   std::unordered_map<word_t, nid_map> nids_eq_sb_adr_adr;
 
-  // store buffer contains address at heap[sb-val] nodes
+  // indirect load expression using store buffer value (heap[sb-val]) nodes
   //
   // thread -> nid
   //
-  nid_map nids_ite_eq_sb_adr_read_sb_val;
+  nid_map nids_read_sb_val;
 
   // load expression nodes
   //
