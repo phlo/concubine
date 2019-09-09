@@ -10,8 +10,10 @@ This is illustrated by the following example:
 
 | Processor 0 | Processor 1 | Processor 2 | Processor 3 |
 | ----------- | ----------- | ----------- | ----------- |
-| ADDI 1      | ADDI 1      | MEM 0       | MEM 1       |
-| STORE 0     | STORE 1     | LOAD 1      | LOAD 0      |
+| ADDI 1      | ADDI 1      |             |             |
+| STORE 0     | STORE 1     |             |             |
+|             |             | MEM 0       | MEM 1       |
+|             |             | LOAD 1      | LOAD 0      |
 
 * initially `[0] = [1] = 0`
 * `mem_2 = 1`, `accu_2 = 0`, `mem_3 = 1` and `accu_3 = 0` is not allowed

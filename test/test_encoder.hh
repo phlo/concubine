@@ -456,4 +456,22 @@ inline void encode_litmus_amd_5 ()
     12);
 }
 
+// AMD 6: stores are seen in a consistent order by other processors
+//
+template <class Encoder>
+inline void encode_litmus_amd_6 ()
+{
+  const std::filesystem::path dir("examples/litmus/amd/6");
+
+  encode<Encoder>(
+    dir / "formula",
+    lst(
+      create_from_file<Program>(dir / "processor.0.asm"),
+      create_from_file<Program>(dir / "processor.1.asm"),
+      create_from_file<Program>(dir / "processor.2.asm"),
+      create_from_file<Program>(dir / "processor.3.asm")),
+    mmap(create_from_file<MMap>(dir / "init.mmap")),
+    14);
+}
+
 } // namespace ConcuBinE::test
