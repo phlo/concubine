@@ -27,3 +27,7 @@ In other words, stores from a processor cannot be reordered to occur prior to a 
 | 1         | 3                 | 0       | 3     |
 
 [^1]: including final `HALT`
+
+## Notes
+
+* Identical to [Intel 1](../../intel/1)

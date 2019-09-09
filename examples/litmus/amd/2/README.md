@@ -31,3 +31,4 @@ In other words, stores from a processor cannot be reordered to occur prior to a 
 ## Notes
 
 * Using `MEM` instead of `LOAD` to ignore `ADDI`.
+* Identical to [Intel 2](../../intel/2)

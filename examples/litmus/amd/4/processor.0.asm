@@ -1,0 +1,3 @@
+ADDI 1
+STORE 0
+MEM 1

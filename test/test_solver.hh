@@ -288,16 +288,8 @@ struct Solver : public ::testing::Test
         [] (std::ostringstream & ss, btor2::Encoder & e) {
           ss <<
             btor2::comment_section("litmus test constraints") <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[1],
-              e.nids_mem[1]) <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[0],
-              e.nids_accu[1]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_mem[1]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_accu[1]) <<
             btor2::land(
               e.nid(),
               e.sid_bool,
@@ -345,16 +337,8 @@ struct Solver : public ::testing::Test
         [] (std::ostringstream & ss, btor2::Encoder & e) {
           ss <<
             btor2::comment_section("litmus test constraints") <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[1],
-              e.nids_mem[0]) <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[1],
-              e.nids_mem[1]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_mem[0]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_mem[1]) <<
             btor2::land(
               e.nid(),
               e.sid_bool,
@@ -402,16 +386,8 @@ struct Solver : public ::testing::Test
         [] (std::ostringstream & ss, btor2::Encoder & e) {
           ss <<
             btor2::comment_section("litmus test constraints") <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[0],
-              e.nids_mem[0]) <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[0],
-              e.nids_mem[1]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_mem[0]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_mem[1]) <<
             btor2::land(
               e.nid(),
               e.sid_bool,
@@ -454,11 +430,7 @@ struct Solver : public ::testing::Test
         [] (std::ostringstream & ss, btor2::Encoder & e) {
           ss <<
             btor2::comment_section("litmus test constraints") <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[0],
-              e.nids_mem[0]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_mem[0]) <<
             btor2::land(
               e.nid(),
               e.sid_bool,
@@ -501,16 +473,8 @@ struct Solver : public ::testing::Test
         [] (std::ostringstream & ss, btor2::Encoder & e) {
           ss <<
             btor2::comment_section("litmus test constraints") <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[0],
-              e.nids_mem[0]) <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[0],
-              e.nids_mem[1]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_mem[0]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_mem[1]) <<
             btor2::land(
               e.nid(),
               e.sid_bool,
@@ -562,26 +526,14 @@ struct Solver : public ::testing::Test
         [] (std::ostringstream & ss, btor2::Encoder & e) {
           ss <<
             btor2::comment_section("litmus test constraints") <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[1],
-              e.nids_mem[1]) <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[1],
-              e.nids_mem[2]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_mem[1]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_mem[2]) <<
             btor2::land(
               e.nid(),
               e.sid_bool,
               std::to_string(e.node - 2),
               std::to_string(e.node - 1)) <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[0],
-              e.nids_accu[2]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_accu[2]) <<
             btor2::land(
               e.nid(),
               e.sid_bool,
@@ -637,31 +589,15 @@ struct Solver : public ::testing::Test
         [] (std::ostringstream & ss, btor2::Encoder & e) {
           ss <<
             btor2::comment_section("litmus test constraints") <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[1],
-              e.nids_mem[2]) <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[0],
-              e.nids_accu[2]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_mem[2]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_accu[2]) <<
             btor2::land(
               e.nid(),
               e.sid_bool,
               std::to_string(e.node - 2),
               std::to_string(e.node - 1)) <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[1],
-              e.nids_mem[3]) <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[0],
-              e.nids_accu[3]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_mem[3]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_accu[3]) <<
             btor2::land(
               e.nid(),
               e.sid_bool,
@@ -722,31 +658,15 @@ struct Solver : public ::testing::Test
         [] (std::ostringstream & ss, btor2::Encoder & e) {
           ss <<
             btor2::comment_section("litmus test constraints") <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[1],
-              e.nids_mem[2]) <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[0],
-              e.nids_accu[2]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_mem[2]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_accu[2]) <<
             btor2::land(
               e.nid(),
               e.sid_bool,
               std::to_string(e.node - 2),
               std::to_string(e.node - 1)) <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[1],
-              e.nids_mem[3]) <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[0],
-              e.nids_accu[3]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_mem[3]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_accu[3]) <<
             btor2::land(
               e.nid(),
               e.sid_bool,
@@ -799,16 +719,8 @@ struct Solver : public ::testing::Test
         [] (std::ostringstream & ss, btor2::Encoder & e) {
           ss <<
             btor2::comment_section("litmus test constraints") <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[0],
-              e.nids_mem[0]) <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[0],
-              e.nids_mem[1]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_mem[0]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_mem[1]) <<
             btor2::land(
               e.nid(),
               e.sid_bool,
@@ -856,16 +768,8 @@ struct Solver : public ::testing::Test
         [] (std::ostringstream & ss, btor2::Encoder & e) {
           ss <<
             btor2::comment_section("litmus test constraints") <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[1],
-              e.nids_mem[1]) <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[0],
-              e.nids_accu[1]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_mem[1]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_accu[1]) <<
             btor2::land(
               e.nid(),
               e.sid_bool,
@@ -913,16 +817,8 @@ struct Solver : public ::testing::Test
         [] (std::ostringstream & ss, btor2::Encoder & e) {
           ss <<
             btor2::comment_section("litmus test constraints") <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[1],
-              e.nids_mem[1]) <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[0],
-              e.nids_accu[1]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_mem[1]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_accu[1]) <<
             btor2::land(
               e.nid(),
               e.sid_bool,
@@ -970,16 +866,8 @@ struct Solver : public ::testing::Test
         [] (std::ostringstream & ss, btor2::Encoder & e) {
           ss <<
             btor2::comment_section("litmus test constraints") <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[1],
-              e.nids_mem[0]) <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[1],
-              e.nids_mem[1]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_mem[0]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_mem[1]) <<
             btor2::land(
               e.nid(),
               e.sid_bool,
@@ -1027,21 +915,76 @@ struct Solver : public ::testing::Test
         [] (std::ostringstream & ss, btor2::Encoder & e) {
           ss <<
             btor2::comment_section("litmus test constraints") <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[1],
-              e.nids_mem[0]) <<
-            btor2::eq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[1],
-              e.nids_mem[1]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_mem[0]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_mem[1]) <<
             btor2::land(
               e.nid(),
               e.sid_bool,
               std::to_string(e.node - 2),
               std::to_string(e.node - 1)) <<
+            btor2::land(
+              e.nid(),
+              e.sid_bool,
+              e.nid_exit_flag,
+              std::to_string(e.node - 1)) <<
+            btor2::bad(e.node);
+        },
+        litmus_sat<Encoder>(dir));
+    }
+
+  // AMD 4: non-overlapping loads may pass stores
+  //
+  template <class Encoder>
+  void litmus_amd_4 ()
+    {
+      const std::filesystem::path dir("examples/litmus/amd/4");
+
+      constexpr size_t bound = 10;
+
+      litmus<Encoder>(
+        dir,
+        std::make_shared<Program::List>(
+          create_from_file<Program>(dir / "processor.0.asm"),
+          create_from_file<Program>(dir / "processor.1.asm")),
+        std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
+        bound,
+        [] (std::ostringstream & ss) {
+          const auto zero = smtlib::word2hex(0);
+          const auto one = smtlib::word2hex(1);
+          const auto mem_0 = smtlib::Encoder::mem_var(bound, 0);
+          const auto mem_1 = smtlib::Encoder::mem_var(bound, 1);
+          ss <<
+            smtlib::comment_section("litmus test constraints") <<
+            smtlib::assertion(
+              smtlib::land({
+                smtlib::lor({
+                  smtlib::equality({mem_0, zero}),
+                  smtlib::equality({mem_0, one})
+                }),
+                smtlib::lor({
+                  smtlib::equality({mem_1, zero}),
+                  smtlib::equality({mem_1, one})})})) <<
+            eol;
+        },
+        [] (std::ostringstream & ss, btor2::Encoder & e) {
+          std::string or_0, or_1;
+          ss <<
+            btor2::comment_section("litmus test constraints") <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_mem[0]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_mem[0]) <<
+            btor2::lor(
+              or_0 = e.nid(),
+              e.sid_bool,
+              std::to_string(e.node - 2),
+              std::to_string(e.node - 1)) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_mem[1]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_mem[1]) <<
+            btor2::lor(
+              or_1 = e.nid(),
+              e.sid_bool,
+              std::to_string(e.node - 2),
+              std::to_string(e.node - 1)) <<
+            btor2::land(e.nid(), e.sid_bool, or_0, or_1) <<
             btor2::land(
               e.nid(),
               e.sid_bool,
