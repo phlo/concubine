@@ -408,4 +408,20 @@ inline void encode_litmus_amd_2 ()
     10);
 }
 
+// AMD 3: stores can be arbitrarily delayed
+//
+template <class Encoder>
+inline void encode_litmus_amd_3 ()
+{
+  const std::filesystem::path dir("examples/litmus/amd/3");
+
+  encode<Encoder>(
+    dir / "formula",
+    lst(
+      create_from_file<Program>(dir / "processor.0.asm"),
+      create_from_file<Program>(dir / "processor.1.asm")),
+    nullptr,
+    16);
+}
+
 } // namespace ConcuBinE::test
