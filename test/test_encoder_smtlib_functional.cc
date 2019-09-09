@@ -1071,5 +1071,6 @@ TEST(smtlib_Functional, encode_litmus_amd_5) { encode_litmus_amd_5<E>(); }
 TEST(smtlib_Functional, encode_litmus_amd_6) { encode_litmus_amd_6<E>(); }
 TEST(smtlib_Functional, encode_litmus_amd_7) { encode_litmus_amd_7<E>(); }
 TEST(smtlib_Functional, encode_litmus_amd_8) { encode_litmus_amd_8<E>(); }
+TEST(smtlib_Functional, encode_litmus_amd_9) { encode_litmus_amd_9<E>(); }
 
 } // namespace ConcuBinE::test

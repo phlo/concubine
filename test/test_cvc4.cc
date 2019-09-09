@@ -101,7 +101,10 @@ TEST_F(CVC4, DISABLED_litmus_amd_6_relational) { litmus_amd_6<R>(); } // ??
 TEST_F(CVC4, litmus_amd_7_functional) { litmus_amd_7<F>(); }
 TEST_F(CVC4, litmus_amd_7_relational) { litmus_amd_7<R>(); }
 
-TEST_F(CVC4, DISABLED_litmus_amd_8_functional) { litmus_amd_8<F>(); } // ~73s
+TEST_F(CVC4, DISABLED_litmus_amd_8_functional) { litmus_amd_8<F>(); } // ~1m 13s
 TEST_F(CVC4, litmus_amd_8_relational) { litmus_amd_8<R>(); }
+
+TEST_F(CVC4, litmus_amd_9_functional) { litmus_amd_9<F>(); }
+TEST_F(CVC4, DISABLED_litmus_amd_9_relational) { litmus_amd_9<R>(); } // ~27m 35s
 
 } // namespace ConcuBinE::test
