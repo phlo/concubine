@@ -4,8 +4,6 @@
 
 Dependent stores between different processors appear to occur in program order, as shown in the code example below.
 
-## Dependent Stores Appear In Program Order
-
 | Processor 0 | Processor 1 | Processor 2 |
 | ----------- | ----------- | ----------- |
 | ADDI 1      | MEM 0       |             |

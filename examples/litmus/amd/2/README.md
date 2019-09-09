@@ -6,8 +6,6 @@ Successive stores from a single processor are committed to system memory and vis
 A store by a processor cannot be committed to memory before a read appearing earlier in the program has captured its targeted data from memory.
 In other words, stores from a processor cannot be reordered to occur prior to a load preceding it in program order.
 
-## Stores Do Not Pass Loads
-
 | Processor 0 | Processor 1 |
 | ----------- | ----------- |
 | MEM 0       | MEM 1       |

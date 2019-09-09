@@ -5,8 +5,6 @@
 Stores from a processor appear to be committed to the memory system in program order; however, stores can be delayed arbitrarily by store buffering while the processor continues operation.
 Therefore, stores from a processor may not appear to be sequentially consistent.
 
-## Stores Can Be Arbitrarily Delayed
-
 | Processor 0 | Processor 1 |
 | ----------- | ----------- |
 | ADDI 1      | ADDI 1      |

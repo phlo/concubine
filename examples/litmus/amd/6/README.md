@@ -5,8 +5,6 @@
 Stores to different locations in memory observed from two (or more) other processors will appear in the same order to all observers.
 Behavior such as that is shown in this code example:
 
-## Stores Are Seen In A Consistent Order By Other Processors
-
 | Processor 0 | Processor 1 | Processor 2 | Processor 3 |
 | ----------- | ----------- | ----------- | ----------- |
 | ADDI 1      | ADDI 1      |             |             |

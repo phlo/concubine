@@ -6,8 +6,6 @@ The local visibility (within a processor) for a memory operation may differ from
 Using a data bypass, a local load can read the result of a local store in a store buffer, before the store becomes globally visible.
 Program order is still maintained when using such bypasses.
 
-## Local Visibility
-
 | Processor 0 | Processor 1 |
 | ----------- | ----------- |
 | ADDI 1      | ADDI 1      |

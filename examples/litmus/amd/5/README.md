@@ -4,8 +4,6 @@
 
 Where sequential consistency is needed (for example in Dekker’s algorithm for mutual exclusion), an `FENCE` instruction should be used between the store and the subsequent load, or an atomic instruction, such as `CAS`, should be used for the store.
 
-## Sequential Consistency
-
 | Processor 0 | Processor 1 |
 | ----------- | ----------- |
 | ADDI 1      | ADDI 1      |
