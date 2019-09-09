@@ -101,4 +101,7 @@ TEST_F(Boolector, litmus_amd_6_relational) { litmus_amd_6<R>(); }
 TEST_F(Boolector, litmus_amd_7_functional) { litmus_amd_7<F>(); }
 TEST_F(Boolector, litmus_amd_7_relational) { litmus_amd_7<R>(); }
 
+TEST_F(Boolector, litmus_amd_8_functional) { litmus_amd_8<F>(); }
+TEST_F(Boolector, litmus_amd_8_relational) { litmus_amd_8<R>(); }
+
 } // namespace ConcuBinE::test

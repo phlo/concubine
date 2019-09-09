@@ -491,4 +491,20 @@ inline void encode_litmus_amd_7 ()
     13);
 }
 
+// AMD 8: local visibility
+//
+template <class Encoder>
+inline void encode_litmus_amd_8 ()
+{
+  const std::filesystem::path dir("examples/litmus/amd/8");
+
+  encode<Encoder>(
+    dir / "formula",
+    lst(
+      create_from_file<Program>(dir / "processor.0.asm"),
+      create_from_file<Program>(dir / "processor.1.asm")),
+    mmap(create_from_file<MMap>(dir / "init.mmap")),
+    12);
+}
+
 } // namespace ConcuBinE::test
