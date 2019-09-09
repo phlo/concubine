@@ -64,7 +64,7 @@ GTEST_FILTER = --gtest_filter=
 # GTEST_FILTER += BtorMC.*
 # GTEST_FILTER += Z3.*
 # GTEST_FILTER += CVC4.*
-GTEST_FILTER += *litmus_amd_6*
+GTEST_FILTER += *litmus_amd_7*
 
 GTEST_FILTER := $(shell echo ${GTEST_FILTER} | sed -e 's/ /:/g')
 

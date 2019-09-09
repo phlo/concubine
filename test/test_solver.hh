@@ -1112,6 +1112,65 @@ struct Solver : public ::testing::Test
         },
         litmus_unsat<Encoder>());
     }
+
+  // AMD 7: dependent stores appear in program order
+  //
+  template <class Encoder>
+  void litmus_amd_7 ()
+    {
+      const std::filesystem::path dir("examples/litmus/amd/7");
+
+      constexpr size_t bound = 13;
+
+      litmus<Encoder>(
+        dir,
+        std::make_shared<Program::List>(
+          create_from_file<Program>(dir / "processor.0.asm"),
+          create_from_file<Program>(dir / "processor.1.asm"),
+          create_from_file<Program>(dir / "processor.2.asm")),
+        std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
+        bound,
+        [] (std::ostringstream & ss) {
+          ss <<
+            smtlib::comment_section("litmus test constraints") <<
+            smtlib::assertion(
+              smtlib::land({
+                smtlib::equality({
+                  smtlib::Encoder::mem_var(bound, 1),
+                  smtlib::word2hex(1)}),
+                smtlib::equality({
+                  smtlib::Encoder::mem_var(bound, 2),
+                  smtlib::word2hex(1)}),
+                smtlib::equality({
+                  smtlib::Encoder::accu_var(bound, 2),
+                  smtlib::word2hex(0)})})) <<
+            eol;
+        },
+        [] (std::ostringstream & ss, btor2::Encoder & e) {
+          ss <<
+            btor2::comment_section("litmus test constraints") <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_mem[1]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_mem[2]) <<
+            btor2::land(
+              e.nid(),
+              e.sid_bool,
+              std::to_string(e.node - 2),
+              std::to_string(e.node - 1)) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_accu[2]) <<
+            btor2::land(
+              e.nid(),
+              e.sid_bool,
+              std::to_string(e.node - 2),
+              std::to_string(e.node - 1)) <<
+            btor2::land(
+              e.nid(),
+              e.sid_bool,
+              e.nid_exit_flag,
+              std::to_string(e.node - 1)) <<
+            btor2::bad(e.node);
+        },
+        litmus_unsat<Encoder>());
+    }
 };
 
 } // namespace ConcuBinE::test

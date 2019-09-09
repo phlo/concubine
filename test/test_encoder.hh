@@ -474,4 +474,21 @@ inline void encode_litmus_amd_6 ()
     14);
 }
 
+// AMD 7: dependent stores appear in program order
+//
+template <class Encoder>
+inline void encode_litmus_amd_7 ()
+{
+  const std::filesystem::path dir("examples/litmus/amd/7");
+
+  encode<Encoder>(
+    dir / "formula",
+    lst(
+      create_from_file<Program>(dir / "processor.0.asm"),
+      create_from_file<Program>(dir / "processor.1.asm"),
+      create_from_file<Program>(dir / "processor.2.asm")),
+    mmap(create_from_file<MMap>(dir / "init.mmap")),
+    13);
+}
+
 } // namespace ConcuBinE::test

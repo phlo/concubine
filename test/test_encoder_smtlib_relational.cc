@@ -323,6 +323,7 @@ TEST(smtlib_Relational, encode_litmus_amd_3) { encode_litmus_amd_3<E>(); }
 TEST(smtlib_Relational, encode_litmus_amd_4) { encode_litmus_amd_4<E>(); }
 TEST(smtlib_Relational, encode_litmus_amd_5) { encode_litmus_amd_5<E>(); }
 TEST(smtlib_Relational, encode_litmus_amd_6) { encode_litmus_amd_6<E>(); }
+TEST(smtlib_Relational, encode_litmus_amd_7) { encode_litmus_amd_7<E>(); }
 
 TEST(smtlib_Relational, LOAD)
 {

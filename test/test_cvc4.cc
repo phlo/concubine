@@ -98,4 +98,7 @@ TEST_F(CVC4, DISABLED_litmus_amd_5_relational) { litmus_amd_5<R>(); } // ~24s
 TEST_F(CVC4, DISABLED_litmus_amd_6_functional) { litmus_amd_6<F>(); } // ~1h 23m !!
 TEST_F(CVC4, DISABLED_litmus_amd_6_relational) { litmus_amd_6<R>(); } // ??
 
+TEST_F(CVC4, litmus_amd_7_functional) { litmus_amd_7<F>(); }
+TEST_F(CVC4, litmus_amd_7_relational) { litmus_amd_7<R>(); }
+
 } // namespace ConcuBinE::test
