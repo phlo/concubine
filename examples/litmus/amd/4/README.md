@@ -2,8 +2,6 @@
 
 > [P.219](https://www.amd.com/system/files/TechDocs/24593.pdf#page=219)
 
-## Non-Overlapping Loads May Pass Stores
-
 | Processor 0 | Processor 1 |
 | ----------- | ----------- |
 | ADDI 1      | ADDI 1      |
