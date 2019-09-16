@@ -43,7 +43,7 @@ inline std::string ext (const size_t threads,
 
 // create temporary file (including directory structure)
 //
-inline std::filesystem::path mktmp (const std::filesystem::path & file,
+inline std::filesystem::path mktmp (const std::filesystem::path & file = "",
                                     const std::string & extension = "")
 {
   auto tmp = std::filesystem::temp_directory_path() / "concubine" / file;
@@ -52,7 +52,16 @@ inline std::filesystem::path mktmp (const std::filesystem::path & file,
   return tmp;
 }
 
-// write to temporary file
+// read file
+inline std::string read (const std::filesystem::path & file)
+{
+  std::ifstream ifs(file);
+  std::string content((std::istreambuf_iterator<char>(ifs)),
+                       std::istreambuf_iterator<char>());
+  return content;
+}
+
+// write to file
 //
 inline void write (const std::filesystem::path & file, const std::string & data)
 {

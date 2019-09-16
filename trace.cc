@@ -748,8 +748,7 @@ std::string Trace::print (const Step & step) const
   ss << '}';
 
   // step number
-  if (verbose)
-    ss << sep << "# " << std::to_string(step);
+  ss << sep << "# " << std::to_string(step);
 
   ss << eol;
 

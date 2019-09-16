@@ -1,0 +1,12 @@
+test/data/indirect.asm
+.
+# tid	pc	cmd	arg	accu	mem	adr	val	full	heap
+0	0	STORE	1	0	0	0	0	0	{}	# 0
+0	1	FLUSH	-	0	0	1	0	1	{}	# 1
+0	1	ADDI	1	0	0	1	0	0	{(1,0)}	# 2
+0	2	STORE	[1]	1	0	1	0	0	{}	# 3
+0	3	FLUSH	-	1	0	0	1	1	{}	# 4
+0	3	LOAD	[0]	1	0	0	1	0	{(0,1)}	# 5
+0	4	ADD	[1]	0	0	0	1	0	{}	# 6
+0	5	CMP	[1]	1	0	0	1	0	{}	# 7
+0	6	HALT	-	0	0	0	1	0	{}	# 8

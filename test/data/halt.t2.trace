@@ -1,0 +1,8 @@
+test/data/halt.asm
+test/data/halt.asm
+.
+# tid	pc	cmd	arg	accu	mem	adr	val	full	heap
+0	0	JNZ	2	0	0	0	0	0	{}	# 0
+1	0	JNZ	2	0	0	0	0	0	{}	# 1
+1	1	HALT	-	0	0	0	0	0	{}	# 2
+0	1	HALT	-	0	0	0	0	0	{}	# 3

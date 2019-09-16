@@ -53,7 +53,7 @@ GTEST_FILTER = --gtest_filter=
 # GTEST_FILTER += btor2.*
 # GTEST_FILTER += btor2_Encoder.*
 # GTEST_FILTER += Simulator.*
-# GTEST_FILTER += Main.*
+GTEST_FILTER += Main.*
 # GTEST_FILTER += Experimental.*
 # GTEST_FILTER += Instruction.*
 # GTEST_FILTER += Program.*
@@ -64,7 +64,6 @@ GTEST_FILTER = --gtest_filter=
 # GTEST_FILTER += BtorMC.*
 # GTEST_FILTER += Z3.*
 # GTEST_FILTER += CVC4.*
-GTEST_FILTER += *litmus_amd_9*
 
 GTEST_FILTER := $(shell echo ${GTEST_FILTER} | sed -e 's/ /:/g')
 

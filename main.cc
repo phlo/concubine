@@ -2,6 +2,11 @@
 
 #include "parser.hh"
 
+#include "btor2.hh"
+#include "smtlib.hh"
+
+#include "mmap.hh"
+
 #include "encoder.hh"
 #include "simulator.hh"
 
@@ -26,7 +31,7 @@ uint64_t seed = static_cast<uint64_t>(time(NULL));
 void print_usage_main (const char * name)
 {
   std::cout << "usage: " << name <<
-  " <command> [<arg> ...]" <<
+  " <command> [options]" <<
   eol << eol <<
   "available commands:" << eol <<
   "  help       print help for a specific <command>" << eol <<
@@ -43,22 +48,14 @@ void print_usage_help (const char * name)
 void print_usage_simulate (const char * name)
 {
   std::cout << "usage: " << name <<
-  " simulate [-k <bound>] [-s <seed>] [-v] <program> ..." <<
+  " simulate [options] <program> ..." <<
   eol << eol <<
-  "  -k bound   execute a maximum of <bound> steps" << eol <<
+  "options:" << eol <<
+  "  -k bound   execute a specific number of steps" << eol <<
+  "  -m mmap    read initial heap contents from file" << eol <<
+  "  -o name    output file name (default: sim.{trace,mmap})" << eol <<
   "  -s seed    random number generator's seed" << eol <<
-  "  -v         verbose trace output" << eol <<
   "  program    one ore more source files, each being executed as a separate thread" << eol;
-}
-
-void print_usage_replay (const char * name)
-{
-  std::cout << "usage: " << name <<
-  " replay [-k <bound>] [-v] <trace>" <<
-  eol << eol <<
-  "  -k bound   execute a maximum of <bound> steps" << eol <<
-  "  -v         verbose trace output" << eol <<
-  "  trace      the trace to replay" << eol;
 }
 
 void print_usage_solve (const char * name)
@@ -67,18 +64,31 @@ void print_usage_solve (const char * name)
   " solve [options] <bound> <program> ..."
   << eol << eol <<
   "options:" << eol <<
-  "  -c file    include additional constraints from file" << eol <<
+  "  -c file    read constraints from file" << eol <<
   "  -e encoder use a specific encoding, options are:" << eol <<
-  "             * smtlib-functional (default)" << eol <<
+  "             * btor2 (default)" << eol <<
+  "             * smtlib-functional" << eol <<
   "             * smtlib-relational" << eol <<
-  "             * btor2 (implies -s boolector)" << eol <<
+  "  -m mmap    read initial heap contents from file" << eol <<
+  "  -o name    output file name (default: smt.{trace,mmap})" << eol <<
   "  -p         prints the generated formula and exits" << eol <<
   "  -s solver  use a specific solver, options are:" << eol <<
-  "             * boolector (default)" << eol <<
+  "             * btormc (default)" << eol <<
+  "             * boolector" << eol <<
+  "             * cvc4" << eol <<
   "             * z3" << eol <<
   "  -v         verbose formula output" << eol <<
   "  bound      execute a specific number of steps" << eol <<
   "  program    one or more programs to encode" << eol;
+}
+
+void print_usage_replay (const char * name)
+{
+  std::cout << "usage: " << name <<
+  " replay [-k <bound>] <trace>" <<
+  eol << eol <<
+  "  -k bound   execute a specific number of steps" << eol <<
+  "  trace      the trace to replay" << eol;
 }
 
 //==============================================================================
@@ -133,27 +143,71 @@ int help (const char * name, const int argc, const char **argv)
 int simulate (const char * name, const int argc, const char ** argv)
 {
   size_t bound = 0;
+  std::shared_ptr<MMap> mmap;
+  std::string outname = "sim";
   Program::List::ptr programs = std::make_shared<Program::List>();
 
   for (int i = 0; i < argc; i++)
     {
       std::string arg(argv[i]);
 
-      if (arg == "-v")
-        {
-          verbose = true;
-        }
-      else if (arg == "-s")
+      if (!strcmp(argv[i], "-k"))
         {
           try
             {
-              if (++i < argc)
-                seed = stoul((arg = argv[i]), nullptr, 0);
-              else
+              if (++i >= argc)
+                {
+                  print_error("missing bound");
+                  return -1;
+                }
+
+              bound = stoul((arg = argv[i]), nullptr, 0);
+            }
+          catch (...)
+            {
+              print_error("illegal bound [" + arg + "]");
+              return -1;
+            }
+        }
+      else if (!strcmp(argv[i], "-m"))
+        {
+          if (++i >= argc)
+            {
+              print_error("missing path to memory map");
+              return -1;
+            }
+
+          try
+            {
+              mmap = std::make_shared<MMap>(create_from_file<MMap>(argv[i]));
+            }
+          catch (const std::exception & e)
+            {
+              print_error(e.what());
+              return -1;
+            }
+        }
+      else if (!strcmp(argv[i], "-o"))
+        {
+          if (++i >= argc)
+            {
+              print_error("missing output file name");
+              return -1;
+            }
+
+          outname = argv[i];
+        }
+      else if (!strcmp(argv[i], "-s"))
+        {
+          try
+            {
+              if (++i >= argc)
                 {
                   print_error("missing seed");
                   return -1;
                 }
+
+              seed = stoul((arg = argv[i]), nullptr, 0);
             }
           catch (...)
             {
@@ -161,23 +215,11 @@ int simulate (const char * name, const int argc, const char ** argv)
               return -1;
             }
         }
-      else if (arg == "-k")
+      else if (argv[i][0] == '-')
         {
-          try
-            {
-              if (++i < argc)
-                bound = stoul((arg = argv[i]), nullptr, 0);
-              else
-                {
-                  print_error("missing bound");
-                  return -1;
-                }
-            }
-          catch (...)
-            {
-              print_error("illegal bound [" + arg + "]");
-              return -1;
-            }
+          print_error("unknown option [" + std::string(argv[i]) + "]");
+          print_usage_solve(name);
+          return -1;
         }
       else
         {
@@ -201,82 +243,21 @@ int simulate (const char * name, const int argc, const char ** argv)
     }
 
   // run program with given seed
-  // TODO: MMap
-  Trace::ptr trace = Simulator().simulate(programs, {}, bound);
+  auto trace = Simulator().simulate(programs, mmap, bound);
 
-  // print the result
-  std::cout << trace->print();
+  // write mmap
+  if (trace->mmap)
+    {
+      trace->mmap->path = outname + ".mmap";
+      std::ofstream mmap_ofs(trace->mmap->path);
+      mmap_ofs << trace->mmap->print();
+    }
+
+  // write trace
+  std::ofstream trace_ofs(outname + ".trace");
+  trace_ofs << trace->print();
 
   return trace->exit;
-}
-
-//------------------------------------------------------------------------------
-// replay
-//------------------------------------------------------------------------------
-
-int replay (const char * name, const int argc, const char ** argv)
-{
-  size_t bound = 0;
-  std::string trace_path;
-
-  for (int i = 0; i < argc; i++)
-    {
-      std::string arg(argv[i]);
-
-      if (arg == "-v")
-        {
-          verbose = true;
-        }
-      else if (arg == "-k")
-        {
-          try
-            {
-              if (++i < argc)
-                bound = stoul((arg = argv[i]), nullptr, 0);
-              else
-                {
-                  print_error("missing bound");
-                  return -1;
-                }
-            }
-          catch (...)
-            {
-              print_error("illegal bound [" + arg + "]");
-              return -1;
-            }
-        }
-      else
-        {
-          trace_path = arg;
-        }
-    }
-
-  if (trace_path.empty())
-    {
-      print_error("no trace given");
-      print_usage_replay(name);
-      return -1;
-    }
-
-  try
-    {
-      // create and parse trace
-      Trace::ptr trace =
-        std::make_unique<Trace>(create_from_file<Trace>(trace_path));
-
-      // run given trace
-      trace = Simulator().replay(*trace, bound);
-
-      // print the result
-      std::cout << trace->print();
-
-      return trace->exit;
-    }
-  catch (const std::exception & e)
-    {
-      print_error(e.what());
-      return -1;
-    }
 }
 
 //------------------------------------------------------------------------------
@@ -285,6 +266,15 @@ int replay (const char * name, const int argc, const char ** argv)
 
 int solve (const char * name, const int argc, const char ** argv)
 {
+  static const std::string encoder_btor2 = "btor2";
+  static const std::string encoder_smtlib_functional = "smtlib-functional";
+  static const std::string encoder_smtlib_relational = "smtlib-relational";
+
+  static const std::string solver_btormc = "btormc";
+  static const std::string solver_boolector = "boolector";
+  static const std::string solver_cvc4 = "cvc4";
+  static const std::string solver_z3 = "z3";
+
   if (argc < 2)
     {
       print_error("too few arguments");
@@ -302,11 +292,17 @@ int solve (const char * name, const int argc, const char ** argv)
       // additional constraints from file
       std::string constraints;
 
+      // memory map
+      std::shared_ptr<MMap> mmap;
+
       // encoder name
-      std::string encoder_name = "smtlib-functional";
+      std::string encoder_name = encoder_btor2;
 
       // solver name
-      std::string solver_name = "boolector";
+      std::string solver_name = solver_btormc;
+
+      // output file name
+      std::string outname = "smt";
 
       // parse flags
       do
@@ -319,13 +315,7 @@ int solve (const char * name, const int argc, const char ** argv)
                 return -1;
               }
 
-            std::ifstream ifs(argv[i]);
-            constraints.assign(
-              std::istreambuf_iterator<char>(ifs),
-              std::istreambuf_iterator<char>());
-
-            if (constraints.empty())
-              throw std::runtime_error(std::string(argv[i]) + " not found");
+            constraints = argv[i];
           }
         else if (!strcmp(argv[i], "-e"))
           {
@@ -337,6 +327,28 @@ int solve (const char * name, const int argc, const char ** argv)
               }
 
             encoder_name = argv[i];
+          }
+        else if (!strcmp(argv[i], "-m"))
+          {
+            if (++i >= argc)
+              {
+                print_error("missing memory map");
+                print_usage_solve(name);
+                return -1;
+              }
+
+            mmap = std::make_shared<MMap>(create_from_file<MMap>(argv[i]));
+          }
+        else if (!strcmp(argv[i], "-o"))
+          {
+            if (++i >= argc)
+              {
+                print_error("missing output file name");
+                print_usage_solve(name);
+                return -1;
+              }
+
+            outname = argv[i];
           }
         else if (!strcmp(argv[i], "-p"))
           {
@@ -368,9 +380,9 @@ int solve (const char * name, const int argc, const char ** argv)
       while (++i < argc);
 
       // check for bound and program
-      if (argc < i + 2)
+      if (i >= argc)
         {
-          print_error("too few arguments");
+          print_error("missing bound");
           print_usage_solve(name);
           return -1;
         }
@@ -381,7 +393,7 @@ int solve (const char * name, const int argc, const char ** argv)
         {
           bound = std::stoul(argv[i++], nullptr, 0);
 
-          if (bound < 1) throw std::runtime_error("");
+          if (!bound) throw std::runtime_error("");
         }
       catch (...)
         {
@@ -389,25 +401,29 @@ int solve (const char * name, const int argc, const char ** argv)
           return -1;
         }
 
-      // list of programs (thread id == idx + 1)
+      // list of programs
       Program::List::ptr programs = std::make_shared<Program::List>();
 
       // parse programs
       while (i < argc)
         programs->push_back(create_from_file<Program>(argv[i++]));
 
-      // memory map
-      std::shared_ptr<MMap> mmap;
+      if (programs->empty())
+        {
+          print_error("missing programs");
+          print_usage_solve(name);
+          return -1;
+        }
 
       // encode program
       std::unique_ptr<Encoder> encoder;
 
-      if (encoder_name == "smtlib-functional")
-        encoder = std::make_unique<smtlib::Functional>(programs, mmap, bound);
-      else if (encoder_name == "smtlib-relational")
-        encoder = std::make_unique<smtlib::Relational>(programs, mmap, bound);
-      else if (encoder_name == "btor2")
+      if (encoder_name == encoder_btor2)
         encoder = std::make_unique<btor2::Encoder>(programs, mmap, bound);
+      else if (encoder_name == encoder_smtlib_functional)
+        encoder = std::make_unique<smtlib::Functional>(programs, mmap, bound);
+      else if (encoder_name == encoder_smtlib_relational)
+        encoder = std::make_unique<smtlib::Relational>(programs, mmap, bound);
       else
         {
           print_error("unknown encoder [" + encoder_name + "]");
@@ -417,21 +433,51 @@ int solve (const char * name, const int argc, const char ** argv)
 
       encoder->encode();
 
-      // append constraints from file
+      // append constraints
       if (!constraints.empty())
-        encoder->formula << constraints;
+        {
+          std::ifstream ifs(constraints);
+
+          if (!ifs.is_open())
+            {
+              print_error(constraints + " not found");
+              return -1;
+            }
+
+          encoder->formula << ifs.rdbuf();
+        }
+      else if (encoder_name == encoder_btor2)
+        {
+          auto & e = dynamic_cast<btor2::Encoder &>(*encoder);
+          encoder->formula <<
+            btor2::ne(
+              e.nid(),
+              e.sid_bool,
+              e.nids_const[0],
+              e.nid_exit_code) <<
+            btor2::bad(e.node);
+        }
+      else
+        {
+          encoder->formula <<
+            smtlib::assertion(
+              smtlib::lnot(
+                smtlib::equality({
+                  smtlib::Encoder::exit_code_var,
+                  smtlib::word2hex(0)})));
+        }
 
       // select solver
       std::unique_ptr<Solver> solver;
 
-      if (encoder_name == "btor2")
+      if (encoder_name == encoder_btor2)
         solver = std::make_unique<BtorMC>();
-      else if (solver_name == "boolector")
+      else if (solver_name == solver_boolector)
         solver = std::make_unique<Boolector>();
-      else if (solver_name == "z3")
-        solver = std::make_unique<Z3>();
-      else if (solver_name == "cvc4")
+      else if (solver_name == solver_cvc4)
         solver = std::make_unique<CVC4>();
+      else if (solver_name == solver_z3)
+        solver = std::make_unique<Z3>();
       else
         {
           print_error("unknown solver [" + solver_name + "]");
@@ -439,11 +485,26 @@ int solve (const char * name, const int argc, const char ** argv)
           return -1;
         }
 
-      // print formula if we're pretending
       if (pretend)
-        std::cout << solver->formula(*encoder);
+        {
+          std::cout << solver->formula(*encoder);
+        }
       else
-        std::cout << solver->solve(*encoder)->print();
+        {
+          auto trace = solver->solve(*encoder);
+
+          // write mmap
+          if (trace->mmap)
+            {
+              trace->mmap->path = outname + ".mmap";
+              std::ofstream mmap_ofs(trace->mmap->path);
+              mmap_ofs << trace->mmap->print();
+            }
+
+          // write trace
+          std::ofstream trace_ofs(outname + ".trace");
+          trace_ofs << trace->print();
+        }
     }
   catch (const std::exception & e)
     {
@@ -452,6 +513,68 @@ int solve (const char * name, const int argc, const char ** argv)
     }
 
   return 0;
+}
+
+//------------------------------------------------------------------------------
+// replay
+//------------------------------------------------------------------------------
+
+int replay (const char * name, const int argc, const char ** argv)
+{
+  size_t bound = 0;
+  std::string trace_path;
+
+  for (int i = 0; i < argc; i++)
+    {
+      if (!strcmp(argv[i], "-k"))
+        {
+          try
+            {
+              if (++i < argc)
+                bound = std::stoul(argv[i], nullptr, 0);
+              else
+                {
+                  print_error("missing bound");
+                  return -1;
+                }
+            }
+          catch (...)
+            {
+              print_error("illegal bound [" + std::string(argv[i]) + "]");
+              return -1;
+            }
+        }
+      else
+        {
+          trace_path = argv[i];
+        }
+    }
+
+  if (trace_path.empty())
+    {
+      print_error("no trace given");
+      print_usage_replay(name);
+      return -1;
+    }
+
+  try
+    {
+      // create and parse trace
+      auto trace = std::make_unique<Trace>(create_from_file<Trace>(trace_path));
+
+      // run given trace
+      trace = Simulator().replay(*trace, bound);
+
+      // print the result
+      std::cout << trace->print();
+
+      return trace->exit;
+    }
+  catch (const std::exception & e)
+    {
+      print_error(e.what());
+      return -1;
+    }
 }
 
 } // namespace ConcuBinE

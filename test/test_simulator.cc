@@ -87,7 +87,7 @@ TEST_F(Simulator, run_simple)
       }
   });
 
-  ASSERT_EQ(trace->length, simulator.step);
+  ASSERT_EQ(trace->size(), simulator.step);
 
   ASSERT_EQ(State::halted, simulator.state[0]);
   ASSERT_EQ(State::halted, simulator.state[1]);
@@ -203,7 +203,7 @@ TEST_F(Simulator, run_add_check_exit)
       }
   });
 
-  ASSERT_EQ(trace->length, simulator.step);
+  ASSERT_EQ(trace->size(), simulator.step);
 
   ASSERT_EQ(State::exited, simulator.state[0]);
   ASSERT_EQ(State::running, simulator.state[1]);
@@ -511,7 +511,7 @@ TEST_F(Simulator, run_race_condition)
       }
   });
 
-  ASSERT_EQ(trace->length, simulator.step);
+  ASSERT_EQ(trace->size(), simulator.step);
 
   ASSERT_EQ(State::exited, simulator.state[0]);
   ASSERT_EQ(State::halted, simulator.state[1]);
@@ -601,7 +601,7 @@ TEST_F(Simulator, run_zero_bound)
       }
   });
 
-  EXPECT_EQ(trace->length, simulator.step);
+  EXPECT_EQ(trace->size(), simulator.step);
 
   EXPECT_EQ(State::running, simulator.state[0]);
 
@@ -684,7 +684,7 @@ TEST_F(Simulator, run_final_thread)
       }
   });
 
-  ASSERT_EQ(trace->length, simulator.step);
+  ASSERT_EQ(trace->size(), simulator.step);
 
   ASSERT_EQ(State::running, simulator.state[0]);
   ASSERT_EQ(State::running, simulator.state[1]);
@@ -795,7 +795,7 @@ TEST_F(Simulator, run_final_flush)
       }
   });
 
-  ASSERT_EQ(trace->length, simulator.step);
+  ASSERT_EQ(trace->size(), simulator.step);
 
   ASSERT_EQ(State::running, simulator.state[0]);
   ASSERT_EQ(State::running, simulator.state[1]);
@@ -853,8 +853,8 @@ TEST_F(Simulator, run_final_flush)
 
 TEST_F(Simulator, simulate_increment_check)
 {
-  std::ifstream trace_file("test/data/increment.check.t2.k16.trace");
-  std::string expected((std::istreambuf_iterator<char>(trace_file)),
+  std::ifstream trace_ifs("test/data/increment.check.t2.k16.trace");
+  std::string expected((std::istreambuf_iterator<char>(trace_ifs)),
                         std::istreambuf_iterator<char>());
 
   trace =
@@ -868,32 +868,85 @@ TEST_F(Simulator, simulate_increment_check)
   ASSERT_EQ(
     Trace::update_map<word_t>({{3,0}, {14, 0}}),
     trace->heap_adr_updates);
+  ASSERT_EQ(
+    Trace::heap_val_map({{0, {{3, 0}, {14, 1}}}}),
+    trace->heap_val_updates);
 
   ASSERT_EQ(0, trace->exit);
-  ASSERT_EQ(17, trace->length);
+  ASSERT_EQ(17, trace->size());
   ASSERT_EQ(expected, trace->print());
 }
 
 TEST_F(Simulator, simulate_increment_cas)
 {
-  std::ifstream trace_file("test/data/increment.cas.t2.k16.trace");
-  std::string expected((std::istreambuf_iterator<char>(trace_file)),
+  std::ifstream trace_ifs("test/data/increment.cas.t2.k16.trace");
+  std::string expected((std::istreambuf_iterator<char>(trace_ifs)),
                         std::istreambuf_iterator<char>());
 
-  auto increment = create_from_file<Program>("test/data/increment.cas.asm");
+  program = create_from_file<Program>("test/data/increment.cas.asm");
 
   trace =
     simulator.simulate(
-      std::make_shared<Program::List>(increment, increment),
+      std::make_shared<Program::List>(program, program),
       {},
       16);
 
   ASSERT_EQ(
     Trace::update_map<word_t>({{3, 0}, {4, 0}, {12, 0}}),
     trace->heap_adr_updates);
+  ASSERT_EQ(
+    Trace::heap_val_map({{0, {{3, 0}, {12, 1}}}}),
+    trace->heap_val_updates);
 
   ASSERT_EQ(0, trace->exit);
-  ASSERT_EQ(17, trace->length);
+  ASSERT_EQ(17, trace->size());
+  ASSERT_EQ(expected, trace->print());
+}
+
+TEST_F(Simulator, simulate_indirect)
+{
+  std::ifstream trace_ifs("test/data/indirect.t1.trace");
+  std::string expected((std::istreambuf_iterator<char>(trace_ifs)),
+                        std::istreambuf_iterator<char>());
+
+  trace =
+    simulator.simulate(
+      std::make_shared<Program::List>(
+        create_from_file<Program>("test/data/indirect.asm")),
+      {},
+      8);
+
+  ASSERT_EQ(
+    Trace::update_map<word_t>({{2, 1}, {5, 0}}),
+    trace->heap_adr_updates);
+  ASSERT_EQ(
+    Trace::heap_val_map({{0, {{5, 1}}}, {1, {{2, 0}}}}),
+    trace->heap_val_updates);
+
+  ASSERT_EQ(0, trace->exit);
+  ASSERT_EQ(9, trace->size());
+  ASSERT_EQ(expected, trace->print());
+}
+
+TEST_F(Simulator, simulate_halt)
+{
+  std::ifstream trace_ifs("test/data/halt.t2.trace");
+  std::string expected((std::istreambuf_iterator<char>(trace_ifs)),
+                        std::istreambuf_iterator<char>());
+
+  program = create_from_file<Program>("test/data/halt.asm");
+
+  trace =
+    simulator.simulate(
+      std::make_shared<Program::List>(program, program),
+      {},
+      8);
+
+  ASSERT_TRUE(trace->heap_adr_updates.empty());
+  ASSERT_TRUE(trace->heap_val_updates.empty());
+
+  ASSERT_EQ(0, trace->exit);
+  ASSERT_EQ(4, trace->size());
   ASSERT_EQ(expected, trace->print());
 }
 
@@ -910,7 +963,7 @@ TEST_F(Simulator, simulate_load_uninitialized)
   trace = simulator.simulate(programs, {}, 0);
 
   ASSERT_EQ(0, trace->exit);
-  ASSERT_EQ(6, trace->length);
+  ASSERT_EQ(6, trace->size());
   ASSERT_EQ(
     Trace::thread_map<word_t>({
       {{0, 0}, {1, 63883}},
@@ -942,7 +995,7 @@ TEST_F(Simulator, simulate_load_mmap)
   trace = simulator.simulate(programs, mmap, 0);
 
   ASSERT_EQ(0, trace->exit);
-  ASSERT_EQ(6, trace->length);
+  ASSERT_EQ(6, trace->size());
   ASSERT_EQ(
     Trace::thread_map<word_t>({
       {{0, 0}, {1, 1}},
@@ -957,7 +1010,7 @@ TEST_F(Simulator, simulate_load_mmap)
 
 TEST_F(Simulator, replay_increment_check)
 {
-  const std::string trace_path = "test/data/increment.check.t2.k16.trace";
+  std::string trace_path = "test/data/increment.check.t2.k16.trace";
 
   std::ifstream sfs(trace_path);
   std::string expected((std::istreambuf_iterator<char>(sfs)),
@@ -970,13 +1023,13 @@ TEST_F(Simulator, replay_increment_check)
   trace = simulator.replay(*trace);
 
   ASSERT_EQ(0, trace->exit);
-  ASSERT_EQ(17, trace->length);
+  ASSERT_EQ(17, trace->size());
   ASSERT_EQ(expected, trace->print());
 }
 
 TEST_F(Simulator, replay_increment_cas)
 {
-  const std::string trace_path = "test/data/increment.cas.t2.k16.trace";
+  std::string trace_path = "test/data/increment.cas.t2.k16.trace";
 
   std::ifstream sfs(trace_path);
   std::string expected((std::istreambuf_iterator<char>(sfs)),
@@ -989,7 +1042,7 @@ TEST_F(Simulator, replay_increment_cas)
   trace = simulator.replay(*trace);
 
   ASSERT_EQ(0, trace->exit);
-  ASSERT_EQ(17, trace->length);
+  ASSERT_EQ(17, trace->size());
   ASSERT_EQ(expected, trace->print());
 }
 
