@@ -144,7 +144,7 @@ int simulate (const char * name, const int argc, const char ** argv)
 {
   size_t bound = 0;
   std::shared_ptr<MMap> mmap;
-  std::string outname = "sim";
+  std::string outfile = "sim";
   Program::List::ptr programs = std::make_shared<Program::List>();
 
   for (int i = 0; i < argc; i++)
@@ -195,7 +195,7 @@ int simulate (const char * name, const int argc, const char ** argv)
               return -1;
             }
 
-          outname = argv[i];
+          outfile = argv[i];
         }
       else if (!strcmp(argv[i], "-s"))
         {
@@ -248,13 +248,13 @@ int simulate (const char * name, const int argc, const char ** argv)
   // write mmap
   if (trace->mmap)
     {
-      trace->mmap->path = outname + ".mmap";
+      trace->mmap->path = outfile + ".mmap";
       std::ofstream mmap_ofs(trace->mmap->path);
       mmap_ofs << trace->mmap->print();
     }
 
   // write trace
-  std::ofstream trace_ofs(outname + ".trace");
+  std::ofstream trace_ofs(outfile + ".trace");
   trace_ofs << trace->print();
 
   return trace->exit;
@@ -266,15 +266,6 @@ int simulate (const char * name, const int argc, const char ** argv)
 
 int solve (const char * name, const int argc, const char ** argv)
 {
-  static const std::string encoder_btor2 = "btor2";
-  static const std::string encoder_smtlib_functional = "smtlib-functional";
-  static const std::string encoder_smtlib_relational = "smtlib-relational";
-
-  static const std::string solver_btormc = "btormc";
-  static const std::string solver_boolector = "boolector";
-  static const std::string solver_cvc4 = "cvc4";
-  static const std::string solver_z3 = "z3";
-
   if (argc < 2)
     {
       print_error("too few arguments");
@@ -295,14 +286,42 @@ int solve (const char * name, const int argc, const char ** argv)
       // memory map
       std::shared_ptr<MMap> mmap;
 
-      // encoder name
-      std::string encoder_name = encoder_btor2;
+      // encoder type
+      enum encoder_t
+        {
+          btor2,
+          smtlib_functional,
+          smtlib_relational
+        };
 
-      // solver name
-      std::string solver_name = solver_btormc;
+      encoder_t encoder_type = btor2;
+
+      const std::string encoder_names[] = {
+        "btor2",
+        "smtlib-functional",
+        "smtlib-relational"
+      };
+
+      // solver type
+      enum solver_t
+        {
+          btormc,
+          boolector,
+          cvc4,
+          z3
+        };
+
+      solver_t solver_type = btormc;
+
+      const std::string solver_names[] = {
+        "btormc",
+        "boolector",
+        "cvc4",
+        "z3"
+      };
 
       // output file name
-      std::string outname = "smt";
+      std::string outfile = "smt";
 
       // parse flags
       do
@@ -326,13 +345,24 @@ int solve (const char * name, const int argc, const char ** argv)
                 return -1;
               }
 
-            encoder_name = argv[i];
+            if (!strcmp(argv[i], encoder_names[btor2].c_str()))
+              encoder_type = encoder_t::btor2;
+            else if (!strcmp(argv[i], encoder_names[smtlib_functional].c_str()))
+              encoder_type = encoder_t::smtlib_functional;
+            else if (!strcmp(argv[i], encoder_names[smtlib_relational].c_str()))
+              encoder_type = encoder_t::smtlib_relational;
+            else
+              {
+                print_error("unknown encoder [" + std::string(argv[i]) + "]");
+                print_usage_solve(name);
+                return -1;
+              }
           }
         else if (!strcmp(argv[i], "-m"))
           {
             if (++i >= argc)
               {
-                print_error("missing memory map");
+                print_error("missing path to memory map");
                 print_usage_solve(name);
                 return -1;
               }
@@ -348,7 +378,7 @@ int solve (const char * name, const int argc, const char ** argv)
                 return -1;
               }
 
-            outname = argv[i];
+            outfile = argv[i];
           }
         else if (!strcmp(argv[i], "-p"))
           {
@@ -363,7 +393,20 @@ int solve (const char * name, const int argc, const char ** argv)
                 return -1;
               }
 
-            solver_name = argv[i];
+            if (!strcmp(argv[i], solver_names[btormc].c_str()))
+              solver_type = solver_t::btormc;
+            else if (!strcmp(argv[i], solver_names[boolector].c_str()))
+              solver_type = solver_t::boolector;
+            else if (!strcmp(argv[i], solver_names[cvc4].c_str()))
+              solver_type = solver_t::cvc4;
+            else if (!strcmp(argv[i], solver_names[z3].c_str()))
+              solver_type = solver_t::z3;
+            else
+              {
+                print_error("unknown solver [" + std::string(argv[i]) + "]");
+                print_usage_solve(name);
+                return -1;
+              }
           }
         else if (!strcmp(argv[i], "-v"))
           {
@@ -418,18 +461,12 @@ int solve (const char * name, const int argc, const char ** argv)
       // encode program
       std::unique_ptr<Encoder> encoder;
 
-      if (encoder_name == encoder_btor2)
+      if (encoder_type == btor2)
         encoder = std::make_unique<btor2::Encoder>(programs, mmap, bound);
-      else if (encoder_name == encoder_smtlib_functional)
+      else if (encoder_type == smtlib_functional)
         encoder = std::make_unique<smtlib::Functional>(programs, mmap, bound);
-      else if (encoder_name == encoder_smtlib_relational)
+      else if (encoder_type == smtlib_relational)
         encoder = std::make_unique<smtlib::Relational>(programs, mmap, bound);
-      else
-        {
-          print_error("unknown encoder [" + encoder_name + "]");
-          print_usage_solve(name);
-          return -1;
-        }
 
       encoder->encode();
 
@@ -446,7 +483,7 @@ int solve (const char * name, const int argc, const char ** argv)
 
           encoder->formula << ifs.rdbuf();
         }
-      else if (encoder_name == encoder_btor2)
+      else if (encoder_type == btor2)
         {
           auto & e = dynamic_cast<btor2::Encoder &>(*encoder);
           encoder->formula <<
@@ -470,18 +507,25 @@ int solve (const char * name, const int argc, const char ** argv)
       // select solver
       std::unique_ptr<Solver> solver;
 
-      if (encoder_name == encoder_btor2)
+      if (solver_type == btormc)
         solver = std::make_unique<BtorMC>();
-      else if (solver_name == solver_boolector)
+      else if (solver_type == boolector)
         solver = std::make_unique<Boolector>();
-      else if (solver_name == solver_cvc4)
+      else if (solver_type == cvc4)
         solver = std::make_unique<CVC4>();
-      else if (solver_name == solver_z3)
+      else if (solver_type == z3)
         solver = std::make_unique<Z3>();
-      else
+
+      // check compatibility
+      if ((encoder_type == btor2 && solver_type != btormc) ||
+          (encoder_type != btor2 && solver_type == btormc))
         {
-          print_error("unknown solver [" + solver_name + "]");
-          print_usage_solve(name);
+          print_error(
+            "[" +
+            solver_names[solver_type] +
+            "] cannot be used with [" +
+            encoder_names[encoder_type] +
+            "] encoding");
           return -1;
         }
 
@@ -496,13 +540,13 @@ int solve (const char * name, const int argc, const char ** argv)
           // write mmap
           if (trace->mmap)
             {
-              trace->mmap->path = outname + ".mmap";
+              trace->mmap->path = outfile + ".mmap";
               std::ofstream mmap_ofs(trace->mmap->path);
               mmap_ofs << trace->mmap->print();
             }
 
           // write trace
-          std::ofstream trace_ofs(outname + ".trace");
+          std::ofstream trace_ofs(outfile + ".trace");
           trace_ofs << trace->print();
         }
     }
