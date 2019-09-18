@@ -97,7 +97,7 @@ struct Encoder
   //
   // std::shared_ptr - forwarded to the solver for generating a Trace
   //
-  Program::List::ptr programs;
+  std::shared_ptr<Program::List> programs;
 
   // number of threads (short hand for programs->size())
   //
@@ -159,7 +159,7 @@ struct Encoder
   // constructors
   //----------------------------------------------------------------------------
 
-  Encoder (const Program::List::ptr & programs,
+  Encoder (const std::shared_ptr<Program::List> & programs,
            const std::shared_ptr<MMap> & mmap,
            size_t bound);
 
@@ -309,7 +309,7 @@ struct Encoder : public ConcuBinE::Encoder
   // constructors
   //----------------------------------------------------------------------------
 
-  Encoder (const Program::List::ptr & programs,
+  Encoder (const std::shared_ptr<Program::List> & programs,
            const std::shared_ptr<MMap> & mmap,
            size_t bound);
 
@@ -828,7 +828,7 @@ struct Encoder : public ConcuBinE::Encoder
   // constructors
   //----------------------------------------------------------------------------
 
-  Encoder (const Program::List::ptr & programs,
+  Encoder (const std::shared_ptr<Program::List> & programs,
            const std::shared_ptr<MMap> & mmap,
            size_t bound);
 

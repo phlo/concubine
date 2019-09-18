@@ -144,7 +144,7 @@ const std::string Encoder::check_comment =
 // constructors
 //------------------------------------------------------------------------------
 
-Encoder::Encoder (const Program::List::ptr & p,
+Encoder::Encoder (const std::shared_ptr<Program::List> & p,
                   const std::shared_ptr<MMap> & m,
                   const size_t b) :
   ConcuBinE::Encoder(p, m, b),

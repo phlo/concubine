@@ -99,7 +99,7 @@ inline Encoder init (Encoder e) { return e; }
 // create encoder
 //
 template <class Encoder>
-inline Encoder create (const Program::List::ptr & p = lst(),
+inline Encoder create (const std::shared_ptr<Program::List> & p = lst(),
                        const std::shared_ptr<MMap> & m = {},
                        const size_t b = 1)
 {

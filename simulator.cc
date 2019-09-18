@@ -34,7 +34,7 @@ Simulator::Simulator () : random(seed) {}
 
 // Simulator::init -------------------------------------------------------------
 
-void Simulator::init (const Program::List::ptr & p,
+void Simulator::init (const std::shared_ptr<Program::List> & p,
                       const std::shared_ptr<MMap> & m,
                       const size_t b)
 {
@@ -459,7 +459,7 @@ Trace::ptr Simulator::run (std::function<void()> scheduler)
 
 // Simulator::simulate ---------------------------------------------------------
 
-Trace::ptr Simulator::simulate (const Program::List::ptr & p,
+Trace::ptr Simulator::simulate (const std::shared_ptr<Program::List> & p,
                                 const std::shared_ptr<MMap> & m,
                                 const size_t b)
 {

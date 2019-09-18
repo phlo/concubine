@@ -17,7 +17,7 @@ namespace ConcuBinE {
 // constructors
 //------------------------------------------------------------------------------
 
-Trace::Trace (const Program::List::ptr & p,
+Trace::Trace (const std::shared_ptr<Program::List> & p,
               const std::shared_ptr<MMap> & m) :
   programs(p),
   mmap(m),

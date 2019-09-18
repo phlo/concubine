@@ -30,7 +30,7 @@ struct Solver : public ::testing::Test
   //
   template <class Encoder>
   void simulate (const std::filesystem::path & stem,
-                 const Program::List::ptr & programs,
+                 const std::shared_ptr<Program::List> & programs,
                  const std::shared_ptr<MMap> & mmap,
                  const size_t bound)
     {

@@ -102,7 +102,7 @@ struct Simulator
 
   // (re)initialize
   //
-  void init (const Program::List::ptr & programs,
+  void init (const std::shared_ptr<Program::List> & programs,
              const std::shared_ptr<MMap> & mmap,
              size_t bound);
 
@@ -197,7 +197,7 @@ struct Simulator
 
   // simulate given programs using a random scheduler
   //
-  Trace::ptr simulate (const Program::List::ptr & programs,
+  Trace::ptr simulate (const std::shared_ptr<Program::List> & programs,
                        const std::shared_ptr<MMap> & mmap = {},
                        size_t bound = 0);
 

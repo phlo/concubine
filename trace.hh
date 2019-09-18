@@ -182,7 +182,7 @@ struct Trace
   //
   // NOTE: copied during replay
   //
-  Program::List::ptr programs;
+  std::shared_ptr<Program::List> programs;
 
   // memory map used to produce the trace
   //
@@ -241,7 +241,7 @@ struct Trace
 
   // construct from simulator/solver
   //
-  Trace (const Program::List::ptr & programs,
+  Trace (const std::shared_ptr<Program::List> & programs,
          const std::shared_ptr<MMap> & mmap = {});
 
   // construct from file

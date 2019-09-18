@@ -50,7 +50,7 @@ const std::string Encoder::check_comment     = "checkpoint variables";
 // constructors
 //------------------------------------------------------------------------------
 
-Encoder::Encoder (const Program::List::ptr & p,
+Encoder::Encoder (const std::shared_ptr<Program::List> & p,
                   const std::shared_ptr<MMap> & m,
                   size_t b) :
   programs(p),

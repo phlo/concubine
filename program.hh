@@ -32,8 +32,6 @@ struct Program : public std::vector<Instruction>
   //
   struct List : public std::vector<Program>
     {
-      using ptr = std::shared_ptr<List>;
-
       //------------------------------------------------------------------------
       // constructors
       //------------------------------------------------------------------------

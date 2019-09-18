@@ -34,7 +34,7 @@ struct Trace : public ::testing::Test
 
   void create_dummy_trace (const size_t num_programs)
     {
-      Program::List::ptr programs = std::make_unique<Program::List>();
+      auto programs = std::make_shared<Program::List>();
       programs->resize(num_programs);
       trace = std::make_unique<ConcuBinE::Trace>(programs);
     }
@@ -1358,8 +1358,8 @@ TEST_F(Trace, iterator_cas)
 
 TEST_F(Trace, operator_equals)
 {
-  Program::List::ptr p1 = std::make_unique<Program::List>(2);
-  Program::List::ptr p2 = std::make_unique<Program::List>(2);
+  auto p1 = std::make_shared<Program::List>(2);
+  auto p2 = std::make_shared<Program::List>(2);
 
   p1->at(0).path = "program_1.asm";
   p1->at(0).push_back(Instruction::create("STORE", 1));

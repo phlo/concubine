@@ -86,7 +86,7 @@ Trace::ptr Z3::solve (Encoder & encoder)
 
   time = duration_cast<milliseconds>(high_resolution_clock::now() - t).count();
 
-  const Program::List::ptr & programs = encoder.programs;
+  const auto & programs = encoder.programs;
 
   Trace::ptr trace = std::make_unique<Trace>(programs, encoder.mmap);
 

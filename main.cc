@@ -240,7 +240,7 @@ int simulate (const char * name, const int argc, const char ** argv)
         }
 
       // program list
-      Program::List::ptr programs = std::make_shared<Program::List>();
+      auto programs = std::make_shared<Program::List>();
 
       // parse programs
       while (i < argc)
@@ -448,7 +448,7 @@ int solve (const char * name, const int argc, const char ** argv)
         }
 
       // list of programs
-      Program::List::ptr programs = std::make_shared<Program::List>();
+      auto programs = std::make_shared<Program::List>();
 
       // parse programs
       while (i < argc)
