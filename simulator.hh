@@ -54,7 +54,7 @@ struct Simulator
 
   // generated trace
   //
-  Trace::ptr trace;
+  std::unique_ptr<Trace> trace;
 
   // bound
   //
@@ -189,7 +189,7 @@ struct Simulator
 
   // run the simulator, using the specified scheduler
   //
-  Trace::ptr run (std::function<void()> scheduler);
+  std::unique_ptr<Trace> run (std::function<void()> scheduler);
 
   //----------------------------------------------------------------------------
   // public functions
@@ -197,13 +197,13 @@ struct Simulator
 
   // simulate given programs using a random scheduler
   //
-  Trace::ptr simulate (const std::shared_ptr<Program::List> & programs,
-                       const std::shared_ptr<MMap> & mmap = {},
-                       size_t bound = 0);
+  std::unique_ptr<Trace> simulate (const std::shared_ptr<Program::List> & programs,
+                                   const std::shared_ptr<MMap> & mmap = {},
+                                   size_t bound = 0);
 
   // replay given trace
   //
-  Trace::ptr replay (const Trace & trace, size_t bound = 0);
+  std::unique_ptr<Trace> replay (const Trace & trace, size_t bound = 0);
 };
 
 //==============================================================================

@@ -417,7 +417,7 @@ void Simulator::execute (const Instruction::Exit & e)
 
 // Simulator::run --------------------------------------------------------------
 
-Trace::ptr Simulator::run (std::function<void()> scheduler)
+std::unique_ptr<Trace> Simulator::run (std::function<void()> scheduler)
 {
   assert(trace);
 
@@ -459,9 +459,9 @@ Trace::ptr Simulator::run (std::function<void()> scheduler)
 
 // Simulator::simulate ---------------------------------------------------------
 
-Trace::ptr Simulator::simulate (const std::shared_ptr<Program::List> & p,
-                                const std::shared_ptr<MMap> & m,
-                                const size_t b)
+std::unique_ptr<Trace> Simulator::simulate (const std::shared_ptr<Program::List> & p,
+                                            const std::shared_ptr<MMap> & m,
+                                            const size_t b)
 {
   init(p, m, b);
 
@@ -484,7 +484,7 @@ Trace::ptr Simulator::simulate (const std::shared_ptr<Program::List> & p,
 
 // Simulator::replay -----------------------------------------------------------
 
-Trace::ptr Simulator::replay (const Trace & t, const size_t b)
+std::unique_ptr<Trace> Simulator::replay (const Trace & t, const size_t b)
 {
   init(t.programs, t.mmap, b && b < t.length ? bound : t.length - 1);
 

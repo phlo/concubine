@@ -30,7 +30,7 @@ struct Trace : public ::testing::Test
   std::string check_trace_path = "test/data/increment.check.t2.k16.trace";
   std::string cas_trace_path = "test/data/increment.cas.t2.k16.trace";
 
-  ConcuBinE::Trace::ptr trace;
+  std::unique_ptr<ConcuBinE::Trace> trace;
 
   void create_dummy_trace (const size_t num_programs)
     {
@@ -1436,10 +1436,10 @@ TEST_F(Trace, operator_equals)
   ASSERT_TRUE(s1 == s2);
 
   // compare files
-  ConcuBinE::Trace::ptr sp1 =
+  auto sp1 =
     std::make_unique<ConcuBinE::Trace>(
       create_from_file<ConcuBinE::Trace>(cas_trace_path));
-  ConcuBinE::Trace::ptr sp2 =
+  auto sp2 =
     std::make_unique<ConcuBinE::Trace>(
       create_from_file<ConcuBinE::Trace>(cas_trace_path));
 

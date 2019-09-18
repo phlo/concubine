@@ -139,7 +139,7 @@ bool BtorMC::sat (const std::string & formula, const size_t b)
 
 // BtorMC::solve ---------------------------------------------------------------
 
-Trace::ptr BtorMC::solve (Encoder & encoder)
+std::unique_ptr<Trace> BtorMC::solve (Encoder & encoder)
 {
   bound = encoder.bound;
   return Boolector::solve(encoder);

@@ -46,7 +46,7 @@ struct Solver
 
   // run solver and return trace
   //
-  virtual Trace::ptr solve (Encoder & encoder) = 0;
+  virtual std::unique_ptr<Trace> solve (Encoder & encoder) = 0;
 };
 
 //==============================================================================
@@ -133,7 +133,7 @@ struct External : public Solver
 
   // build trace based on the specific solver's output
   //
-  Trace::ptr trace (const Encoder & encoder);
+  std::unique_ptr<Trace> trace (const Encoder & encoder);
 
   // evaluate arbitrary formula
   //
@@ -141,7 +141,7 @@ struct External : public Solver
 
   // run solver and return trace
   //
-  virtual Trace::ptr solve (Encoder & encoder);
+  virtual std::unique_ptr<Trace> solve (Encoder & encoder);
 };
 
 } // namespace ConcuBinE

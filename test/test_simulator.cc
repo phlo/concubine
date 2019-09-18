@@ -16,7 +16,7 @@ struct Simulator : public ::testing::Test
   using State = ConcuBinE::Simulator::State;
 
   Program program;
-  Trace::ptr trace;
+  std::unique_ptr<Trace> trace;
   ConcuBinE::Simulator simulator;
 
   void init (std::initializer_list<Program> && programs, MMap && mmap = {})

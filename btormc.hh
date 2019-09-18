@@ -41,7 +41,7 @@ struct BtorMC : public Boolector
 
   // run btormc and return trace
   //
-  virtual Trace::ptr solve (Encoder & encoder);
+  virtual std::unique_ptr<Trace> solve (Encoder & encoder);
 };
 
 } // namespace ConcuBinE

@@ -68,7 +68,7 @@ inline word_t eval_array (z3::context & c,
     .get_numeral_uint();
 }
 
-Trace::ptr Z3::solve (Encoder & encoder)
+std::unique_ptr<Trace> Z3::solve (Encoder & encoder)
 {
   using namespace std::chrono;
 
@@ -88,7 +88,7 @@ Trace::ptr Z3::solve (Encoder & encoder)
 
   const auto & programs = encoder.programs;
 
-  Trace::ptr trace = std::make_unique<Trace>(programs, encoder.mmap);
+  auto trace = std::make_unique<Trace>(programs, encoder.mmap);
 
   for (size_t step = 0; step <= encoder.bound; step++)
     {

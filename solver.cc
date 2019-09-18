@@ -164,13 +164,13 @@ void External::update_heap (Trace & trace, const size_t prev, const size_t cur)
 
 // External::trace -------------------------------------------------------------
 
-Trace::ptr External::trace (const Encoder & encoder)
+std::unique_ptr<Trace> External::trace (const Encoder & encoder)
 {
   size_t lineno = 2;
   size_t next = 2;
   const std::shared_ptr<Program::List> & programs = encoder.programs;
 
-  Trace::ptr trace = std::make_unique<Trace>(programs, encoder.mmap);
+  auto trace = std::make_unique<Trace>(programs, encoder.mmap);
 
   for (std::string line_buf; getline(std_out, line_buf); lineno++)
     {
@@ -267,7 +267,7 @@ bool External::sat (const std::string & input)
 
 // External::solve -------------------------------------------------------------
 
-Trace::ptr External::solve (Encoder & encoder)
+std::unique_ptr<Trace> External::solve (Encoder & encoder)
 {
   sat(formula(encoder));
   return trace(encoder);
