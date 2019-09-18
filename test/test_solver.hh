@@ -98,7 +98,7 @@ struct Solver : public ::testing::Test
   template <class Encoder>
   void simulate_indirect ()
     {
-      const std::string basename = "test/data/indirect.addressing";
+      const std::string basename = "test/data/indirect";
 
       simulate<Encoder>(
         basename,
@@ -136,7 +136,7 @@ struct Solver : public ::testing::Test
 
       Encoder encoder(
         std::make_shared<Program::List>(
-          create_from_file<Program>("test/data/indirect.addressing.asm")),
+          create_from_file<Program>("test/data/indirect.asm")),
         nullptr,
         bound);
 

@@ -106,7 +106,7 @@ TEST(Program, parse)
     program.print(true));
 
   // indirect addressing
-  program = create_from_file<Program>("test/data/indirect.addressing.asm");
+  program = create_from_file<Program>("test/data/indirect.asm");
 
   ASSERT_EQ(7, program.size());
   ASSERT_EQ(0, program.checkpoints.size());

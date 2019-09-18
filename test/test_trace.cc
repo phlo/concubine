@@ -1245,7 +1245,7 @@ TEST_F(Trace, print)
 
 TEST_F(Trace, print_indirect_addressing)
 {
-  cas_trace_path = "test/data/indirect.addressing.trace";
+  cas_trace_path = "test/data/indirect.t1.trace";
 
   trace =
     std::make_unique<ConcuBinE::Trace>(

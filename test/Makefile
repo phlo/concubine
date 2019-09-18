@@ -44,7 +44,7 @@ TEST_RUN := run_all_tests
 # gtest filter
 GTEST_FILTER = --gtest_filter=
 
-# GTEST_FILTER += "*"
+GTEST_FILTER += "*"
 # GTEST_FILTER += Encoder.*
 # GTEST_FILTER += smtlib.*
 # GTEST_FILTER += smtlib_Encoder.*
@@ -53,7 +53,7 @@ GTEST_FILTER = --gtest_filter=
 # GTEST_FILTER += btor2.*
 # GTEST_FILTER += btor2_Encoder.*
 # GTEST_FILTER += Simulator.*
-GTEST_FILTER += Main.*
+# GTEST_FILTER += Main.*
 # GTEST_FILTER += Experimental.*
 # GTEST_FILTER += Instruction.*
 # GTEST_FILTER += Program.*

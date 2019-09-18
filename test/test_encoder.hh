@@ -185,7 +185,7 @@ inline void encode_cas ()
 template <class Encoder>
 inline void encode_indirect ()
 {
-  const std::string basename = "test/data/indirect.addressing";
+  const std::string basename = "test/data/indirect";
 
   encode<Encoder, true>(
     basename,
