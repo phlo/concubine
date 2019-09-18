@@ -14,6 +14,13 @@ namespace ConcuBinE::smtlib {
 
 namespace ConcuBinE::test::fs {
 
+// change directory
+//
+inline void cd (const std::filesystem::path & dir)
+{
+  std::filesystem::current_path(dir);
+}
+
 // return formula file extension
 //
 template <class Encoder>

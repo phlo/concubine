@@ -16,14 +16,21 @@ namespace ConcuBinE::test {
 // Main tests
 //==============================================================================
 
+// current working directory
 const std::filesystem::path cwd = std::filesystem::current_path();
 
+// temporary directory
+const std::filesystem::path tmpdir = fs::mktmp("test/data/");
+
+// binary path
 const std::string bin = cwd / "concubine";
 
+// module names
 const std::string simulate = "simulate";
 const std::string solve = "solve";
 const std::string replay = "replay";
 
+// default output file names
 const std::string sim_trace = "sim.trace";
 const std::string smt_trace = "smt.trace";
 const std::string sim_mmap = "sim.mmap";
@@ -33,23 +40,23 @@ struct Main : public ::testing::Test
 {
   Shell shell;
 
-  Main () { std::filesystem::current_path(cwd); }
+  Main () { fs::cd(cwd); }
 
-  auto program_nop ()
+  std::string program_nop ()
     {
       std::filesystem::path path = fs::mktmp("nop.asm");
       fs::write(path, "HALT");
       return path;
     }
 
-  auto program_infinite ()
+  std::string program_infinite ()
     {
       std::filesystem::path path = fs::mktmp("infinite.asm");
       fs::write(path, "JZ 0");
       return path;
     }
 
-  auto program_load (const std::string & address)
+  std::string program_load (const std::string & address)
     {
       std::filesystem::path path = fs::mktmp("load." + address + ".asm");
       fs::write(path, "LOAD " + address);
@@ -68,9 +75,9 @@ struct Main : public ::testing::Test
 
   // BTOR2 constraints for simulating a given number of steps
   //
-  auto simulate_btor2 (const std::string & bound = "")
+  std::string simulate_btor2 (const std::string & bound = "")
     {
-      std::filesystem::path path = fs::mktmp("simulate." + bound + ".btor2");
+      std::filesystem::path path = fs::mktmp("bound." + bound + ".btor2");
 
       if (!std::filesystem::exists(path))
         {
@@ -102,16 +109,16 @@ struct Main : public ::testing::Test
 
 TEST_F(Main, illegal_command_line)
 {
-  std::string actual = shell.run(bin + " WRONG").str();
+  run({"WRONG"});
   ASSERT_EQ(255, shell.last_exit_code());
 
   std::string expected = "error: no command given";
-  actual = shell.run(bin + " help").str();
+  std::string actual = run({"help"});
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
 
   expected = "error: unknown command FOO";
-  actual = shell.run(bin + " help FOO").str();
+  actual = run({"help FOO"});
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
 }
@@ -120,7 +127,7 @@ TEST_F(Main, illegal_command_line)
 
 TEST_F(Main, simulate)
 {
-  std::filesystem::current_path(fs::mktmp());
+  fs::cd(tmpdir);
 
   std::string program = program_nop();
 
@@ -136,7 +143,7 @@ TEST_F(Main, simulate)
 
 TEST_F(Main, simulate_uninitialized)
 {
-  std::filesystem::current_path(fs::mktmp());
+  fs::cd(tmpdir);
 
   ASSERT_EQ("", run({simulate, program_load("0"), program_load("1")}));
   ASSERT_EQ(0, shell.last_exit_code());
@@ -151,7 +158,7 @@ TEST_F(Main, simulate_uninitialized)
 
 TEST_F(Main, simulate_missing_args)
 {
-  std::string expected = "error: got nothing to run\n";
+  std::string expected = "error: too few arguments\n";
   std::string actual = run({simulate});
 
   ASSERT_EQ(255, shell.last_exit_code());
@@ -168,7 +175,7 @@ TEST_F(Main, simulate_program_file_not_found)
 
 TEST_F(Main, simulate_bound)
 {
-  std::filesystem::current_path(fs::mktmp());
+  fs::cd(tmpdir);
 
   ASSERT_EQ("", run({simulate, "-k 4", program_infinite()}));
   ASSERT_EQ(0, shell.last_exit_code());
@@ -181,10 +188,11 @@ TEST_F(Main, simulate_bound)
 
 TEST_F(Main, simulate_bound_missing)
 {
+  std::string expected = "error: missing bound\n";
   std::string actual = run({simulate, "-k"});
 
   ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ("error: missing bound\n", actual);
+  ASSERT_EQ(expected, actual.substr(0, expected.length()));
 }
 
 TEST_F(Main, simulate_bound_illegal)
@@ -197,7 +205,7 @@ TEST_F(Main, simulate_bound_illegal)
 
 TEST_F(Main, simulate_mmap)
 {
-  std::filesystem::current_path(fs::mktmp());
+  fs::cd(tmpdir);
 
   ASSERT_EQ(
     "",
@@ -223,10 +231,11 @@ TEST_F(Main, simulate_mmap)
 
 TEST_F(Main, simulate_mmap_missing)
 {
+  std::string expected = "error: missing path to memory map\n";
   std::string actual = run({simulate, "-m"});
 
   ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ("error: missing path to memory map\n", actual);
+  ASSERT_EQ(expected, actual.substr(0, expected.length()));
 }
 
 TEST_F(Main, simulate_mmap_file_not_found)
@@ -239,7 +248,7 @@ TEST_F(Main, simulate_mmap_file_not_found)
 
 TEST_F(Main, simulate_outfile)
 {
-  std::filesystem::current_path(fs::mktmp());
+  fs::cd(tmpdir);
 
   std::string stem = "simulate.load";
 
@@ -255,15 +264,16 @@ TEST_F(Main, simulate_outfile)
 
 TEST_F(Main, simulate_outfile_missing)
 {
+  std::string expected = "error: missing output file name\n";
   std::string actual = run({simulate, "-o"});
 
   ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ("error: missing output file name\n", actual);
+  ASSERT_EQ(expected, actual.substr(0, expected.length()));
 }
 
 TEST_F(Main, simulate_seed)
 {
-  std::filesystem::current_path(fs::mktmp());
+  fs::cd(tmpdir);
 
   std::string program = program_infinite();
   std::string args = simulate + " -k 64 -s 0 " + program + " " + program;
@@ -283,10 +293,11 @@ TEST_F(Main, simulate_seed)
 
 TEST_F(Main, simulate_seed_missing)
 {
+  std::string expected = "error: missing seed\n";
   std::string actual = run({simulate, "-s"});
 
   ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ("error: missing seed\n", actual);
+  ASSERT_EQ(expected, actual.substr(0, expected.length()));
 }
 
 TEST_F(Main, simulate_seed_illegal)
@@ -297,93 +308,11 @@ TEST_F(Main, simulate_seed_illegal)
   ASSERT_EQ("error: illegal seed [FOO]\n", actual);
 }
 
-// TODO: remove
-TEST_F(Main, simulate_increment_check)
-{
-  auto outpath = fs::mktmp("simulate.increment.check.t2.k16");
-
-  ASSERT_EQ(
-    "",
-    run({
-      simulate,
-      "-k 16",
-      "-o", outpath,
-      "-s 0",
-      "test/data/increment.check.thread.0.asm",
-      "test/data/increment.check.thread.n.asm"}));
-  ASSERT_EQ(0, shell.last_exit_code());
-
-  std::string expected = fs::read("test/data/increment.check.t2.k16.trace");
-  std::string actual = fs::read(outpath += ".trace");
-  ASSERT_EQ(expected, actual);
-}
-
-// TODO: remove
-TEST_F(Main, simulate_increment_cas)
-{
-  auto outpath = fs::mktmp("simulate.increment.cas.t2.k16");
-
-  ASSERT_EQ(
-    "",
-    run({
-      simulate,
-      "-k 16",
-      "-o", outpath,
-      "-s 0",
-      "test/data/increment.cas.asm",
-      "test/data/increment.cas.asm"}));
-  ASSERT_EQ(0, shell.last_exit_code());
-
-  std::string expected = fs::read("test/data/increment.cas.t2.k16.trace");
-  std::string actual = fs::read(outpath += ".trace");
-  ASSERT_EQ(expected, actual);
-}
-
-// TODO: remove
-TEST_F(Main, simulate_indirect)
-{
-  auto outpath = fs::mktmp("simulate.indirect.t1");
-
-  ASSERT_EQ(
-    "",
-    run({
-      simulate,
-      "-o", outpath,
-      "-s 0",
-      "test/data/indirect.asm"}));
-  ASSERT_EQ(0, shell.last_exit_code());
-
-  std::string expected = fs::read("test/data/indirect.t1.trace");
-  std::string actual = fs::read(outpath += ".trace");
-  ASSERT_EQ(expected, actual);
-}
-
-// TODO: remove
-TEST_F(Main, simulate_halt)
-{
-  auto outpath = fs::mktmp("test/data/halt.t2");
-
-  ASSERT_EQ(
-    "",
-    run({
-      simulate,
-      "-k 8",
-      "-o", outpath,
-      "-s 0",
-      "test/data/halt.asm",
-      "test/data/halt.asm"}));
-  ASSERT_EQ(0, shell.last_exit_code());
-
-  std::string expected = fs::read("test/data/halt.t2.trace");
-  std::string actual = fs::read(outpath += ".trace");
-  ASSERT_EQ(expected, actual);
-}
-
 // solve =======================================================================
 
 TEST_F(Main, solve)
 {
-  std::filesystem::current_path(fs::mktmp());
+  fs::cd(tmpdir);
 
   std::string bound = "1";
   std::string program = program_nop();
@@ -407,7 +336,7 @@ TEST_F(Main, solve)
 
 TEST_F(Main, solve_uninitialized)
 {
-  std::filesystem::current_path(fs::mktmp());
+  fs::cd(tmpdir);
 
   std::string bound = "3";
 
@@ -449,7 +378,7 @@ TEST_F(Main, solve_unknown_option)
 
 TEST_F(Main, solve_bound)
 {
-  std::filesystem::current_path(fs::mktmp());
+  fs::cd(tmpdir);
 
   std::string bound = "4";
 
@@ -591,7 +520,7 @@ TEST_F(Main, solve_encoder_illegal_btor2_boolector)
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(
-    "error: [boolector] cannot be used with [btor2] encoding\n",
+    "error: [boolector] cannot be used with encoder [btor2]\n",
     actual);
 }
 
@@ -607,7 +536,7 @@ TEST_F(Main, solve_encoder_illegal_btor2_cvc4)
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(
-    "error: [cvc4] cannot be used with [btor2] encoding\n",
+    "error: [cvc4] cannot be used with encoder [btor2]\n",
     actual);
 }
 
@@ -623,7 +552,7 @@ TEST_F(Main, solve_encoder_illegal_btor2_z3)
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(
-    "error: [z3] cannot be used with [btor2] encoding\n",
+    "error: [z3] cannot be used with encoder [btor2]\n",
     actual);
 }
 
@@ -639,7 +568,7 @@ TEST_F(Main, solve_encoder_illegal_smtlib_functional_btormc)
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(
-    "error: [btormc] cannot be used with [smtlib-functional] encoding\n",
+    "error: [btormc] cannot be used with encoder [smtlib-functional]\n",
     actual);
 }
 
@@ -655,13 +584,13 @@ TEST_F(Main, solve_encoder_illegal_smtlib_relational_btormc)
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(
-    "error: [btormc] cannot be used with [smtlib-relational] encoding\n",
+    "error: [btormc] cannot be used with encoder [smtlib-relational]\n",
     actual);
 }
 
 TEST_F(Main, solve_mmap)
 {
-  std::filesystem::current_path(fs::mktmp());
+  fs::cd(tmpdir);
 
   std::string bound = "6";
 
@@ -708,7 +637,7 @@ TEST_F(Main, solve_mmap_file_not_found)
 
 TEST_F(Main, solve_outfile)
 {
-  std::filesystem::current_path(fs::mktmp());
+  fs::cd(tmpdir);
 
   std::string bound = "2";
   std::string stem = "solve.load";
@@ -749,7 +678,7 @@ TEST_F(Main, solve_pretend)
 
 TEST_F(Main, solve_solver_btormc)
 {
-  std::filesystem::current_path(fs::mktmp());
+  fs::cd(tmpdir);
 
   std::string bound = "3";
 
@@ -775,7 +704,7 @@ TEST_F(Main, solve_solver_btormc)
 
 TEST_F(Main, solve_solver_boolector)
 {
-  std::filesystem::current_path(fs::mktmp());
+  fs::cd(tmpdir);
 
   ASSERT_EQ(
     "",
@@ -799,7 +728,7 @@ TEST_F(Main, solve_solver_boolector)
 
 TEST_F(Main, solve_solver_cvc4)
 {
-  std::filesystem::current_path(fs::mktmp());
+  fs::cd(tmpdir);
 
   ASSERT_EQ(
     "",
@@ -823,7 +752,7 @@ TEST_F(Main, solve_solver_cvc4)
 
 TEST_F(Main, solve_solver_z3)
 {
-  std::filesystem::current_path(fs::mktmp());
+  fs::cd(tmpdir);
 
   ASSERT_EQ(
     "",
@@ -873,79 +802,29 @@ TEST_F(Main, solve_verbose)
     run({solve, "-p -v 1", program_nop()}).find(';'));
 }
 
-// TODO
 // replay ======================================================================
 
-TEST_F(Main, replay_increment_check)
+TEST_F(Main, replay)
 {
-  std::string path = "test/data/increment.check.t2.k16.trace";
-  std::string cmd = bin + " replay " + path;
-
-  std::string actual = shell.run(cmd).str();
-
+  ASSERT_EQ("", run({replay, "test/data/halt.t2.trace"}));
   ASSERT_EQ(0, shell.last_exit_code());
-  std::string expected = fs::read(path);
-  ASSERT_EQ(expected, actual);
 }
 
-TEST_F(Main, replay_increment_cas)
+TEST_F(Main, replay_trace_file_missing)
 {
-  std::string path = "test/data/increment.cas.t2.k16.trace";
-  std::string cmd = bin + " replay " + path;
-
-  std::string actual = shell.run(cmd).str();
-
-  ASSERT_EQ(0, shell.last_exit_code());
-  std::string expected = fs::read(path);
-  ASSERT_EQ(expected, actual);
-}
-
-TEST_F(Main, replay_missing_args)
-{
-  std::string args = " replay";
-
-  std::string expected = "error: no trace given\n";
-  std::string actual = shell.run(bin + args).str();
-
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ(expected, actual.substr(0, expected.length()));
-
-  actual = shell.run(bin + args).str();
-
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ(expected, actual.substr(0, expected.length()));
-
-  expected = "error: missing bound\n";
-
-  actual = shell.run(bin + args + " -k").str();
+  std::string expected = "error: missing trace file\n";
+  std::string actual = run({replay});
 
   ASSERT_EQ(255, shell.last_exit_code());
   ASSERT_EQ(expected, actual.substr(0, expected.length()));
 }
 
-TEST_F(Main, replay_file_not_found)
+TEST_F(Main, replay_trace_file_not_found)
 {
-  std::string args = " replay ";
-  std::string program_file = "file_not_found";
-  std::string cmd = bin + args + program_file;
-
-  std::string actual = shell.run(cmd).str();
-  std::string expected = "error: " + program_file + " not found\n";
+  std::string actual = run({simulate, "FOO"});
 
   ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ(expected, actual);
-}
-
-TEST_F(Main, replay_illegal_bound)
-{
-  std::string args = " replay -k WRONG ";
-  std::string cmd = bin + args + "none.asm";
-
-  std::string actual = shell.run(cmd).str();
-  std::string expected = "error: illegal bound [WRONG]\n";
-
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ(expected, actual);
+  ASSERT_EQ("error: FOO not found\n", actual);
 }
 
 } // namespace ConcuBinE::test
