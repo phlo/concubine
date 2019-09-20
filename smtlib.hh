@@ -75,7 +75,7 @@ inline std::string expr (const char * op, const C<std::string> & args)
 // allows mixing const char and strings in init list
 //
 inline std::string expr (const char * op,
-                         const std::initializer_list<std::string> & args)
+                         std::initializer_list<std::string> args)
 {
   return expr<std::initializer_list>(op, args);
 }
@@ -85,7 +85,7 @@ template <template<class, class...> class C> \
 inline std::string name (const C<std::string> & args) \
 
 #define EXPR_INIIIALIZER_LIST(name) \
-inline std::string name (const std::initializer_list<std::string> & args) \
+inline std::string name (std::initializer_list<std::string> args) \
   { \
     return name<std::initializer_list>(args); \
   }

@@ -19,7 +19,7 @@ struct Simulator : public ::testing::Test
   std::unique_ptr<Trace> trace;
   ConcuBinE::Simulator simulator;
 
-  void init (std::initializer_list<Program> && programs, MMap && mmap = {})
+  void init (std::initializer_list<Program> programs, MMap && mmap = {})
     {
       simulator.init(
           std::make_shared<Program::List>(programs),
@@ -43,7 +43,7 @@ TEST_F(Simulator, run_simple)
   ASSERT_TRUE(simulator.waiting_for_checkpoint.empty());
 
   // NOTE: EXPECT_* required by lambda std::function
-  trace = simulator.run([&] () {
+  trace = simulator.run([this] () {
     switch (simulator.step)
       {
       case 0: simulator.thread = 0; break;
@@ -143,7 +143,7 @@ TEST_F(Simulator, run_add_check_exit)
   ASSERT_EQ(0, simulator.waiting_for_checkpoint[1]);
 
   // run it
-  trace = simulator.run([&] () {
+  trace = simulator.run([this] () {
     switch (simulator.step)
       {
       case 0: simulator.thread = 0; break;
@@ -269,7 +269,7 @@ TEST_F(Simulator, run_race_condition)
   ASSERT_EQ(0, simulator.waiting_for_checkpoint[1]);
 
   // run it
-  trace = simulator.run([&] () {
+  trace = simulator.run([this] () {
     switch (simulator.step)
       {
       case 0: // initial = t0 [CHECK 1]
@@ -576,7 +576,7 @@ TEST_F(Simulator, run_zero_bound)
   init({program});
 
   // run it
-  trace = simulator.run([&] () {
+  trace = simulator.run([this] () {
     switch (simulator.step)
       {
       case 0: simulator.thread = 0; break;
@@ -648,7 +648,7 @@ TEST_F(Simulator, run_final_thread)
   simulator.bound = 2;
 
   // run it
-  trace = simulator.run([&] () {
+  trace = simulator.run([this] () {
     switch (simulator.step)
       {
       case 0: simulator.thread = 0; break;
@@ -744,7 +744,7 @@ TEST_F(Simulator, run_final_flush)
   simulator.bound = 3;
 
   // run it
-  trace = simulator.run([&] () {
+  trace = simulator.run([this] () {
     switch (simulator.step)
       {
       case 0: simulator.thread = 0; break;
