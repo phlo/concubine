@@ -483,7 +483,7 @@ int solve (const char * name, const int argc, const char ** argv)
         {
           auto & e = dynamic_cast<btor2::Encoder &>(*encoder);
           encoder->formula <<
-            btor2::ne(
+            btor2::neq(
               e.nid(),
               e.sid_bool,
               e.nids_const[0],

@@ -152,7 +152,7 @@ struct Solver : public ::testing::Test
           eol;
       else
         encoder.formula <<
-          btor2::ne(
+          btor2::neq(
             encoder.nid(),
             encoder.sid_bool,
             encoder.nids_const[0],

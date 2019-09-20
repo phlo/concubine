@@ -280,13 +280,13 @@ inline std::string eq (std::string nid,
   return line(nid + " eq " + sid + " " + arg1 + " " + arg2, sym);
 }
 
-inline std::string ne (std::string nid,
-                       std::string sid,
-                       std::string arg1,
-                       std::string arg2,
-                       std::string sym = "")
+inline std::string neq (std::string nid,
+                        std::string sid,
+                        std::string arg1,
+                        std::string arg2,
+                        std::string sym = "")
 {
-  return line(nid + " ne " + sid + " " + arg1 + " " + arg2, sym);
+  return line(nid + " neq " + sid + " " + arg1 + " " + arg2, sym);
 }
 
 inline std::string sgt (std::string nid,

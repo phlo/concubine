@@ -1650,7 +1650,7 @@ std::string Encoder::encode (const Instruction::Jnz & j [[maybe_unused]])
 {
   std::string nid_jnz = nid();
 
-  formula << ne(nid_jnz, sid_bool, nids_accu[thread], nids_const[0]);
+  formula << neq(nid_jnz, sid_bool, nids_accu[thread], nids_const[0]);
 
   return nid_jnz;
 }
@@ -1677,7 +1677,7 @@ std::string Encoder::encode (const Instruction::Jnzns & j [[maybe_unused]])
 {
   std::string nid_nz = nid();
 
-  formula << ne(nid_nz, sid_bool, nids_accu[thread], nids_const[0]);
+  formula << neq(nid_nz, sid_bool, nids_accu[thread], nids_const[0]);
 
   std::string nid_nzns = nid();
 

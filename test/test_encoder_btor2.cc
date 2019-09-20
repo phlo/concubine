@@ -1932,7 +1932,7 @@ TEST(btor2_Encoder, define_stmt_jmp_conditional)
           verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
       nid++;
       s <<
-        btor2::ne(
+        btor2::neq(
           std::to_string(nid),
           encoder.sid_bool,
           encoder.nids_accu[thread],
@@ -2108,7 +2108,7 @@ TEST(btor2_Encoder, define_stmt_jmp_start)
           verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
       s <<
-        btor2::ne(
+        btor2::neq(
           std::to_string(nid),
           encoder.sid_bool,
           encoder.nids_accu[thread],
@@ -2384,7 +2384,7 @@ TEST(btor2_Encoder, define_stmt_jmp_twice)
           verbose ? encoder.debug_symbol(thread, 2) : "");
       nid++;
       s <<
-        btor2::ne(
+        btor2::neq(
           std::to_string(nid),
           encoder.sid_bool,
           encoder.nids_accu[thread],
@@ -4058,7 +4058,7 @@ TEST(btor2_Encoder, JNZ)
     std::ostringstream s;
 
     s <<
-      btor2::ne(
+      btor2::neq(
         nid_jnz,
         encoder.sid_bool,
         encoder.nids_accu[encoder.thread],
@@ -4147,7 +4147,7 @@ TEST(btor2_Encoder, JNZNS)
     std::ostringstream s;
 
     s <<
-      btor2::ne(
+      btor2::neq(
         std::to_string(nid),
         encoder.sid_bool,
         encoder.nids_accu[encoder.thread],
