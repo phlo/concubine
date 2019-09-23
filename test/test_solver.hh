@@ -34,8 +34,6 @@ struct Solver : public ::testing::Test
                  const std::shared_ptr<MMap> & mmap,
                  const size_t bound)
     {
-      using namespace fs;
-
       Encoder encoder(programs, mmap, bound);
 
       encoder.encode();
@@ -51,6 +49,8 @@ struct Solver : public ::testing::Test
 
       const auto replay = Simulator().replay(*trace);
       const auto sext = '.' + solver.name();
+
+      using namespace fs;
 
       write(mktmp(stem, ext<Encoder>(programs->size(), bound)), encoder.str());
       write(mktmp(stem, ext<Encoder>(sext + ".trace")), trace->print());
@@ -178,8 +178,6 @@ struct Solver : public ::testing::Test
     {
       return [this, &dir] (Encoder & e)
         {
-          using namespace fs;
-
           const auto trace = solver.solve(e);
 
           ASSERT_FALSE(trace->empty());
@@ -189,12 +187,14 @@ struct Solver : public ::testing::Test
           const auto replay = Simulator().replay(*trace);
           const auto stem = dir / solver.name();
 
-          write(mktmp(dir / "formula", ext<Encoder>()), e.str());
-          write(mktmp(stem, ".trace"), trace->print());
-          write(mktmp(stem, ".replay.trace"), replay->print());
+          fs::write(fs::mktmp(dir / "formula", fs::ext<Encoder>()), e.str());
+          fs::write(fs::mktmp(dir / "formula", fs::ext<Encoder>()), e.str());
+          fs::write(fs::mktmp(stem, ".trace"), trace->print());
+          fs::write(fs::mktmp(stem, ".replay.trace"), replay->print());
+          fs::write(fs::mktmp(stem, ".time"), std::to_string(solver.time));
 
           if constexpr(std::is_base_of<External, S>::value)
-            write(mktmp(stem, ".model"), solver.std_out.str());
+            fs::write(fs::mktmp(stem, ".model"), solver.std_out.str());
 
           ASSERT_EQ(e.bound, trace->size());
           ASSERT_EQ(*replay, *trace);
@@ -204,13 +204,14 @@ struct Solver : public ::testing::Test
   // litmus test conditions for disallowed examples
   //
   template <class Encoder>
-  auto litmus_unsat ()
+  auto litmus_unsat (const std::filesystem::path & dir)
     {
-      return [this] (Encoder & encoder)
+      return [this, &dir] (Encoder & encoder)
         {
-          using namespace fs;
-
           ASSERT_FALSE(solver.sat(solver.formula(encoder)));
+          fs::write(
+            fs::mktmp(dir / solver.name(), ".time"),
+            std::to_string(solver.time));
         };
     }
 
@@ -225,8 +226,6 @@ struct Solver : public ::testing::Test
                const BTOR2 & constraints_btor2 [[maybe_unused]],
                const Test & test)
     {
-      using namespace fs;
-
       Encoder encoder(programs, mmap, bound);
 
       encoder.encode();
@@ -238,22 +237,22 @@ struct Solver : public ::testing::Test
       if constexpr(std::is_base_of<smtlib::Encoder, Encoder>::value)
         {
           constraints_smtlib(ss);
-          std::ofstream ofs(mktmp(path = dir / "constraints.smt2"));
+          std::ofstream ofs(fs::mktmp(path = dir / "constraints.smt2"));
           constraints = ss.str();
           ofs << constraints;
         }
       else
         {
           constraints_btor2(ss, encoder);
-          std::ofstream ofs(mktmp(path = dir / "constraints.btor2"));
+          std::ofstream ofs(fs::mktmp(path = dir / "constraints.btor2"));
           constraints = ss.str();
           ofs << constraints;
         }
 
       encoder.formula << constraints;
-      write(mktmp(dir / "formula", ext<Encoder>()), encoder.str());
+      fs::write(fs::mktmp(dir / "formula", fs::ext<Encoder>()), encoder.str());
       test(encoder);
-      update(path);
+      fs::update(path);
     }
 
   // Intel 1: stores are not reordered with other stores
@@ -302,7 +301,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>());
+        litmus_unsat<Encoder>(dir));
     }
 
   // Intel 2: stores are not reordered with older loads
@@ -351,7 +350,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>());
+        litmus_unsat<Encoder>(dir));
     }
 
   // Intel 3: loads may be reordered with older stores
@@ -438,7 +437,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>());
+        litmus_unsat<Encoder>(dir));
     }
 
   // Intel 5: intra-processor forwarding is allowed
@@ -546,7 +545,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>());
+        litmus_unsat<Encoder>(dir));
     }
 
   // Intel 7: stores are seen in a consistent order by other processors
@@ -615,7 +614,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>());
+        litmus_unsat<Encoder>(dir));
     }
 
   // Intel 8: locked instructions have a total order
@@ -684,7 +683,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>());
+        litmus_unsat<Encoder>(dir));
     }
 
   // Intel 9: loads are not reordered with locks
@@ -733,7 +732,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>());
+        litmus_unsat<Encoder>(dir));
     }
 
   // Intel 10: stores are not reordered with locks
@@ -782,7 +781,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>());
+        litmus_unsat<Encoder>(dir));
     }
 
   // AMD 1: loads and stores are not reordered
@@ -831,7 +830,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>());
+        litmus_unsat<Encoder>(dir));
     }
 
   // AMD 2: stores do not pass loads
@@ -880,7 +879,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>());
+        litmus_unsat<Encoder>(dir));
     }
 
   // AMD 3: stores can be arbitrarily delayed
@@ -1041,7 +1040,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>());
+        litmus_unsat<Encoder>(dir));
     }
 
   // AMD 6: stores are seen in a consistent order by other processors
@@ -1110,7 +1109,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>());
+        litmus_unsat<Encoder>(dir));
     }
 
   // AMD 7: dependent stores appear in program order
@@ -1169,7 +1168,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>());
+        litmus_unsat<Encoder>(dir));
     }
 
   // AMD 8: local visibility
@@ -1297,7 +1296,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>());
+        litmus_unsat<Encoder>(dir));
     }
 };
 

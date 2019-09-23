@@ -529,14 +529,19 @@ int solve (const char * name, const int argc, const char ** argv)
       if (pretend)
         {
           std::cout << solver->formula(*encoder);
-          return 0;
         }
       else
         {
           auto trace = solver->solve(*encoder);
-          write(*trace, outfile);
-          return trace->exit;
+
+          if (!trace->empty())
+            {
+              write(*trace, outfile);
+              return trace->exit;
+            }
         }
+
+      return 0;
     }
   catch (const std::exception & e)
     {
