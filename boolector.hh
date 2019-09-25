@@ -32,6 +32,10 @@ public: //----------------------------------------------------------------------
   // return boolector's name
   //
   virtual std::string name () const;
+
+  // return boolector's version
+  //
+  virtual std::string version () const;
 };
 
 } // namespace ConcuBinE

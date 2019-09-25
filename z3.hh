@@ -28,6 +28,10 @@ struct Z3 : public Solver
   // run z3 and return trace
   //
   virtual std::unique_ptr<Trace> solve (Encoder & encoder);
+
+  // return z3's version
+  //
+  virtual std::string version () const;
 };
 
 } // namespace ConcuBinE

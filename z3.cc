@@ -15,6 +15,22 @@ namespace ConcuBinE {
 
 std::string Z3::name () const { return "z3"; }
 
+// Z3::version -----------------------------------------------------------------
+
+std::string Z3::version () const
+{
+  unsigned major, minor, build, revision;
+
+  Z3_get_version(&major, &minor, &build, &revision);
+
+  return
+    std::to_string(major) +
+    '.' +
+    std::to_string(minor) +
+    '.' +
+    std::to_string(build);
+}
+
 // Z3::sat ---------------------------------------------------------------------
 
 bool Z3::sat (const std::string & formula)

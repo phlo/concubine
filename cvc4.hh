@@ -21,6 +21,10 @@ struct CVC4 : public External
   //
   virtual std::string name () const;
 
+  // return cvc4's version
+  //
+  virtual std::string version () const;
+
   // build formula for cvc4
   //
   virtual std::string formula (Encoder & encoder) const;

@@ -32,9 +32,13 @@ struct Solver
   // member functions
   //----------------------------------------------------------------------------
 
-  // returns the solver's name
+  // return the solver's name
   //
   virtual std::string name () const = 0;
+
+  // return the solver's version
+  //
+  virtual std::string version () const = 0;
 
   // build formula for the specific solver
   //

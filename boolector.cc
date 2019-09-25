@@ -1,6 +1,7 @@
 #include "boolector.hh"
 
 #include "parser.hh"
+#include "shell.hh"
 
 namespace ConcuBinE {
 
@@ -85,5 +86,14 @@ Boolector::Symbol Boolector::parse (std::istringstream & line)
 // Boolector::name -------------------------------------------------------------
 
 std::string Boolector::name () const { return "boolector"; }
+
+// Boolector::version ----------------------------------------------------------
+
+std::string Boolector::version () const
+{
+  std::string version;
+  Shell().run(name() + " --version") >> version;
+  return version;
+}
 
 } // namespace ConcuBinE

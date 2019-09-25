@@ -1,5 +1,6 @@
 #include "cvc4.hh"
 
+#include "shell.hh"
 #include "smtlib.hh"
 
 namespace ConcuBinE {
@@ -11,6 +12,17 @@ namespace ConcuBinE {
 // CVC4::name ------------------------------------------------------------------
 
 std::string CVC4::name () const { return "cvc4"; }
+
+// CVC4::version ---------------------------------------------------------------
+
+std::string CVC4::version () const
+{
+  std::string version;
+  auto ss = Shell().run(name() + " --version");
+  do ss >> version; while (ss && version != "version");
+  ss >> version;
+  return version;
+}
 
 // CVC4::formula ---------------------------------------------------------------
 
