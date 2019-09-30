@@ -172,7 +172,7 @@
 (assert (= accu_1_0 (ite exec_0_0_0 (bvadd accu_0_0 #x0001) (ite exec_0_0_2 (ite (and sb-full_0_0 (= sb-adr_0_0 #x0000)) sb-val_0_0 (select heap_0 #x0000)) accu_0_0))))
 
 ; mem variables - mem_<step>_<thread>
-(assert (= mem_1_0 (ite exec_0_0_2 (ite (and sb-full_0_0 (= sb-adr_0_0 #x0000)) sb-val_0_0 (select heap_0 #x0000)) mem_0_0)))
+(assert (= mem_1_0 mem_0_0))
 
 ; store buffer address variables - sb-adr_<step>_<thread>
 (assert (= sb-adr_1_0 (ite exec_0_0_1 #x0000 sb-adr_0_0)))
@@ -277,7 +277,7 @@
 (assert (= accu_2_0 (ite exec_1_0_0 (bvadd accu_1_0 #x0001) (ite exec_1_0_2 (ite (and sb-full_1_0 (= sb-adr_1_0 #x0000)) sb-val_1_0 (select heap_1 #x0000)) accu_1_0))))
 
 ; mem variables - mem_<step>_<thread>
-(assert (= mem_2_0 (ite exec_1_0_2 (ite (and sb-full_1_0 (= sb-adr_1_0 #x0000)) sb-val_1_0 (select heap_1 #x0000)) mem_1_0)))
+(assert (= mem_2_0 mem_1_0))
 
 ; store buffer address variables - sb-adr_<step>_<thread>
 (assert (= sb-adr_2_0 (ite exec_1_0_1 #x0000 sb-adr_1_0)))
@@ -382,7 +382,7 @@
 (assert (= accu_3_0 (ite exec_2_0_0 (bvadd accu_2_0 #x0001) (ite exec_2_0_2 (ite (and sb-full_2_0 (= sb-adr_2_0 #x0000)) sb-val_2_0 (select heap_2 #x0000)) accu_2_0))))
 
 ; mem variables - mem_<step>_<thread>
-(assert (= mem_3_0 (ite exec_2_0_2 (ite (and sb-full_2_0 (= sb-adr_2_0 #x0000)) sb-val_2_0 (select heap_2 #x0000)) mem_2_0)))
+(assert (= mem_3_0 mem_2_0))
 
 ; store buffer address variables - sb-adr_<step>_<thread>
 (assert (= sb-adr_3_0 (ite exec_2_0_1 #x0000 sb-adr_2_0)))
@@ -487,7 +487,7 @@
 (assert (= accu_4_0 (ite exec_3_0_0 (bvadd accu_3_0 #x0001) (ite exec_3_0_2 (ite (and sb-full_3_0 (= sb-adr_3_0 #x0000)) sb-val_3_0 (select heap_3 #x0000)) accu_3_0))))
 
 ; mem variables - mem_<step>_<thread>
-(assert (= mem_4_0 (ite exec_3_0_2 (ite (and sb-full_3_0 (= sb-adr_3_0 #x0000)) sb-val_3_0 (select heap_3 #x0000)) mem_3_0)))
+(assert (= mem_4_0 mem_3_0))
 
 ; store buffer address variables - sb-adr_<step>_<thread>
 (assert (= sb-adr_4_0 (ite exec_3_0_1 #x0000 sb-adr_3_0)))
@@ -592,7 +592,7 @@
 (assert (= accu_5_0 (ite exec_4_0_0 (bvadd accu_4_0 #x0001) (ite exec_4_0_2 (ite (and sb-full_4_0 (= sb-adr_4_0 #x0000)) sb-val_4_0 (select heap_4 #x0000)) accu_4_0))))
 
 ; mem variables - mem_<step>_<thread>
-(assert (= mem_5_0 (ite exec_4_0_2 (ite (and sb-full_4_0 (= sb-adr_4_0 #x0000)) sb-val_4_0 (select heap_4 #x0000)) mem_4_0)))
+(assert (= mem_5_0 mem_4_0))
 
 ; store buffer address variables - sb-adr_<step>_<thread>
 (assert (= sb-adr_5_0 (ite exec_4_0_1 #x0000 sb-adr_4_0)))

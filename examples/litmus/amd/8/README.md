@@ -1,4 +1,4 @@
-# Local Visibility
+# Local Visibility[^1]
 
 > [P.220](https://www.amd.com/system/files/TechDocs/24593.pdf#page=220)
 
@@ -23,14 +23,26 @@ There are no constraints on the relative order of when the `STORE 0` of processo
 
 ## Bound = 12
 
-| Processor | Instructions[^1]  | Flushes | Total |
+| Processor | Instructions[^2]  | Flushes | Total |
 | --------- | ----------------  | ------- | ----- |
 | 0         | 5                 | 1       | 6     |
 | 1         | 5                 | 1       | 6     |
 
-[^1]: including final `HALT`
+## Runtime
+
+> Intel(R) Core(TM) i7-3770K CPU @ 3.50GHz
+
+| Solver                           | Runtime [ms] |
+| -------------------------------- | ------------ |
+| z3-4.8.6 (functional)            | 52           |
+| btormc-3.1.0-pre                 | 77           |
+| boolector-3.1.0-pre (functional) | 95           |
+| z3-4.8.6 (relational)            | 286          |
+| boolector-3.1.0-pre (relational) | 1435         |
+| cvc4-1.7 (relational)            | 2626         |
+| cvc4-1.7 (functional)            | 75283        |
 
 ## Notes
 
-* Using `MEM` instead of `LOAD` to ignore `ADDI`.
-* Identical to [Intel 5](../../intel/5)
+[^1]: identical to [Intel 5](../../intel/5)
+[^2]: including final `HALT`

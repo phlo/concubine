@@ -1,3 +1,3 @@
 ADDI 1
 CAS 0
-MEM 1
+LOAD 1

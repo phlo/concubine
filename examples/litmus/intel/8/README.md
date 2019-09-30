@@ -36,4 +36,20 @@ A similar argument (referring instead to processor 2’s loads) applies if proce
 | 2         | 3                 | 0       | 3     |
 | 3         | 3                 | 0       | 3     |
 
+## Runtime
+
+> Intel(R) Core(TM) i7-3770K CPU @ 3.50GHz
+
+| Solver                           | Runtime [ms] |
+| -------------------------------- | ------------ |
+| boolector-3.1.0-pre (functional) | 69           |
+| z3-4.8.6 (functional)            | 132          |
+| btormc-3.1.0-pre                 | 471          |
+| boolector-3.1.0-pre (relational) | 1952         |
+| z3-4.8.6 (relational)            | 2149         |
+| cvc4-1.7 (functional)            | 278935       |
+| cvc4-1.7 (relational)            | 17410043     |
+
+## Notes
+
 [^1]: including final `HALT`

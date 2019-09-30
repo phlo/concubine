@@ -11,9 +11,9 @@ Therefore, stores from a processor may not appear to be sequentially consistent.
 | STORE 0     | STORE 1     |
 | ADDI 1      | ADDI 1      |
 | STORE 0     | STORE 1     |
-| MEM 1       | MEM 0       |
+| LOAD 1      | LOAD 0      |
 
-* `mem_0 = mem_1 = 1` is allowed
+* `accu_0 = accu_1 = 1` is allowed
 
 Both `LOAD 0` and `LOAD 1` may read `1`.
 
@@ -24,8 +24,20 @@ Both `LOAD 0` and `LOAD 1` may read `1`.
 | 0         | 6                 | 2       | 8     |
 | 1         | 6                 | 2       | 8     |
 
-[^1]: including final `HALT`
+## Runtime
+
+> Intel(R) Core(TM) i7-3770K CPU @ 3.50GHz
+
+| Solver                           | Runtime [ms] |
+| -------------------------------- | ------------ |
+| z3-4.8.6 (functional)            | 55           |
+| btormc-3.1.0-pre                 | 95           |
+| boolector-3.1.0-pre (functional) | 108          |
+| cvc4-1.7 (functional)            | 2033         |
+| boolector-3.1.0-pre (relational) | 2300         |
+| z3-4.8.6 (relational)            | 2667         |
+| cvc4-1.7 (relational)            | 2911         |
 
 ## Notes
 
-* Using `MEM` instead of `LOAD` to ignore `ADDI`.
+[^1]: including final `HALT`

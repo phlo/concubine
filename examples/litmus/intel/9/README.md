@@ -13,17 +13,17 @@ The first example illustrates that loads may not be reordered with earlier locke
 | Processor 0 | Processor 1 |
 | ----------- | ----------- |
 | ADDI 1      | ADDI 1      |
-| CAS 0       | CAS 0       |
-| MEM 1       | MEM 0       |
+| CAS 0       | CAS 1       |
+| LOAD 1      | LOAD 0      |
 
 * initially `[0] = [1] = 0`
-* `mem_0 = mem_1 = 0` is not allowed
+* `accu_0 = accu_1 = 0` is not allowed
 
 As explained in Section 8.2.3.8, there is a total order of the executions of locked instructions.
 Without loss of generality, suppose that processor 0’s `CAS` occurs first.
 
 Because the Intel-64 memory-ordering model prevents processor 1’s load from being reordered with its earlier `CAS`, processor 0’s `CAS` occurs before processor 1’s load.
-This implies `mem_1 = 1`.
+This implies `accu_1 = 1`.
 
 A similar argument (referring instead to processor 2’s accesses) applies if processor 1’s `CAS` occurs before processor 0’s `CAS`.
 
@@ -34,8 +34,20 @@ A similar argument (referring instead to processor 2’s accesses) applies if pr
 | 0         | 4                 | 0       | 4     |
 | 1         | 4                 | 0       | 4     |
 
-[^1]: including final `HALT`
+## Runtime
+
+> Intel(R) Core(TM) i7-3770K CPU @ 3.50GHz
+
+| Solver                           | Runtime [ms] |
+| -------------------------------- | ------------ |
+| boolector-3.1.0-pre (functional) | 18           |
+| btormc-3.1.0-pre                 | 24           |
+| z3-4.8.6 (functional)            | 31           |
+| z3-4.8.6 (relational)            | 130          |
+| boolector-3.1.0-pre (relational) | 184          |
+| cvc4-1.7 (functional)            | 414          |
+| cvc4-1.7 (relational)            | 4023         |
 
 ## Notes
 
-* Using `MEM` instead of `LOAD` to ignore `ADDI`.
+[^1]: including final `HALT`

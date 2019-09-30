@@ -9,10 +9,10 @@ Where sequential consistency is needed (for example in Dekker’s algorithm for 
 | ADDI 1      | ADDI 1      |
 | STORE 0     | STORE 1     |
 | FENCE       | FENCE       |
-| MEM 1       | MEM 0       |
+| LOAD 1      | LOAD 0      |
 
 * initially `[0] = [1] = 0`
-* `mem_0 = mem_1 = 0` is not allowed
+* `accu_0 = accu_1 = 0` is not allowed
 
 `LOAD 0` and `LOAD 1` cannot both read `0`.
 
@@ -23,8 +23,20 @@ Where sequential consistency is needed (for example in Dekker’s algorithm for 
 | 0         | 5                 | 1       | 6     |
 | 1         | 5                 | 1       | 6     |
 
-[^1]: including final `HALT`
+## Runtime
+
+> Intel(R) Core(TM) i7-3770K CPU @ 3.50GHz
+
+| Solver                           | Runtime [ms] |
+| -------------------------------- | ------------ |
+| boolector-3.1.0-pre (functional) | 62           |
+| z3-4.8.6 (functional)            | 86           |
+| btormc-3.1.0-pre                 | 95           |
+| boolector-3.1.0-pre (relational) | 928          |
+| z3-4.8.6 (relational)            | 1133         |
+| cvc4-1.7 (functional)            | 1448         |
+| cvc4-1.7 (relational)            | 85749        |
 
 ## Notes
 
-* Using `MEM` instead of `LOAD` to ignore `ADDI`.
+[^1]: including final `HALT`

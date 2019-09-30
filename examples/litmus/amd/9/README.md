@@ -25,8 +25,20 @@ In this example, the `FENCE` instruction ensures that any buffered stores are gl
 | 0         | 6                 | 1       | 7     |
 | 1         | 6                 | 1       | 7     |
 
-[^1]: including final `HALT`
+## Runtime
+
+> Intel(R) Core(TM) i7-3770K CPU @ 3.50GHz
+
+| Solver                           | Runtime [ms] |
+| -------------------------------- | ------------ |
+| boolector-3.1.0-pre (functional) | 93           |
+| z3-4.8.6 (functional)            | 156          |
+| btormc-3.1.0-pre                 | 355          |
+| z3-4.8.6 (relational)            | 623          |
+| boolector-3.1.0-pre (relational) | 983          |
+| cvc4-1.7 (functional)            | 1719         |
+| cvc4-1.7 (relational)            | 1664730      |
 
 ## Notes
 
-* Using `MEM` instead of `LOAD` to ignore `ADDI`.
+[^1]: including final `HALT`

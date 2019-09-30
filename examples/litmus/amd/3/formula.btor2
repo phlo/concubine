@@ -114,7 +114,7 @@
 58 eq 1 13 7
 59 and 1 17 58
 60 ite 2 59 15 57
-61 ite 2 44 60 56 0:4:MEM:1
+61 ite 2 44 60 56 0:4:LOAD:1
 62 next 2 9 61 accu_0
 
 63 init 2 10 6
@@ -126,191 +126,189 @@
 69 eq 1 14 6
 70 and 1 18 69
 71 ite 2 70 16 68
-72 ite 2 50 71 67 1:4:MEM:0
+72 ite 2 50 71 67 1:4:LOAD:0
 73 next 2 10 72 accu_1
 
 ; mem variables - mem_<thread>
 74 init 2 11 6
-75 ite 2 44 60 11 0:4:MEM:1
-76 next 2 11 75 mem_0
+75 next 2 11 11 mem_0
 
-77 init 2 12 6
-78 ite 2 50 71 12 1:4:MEM:0
-79 next 2 12 78 mem_1
+76 init 2 12 6
+77 next 2 12 12 mem_1
 
 ; store buffer address variables - sb-adr_<thread>
-80 init 2 13 6
-81 ite 2 41 6 13 0:1:STORE:0
-82 ite 2 43 6 81 0:3:STORE:0
-83 next 2 13 82 sb-adr_0
+78 init 2 13 6
+79 ite 2 41 6 13 0:1:STORE:0
+80 ite 2 43 6 79 0:3:STORE:0
+81 next 2 13 80 sb-adr_0
 
-84 init 2 14 6
-85 ite 2 47 7 14 1:1:STORE:1
-86 ite 2 49 7 85 1:3:STORE:1
-87 next 2 14 86 sb-adr_1
+82 init 2 14 6
+83 ite 2 47 7 14 1:1:STORE:1
+84 ite 2 49 7 83 1:3:STORE:1
+85 next 2 14 84 sb-adr_1
 
 ; store buffer value variables - sb-val_<thread>
-88 init 2 15 6
-89 ite 2 41 9 15 0:1:STORE:0
-90 ite 2 43 9 89 0:3:STORE:0
-91 next 2 15 90 sb-val_0
+86 init 2 15 6
+87 ite 2 41 9 15 0:1:STORE:0
+88 ite 2 43 9 87 0:3:STORE:0
+89 next 2 15 88 sb-val_0
 
-92 init 2 16 6
-93 ite 2 47 10 16 1:1:STORE:1
-94 ite 2 49 10 93 1:3:STORE:1
-95 next 2 16 94 sb-val_1
+90 init 2 16 6
+91 ite 2 47 10 16 1:1:STORE:1
+92 ite 2 49 10 91 1:3:STORE:1
+93 next 2 16 92 sb-val_1
 
 ; store buffer full variables - sb-full_<thread>
-96 init 1 17 4
-97 or 1 41 43
-98 or 1 17 97
-99 ite 1 38 4 98
-100 next 1 17 99 sb-full_0
+94 init 1 17 4
+95 or 1 41 43
+96 or 1 17 95
+97 ite 1 38 4 96
+98 next 1 17 97 sb-full_0
 
-101 init 1 18 4
-102 or 1 47 49
-103 or 1 18 102
-104 ite 1 39 4 103
-105 next 1 18 104 sb-full_1
+99 init 1 18 4
+100 or 1 47 49
+101 or 1 18 100
+102 ite 1 39 4 101
+103 next 1 18 102 sb-full_1
 
 ; statement activation variables - stmt_<thread>_<pc>
-106 init 1 19 5
-107 and 1 19 -40 0:0:ADDI:1
-108 next 1 19 107 stmt_0_0
+104 init 1 19 5
+105 and 1 19 -40 0:0:ADDI:1
+106 next 1 19 105 stmt_0_0
 
-109 init 1 20 4
-110 and 1 20 -41 0:1:STORE:0
-111 ite 1 19 40 110 0:0:ADDI:1
-112 next 1 20 111 stmt_0_1
+107 init 1 20 4
+108 and 1 20 -41 0:1:STORE:0
+109 ite 1 19 40 108 0:0:ADDI:1
+110 next 1 20 109 stmt_0_1
 
-113 init 1 21 4
-114 and 1 21 -42 0:2:ADDI:1
-115 ite 1 20 41 114 0:1:STORE:0
-116 next 1 21 115 stmt_0_2
+111 init 1 21 4
+112 and 1 21 -42 0:2:ADDI:1
+113 ite 1 20 41 112 0:1:STORE:0
+114 next 1 21 113 stmt_0_2
 
-117 init 1 22 4
-118 and 1 22 -43 0:3:STORE:0
-119 ite 1 21 42 118 0:2:ADDI:1
-120 next 1 22 119 stmt_0_3
+115 init 1 22 4
+116 and 1 22 -43 0:3:STORE:0
+117 ite 1 21 42 116 0:2:ADDI:1
+118 next 1 22 117 stmt_0_3
 
-121 init 1 23 4
-122 and 1 23 -44 0:4:MEM:1
-123 ite 1 22 43 122 0:3:STORE:0
-124 next 1 23 123 stmt_0_4
+119 init 1 23 4
+120 and 1 23 -44 0:4:LOAD:1
+121 ite 1 22 43 120 0:3:STORE:0
+122 next 1 23 121 stmt_0_4
 
-125 init 1 24 4
-126 and 1 24 -45 0:5:HALT
-127 ite 1 23 44 126 0:4:MEM:1
-128 next 1 24 127 stmt_0_5
+123 init 1 24 4
+124 and 1 24 -45 0:5:HALT
+125 ite 1 23 44 124 0:4:LOAD:1
+126 next 1 24 125 stmt_0_5
 
-129 init 1 25 5
-130 and 1 25 -46 1:0:ADDI:1
-131 next 1 25 130 stmt_1_0
+127 init 1 25 5
+128 and 1 25 -46 1:0:ADDI:1
+129 next 1 25 128 stmt_1_0
 
-132 init 1 26 4
-133 and 1 26 -47 1:1:STORE:1
-134 ite 1 25 46 133 1:0:ADDI:1
-135 next 1 26 134 stmt_1_1
+130 init 1 26 4
+131 and 1 26 -47 1:1:STORE:1
+132 ite 1 25 46 131 1:0:ADDI:1
+133 next 1 26 132 stmt_1_1
 
-136 init 1 27 4
-137 and 1 27 -48 1:2:ADDI:1
-138 ite 1 26 47 137 1:1:STORE:1
-139 next 1 27 138 stmt_1_2
+134 init 1 27 4
+135 and 1 27 -48 1:2:ADDI:1
+136 ite 1 26 47 135 1:1:STORE:1
+137 next 1 27 136 stmt_1_2
 
-140 init 1 28 4
-141 and 1 28 -49 1:3:STORE:1
-142 ite 1 27 48 141 1:2:ADDI:1
-143 next 1 28 142 stmt_1_3
+138 init 1 28 4
+139 and 1 28 -49 1:3:STORE:1
+140 ite 1 27 48 139 1:2:ADDI:1
+141 next 1 28 140 stmt_1_3
 
-144 init 1 29 4
-145 and 1 29 -50 1:4:MEM:0
-146 ite 1 28 49 145 1:3:STORE:1
-147 next 1 29 146 stmt_1_4
+142 init 1 29 4
+143 and 1 29 -50 1:4:LOAD:0
+144 ite 1 28 49 143 1:3:STORE:1
+145 next 1 29 144 stmt_1_4
 
-148 init 1 30 4
-149 and 1 30 -51 1:5:HALT
-150 ite 1 29 50 149 1:4:MEM:0
-151 next 1 30 150 stmt_1_5
+146 init 1 30 4
+147 and 1 30 -51 1:5:HALT
+148 ite 1 29 50 147 1:4:LOAD:0
+149 next 1 30 148 stmt_1_5
 
 ; halt variables - halt_<thread>
-152 init 1 31 4
-153 or 1 45 31
-154 next 1 31 153 halt_0
+150 init 1 31 4
+151 or 1 45 31
+152 next 1 31 151 halt_0
 
-155 init 1 32 4
-156 or 1 51 32
-157 next 1 32 156 halt_1
+153 init 1 32 4
+154 or 1 51 32
+155 next 1 32 154 halt_1
 
 ; heap variable
-158 write 3 33 13 15
-159 ite 3 38 158 33 flush_0
-160 write 3 33 14 16
-161 ite 3 39 160 159 flush_1
-162 next 3 33 161 heap
+156 write 3 33 13 15
+157 ite 3 38 156 33 flush_0
+158 write 3 33 14 16
+159 ite 3 39 158 157 flush_1
+160 next 3 33 159 heap
 
 ; exit flag variable
-163 init 1 34 4
-164 and 1 153 156
-165 or 1 34 164
-166 next 1 34 165 exit
+161 init 1 34 4
+162 and 1 151 154
+163 or 1 34 162
+164 next 1 34 163 exit
 
 ; exit code variable
-167 init 2 35 6
-168 next 2 35 35 exit-code
+165 init 2 35 6
+166 next 2 35 35 exit-code
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; scheduling constraints
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-169 or 1 36 37
-170 or 1 38 169
-171 or 1 39 170
-172 or 1 34 171
-173 constraint 172
-174 nand 1 36 37
-175 nand 1 36 38
-176 nand 1 36 39
-177 nand 1 36 34
-178 nand 1 37 38
-179 nand 1 37 39
-180 nand 1 37 34
-181 nand 1 38 39
-182 nand 1 38 34
-183 nand 1 39 34
-184 and 1 174 175
+167 or 1 36 37
+168 or 1 38 167
+169 or 1 39 168
+170 or 1 34 169
+171 constraint 170
+172 nand 1 36 37
+173 nand 1 36 38
+174 nand 1 36 39
+175 nand 1 36 34
+176 nand 1 37 38
+177 nand 1 37 39
+178 nand 1 37 34
+179 nand 1 38 39
+180 nand 1 38 34
+181 nand 1 39 34
+182 and 1 172 173
+183 and 1 174 182
+184 and 1 175 183
 185 and 1 176 184
 186 and 1 177 185
 187 and 1 178 186
 188 and 1 179 187
 189 and 1 180 188
 190 and 1 181 189
-191 and 1 182 190
-192 and 1 183 191
-193 constraint 192
+191 constraint 190
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; store buffer constraints
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-194 or 1 20 22
-195 or 1 24 194
-196 implies 1 195 -36
-197 ite 1 17 196 -38
-198 constraint 197 flush_0
+192 or 1 20 22
+193 or 1 24 192
+194 implies 1 193 -36
+195 ite 1 17 194 -38
+196 constraint 195 flush_0
 
-199 or 1 26 28
-200 or 1 30 199
-201 implies 1 200 -37
-202 ite 1 18 201 -39
-203 constraint 202 flush_1
+197 or 1 26 28
+198 or 1 30 197
+199 implies 1 198 -37
+200 ite 1 18 199 -39
+201 constraint 200 flush_1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; halt constraints
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-204 implies 1 31 -36
-205 constraint 204 halt_0
+202 implies 1 31 -36
+203 constraint 202 halt_0
 
-206 implies 1 32 -37
-207 constraint 206 halt_1
+204 implies 1 32 -37
+205 constraint 204 halt_1
 

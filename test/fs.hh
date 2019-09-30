@@ -115,6 +115,23 @@ inline void update (const std::filesystem::path & file)
       std::filesystem::copy_options::overwrite_existing);
 }
 
+// forward file stream
+//
+inline bool forward (std::fstream & fs, const std::string & str)
+{
+  size_t i = 0;
+
+  while (fs)
+    if (fs.get() == str[i] && ++i == str.length())
+      return true;
+    else
+      i = 0;
+
+  fs.clear();
+
+  return false;
+}
+
 } // namespace ConcuBinE::test::fs
 
 #endif

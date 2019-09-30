@@ -1,0 +1,8 @@
+# Intel(R) Core(TM) i7-3770K CPU @ 3.50GHz
+62 boolector-3.1.0-pre (functional)
+86 z3-4.8.6 (functional)
+95 btormc-3.1.0-pre
+928 boolector-3.1.0-pre (relational)
+1133 z3-4.8.6 (relational)
+1448 cvc4-1.7 (functional)
+85749 cvc4-1.7 (relational)

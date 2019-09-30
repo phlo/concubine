@@ -3,8 +3,10 @@
 #include "btor2.hh"
 #include "encoder.hh"
 #include "fs.hh"
+#include "markdown.hh"
 #include "mmap.hh"
 #include "parser.hh"
+#include "shell.hh"
 #include "simulator.hh"
 #include "smtlib.hh"
 #include "trace.hh"
@@ -12,6 +14,129 @@
 #include "solver.hh"
 
 namespace ConcuBinE::test {
+
+//==============================================================================
+// Benchmark Environment
+//==============================================================================
+
+// googletest environment for sharing resources among solver tests
+//
+struct Env : public ::testing::Environment
+{
+  // register with googletest
+  //
+  static ::testing::Environment * add_environment ()
+    {
+      return ::testing::AddGlobalTestEnvironment(new Env);
+    }
+
+  inline static const ::testing::Environment * environment = add_environment();
+
+  // benchmarks
+  //
+  struct Record : public std::pair<std::string, long>
+    {
+      using std::pair<std::string, long>::pair;
+
+      friend bool operator < (const Record & a, const Record & b)
+        {
+          return a.second < b.second;
+        }
+    };
+
+  using Timetable = std::vector<Record>;
+  using Benchmarks = std::unordered_map<std::string, Timetable>;
+
+  inline static Benchmarks benchmarks = {};
+
+  // googletest callbacks
+  //
+  void TearDown () override
+    {
+      Timetable totals;
+      const std::string titel = "\n## Runtime\n";
+      const std::string host = Shell().run("uname -p").str();
+      const std::string section = titel + "\n> " + host + eol;
+      const std::vector<std::string> header = {"Solver", "Runtime [ms]"};
+
+      for (auto & [bid, runtimes] : benchmarks)
+        {
+          std::sort(runtimes.begin(), runtimes.end());
+
+          const std::filesystem::path dir = bid;
+          std::ofstream ofs(fs::mktmp(dir / "runtime"));
+          std::vector<std::vector<std::string>> data(runtimes.size());
+
+          ofs << "# " << host;
+
+          for (size_t i = 0; i < runtimes.size(); i++)
+            {
+              const auto & [id, t] = runtimes[i];
+
+              data[i] = {id, std::to_string(t)};
+              ofs << data[i][1] << ' ' << id << eol;
+
+              // update totals
+              for (auto it = totals.begin();; ++it)
+                if (it == totals.end())
+                  {
+                    totals.emplace_back(id, t);
+                    break;
+                  }
+                else if (it->first == id)
+                  {
+                    it->second += t;
+                    break;
+                  }
+            }
+
+          // update runtimes in local litmus README
+          std::filesystem::path path = dir / "README.md";
+          std::string readme = fs::read(path);
+          size_t pos = readme.find(titel);
+          size_t count = 0;
+
+          if (pos == std::string::npos)
+            {
+              pos = readme.find("##", readme.find("## Bound") + 2);
+              if (pos == std::string::npos)
+                pos = readme.length();
+              else
+                pos--;
+            }
+          else
+            count = readme.find("##", pos + 2) - pos - 1;
+
+          std::ostringstream oss(section, std::ios::ate);
+
+          md::table(header, data, oss);
+          fs::write(fs::mktmp(path), readme.replace(pos, count, oss.str()));
+        }
+
+      // update runtime totals in global litmus README
+      std::vector<std::vector<std::string>> data(totals.size());
+
+      std::sort(totals.begin(), totals.end());
+
+      for (size_t i = 0; i < totals.size(); i++)
+        data[i] = {totals[i].first, std::to_string(totals[i].second)};
+
+      std::filesystem::path path = "examples/litmus/README.md";
+      std::string readme = fs::read(path);
+      size_t pos = readme.find(titel);
+      size_t count = 0;
+
+      if (pos == std::string::npos)
+        pos = readme.length();
+      else
+        count = readme.length() - pos;
+
+      std::ostringstream oss(section, std::ios::ate);
+
+      md::table(header, data, oss);
+      fs::write(fs::mktmp(path), readme.replace(pos, count, oss.str()));
+    }
+};
 
 //==============================================================================
 // Solver
@@ -191,7 +316,6 @@ struct Solver : public ::testing::Test
           fs::write(fs::mktmp(dir / "formula", fs::ext<Encoder>()), e.str());
           fs::write(fs::mktmp(stem, ".trace"), trace->print());
           fs::write(fs::mktmp(stem, ".replay.trace"), replay->print());
-          fs::write(fs::mktmp(stem, ".time"), std::to_string(solver.time));
 
           if constexpr(std::is_base_of<External, S>::value)
             fs::write(fs::mktmp(stem, ".model"), solver.std_out.str());
@@ -204,14 +328,11 @@ struct Solver : public ::testing::Test
   // litmus test conditions for disallowed examples
   //
   template <class Encoder>
-  auto litmus_unsat (const std::filesystem::path & dir)
+  auto litmus_unsat ()
     {
-      return [this, &dir] (Encoder & encoder)
+      return [this] (Encoder & encoder)
         {
           ASSERT_FALSE(solver.sat(solver.formula(encoder)));
-          fs::write(
-            fs::mktmp(dir / solver.name(), ".time"),
-            std::to_string(solver.time));
         };
     }
 
@@ -231,28 +352,36 @@ struct Solver : public ::testing::Test
       encoder.encode();
 
       std::ostringstream ss;
-      std::string constraints;
-      std::filesystem::path path;
+      std::pair<std::filesystem::path, std::string> constraints;
 
       if constexpr(std::is_base_of<smtlib::Encoder, Encoder>::value)
         {
           constraints_smtlib(ss);
-          std::ofstream ofs(fs::mktmp(path = dir / "constraints.smt2"));
-          constraints = ss.str();
-          ofs << constraints;
+          constraints = std::make_pair(fs::mktmp(dir / "constraints.smt2"), ss.str());
         }
       else
         {
           constraints_btor2(ss, encoder);
-          std::ofstream ofs(fs::mktmp(path = dir / "constraints.btor2"));
-          constraints = ss.str();
-          ofs << constraints;
+          constraints = std::make_pair(fs::mktmp(dir / "constraints.btor2"), ss.str());
         }
 
-      encoder.formula << constraints;
+      std::ofstream ofs(constraints.first);
+
+      ofs << constraints.second;
+      encoder.formula << constraints.second;
       fs::write(fs::mktmp(dir / "formula", fs::ext<Encoder>()), encoder.str());
       test(encoder);
-      fs::update(path);
+      fs::update(constraints.first);
+
+      std::string sid = solver.name() + '-' + solver.version();
+
+      if constexpr(std::is_base_of<smtlib::Functional, Encoder>::value)
+        sid += " (functional)";
+
+      if constexpr(std::is_base_of<smtlib::Relational, Encoder>::value)
+        sid += " (relational)";
+
+      Env::benchmarks[dir].emplace_back(sid, solver.time);
     }
 
   // Intel 1: stores are not reordered with other stores
@@ -301,7 +430,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>(dir));
+        litmus_unsat<Encoder>());
     }
 
   // Intel 2: stores are not reordered with older loads
@@ -350,7 +479,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>(dir));
+        litmus_unsat<Encoder>());
     }
 
   // Intel 3: loads may be reordered with older stores
@@ -375,18 +504,18 @@ struct Solver : public ::testing::Test
             smtlib::assertion(
               smtlib::land({
                 smtlib::equality({
-                  smtlib::Encoder::mem_var(bound, 0),
+                  smtlib::Encoder::accu_var(bound, 0),
                   smtlib::word2hex(0)}),
                 smtlib::equality({
-                  smtlib::Encoder::mem_var(bound, 1),
+                  smtlib::Encoder::accu_var(bound, 1),
                   smtlib::word2hex(0)})})) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {
           ss <<
             btor2::comment_section("litmus test constraints") <<
-            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_mem[0]) <<
-            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_mem[1]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_accu[0]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_accu[1]) <<
             btor2::land(
               e.nid(),
               e.sid_bool,
@@ -422,14 +551,14 @@ struct Solver : public ::testing::Test
             smtlib::comment_section("litmus test constraints") <<
             smtlib::assertion(
               smtlib::equality({
-                smtlib::Encoder::mem_var(bound, 0),
+                smtlib::Encoder::accu_var(bound, 0),
                 smtlib::word2hex(0)})) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {
           ss <<
             btor2::comment_section("litmus test constraints") <<
-            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_mem[0]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_accu[0]) <<
             btor2::land(
               e.nid(),
               e.sid_bool,
@@ -437,7 +566,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>(dir));
+        litmus_unsat<Encoder>());
     }
 
   // Intel 5: intra-processor forwarding is allowed
@@ -462,18 +591,18 @@ struct Solver : public ::testing::Test
             smtlib::assertion(
               smtlib::land({
                 smtlib::equality({
-                  smtlib::Encoder::mem_var(bound, 0),
+                  smtlib::Encoder::accu_var(bound, 0),
                   smtlib::word2hex(0)}),
                 smtlib::equality({
-                  smtlib::Encoder::mem_var(bound, 1),
+                  smtlib::Encoder::accu_var(bound, 1),
                   smtlib::word2hex(0)})})) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {
           ss <<
             btor2::comment_section("litmus test constraints") <<
-            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_mem[0]) <<
-            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_mem[1]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_accu[0]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_accu[1]) <<
             btor2::land(
               e.nid(),
               e.sid_bool,
@@ -545,7 +674,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>(dir));
+        litmus_unsat<Encoder>());
     }
 
   // Intel 7: stores are seen in a consistent order by other processors
@@ -614,7 +743,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>(dir));
+        litmus_unsat<Encoder>());
     }
 
   // Intel 8: locked instructions have a total order
@@ -683,7 +812,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>(dir));
+        litmus_unsat<Encoder>());
     }
 
   // Intel 9: loads are not reordered with locks
@@ -708,18 +837,18 @@ struct Solver : public ::testing::Test
             smtlib::assertion(
               smtlib::land({
                 smtlib::equality({
-                  smtlib::Encoder::mem_var(bound, 0),
+                  smtlib::Encoder::accu_var(bound, 0),
                   smtlib::word2hex(0)}),
                 smtlib::equality({
-                  smtlib::Encoder::mem_var(bound, 1),
+                  smtlib::Encoder::accu_var(bound, 1),
                   smtlib::word2hex(0)})})) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {
           ss <<
             btor2::comment_section("litmus test constraints") <<
-            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_mem[0]) <<
-            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_mem[1]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_accu[0]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_accu[1]) <<
             btor2::land(
               e.nid(),
               e.sid_bool,
@@ -732,7 +861,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>(dir));
+        litmus_unsat<Encoder>());
     }
 
   // Intel 10: stores are not reordered with locks
@@ -781,7 +910,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>(dir));
+        litmus_unsat<Encoder>());
     }
 
   // AMD 1: loads and stores are not reordered
@@ -830,7 +959,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>(dir));
+        litmus_unsat<Encoder>());
     }
 
   // AMD 2: stores do not pass loads
@@ -879,7 +1008,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>(dir));
+        litmus_unsat<Encoder>());
     }
 
   // AMD 3: stores can be arbitrarily delayed
@@ -904,18 +1033,18 @@ struct Solver : public ::testing::Test
             smtlib::assertion(
               smtlib::land({
                 smtlib::equality({
-                  smtlib::Encoder::mem_var(bound, 0),
+                  smtlib::Encoder::accu_var(bound, 0),
                   smtlib::word2hex(1)}),
                 smtlib::equality({
-                  smtlib::Encoder::mem_var(bound, 1),
+                  smtlib::Encoder::accu_var(bound, 1),
                   smtlib::word2hex(1)})})) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {
           ss <<
             btor2::comment_section("litmus test constraints") <<
-            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_mem[0]) <<
-            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_mem[1]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_accu[0]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_accu[1]) <<
             btor2::land(
               e.nid(),
               e.sid_bool,
@@ -950,34 +1079,34 @@ struct Solver : public ::testing::Test
         [] (std::ostringstream & ss) {
           const auto zero = smtlib::word2hex(0);
           const auto one = smtlib::word2hex(1);
-          const auto mem_0 = smtlib::Encoder::mem_var(bound, 0);
-          const auto mem_1 = smtlib::Encoder::mem_var(bound, 1);
+          const auto accu_0 = smtlib::Encoder::accu_var(bound, 0);
+          const auto accu_1 = smtlib::Encoder::accu_var(bound, 1);
           ss <<
             smtlib::comment_section("litmus test constraints") <<
             smtlib::assertion(
               smtlib::land({
                 smtlib::lor({
-                  smtlib::equality({mem_0, zero}),
-                  smtlib::equality({mem_0, one})
+                  smtlib::equality({accu_0, zero}),
+                  smtlib::equality({accu_0, one})
                 }),
                 smtlib::lor({
-                  smtlib::equality({mem_1, zero}),
-                  smtlib::equality({mem_1, one})})})) <<
+                  smtlib::equality({accu_1, zero}),
+                  smtlib::equality({accu_1, one})})})) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {
           std::string or_0, or_1;
           ss <<
             btor2::comment_section("litmus test constraints") <<
-            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_mem[0]) <<
-            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_mem[0]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_accu[0]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_accu[0]) <<
             btor2::lor(
               or_0 = e.nid(),
               e.sid_bool,
               std::to_string(e.node - 2),
               std::to_string(e.node - 1)) <<
-            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_mem[1]) <<
-            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_mem[1]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_accu[1]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[1], e.nids_accu[1]) <<
             btor2::lor(
               or_1 = e.nid(),
               e.sid_bool,
@@ -1016,18 +1145,18 @@ struct Solver : public ::testing::Test
             smtlib::assertion(
               smtlib::land({
                 smtlib::equality({
-                  smtlib::Encoder::mem_var(bound, 0),
+                  smtlib::Encoder::accu_var(bound, 0),
                   smtlib::word2hex(0)}),
                 smtlib::equality({
-                  smtlib::Encoder::mem_var(bound, 1),
+                  smtlib::Encoder::accu_var(bound, 1),
                   smtlib::word2hex(0)})})) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {
           ss <<
             btor2::comment_section("litmus test constraints") <<
-            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_mem[0]) <<
-            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_mem[1]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_accu[0]) <<
+            btor2::eq(e.nid(), e.sid_bool, e.nids_const[0], e.nids_accu[1]) <<
             btor2::land(
               e.nid(),
               e.sid_bool,
@@ -1040,7 +1169,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>(dir));
+        litmus_unsat<Encoder>());
     }
 
   // AMD 6: stores are seen in a consistent order by other processors
@@ -1109,7 +1238,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>(dir));
+        litmus_unsat<Encoder>());
     }
 
   // AMD 7: dependent stores appear in program order
@@ -1168,7 +1297,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>(dir));
+        litmus_unsat<Encoder>());
     }
 
   // AMD 8: local visibility
@@ -1296,7 +1425,7 @@ struct Solver : public ::testing::Test
               std::to_string(e.node - 1)) <<
             btor2::bad(e.node);
         },
-        litmus_unsat<Encoder>(dir));
+        litmus_unsat<Encoder>());
     }
 };
 

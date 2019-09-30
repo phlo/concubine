@@ -31,4 +31,20 @@ Thus `accu_1 = 1`.
 | 0         | 4                 | 2       | 6     |
 | 1         | 3                 | 0       | 3     |
 
+## Runtime
+
+> Intel(R) Core(TM) i7-3770K CPU @ 3.50GHz
+
+| Solver                           | Runtime [ms] |
+| -------------------------------- | ------------ |
+| boolector-3.1.0-pre (functional) | 6            |
+| btormc-3.1.0-pre                 | 6            |
+| z3-4.8.6 (functional)            | 11           |
+| cvc4-1.7 (functional)            | 33           |
+| boolector-3.1.0-pre (relational) | 43           |
+| cvc4-1.7 (relational)            | 140          |
+| z3-4.8.6 (relational)            | 270          |
+
+## Notes
+
 [^1]: including final `HALT`

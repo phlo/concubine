@@ -9,7 +9,7 @@ This is illustrated by the following example:
 
 | Processor 0 | Processor 1 | Processor 2 |
 | ----------- | ----------- | ----------- |
-| ADDI 1      | MEM 0       |             |
+| ADDI 1      | MEM 0[^1]   |             |
 | STORE 0     | JNZ 3       |             |
 |             | ADDI 1      |             |
 |             | STORE 1     | MEM 1       |
@@ -29,14 +29,27 @@ Assume that `mem_1 = 1` and `mem_2 = 1`.
 
 ## Bound = 13
 
-| Processor | Instructions[^1]  | Flushes | Total |
+| Processor | Instructions[^2]  | Flushes | Total |
 | --------- | ----------------  | ------- | ----- |
 | 0         | 3                 | 1       | 4     |
 | 1         | 5                 | 1       | 6     |
 | 2         | 3                 | 0       | 3     |
 
-[^1]: including final `HALT`
+## Runtime
+
+> Intel(R) Core(TM) i7-3770K CPU @ 3.50GHz
+
+| Solver                           | Runtime [ms] |
+| -------------------------------- | ------------ |
+| z3-4.8.6 (functional)            | 43           |
+| btormc-3.1.0-pre                 | 49           |
+| boolector-3.1.0-pre (functional) | 58           |
+| cvc4-1.7 (functional)            | 314          |
+| boolector-3.1.0-pre (relational) | 1057         |
+| z3-4.8.6 (relational)            | 1976         |
+| cvc4-1.7 (relational)            | 1988         |
 
 ## Notes
 
-* Using `MEM` instead of `LOAD` to ignore `ADDI`.
+[^1]: using `MEM` instead of `LOAD` to ignore `ADDI`
+[^2]: including final `HALT`

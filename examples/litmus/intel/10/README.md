@@ -33,4 +33,20 @@ Assume `mem_1 = 1`.
 | 0         | 4                 | 1       | 5     |
 | 1         | 3                 | 0       | 3     |
 
+## Runtime
+
+> Intel(R) Core(TM) i7-3770K CPU @ 3.50GHz
+
+| Solver                           | Runtime [ms] |
+| -------------------------------- | ------------ |
+| btormc-3.1.0-pre                 | 15           |
+| z3-4.8.6 (functional)            | 16           |
+| boolector-3.1.0-pre (functional) | 17           |
+| cvc4-1.7 (functional)            | 62           |
+| z3-4.8.6 (relational)            | 85           |
+| boolector-3.1.0-pre (relational) | 87           |
+| cvc4-1.7 (relational)            | 134          |
+
+## Notes
+
 [^1]: including final `HALT`

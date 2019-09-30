@@ -62,17 +62,17 @@ TEST_F(CVC4, litmus_intel_3_relational) { litmus_intel_3<R>(); }
 TEST_F(CVC4, litmus_intel_4_functional) { litmus_intel_4<F>(); }
 TEST_F(CVC4, litmus_intel_4_relational) { litmus_intel_4<R>(); }
 
-TEST_F(CVC4, DISABLED_litmus_intel_5_functional) { litmus_intel_5<F>(); } // ~30s
+TEST_F(CVC4, DISABLED_litmus_intel_5_functional) { litmus_intel_5<F>(); } // 18s
 TEST_F(CVC4, litmus_intel_5_relational) { litmus_intel_5<R>(); }
 
 TEST_F(CVC4, litmus_intel_6_functional) { litmus_intel_6<F>(); }
 TEST_F(CVC4, litmus_intel_6_relational) { litmus_intel_6<R>(); }
 
-TEST_F(CVC4, DISABLED_litmus_intel_7_functional) { litmus_intel_7<F>(); } // ~1h 23m !!
-TEST_F(CVC4, DISABLED_litmus_intel_7_relational) { litmus_intel_7<R>(); } // ??
+TEST_F(CVC4, DISABLED_litmus_intel_7_functional) { litmus_intel_7<F>(); } // 1h 21m 54s
+TEST_F(CVC4, DISABLED_litmus_intel_7_relational) { litmus_intel_7<R>(); } // 8h 56m 35s
 
-TEST_F(CVC4, DISABLED_litmus_intel_8_functional) { litmus_intel_8<F>(); } // ??
-TEST_F(CVC4, DISABLED_litmus_intel_8_relational) { litmus_intel_8<R>(); } // ??
+TEST_F(CVC4, DISABLED_litmus_intel_8_functional) { litmus_intel_8<F>(); } // 4m 38s
+TEST_F(CVC4, DISABLED_litmus_intel_8_relational) { litmus_intel_8<R>(); } // 4h 50m 10s
 
 TEST_F(CVC4, litmus_intel_9_functional) { litmus_intel_9<F>(); }
 TEST_F(CVC4, litmus_intel_9_relational) { litmus_intel_9<R>(); }
@@ -93,18 +93,18 @@ TEST_F(CVC4, litmus_amd_4_functional) { litmus_amd_4<F>(); }
 TEST_F(CVC4, litmus_amd_4_relational) { litmus_amd_4<R>(); }
 
 TEST_F(CVC4, litmus_amd_5_functional) { litmus_amd_5<F>(); }
-TEST_F(CVC4, DISABLED_litmus_amd_5_relational) { litmus_amd_5<R>(); } // ~24s
+TEST_F(CVC4, DISABLED_litmus_amd_5_relational) { litmus_amd_5<R>(); } // 24s
 
-TEST_F(CVC4, DISABLED_litmus_amd_6_functional) { litmus_amd_6<F>(); } // ~1h 23m !!
-TEST_F(CVC4, DISABLED_litmus_amd_6_relational) { litmus_amd_6<R>(); } // ??
+TEST_F(CVC4, DISABLED_litmus_amd_6_functional) { litmus_amd_6<F>(); } // 1h 20m 52s
+TEST_F(CVC4, DISABLED_litmus_amd_6_relational) { litmus_amd_6<R>(); } // 8h 56m 35s
 
 TEST_F(CVC4, litmus_amd_7_functional) { litmus_amd_7<F>(); }
 TEST_F(CVC4, litmus_amd_7_relational) { litmus_amd_7<R>(); }
 
-TEST_F(CVC4, DISABLED_litmus_amd_8_functional) { litmus_amd_8<F>(); } // ~1m 13s
+TEST_F(CVC4, DISABLED_litmus_amd_8_functional) { litmus_amd_8<F>(); } // 1m 15s
 TEST_F(CVC4, litmus_amd_8_relational) { litmus_amd_8<R>(); }
 
 TEST_F(CVC4, litmus_amd_9_functional) { litmus_amd_9<F>(); }
-TEST_F(CVC4, DISABLED_litmus_amd_9_relational) { litmus_amd_9<R>(); } // ~27m 35s
+TEST_F(CVC4, DISABLED_litmus_amd_9_relational) { litmus_amd_9<R>(); } // 27m 44s
 
 } // namespace ConcuBinE::test

@@ -36,4 +36,20 @@ Because the memory-ordering model ensures that any two stores appear to execute 
 | 2         | 3                 | 0       | 3     |
 | 3         | 3                 | 0       | 3     |
 
+## Runtime
+
+> Intel(R) Core(TM) i7-3770K CPU @ 3.50GHz
+
+| Solver                           | Runtime [ms] |
+| -------------------------------- | ------------ |
+| boolector-3.1.0-pre (functional) | 134          |
+| z3-4.8.6 (functional)            | 230          |
+| btormc-3.1.0-pre                 | 790          |
+| boolector-3.1.0-pre (relational) | 3651         |
+| z3-4.8.6 (relational)            | 5982         |
+| cvc4-1.7 (functional)            | 4914652      |
+| cvc4-1.7 (relational)            | 32195323     |
+
+## Notes
+
 [^1]: including final `HALT`

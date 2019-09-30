@@ -14,13 +14,13 @@ example:
 | ----------- |
 | ADDI 1      |
 | STORE 0     |
-| MEM 0       |
+| LOAD 0      |
 
 * initially `[0] = 0`
-* `mem_0 = 0` is not allowed
+* `accu_0 = 0` is not allowed
 
 The Intel-64 memory-ordering model does not allow the load to be reordered with the earlier store because the accesses are to the same location.
-Therefore, `mem_0 = 1` must hold.
+Therefore, `accu_0 = 1` must hold.
 
 ## Bound = 5
 
@@ -28,8 +28,20 @@ Therefore, `mem_0 = 1` must hold.
 | --------- | ----------------  | ------- | ----- |
 | 0         | 4                 | 1       | 5     |
 
-[^1]: including final `HALT`
+## Runtime
+
+> Intel(R) Core(TM) i7-3770K CPU @ 3.50GHz
+
+| Solver                           | Runtime [ms] |
+| -------------------------------- | ------------ |
+| boolector-3.1.0-pre (functional) | 3            |
+| boolector-3.1.0-pre (relational) | 4            |
+| btormc-3.1.0-pre                 | 5            |
+| z3-4.8.6 (functional)            | 10           |
+| cvc4-1.7 (functional)            | 17           |
+| cvc4-1.7 (relational)            | 19           |
+| z3-4.8.6 (relational)            | 21           |
 
 ## Notes
 
-* Using `MEM` instead of `LOAD` to ignore `ADDI`.
+[^1]: including final `HALT`

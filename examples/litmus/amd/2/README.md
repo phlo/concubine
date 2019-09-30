@@ -1,4 +1,4 @@
-# Stores Do Not Pass Loads
+# Stores Do Not Pass Loads[^1]
 
 > [P.219](https://www.amd.com/system/files/TechDocs/24593.pdf#page=219)
 
@@ -8,7 +8,7 @@ In other words, stores from a processor cannot be reordered to occur prior to a 
 
 | Processor 0 | Processor 1 |
 | ----------- | ----------- |
-| MEM 0       | MEM 1       |
+| MEM 0[^2]   | MEM 1[^2]   |
 | ADDI 1      | ADDI 1      |
 | STORE 1     | STORE 0     |
 
@@ -19,14 +19,27 @@ In other words, stores from a processor cannot be reordered to occur prior to a 
 
 ## Bound = 10
 
-| Processor | Instructions[^1]  | Flushes | Total |
+| Processor | Instructions[^3]  | Flushes | Total |
 | --------- | ----------------  | ------- | ----- |
 | 0         | 4                 | 1       | 5     |
 | 1         | 4                 | 1       | 5     |
 
-[^1]: including final `HALT`
+## Runtime
+
+> Intel(R) Core(TM) i7-3770K CPU @ 3.50GHz
+
+| Solver                           | Runtime [ms] |
+| -------------------------------- | ------------ |
+| btormc-3.1.0-pre                 | 16           |
+| z3-4.8.6 (functional)            | 17           |
+| boolector-3.1.0-pre (functional) | 28           |
+| boolector-3.1.0-pre (relational) | 58           |
+| cvc4-1.7 (functional)            | 67           |
+| z3-4.8.6 (relational)            | 132          |
+| cvc4-1.7 (relational)            | 161          |
 
 ## Notes
 
-* Using `MEM` instead of `LOAD` to ignore `ADDI`.
-* Identical to [Intel 2](../../intel/2)
+[^1]: identical to [Intel 2](../../intel/2)
+[^2]: using `MEM` instead of `LOAD` to ignore `ADDI`
+[^3]: including final `HALT`
