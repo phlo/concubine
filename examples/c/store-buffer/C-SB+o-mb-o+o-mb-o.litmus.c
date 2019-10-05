@@ -18,26 +18,26 @@
 //#define BARRIER() asm volatile ("":::"memory") /* compiler barrier */
 //#define BARRIER() asm volatile ("mfence":::"memory") /* full barrier */
 
-static int x0 = 0;
-static int x1 = 0;
+static int w0 = 0;
+static int w1 = 0;
 
 static int r0 = 0;
 static int r1 = 0;
 
 static void * P0 (void * p)
 {
-  WRITE(x0, 2);
+  WRITE(w0, 1);
   BARRIER();
-  r1 = READ(x1);
+  r0 = READ(w1);
 
   return p;
 }
 
 static void * P1 (void * p)
 {
-  WRITE(x1, 2);
+  WRITE(w1, 1);
   BARRIER();
-  r0 = READ(x0);
+  r1 = READ(w0);
 
   return p;
 }
