@@ -286,12 +286,12 @@ std::shared_ptr<std::string> Relational::restore_stmt ()
 template <class T>
 std::shared_ptr<std::string> Relational::set_block (const T & op) const
 {
-  if (check_pcs.empty())
+  if (checkpoints.empty())
     return {};
 
   std::vector<std::string> block_vars;
 
-  for (const auto & [c, threads] : check_pcs)
+  for (const auto & [c, threads] : checkpoints)
     if (threads.find(thread) != threads.end())
       block_vars.push_back(
         c == op.arg
@@ -318,12 +318,12 @@ std::string Relational::reset_block (const word_t id) const
 
 std::shared_ptr<std::string> Relational::restore_block () const
 {
-  if (check_pcs.empty())
+  if (checkpoints.empty())
     return {};
 
   std::vector<std::string> block_vars;
 
-  for (const auto & [c, threads] : check_pcs)
+  for (const auto & [c, threads] : checkpoints)
     if (threads.find(thread) != threads.end())
       block_vars.push_back(reset_block(c));
 
@@ -334,15 +334,16 @@ std::shared_ptr<std::string> Relational::restore_block () const
 
 std::shared_ptr<std::string> Relational::set_halt () const
 {
-  if (halt_pcs.empty())
+  if (halts.empty())
     return {};
 
   if (num_threads > 1)
     {
       std::vector<std::string> args;
-      args.reserve(halt_pcs.size());
 
-      for (const auto & it : halt_pcs)
+      args.reserve(halts.size());
+
+      for (const auto & it : halts)
         if (thread != it.first)
           args.push_back(halt_var(step, it.first));
 
@@ -372,7 +373,7 @@ std::shared_ptr<std::string> Relational::set_halt () const
 
 std::shared_ptr<std::string> Relational::restore_halt () const
 {
-  if (halt_pcs.empty())
+  if (halts.empty())
     return {};
 
   return
@@ -403,7 +404,7 @@ std::shared_ptr<std::string> Relational::restore_heap () const
 
 std::shared_ptr<std::string> Relational::set_exit_flag () const
 {
-  if (halt_pcs.empty() && exit_pcs.empty())
+  if (halts.empty() && exits.empty())
     return {};
 
   return std::make_shared<std::string>(exit_flag_var());
@@ -413,7 +414,7 @@ std::shared_ptr<std::string> Relational::set_exit_flag () const
 
 std::shared_ptr<std::string> Relational::unset_exit_flag () const
 {
-  if (halt_pcs.empty() && exit_pcs.empty())
+  if (halts.empty() && exits.empty())
     return {};
 
   return std::make_shared<std::string>(lnot(exit_flag_var()));
@@ -478,7 +479,7 @@ void Relational::imply_thread_flushed ()
         sb_adr_var(prev, thread),
         sb_val_var(prev, thread))})});
 
-  if (!halt_pcs.empty() || !exit_pcs.empty())
+  if (!halts.empty() || !exits.empty())
     args.push_back(lnot(exit_flag_var()));
 
   formula << imply(flush_var(prev, thread), land(args)) << eol;
@@ -493,7 +494,7 @@ void Relational::imply_thread_flushed ()
 
 void Relational::imply_machine_exited ()
 {
-  if (halt_pcs.empty() && exit_pcs.empty())
+  if (halts.empty() && exits.empty())
     {
       // set exit code for programs running in an infinite loop
       if (step == bound)

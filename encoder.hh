@@ -135,25 +135,25 @@ struct Encoder
   //
   // thread -> list of program counters
   //
-  std::map<word_t, std::vector<word_t>> flush_pcs; // flushes | require_flush
+  std::map<word_t, std::vector<word_t>> flushes;
 
   // pcs of checkpoint statements
   //
-  // checkpoint id -> thread -> list of program counters
+  // checkpoint id -> thread -> pointer to list of program counters
   //
-  std::map<word_t, std::map<word_t, std::vector<word_t>>> check_pcs; // checkpoints
+  std::map<word_t, std::map<word_t, const std::vector<word_t> *>> checkpoints;
 
   // pcs of halt statements
   //
   // thread -> list of program counters
   //
-  std::map<word_t, std::vector<word_t>> halt_pcs; // halts
+  std::map<word_t, std::vector<word_t>> halts;
 
   // pcs of exit calls
   //
   // thread -> list of program counters
   //
-  std::map<word_t, std::vector<word_t>> exit_pcs; // exits
+  std::map<word_t, std::vector<word_t>> exits;
 
   //----------------------------------------------------------------------------
   // constructors
@@ -249,8 +249,8 @@ struct Encoder
   //----------------------------------------------------------------------------
 
   std::string predecessors_to_string ();
-  std::string check_pcs_to_string ();
-  std::string exit_pcs_to_string ();
+  std::string checkpoints_to_string ();
+  std::string exits_to_string ();
 };
 
 namespace smtlib {

@@ -66,26 +66,28 @@ Encoder::Encoder (const std::shared_ptr<Program::List> & p,
 
         // collect statements requiring an empty store buffer
         if (op.requires_flush())
-          flush_pcs[thread].push_back(pc);
+          flushes[thread].push_back(pc);
 
         // collect explicit halt statements
         if (&op.symbol() == &Instruction::Halt::symbol)
-          halt_pcs[thread].push_back(pc);
+          halts[thread].push_back(pc);
 
         // collect exit calls
         if (&op.symbol() == &Instruction::Exit::symbol)
-          exit_pcs[thread].push_back(pc);
+          exits[thread].push_back(pc);
       }
 
     // collect checkpoints
     for (const auto & [c, pcs] : program.checkpoints)
-      {
-        auto & lst = check_pcs[c][thread];
-
-        lst.reserve(lst.size() + pcs.size());
-        lst.insert(lst.end(), pcs.begin(), pcs.end());
-      }
+      checkpoints[c][thread] = &pcs;
   });
+
+  // remove single-threaded checkpoints
+  for (auto it = checkpoints.begin(); it != checkpoints.end();)
+    if (it->second.size() == 1)
+      it = checkpoints.erase(it);
+    else
+      ++it;
 }
 
 //------------------------------------------------------------------------------
@@ -119,17 +121,17 @@ std::string Encoder::predecessors_to_string ()
   return ss.str();
 }
 
-std::string Encoder::check_pcs_to_string ()
+std::string Encoder::checkpoints_to_string ()
 {
   std::ostringstream ss;
 
-  for (const auto & [id, threads] : check_pcs)
+  for (const auto & [id, threads] : checkpoints)
     {
       ss << "check " << id << ": " << eol;
       for (const auto & [_thread, pcs] : threads)
         {
           ss << "  " << _thread << ":";
-          for (const auto & _pc : pcs)
+          for (const auto & _pc : *pcs)
             ss << " " << _pc;
           ss << eol;
         }
@@ -138,11 +140,11 @@ std::string Encoder::check_pcs_to_string ()
   return ss.str();
 }
 
-std::string Encoder::exit_pcs_to_string ()
+std::string Encoder::exits_to_string ()
 {
   std::ostringstream ss;
 
-  for (const auto & [_thread, pcs] : exit_pcs)
+  for (const auto & [_thread, pcs] : exits)
     {
       ss << "thread " << _thread << ":";
       for (const auto & _pc : pcs)

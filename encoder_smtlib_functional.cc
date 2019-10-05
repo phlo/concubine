@@ -157,50 +157,55 @@ void Functional::define_stmt ()
 
 void Functional::define_block ()
 {
-  if (check_pcs.empty())
+  if (checkpoints.empty())
     return;
 
   if (verbose)
     formula << block_comment;
 
-  for (const auto & [c, threads] : check_pcs)
-    for (const auto & [t, pcs] : threads)
-      {
-        std::vector<std::string> args;
+  for (const auto & [c, threads] : checkpoints)
+    {
+      assert(threads.size() > 1);
 
-        args.reserve(pcs.size() + 1);
+      for (const auto & [t, pcs] : threads)
+        {
+          std::vector<std::string> args;
 
-        for (const word_t p : pcs)
-          args.push_back(exec_var(prev, t, p));
+          args.reserve(pcs->size() + 1);
 
-        args.push_back(block_var(prev, c, t));
+          for (const word_t p : *pcs)
+            args.push_back(exec_var(prev, t, p));
 
-        formula <<
-          assign(
-            block_var(step, c, t),
-            ite(
-              check_var(prev, c),
-              FALSE,
-              lor(args))) <<
-          eol;
-      }
+          args.push_back(block_var(prev, c, t));
 
-  formula << eol;
+          formula <<
+            assign(
+              block_var(step, c, t),
+              ite(
+                check_var(prev, c),
+                FALSE,
+                lor(args))) <<
+            eol;
+        }
+
+      formula << eol;
+    }
 }
 
 // smtlib::Functional::define_halt ---------------------------------------------
 
 void Functional::define_halt ()
 {
-  if (halt_pcs.empty())
+  if (halts.empty())
     return;
 
   if (verbose)
     formula << halt_comment;
 
-  for (const auto & [t, pcs] : halt_pcs)
+  for (const auto & [t, pcs] : halts)
     {
       std::vector<std::string> args;
+
       args.reserve(pcs.size() + 1);
 
       for (const word_t p : pcs)
@@ -254,7 +259,7 @@ void Functional::define_heap ()
 
 void Functional::define_exit_flag ()
 {
-  if (halt_pcs.empty() && exit_pcs.empty())
+  if (halts.empty() && exits.empty())
     return;
 
   if (verbose)
@@ -262,19 +267,20 @@ void Functional::define_exit_flag ()
 
   std::vector<std::string> args {exit_flag_var(prev)};
 
-  if (!halt_pcs.empty())
+  if (!halts.empty())
     {
       std::vector<std::string> halt;
-      halt.reserve(halt_pcs.size());
 
-      for (const auto & it : halt_pcs)
+      halt.reserve(halts.size());
+
+      for (const auto & it : halts)
         halt.push_back(halt_var(step, it.first));
 
       args.push_back(land(halt));
     }
 
-  if (!exit_pcs.empty())
-    for (const auto & [t, pcs] : exit_pcs)
+  if (!exits.empty())
+    for (const auto & [t, pcs] : exits)
       for (const word_t p : pcs)
         args.push_back(exec_var(prev, t, p));
 
@@ -290,10 +296,10 @@ void Functional::define_exit_code ()
 
   std::string expr = word2hex(0);
 
-  if (!exit_pcs.empty())
+  if (!exits.empty())
     for (size_t k = step = bound; k > 0; k--)
       iterate_programs_reverse([this, &expr, k] (const Program & program) {
-        for (const word_t & exit_pc : exit_pcs[thread])
+        for (const word_t & exit_pc : exits[thread])
           expr =
             ite(
               exec_var(k, thread, exit_pc),

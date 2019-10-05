@@ -23,18 +23,18 @@ TEST(Encoder, constructor)
 
   auto encoder = create<E>(dup(prog(code), 3));
 
-  for (const auto & pcs : encoder.flush_pcs)
+  for (const auto & pcs : encoder.flushes)
     ASSERT_EQ(std::vector<word_t>({0}), pcs.second);
 
-  for (const auto & [id, threads] : encoder.check_pcs)
+  for (const auto & [id, threads] : encoder.checkpoints)
     for (const auto & pcs : threads)
       ASSERT_EQ(
         id == 1 ? std::vector<word_t>({3}) : std::vector<word_t>({5}),
-        std::get<1>(pcs));
+        *std::get<1>(pcs));
 
-  ASSERT_TRUE(encoder.halt_pcs.empty());
+  ASSERT_TRUE(encoder.halts.empty());
 
-  for (const auto & [thread, pcs] : encoder.exit_pcs)
+  for (const auto & [thread, pcs] : encoder.exits)
     {
       ASSERT_TRUE(!thread || thread < 3);
       ASSERT_EQ(std::vector<word_t>({6}), pcs);
@@ -54,11 +54,11 @@ TEST(Encoder, constructor_flush_pcs)
   for (const auto & p : *encoder.programs)
     ASSERT_EQ(4, p.size());
 
-  for (const auto & pcs : encoder.flush_pcs)
+  for (const auto & pcs : encoder.flushes)
     ASSERT_EQ(std::vector<word_t>({0, 1, 2, 3}), pcs.second);
 }
 
-TEST(Encoder, constructor_check_pcs)
+TEST(Encoder, constructor_checkpoints)
 {
   const auto code =
     "CHECK 1\n"
@@ -67,12 +67,19 @@ TEST(Encoder, constructor_check_pcs)
 
   auto encoder = create<E>(dup(prog(code), 3));
 
-  for (const auto & [id, threads] : encoder.check_pcs)
+  for (const auto & [id, threads] : encoder.checkpoints)
     for (const auto & pcs : threads)
       {
         word_t thread = id - 1;
-        ASSERT_EQ(std::vector<word_t>({thread}), pcs.second);
+        ASSERT_EQ(std::vector<word_t>({thread}), *pcs.second);
       }
+}
+
+TEST(Encoder, constructor_checkpoints_single)
+{
+  auto encoder = create<E>(lst(prog("CHECK 1")));
+
+  ASSERT_TRUE(encoder.checkpoints.empty());
 }
 
 TEST(Encoder, constructor_halt_pcs)
@@ -90,8 +97,8 @@ TEST(Encoder, constructor_halt_pcs)
 
   auto encoder = create<E>(programs);
 
-  ASSERT_EQ(std::vector<word_t>({1, 3}), encoder.halt_pcs[0]);
-  ASSERT_EQ(std::vector<word_t>({1}), encoder.halt_pcs[1]);
+  ASSERT_EQ(std::vector<word_t>({1, 3}), encoder.halts[0]);
+  ASSERT_EQ(std::vector<word_t>({1}), encoder.halts[1]);
 }
 
 TEST(Encoder, constructor_exit_pcs)
@@ -105,7 +112,7 @@ TEST(Encoder, constructor_exit_pcs)
 
   auto encoder = create<E>(dup(prog(code), 3));
 
-  for (const auto & pcs : encoder.exit_pcs)
+  for (const auto & pcs : encoder.exits)
     ASSERT_EQ(std::vector<word_t>({1, 3, 4}), pcs.second);
 }
 

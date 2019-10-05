@@ -48,6 +48,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (declare-fun block_0_0_0 () Bool)
 (declare-fun block_0_0_1 () Bool)
+
 (declare-fun block_0_1_0 () Bool)
 (declare-fun block_0_1_1 () Bool)
 
@@ -162,6 +163,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (assert (not block_0_0_0))
 (assert (not block_0_0_1))
+
 (assert (not block_0_1_0))
 (assert (not block_0_1_1))
 
@@ -191,6 +193,7 @@
 
 (assert (=> (and block_0_0_0 (not check_0_0)) (not thread_0_0))) ; checkpoint 0: thread 0
 (assert (=> (and block_0_0_1 (not check_0_0)) (not thread_0_1))) ; checkpoint 0: thread 1
+
 (assert (=> (and block_0_1_0 (not check_0_1)) (not thread_0_0))) ; checkpoint 1: thread 0
 (assert (=> (and block_0_1_1 (not check_0_1)) (not thread_0_1))) ; checkpoint 1: thread 1
 
@@ -242,6 +245,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (declare-fun block_1_0_0 () Bool)
 (declare-fun block_1_0_1 () Bool)
+
 (declare-fun block_1_1_0 () Bool)
 (declare-fun block_1_1_1 () Bool)
 
@@ -353,6 +357,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (assert (= block_1_0_0 (ite check_0_0 false (or exec_0_0_2 block_0_0_0))))
 (assert (= block_1_0_1 (ite check_0_0 false (or exec_0_1_0 block_0_0_1))))
+
 (assert (= block_1_1_0 (ite check_0_1 false (or exec_0_0_6 block_0_1_0))))
 (assert (= block_1_1_1 (ite check_0_1 false (or exec_0_1_1 block_0_1_1))))
 
@@ -385,6 +390,7 @@
 
 (assert (=> (and block_1_0_0 (not check_1_0)) (not thread_1_0))) ; checkpoint 0: thread 0
 (assert (=> (and block_1_0_1 (not check_1_0)) (not thread_1_1))) ; checkpoint 0: thread 1
+
 (assert (=> (and block_1_1_0 (not check_1_1)) (not thread_1_0))) ; checkpoint 1: thread 0
 (assert (=> (and block_1_1_1 (not check_1_1)) (not thread_1_1))) ; checkpoint 1: thread 1
 
@@ -436,6 +442,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (declare-fun block_2_0_0 () Bool)
 (declare-fun block_2_0_1 () Bool)
+
 (declare-fun block_2_1_0 () Bool)
 (declare-fun block_2_1_1 () Bool)
 
@@ -547,6 +554,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (assert (= block_2_0_0 (ite check_1_0 false (or exec_1_0_2 block_1_0_0))))
 (assert (= block_2_0_1 (ite check_1_0 false (or exec_1_1_0 block_1_0_1))))
+
 (assert (= block_2_1_0 (ite check_1_1 false (or exec_1_0_6 block_1_1_0))))
 (assert (= block_2_1_1 (ite check_1_1 false (or exec_1_1_1 block_1_1_1))))
 
@@ -579,6 +587,7 @@
 
 (assert (=> (and block_2_0_0 (not check_2_0)) (not thread_2_0))) ; checkpoint 0: thread 0
 (assert (=> (and block_2_0_1 (not check_2_0)) (not thread_2_1))) ; checkpoint 0: thread 1
+
 (assert (=> (and block_2_1_0 (not check_2_1)) (not thread_2_0))) ; checkpoint 1: thread 0
 (assert (=> (and block_2_1_1 (not check_2_1)) (not thread_2_1))) ; checkpoint 1: thread 1
 
@@ -630,6 +639,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (declare-fun block_3_0_0 () Bool)
 (declare-fun block_3_0_1 () Bool)
+
 (declare-fun block_3_1_0 () Bool)
 (declare-fun block_3_1_1 () Bool)
 
@@ -741,6 +751,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (assert (= block_3_0_0 (ite check_2_0 false (or exec_2_0_2 block_2_0_0))))
 (assert (= block_3_0_1 (ite check_2_0 false (or exec_2_1_0 block_2_0_1))))
+
 (assert (= block_3_1_0 (ite check_2_1 false (or exec_2_0_6 block_2_1_0))))
 (assert (= block_3_1_1 (ite check_2_1 false (or exec_2_1_1 block_2_1_1))))
 
@@ -773,6 +784,7 @@
 
 (assert (=> (and block_3_0_0 (not check_3_0)) (not thread_3_0))) ; checkpoint 0: thread 0
 (assert (=> (and block_3_0_1 (not check_3_0)) (not thread_3_1))) ; checkpoint 0: thread 1
+
 (assert (=> (and block_3_1_0 (not check_3_1)) (not thread_3_0))) ; checkpoint 1: thread 0
 (assert (=> (and block_3_1_1 (not check_3_1)) (not thread_3_1))) ; checkpoint 1: thread 1
 
@@ -824,6 +836,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (declare-fun block_4_0_0 () Bool)
 (declare-fun block_4_0_1 () Bool)
+
 (declare-fun block_4_1_0 () Bool)
 (declare-fun block_4_1_1 () Bool)
 
@@ -935,6 +948,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (assert (= block_4_0_0 (ite check_3_0 false (or exec_3_0_2 block_3_0_0))))
 (assert (= block_4_0_1 (ite check_3_0 false (or exec_3_1_0 block_3_0_1))))
+
 (assert (= block_4_1_0 (ite check_3_1 false (or exec_3_0_6 block_3_1_0))))
 (assert (= block_4_1_1 (ite check_3_1 false (or exec_3_1_1 block_3_1_1))))
 
@@ -967,6 +981,7 @@
 
 (assert (=> (and block_4_0_0 (not check_4_0)) (not thread_4_0))) ; checkpoint 0: thread 0
 (assert (=> (and block_4_0_1 (not check_4_0)) (not thread_4_1))) ; checkpoint 0: thread 1
+
 (assert (=> (and block_4_1_0 (not check_4_1)) (not thread_4_0))) ; checkpoint 1: thread 0
 (assert (=> (and block_4_1_1 (not check_4_1)) (not thread_4_1))) ; checkpoint 1: thread 1
 
@@ -1018,6 +1033,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (declare-fun block_5_0_0 () Bool)
 (declare-fun block_5_0_1 () Bool)
+
 (declare-fun block_5_1_0 () Bool)
 (declare-fun block_5_1_1 () Bool)
 
@@ -1129,6 +1145,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (assert (= block_5_0_0 (ite check_4_0 false (or exec_4_0_2 block_4_0_0))))
 (assert (= block_5_0_1 (ite check_4_0 false (or exec_4_1_0 block_4_0_1))))
+
 (assert (= block_5_1_0 (ite check_4_1 false (or exec_4_0_6 block_4_1_0))))
 (assert (= block_5_1_1 (ite check_4_1 false (or exec_4_1_1 block_4_1_1))))
 
@@ -1161,6 +1178,7 @@
 
 (assert (=> (and block_5_0_0 (not check_5_0)) (not thread_5_0))) ; checkpoint 0: thread 0
 (assert (=> (and block_5_0_1 (not check_5_0)) (not thread_5_1))) ; checkpoint 0: thread 1
+
 (assert (=> (and block_5_1_0 (not check_5_1)) (not thread_5_0))) ; checkpoint 1: thread 0
 (assert (=> (and block_5_1_1 (not check_5_1)) (not thread_5_1))) ; checkpoint 1: thread 1
 
@@ -1212,6 +1230,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (declare-fun block_6_0_0 () Bool)
 (declare-fun block_6_0_1 () Bool)
+
 (declare-fun block_6_1_0 () Bool)
 (declare-fun block_6_1_1 () Bool)
 
@@ -1323,6 +1342,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (assert (= block_6_0_0 (ite check_5_0 false (or exec_5_0_2 block_5_0_0))))
 (assert (= block_6_0_1 (ite check_5_0 false (or exec_5_1_0 block_5_0_1))))
+
 (assert (= block_6_1_0 (ite check_5_1 false (or exec_5_0_6 block_5_1_0))))
 (assert (= block_6_1_1 (ite check_5_1 false (or exec_5_1_1 block_5_1_1))))
 
@@ -1355,6 +1375,7 @@
 
 (assert (=> (and block_6_0_0 (not check_6_0)) (not thread_6_0))) ; checkpoint 0: thread 0
 (assert (=> (and block_6_0_1 (not check_6_0)) (not thread_6_1))) ; checkpoint 0: thread 1
+
 (assert (=> (and block_6_1_0 (not check_6_1)) (not thread_6_0))) ; checkpoint 1: thread 0
 (assert (=> (and block_6_1_1 (not check_6_1)) (not thread_6_1))) ; checkpoint 1: thread 1
 
@@ -1406,6 +1427,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (declare-fun block_7_0_0 () Bool)
 (declare-fun block_7_0_1 () Bool)
+
 (declare-fun block_7_1_0 () Bool)
 (declare-fun block_7_1_1 () Bool)
 
@@ -1517,6 +1539,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (assert (= block_7_0_0 (ite check_6_0 false (or exec_6_0_2 block_6_0_0))))
 (assert (= block_7_0_1 (ite check_6_0 false (or exec_6_1_0 block_6_0_1))))
+
 (assert (= block_7_1_0 (ite check_6_1 false (or exec_6_0_6 block_6_1_0))))
 (assert (= block_7_1_1 (ite check_6_1 false (or exec_6_1_1 block_6_1_1))))
 
@@ -1549,6 +1572,7 @@
 
 (assert (=> (and block_7_0_0 (not check_7_0)) (not thread_7_0))) ; checkpoint 0: thread 0
 (assert (=> (and block_7_0_1 (not check_7_0)) (not thread_7_1))) ; checkpoint 0: thread 1
+
 (assert (=> (and block_7_1_0 (not check_7_1)) (not thread_7_0))) ; checkpoint 1: thread 0
 (assert (=> (and block_7_1_1 (not check_7_1)) (not thread_7_1))) ; checkpoint 1: thread 1
 
@@ -1600,6 +1624,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (declare-fun block_8_0_0 () Bool)
 (declare-fun block_8_0_1 () Bool)
+
 (declare-fun block_8_1_0 () Bool)
 (declare-fun block_8_1_1 () Bool)
 
@@ -1711,6 +1736,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (assert (= block_8_0_0 (ite check_7_0 false (or exec_7_0_2 block_7_0_0))))
 (assert (= block_8_0_1 (ite check_7_0 false (or exec_7_1_0 block_7_0_1))))
+
 (assert (= block_8_1_0 (ite check_7_1 false (or exec_7_0_6 block_7_1_0))))
 (assert (= block_8_1_1 (ite check_7_1 false (or exec_7_1_1 block_7_1_1))))
 
@@ -1743,6 +1769,7 @@
 
 (assert (=> (and block_8_0_0 (not check_8_0)) (not thread_8_0))) ; checkpoint 0: thread 0
 (assert (=> (and block_8_0_1 (not check_8_0)) (not thread_8_1))) ; checkpoint 0: thread 1
+
 (assert (=> (and block_8_1_0 (not check_8_1)) (not thread_8_0))) ; checkpoint 1: thread 0
 (assert (=> (and block_8_1_1 (not check_8_1)) (not thread_8_1))) ; checkpoint 1: thread 1
 
@@ -1794,6 +1821,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (declare-fun block_9_0_0 () Bool)
 (declare-fun block_9_0_1 () Bool)
+
 (declare-fun block_9_1_0 () Bool)
 (declare-fun block_9_1_1 () Bool)
 
@@ -1905,6 +1933,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (assert (= block_9_0_0 (ite check_8_0 false (or exec_8_0_2 block_8_0_0))))
 (assert (= block_9_0_1 (ite check_8_0 false (or exec_8_1_0 block_8_0_1))))
+
 (assert (= block_9_1_0 (ite check_8_1 false (or exec_8_0_6 block_8_1_0))))
 (assert (= block_9_1_1 (ite check_8_1 false (or exec_8_1_1 block_8_1_1))))
 
@@ -1937,6 +1966,7 @@
 
 (assert (=> (and block_9_0_0 (not check_9_0)) (not thread_9_0))) ; checkpoint 0: thread 0
 (assert (=> (and block_9_0_1 (not check_9_0)) (not thread_9_1))) ; checkpoint 0: thread 1
+
 (assert (=> (and block_9_1_0 (not check_9_1)) (not thread_9_0))) ; checkpoint 1: thread 0
 (assert (=> (and block_9_1_1 (not check_9_1)) (not thread_9_1))) ; checkpoint 1: thread 1
 
@@ -1988,6 +2018,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (declare-fun block_10_0_0 () Bool)
 (declare-fun block_10_0_1 () Bool)
+
 (declare-fun block_10_1_0 () Bool)
 (declare-fun block_10_1_1 () Bool)
 
@@ -2099,6 +2130,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (assert (= block_10_0_0 (ite check_9_0 false (or exec_9_0_2 block_9_0_0))))
 (assert (= block_10_0_1 (ite check_9_0 false (or exec_9_1_0 block_9_0_1))))
+
 (assert (= block_10_1_0 (ite check_9_1 false (or exec_9_0_6 block_9_1_0))))
 (assert (= block_10_1_1 (ite check_9_1 false (or exec_9_1_1 block_9_1_1))))
 
@@ -2131,6 +2163,7 @@
 
 (assert (=> (and block_10_0_0 (not check_10_0)) (not thread_10_0))) ; checkpoint 0: thread 0
 (assert (=> (and block_10_0_1 (not check_10_0)) (not thread_10_1))) ; checkpoint 0: thread 1
+
 (assert (=> (and block_10_1_0 (not check_10_1)) (not thread_10_0))) ; checkpoint 1: thread 0
 (assert (=> (and block_10_1_1 (not check_10_1)) (not thread_10_1))) ; checkpoint 1: thread 1
 
@@ -2182,6 +2215,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (declare-fun block_11_0_0 () Bool)
 (declare-fun block_11_0_1 () Bool)
+
 (declare-fun block_11_1_0 () Bool)
 (declare-fun block_11_1_1 () Bool)
 
@@ -2293,6 +2327,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (assert (= block_11_0_0 (ite check_10_0 false (or exec_10_0_2 block_10_0_0))))
 (assert (= block_11_0_1 (ite check_10_0 false (or exec_10_1_0 block_10_0_1))))
+
 (assert (= block_11_1_0 (ite check_10_1 false (or exec_10_0_6 block_10_1_0))))
 (assert (= block_11_1_1 (ite check_10_1 false (or exec_10_1_1 block_10_1_1))))
 
@@ -2325,6 +2360,7 @@
 
 (assert (=> (and block_11_0_0 (not check_11_0)) (not thread_11_0))) ; checkpoint 0: thread 0
 (assert (=> (and block_11_0_1 (not check_11_0)) (not thread_11_1))) ; checkpoint 0: thread 1
+
 (assert (=> (and block_11_1_0 (not check_11_1)) (not thread_11_0))) ; checkpoint 1: thread 0
 (assert (=> (and block_11_1_1 (not check_11_1)) (not thread_11_1))) ; checkpoint 1: thread 1
 
@@ -2376,6 +2412,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (declare-fun block_12_0_0 () Bool)
 (declare-fun block_12_0_1 () Bool)
+
 (declare-fun block_12_1_0 () Bool)
 (declare-fun block_12_1_1 () Bool)
 
@@ -2487,6 +2524,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (assert (= block_12_0_0 (ite check_11_0 false (or exec_11_0_2 block_11_0_0))))
 (assert (= block_12_0_1 (ite check_11_0 false (or exec_11_1_0 block_11_0_1))))
+
 (assert (= block_12_1_0 (ite check_11_1 false (or exec_11_0_6 block_11_1_0))))
 (assert (= block_12_1_1 (ite check_11_1 false (or exec_11_1_1 block_11_1_1))))
 
@@ -2519,6 +2557,7 @@
 
 (assert (=> (and block_12_0_0 (not check_12_0)) (not thread_12_0))) ; checkpoint 0: thread 0
 (assert (=> (and block_12_0_1 (not check_12_0)) (not thread_12_1))) ; checkpoint 0: thread 1
+
 (assert (=> (and block_12_1_0 (not check_12_1)) (not thread_12_0))) ; checkpoint 1: thread 0
 (assert (=> (and block_12_1_1 (not check_12_1)) (not thread_12_1))) ; checkpoint 1: thread 1
 
@@ -2570,6 +2609,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (declare-fun block_13_0_0 () Bool)
 (declare-fun block_13_0_1 () Bool)
+
 (declare-fun block_13_1_0 () Bool)
 (declare-fun block_13_1_1 () Bool)
 
@@ -2681,6 +2721,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (assert (= block_13_0_0 (ite check_12_0 false (or exec_12_0_2 block_12_0_0))))
 (assert (= block_13_0_1 (ite check_12_0 false (or exec_12_1_0 block_12_0_1))))
+
 (assert (= block_13_1_0 (ite check_12_1 false (or exec_12_0_6 block_12_1_0))))
 (assert (= block_13_1_1 (ite check_12_1 false (or exec_12_1_1 block_12_1_1))))
 
@@ -2713,6 +2754,7 @@
 
 (assert (=> (and block_13_0_0 (not check_13_0)) (not thread_13_0))) ; checkpoint 0: thread 0
 (assert (=> (and block_13_0_1 (not check_13_0)) (not thread_13_1))) ; checkpoint 0: thread 1
+
 (assert (=> (and block_13_1_0 (not check_13_1)) (not thread_13_0))) ; checkpoint 1: thread 0
 (assert (=> (and block_13_1_1 (not check_13_1)) (not thread_13_1))) ; checkpoint 1: thread 1
 
@@ -2764,6 +2806,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (declare-fun block_14_0_0 () Bool)
 (declare-fun block_14_0_1 () Bool)
+
 (declare-fun block_14_1_0 () Bool)
 (declare-fun block_14_1_1 () Bool)
 
@@ -2875,6 +2918,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (assert (= block_14_0_0 (ite check_13_0 false (or exec_13_0_2 block_13_0_0))))
 (assert (= block_14_0_1 (ite check_13_0 false (or exec_13_1_0 block_13_0_1))))
+
 (assert (= block_14_1_0 (ite check_13_1 false (or exec_13_0_6 block_13_1_0))))
 (assert (= block_14_1_1 (ite check_13_1 false (or exec_13_1_1 block_13_1_1))))
 
@@ -2907,6 +2951,7 @@
 
 (assert (=> (and block_14_0_0 (not check_14_0)) (not thread_14_0))) ; checkpoint 0: thread 0
 (assert (=> (and block_14_0_1 (not check_14_0)) (not thread_14_1))) ; checkpoint 0: thread 1
+
 (assert (=> (and block_14_1_0 (not check_14_1)) (not thread_14_0))) ; checkpoint 1: thread 0
 (assert (=> (and block_14_1_1 (not check_14_1)) (not thread_14_1))) ; checkpoint 1: thread 1
 
@@ -2958,6 +3003,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (declare-fun block_15_0_0 () Bool)
 (declare-fun block_15_0_1 () Bool)
+
 (declare-fun block_15_1_0 () Bool)
 (declare-fun block_15_1_1 () Bool)
 
@@ -3069,6 +3115,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (assert (= block_15_0_0 (ite check_14_0 false (or exec_14_0_2 block_14_0_0))))
 (assert (= block_15_0_1 (ite check_14_0 false (or exec_14_1_0 block_14_0_1))))
+
 (assert (= block_15_1_0 (ite check_14_1 false (or exec_14_0_6 block_14_1_0))))
 (assert (= block_15_1_1 (ite check_14_1 false (or exec_14_1_1 block_14_1_1))))
 
@@ -3101,6 +3148,7 @@
 
 (assert (=> (and block_15_0_0 (not check_15_0)) (not thread_15_0))) ; checkpoint 0: thread 0
 (assert (=> (and block_15_0_1 (not check_15_0)) (not thread_15_1))) ; checkpoint 0: thread 1
+
 (assert (=> (and block_15_1_0 (not check_15_1)) (not thread_15_0))) ; checkpoint 1: thread 0
 (assert (=> (and block_15_1_1 (not check_15_1)) (not thread_15_1))) ; checkpoint 1: thread 1
 
@@ -3152,6 +3200,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (declare-fun block_16_0_0 () Bool)
 (declare-fun block_16_0_1 () Bool)
+
 (declare-fun block_16_1_0 () Bool)
 (declare-fun block_16_1_1 () Bool)
 
@@ -3263,6 +3312,7 @@
 ; blocking variables - block_<step>_<id>_<thread>
 (assert (= block_16_0_0 (ite check_15_0 false (or exec_15_0_2 block_15_0_0))))
 (assert (= block_16_0_1 (ite check_15_0 false (or exec_15_1_0 block_15_0_1))))
+
 (assert (= block_16_1_0 (ite check_15_1 false (or exec_15_0_6 block_15_1_0))))
 (assert (= block_16_1_1 (ite check_15_1 false (or exec_15_1_1 block_15_1_1))))
 
@@ -3295,6 +3345,7 @@
 
 (assert (=> (and block_16_0_0 (not check_16_0)) (not thread_16_0))) ; checkpoint 0: thread 0
 (assert (=> (and block_16_0_1 (not check_16_0)) (not thread_16_1))) ; checkpoint 0: thread 1
+
 (assert (=> (and block_16_1_0 (not check_16_1)) (not thread_16_0))) ; checkpoint 1: thread 0
 (assert (=> (and block_16_1_1 (not check_16_1)) (not thread_16_1))) ; checkpoint 1: thread 1
 

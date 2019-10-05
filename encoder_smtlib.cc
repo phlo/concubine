@@ -494,32 +494,36 @@ void Encoder::declare_stmt ()
 
 void Encoder::declare_block ()
 {
-  if (check_pcs.empty())
+  if (checkpoints.empty())
     return;
 
   if (verbose)
     formula << block_comment;
 
-  for (const auto & [s, threads] : check_pcs)
-    for (const auto & t : threads)
-      formula
-        << declare_bool_var(block_var(step, s, t.first))
-        << eol;
+  for (const auto & [s, threads] : checkpoints)
+    {
+      assert(threads.size() > 1);
 
-  formula << eol;
+      for (const auto & t : threads)
+        formula
+          << declare_bool_var(block_var(step, s, t.first))
+          << eol;
+
+      formula << eol;
+    }
 }
 
 // smtlib::Encoder::declare_halt -----------------------------------------------
 
 void Encoder::declare_halt ()
 {
-  if (halt_pcs.empty())
+  if (halts.empty())
     return;
 
   if (verbose)
     formula << halt_comment;
 
-  for (const auto & it : halt_pcs)
+  for (const auto & it : halts)
     formula << declare_bool_var(halt_var(step, it.first)) << eol;
 
   formula << eol;
@@ -541,7 +545,7 @@ void Encoder::declare_heap ()
 
 void Encoder::declare_exit_flag ()
 {
-  if (halt_pcs.empty() && exit_pcs.empty())
+  if (halts.empty() && exits.empty())
     return;
 
   if (verbose)
@@ -630,13 +634,13 @@ void Encoder::declare_flush ()
 
 void Encoder::declare_check ()
 {
-  if (check_pcs.empty())
+  if (checkpoints.empty())
     return;
 
   if (verbose)
     formula << check_comment;
 
-  for (const auto & s : check_pcs)
+  for (const auto & s : checkpoints)
     formula << declare_bool_var(check_var(step, s.first)) << eol;
 
   formula << eol;
@@ -738,24 +742,28 @@ void Encoder::init_stmt ()
 
 void Encoder::init_block ()
 {
-  if (check_pcs.empty())
+  if (checkpoints.empty())
     return;
 
   if (verbose)
     formula << block_comment;
 
-  for (const auto & [c, threads] : check_pcs)
-    for (const auto & [t, pcs] : threads)
-      formula << assertion(lnot(block_var(step, c, t))) << eol;
+  for (const auto & [c, threads] : checkpoints)
+    {
+      assert(threads.size() > 1);
 
-  formula << eol;
+      for (const auto & [t, pcs] : threads)
+        formula << assertion(lnot(block_var(step, c, t))) << eol;
+
+      formula << eol;
+    }
 }
 
 // smtlib::Encoder::init_halt --------------------------------------------------
 
 void Encoder::init_halt ()
 {
-  if (halt_pcs.empty())
+  if (halts.empty())
     return;
 
   if (verbose)
@@ -788,7 +796,7 @@ void Encoder::init_heap ()
 
 void Encoder::init_exit_flag ()
 {
-  if (halt_pcs.empty() && exit_pcs.empty())
+  if (halts.empty() && exits.empty())
     return;
 
   if (verbose)
@@ -840,14 +848,16 @@ void Encoder::define_exec ()
 
 void Encoder::define_check ()
 {
-  if (check_pcs.empty())
+  if (checkpoints.empty())
     return;
 
   if (verbose)
     formula << check_comment;
 
-  for (const auto & [c, threads] : check_pcs)
+  for (const auto & [c, threads] : checkpoints)
     {
+      assert(threads.size() > 1);
+
       if (step)
         {
           std::vector<std::string> check_args;
@@ -897,7 +907,7 @@ void Encoder::define_scheduling_constraints ()
     variables.push_back(flush_var());
   });
 
-  if (!halt_pcs.empty() || !exit_pcs.empty())
+  if (!halts.empty() || !exits.empty())
     variables.push_back(exit_flag_var());
 
   formula
@@ -915,9 +925,9 @@ void Encoder::define_store_buffer_constraints ()
     formula << comment_subsection("store buffer constraints");
 
   iterate_threads([this] {
-    if (flush_pcs.find(thread) != flush_pcs.end())
+    if (flushes.find(thread) != flushes.end())
       {
-        const auto & pcs = flush_pcs[thread];
+        const auto & pcs = flushes[thread];
 
         std::vector<std::string> stmts;
 
@@ -955,43 +965,47 @@ void Encoder::define_store_buffer_constraints ()
 
 void Encoder::define_checkpoint_constraints ()
 {
-  if (check_pcs.empty())
+  if (checkpoints.empty())
     return;
 
   if (verbose)
     formula << comment_subsection("checkpoint constraints");
 
-  for (const auto & [c, threads] : check_pcs)
-    for (const auto & [t, pcs] : threads)
-      {
-        formula <<
-          assertion(
-            implication(
-              land({
-                block_var(step, c, t),
-                lnot(check_var(step, c))}),
-              lnot(thread_var(step, t))));
+  for (const auto & [c, threads] : checkpoints)
+    {
+      assert(threads.size() > 1);
 
-        if (verbose)
-          formula << " ; checkpoint " << c << ": thread " << t;
+      for (const auto & [t, pcs] : threads)
+        {
+          formula <<
+            assertion(
+              implication(
+                land({
+                  block_var(step, c, t),
+                  lnot(check_var(step, c))}),
+                lnot(thread_var(step, t))));
 
-        formula << eol;
-      }
+          if (verbose)
+            formula << " ; checkpoint " << c << ": thread " << t;
 
-  formula << eol;
+          formula << eol;
+        }
+
+      formula << eol;
+    }
 }
 
 // smtlib::Encoder::define_halt_constraints ------------------------------------
 
 void Encoder::define_halt_constraints ()
 {
-  if (halt_pcs.empty())
+  if (halts.empty())
     return;
 
   if (verbose)
     formula << comment_subsection("halt constraints");
 
-  for (const auto & it : halt_pcs)
+  for (const auto & it : halts)
     formula <<
       assertion(
         implication(

@@ -597,6 +597,7 @@ TEST(smtlib_Encoder, declare_block)
     "(declare-fun block_1_0_0 () Bool)\n"
     "(declare-fun block_1_0_1 () Bool)\n"
     "(declare-fun block_1_0_2 () Bool)\n"
+    "\n"
     "(declare-fun block_1_1_0 () Bool)\n"
     "(declare-fun block_1_1_1 () Bool)\n"
     "(declare-fun block_1_1_2 () Bool)\n"
@@ -614,6 +615,7 @@ TEST(smtlib_Encoder, declare_block)
     "(declare-fun block_1_0_0 () Bool)\n"
     "(declare-fun block_1_0_1 () Bool)\n"
     "(declare-fun block_1_0_2 () Bool)\n"
+    "\n"
     "(declare-fun block_1_1_0 () Bool)\n"
     "(declare-fun block_1_1_1 () Bool)\n"
     "(declare-fun block_1_1_2 () Bool)\n"
@@ -871,13 +873,7 @@ TEST(smtlib_Encoder, declare_check)
 
   encoder.declare_check();
 
-  ASSERT_EQ(
-    "; checkpoint variables - check_<step>_<id>\n"
-    "(declare-fun check_1_1 () Bool)\n"
-    "(declare-fun check_1_2 () Bool)\n"
-    "(declare-fun check_1_3 () Bool)\n"
-    "\n",
-    encoder.str());
+  ASSERT_EQ("", encoder.str());
 
   // same checkpoint ids
   for (auto & p : *programs)
@@ -889,9 +885,6 @@ TEST(smtlib_Encoder, declare_check)
 
   ASSERT_EQ(
     "; checkpoint variables - check_<step>_<id>\n"
-    "(declare-fun check_1_1 () Bool)\n"
-    "(declare-fun check_1_2 () Bool)\n"
-    "(declare-fun check_1_3 () Bool)\n"
     "(declare-fun check_1_4 () Bool)\n"
     "\n",
     encoder.str());
@@ -904,9 +897,6 @@ TEST(smtlib_Encoder, declare_check)
   verbose = true;
 
   ASSERT_EQ(
-    "(declare-fun check_1_1 () Bool)\n"
-    "(declare-fun check_1_2 () Bool)\n"
-    "(declare-fun check_1_3 () Bool)\n"
     "(declare-fun check_1_4 () Bool)\n"
     "\n",
     encoder.str());
@@ -1140,6 +1130,7 @@ TEST(smtlib_Encoder, init_block)
     "(assert (not block_0_0_0))\n"
     "(assert (not block_0_0_1))\n"
     "(assert (not block_0_0_2))\n"
+    "\n"
     "(assert (not block_0_1_0))\n"
     "(assert (not block_0_1_1))\n"
     "(assert (not block_0_1_2))\n"
@@ -1157,6 +1148,7 @@ TEST(smtlib_Encoder, init_block)
     "(assert (not block_0_0_0))\n"
     "(assert (not block_0_0_1))\n"
     "(assert (not block_0_0_2))\n"
+    "\n"
     "(assert (not block_0_1_0))\n"
     "(assert (not block_0_1_1))\n"
     "(assert (not block_0_1_2))\n"
@@ -1347,7 +1339,7 @@ TEST(smtlib_Encoder, init_states_check_exit)
     "CHECK 0\n"
     "EXIT 1\n";
 
-  auto encoder = create<E>(lst(prog(code)), mmap({}), 0);
+  auto encoder = create<E>(dup(prog(code), 3), mmap({}), 0);
 
   encoder.init_states();
 
@@ -1356,25 +1348,43 @@ TEST(smtlib_Encoder, init_states_check_exit)
     "\n"
     "; accu variables - accu_<step>_<thread>\n"
     "(assert (= accu_0_0 #x0000))\n"
+    "(assert (= accu_0_1 #x0000))\n"
+    "(assert (= accu_0_2 #x0000))\n"
     "\n"
     "; mem variables - mem_<step>_<thread>\n"
     "(assert (= mem_0_0 #x0000))\n"
+    "(assert (= mem_0_1 #x0000))\n"
+    "(assert (= mem_0_2 #x0000))\n"
     "\n"
     "; store buffer address variables - sb-adr_<step>_<thread>\n"
     "(assert (= sb-adr_0_0 #x0000))\n"
+    "(assert (= sb-adr_0_1 #x0000))\n"
+    "(assert (= sb-adr_0_2 #x0000))\n"
     "\n"
     "; store buffer value variables - sb-val_<step>_<thread>\n"
     "(assert (= sb-val_0_0 #x0000))\n"
+    "(assert (= sb-val_0_1 #x0000))\n"
+    "(assert (= sb-val_0_2 #x0000))\n"
     "\n"
     "; store buffer full variables - sb-full_<step>_<thread>\n"
     "(assert (not sb-full_0_0))\n"
+    "(assert (not sb-full_0_1))\n"
+    "(assert (not sb-full_0_2))\n"
     "\n"
     "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
     "(assert stmt_0_0_0)\n"
     "(assert (not stmt_0_0_1))\n"
     "\n"
+    "(assert stmt_0_1_0)\n"
+    "(assert (not stmt_0_1_1))\n"
+    "\n"
+    "(assert stmt_0_2_0)\n"
+    "(assert (not stmt_0_2_1))\n"
+    "\n"
     "; blocking variables - block_<step>_<id>_<thread>\n"
     "(assert (not block_0_0_0))\n"
+    "(assert (not block_0_0_1))\n"
+    "(assert (not block_0_0_2))\n"
     "\n"
     "; exit flag variable - exit_<step>\n"
     "(assert (not exit_0))\n"
@@ -1679,6 +1689,7 @@ TEST(smtlib_Encoder, define_checkpoint_constraints)
     "(assert (=> (and block_1_1_0 (not check_1_1)) (not thread_1_0))) ; checkpoint 1: thread 0\n"
     "(assert (=> (and block_1_1_1 (not check_1_1)) (not thread_1_1))) ; checkpoint 1: thread 1\n"
     "(assert (=> (and block_1_1_2 (not check_1_1)) (not thread_1_2))) ; checkpoint 1: thread 2\n"
+    "\n"
     "(assert (=> (and block_1_2_0 (not check_1_2)) (not thread_1_0))) ; checkpoint 2: thread 0\n"
     "(assert (=> (and block_1_2_1 (not check_1_2)) (not thread_1_1))) ; checkpoint 2: thread 1\n"
     "(assert (=> (and block_1_2_2 (not check_1_2)) (not thread_1_2))) ; checkpoint 2: thread 2\n"
@@ -1699,6 +1710,7 @@ TEST(smtlib_Encoder, define_checkpoint_constraints)
     "(assert (=> (and block_1_1_0 (not check_1_1)) (not thread_1_0))) ; checkpoint 1: thread 0\n"
     "(assert (=> (and block_1_1_1 (not check_1_1)) (not thread_1_1))) ; checkpoint 1: thread 1\n"
     "(assert (=> (and block_1_1_2 (not check_1_1)) (not thread_1_2))) ; checkpoint 1: thread 2\n"
+    "\n"
     "(assert (=> (and block_1_2_0 (not check_1_2)) (not thread_1_0))) ; checkpoint 2: thread 0\n"
     "(assert (=> (and block_1_2_1 (not check_1_2)) (not thread_1_1))) ; checkpoint 2: thread 1\n"
     "(assert (=> (and block_1_2_2 (not check_1_2)) (not thread_1_2))) ; checkpoint 2: thread 2\n"
@@ -1716,6 +1728,7 @@ TEST(smtlib_Encoder, define_checkpoint_constraints)
     "(assert (=> (and block_1_1_0 (not check_1_1)) (not thread_1_0)))\n"
     "(assert (=> (and block_1_1_1 (not check_1_1)) (not thread_1_1)))\n"
     "(assert (=> (and block_1_1_2 (not check_1_1)) (not thread_1_2)))\n"
+    "\n"
     "(assert (=> (and block_1_2_0 (not check_1_2)) (not thread_1_0)))\n"
     "(assert (=> (and block_1_2_1 (not check_1_2)) (not thread_1_1)))\n"
     "(assert (=> (and block_1_2_2 (not check_1_2)) (not thread_1_2)))\n"

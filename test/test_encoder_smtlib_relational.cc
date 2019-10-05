@@ -39,7 +39,7 @@ TEST(smtlib_Relational, imply_thread_executed)
     "CHECK 0\n"
     "EXIT 1\n";
 
-  auto encoder = create<E>(lst(prog(code)));
+  auto encoder = create<E>(dup(prog(code), 3));
 
   encoder.imply_thread_executed();
 
@@ -102,7 +102,7 @@ TEST(smtlib_Relational, imply_thread_not_executed)
     "CHECK 0\n"
     "EXIT 1\n";
 
-  auto encoder = create<E>(lst(prog(code)));
+  auto encoder = create<E>(dup(prog(code), 3));
 
   encoder.imply_thread_not_executed();
 
@@ -242,54 +242,66 @@ TEST(smtlib_Relational, define_states_check_exit)
     "CHECK 0\n"
     "EXIT 1\n";
 
-  auto encoder = create<E>(lst(prog(code)));
+  auto encoder = create<E>(dup(prog(code), 3));
 
   encoder.define_states();
+
+  auto expected = [] (size_t thread) {
+    const auto t = std::to_string(thread);
+    return
+      "; thread " + t + "\n"
+      "(assert (=> exec_0_" + t + "_0 "
+        "(and "
+          "(= accu_1_"    + t + " accu_0_"    + t + ") "
+          "(= mem_1_"     + t + " mem_0_"     + t + ") "
+          "(= sb-adr_1_"  + t + " sb-adr_0_"  + t + ") "
+          "(= sb-val_1_"  + t + " sb-val_0_"  + t + ") "
+          "(= sb-full_1_" + t + " sb-full_0_" + t + ") "
+          "(and (not stmt_1_" + t + "_0) stmt_1_" + t + "_1) "
+          "block_1_0_" + t + " "
+          "(= heap_1 heap_0) "
+          "(not exit_1))))\n"
+      "\n"
+      "(assert (=> exec_0_" + t + "_1 "
+        "(and "
+          "(= accu_1_"    + t + " accu_0_"    + t + ") "
+          "(= mem_1_"     + t + " mem_0_"     + t + ") "
+          "(= sb-adr_1_"  + t + " sb-adr_0_"  + t + ") "
+          "(= sb-val_1_"  + t + " sb-val_0_"  + t + ") "
+          "(= sb-full_1_" + t + " sb-full_0_" + t + ") "
+          "(and (not stmt_1_" + t + "_0) stmt_1_" + t + "_1) "
+          "(= block_1_0_" + t + " (ite check_0_0 false block_0_0_" + t + ")) "
+          "(= heap_1 heap_0) "
+          "exit_1 "
+          "(= exit-code #x0001))))\n"
+      "\n"
+      "(assert (=> (not thread_0_" + t + ") "
+        "(and "
+          "(= accu_1_"    + t + " accu_0_"    + t + ") "
+          "(= mem_1_"     + t + " mem_0_"     + t + ") "
+          "(= sb-adr_1_"  + t + " sb-adr_0_"  + t + ") "
+          "(= sb-val_1_"  + t + " sb-val_0_"  + t + ") "
+          "(= sb-full_1_" + t + " (ite flush_0_" + t + " false sb-full_0_" + t + ")) "
+          "(and "
+            "(= stmt_1_" + t + "_0 stmt_0_" + t + "_0) "
+            "(= stmt_1_" + t + "_1 stmt_0_" + t + "_1)) "
+          "(= block_1_0_" + t + " (ite check_0_0 false block_0_0_" + t + ")))))\n"
+      "\n"
+      "(assert (=> flush_0_" + t + " "
+        "(and "
+          "(not sb-full_1_" + t + ") "
+          "(= heap_1 (store heap_0 sb-adr_0_" + t + " sb-val_0_" + t + ")) "
+          "(not exit_1))))\n";
+  };
 
   ASSERT_EQ(
     "; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
     "\n"
-    "; thread 0\n"
-    "(assert (=> exec_0_0_0 "
-      "(and "
-        "(= accu_1_0 accu_0_0) "
-        "(= mem_1_0 mem_0_0) "
-        "(= sb-adr_1_0 sb-adr_0_0) "
-        "(= sb-val_1_0 sb-val_0_0) "
-        "(= sb-full_1_0 sb-full_0_0) "
-        "(and (not stmt_1_0_0) stmt_1_0_1) "
-        "block_1_0_0 "
-        "(= heap_1 heap_0) "
-        "(not exit_1))))\n"
+    + expected(0) +
     "\n"
-    "(assert (=> exec_0_0_1 "
-      "(and "
-        "(= accu_1_0 accu_0_0) "
-        "(= mem_1_0 mem_0_0) "
-        "(= sb-adr_1_0 sb-adr_0_0) "
-        "(= sb-val_1_0 sb-val_0_0) "
-        "(= sb-full_1_0 sb-full_0_0) "
-        "(and (not stmt_1_0_0) stmt_1_0_1) "
-        "(= block_1_0_0 (ite check_0_0 false block_0_0_0)) "
-        "(= heap_1 heap_0) "
-        "exit_1 "
-        "(= exit-code #x0001))))\n"
+    + expected(1) +
     "\n"
-    "(assert (=> (not thread_0_0) "
-      "(and "
-        "(= accu_1_0 accu_0_0) "
-        "(= mem_1_0 mem_0_0) "
-        "(= sb-adr_1_0 sb-adr_0_0) "
-        "(= sb-val_1_0 sb-val_0_0) "
-        "(= sb-full_1_0 (ite flush_0_0 false sb-full_0_0)) "
-        "(and (= stmt_1_0_0 stmt_0_0_0) (= stmt_1_0_1 stmt_0_0_1)) "
-        "(= block_1_0_0 (ite check_0_0 false block_0_0_0)))))\n"
-    "\n"
-    "(assert (=> flush_0_0 "
-      "(and "
-        "(not sb-full_1_0) "
-        "(= heap_1 (store heap_0 sb-adr_0_0 sb-val_0_0)) "
-        "(not exit_1))))\n"
+    + expected(2) +
     "\n"
     "; exited\n"
     "(assert (=> exit_0 (and (= heap_1 heap_0) exit_1)))\n"
@@ -329,7 +341,7 @@ TEST(smtlib_Relational, encode_litmus_amd_9) { encode_litmus_amd_9<E>(); }
 
 TEST(smtlib_Relational, LOAD)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   Instruction::Load load {Instruction::Type::none, 1};
 
@@ -371,7 +383,7 @@ TEST(smtlib_Relational, LOAD)
 
 TEST(smtlib_Relational, LOAD_indirect)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   Instruction::Load l {Instruction::Type::none, 1, true};
 
@@ -412,7 +424,7 @@ TEST(smtlib_Relational, LOAD_indirect)
 
 TEST(smtlib_Relational, STORE)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   encoder.pc = 1;
 
@@ -453,7 +465,7 @@ TEST(smtlib_Relational, STORE)
 
 TEST(smtlib_Relational, STORE_indirect)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   encoder.pc = 1;
 
@@ -497,7 +509,7 @@ TEST(smtlib_Relational, STORE_indirect)
 
 TEST(smtlib_Relational, ADD)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   encoder.pc = 2;
 
@@ -543,7 +555,7 @@ TEST(smtlib_Relational, ADD)
 
 TEST(smtlib_Relational, ADD_indirect)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   encoder.pc = 2;
 
@@ -586,7 +598,7 @@ TEST(smtlib_Relational, ADD_indirect)
 
 TEST(smtlib_Relational, ADDI)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   encoder.pc = 3;
 
@@ -627,7 +639,7 @@ TEST(smtlib_Relational, ADDI)
 
 TEST(smtlib_Relational, SUB)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   encoder.pc = 4;
 
@@ -673,7 +685,7 @@ TEST(smtlib_Relational, SUB)
 
 TEST(smtlib_Relational, SUB_indirect)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   encoder.pc = 4;
 
@@ -716,7 +728,7 @@ TEST(smtlib_Relational, SUB_indirect)
 
 TEST(smtlib_Relational, SUBI)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   encoder.pc = 5;
 
@@ -757,7 +769,7 @@ TEST(smtlib_Relational, SUBI)
 
 TEST(smtlib_Relational, MUL)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   encoder.pc = 4;
 
@@ -803,7 +815,7 @@ TEST(smtlib_Relational, MUL)
 
 TEST(smtlib_Relational, MUL_indirect)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   encoder.pc = 4;
 
@@ -846,7 +858,7 @@ TEST(smtlib_Relational, MUL_indirect)
 
 TEST(smtlib_Relational, MULI)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   encoder.pc = 5;
 
@@ -887,7 +899,7 @@ TEST(smtlib_Relational, MULI)
 
 TEST(smtlib_Relational, CMP)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   encoder.pc = 8;
 
@@ -933,7 +945,7 @@ TEST(smtlib_Relational, CMP)
 
 TEST(smtlib_Relational, CMP_indirect)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   encoder.pc = 8;
 
@@ -976,7 +988,7 @@ TEST(smtlib_Relational, CMP_indirect)
 
 TEST(smtlib_Relational, JMP)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   encoder.pc = 9;
 
@@ -1017,7 +1029,7 @@ TEST(smtlib_Relational, JMP)
 
 TEST(smtlib_Relational, JZ)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   encoder.pc = 10;
 
@@ -1062,7 +1074,7 @@ TEST(smtlib_Relational, JZ)
 
 TEST(smtlib_Relational, JNZ)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   encoder.pc = 11;
 
@@ -1107,7 +1119,7 @@ TEST(smtlib_Relational, JNZ)
 
 TEST(smtlib_Relational, JS)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   encoder.pc = 12;
 
@@ -1152,7 +1164,7 @@ TEST(smtlib_Relational, JS)
 
 TEST(smtlib_Relational, JNS)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   encoder.pc = 13;
 
@@ -1197,7 +1209,7 @@ TEST(smtlib_Relational, JNS)
 
 TEST(smtlib_Relational, JNZNS)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   encoder.pc = 14;
 
@@ -1248,7 +1260,7 @@ TEST(smtlib_Relational, JNZNS)
 
 TEST(smtlib_Relational, MEM)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   encoder.pc = 15;
 
@@ -1295,7 +1307,7 @@ TEST(smtlib_Relational, MEM)
 
 TEST(smtlib_Relational, MEM_indirect)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   encoder.pc = 15;
 
@@ -1338,7 +1350,7 @@ TEST(smtlib_Relational, MEM_indirect)
 
 TEST(smtlib_Relational, CAS)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   encoder.pc = 16;
 
@@ -1385,7 +1397,7 @@ TEST(smtlib_Relational, CAS)
 
 TEST(smtlib_Relational, CAS_indirect)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   encoder.pc = 16;
 
@@ -1432,7 +1444,7 @@ TEST(smtlib_Relational, CAS_indirect)
 
 TEST(smtlib_Relational, CHECK)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   encoder.pc = 17;
 
@@ -1473,7 +1485,7 @@ TEST(smtlib_Relational, CHECK)
 
 TEST(smtlib_Relational, EXIT)
 {
-  auto encoder = create<E>(lst(prog(instruction_set)));
+  auto encoder = create<E>(dup(prog(instruction_set), 2));
 
   encoder.pc = 18;
 

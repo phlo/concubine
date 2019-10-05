@@ -717,28 +717,26 @@ void Encoder::declare_stmt ()
 
 void Encoder::declare_block ()
 {
-  if (check_pcs.empty())
+  if (checkpoints.empty())
     return;
 
   if (verbose)
     formula << block_comment;
 
-  for (const auto & [c, threads] : check_pcs)
+  for (const auto & [c, threads] : checkpoints)
     {
-      // TODO: ignore single-threaded checkpoints -> see gitlab issue #65
-      if (threads.size() > 1)
-        {
-          auto & nids = nids_block.insert(nids_block.end(), {c, {}})->second;
+      assert(threads.size() > 1);
 
-          for (const auto & t : threads)
-            formula <<
-              state(
-                nids.emplace_hint(nids.end(), t.first, nid())->second,
-                sid_bool,
-                block_var(c, t.first));
+      auto & nids = nids_block.insert(nids_block.end(), {c, {}})->second;
 
-          formula << eol;
-        }
+      for (const auto & t : threads)
+        formula <<
+          state(
+            nids.emplace_hint(nids.end(), t.first, nid())->second,
+            sid_bool,
+            block_var(c, t.first));
+
+      formula << eol;
     }
 }
 
@@ -746,13 +744,13 @@ void Encoder::declare_block ()
 
 void Encoder::declare_halt ()
 {
-  if (halt_pcs.empty())
+  if (halts.empty())
     return;
 
   if (verbose)
     formula << halt_comment;
 
-  for (const auto & it : halt_pcs)
+  for (const auto & it : halts)
     formula <<
       state(
         nids_halt.emplace_hint(nids_halt.end(), it.first, nid())->second,
@@ -776,7 +774,7 @@ void Encoder::declare_heap ()
 
 void Encoder::declare_exit_flag ()
 {
-  if (halt_pcs.empty() && exit_pcs.empty())
+  if (halts.empty() && exits.empty())
     return;
 
   if (verbose)
@@ -888,7 +886,7 @@ void Encoder::define_exec ()
 
 void Encoder::define_check ()
 {
-  if (check_pcs.empty())
+  if (checkpoints.empty())
     return;
 
   if (verbose)
@@ -896,23 +894,18 @@ void Encoder::define_check ()
 
   for (const auto & [c, blocks] : nids_block)
     {
-      // TODO: ignore single-threaded checkpoints -> see gitlab issue #65
-      if (blocks.size() > 1)
-        {
-          std::vector<std::string> args;
-          args.reserve(blocks.size());
+      assert(blocks.size() > 1);
 
-          for (const auto & [t, nid_block] : blocks)
-            args.push_back(nid_block);
+      std::vector<std::string> args;
 
-          formula << land(node, sid_bool, args, check_var(c));
+      args.reserve(blocks.size());
 
-          nids_check.emplace_hint(nids_check.end(), c, nid(-1));
-        }
-      else
-        {
-          nids_check.emplace_hint(nids_check.end(), c, blocks.begin()->second);
-        }
+      for (const auto & [t, nid_block] : blocks)
+        args.push_back(nid_block);
+
+      formula << land(node, sid_bool, args, check_var(c));
+
+      nids_check.emplace_hint(nids_check.end(), c, nid(-1));
     }
 
   formula << eol;
@@ -1038,7 +1031,6 @@ void Encoder::define_sb_full ()
     formula << init(nid(), sid_bool, nids_sb_full[thread], nid_false);
 
     std::vector<std::string> args;
-
     std::string nid_next = nids_sb_full[thread];
 
     for (pc = 0; pc < program.size(); pc++)
@@ -1133,7 +1125,7 @@ void Encoder::define_stmt ()
 
 void Encoder::define_block ()
 {
-  if (check_pcs.empty())
+  if (checkpoints.empty())
     return;
 
   if (verbose)
@@ -1142,36 +1134,33 @@ void Encoder::define_block ()
   auto nids_check_it = nids_check.begin();
   auto nids_block_it = nids_block.begin();
 
-  for (const auto & [s, threads] : check_pcs)
+  for (const auto & [s, threads] : checkpoints)
     {
-      // TODO: ignore single-threaded checkpoints -> see gitlab issue #65
-      if (threads.size() > 1)
+      assert(threads.size() > 1);
+
+      std::string & nid_check = nids_check_it++->second;
+      auto nid_block_it = nids_block_it++->second.begin();
+
+      for (const auto & [t, pcs] : threads)
         {
-          std::string & nid_check = nids_check_it++->second;
+          std::string & nid_block = nid_block_it++->second;
+          std::vector<std::string> args;
 
-          auto nid_block_it = nids_block_it++->second.begin();
+          args.reserve(pcs->size() + 1);
 
-          for (const auto & [t, pcs] : threads)
-            {
-              std::string & nid_block = nid_block_it++->second;
+          for (const auto & p : *pcs)
+            args.push_back(nids_exec[t][p]);
 
-              std::vector<std::string> args;
-              args.reserve(pcs.size() + 1);
+          args.push_back(nid_block);
 
-              for (const auto & p : pcs)
-                args.push_back(nids_exec[t][p]);
+          std::string prev;
 
-              args.push_back(nid_block);
-
-              std::string prev;
-
-              formula <<
-                init(nid(), sid_bool, nid_block, nid_false) <<
-                lor(node, sid_bool, args) <<
-                ite(prev = nid(), sid_bool, nid_check, nid_false, nid(-1)) <<
-                next(nid(), sid_bool, nid_block, prev, block_var(s, t)) <<
-                eol;
-            }
+          formula <<
+            init(nid(), sid_bool, nid_block, nid_false) <<
+            lor(node, sid_bool, args) <<
+            ite(prev = nid(), sid_bool, nid_check, nid_false, nid(-1)) <<
+            next(nid(), sid_bool, nid_block, prev, block_var(s, t)) <<
+            eol;
         }
     }
 }
@@ -1180,13 +1169,13 @@ void Encoder::define_block ()
 
 void Encoder::define_halt ()
 {
-  if (halt_pcs.empty())
+  if (halts.empty())
     return;
 
   if (verbose)
     formula << halt_comment;
 
-  for (const auto & [t, pcs] : halt_pcs)
+  for (const auto & [t, pcs] : halts)
     {
       std::vector<std::string> args;
 
@@ -1269,7 +1258,7 @@ void Encoder::define_heap ()
 
 void Encoder::define_exit_flag ()
 {
-  if (halt_pcs.empty() && exit_pcs.empty())
+  if (halts.empty() && exits.empty())
     return;
 
   if (verbose)
@@ -1281,7 +1270,7 @@ void Encoder::define_exit_flag ()
 
   std::string nid_next = nid_exit_flag;
 
-  if (!halt_pcs.empty())
+  if (!halts.empty())
     {
       if (nids_halt.size() > 1)
         {
@@ -1301,8 +1290,8 @@ void Encoder::define_exit_flag ()
         }
     }
 
-  if (!exit_pcs.empty())
-    for (const auto & [t, pcs] : exit_pcs)
+  if (!exits.empty())
+    for (const auto & [t, pcs] : exits)
       for (const auto & p : pcs)
         args.push_back(nids_exec[t][p]);
 
@@ -1328,7 +1317,7 @@ void Encoder::define_exit_code ()
 
   std::string nid_next = nid_exit_code;
 
-  for (const auto & [t, pcs] : exit_pcs)
+  for (const auto & [t, pcs] : exits)
     for (const auto & p : pcs)
       formula <<
         ite(
@@ -1396,19 +1385,19 @@ void Encoder::define_store_buffer_constraints ()
     formula << comment_section("store buffer constraints");
 
   iterate_threads([this] {
-    if (flush_pcs.find(thread) != flush_pcs.end())
+    if (flushes.find(thread) != flushes.end())
       {
         std::string nid_or;
 
-        if (flush_pcs[thread].size() > 1)
+        if (flushes[thread].size() > 1)
           {
             std::vector<std::string> stmts;
 
-            stmts.reserve(flush_pcs[thread].size());
+            stmts.reserve(flushes[thread].size());
 
             std::transform(
-              flush_pcs[thread].begin(),
-              flush_pcs[thread].end(),
+              flushes[thread].begin(),
+              flushes[thread].end(),
               back_inserter(stmts),
               [this] (const word_t p) { return nids_stmt[thread][p]; });
 
@@ -1418,7 +1407,7 @@ void Encoder::define_store_buffer_constraints ()
           }
         else
           {
-            nid_or = nids_stmt[thread][flush_pcs[thread].front()];
+            nid_or = nids_stmt[thread][flushes[thread].front()];
           }
 
         formula <<
@@ -1446,7 +1435,7 @@ void Encoder::define_store_buffer_constraints ()
 
 void Encoder::define_checkpoint_constraints ()
 {
-  if (check_pcs.empty())
+  if (checkpoints.empty())
     return;
 
   if (verbose)
@@ -1454,21 +1443,19 @@ void Encoder::define_checkpoint_constraints ()
 
   for (const auto & [c, threads] : nids_block)
     {
-      // TODO: ignore single-threaded checkpoints -> see gitlab issue #65
-      if (threads.size() > 1)
+      assert(threads.size() > 1);
+
+      std::string not_check = lnot(nids_check[c]);
+
+      for (const auto & [t, nid_block] : threads)
         {
-          std::string not_check = lnot(nids_check[c]);
+          std::string prev = nid();
 
-          for (const auto & [t, nid_block] : threads)
-            {
-              std::string prev = nid();
-
-              formula
-                << land(prev, sid_bool, nid_block, not_check)
-                << implies(prev = nid(), sid_bool, prev, lnot(nids_thread[t]))
-                << constraint(node, block_var(c, t))
-                << eol;
-            }
+          formula
+            << land(prev, sid_bool, nid_block, not_check)
+            << implies(prev = nid(), sid_bool, prev, lnot(nids_thread[t]))
+            << constraint(node, block_var(c, t))
+            << eol;
         }
     }
 }
@@ -1477,7 +1464,7 @@ void Encoder::define_checkpoint_constraints ()
 
 void Encoder::define_halt_constraints ()
 {
-  if (halt_pcs.empty())
+  if (halts.empty())
     return;
 
   if (verbose)
