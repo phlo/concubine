@@ -1,17 +1,9 @@
 #include "instruction.hh"
 
-#include <cassert>
-
 #include "encoder.hh"
 #include "simulator.hh"
 
 namespace ConcuBinE {
-
-//==============================================================================
-// Model<POD>
-//
-// Instruction::Concept implementation
-//==============================================================================
 
 template <class POD>
 constexpr bool is_nullary = std::is_base_of<Instruction::Nullary, POD>::value;
@@ -25,70 +17,121 @@ constexpr bool is_memory = std::is_base_of<Instruction::Memory, POD>::value;
 template <class POD>
 constexpr bool is_jump = std::is_base_of<Instruction::Jmp, POD>::value;
 
+//==============================================================================
+// Model<POD>
+//
+// * Instruction::Concept implementation
+//==============================================================================
+
 template <class POD>
-struct Model : public Instruction::Concept
+class Model : public Instruction::Concept
 {
-  using Type = Instruction::Type;
+public: //======================================================================
 
-  POD pod;
+  //----------------------------------------------------------------------------
+  // public constructors
+  //----------------------------------------------------------------------------
 
+  // copy constructor
+  //
   Model (const POD & p) : pod(p) {}
-  // Model (const T && pod) : obj(move(pod)) {}
 
+  // move constructor
+  //
+  Model (POD && p) : pod(std::move(p)) {}
+
+  //----------------------------------------------------------------------------
+  // public member functions
+  //----------------------------------------------------------------------------
+
+  // deep copy
+  //
   std::unique_ptr<Concept> clone () const
     {
       return std::make_unique<Model<POD>>(pod);
     }
 
+  // check basic type
+  //
   bool is_nullary () const { return ConcuBinE::is_nullary<POD>; }
   bool is_unary () const { return ConcuBinE::is_unary<POD>; }
   bool is_memory () const { return ConcuBinE::is_memory<POD>; }
   bool is_jump () const { return ConcuBinE::is_jump<POD>; }
 
+  // check if an empty store buffer is required
+  //
   bool requires_flush () const
     {
-      return pod.type & (Type::write | Type::barrier);
+      return pod.type & (Instruction::Type::write | Instruction::Type::barrier);
     }
 
+  // get symbol
+  //
   const std::string & symbol () const { return pod.symbol; }
 
+  // get operational type
+  //
   uint8_t type () const { return pod.type; }
+
+  // set operational type
+  //
   void type (const uint8_t type) { pod.type = type; }
 
+  // get argument
+  //
   word_t arg () const
     {
       if constexpr(ConcuBinE::is_unary<POD>)
         return pod.arg;
       else
-        { assert(false); return 0; }
+        throw std::runtime_error("not an unary instruction");
     }
 
+  // set argument
+  //
   void arg (const word_t a [[maybe_unused]])
     {
       if constexpr(ConcuBinE::is_unary<POD>)
         pod.arg = a;
       else
-        assert(false);
+        throw std::runtime_error("not an unary instruction");
     }
 
+  // get indirection flag
+  //
   bool indirect () const
     {
       if constexpr(ConcuBinE::is_memory<POD>)
         return pod.indirect;
       else
-        { assert(false); return false; }
+        throw std::runtime_error("not a memory instruction");
     }
 
+  // set indirection flag
+  //
   void indirect (const bool i [[maybe_unused]])
     {
       if constexpr(ConcuBinE::is_memory<POD>)
         pod.indirect = i;
       else
-        assert(false);
+        throw std::runtime_error("not a memory instruction");
     }
 
+  // execute with a given Simulator
+  //
   void execute (Simulator & s) const { s.execute(pod); }
+
+  // encode with a given Encoder
+  //
   std::string encode (Encoder & e) const { return e.encode(pod); }
+
+private: //=====================================================================
+
+  //----------------------------------------------------------------------------
+  // private data members
+  //----------------------------------------------------------------------------
+
+  POD pod;
 };
 
 //==============================================================================
@@ -96,15 +139,7 @@ struct Model : public Instruction::Concept
 //==============================================================================
 
 //------------------------------------------------------------------------------
-// static members
-//------------------------------------------------------------------------------
-
-std::unique_ptr<Instruction::nullary_factory_map> Instruction::nullary_factory;
-std::unique_ptr<Instruction::unary_factory_map> Instruction::unary_factory;
-std::unique_ptr<Instruction::memory_factory_map> Instruction::memory_factory;
-
-//------------------------------------------------------------------------------
-// static member functions
+// public static factory functions
 //------------------------------------------------------------------------------
 
 // Instruction::is_nullary -----------------------------------------------------
@@ -134,6 +169,112 @@ bool Instruction::contains (const std::string & symbol)
 {
   return is_nullary(symbol) || is_unary(symbol) || is_memory(symbol);
 }
+
+// Instruction::create ---------------------------------------------------------
+//
+Instruction Instruction::create (const std::string & symbol)
+{
+  if (nullary_factory->find(symbol) == nullary_factory->end())
+    throw std::runtime_error("Instruction '" + symbol + "' unknown");
+
+  return (*nullary_factory)[symbol]();
+}
+
+Instruction Instruction::create (const std::string & symbol, const word_t arg)
+{
+  if (unary_factory->find(symbol) == unary_factory->end())
+    throw std::runtime_error("Instruction '" + symbol + "' unknown");
+
+  return (*unary_factory)[symbol](arg);
+}
+
+Instruction Instruction::create (const std::string & symbol,
+                                 const word_t arg,
+                                 const bool indirect)
+{
+  if (memory_factory->find(symbol) == memory_factory->end())
+    throw std::runtime_error("Instruction '" + symbol + "' unknown");
+
+  return (*memory_factory)[symbol](arg, indirect);
+}
+
+//------------------------------------------------------------------------------
+// public constructors
+//------------------------------------------------------------------------------
+
+template <class POD>
+Instruction::Instruction (const POD & pod) :
+  model(std::make_unique<Model<POD>>(pod))
+{}
+
+Instruction::Instruction (const Instruction & other) :
+  model(other.model->clone())
+{}
+
+//------------------------------------------------------------------------------
+// public assignment operators
+//------------------------------------------------------------------------------
+
+Instruction & Instruction::operator = (const Instruction & other)
+{
+  model = other.model->clone();
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// public member functions
+//------------------------------------------------------------------------------
+
+// Instruction::is_nullary -----------------------------------------------------
+//
+bool Instruction::is_nullary () const { return model->is_nullary(); }
+
+// Instruction::is_unary -------------------------------------------------------
+//
+bool Instruction::is_unary () const { return model->is_unary(); }
+
+// Instruction::is_memory ------------------------------------------------------
+//
+bool Instruction::is_memory () const { return model->is_memory(); }
+
+// Instruction::is_jump --------------------------------------------------------
+//
+bool Instruction::is_jump () const { return model->is_jump(); }
+
+// Instruction::requires_flush -------------------------------------------------
+//
+bool Instruction::requires_flush () const { return model->requires_flush(); }
+
+// Instruction::symbol ---------------------------------------------------------
+//
+const std::string & Instruction::symbol () const { return model->symbol(); }
+
+// Instruction::type -----------------------------------------------------------
+//
+uint8_t Instruction::type () const { return model->type(); }
+void Instruction::type (uint8_t t) { model->type(t); }
+
+// Instruction::arg ------------------------------------------------------------
+//
+word_t Instruction::arg () const { return model->arg(); }
+void Instruction::arg (const word_t a) { model->arg(a); }
+
+// Instruction::indirect -------------------------------------------------------
+//
+bool Instruction::indirect () const { return model->indirect(); }
+void Instruction::indirect (const bool i) { model->indirect(i); }
+
+// Instruction::execute --------------------------------------------------------
+//
+void Instruction::execute (Simulator & s) const { model->execute(s); }
+
+// Instruction::encode ---------------------------------------------------------
+//
+std::string Instruction::encode (Encoder & e) const { return model->encode(e); }
+
+//------------------------------------------------------------------------------
+// private static factory functions
+//------------------------------------------------------------------------------
 
 // Instruction::add_nullary ----------------------------------------------------
 //
@@ -185,83 +326,13 @@ const std::string & Instruction::add_memory (const std::string & symbol,
     .first->first;
 }
 
-// Instruction::create ---------------------------------------------------------
-//
-Instruction Instruction::create (const std::string & symbol)
-{
-  if (nullary_factory->find(symbol) == nullary_factory->end())
-    throw std::runtime_error("Instruction '" + symbol + "' unknown");
-
-  return (*nullary_factory)[symbol]();
-}
-
-Instruction Instruction::create (const std::string & symbol, const word_t arg)
-{
-  if (unary_factory->find(symbol) == unary_factory->end())
-    throw std::runtime_error("Instruction '" + symbol + "' unknown");
-
-  return (*unary_factory)[symbol](arg);
-}
-
-Instruction Instruction::create (const std::string & symbol,
-                                 const word_t arg,
-                                 const bool indirect)
-{
-  if (memory_factory->find(symbol) == memory_factory->end())
-    throw std::runtime_error("Instruction '" + symbol + "' unknown");
-
-  return (*memory_factory)[symbol](arg, indirect);
-}
-
 //------------------------------------------------------------------------------
-// constructors
+// private static data members
 //------------------------------------------------------------------------------
 
-template <class POD>
-Instruction::Instruction (const POD & pod) :
-  model(std::make_unique<Model<POD>>(pod))
-{}
-
-Instruction::Instruction (const Instruction & other) :
-  model(other.model->clone())
-{}
-
-//------------------------------------------------------------------------------
-// member functions
-//------------------------------------------------------------------------------
-
-bool Instruction::is_nullary () const { return model->is_nullary(); }
-bool Instruction::is_unary () const { return model->is_unary(); }
-bool Instruction::is_memory () const { return model->is_memory(); }
-bool Instruction::is_jump () const { return model->is_jump(); }
-
-bool Instruction::requires_flush () const { return model->requires_flush(); }
-
-const std::string & Instruction::symbol () const { return model->symbol(); }
-
-uint8_t Instruction::type () const { return model->type(); }
-void Instruction::type (uint8_t t) { model->type(t); }
-
-word_t Instruction::arg () const { return model->arg(); }
-void Instruction::arg (const word_t a) { model->arg(a); }
-
-bool Instruction::indirect () const { return model->indirect(); }
-void Instruction::indirect (const bool i) { model->indirect(i); }
-
-void Instruction::execute (Simulator & s) const { model->execute(s); }
-std::string Instruction::encode (Encoder & e) const { return model->encode(e); }
-
-//------------------------------------------------------------------------------
-// member operators
-//------------------------------------------------------------------------------
-
-// assignment ------------------------------------------------------------------
-//
-Instruction & Instruction::operator = (const Instruction & other)
-{
-  model = other.model->clone();
-  return *this;
-}
+std::unique_ptr<Instruction::nullary_factory_map> Instruction::nullary_factory;
+std::unique_ptr<Instruction::unary_factory_map> Instruction::unary_factory;
+std::unique_ptr<Instruction::memory_factory_map> Instruction::memory_factory;
 
 //==============================================================================
 // non-member operators

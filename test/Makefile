@@ -87,7 +87,7 @@ VALGRIND = valgrind \
 
 .PHONY: valgrind
 valgrind: $(TEST_RUN)
-	$(VALGRIND) ./$(TEST_RUN) $(GTEST_FILTER)
+	cd .. && $(VALGRIND) test/$(TEST_RUN) $(GTEST_FILTER)
 
 # run experiments
 .PHONY: experiments

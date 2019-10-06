@@ -41,8 +41,8 @@ namespace ConcuBinE {
 // forward declarations
 //==============================================================================
 
-struct Encoder;
-struct Simulator;
+class Encoder;
+class Simulator;
 
 //==============================================================================
 // Instruction class
@@ -50,49 +50,14 @@ struct Simulator;
 // * type erasure on PODs
 //==============================================================================
 
-struct Instruction
+class Instruction
 {
   //----------------------------------------------------------------------------
-  // static members
+  // private static factory functions - required by instruction POD declarations
   //----------------------------------------------------------------------------
 
-  // map containing pointers to nullary instruction object factories
+  // add a factory function for the given symbol and operational type
   //
-  using nullary_factory_map =
-    std::unordered_map<
-      std::string,
-      std::function<Instruction()>>;
-
-  static std::unique_ptr<nullary_factory_map> nullary_factory;
-
-  // map containing pointers to unary instruction object factories
-  //
-  using unary_factory_map =
-    std::unordered_map<
-      std::string,
-      std::function<Instruction(word_t)>>;
-
-  static std::unique_ptr<unary_factory_map> unary_factory;
-
-  // map containing pointers to memory instruction object factories
-  //
-  using memory_factory_map =
-    std::unordered_map<
-      std::string,
-      std::function<Instruction(word_t, bool)>>;
-
-  static std::unique_ptr<memory_factory_map> memory_factory;
-
-  //----------------------------------------------------------------------------
-  // static member functions
-  //----------------------------------------------------------------------------
-
-  static bool is_nullary (const std::string & symbol);
-  static bool is_unary (const std::string & symbol);
-  static bool is_memory (const std::string & symbol);
-
-  static bool contains (const std::string & symbol);
-
   template <class POD>
   static const std::string & add_nullary (const std::string & symbol,
                                           uint8_t type);
@@ -103,19 +68,13 @@ struct Instruction
   static const std::string & add_memory (const std::string & symbol,
                                          uint8_t type);
 
-  // copy elision
-  //
-  static Instruction create (const std::string & symbol);
-  static Instruction create (const std::string & symbol, word_t arg);
-  static Instruction create (const std::string & symbol,
-                             word_t arg,
-                             bool indirect);
+public: //======================================================================
 
   //----------------------------------------------------------------------------
-  // member types
+  // public member types
   //----------------------------------------------------------------------------
 
-  // instruction types ---------------------------------------------------------
+  // operational types ---------------------------------------------------------
   //
   enum Type : uint8_t
     {
@@ -168,43 +127,92 @@ struct Instruction
   //
   struct Concept
     {
+      // deep copy
+      //
       virtual std::unique_ptr<Concept> clone () const = 0;
 
+      // check basic type
+      //
       virtual bool is_nullary () const = 0;
       virtual bool is_unary () const = 0;
       virtual bool is_memory () const = 0;
       virtual bool is_jump () const = 0;
 
+      // check if an empty store buffer is required
+      //
       virtual bool requires_flush () const = 0;
 
+      // get symbol
+      //
       virtual const std::string & symbol () const = 0;
 
+      // get or set operational type
+      //
       virtual uint8_t type () const = 0;
       virtual void type (uint8_t type) = 0;
 
+      // get or set argument
+      //
       virtual word_t arg () const = 0;
       virtual void arg (word_t arg) = 0;
 
+      // get or set indirection flag
+      //
       virtual bool indirect () const = 0;
       virtual void indirect (bool indirect) = 0;
 
+      // execute with a given Simulator
+      //
       virtual void execute (Simulator & s) const = 0;
+
+      // encode with a given Encoder
+      //
       virtual std::string encode (Encoder & e) const = 0;
     };
 
   //----------------------------------------------------------------------------
-  // members
+  // public static factory functions
   //----------------------------------------------------------------------------
 
-  std::unique_ptr<Concept> model;
+  // check if given symbol is a known nullary instruction
+  //
+  static bool is_nullary (const std::string & symbol);
+
+  // check if given symbol is a known unary instruction
+  //
+  static bool is_unary (const std::string & symbol);
+
+  // check if given symbol is a known memory instruction
+  //
+  static bool is_memory (const std::string & symbol);
+
+  // check if instruction set contains a given symbol
+  //
+  static bool contains (const std::string & symbol);
+
+  // create nullary instruction
+  //
+  static Instruction create (const std::string & symbol);
+
+  // create unary instruction
+  //
+  static Instruction create (const std::string & symbol, word_t arg);
+
+  // create memory instruction
+  //
+  static Instruction create (const std::string & symbol,
+                             word_t arg,
+                             bool indirect);
 
   //----------------------------------------------------------------------------
-  // constructors
+  // public constructors
   //----------------------------------------------------------------------------
 
+  // default constructor
+  //
   Instruction () = default;
 
-  // construct embedding a given POD
+  // construct with a given POD
   //
   template <class POD>
   Instruction (const POD & pod);
@@ -222,32 +230,7 @@ struct Instruction
   Instruction (Instruction && other) = default;
 
   //----------------------------------------------------------------------------
-  // member functions
-  //----------------------------------------------------------------------------
-
-  bool is_nullary () const;
-  bool is_unary () const;
-  bool is_memory () const;
-  bool is_jump () const;
-
-  bool requires_flush () const;
-
-  const std::string & symbol () const;
-
-  uint8_t type () const;
-  void type (uint8_t type);
-
-  word_t arg () const;
-  void arg (word_t arg);
-
-  bool indirect () const;
-  void indirect (bool indirect);
-
-  void execute (Simulator & s) const;
-  std::string encode (Encoder & e) const;
-
-  //----------------------------------------------------------------------------
-  // member operators
+  // public assignment operators
   //----------------------------------------------------------------------------
 
   // copy assignment
@@ -261,6 +244,89 @@ struct Instruction
   // * required due to user-declared copy constructor / assignment operator
   //
   Instruction & operator = (Instruction && other) = default;
+
+  //----------------------------------------------------------------------------
+  // public member functions
+  //----------------------------------------------------------------------------
+
+  // check basic type
+  //
+  bool is_nullary () const;
+  bool is_unary () const;
+  bool is_memory () const;
+  bool is_jump () const;
+
+  // check if an empty store buffer is required
+  //
+  bool requires_flush () const;
+
+  // get symbol
+  //
+  const std::string & symbol () const;
+
+  // get or set operational type
+  //
+  uint8_t type () const;
+  void type (uint8_t type);
+
+  // get or set argument
+  //
+  word_t arg () const;
+  void arg (word_t arg);
+
+  // get or set indirection flag
+  //
+  bool indirect () const;
+  void indirect (bool indirect);
+
+  // execute with a given Simulator
+  //
+  void execute (Simulator & s) const;
+
+  // encode with a given Encoder
+  //
+  std::string encode (Encoder & e) const;
+
+private: //=====================================================================
+
+  //----------------------------------------------------------------------------
+  // private static data members
+  //----------------------------------------------------------------------------
+
+  // map containing pointers to nullary instruction object factories
+  //
+  using nullary_factory_map =
+    std::unordered_map<
+      std::string,
+      std::function<Instruction()>>;
+
+  static std::unique_ptr<nullary_factory_map> nullary_factory;
+
+  // map containing pointers to unary instruction object factories
+  //
+  using unary_factory_map =
+    std::unordered_map<
+      std::string,
+      std::function<Instruction(word_t)>>;
+
+  static std::unique_ptr<unary_factory_map> unary_factory;
+
+  // map containing pointers to memory instruction object factories
+  //
+  using memory_factory_map =
+    std::unordered_map<
+      std::string,
+      std::function<Instruction(word_t, bool)>>;
+
+  static std::unique_ptr<memory_factory_map> memory_factory;
+
+  //----------------------------------------------------------------------------
+  // private data members
+  //----------------------------------------------------------------------------
+
+  // pointer to type erasure model
+  //
+  std::unique_ptr<Concept> model;
 };
 
 //==============================================================================
