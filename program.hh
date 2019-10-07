@@ -2,10 +2,8 @@
 #define PROGRAM_HH_
 
 #include <istream>
-#include <memory>
 #include <set>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 #include "common.hh"
@@ -16,27 +14,27 @@ namespace ConcuBinE {
 // forward declarations
 //==============================================================================
 
-struct Instruction;
+class Instruction;
 
 //==============================================================================
 // Program class
 //==============================================================================
 
-struct Program : public std::vector<Instruction>
+class Program : public std::vector<Instruction>
 {
+public: //======================================================================
+
   //----------------------------------------------------------------------------
-  // member types
+  // public member types
   //----------------------------------------------------------------------------
 
-  // program list --------------------------------------------------------------
-  //
   struct List : public std::vector<Program>
     {
       //------------------------------------------------------------------------
-      // constructors
+      // public constructors
       //------------------------------------------------------------------------
 
-      // inherit constructors from std::vector
+      // expose constructors from std::vector
       //
       using std::vector<Program>::vector;
 
@@ -71,22 +69,58 @@ struct Program : public std::vector<Instruction>
     };
 
   //----------------------------------------------------------------------------
-  // members
+  // public constructors
+  //----------------------------------------------------------------------------
+
+  // expose constructors from std::vector
+  //
+  using std::vector<Instruction>::vector;
+
+  // parse input stream
+  //
+  Program (std::istream & stream, const std::string & path);
+
+  //----------------------------------------------------------------------------
+  // public member functions
+  //----------------------------------------------------------------------------
+
+  // get map of program counters to set of predecessors
+  //
+  // pc -> set of predecessors
+  //
+  // * checks for unreachable instructions
+  //
+  std::unordered_map<word_t, std::set<word_t>> predecessors () const;
+
+  // get program counter corresponding to a given label
+  //
+  word_t pc (const std::string & label) const;
+
+  // get label corresponding to a given program counter
+  //
+  std::string label (word_t pc) const;
+
+  // print whole program
+  //
+  std::string print () const;
+
+  // print instruction at a given program counter
+  //
+  std::string print (word_t pc) const;
+
+  //----------------------------------------------------------------------------
+  // public data members
   //----------------------------------------------------------------------------
 
   // path to program file
   //
   std::string path;
 
-  // pc of predecessors for each statement
-  //
-  std::unordered_map<word_t, std::set<word_t>> predecessors;
+private: //=====================================================================
 
-  // maps checkpoint ids to the corresponding program counters
-  //
-  // checkpoint id -> thread -> pc
-  //
-  std::unordered_map<word_t, std::vector<word_t>> checkpoints;
+  //----------------------------------------------------------------------------
+  // private data members
+  //----------------------------------------------------------------------------
 
   // maps program counters to the label referencing it
   //
@@ -99,54 +133,7 @@ struct Program : public std::vector<Instruction>
   // label -> pc
   //
   std::unordered_map<std::string, word_t> label_to_pc;
-
-  //----------------------------------------------------------------------------
-  // constructors
-  //----------------------------------------------------------------------------
-
-  // inherit base constructors
-  //
-  using std::vector<Instruction>::vector;
-
-  // construct from file
-  //
-  Program (std::istream & file, const std::string & path);
-
-  //----------------------------------------------------------------------------
-  // member functions
-  //----------------------------------------------------------------------------
-
-  // appends instruction to the program
-  //
-  void push_back (Instruction && op);
-
-  // get pc corresponding to the given label
-  //
-  word_t get_pc (std::string label) const;
-
-  // get label corresponding to the given pc
-  //
-  std::string get_label (word_t pc) const;
-
-  // print whole program
-  //
-  std::string print (bool include_pc = false) const;
-
-  // print instruction at pc
-  //
-  std::string print (bool include_pc, word_t pc) const;
 };
-
-//==============================================================================
-// non-member operators
-//==============================================================================
-
-// equality
-//
-// TODO: really needed - rely on base class?
-//
-bool operator == (const Program &, const Program &);
-bool operator != (const Program &, const Program &);
 
 } // namespace ConcuBinE
 

@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include "publicate.hh"
+
 #include "program.hh"
 
 #include "instruction.hh"
@@ -13,8 +15,8 @@ namespace ConcuBinE::test {
 
 const std::string dummy_path = "dummy.asm";
 
-Program create_program (const std::string & code,
-                        const std::string & path = dummy_path)
+inline Program prog (const std::string & code,
+                     const std::string & path = dummy_path)
 {
   std::istringstream inbuf(code);
   return Program(inbuf, path);
@@ -25,14 +27,12 @@ Program create_program (const std::string & code,
 TEST(Program, construction)
 {
   auto p1 =
-    create_program(
+    prog(
       "start: LOAD 1\n"
       "CHECK 0\n"
       "JMP start\n");
 
   ASSERT_FALSE(p1.empty());
-  ASSERT_FALSE(p1.predecessors.empty());
-  ASSERT_FALSE(p1.checkpoints.empty());
   ASSERT_FALSE(p1.pc_to_label.empty());
   ASSERT_FALSE(p1.label_to_pc.empty());
 
@@ -49,8 +49,6 @@ TEST(Program, construction)
   Program p3 (std::move(p1));
   ASSERT_TRUE(p1.empty());
   ASSERT_TRUE(p1.path.empty());
-  ASSERT_TRUE(p1.predecessors.empty());
-  ASSERT_TRUE(p1.checkpoints.empty());
   ASSERT_TRUE(p1.pc_to_label.empty());
   ASSERT_TRUE(p1.label_to_pc.empty());
   ASSERT_EQ(p2, p3);
@@ -66,8 +64,6 @@ TEST(Program, construction)
   p2 = std::move(p3);
   ASSERT_TRUE(p3.empty());
   ASSERT_TRUE(p3.path.empty());
-  ASSERT_TRUE(p3.predecessors.empty());
-  ASSERT_TRUE(p3.checkpoints.empty());
   ASSERT_TRUE(p3.pc_to_label.empty());
   ASSERT_TRUE(p3.label_to_pc.empty());
   ASSERT_EQ(p1, p2);
@@ -88,52 +84,48 @@ TEST(Program, parse)
   auto program = create_from_file<Program>("test/data/increment.cas.asm");
 
   ASSERT_EQ(7, program.size());
-  ASSERT_EQ(1, program.checkpoints.size());
-  ASSERT_EQ(2, program.checkpoints[0][0]);
   ASSERT_EQ(1, program.pc_to_label.size());
   ASSERT_EQ("LOOP", program.pc_to_label[3]);
   ASSERT_EQ(1, program.label_to_pc.size());
   ASSERT_EQ(3, program.label_to_pc[program.pc_to_label[3]]);
-
   ASSERT_EQ(
-    "0 STORE 0\n"
-    "1 FENCE\n"
-    "2 CHECK 0\n"
-    "3 LOOP: MEM 0\n"
-    "4 ADDI 1\n"
-    "5 CAS 0\n"
-    "6 JMP LOOP\n",
-    program.print(true));
+    "STORE 0\n"
+    "FENCE\n"
+    "CHECK 0\n"
+    "LOOP: MEM 0\n"
+    "ADDI 1\n"
+    "CAS 0\n"
+    "JMP LOOP\n",
+    program.print());
+}
 
-  // indirect addressing
-  program = create_from_file<Program>("test/data/indirect.asm");
+TEST(Program, parse_indirect)
+{
+  auto program = create_from_file<Program>("test/data/indirect.asm");
 
   ASSERT_EQ(7, program.size());
-  ASSERT_EQ(0, program.checkpoints.size());
-
   ASSERT_EQ(
-    "0 STORE 1\n"
-    "1 ADDI 1\n"
-    "2 STORE [1]\n"
-    "3 LOAD [0]\n"
-    "4 ADD [1]\n"
-    "5 CMP [1]\n"
-    "6 HALT\n",
-    program.print(true));
+    "STORE 1\n"
+    "ADDI 1\n"
+    "STORE [1]\n"
+    "LOAD [0]\n"
+    "ADD [1]\n"
+    "CMP [1]\n"
+    "HALT\n",
+    program.print());
 }
 
 TEST(Program, parse_empty_line)
 {
   auto program =
-    create_program(
+    prog(
       "ADDI 1\n"
       "\n"
       "EXIT 1\n");
 
   ASSERT_EQ(2, program.size());
-
-  ASSERT_EQ("0 ADDI 1", program.print(true, 0));
-  ASSERT_EQ("1 EXIT 1", program.print(true, 1));
+  ASSERT_EQ("ADDI 1", program.print(0));
+  ASSERT_EQ("EXIT 1", program.print(1));
 }
 
 TEST(Program, parse_file_not_found)
@@ -141,7 +133,7 @@ TEST(Program, parse_file_not_found)
   try
     {
       create_from_file<Program>("file");
-      FAIL() << "should throw an std::exception";
+      FAIL() << "should throw an exception";
     }
   catch (const std::exception & e)
     {
@@ -154,8 +146,8 @@ TEST(Program, parse_illegal_instruction)
   // illegal instruction
   try
     {
-      create_program("NOP\n");
-      FAIL() << "should throw an std::exception";
+      prog("NOP\n");
+      FAIL() << "should throw an exception";
     }
   catch (const std::exception & e)
     {
@@ -165,8 +157,8 @@ TEST(Program, parse_illegal_instruction)
   // illegal instruction argument (label)
   try
     {
-      create_program("ADD nothing\n");
-      FAIL() << "should throw an std::exception";
+      prog("ADD nothing\n");
+      FAIL() << "should throw an exception";
     }
   catch (const std::exception & e)
     {
@@ -176,8 +168,8 @@ TEST(Program, parse_illegal_instruction)
   // illegal instruction argument (indirect addressing)
   try
     {
-      create_program("CHECK [0]\n");
-      FAIL() << "should throw an std::exception";
+      prog("CHECK [0]\n");
+      FAIL() << "should throw an exception";
     }
   catch (const std::exception & e)
     {
@@ -189,8 +181,8 @@ TEST(Program, parse_illegal_instruction)
   // illegal instruction argument (label in indirect address)
   try
     {
-      create_program("STORE [me]\n");
-      FAIL() << "should throw an std::exception";
+      prog("STORE [me]\n");
+      FAIL() << "should throw an exception";
     }
   catch (const std::exception & e)
     {
@@ -205,27 +197,27 @@ TEST(Program, parse_missing_label)
   // missing label
   try
     {
-      create_program(
+      prog(
         "ADDI 1\n"
         "JMP LABEL\n");
-      FAIL() << "should throw an std::exception";
+      FAIL() << "should throw an exception";
     }
   catch (const std::exception & e)
     {
-      ASSERT_EQ(dummy_path + ":1: unknown label [LABEL]", e.what());
+      ASSERT_EQ(dummy_path + ": unknown label [LABEL]", e.what());
     }
 
   // misspelled label
   try
     {
-      create_program(
+      prog(
         "LABEL: ADDI 1\n"
         "JMP LABERL\n");
-      FAIL() << "should throw an std::exception";
+      FAIL() << "should throw an exception";
     }
   catch (const std::exception & e)
     {
-      ASSERT_EQ(dummy_path + ":1: unknown label [LABERL]", e.what());
+      ASSERT_EQ(dummy_path + ": unknown label [LABERL]", e.what());
     }
 }
 
@@ -233,8 +225,8 @@ TEST(Program, parse_illegal_jump)
 {
   try
     {
-      create_program("JMP 1\n");
-      FAIL() << "should throw an std::exception";
+      prog("JMP 1\n");
+      FAIL() << "should throw an exception";
     }
   catch (const std::exception & e)
     {
@@ -242,54 +234,58 @@ TEST(Program, parse_illegal_jump)
     }
 }
 
-TEST(Program, parse_predecessors)
-{
-  auto program =
-    create_program(
-      "ADDI 1\n"
-      "ADDI 1\n"
-      "ADDI 1\n");
+// Program::predecessors =======================================================
 
-  ASSERT_EQ(std::set<word_t>(), program.predecessors.at(0));
-  ASSERT_EQ(std::set<word_t>({0}), program.predecessors.at(1));
-  ASSERT_EQ(std::set<word_t>({1}), program.predecessors.at(2));
+TEST(Program, predecessors)
+{
+  auto predecessors =
+    prog(
+      "ADDI 1\n"
+      "ADDI 1\n"
+      "ADDI 1\n")
+      .predecessors();
+
+  ASSERT_EQ(std::set<word_t>({0}), predecessors.at(1));
+  ASSERT_EQ(std::set<word_t>({1}), predecessors.at(2));
 }
 
-TEST(Program, parse_predecessors_jnz)
+TEST(Program, predecessors_jnz)
 {
-  auto program =
-    create_program(
+  auto predecessors =
+    prog(
       "ADDI 1\n"
       "ADDI 1\n"
-      "JNZ 1\n");
+      "JNZ 1\n")
+      .predecessors();
 
-  ASSERT_EQ(std::set<word_t>(), program.predecessors.at(0));
-  ASSERT_EQ(std::set<word_t>({0, 2}), program.predecessors.at(1));
-  ASSERT_EQ(std::set<word_t>({1}), program.predecessors.at(2));
+  ASSERT_EQ(std::set<word_t>({0, 2}), predecessors.at(1));
+  ASSERT_EQ(std::set<word_t>({1}), predecessors.at(2));
 }
 
-TEST(Program, parse_predecessors_jnz_initial)
+TEST(Program, predecessors_jnz_initial)
 {
-  auto program =
-    create_program(
+  auto predecessors =
+    prog(
       "ADDI 1\n"
       "ADDI 1\n"
-      "JNZ 0\n");
+      "JNZ 0\n")
+      .predecessors();
 
-  ASSERT_EQ(std::set<word_t>({2}), program.predecessors.at(0));
-  ASSERT_EQ(std::set<word_t>({0}), program.predecessors.at(1));
-  ASSERT_EQ(std::set<word_t>({1}), program.predecessors.at(2));
+  ASSERT_EQ(std::set<word_t>({2}), predecessors.at(0));
+  ASSERT_EQ(std::set<word_t>({0}), predecessors.at(1));
+  ASSERT_EQ(std::set<word_t>({1}), predecessors.at(2));
 }
 
-TEST(Program, parse_predecessors_jmp)
+TEST(Program, predecessors_unreachable_jmp)
 {
   try
     {
-      create_program(
+      prog(
         "JMP 2\n"
         "ADDI 1\n"
-        "ADDI 1\n");
-      FAIL() << "should throw an std::exception";
+        "ADDI 1\n")
+        .predecessors();
+      FAIL() << "should throw an exception";
     }
   catch (const std::exception & e)
     {
@@ -297,31 +293,16 @@ TEST(Program, parse_predecessors_jmp)
     }
 }
 
-TEST(Program, parse_predecessors_exit)
+TEST(Program, predecessors_unreachable_halt)
 {
   try
     {
-      create_program(
-        "ADDI 1\n"
-        "EXIT 1\n"
-        "ADDI 1\n");
-      FAIL() << "should throw an std::exception";
-    }
-  catch (const std::exception & e)
-    {
-      ASSERT_EQ(dummy_path + ": unreachable instruction [2]", e.what());
-    }
-}
-
-TEST(Program, parse_predecessors_halt)
-{
-  try
-    {
-      create_program(
+      prog(
         "ADDI 1\n"
         "HALT\n"
-        "ADDI 1\n");
-      FAIL() << "should throw an std::exception";
+        "ADDI 1\n")
+        .predecessors();
+      FAIL() << "should throw an exception";
     }
   catch (const std::exception & e)
     {
@@ -329,67 +310,67 @@ TEST(Program, parse_predecessors_halt)
     }
 }
 
-// Program::push_back ==========================================================
-
-TEST(Program, push_back)
+TEST(Program, predecessors_unreachable_exit)
 {
-  Program program;
-
-  program.push_back(Instruction::create("ADD", 1));
-  ASSERT_EQ(1, program.size());
-  ASSERT_EQ(0, program.checkpoints.size());
-
-  program.push_back(Instruction::create("CHECK", 1));
-  ASSERT_EQ(2, program.size());
-  ASSERT_EQ(1, program.checkpoints.size());
-  ASSERT_TRUE(program.checkpoints.find(1) != program.checkpoints.end());
-  ASSERT_EQ(std::vector<word_t>({1}), program.checkpoints[1]);
+  try
+    {
+      prog(
+        "ADDI 1\n"
+        "EXIT 1\n"
+        "ADDI 1\n")
+        .predecessors();
+      FAIL() << "should throw an exception";
+    }
+  catch (const std::exception & e)
+    {
+      ASSERT_EQ(dummy_path + ": unreachable instruction [2]", e.what());
+    }
 }
 
-// Program::get_pc =============================================================
+// Program::pc =================================================================
 
-TEST(Program, get_pc)
+TEST(Program, pc)
 {
   auto program =
-    create_program(
+    prog(
       "LABEL: ADDI 1\n"
       "JMP LABEL\n");
 
-  ASSERT_EQ(0, program.get_pc("LABEL"));
+  ASSERT_EQ(0, program.pc("LABEL"));
 
   // unknown label
   try
     {
-      program.get_pc("UNKNOWN");
-      FAIL() << "should throw an std::exception";
+      program.pc("UNKNOWN");
+      FAIL() << "should throw an exception";
     }
   catch (const std::exception & e)
     {
-      ASSERT_STREQ("unknown label [UNKNOWN]", e.what());
+      ASSERT_EQ(dummy_path + ": unknown label [UNKNOWN]", e.what());
     }
 }
 
-// Program::get_label ==========================================================
+// Program::label ==============================================================
 
-TEST(Program, get_label)
+TEST(Program, label)
 {
   auto program =
-    create_program(
+    prog(
       "LABEL: ADDI 1\n"
       "JMP LABEL\n");
 
-  ASSERT_EQ("LABEL", program.get_label(0));
+  ASSERT_EQ("LABEL", program.label(0));
 
   // illegal pc
   try
     {
-      program.get_label(word_max);
-      FAIL() << "should throw an std::exception";
+      program.label(word_max);
+      FAIL() << "should throw an exception";
     }
   catch (const std::exception & e)
     {
       ASSERT_EQ(
-        "no label for program counter [" + std::to_string(word_max) + "]",
+        dummy_path + ": no label for [" + std::to_string(word_max) + "]",
         e.what());
     }
 }
@@ -409,49 +390,39 @@ TEST(Program, print)
     "CAS 0\n"
     "JMP LOOP\n",
     program.print());
-
-  // include pc
-  ASSERT_EQ(
-    "0 STORE 0\n"
-    "1 FENCE\n"
-    "2 CHECK 0\n"
-    "3 LOOP: MEM 0\n"
-    "4 ADDI 1\n"
-    "5 CAS 0\n"
-    "6 JMP LOOP\n",
-    program.print(true));
 }
 
 // operator equals =============================================================
 
 TEST(Program, operator_equals)
 {
-  Program p1, p2;
+  const std::string code = "LOAD 1\nADDI 1";
+  const std::string path = "p.asm";
 
-  p1.path = "program_1.asm";
-  p1.push_back(Instruction::create("LOAD", 1));
-  p1.push_back(Instruction::create("ADDI", 1));
+  auto p0 = prog(code, path);
+  auto p1 = prog(code, path);
 
-  p2.path = "program_1.asm";
-  p2.push_back(Instruction::create("LOAD", 1));
-  p2.push_back(Instruction::create("ADDI", 1));
-
-  ASSERT_TRUE(p1 == p2);
+  ASSERT_TRUE(p0 == p1);
 
   // same programs, different paths
-  p2.path = "program_2.asm";
+  p1.path = "p1.asm";
 
-  ASSERT_TRUE(p1 == p2);
+  ASSERT_TRUE(p0 == p1);
 
   // different size
+  p0.push_back(Instruction::create("STORE", 1));
+
+  ASSERT_TRUE(p0 != p1);
+
   p1.push_back(Instruction::create("STORE", 1));
 
-  ASSERT_TRUE(p1 != p2);
+  ASSERT_TRUE(p0 == p1);
 
   // different instructions
-  p2.push_back(Instruction::create("JNZ", 0));
+  p0.push_back(Instruction::create("JNZ", 0));
+  p1.push_back(Instruction::create("JNZ", 1));
 
-  ASSERT_TRUE(p1 != p2);
+  ASSERT_TRUE(p0 != p1);
 }
 
 //==============================================================================
@@ -462,8 +433,8 @@ TEST(Program, operator_equals)
 
 TEST(Program, list)
 {
-  auto p0 = create_program("EXIT 0", "p0.asm");
-  auto p1 = create_program("EXIT 0", "p1.asm");
+  auto p0 = prog("EXIT 0", "p0.asm");
+  auto p1 = prog("EXIT 0", "p1.asm");
 
   auto i0 = &p0[0];
   auto i1 = &p1[0];

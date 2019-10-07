@@ -1427,11 +1427,11 @@ TEST_F(Trace, operator_equals)
   ASSERT_TRUE(s1 == s2);
 
   // list of programs differ
-  p2->push_back(Program());
+  p2->push_back({});
 
   ASSERT_TRUE(s1 != s2);
 
-  p1->push_back(Program());
+  p1->push_back({});
 
   ASSERT_TRUE(s1 == s2);
 

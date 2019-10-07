@@ -63,8 +63,9 @@ void Simulator::init (const std::shared_ptr<Program::List> & p,
       sb_full(false);
 
       // collect checkpoints
-      for (const auto & [c, pcs] : (*programs)[thread].checkpoints)
-        threads_per_checkpoint[c].insert(thread);
+      for (const auto & op : (*programs)[thread])
+        if (!op.type())
+          threads_per_checkpoint[op.arg()].insert(thread);
     }
 
   // reset waiting map

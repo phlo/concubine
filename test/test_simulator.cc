@@ -15,16 +15,21 @@ struct Simulator : public ::testing::Test
 {
   using State = ConcuBinE::Simulator::State;
 
-  Program program;
-  std::unique_ptr<Trace> trace;
   ConcuBinE::Simulator simulator;
 
   void init (std::initializer_list<Program> programs, MMap && mmap = {})
     {
       simulator.init(
-          std::make_shared<Program::List>(programs),
-          std::make_shared<MMap>(mmap),
-          0);
+        std::make_shared<Program::List>(programs),
+        std::make_shared<MMap>(mmap),
+        0);
+    }
+
+  Program prog (const std::string & code,
+                const std::string & path = "dummy.asm")
+    {
+      std::istringstream inbuf(code);
+      return Program(inbuf, path);
     }
 };
 
@@ -32,8 +37,10 @@ struct Simulator : public ::testing::Test
 
 TEST_F(Simulator, run_simple)
 {
-  program.push_back(Instruction::create("ADDI", 1));
-  program.push_back(Instruction::create("HALT"));
+  auto program =
+    prog(
+      "ADDI 1\n"
+      "HALT");
 
   init({program, program});
 
@@ -43,7 +50,7 @@ TEST_F(Simulator, run_simple)
   ASSERT_TRUE(simulator.waiting_for_checkpoint.empty());
 
   // NOTE: EXPECT_* required by lambda std::function
-  trace = simulator.run([this] () {
+  auto trace = simulator.run([this] () {
     switch (simulator.step)
       {
       case 0: simulator.thread = 0; break;
@@ -131,9 +138,11 @@ TEST_F(Simulator, run_simple)
 
 TEST_F(Simulator, run_add_check_exit)
 {
-  program.push_back(Instruction::create("ADDI", 1));
-  program.push_back(Instruction::create("CHECK", 1));
-  program.push_back(Instruction::create("EXIT", 1));
+  auto program =
+    prog(
+      "ADDI 1\n"
+      "CHECK 1\n"
+      "EXIT 1");
 
   init({program, program});
 
@@ -143,7 +152,7 @@ TEST_F(Simulator, run_add_check_exit)
   ASSERT_EQ(0, simulator.waiting_for_checkpoint[1]);
 
   // run it
-  trace = simulator.run([this] () {
+  auto trace = simulator.run([this] () {
     switch (simulator.step)
       {
       case 0: simulator.thread = 0; break;
@@ -247,19 +256,22 @@ TEST_F(Simulator, run_add_check_exit)
 
 TEST_F(Simulator, run_race_condition)
 {
-  program.push_back(Instruction::create("LOAD", 1));
-  program.push_back(Instruction::create("ADDI", 1));
-  program.push_back(Instruction::create("STORE", 1));
-  program.push_back(Instruction::create("CHECK", 1));
+  auto program =
+    prog(
+      "LOAD 1\n"
+      "ADDI 1\n"
+      "STORE 1\n"
+      "CHECK 1\n"
+      "HALT");
 
-  Program checker;
-
-  checker.push_back(Instruction::create("CHECK", 1));
-  checker.push_back(Instruction::create("LOAD", 1));
-  checker.push_back(Instruction::create("SUBI", 2));
-  checker.push_back(Instruction::create("JZ", 5));
-  checker.push_back(Instruction::create("EXIT", 1));
-  checker.push_back(Instruction::create("EXIT", 0));
+  auto checker =
+    prog(
+      "CHECK 1\n"
+      "LOAD 1\n"
+      "SUBI 2\n"
+      "JZ 5\n"
+      "EXIT 1\n"
+      "EXIT 0\n");
 
   init({checker, program, program}, {{1, 0}});
 
@@ -269,7 +281,7 @@ TEST_F(Simulator, run_race_condition)
   ASSERT_EQ(0, simulator.waiting_for_checkpoint[1]);
 
   // run it
-  trace = simulator.run([this] () {
+  auto trace = simulator.run([this] () {
     switch (simulator.step)
       {
       case 0: // initial = t0 [CHECK 1]
@@ -426,7 +438,7 @@ TEST_F(Simulator, run_race_condition)
         {
           EXPECT_EQ(1, simulator.trace->pc(0));
           EXPECT_EQ(0, simulator.trace->accu(0));
-          EXPECT_EQ(3, simulator.trace->pc(1));
+          EXPECT_EQ(4, simulator.trace->pc(1));
           EXPECT_EQ(1, simulator.trace->accu(1));
           EXPECT_EQ(3, simulator.trace->pc(2));
           EXPECT_EQ(1, simulator.trace->accu(2));
@@ -434,18 +446,54 @@ TEST_F(Simulator, run_race_condition)
           EXPECT_EQ(1, simulator.active.size());
           EXPECT_EQ(2, simulator.waiting_for_checkpoint[1]);
           EXPECT_EQ(State::waiting, simulator.state[0]);
-          EXPECT_EQ(State::halted, simulator.state[1]);
+          EXPECT_EQ(State::waiting, simulator.state[1]);
 
           simulator.thread = 2;
           break;
         }
-      case 11: // prev = t2 [CHECK 1] | next = t0 [LOAD 1]
+      case 11: // prev = t2 [CHECK 1] | next = t1 [HALT]
         {
           EXPECT_EQ(1, simulator.trace->pc(0));
           EXPECT_EQ(0, simulator.trace->accu(0));
-          EXPECT_EQ(3, simulator.trace->pc(1));
+          EXPECT_EQ(4, simulator.trace->pc(1));
           EXPECT_EQ(1, simulator.trace->accu(1));
-          EXPECT_EQ(3, simulator.trace->pc(2));
+          EXPECT_EQ(4, simulator.trace->pc(2));
+          EXPECT_EQ(1, simulator.trace->accu(2));
+
+          EXPECT_EQ(3, simulator.active.size());
+          EXPECT_EQ(0, simulator.waiting_for_checkpoint[1]);
+          EXPECT_EQ(State::running, simulator.state[0]);
+          EXPECT_EQ(State::running, simulator.state[1]);
+          EXPECT_EQ(State::running, simulator.state[2]);
+
+          simulator.thread = 1;
+          break;
+        }
+      case 12: // prev = t1 [HALT] | next = t2 [HALT]
+        {
+          EXPECT_EQ(1, simulator.trace->pc(0));
+          EXPECT_EQ(0, simulator.trace->accu(0));
+          EXPECT_EQ(4, simulator.trace->pc(1));
+          EXPECT_EQ(1, simulator.trace->accu(1));
+          EXPECT_EQ(4, simulator.trace->pc(2));
+          EXPECT_EQ(1, simulator.trace->accu(2));
+
+          EXPECT_EQ(2, simulator.active.size());
+          EXPECT_EQ(0, simulator.waiting_for_checkpoint[1]);
+          EXPECT_EQ(State::running, simulator.state[0]);
+          EXPECT_EQ(State::halted, simulator.state[1]);
+          EXPECT_EQ(State::running, simulator.state[2]);
+
+          simulator.thread = 2;
+          break;
+        }
+      case 13: // prev = t2 [HALT] | next = t0 [LOAD 1]
+        {
+          EXPECT_EQ(1, simulator.trace->pc(0));
+          EXPECT_EQ(0, simulator.trace->accu(0));
+          EXPECT_EQ(4, simulator.trace->pc(1));
+          EXPECT_EQ(1, simulator.trace->accu(1));
+          EXPECT_EQ(4, simulator.trace->pc(2));
           EXPECT_EQ(1, simulator.trace->accu(2));
 
           EXPECT_EQ(1, simulator.active.size());
@@ -457,49 +505,49 @@ TEST_F(Simulator, run_race_condition)
           simulator.thread = 0;
           break;
         }
-      case 12: // prev = t0 [LOAD 1] | next = t0 [SUBI 2]
+      case 14: // prev = t0 [LOAD 1] | next = t0 [SUBI 2]
         {
           EXPECT_EQ(2, simulator.trace->pc(0));
           EXPECT_EQ(1, simulator.trace->accu(0));
-          EXPECT_EQ(3, simulator.trace->pc(1));
+          EXPECT_EQ(4, simulator.trace->pc(1));
           EXPECT_EQ(1, simulator.trace->accu(1));
-          EXPECT_EQ(3, simulator.trace->pc(2));
+          EXPECT_EQ(4, simulator.trace->pc(2));
           EXPECT_EQ(1, simulator.trace->accu(2));
 
           simulator.thread = 0;
           break;
         }
-      case 13: // prev = t0 [SUBI 2] | next = t0 [JZ 5]
+      case 15: // prev = t0 [SUBI 2] | next = t0 [JZ 5]
         {
           EXPECT_EQ(3, simulator.trace->pc(0));
           EXPECT_EQ(word_t(-1), simulator.trace->accu(0));
-          EXPECT_EQ(3, simulator.trace->pc(1));
+          EXPECT_EQ(4, simulator.trace->pc(1));
           EXPECT_EQ(1, simulator.trace->accu(1));
-          EXPECT_EQ(3, simulator.trace->pc(2));
+          EXPECT_EQ(4, simulator.trace->pc(2));
           EXPECT_EQ(1, simulator.trace->accu(2));
 
           simulator.thread = 0;
           break;
         }
-      case 14: // prev = t0 [JZ 5] | next = t0 [EXIT 1]
+      case 16: // prev = t0 [JZ 5] | next = t0 [EXIT 1]
         {
           EXPECT_EQ(4, simulator.trace->pc(0));
           EXPECT_EQ(word_t(-1), simulator.trace->accu(0));
-          EXPECT_EQ(3, simulator.trace->pc(1));
+          EXPECT_EQ(4, simulator.trace->pc(1));
           EXPECT_EQ(1, simulator.trace->accu(1));
-          EXPECT_EQ(3, simulator.trace->pc(2));
+          EXPECT_EQ(4, simulator.trace->pc(2));
           EXPECT_EQ(1, simulator.trace->accu(2));
 
           simulator.thread = 0;
           break;
         }
-      case 15: // last = t0 [EXIT 1]
+      case 17: // last = t0 [EXIT 1]
         {
           EXPECT_EQ(4, simulator.trace->pc(0));
           EXPECT_EQ(word_t(-1), simulator.trace->accu(0));
-          EXPECT_EQ(3, simulator.trace->pc(1));
+          EXPECT_EQ(4, simulator.trace->pc(1));
           EXPECT_EQ(1, simulator.trace->accu(1));
-          EXPECT_EQ(3, simulator.trace->pc(2));
+          EXPECT_EQ(4, simulator.trace->pc(2));
           EXPECT_EQ(1, simulator.trace->accu(2));
 
           EXPECT_EQ(State::exited, simulator.state[0]);
@@ -522,14 +570,14 @@ TEST_F(Simulator, run_race_condition)
 
   ASSERT_EQ(
     Trace::thread_map<word_t>({
-      {{0, 0}, {1, 1}, {12, 2}, {13, 3}, {14, 4}},
-      {{0, 0}, {2, 1}, {4, 2}, {6, 3}},
-      {{0, 0}, {3, 1}, {5, 2}, {7, 3}}}),
+      {{0, 0}, {1, 1}, {14, 2}, {15, 3}, {16, 4}},
+      {{0, 0}, {2, 1}, {4, 2}, {6, 3}, {10, 4}},
+      {{0, 0}, {3, 1}, {5, 2}, {7, 3}, {11, 4}}}),
     trace->pc_updates);
 
   ASSERT_EQ(
     Trace::thread_map<word_t>({
-      {{0, 0}, {12, 1}, {13, 65535}},
+      {{0, 0}, {14, 1}, {15, 65535}},
       {{0, 0}, {4, 1}},
       {{0, 0}, {5, 1}}}),
     trace->accu_updates);
@@ -571,12 +619,12 @@ TEST_F(Simulator, run_race_condition)
 
 TEST_F(Simulator, run_zero_bound)
 {
-  program.push_back(Instruction::create("JMP", 0));
+  auto program = prog("JMP 0");
 
   init({program});
 
   // run it
-  trace = simulator.run([this] () {
+  auto trace = simulator.run([this] () {
     switch (simulator.step)
       {
       case 0: simulator.thread = 0; break;
@@ -640,15 +688,17 @@ TEST_F(Simulator, run_zero_bound)
 
 TEST_F(Simulator, run_final_thread)
 {
-  program.push_back(Instruction::create("ADDI", 1));
-  program.push_back(Instruction::create("HALT"));
+  auto program =
+    prog(
+      "ADDI 1\n"
+      "HALT");
 
   init({program, program});
 
   simulator.bound = 2;
 
   // run it
-  trace = simulator.run([this] () {
+  auto trace = simulator.run([this] () {
     switch (simulator.step)
       {
       case 0: simulator.thread = 0; break;
@@ -736,15 +786,17 @@ TEST_F(Simulator, run_final_thread)
 
 TEST_F(Simulator, run_final_flush)
 {
-  program.push_back(Instruction::create("STORE", 0));
-  program.push_back(Instruction::create("HALT"));
+  auto program =
+    prog(
+      "STORE 0\n"
+      "HALT");
 
   init({program, program});
 
   simulator.bound = 3;
 
   // run it
-  trace = simulator.run([this] () {
+  auto trace = simulator.run([this] () {
     switch (simulator.step)
       {
       case 0: simulator.thread = 0; break;
@@ -857,7 +909,7 @@ TEST_F(Simulator, simulate_increment_check)
   std::string expected((std::istreambuf_iterator<char>(trace_ifs)),
                         std::istreambuf_iterator<char>());
 
-  trace =
+  auto trace =
     simulator.simulate(
       std::make_shared<Program::List>(
         create_from_file<Program>("test/data/increment.check.thread.0.asm"),
@@ -883,9 +935,8 @@ TEST_F(Simulator, simulate_increment_cas)
   std::string expected((std::istreambuf_iterator<char>(trace_ifs)),
                         std::istreambuf_iterator<char>());
 
-  program = create_from_file<Program>("test/data/increment.cas.asm");
-
-  trace =
+  auto program = create_from_file<Program>("test/data/increment.cas.asm");
+  auto trace =
     simulator.simulate(
       std::make_shared<Program::List>(program, program),
       {},
@@ -909,7 +960,7 @@ TEST_F(Simulator, simulate_indirect)
   std::string expected((std::istreambuf_iterator<char>(trace_ifs)),
                         std::istreambuf_iterator<char>());
 
-  trace =
+  auto trace =
     simulator.simulate(
       std::make_shared<Program::List>(
         create_from_file<Program>("test/data/indirect.asm")),
@@ -934,9 +985,8 @@ TEST_F(Simulator, simulate_halt)
   std::string expected((std::istreambuf_iterator<char>(trace_ifs)),
                         std::istreambuf_iterator<char>());
 
-  program = create_from_file<Program>("test/data/halt.asm");
-
-  trace =
+  auto program = create_from_file<Program>("test/data/halt.asm");
+  auto trace =
     simulator.simulate(
       std::make_shared<Program::List>(program, program),
       {},
@@ -960,7 +1010,7 @@ TEST_F(Simulator, simulate_load_uninitialized)
       programs->push_back(Program(code, std::to_string(i) + ".asm"));
     }
 
-  trace = simulator.simulate(programs, {}, 0);
+  auto trace = simulator.simulate(programs, {}, 0);
 
   ASSERT_EQ(0, trace->exit);
   ASSERT_EQ(6, trace->size());
@@ -992,7 +1042,7 @@ TEST_F(Simulator, simulate_load_mmap)
       programs->push_back(Program(code, std::to_string(i) + ".asm"));
     }
 
-  trace = simulator.simulate(programs, mmap, 0);
+  auto trace = simulator.simulate(programs, mmap, 0);
 
   ASSERT_EQ(0, trace->exit);
   ASSERT_EQ(6, trace->size());
@@ -1018,7 +1068,7 @@ TEST_F(Simulator, replay_increment_check)
   sfs.clear();
   sfs.seekg(0, std::ios::beg);
 
-  trace = std::make_unique<Trace>(sfs, trace_path);
+  auto trace = std::make_unique<Trace>(sfs, trace_path);
 
   trace = simulator.replay(*trace);
 
@@ -1037,7 +1087,7 @@ TEST_F(Simulator, replay_increment_cas)
   sfs.clear();
   sfs.seekg(0, std::ios::beg);
 
-  trace = std::make_unique<Trace>(sfs, trace_path);
+  auto trace = std::make_unique<Trace>(sfs, trace_path);
 
   trace = simulator.replay(*trace);
 

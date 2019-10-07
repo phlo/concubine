@@ -117,19 +117,19 @@ void Functional::define_stmt ()
             stmt_var(prev, thread, pc),
             lnot(exec_var(prev, thread, pc))});
 
-        const auto & preds = program.predecessors.at(pc);
+        const auto & pred = predecessors[thread][pc];
 
-        for (auto rit = preds.rbegin(); rit != preds.rend(); ++rit)
+        for (auto rit = pred.rbegin(); rit != pred.rend(); ++rit)
           {
             // predecessor's execution variable
             std::string val = exec_var(prev, thread, *rit);
 
             // build conjunction of execution variable and jump condition
-            const Instruction & pred = program[*rit];
+            const Instruction & pre = program[*rit];
 
-            if (pred.is_jump())
+            if (pre.is_jump())
               {
-                std::string cond = pred.encode(*this);
+                const std::string cond = pre.encode(*this);
 
                 // JMP has no condition and returns an empty std::string
                 if (!cond.empty())
@@ -137,7 +137,7 @@ void Functional::define_stmt ()
                     land({
                       val,
                       // only activate successor if jump condition failed
-                      *rit == pc - 1 && pred.arg() != pc
+                      *rit == pc - 1 && pre.arg() != pc
                         ? lnot(cond)
                         : cond});
               }
@@ -171,9 +171,9 @@ void Functional::define_block ()
         {
           std::vector<std::string> args;
 
-          args.reserve(pcs->size() + 1);
+          args.reserve(pcs.size() + 1);
 
-          for (const word_t p : *pcs)
+          for (const word_t p : pcs)
             args.push_back(exec_var(prev, t, p));
 
           args.push_back(block_var(prev, c, t));

@@ -20,21 +20,16 @@ namespace ConcuBinE {
 //==============================================================================
 
 //------------------------------------------------------------------------------
-// constructors
+// public constructors
 //------------------------------------------------------------------------------
 
-Program::Program (std::istream & f, const std::string & p) : path(p)
+Program::Program (std::istream & is, const std::string & p) : path(p)
 {
-  std::string token;
-
-  Instruction cmd;
+  // list of jump instructions at pc referencing a certain label
+  std::vector<std::pair<word_t, std::string>> labelled_jumps;
 
   size_t line_num = 1;
-
-  // list of jump instructions at pc referencing a certain label
-  std::vector<std::tuple<std::string, word_t, std::string>> labelled_jumps;
-
-  for (std::string line_buf; std::getline(f, line_buf); line_num++)
+  for (std::string line_buf, token; std::getline(is, line_buf); line_num++)
     {
       // skip empty lines
       if (line_buf.empty())
@@ -57,17 +52,16 @@ Program::Program (std::istream & f, const std::string & p) : path(p)
           pc_to_label[pc] = label;
 
           // read labelled command
-          line >> token;
+          if (!(line >> token))
+            PARSER_ERROR("missing instruction");
         }
 
-      std::string symbol = token;
+      Instruction op;
+      std::string symbol(std::move(token));
 
-      line >> std::ws;
-
-      // parse instruction
       if (line.eof())
         {
-          try { cmd = Instruction::create(symbol); }
+          try { op = Instruction::create(symbol); }
           catch (...) { UNKNOWN_INSTRUCTION_ERROR(); }
         }
       else
@@ -77,7 +71,7 @@ Program::Program (std::istream & f, const std::string & p) : path(p)
           // try to parse the argument
           if (line >> arg)
             {
-              try { cmd = Instruction::create(symbol, arg); }
+              try { op = Instruction::create(symbol, arg); }
               catch (...) { UNKNOWN_INSTRUCTION_ERROR(); }
             }
           // label or indirect addressing
@@ -95,89 +89,93 @@ Program::Program (std::istream & f, const std::string & p) : path(p)
                   // parse enclosed address
                   line >> token;
 
-                  try
-                    {
-                      arg = stoul(token.substr(1, token.size() - 2));
-                    }
+                  try { arg = stoul(token.substr(1, token.size() - 2)); }
                   catch (std::invalid_argument & e)
                     {
                       PARSER_ERROR(
                         "indirect addressing does not support labels");
                     }
 
-                  try { cmd = Instruction::create(symbol, arg); }
+                  try { op = Instruction::create(symbol, arg); }
                   catch (...) { UNKNOWN_INSTRUCTION_ERROR(); }
 
                   // check if the instruction supports indirect addresses
-                  if (cmd.is_memory())
-                    cmd = Instruction::create(symbol, arg, true);
-                  else
+                  if (!op.is_memory())
                     INSTRUCTION_ERROR("does not support indirect addressing");
+
+                  op.indirect(true);
                 }
               // arg is a label
               else
                 {
-                  // create dummy Instruction which will be replaced by the
-                  // actual one when all labels are known
-                  try { cmd = Instruction::create(symbol, word_max); }
+                  // create dummy Instruction
+                  try { op = Instruction::create(symbol, word_max); }
                   catch (...) { UNKNOWN_INSTRUCTION_ERROR(); }
 
                   // check if the instruction supports labels (is a jmp)
-                  if (cmd.is_jump())
-                    {
-                      // get the label
-                      line >> token;
-
-                      // get the program counter
-                      word_t pc = size();
-
-                      // add std::tuple to the list of labelled jumps
-                      labelled_jumps.push_back(make_tuple(symbol, pc, token));
-                    }
-                  // error: not a jump instruction
-                  else
+                  if (!op.is_jump())
                     INSTRUCTION_ERROR("does not support labels");
+
+                  if (!(line >> token))
+                    PARSER_ERROR("missing label");
+
+                  // add to the list of labelled jumps
+                  labelled_jumps.push_back(make_pair(size(), token));
                 }
             }
         }
 
-      push_back(std::move(cmd));
+      push_back(std::move(op));
     }
 
-  // replace labelled dummy instructions
-  for (const auto & [sym, pc, label] : labelled_jumps)
+  // update labelled instruction's argument
+  for (const auto & [pc, label] : labelled_jumps)
     try
       {
-        // check if label exists and replace dummy
-        (*this)[pc] = Instruction::create(sym, label_to_pc.at(label));
+        (*this)[pc].arg(label_to_pc.at(label));
       }
     catch (...)
       {
-        parser_error(path, pc, "unknown label [" + label + "]");
+        throw std::runtime_error(path + ": unknown label [" + label + "]");
       }
+
+  // find illegal jumps
+  for (word_t pc = 0; pc < size(); pc++)
+    {
+      const auto & op = (*this)[pc];
+
+      if (op.is_jump() && op.arg() >= size())
+        throw
+          std::runtime_error(
+            path + ": illegal jump [" + std::to_string(pc) + "]");
+    }
 
   // insert final HALT (if missing)
   if (!(back().type() & Instruction::Type::control))
     push_back(Instruction::create("HALT"));
+}
+
+//------------------------------------------------------------------------------
+// public member functions
+//------------------------------------------------------------------------------
+
+// Program::predecessors -------------------------------------------------------
+
+std::unordered_map<word_t, std::set<word_t>> Program::predecessors () const
+{
+  std::unordered_map<word_t, std::set<word_t>> predecessors;
 
   // collect predecessors
-  predecessors[0]; // explicitly add initial instruction
   for (word_t pc = 0, final = size() - 1; pc <= final; pc++)
     {
       const Instruction & op = (*this)[pc];
 
       if (op.is_jump())
         {
-          const word_t target = op.arg();
-
-          if (target >= size())
-            throw std::runtime_error(
-              path + ": illegal jump [" + std::to_string(pc) + "]");
-
-          if (op.symbol() != Instruction::Jmp::symbol || target == pc + 1)
+          if (&op.symbol() != &Instruction::Jmp::symbol)
             predecessors[pc + 1].insert(pc);
 
-          predecessors[target].insert(pc);
+          predecessors[op.arg()].insert(pc);
         }
       else if (pc < final)
         {
@@ -192,71 +190,53 @@ Program::Program (std::istream & f, const std::string & p) : path(p)
   // check for unreachable instructions
   for (word_t pc = 1; pc < size(); pc++)
     if (predecessors.find(pc) == predecessors.end())
-      throw std::runtime_error(
-        path + ": unreachable instruction [" + std::to_string(pc) + "]");
+      throw
+        std::runtime_error(
+          path + ": unreachable instruction [" + std::to_string(pc) + "]");
+
+  return predecessors;
 }
 
-//------------------------------------------------------------------------------
-// member functions
-//------------------------------------------------------------------------------
+// Program::pc -----------------------------------------------------------------
 
-// Program::push_back ----------------------------------------------------------
-
-void Program::push_back (Instruction && op)
-{
-  // collect checkpoint id
-  if (&op.symbol() == &Instruction::Check::symbol)
-    checkpoints[op.arg()].push_back(size());
-
-  // append instruction
-  std::vector<Instruction>::push_back(std::move(op));
-}
-
-// Program::get_pc -------------------------------------------------------------
-
-word_t Program::get_pc (const std::string label) const
+word_t Program::pc (const std::string & label) const
 {
   const auto it = label_to_pc.find(label);
 
   if (it == label_to_pc.end())
-    throw std::runtime_error("unknown label [" + label + "]");
+    throw std::runtime_error(path + ": unknown label [" + label + "]");
 
   return it->second;
 }
 
-// Program::get_label ----------------------------------------------------------
+// Program::label --------------------------------------------------------------
 
-std::string Program::get_label (const word_t pc) const
+std::string Program::label (const word_t pc) const
 {
   const auto it = pc_to_label.find(pc);
 
   if (it == pc_to_label.end())
     throw
-      std::runtime_error(
-        "no label for program counter [" + std::to_string(pc) + "]");
+      std::runtime_error(path + ": no label for [" + std::to_string(pc) + "]");
 
   return it->second;
 }
 
 // Program::print --------------------------------------------------------------
 
-std::string Program::print (const bool include_pc) const
+std::string Program::print () const
 {
   std::ostringstream ss;
 
   for (word_t i = 0; i < size(); i++)
-    ss <<  print(include_pc, i) << eol;
+    ss <<  print(i) << eol;
 
   return ss.str();
 }
 
-std::string Program::print (const bool include_pc, const word_t pc) const
+std::string Program::print (const word_t pc) const
 {
   std::ostringstream ss;
-  const char delimiter = ' ';
-
-  if (include_pc)
-    ss << pc << delimiter;
 
   // check if instruction is referenced by a label
   auto label_it = pc_to_label.find(pc);
@@ -271,7 +251,7 @@ std::string Program::print (const bool include_pc, const word_t pc) const
   // print unary instruction's argument
   if (op.is_unary())
     {
-      ss << delimiter;
+      ss << ' ';
 
       label_it = pc_to_label.find(op.arg());
       if (op.is_jump() && label_it != pc_to_label.end())
@@ -292,33 +272,6 @@ std::string Program::print (const bool include_pc, const word_t pc) const
     }
 
   return ss.str();
-}
-
-//==============================================================================
-// non-member operators
-//==============================================================================
-
-// equality --------------------------------------------------------------------
-//
-bool operator == (const Program & a, const Program & b)
-{
-  if (a.size() != b.size())
-    return false;
-
-  for (size_t i = 0; i < a.size(); i++)
-    if (a[i] != b[i])
-      return false;
-
-  return
-    a.predecessors == b.predecessors &&
-    a.checkpoints == b.checkpoints &&
-    a.pc_to_label == b.pc_to_label &&
-    a.label_to_pc == b.label_to_pc;
-}
-
-bool operator != (const Program & a, const Program & b)
-{
-  return !(a == b);
 }
 
 } // namespace ConcuBinE

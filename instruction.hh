@@ -74,7 +74,7 @@ public: //======================================================================
   // public member types
   //----------------------------------------------------------------------------
 
-  // operational types ---------------------------------------------------------
+  // operational types
   //
   enum Type : uint8_t
     {
@@ -89,7 +89,7 @@ public: //======================================================================
       control = 1 << 6      // control flow
     };
 
-  // instruction PODs ----------------------------------------------------------
+  // instruction PODs
   //
   struct Nullary { uint8_t type = Type::none; };
   struct Unary : public Nullary { word_t arg = 0; };
@@ -123,7 +123,7 @@ public: //======================================================================
   DECLARE_NULLARY (Halt,  Nullary,  "HALT",   barrier | control)
   DECLARE_UNARY   (Exit,  Unary,    "EXIT",   control)
 
-  // abstract interface (types erasure concept) --------------------------------
+  // abstract interface (types erasure concept)
   //
   struct Concept
     {

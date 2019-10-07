@@ -117,7 +117,7 @@ Trace::Trace(std::istream & file, const std::string & path) :
           if (!(line >> token))
             parser_error(path, line_num, "missing program counter");
 
-          try { pc = program.get_pc(token); }
+          try { pc = program.pc(token); }
           catch (...)
             {
               parser_error(path, line_num, "unknown label [" + token + "]");
@@ -193,7 +193,7 @@ Trace::Trace(std::istream & file, const std::string & path) :
           // arg is a label
           else if (op.is_jump())
             {
-              try { arg = program.get_pc(token); }
+              try { arg = program.pc(token); }
               catch (...)
                 {
                   parser_error(path, line_num, "unknown label [" + token + "]");
@@ -697,14 +697,8 @@ std::string Trace::print (const Step & step) const
   const Instruction & op = program[step.pc];
 
   // program counter
-  try
-    {
-      ss << program.get_label(step.pc) << sep;
-    }
-  catch (...)
-    {
-      ss << step.pc << sep;
-    }
+  try { ss << program.label(step.pc) << sep; }
+  catch (...) { ss << step.pc << sep; }
 
   // instruction symbol / argument
   if (step.flush)
@@ -727,7 +721,7 @@ std::string Trace::print (const Step & step) const
                 arg = '[' + arg + ']';
             }
           else if (op.is_jump())
-            try { arg = program.get_label(op.arg()); } catch (...) {}
+            try { arg = program.label(op.arg()); } catch (...) {}
         }
 
       ss << arg << sep;

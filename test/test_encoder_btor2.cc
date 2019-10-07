@@ -320,13 +320,7 @@ TEST(btor2_Encoder, declare_sorts)
 
 TEST(btor2_Encoder, declare_constants)
 {
-  auto programs = lst(3);
-
-  for (size_t tid = 0; tid < 3; tid++)
-    for (size_t pc = 0; pc < 3; pc++)
-      (*programs)[tid].push_back(Instruction::create("ADDI", tid + pc + 1));
-
-  auto encoder = create<E>(programs);
+  auto encoder = create<E>(lst(prog("ADD 0"), prog("ADD 1"), prog("ADD 2")));
 
   encoder.declare_sorts();
   encoder.formula.str("");
@@ -345,9 +339,6 @@ TEST(btor2_Encoder, declare_constants)
       << encoder.nids_const[0] << " zero 2\n"
       << encoder.nids_const[1] << " one 2\n"
       << encoder.nids_const[2] << " constd 2 2\n"
-      << encoder.nids_const[3] << " constd 2 3\n"
-      << encoder.nids_const[4] << " constd 2 4\n"
-      << encoder.nids_const[5] << " constd 2 5\n"
       << eol;
 
     return s.str();

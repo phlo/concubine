@@ -131,6 +131,12 @@ struct Encoder
   //
   State update;
 
+  // list of predecessors for each thread
+  //
+  // thread -> pc -> set of predecessors
+  //
+  std::vector<std::unordered_map<word_t, std::set<word_t>>> predecessors;
+
   // pcs of statements requiring an empty store buffer
   //
   // thread -> list of program counters
@@ -139,9 +145,9 @@ struct Encoder
 
   // pcs of checkpoint statements
   //
-  // checkpoint id -> thread -> pointer to list of program counters
+  // checkpoint id -> thread -> list of program counters
   //
-  std::map<word_t, std::map<word_t, const std::vector<word_t> *>> checkpoints;
+  std::map<word_t, std::map<word_t, std::vector<word_t>>> checkpoints;
 
   // pcs of halt statements
   //

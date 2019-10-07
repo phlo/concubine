@@ -1081,7 +1081,7 @@ void Encoder::define_stmt ()
             verbose ? debug_symbol(thread, pc) : "");
 
         // add activation by predecessor's execution
-        for (word_t prev : program.predecessors.at(pc))
+        for (word_t prev : predecessors[thread][pc])
           {
             nid_exec = nids_exec[thread][prev];
 
@@ -1146,9 +1146,9 @@ void Encoder::define_block ()
           std::string & nid_block = nid_block_it++->second;
           std::vector<std::string> args;
 
-          args.reserve(pcs->size() + 1);
+          args.reserve(pcs.size() + 1);
 
-          for (const auto & p : *pcs)
+          for (const auto & p : pcs)
             args.push_back(nids_exec[t][p]);
 
           args.push_back(nid_block);

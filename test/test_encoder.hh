@@ -38,7 +38,7 @@ const std::string instruction_set =
 // utility functions
 // =============================================================================
 
-// create program from source
+// create dummy program from source
 //
 inline Program prog (const std::string & code,
                      const std::string & path = "dummy.asm")
@@ -48,6 +48,7 @@ inline Program prog (const std::string & code,
 }
 
 // create program list pointer from arbitrary number of programs
+//
 template <class ... P>
 inline std::shared_ptr<Program::List> lst (P && ... programs)
 {

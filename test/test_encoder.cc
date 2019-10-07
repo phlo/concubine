@@ -30,7 +30,7 @@ TEST(Encoder, constructor)
     for (const auto & pcs : threads)
       ASSERT_EQ(
         id == 1 ? std::vector<word_t>({3}) : std::vector<word_t>({5}),
-        *std::get<1>(pcs));
+        std::get<1>(pcs));
 
   ASSERT_TRUE(encoder.halts.empty());
 
@@ -71,7 +71,7 @@ TEST(Encoder, constructor_checkpoints)
     for (const auto & pcs : threads)
       {
         word_t thread = id - 1;
-        ASSERT_EQ(std::vector<word_t>({thread}), *pcs.second);
+        ASSERT_EQ(std::vector<word_t>({thread}), pcs.second);
       }
 }
 

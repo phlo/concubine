@@ -59,7 +59,12 @@ Encoder::Encoder (const std::shared_ptr<Program::List> & p,
   bound(b),
   use_sinz_constraint(num_threads > 4)
 {
+  predecessors.reserve(num_threads);
+
   iterate_programs([this] (const Program & program) {
+    // collect predecessors
+    predecessors.push_back(program.predecessors());
+
     for (pc = 0; pc < program.size(); pc++)
       {
         const Instruction & op = program[pc];
@@ -67,6 +72,10 @@ Encoder::Encoder (const std::shared_ptr<Program::List> & p,
         // collect statements requiring an empty store buffer
         if (op.requires_flush())
           flushes[thread].push_back(pc);
+
+        // collect checkpoints
+        if (!op.type())
+          checkpoints[op.arg()][thread].push_back(pc);
 
         // collect explicit halt statements
         if (&op.symbol() == &Instruction::Halt::symbol)
@@ -76,10 +85,6 @@ Encoder::Encoder (const std::shared_ptr<Program::List> & p,
         if (&op.symbol() == &Instruction::Exit::symbol)
           exits[thread].push_back(pc);
       }
-
-    // collect checkpoints
-    for (const auto & [c, pcs] : program.checkpoints)
-      checkpoints[c][thread] = &pcs;
   });
 
   // remove single-threaded checkpoints
@@ -110,7 +115,7 @@ std::string Encoder::predecessors_to_string ()
   std::ostringstream ss;
 
   for (word_t tid = 0; tid < programs->size(); tid++)
-    for (const auto & [_pc, _predecessors] : (*programs)[tid].predecessors)
+    for (const auto & [_pc, _predecessors] : predecessors[tid])
       {
         ss << "thread " << tid << " @ " << _pc << " :";
         for (const auto & prev : _predecessors)
@@ -131,7 +136,7 @@ std::string Encoder::checkpoints_to_string ()
       for (const auto & [_thread, pcs] : threads)
         {
           ss << "  " << _thread << ":";
-          for (const auto & _pc : *pcs)
+          for (const auto & _pc : pcs)
             ss << " " << _pc;
           ss << eol;
         }
