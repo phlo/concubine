@@ -12,13 +12,12 @@ namespace ConcuBinE {
 //==============================================================================
 
 //------------------------------------------------------------------------------
-// constructors
+// public constructors
 //------------------------------------------------------------------------------
 
-MMap::MMap(std::istream & f, const std::string & p) : path(p)
+MMap::MMap (std::istream & f, const std::string & p) : path(p)
 {
   size_t line_num = 1;
-
   for (std::string line_buf; std::getline(f, line_buf); line_num++)
     {
       // skip empty lines
@@ -64,7 +63,7 @@ MMap::MMap(std::istream & f, const std::string & p) : path(p)
 }
 
 //------------------------------------------------------------------------------
-// member functions
+// public member functions
 //------------------------------------------------------------------------------
 
 // MMap::print -----------------------------------------------------------------
@@ -74,7 +73,7 @@ std::string MMap::print () const
   std::ostringstream ss;
 
   for (const auto & [adr, val] : *this)
-    ss << adr << " " << val << eol;
+    ss << adr << ' ' << val << eol;
 
   return ss.str();
 }
