@@ -10,107 +10,96 @@ namespace ConcuBinE::test {
 // MMap tests
 //==============================================================================
 
-struct MMap : public ::testing::Test
+const std::string path = "dummy.mmap";
+
+inline MMap mmap (const std::string & code)
 {
-  std::string path = "dummy.mmap";
-
-  ConcuBinE::MMap mmap;
-
-  void create_mmap (std::string code)
-    {
-      std::istringstream inbuf {code};
-      mmap = ConcuBinE::MMap(inbuf, path);
-    }
-};
+  std::istringstream inbuf(code);
+  return MMap(inbuf, path);
+}
 
 // construction ================================================================
 
-TEST_F(MMap, construction)
+TEST(MMap, construction)
 {
-  create_mmap("0 0\n");
-
-  ConcuBinE::MMap & m1 = mmap;
-  ASSERT_FALSE(m1.empty());
+  auto m0 = mmap("0 0\n");
 
   // copy construction
-  ConcuBinE::MMap m2 (m1);
-  ASSERT_NE(&m1[0], &m2[0]);
-  ASSERT_EQ(m1, m2);
+  MMap m1(m0);
+  ASSERT_NE(&m0[0], &m1[0]);
+  ASSERT_EQ(m0, m1);
 
-  const auto * ptr = &m1[0];
+  const auto * ptr = &m0[0];
 
   // std::move construction
-  ConcuBinE::MMap m3 (std::move(m1));
-  ASSERT_TRUE(m1.empty());
-  ASSERT_EQ(m2, m3);
-  ASSERT_EQ(ptr, &m3[0]);
-
-  // copy assignment
-  m1 = m2;
-  ASSERT_EQ(m1, m3);
-  ASSERT_NE(&m1[0], &m2[0]);
-  ASSERT_NE(&m1[0], &m3[0]);
-
-  // std::move assignment
-  m2 = std::move(m3);
-  ASSERT_TRUE(m3.empty());
+  MMap m2(std::move(m0));
+  ASSERT_TRUE(m0.empty());
   ASSERT_EQ(m1, m2);
   ASSERT_EQ(ptr, &m2[0]);
+
+  // copy assignment
+  m0 = m1;
+  ASSERT_EQ(m0, m2);
+  ASSERT_NE(&m0[0], &m1[0]);
+  ASSERT_NE(&m0[0], &m2[0]);
+
+  // std::move assignment
+  m1 = std::move(m2);
+  ASSERT_TRUE(m2.empty());
+  ASSERT_EQ(m0, m1);
+  ASSERT_EQ(ptr, &m1[0]);
 }
 
 // parser ======================================================================
 
-TEST_F(MMap, parse)
+TEST(MMap, parse)
 {
-  create_mmap(
+  auto m = mmap(
     "0 0\n"
     "1 1\n"
-    "2 2\n"
-  );
+    "2 2\n");
 
-  ASSERT_EQ(path, mmap.path);
-  ASSERT_EQ(3, mmap.size());
+  ASSERT_EQ(path, m.path);
+  ASSERT_EQ(3, m.size());
 
-  for (word_t i = 0; i < mmap.size(); i++)
-    ASSERT_EQ(i, mmap.at(i));
+  for (word_t i = 0; i < m.size(); i++)
+    ASSERT_EQ(i, m.at(i));
 }
 
-TEST_F(MMap, parse_comment)
+TEST(MMap, parse_comment)
 {
-  create_mmap(
+  auto m = mmap(
     "# a comment\n"
     "0 0\n"
     "# another comment\n"
-    "1 1\n"
-  );
+    "1 1\n");
 
-  ASSERT_EQ(path, mmap.path);
-  ASSERT_EQ(2, mmap.size());
+  ASSERT_EQ(path, m.path);
+  ASSERT_EQ(2, m.size());
 
-  for (word_t i = 0; i < mmap.size(); i++)
-    ASSERT_EQ(i, mmap.at(i));
+  for (word_t i = 0; i < m.size(); i++)
+    ASSERT_EQ(i, m.at(i));
 }
 
-TEST_F(MMap, parse_empty_line)
+TEST(MMap, parse_empty_line)
 {
-  create_mmap(
+  auto m = mmap(
     "0 0\n"
     "\n"
-    "1 1\n"
-  );
+    "1 1\n");
 
-  ASSERT_EQ(path, mmap.path);
-  ASSERT_EQ(2, mmap.size());
+  ASSERT_EQ(path, m.path);
+  ASSERT_EQ(2, m.size());
 
-  for (word_t i = 0; i < mmap.size(); i++)
-    ASSERT_EQ(i, mmap.at(i));
+  for (word_t i = 0; i < m.size(); i++)
+    ASSERT_EQ(i, m.at(i));
 }
 
-TEST_F(MMap, parse_file_not_found)
+TEST(MMap, parse_file_not_found)
 {
   try
     {
-      mmap = create_from_file<ConcuBinE::MMap>("file");
+      auto m = create_from_file<MMap>("file");
       FAIL() << "should throw an exception";
     }
   catch (const std::exception & e)
@@ -119,11 +108,11 @@ TEST_F(MMap, parse_file_not_found)
     }
 }
 
-TEST_F(MMap, parse_illegal_address)
+TEST(MMap, parse_illegal_address)
 {
   try
     {
-      create_mmap("ILLEGAL 0\n");
+      auto m = mmap("ILLEGAL 0\n");
       FAIL() << "should throw an exception";
     }
   catch (const std::exception & e)
@@ -132,11 +121,11 @@ TEST_F(MMap, parse_illegal_address)
     }
 }
 
-TEST_F(MMap, parse_illegal_value)
+TEST(MMap, parse_illegal_value)
 {
   try
     {
-      create_mmap("0 ILLEGAL\n");
+      auto m = mmap("0 ILLEGAL\n");
       FAIL() << "should throw an exception";
     }
   catch (const std::exception & e)
@@ -147,15 +136,15 @@ TEST_F(MMap, parse_illegal_value)
 
 // MMap::print =================================================================
 
-TEST_F(MMap, print)
+TEST(MMap, print)
 {
-  std::string expected =
+  const std::string expected =
     "0 0\n"
     "1 1\n"
     "2 2\n";
 
-  create_mmap(expected);
-  ASSERT_EQ(expected, mmap.print());
+  auto m = mmap(expected);
+  ASSERT_EQ(expected, m.print());
 }
 
 } // namespace ConcuBinE::test
