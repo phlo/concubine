@@ -115,7 +115,7 @@ struct External : public Solver
 
   // build command line for running the specific solver
   //
-  virtual std::string command () const = 0;
+  virtual const std::vector<std::string> & command () const = 0;
 
   // parse integer attribute of current symbol
   //

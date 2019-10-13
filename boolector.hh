@@ -19,7 +19,7 @@ private: //---------------------------------------------------------------------
 
   // build command line for running boolector
   //
-  virtual std::string command () const;
+  virtual const std::vector<std::string> & command () const;
 
 protected: //-------------------------------------------------------------------
 

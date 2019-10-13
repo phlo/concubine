@@ -8,73 +8,54 @@ namespace ConcuBinE::test {
 // Shell tests
 //==============================================================================
 
-struct Shell : public ::testing::Test
-{
-  ConcuBinE::Shell shell;
-};
-
-// Shell::last_exit_code =======================================================
-
-TEST_F(Shell, return_code)
-{
-  shell.run("exit 0");
-  ASSERT_EQ(0, shell.last_exit_code());
-
-  shell.run("exit 1");
-  ASSERT_EQ(1, shell.last_exit_code());
-
-  shell.run("exit -1");
-  ASSERT_EQ(255, shell.last_exit_code());
-}
-
 // Shell::run ==================================================================
 
-TEST_F(Shell, ouput)
+TEST(Shell, exit)
 {
-  std::string expected = "hello shell";
-
-  std::string actual = shell.run("echo -n " + expected).str();
-
-  ASSERT_EQ(0, shell.last_exit_code());
-  ASSERT_EQ(expected, actual);
+  ASSERT_EQ(0, shell::run({"bash"}, "exit 0").exit);
+  ASSERT_EQ(1, shell::run({"bash"}, "exit 1").exit);
+  ASSERT_EQ(255, shell::run({"bash"}, "exit -1").exit);
 }
 
-TEST_F(Shell, input_output)
+TEST(Shell, stdout)
 {
-  std::string expected = "hello shell";
+  const std::string expected = "hello world";
+  const auto out = shell::run({"echo", "-n", expected});
 
-  std::string actual = shell.run("cat", expected).str();
-
-  ASSERT_EQ(0, shell.last_exit_code());
-  ASSERT_EQ(expected, actual);
+  ASSERT_EQ(0, out.exit);
+  ASSERT_EQ(expected, out.stdout.str());
+  ASSERT_EQ("", out.stderr.str());
 }
 
-TEST_F(Shell, pipe_in_pipe)
+TEST(Shell, stderr)
 {
-  std::string input = "3\n2\n4\n5\n1\n3\n2\n4\n5\n1\n";
-  std::string expected = "1\n2\n3\n4\n5\n";
+  const std::string expected = "hello world";
+  const auto out = shell::run({"bash"}, "echo " + expected + " 1>&2");
 
-  std::string actual = shell.run("sort | uniq", input).str();
-
-  ASSERT_EQ(0, shell.last_exit_code());
-  ASSERT_EQ(expected, actual);
+  ASSERT_EQ(0, out.exit);
+  ASSERT_EQ("", out.stdout.str());
+  ASSERT_EQ(expected + '\n', out.stderr.str());
 }
 
-TEST_F(Shell, abuse)
+TEST(Shell, input)
 {
-  std::string expected = "bash: unknown: command not found\n";
-  std::string actual = shell.run("unknown").str();
+  const std::string expected = "hello world";
+  const auto out = shell::run({"cat"}, expected);
 
-  ASSERT_EQ(127, shell.last_exit_code());
-  ASSERT_EQ(expected, actual);
+  ASSERT_EQ(0, out.exit);
+  ASSERT_EQ(expected, out.stdout.str());
+  ASSERT_EQ("", out.stderr.str());
+}
 
-  actual = shell.run("").str();
-  ASSERT_EQ("", actual);
+TEST(Shell, abuse)
+{
+  const char * expected = "error calling exec [No such file or directory]";
 
-  std::string input;
-  actual= shell.run("echo ", input).str();
-  ASSERT_EQ(0, shell.last_exit_code());
-  ASSERT_EQ("\n", actual);
+  try { shell::run({"unknown"}); }
+  catch (const std::exception & e) { ASSERT_STREQ(expected, e.what()); }
+
+  try { shell::run({""}); }
+  catch (const std::exception & e) { ASSERT_STREQ(expected, e.what()); }
 }
 
 } // namespace ConcuBinE::test

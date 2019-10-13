@@ -55,7 +55,7 @@ struct Env : public ::testing::Environment
     {
       Timetable totals;
       const std::string titel = "\n## Runtime\n";
-      const std::string host = Shell().run("uname -p").str();
+      const std::string host = shell::run({"uname", "-p"}).stdout.str();
       const std::string section = titel + "\n> " + host + eol;
       const std::vector<std::string> header = {"Solver", "Runtime [ms]"};
 

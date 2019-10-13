@@ -2,42 +2,21 @@
 #define SHELL_HH_
 
 #include <sstream>
+#include <vector>
 
-namespace ConcuBinE {
+namespace ConcuBinE::shell {
 
-//==============================================================================
-// Shell
-//==============================================================================
-
-class Shell
+struct Output
 {
-  //----------------------------------------------------------------------------
-  // members
-  //----------------------------------------------------------------------------
-
-  // last exit code ($?)
-  //
-  int exit_code;
-
-  //----------------------------------------------------------------------------
-  // public member functions
-  //----------------------------------------------------------------------------
-
-public:
-
-  // returns last exit code (like $?)
-  //
-  int last_exit_code ();
-
-  // runs shell command and returns it's output
-  //
-  std::stringstream run (const std::string & input);
-
-  // pipes input into shell command and returns it's output
-  //
-  std::stringstream run (const std::string & cmd, const std::string & input);
+  int exit;
+  std::stringstream stdout, stderr;
 };
 
-} // namespace ConcuBinE
+// run command with given input (via stdin)
+//
+Output run (const std::vector<std::string> & command,
+            const std::string & input = "");
+
+} // namespace ConcuBinE::shell
 
 #endif

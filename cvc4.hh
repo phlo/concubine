@@ -31,7 +31,7 @@ struct CVC4 : public External
 
   // build command line for the specific solver
   //
-  virtual std::string command () const;
+  virtual const std::vector<std::string> & command () const;
 
   // parse variable
   //

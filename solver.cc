@@ -253,11 +253,9 @@ bool External::sat (const std::string & input)
 {
   using namespace std::chrono;
 
-  Shell shell;
-
   high_resolution_clock::time_point t = high_resolution_clock::now();
 
-  std_out = shell.run(command(), input);
+  std_out = std::move(shell::run(command(), input).stdout);
 
   time = duration_cast<milliseconds>(high_resolution_clock::now() - t).count();
 

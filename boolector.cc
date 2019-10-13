@@ -11,9 +11,10 @@ namespace ConcuBinE {
 
 // Boolector::command ----------------------------------------------------------
 
-std::string Boolector::command () const
+const std::vector<std::string> & Boolector::command () const
 {
-  return "boolector --model-gen"; // --output-number-format=dec
+  static const std::vector<std::string> cmd({name(), "--model-gen"});
+  return cmd;
 }
 
 // Boolector::parse ------------------------------------------------------------
@@ -91,8 +92,12 @@ std::string Boolector::name () const { return "boolector"; }
 
 std::string Boolector::version () const
 {
-  std::string version;
-  Shell().run(name() + " --version") >> version;
+  static const std::vector<std::string> cmd({name(), "--version"});
+  static std::string version;
+
+  if (version.empty())
+    shell::run(cmd).stdout >> version;
+
   return version;
 }
 

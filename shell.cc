@@ -4,65 +4,62 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-namespace ConcuBinE {
+namespace ConcuBinE::shell {
 
 //==============================================================================
 // constants
 //==============================================================================
 
-#define PIPE_READ 0
-#define PIPE_WRITE 1
-
-#define BUFFER_SIZE 128
+#define READ 0
+#define WRITE 1
 
 //==============================================================================
 // functions
 //==============================================================================
 
-// sys_error -------------------------------------------------------------------
+// errmsg ----------------------------------------------------------------------
 
-inline std::string sys_error ()
+inline std::string errmsg (const std::string & msg)
 {
-  return "[" + std::string(strerror(errno)) + "]";
+  return "error " + msg + " [" + strerror(errno) + ']';
 }
 
-//==============================================================================
-// Shell
-//==============================================================================
+// run -------------------------------------------------------------------------
 
-// Shell::last_exit_code -------------------------------------------------------
-
-int Shell::last_exit_code () { return exit_code; }
-
-// Shell::run ------------------------------------------------------------------
-
-std::stringstream Shell::run (const std::string & cmd)
+Output run (const std::vector<std::string> & command, const std::string & input)
 {
-  return run(cmd, "");
-}
+  shell::Output output;
 
-std::stringstream Shell::run (const std::string & cmd,
-                              const std::string & input)
-{
-  // stdout read from cmd
-  std::stringstream output;
-
-  // stdin pipe file descriptors
+  // stdin pipe
   int std_in[2];
 
-  // stdout pipe file descriptors
+  // stdout pipe
   int std_out[2];
+
+  // stderr pipe
+  int std_err[2];
+
+  // exec error pipe
+  int exec_err[2];
 
   // pid returned by fork (0 == child)
   int pid;
 
   // open stdin pipe
-  if (pipe(std_in) < 0)
-    throw std::runtime_error("creating input pipe " + sys_error());
+  if (pipe(std_in))
+    throw std::runtime_error(errmsg("creating stdin pipe"));
 
   // open stdout pipe
-  if (pipe(std_out) < 0)
-    throw std::runtime_error("creating output pipe " + sys_error());
+  if (pipe(std_out))
+    throw std::runtime_error(errmsg("creating stdout pipe"));
+
+  // open stderr pipe
+  if (pipe(std_err))
+    throw std::runtime_error(errmsg("creating stderr pipe"));
+
+  // open error pipe
+  if (pipe(exec_err))
+    throw std::runtime_error(errmsg("creating error pipe"));
 
   // fork process
   pid = fork();
@@ -71,57 +68,97 @@ std::stringstream Shell::run (const std::string & cmd,
   if (pid == 0)
     {
       // redirect stdin
-      if (dup2(std_in[PIPE_READ], STDIN_FILENO) < 0)
-        throw std::runtime_error("redirecting stdin " + sys_error());
+      if (dup2(std_in[READ], STDIN_FILENO) < 0)
+        throw std::runtime_error(errmsg("redirecting stdin"));
 
       // redirect stdout
-      if (dup2(std_out[PIPE_WRITE], STDOUT_FILENO) < 0)
-        throw std::runtime_error("redirecting stdout " + sys_error());
+      if (dup2(std_out[WRITE], STDOUT_FILENO) < 0)
+        throw std::runtime_error(errmsg("redirecting stdout"));
 
       // redirect stderr
-      if (dup2(std_out[PIPE_WRITE], STDERR_FILENO) < 0)
-        throw std::runtime_error("redirecting stderr " + sys_error());
+      if (dup2(std_err[WRITE], STDERR_FILENO) < 0)
+        throw std::runtime_error(errmsg("redirecting stderr"));
 
       // close file descriptors - only used by parent
-      close(std_in[PIPE_READ]);
-      close(std_in[PIPE_WRITE]);
-      close(std_out[PIPE_READ]);
-      close(std_out[PIPE_WRITE]);
+      close(std_in[READ]);
+      close(std_in[WRITE]);
+      close(std_out[READ]);
+      close(std_out[WRITE]);
+      close(std_err[READ]);
+      close(std_err[WRITE]);
+      close(exec_err[READ]);
 
-      // run shell command as child process
-      execlp("bash", "bash", "-c", cmd.c_str(), static_cast<char *>(0));
+      // build arguments vector
+      std::vector<char *> argv;
+      argv.reserve(command.size() + 1);
+      for (const auto & a : command)
+        argv.push_back(const_cast<char *>(a.c_str()));
+      argv.push_back(nullptr);
 
-      // exec should not return - if we get here, an error must have happened
-      throw std::runtime_error("executing shell command " + sys_error());
+      // run executable
+      execvp(argv[0], argv.data());
+
+      // exec should not return - if we get here, something must have happened
+      const int ret = errno;
+      const std::string msg = errmsg("calling exec");
+
+      // write reason to error pipe
+      write(exec_err[WRITE], msg.c_str(), msg.length());
+
+      // close remaining file descriptor
+      close(exec_err[WRITE]);
+
+      exit(ret);
     }
   // parent process
   else if (pid > 0)
     {
-      // read buffer
-      char buffer[BUFFER_SIZE];
-
       // close unused file descriptors
-      close(std_in[PIPE_READ]);
-      close(std_out[PIPE_WRITE]);
+      close(std_in[READ]);
+      close(std_out[WRITE]);
+      close(std_err[WRITE]);
+      close(exec_err[WRITE]);
 
       // write given input to stdin of child
       if (!input.empty())
-        if (write(std_in[PIPE_WRITE], input.c_str(), input.length()) < 0)
-          throw std::runtime_error("writing to stdin " + sys_error());
+        if (write(std_in[WRITE], input.c_str(), input.length()) < 0)
+          throw std::runtime_error(errmsg("writing to stdin pipe"));
 
       // close stdin pipe file descriptor
-      close(std_in[PIPE_WRITE]);
+      close(std_in[WRITE]);
 
-      // read stdout from child
-      int num_read = 0;
-      while ((num_read = read(std_out[PIPE_READ], buffer, BUFFER_SIZE - 1)) > 0)
+      // read buffer
+      constexpr size_t nbuf = 128;
+      constexpr size_t nbyte = nbuf - 1;
+      char buf[nbuf];
+      int n;
+
+      // read stdout pipe
+      while ((n = read(std_out[READ], buf, nbyte)) > 0)
         {
-          buffer[num_read] = '\0';
-          output << buffer;
+          buf[n] = 0;
+          output.stdout << buf;
+        }
+
+      // read stderr pipe
+      while ((n = read(std_err[READ], buf, nbyte)) > 0)
+        {
+          buf[n] = 0;
+          output.stderr << buf;
+        }
+
+      // read error pipe
+      std::string error;
+      while ((n = read(exec_err[READ], buf, nbyte)) > 0)
+        {
+          buf[n] = 0;
+          error += buf;
         }
 
       // close remaining file descriptors
-      close(std_out[PIPE_READ]);
+      close(std_out[READ]);
+      close(std_err[READ]);
+      close(exec_err[READ]);
 
       // wait for child to finish and assign exit code
       int wstatus;
@@ -129,24 +166,31 @@ std::stringstream Shell::run (const std::string & cmd,
       waitpid(pid, &wstatus, 0);
 
       if (WIFEXITED(wstatus))
-        exit_code = WEXITSTATUS(wstatus);
+        output.exit = WEXITSTATUS(wstatus);
       else
-        throw
-          std::runtime_error("child process exited prematurely " + sys_error());
+        throw std::runtime_error(errmsg("child process exited prematurely"));
+
+      // check for exec errors
+      if (!error.empty())
+        throw std::runtime_error(error);
     }
   // fork failed
   else
     {
       // close file descriptors
-      close(std_in[PIPE_READ]);
-      close(std_in[PIPE_WRITE]);
-      close(std_out[PIPE_READ]);
-      close(std_out[PIPE_WRITE]);
+      close(std_in[READ]);
+      close(std_in[WRITE]);
+      close(std_out[READ]);
+      close(std_out[WRITE]);
+      close(std_err[READ]);
+      close(std_err[WRITE]);
+      close(exec_err[READ]);
+      close(exec_err[WRITE]);
 
-      throw std::runtime_error("fork failed " + sys_error());
+      throw std::runtime_error(errmsg("fork failed"));
     }
 
   return output;
 }
 
-} // namespace ConcuBinE
+} // namespace ConcuBinE::shell

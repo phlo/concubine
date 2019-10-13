@@ -23,7 +23,7 @@ struct BtorMC : public Boolector
 
   // build command line for running btormc
   //
-  virtual std::string command () const;
+  virtual const std::vector<std::string> & command () const;
 
   // parse current variable's symbol
   //

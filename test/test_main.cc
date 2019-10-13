@@ -38,8 +38,6 @@ const std::string smt_mmap = "smt.mmap";
 
 struct Main : public ::testing::Test
 {
-  Shell shell;
-
   Main () { fs::cd(cwd); }
 
   std::string program_nop ()
@@ -61,16 +59,6 @@ struct Main : public ::testing::Test
       std::filesystem::path path = fs::mktmp("load." + address + ".asm");
       fs::write(path, "LOAD " + address);
       return path;
-    }
-
-  // run binary with given arguments
-  //
-  std::string run (std::initializer_list<std::string> args)
-    {
-      std::ostringstream oss(bin, std::ios_base::ate);
-      for (const auto & arg : args)
-        oss << " " << arg;
-      return shell.run(oss.str()).str();
     }
 
   // BTOR2 constraints for simulating a given number of steps
@@ -109,18 +97,16 @@ struct Main : public ::testing::Test
 
 TEST_F(Main, illegal_command_line)
 {
-  run({"WRONG"});
-  ASSERT_EQ(255, shell.last_exit_code());
+  auto out = shell::run({bin, "WRONG"});
+  ASSERT_EQ(255, out.exit);
 
-  std::string expected = "error: no command given";
-  std::string actual = run({"help"});
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+  out = shell::run({bin, "help"});
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: no command given\n", out.stderr.str());
 
-  expected = "error: unknown command FOO";
-  actual = run({"help FOO"});
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+  out = shell::run({bin, "help", "FOO"});
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: unknown command FOO\n", out.stderr.str());
 }
 
 // simulate ====================================================================
@@ -129,10 +115,11 @@ TEST_F(Main, simulate)
 {
   fs::cd(tmpdir);
 
-  std::string program = program_nop();
+  const auto program = program_nop();
+  const auto out = shell::run({bin, simulate, program, program});
 
-  ASSERT_EQ("", run({simulate, program, program}));
-  ASSERT_EQ(0, shell.last_exit_code());
+  ASSERT_EQ(0, out.exit);
+  ASSERT_EQ("", out.stdout.str());
 
   auto trace = create_from_file<Trace>(sim_trace);
 
@@ -145,8 +132,15 @@ TEST_F(Main, simulate_uninitialized)
 {
   fs::cd(tmpdir);
 
-  ASSERT_EQ("", run({simulate, program_load("0"), program_load("1")}));
-  ASSERT_EQ(0, shell.last_exit_code());
+  const auto out =
+    shell::run({
+      bin,
+      simulate,
+      program_load("0"),
+      program_load("1")});
+
+  ASSERT_EQ(0, out.exit);
+  ASSERT_EQ("", out.stdout.str());
 
   auto trace = create_from_file<Trace>(sim_trace);
   auto mmap = create_from_file<MMap>(sim_mmap);
@@ -158,27 +152,28 @@ TEST_F(Main, simulate_uninitialized)
 
 TEST_F(Main, simulate_missing_args)
 {
-  std::string expected = "error: too few arguments\n";
-  std::string actual = run({simulate});
+  const auto out = shell::run({bin, simulate});
 
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: too few arguments\n", out.stderr.str());
 }
 
 TEST_F(Main, simulate_program_file_not_found)
 {
-  std::string actual = run({simulate, "FOO"});
+  const auto out = shell::run({bin, simulate, "FOO"});
 
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ("error: FOO not found\n", actual);
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: FOO not found\n", out.stderr.str());
 }
 
 TEST_F(Main, simulate_bound)
 {
   fs::cd(tmpdir);
 
-  ASSERT_EQ("", run({simulate, "-k 4", program_infinite()}));
-  ASSERT_EQ(0, shell.last_exit_code());
+  const auto out = shell::run({bin, simulate, "-k", "4", program_infinite()});
+
+  ASSERT_EQ(0, out.exit);
+  ASSERT_EQ("", out.stdout.str());
 
   auto trace = create_from_file<Trace>(sim_trace);
 
@@ -188,34 +183,35 @@ TEST_F(Main, simulate_bound)
 
 TEST_F(Main, simulate_bound_missing)
 {
-  std::string expected = "error: missing bound\n";
-  std::string actual = run({simulate, "-k"});
+  const auto out = shell::run({bin, simulate, "-k"});
 
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: missing bound\n", out.stderr.str());
 }
 
 TEST_F(Main, simulate_bound_illegal)
 {
-  std::string actual = run({simulate, "-k FOO"});
+  const auto out = shell::run({bin, simulate, "-k", "FOO"});
 
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ("error: illegal bound [FOO]\n", actual);
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: illegal bound [FOO]\n", out.stderr.str());
 }
 
 TEST_F(Main, simulate_mmap)
 {
   fs::cd(tmpdir);
 
-  ASSERT_EQ(
-    "",
-    run({
+  const auto out =
+    shell::run({
+      bin,
       simulate,
       "-m", cwd / "test/data/init.mmap",
       program_load("1"),
       program_load("2"),
-      program_load("3")}));
-  ASSERT_EQ(0, shell.last_exit_code());
+      program_load("3")});
+
+  ASSERT_EQ(0, out.exit);
+  ASSERT_EQ("", out.stderr.str());
 
   auto trace = create_from_file<Trace>(sim_trace);
 
@@ -231,29 +227,29 @@ TEST_F(Main, simulate_mmap)
 
 TEST_F(Main, simulate_mmap_missing)
 {
-  std::string expected = "error: missing path to memory map\n";
-  std::string actual = run({simulate, "-m"});
+  const auto out = shell::run({bin, simulate, "-m"});
 
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: missing path to memory map\n", out.stderr.str());
 }
 
 TEST_F(Main, simulate_mmap_file_not_found)
 {
-  std::string actual = run({simulate, "-m FOO"});
+  const auto out = shell::run({bin, simulate, "-m", "FOO"});
 
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ("error: FOO not found\n", actual);
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: FOO not found\n", out.stderr.str());
 }
 
 TEST_F(Main, simulate_outfile)
 {
   fs::cd(tmpdir);
 
-  std::string stem = "simulate.load";
+  const std::string stem = "simulate.load";
+  const auto out = shell::run({bin, simulate, "-o", stem, program_load("0")});
 
-  ASSERT_EQ("", run({simulate, "-o", stem, program_load("0")}));
-  ASSERT_EQ(0, shell.last_exit_code());
+  ASSERT_EQ(0, out.exit);
+  ASSERT_EQ("", out.stdout.str());
 
   auto trace = create_from_file<Trace>(stem + ".trace");
   auto mmap = create_from_file<MMap>(stem + ".mmap");
@@ -264,27 +260,35 @@ TEST_F(Main, simulate_outfile)
 
 TEST_F(Main, simulate_outfile_missing)
 {
-  std::string expected = "error: missing output file name\n";
-  std::string actual = run({simulate, "-o"});
+  const auto out = shell::run({bin, simulate, "-o"});
 
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: missing output file name\n", out.stderr.str());
 }
 
 TEST_F(Main, simulate_seed)
 {
   fs::cd(tmpdir);
 
-  std::string program = program_infinite();
-  std::string args = simulate + " -k 64 -s 0 " + program + " " + program;
+  shell::Output out;
+  const std::vector<std::string> cmd({
+    bin,
+    simulate,
+    "-k", "64",
+    "-s", "0",
+    program_infinite(),
+    program_infinite()
+  });
 
-  ASSERT_EQ("", run({args}));
-  ASSERT_EQ(0, shell.last_exit_code());
+  out = shell::run(cmd);
+  ASSERT_EQ(0, out.exit);
+  ASSERT_EQ("", out.stdout.str());
 
   auto t1 = create_from_file<Trace>(sim_trace);
 
-  ASSERT_EQ("", run({args}));
-  ASSERT_EQ(0, shell.last_exit_code());
+  out = shell::run(cmd);
+  ASSERT_EQ(0, out.exit);
+  ASSERT_EQ("", out.stdout.str());
 
   auto t2 = create_from_file<Trace>(sim_trace);
 
@@ -293,19 +297,18 @@ TEST_F(Main, simulate_seed)
 
 TEST_F(Main, simulate_seed_missing)
 {
-  std::string expected = "error: missing seed\n";
-  std::string actual = run({simulate, "-s"});
+  const auto out = shell::run({bin, simulate, "-s"});
 
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: missing seed\n", out.stderr.str());
 }
 
 TEST_F(Main, simulate_seed_illegal)
 {
-  std::string actual = run({simulate, "-s FOO"});
+  const auto out = shell::run({bin, simulate, "-s", "FOO"});
 
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ("error: illegal seed [FOO]\n", actual);
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: illegal seed [FOO]\n", out.stderr.str());
 }
 
 // solve =======================================================================
@@ -314,18 +317,19 @@ TEST_F(Main, solve)
 {
   fs::cd(tmpdir);
 
-  std::string bound = "1";
-  std::string program = program_nop();
-
-  ASSERT_EQ(
-    "",
-    run({
+  const std::string bound = "1";
+  const auto program = program_nop();
+  const auto out =
+    shell::run({
+      bin,
       solve,
       "-c", simulate_btor2(bound),
       bound,
       program,
-      program}));
-  ASSERT_EQ(0, shell.last_exit_code());
+      program});
+
+  ASSERT_EQ(0, out.exit);
+  ASSERT_EQ("", out.stdout.str());
 
   auto trace = create_from_file<Trace>(smt_trace);
 
@@ -338,17 +342,18 @@ TEST_F(Main, solve_uninitialized)
 {
   fs::cd(tmpdir);
 
-  std::string bound = "3";
-
-  ASSERT_EQ(
-    "",
-    run({
+  const std::string bound = "3";
+  const auto out =
+    shell::run({
+      bin,
       solve,
       "-c", simulate_btor2(bound),
       bound,
       program_load("0"),
-      program_load("1")}));
-  ASSERT_EQ(0, shell.last_exit_code());
+      program_load("1")});
+
+  ASSERT_EQ(0, out.exit);
+  ASSERT_EQ("", out.stdout.str());
 
   auto trace = create_from_file<Trace>(smt_trace);
   auto mmap = create_from_file<MMap>(smt_mmap);
@@ -360,36 +365,35 @@ TEST_F(Main, solve_uninitialized)
 
 TEST_F(Main, solve_missing_args)
 {
-  std::string expected = "error: too few arguments\n";
-  std::string actual = run({solve});
+  const auto out = shell::run({bin, solve});
 
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: too few arguments\n", out.stderr.str());
 }
 
 TEST_F(Main, solve_unknown_option)
 {
-  std::string expected = "error: unknown option [-FOO]\n";
-  std::string actual = run({solve, "-FOO 1"});
+  const auto out = shell::run({bin, solve, "-FOO", "1"});
 
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: unknown option [-FOO]\n", out.stderr.str());
 }
 
 TEST_F(Main, solve_bound)
 {
   fs::cd(tmpdir);
 
-  std::string bound = "4";
-
-  ASSERT_EQ(
-    "",
-    run({
+  const std::string bound = "4";
+  const auto out =
+    shell::run({
+      bin,
       solve,
       "-c", simulate_btor2(bound),
       bound,
-      program_infinite()}));
-  ASSERT_EQ(0, shell.last_exit_code());
+      program_infinite()});
+
+  ASSERT_EQ(0, out.exit);
+  ASSERT_EQ("", out.stdout.str());
 
   auto trace = create_from_file<Trace>(smt_trace);
 
@@ -399,61 +403,59 @@ TEST_F(Main, solve_bound)
 
 TEST_F(Main, solve_bound_illegal)
 {
-  std::string expected = "error: illegal bound [FOO]\n";
-  std::string actual = run({solve, "FOO BAR"});
+  const auto out = shell::run({bin, solve, "FOO", "BAR"});
 
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: illegal bound [FOO]\n", out.stderr.str());
 }
 
 TEST_F(Main, solve_bound_illegal_zero)
 {
-  std::string expected = "error: illegal bound [0]\n";
-  std::string actual = run({solve, "0 FOO"});
+  const auto out = shell::run({bin, solve, "0", "FOO"});
 
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: illegal bound [0]\n", out.stderr.str());
 }
 
 TEST_F(Main, solve_program_file_not_found)
 {
-  std::string actual = run({solve, "1 FOO"});
+  const auto out = shell::run({bin, solve, "1", "FOO"});
 
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ("error: FOO not found\n", actual);
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: FOO not found\n", out.stderr.str());
 }
 
 TEST_F(Main, solve_constraints_missing)
 {
-  std::string expected = "error: missing constraints file\n";
-  std::string actual = run({solve, "-v -c"});
+  const auto out = shell::run({bin, solve, "-v", "-c"});
 
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: missing constraints file\n", out.stderr.str());
 }
 
 TEST_F(Main, solve_constraints_file_not_found)
 {
-  std::string actual = run({solve, "-c FOO 1", program_nop()});
+  const auto out = shell::run({bin, solve, "-c", "FOO", "1", program_nop()});
 
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ("error: FOO not found\n", actual);
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: FOO not found\n", out.stderr.str());
 }
 
 TEST_F(Main, solve_encoder_btor2)
 {
-  std::string bound = "10";
-  std::string expected = fs::read("test/data/halt.t2.k10.btor2");
-  std::string actual =
-    run({
+  const auto expected = fs::read("test/data/halt.t2.k10.btor2");
+  const auto actual =
+    shell::run({
+      bin,
       solve,
-      "-c /dev/null",
-      "-e btor2",
+      "-c", "/dev/null",
+      "-e", "btor2",
       "-p",
       "-v",
-      bound,
+      "10",
       "test/data/halt.asm",
-      "test/data/halt.asm"});
+      "test/data/halt.asm"})
+      .stdout.str();
 
   ASSERT_EQ(expected.substr(0, actual.length()), actual);
 }
@@ -462,149 +464,157 @@ TEST_F(Main, solve_encoder_smtlib_functional)
 {
   ASSERT_EQ(
     fs::read("test/data/halt.t2.k10.functional.smt2"),
-    run({
+    shell::run({
+      bin,
       solve,
-      "-c /dev/null",
-      "-e smtlib-functional",
+      "-c", "/dev/null",
+      "-e", "smtlib-functional",
       "-p",
-      "-s boolector",
+      "-s", "boolector",
       "-v",
       "10",
       "test/data/halt.asm",
-      "test/data/halt.asm"}));
+      "test/data/halt.asm"})
+      .stdout.str());
 }
 
 TEST_F(Main, solve_encoder_smtlib_relational)
 {
   ASSERT_EQ(
     fs::read("test/data/halt.t2.k10.relational.smt2"),
-    run({
+    shell::run({
+      bin,
       solve,
-      "-c /dev/null",
-      "-e smtlib-relational",
+      "-c", "/dev/null",
+      "-e", "smtlib-relational",
       "-p",
-      "-s boolector",
+      "-s", "boolector",
       "-v",
       "10",
       "test/data/halt.asm",
-      "test/data/halt.asm"}));
+      "test/data/halt.asm"})
+      .stdout.str());
 }
 
 TEST_F(Main, solve_encoder_missing)
 {
-  std::string expected = "error: missing encoder\n";
-  std::string actual = run({solve, "-v -e"});
+  const auto out = shell::run({bin, solve, "-v", "-e"});
 
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: missing encoder\n", out.stderr.str());
 }
 
 TEST_F(Main, solve_encoder_unknown)
 {
-  std::string expected = "error: unknown encoder [FOO]\n";
-  std::string actual = run({solve, "-e FOO 1", program_nop()});
+  const auto out = shell::run({bin, solve, "-e", "FOO", "1", program_nop()});
 
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: unknown encoder [FOO]\n", out.stderr.str());
 }
 
 TEST_F(Main, solve_encoder_illegal_btor2_boolector)
 {
-  std::string actual =
-    run({
+  const auto out =
+    shell::run({
+      bin,
       solve,
-      "-e btor2",
-      "-s boolector",
+      "-e", "btor2",
+      "-s", "boolector",
       "1",
       program_nop()});
 
-  ASSERT_EQ(255, shell.last_exit_code());
+  ASSERT_EQ(255, out.exit);
   ASSERT_EQ(
     "error: [boolector] cannot be used with encoder [btor2]\n",
-    actual);
+    out.stderr.str());
 }
 
 TEST_F(Main, solve_encoder_illegal_btor2_cvc4)
 {
-  std::string actual =
-    run({
+  const auto out =
+    shell::run({
+      bin,
       solve,
-      "-e btor2",
-      "-s cvc4",
+      "-e", "btor2",
+      "-s", "cvc4",
       "1",
       program_nop()});
 
-  ASSERT_EQ(255, shell.last_exit_code());
+  ASSERT_EQ(255, out.exit);
   ASSERT_EQ(
     "error: [cvc4] cannot be used with encoder [btor2]\n",
-    actual);
+    out.stderr.str());
 }
 
 TEST_F(Main, solve_encoder_illegal_btor2_z3)
 {
-  std::string actual =
-    run({
+  const auto out =
+    shell::run({
+      bin,
       solve,
-      "-e btor2",
-      "-s z3",
+      "-e", "btor2",
+      "-s", "z3",
       "1",
       program_nop()});
 
-  ASSERT_EQ(255, shell.last_exit_code());
+  ASSERT_EQ(255, out.exit);
   ASSERT_EQ(
     "error: [z3] cannot be used with encoder [btor2]\n",
-    actual);
+    out.stderr.str());
 }
 
 TEST_F(Main, solve_encoder_illegal_smtlib_functional_btormc)
 {
-  std::string actual =
-    run({
+  const auto out =
+    shell::run({
+      bin,
       solve,
-      "-e smtlib-functional",
-      "-s btormc",
+      "-e", "smtlib-functional",
+      "-s", "btormc",
       "1",
       program_nop()});
 
-  ASSERT_EQ(255, shell.last_exit_code());
+  ASSERT_EQ(255, out.exit);
   ASSERT_EQ(
     "error: [btormc] cannot be used with encoder [smtlib-functional]\n",
-    actual);
+    out.stderr.str());
 }
 
 TEST_F(Main, solve_encoder_illegal_smtlib_relational_btormc)
 {
-  std::string actual =
-    run({
+  const auto out =
+    shell::run({
+      bin,
       solve,
-      "-e smtlib-relational",
-      "-s btormc",
+      "-e", "smtlib-relational",
+      "-s", "btormc",
       "1",
       program_nop()});
 
-  ASSERT_EQ(255, shell.last_exit_code());
+  ASSERT_EQ(255, out.exit);
   ASSERT_EQ(
     "error: [btormc] cannot be used with encoder [smtlib-relational]\n",
-    actual);
+    out.stderr.str());
 }
 
 TEST_F(Main, solve_mmap)
 {
   fs::cd(tmpdir);
 
-  std::string bound = "6";
-
-  ASSERT_EQ(
-    "",
-    run({
+  const std::string bound = "6";
+  const auto out =
+    shell::run({
+      bin,
       solve,
       "-c", simulate_btor2(bound),
       "-m", cwd / "test/data/init.mmap",
       bound,
       program_load("1"),
       program_load("2"),
-      program_load("3")}));
-  ASSERT_EQ(0, shell.last_exit_code());
+      program_load("3")});
+
+  ASSERT_EQ(0, out.exit);
+  ASSERT_EQ("", out.stdout.str());
 
   auto trace = create_from_file<Trace>(smt_trace);
 
@@ -620,37 +630,37 @@ TEST_F(Main, solve_mmap)
 
 TEST_F(Main, solve_mmap_missing)
 {
-  std::string expected = "error: missing path to memory map\n";
-  std::string actual = run({solve, "-v -m"});
+  const auto out = shell::run({bin, solve, "-v", "-m"});
 
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: missing path to memory map\n", out.stderr.str());
 }
 
 TEST_F(Main, solve_mmap_file_not_found)
 {
-  std::string actual = run({solve, "-m FOO"});
+  const auto out = shell::run({bin, solve, "-m", "FOO"});
 
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ("error: FOO not found\n", actual);
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: FOO not found\n", out.stderr.str());
 }
 
 TEST_F(Main, solve_outfile)
 {
   fs::cd(tmpdir);
 
-  std::string bound = "2";
-  std::string stem = "solve.load";
-
-  ASSERT_EQ(
-    "",
-    run({
+  const std::string bound = "2";
+  const std::string stem = "solve.load";
+  const auto out =
+    shell::run({
+      bin,
       solve,
       "-c", simulate_btor2(bound),
       "-o", stem,
       bound,
-      program_load("0")}));
-  ASSERT_EQ(0, shell.last_exit_code());
+      program_load("0")});
+
+  ASSERT_EQ(0, out.exit);
+  ASSERT_EQ("", out.stdout.str());
 
   auto trace = create_from_file<Trace>(stem + ".trace");
   auto mmap = create_from_file<MMap>(stem + ".mmap");
@@ -661,38 +671,38 @@ TEST_F(Main, solve_outfile)
 
 TEST_F(Main, solve_outfile_missing)
 {
-  std::string expected = "error: missing output file name\n";
-  std::string actual = run({solve, "-v -o"});
+  const auto out = shell::run({bin, solve, "-v", "-o"});
 
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: missing output file name\n", out.stderr.str());
 }
 
 TEST_F(Main, solve_pretend)
 {
-  std::string expected = "1 sort bitvec 1";
-  std::string actual = run({solve, "-p", "1", program_nop()});
+  const std::string expected = "1 sort bitvec 1";
+  const auto out = shell::run({bin, solve, "-p", "1", program_nop()});
 
-  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+  ASSERT_EQ(expected, out.stdout.str().substr(0, expected.length()));
 }
 
 TEST_F(Main, solve_solver_btormc)
 {
   fs::cd(tmpdir);
 
-  std::string bound = "3";
-
-  ASSERT_EQ(
-    "",
-    run({
+  const std::string bound = "3";
+  const auto out =
+    shell::run({
+      bin,
       solve,
       "-c", simulate_btor2(bound),
-      "-e btor2",
-      "-s btormc",
+      "-e", "btor2",
+      "-s", "btormc",
       bound,
       program_load("0"),
-      program_load("1")}));
-  ASSERT_EQ(0, shell.last_exit_code());
+      program_load("1")});
+
+  ASSERT_EQ(0, out.exit);
+  ASSERT_EQ("", out.stdout.str());
 
   auto trace = create_from_file<Trace>(smt_trace);
   auto mmap = create_from_file<MMap>(smt_mmap);
@@ -706,17 +716,19 @@ TEST_F(Main, solve_solver_boolector)
 {
   fs::cd(tmpdir);
 
-  ASSERT_EQ(
-    "",
-    run({
+  const auto out =
+    shell::run({
+      bin,
       solve,
-      "-c /dev/null",
-      "-e smtlib-functional",
-      "-s boolector",
+      "-c", "/dev/null",
+      "-e", "smtlib-functional",
+      "-s", "boolector",
       "3",
       program_load("0"),
-      program_load("1")}));
-  ASSERT_EQ(0, shell.last_exit_code());
+      program_load("1")});
+
+  ASSERT_EQ(0, out.exit);
+  ASSERT_EQ("", out.stdout.str());
 
   auto trace = create_from_file<Trace>(smt_trace);
   auto mmap = create_from_file<MMap>(smt_mmap);
@@ -730,17 +742,19 @@ TEST_F(Main, solve_solver_cvc4)
 {
   fs::cd(tmpdir);
 
-  ASSERT_EQ(
-    "",
-    run({
+  const auto out =
+    shell::run({
+      bin,
       solve,
-      "-c /dev/null",
-      "-e smtlib-functional",
-      "-s cvc4",
+      "-c", "/dev/null",
+      "-e", "smtlib-functional",
+      "-s", "cvc4",
       "3",
       program_load("0"),
-      program_load("1")}));
-  ASSERT_EQ(0, shell.last_exit_code());
+      program_load("1")});
+
+  ASSERT_EQ(0, out.exit);
+  ASSERT_EQ("", out.stdout.str());
 
   auto trace = create_from_file<Trace>(smt_trace);
   auto mmap = create_from_file<MMap>(smt_mmap);
@@ -754,17 +768,19 @@ TEST_F(Main, solve_solver_z3)
 {
   fs::cd(tmpdir);
 
-  ASSERT_EQ(
-    "",
-    run({
+  const auto out =
+    shell::run({
+      bin,
       solve,
-      "-c /dev/null",
-      "-e smtlib-functional",
-      "-s z3",
+      "-c", "/dev/null",
+      "-e", "smtlib-functional",
+      "-s", "z3",
       "3",
       program_load("0"),
-      program_load("1")}));
-  ASSERT_EQ(0, shell.last_exit_code());
+      program_load("1")});
+
+  ASSERT_EQ(0, out.exit);
+  ASSERT_EQ("", out.stdout.str());
 
   auto trace = create_from_file<Trace>(smt_trace);
   auto mmap = create_from_file<MMap>(smt_mmap);
@@ -776,55 +792,56 @@ TEST_F(Main, solve_solver_z3)
 
 TEST_F(Main, solve_solver_missing)
 {
-  std::string expected = "error: missing solver\n";
-  std::string actual = run({solve, "-v -s"});
+  const auto out = shell::run({bin, solve, "-v", "-s"});
 
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: missing solver\n", out.stderr.str());
 }
 
 TEST_F(Main, solve_solver_unknown)
 {
-  std::string expected = "error: unknown solver [FOO]\n";
-  std::string actual = run({solve, "-s FOO 1", program_nop()});
+  const auto out = shell::run({bin, solve, "-s", "FOO", "1", program_nop()});
 
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: unknown solver [FOO]\n", out.stderr.str());
 }
 
 TEST_F(Main, solve_verbose)
 {
+  const auto program = program_nop();
+
   ASSERT_EQ(
     std::string::npos,
-    run({solve, "-p 1", program_nop()}).find(';'));
+    shell::run({bin, solve, "-p", "1", program}).stdout.str().find(';'));
   ASSERT_NE(
     std::string::npos,
-    run({solve, "-p -v 1", program_nop()}).find(';'));
+    shell::run({bin, solve, "-p", "-v", "1", program}).stdout.str().find(';'));
 }
 
 // replay ======================================================================
 
 TEST_F(Main, replay)
 {
-  ASSERT_EQ("", run({replay, "test/data/halt.t2.trace"}));
-  ASSERT_EQ(0, shell.last_exit_code());
+  const auto out = shell::run({bin, replay, "test/data/halt.t2.trace"});
+
+  ASSERT_EQ(0, out.exit);
+  ASSERT_EQ("", out.stdout.str());
 }
 
 TEST_F(Main, replay_trace_file_missing)
 {
-  std::string expected = "error: missing trace file\n";
-  std::string actual = run({replay});
+  const auto out = shell::run({bin, replay});
 
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ(expected, actual.substr(0, expected.length()));
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: missing trace file\n", out.stderr.str());
 }
 
 TEST_F(Main, replay_trace_file_not_found)
 {
-  std::string actual = run({simulate, "FOO"});
+  const auto out = shell::run({bin, simulate, "FOO"});
 
-  ASSERT_EQ(255, shell.last_exit_code());
-  ASSERT_EQ("error: FOO not found\n", actual);
+  ASSERT_EQ(255, out.exit);
+  ASSERT_EQ("error: FOO not found\n", out.stderr.str());
 }
 
 } // namespace ConcuBinE::test

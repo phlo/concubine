@@ -17,10 +17,16 @@ std::string CVC4::name () const { return "cvc4"; }
 
 std::string CVC4::version () const
 {
-  std::string version;
-  auto ss = Shell().run(name() + " --version");
-  do ss >> version; while (ss && version != "version");
-  ss >> version;
+  static const std::vector<std::string> cmd({name(), "--version"});
+  static std::string version;
+
+  if (version.empty())
+    {
+      auto out = shell::run(cmd);
+      do out.stdout >> version; while (out.stdout && version != "version");
+      out.stdout >> version;
+    }
+
   return version;
 }
 
@@ -37,9 +43,15 @@ std::string CVC4::formula (Encoder & encoder) const
 
 // CVC4::command ---------------------------------------------------------------
 
-std::string CVC4::command () const
+const std::vector<std::string> & CVC4::command () const
 {
-  return "cvc4 -L smt2 -m --output-lang=cvc4";
+  static std::vector<std::string> cmd({
+    name(),
+    "-L", "smt2",
+    "-m",
+    "--output-lang=cvc4"});
+
+  return cmd;
 }
 
 // CVC4::parse -----------------------------------------------------------------

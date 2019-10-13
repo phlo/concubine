@@ -14,9 +14,18 @@ std::string BtorMC::name () const { return "btormc"; }
 
 // BtorMC::command -------------------------------------------------------------
 
-std::string BtorMC::command () const
+const std::vector<std::string> & BtorMC::command () const
 {
-  return "btormc --trace-gen-full -kmax " + std::to_string(bound);
+  static std::vector<std::string> cmd({
+    name(),
+    "--trace-gen-full",
+    "-kmax",
+    ""});
+
+  // TODO: improve
+  cmd.back() = std::to_string(bound);
+
+  return cmd;
 }
 
 // BtorMC::parse ---------------------------------------------------------------
