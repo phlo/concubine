@@ -6,32 +6,44 @@
 namespace ConcuBinE {
 
 //==============================================================================
-// CVC4 class
+// CVC4
 //
 // NOTE: seems like CVC4 always assigns uninitialized array elements with zero
 //==============================================================================
 
-struct CVC4 : public External
+class CVC4 : public External
 {
+public: //======================================================================
+
   //----------------------------------------------------------------------------
-  // member functions
+  // public member functions inherited from Solver
   //----------------------------------------------------------------------------
 
-  // return cvc4's name
+  // get name
   //
   virtual std::string name () const;
 
-  // return cvc4's version
+  // get version
   //
   virtual std::string version () const;
 
-  // build formula for cvc4
+  // build formula from given encoding
   //
   virtual std::string formula (Encoder & encoder) const;
 
-  // build command line for the specific solver
+  //----------------------------------------------------------------------------
+  // public member functions inherited from External
+  //----------------------------------------------------------------------------
+
+  // get command line
   //
   virtual const std::vector<std::string> & command () const;
+
+private: //=====================================================================
+
+  //----------------------------------------------------------------------------
+  // private member functions inherited from External
+  //----------------------------------------------------------------------------
 
   // parse variable
   //

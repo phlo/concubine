@@ -6,36 +6,42 @@
 namespace ConcuBinE {
 
 //==============================================================================
-// Boolector class
+// Boolector
 //==============================================================================
 
 class Boolector : public External
 {
+public: //======================================================================
+
   //----------------------------------------------------------------------------
-  // member functions
+  // public member functions inherited from Solver
   //----------------------------------------------------------------------------
 
-private: //---------------------------------------------------------------------
+  // get name
+  //
+  virtual std::string name () const;
 
-  // build command line for running boolector
+  // get version
+  //
+  virtual std::string version () const;
+
+  //----------------------------------------------------------------------------
+  // public member functions inherited from External
+  //----------------------------------------------------------------------------
+
+  // get command line
   //
   virtual const std::vector<std::string> & command () const;
 
-protected: //-------------------------------------------------------------------
+protected: //===================================================================
+
+  //----------------------------------------------------------------------------
+  // protected member functions inherited from External
+  //----------------------------------------------------------------------------
 
   // parse variable
   //
   virtual Symbol parse (std::istringstream & line);
-
-public: //----------------------------------------------------------------------
-
-  // return boolector's name
-  //
-  virtual std::string name () const;
-
-  // return boolector's version
-  //
-  virtual std::string version () const;
 };
 
 } // namespace ConcuBinE

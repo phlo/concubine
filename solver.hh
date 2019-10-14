@@ -3,8 +3,9 @@
 
 #include <memory>
 #include <sstream>
+#include <unordered_map>
 
-#include "trace.hh"
+#include "common.hh"
 
 namespace ConcuBinE {
 
@@ -13,34 +14,29 @@ namespace ConcuBinE {
 //==============================================================================
 
 struct Encoder;
+struct Trace;
 
 //==============================================================================
-// Solver base class
+// Solver
+//
+// * abstract base class
 //==============================================================================
 
 struct Solver
 {
   //----------------------------------------------------------------------------
-  // members
+  // public member functions
   //----------------------------------------------------------------------------
 
-  // solving time in milliseconds
-  //
-  long time;
-
-  //----------------------------------------------------------------------------
-  // member functions
-  //----------------------------------------------------------------------------
-
-  // return the solver's name
+  // get name
   //
   virtual std::string name () const = 0;
 
-  // return the solver's version
+  // get version
   //
   virtual std::string version () const = 0;
 
-  // build formula for the specific solver
+  // build formula from given encoding
   //
   virtual std::string formula (Encoder & encoder) const;
 
@@ -48,23 +44,57 @@ struct Solver
   //
   virtual bool sat (const std::string & formula) = 0;
 
-  // run solver and return trace
+  // solve given encoding and return trace
   //
   virtual std::unique_ptr<Trace> solve (Encoder & encoder) = 0;
+
+  //----------------------------------------------------------------------------
+  // public data members
+  //----------------------------------------------------------------------------
+
+  // runtime in milliseconds
+  //
+  long time;
 };
 
 //==============================================================================
-// External base class
+// External
 //
-// Base class for solvers running in a forked process.
+// * abstract base class for solvers running in a forked process
 //==============================================================================
 
-struct External : public Solver
+class External : public Solver
 {
+public: //======================================================================
+
   //----------------------------------------------------------------------------
-  // member types
+  // public member functions
   //----------------------------------------------------------------------------
 
+  // get command line
+  //
+  virtual const std::vector<std::string> & command () const = 0;
+
+  //----------------------------------------------------------------------------
+  // public member functions inherited from Solver
+  //----------------------------------------------------------------------------
+
+  // evaluate arbitrary formula
+  //
+  virtual bool sat (const std::string & formula);
+
+  // solve given encoding and return trace
+  //
+  virtual std::unique_ptr<Trace> solve (Encoder & encoder);
+
+protected: //===================================================================
+
+  //----------------------------------------------------------------------------
+  // protected member types
+  //----------------------------------------------------------------------------
+
+  // current symbol while parsing
+  //
   enum class Symbol
     {
       ignore,
@@ -82,7 +112,25 @@ struct External : public Solver
     };
 
   //----------------------------------------------------------------------------
-  // members
+  // protected member functions
+  //----------------------------------------------------------------------------
+
+  // parse integer attribute of current symbol
+  //
+  size_t attribute (std::istringstream & line,
+                    const std::string & name,
+                    char delimiter = '_');
+
+  // parse current variable's symbol
+  //
+  virtual Symbol symbol (std::istringstream & line);
+
+  // parse variable
+  //
+  virtual Symbol parse (std::istringstream & line) = 0;
+
+  //----------------------------------------------------------------------------
+  // protected data members
   //----------------------------------------------------------------------------
 
   // current step
@@ -105,47 +153,27 @@ struct External : public Solver
   //
   std::unordered_map<word_t, word_t> heap;
 
-  // the solver's stdout
-  //
-  std::stringstream std_out;
+private: //=====================================================================
 
   //----------------------------------------------------------------------------
-  // member functions
+  // private member functions
   //----------------------------------------------------------------------------
-
-  // build command line for running the specific solver
-  //
-  virtual const std::vector<std::string> & command () const = 0;
-
-  // parse integer attribute of current symbol
-  //
-  size_t attribute (std::istringstream & line,
-                    const std::string & name,
-                    char delimiter = '_');
-
-  // parse current variable's symbol
-  //
-  virtual Symbol symbol (std::istringstream & line);
-
-  // parse variable
-  //
-  virtual Symbol parse (std::istringstream & line) = 0;
 
   // detect an eventual heap update
   //
   void update_heap (Trace & trace, size_t prev, size_t cur);
 
-  // build trace based on the specific solver's output
+  // build trace based on the solver's output
   //
   std::unique_ptr<Trace> trace (const Encoder & encoder);
 
-  // evaluate arbitrary formula
-  //
-  virtual bool sat (const std::string & formula);
+  //----------------------------------------------------------------------------
+  // private data members
+  //----------------------------------------------------------------------------
 
-  // run solver and return trace
+  // the solver's stdout
   //
-  virtual std::unique_ptr<Trace> solve (Encoder & encoder);
+  std::stringstream stdout;
 };
 
 } // namespace ConcuBinE

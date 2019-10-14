@@ -5,25 +5,45 @@
 
 namespace ConcuBinE {
 
-struct BtorMC : public Boolector
+//==============================================================================
+// BtorMC
+//==============================================================================
+
+class BtorMC : public Boolector
 {
-  //----------------------------------------------------------------------------
-  // members
-  //----------------------------------------------------------------------------
-
-  size_t bound = 20;
+public: //======================================================================
 
   //----------------------------------------------------------------------------
-  // member functions
+  // public member functions inherited from Solver
   //----------------------------------------------------------------------------
 
-  // return btormc's name
+  // get name
   //
   virtual std::string name () const;
 
-  // build command line for running btormc
+  // evaluate arbitrary formula
+  //
+  using Boolector::sat;
+
+  virtual bool sat (const std::string & formula, size_t bound);
+
+  // solve given encoding and return trace
+  //
+  virtual std::unique_ptr<Trace> solve (Encoder & encoder);
+
+  //----------------------------------------------------------------------------
+  // public member functions inherited from External
+  //----------------------------------------------------------------------------
+
+  // get command line
   //
   virtual const std::vector<std::string> & command () const;
+
+private: //=====================================================================
+
+  //----------------------------------------------------------------------------
+  // private member functions inherited from External
+  //----------------------------------------------------------------------------
 
   // parse current variable's symbol
   //
@@ -33,15 +53,13 @@ struct BtorMC : public Boolector
   //
   virtual Symbol parse (std::istringstream &);
 
-  // evaluate arbitrary formula
-  //
-  using Boolector::sat;
+  //----------------------------------------------------------------------------
+  // private data members
+  //----------------------------------------------------------------------------
 
-  virtual bool sat (const std::string & formula, size_t bound);
-
-  // run btormc and return trace
+  // bound for setting -kmax
   //
-  virtual std::unique_ptr<Trace> solve (Encoder & encoder);
+  std::string kmax = "20";
 };
 
 } // namespace ConcuBinE

@@ -2,12 +2,17 @@
 
 #include "shell.hh"
 #include "smtlib.hh"
+#include "trace.hh"
 
 namespace ConcuBinE {
 
 //==============================================================================
 // CVC4
 //==============================================================================
+
+//------------------------------------------------------------------------------
+// public member functions inherited from Solver
+//------------------------------------------------------------------------------
 
 // CVC4::name ------------------------------------------------------------------
 
@@ -17,12 +22,11 @@ std::string CVC4::name () const { return "cvc4"; }
 
 std::string CVC4::version () const
 {
-  static const std::vector<std::string> cmd({name(), "--version"});
   static std::string version;
 
   if (version.empty())
     {
-      auto out = shell::run(cmd);
+      auto out = shell::run({name(), "--version"});
       do out.stdout >> version; while (out.stdout && version != "version");
       out.stdout >> version;
     }
@@ -41,6 +45,10 @@ std::string CVC4::formula (Encoder & encoder) const
     smtlib::get_model();
 }
 
+//------------------------------------------------------------------------------
+// public member functions inherited from External
+//------------------------------------------------------------------------------
+
 // CVC4::command ---------------------------------------------------------------
 
 const std::vector<std::string> & CVC4::command () const
@@ -53,6 +61,10 @@ const std::vector<std::string> & CVC4::command () const
 
   return cmd;
 }
+
+//------------------------------------------------------------------------------
+// private member functions inherited from External
+//------------------------------------------------------------------------------
 
 // CVC4::parse -----------------------------------------------------------------
 
@@ -71,9 +83,8 @@ inline word_t parse_bv (std::istringstream & line, std::string & token)
 
 CVC4::Symbol CVC4::parse (std::istringstream & line)
 {
-  Symbol sym = symbol(line);
-
   std::string token;
+  Symbol sym = symbol(line);
 
   if (!std::getline(line, token, '='))
     throw std::runtime_error("missing value");

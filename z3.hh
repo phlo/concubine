@@ -3,8 +3,6 @@
 
 #include "solver.hh"
 
-#include <z3++.h>
-
 namespace ConcuBinE {
 
 //==============================================================================
@@ -14,24 +12,24 @@ namespace ConcuBinE {
 struct Z3 : public Solver
 {
   //----------------------------------------------------------------------------
-  // member functions
+  // public member functions inherited from Solver
   //----------------------------------------------------------------------------
 
-  // return z3's name
+  // get name
   //
   virtual std::string name () const;
+
+  // get version
+  //
+  virtual std::string version () const;
 
   // evaluate arbitrary formula
   //
   virtual bool sat (const std::string & formula);
 
-  // run z3 and return trace
+  // solve given encoding and return trace
   //
   virtual std::unique_ptr<Trace> solve (Encoder & encoder);
-
-  // return z3's version
-  //
-  virtual std::string version () const;
 };
 
 } // namespace ConcuBinE

@@ -1,13 +1,37 @@
 #include "boolector.hh"
 
-#include "parser.hh"
 #include "shell.hh"
+#include "trace.hh"
 
 namespace ConcuBinE {
 
 //==============================================================================
 // Boolector
 //==============================================================================
+
+//------------------------------------------------------------------------------
+// public member functions inherited from Solver
+//------------------------------------------------------------------------------
+
+// Boolector::name -------------------------------------------------------------
+
+std::string Boolector::name () const { return "boolector"; }
+
+// Boolector::version ----------------------------------------------------------
+
+std::string Boolector::version () const
+{
+  static std::string version;
+
+  if (version.empty())
+    shell::run({name(), "--version"}).stdout >> version;
+
+  return version;
+}
+
+//------------------------------------------------------------------------------
+// public member functions inherited from External
+//------------------------------------------------------------------------------
 
 // Boolector::command ----------------------------------------------------------
 
@@ -16,6 +40,10 @@ const std::vector<std::string> & Boolector::command () const
   static const std::vector<std::string> cmd({name(), "--model-gen"});
   return cmd;
 }
+
+//------------------------------------------------------------------------------
+// protected member functions inherited from External
+//------------------------------------------------------------------------------
 
 // Boolector::parse ------------------------------------------------------------
 
@@ -82,23 +110,6 @@ Boolector::Symbol Boolector::parse (std::istringstream & line)
     }
 
   return Symbol::ignore;
-}
-
-// Boolector::name -------------------------------------------------------------
-
-std::string Boolector::name () const { return "boolector"; }
-
-// Boolector::version ----------------------------------------------------------
-
-std::string Boolector::version () const
-{
-  static const std::vector<std::string> cmd({name(), "--version"});
-  static std::string version;
-
-  if (version.empty())
-    shell::run(cmd).stdout >> version;
-
-  return version;
 }
 
 } // namespace ConcuBinE

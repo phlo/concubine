@@ -1,11 +1,10 @@
 #include "solver.hh"
 
-#include <cassert>
-#include <chrono>
-
 #include "encoder.hh"
 #include "parser.hh"
+#include "runtime.hh"
 #include "shell.hh"
+#include "trace.hh"
 
 namespace ConcuBinE {
 
@@ -20,6 +19,36 @@ std::string Solver::formula (Encoder & encoder) const { return encoder.str(); }
 //==============================================================================
 // External
 //==============================================================================
+
+//------------------------------------------------------------------------------
+// public member functions inherited from Solver
+//------------------------------------------------------------------------------
+
+// External::sat ---------------------------------------------------------------
+
+bool External::sat (const std::string & input)
+{
+  const auto & cmd = command();
+
+  time = runtime::measure([this, &input, &cmd] {
+    stdout = std::move(shell::run(cmd, input).stdout);
+  });
+
+  std::string sat;
+  return (stdout >> sat) && sat == "sat";
+}
+
+// External::solve -------------------------------------------------------------
+
+std::unique_ptr<Trace> External::solve (Encoder & encoder)
+{
+  sat(formula(encoder));
+  return trace(encoder);
+}
+
+//------------------------------------------------------------------------------
+// protected member functions
+//------------------------------------------------------------------------------
 
 // External::attribute ---------------------------------------------------------
 
@@ -122,13 +151,15 @@ External::Symbol External::symbol (std::istringstream & line)
   return Symbol::ignore;
 }
 
+//------------------------------------------------------------------------------
+// private member functions
+//------------------------------------------------------------------------------
+
 // External::update_heap -------------------------------------------------------
 
 void External::update_heap (Trace & trace, const size_t prev, const size_t cur)
 {
   const word_t t = trace.thread(prev);
-
-  // instruction responsible for state in the previous step
   const Instruction & op = (*trace.programs)[t][trace.pc(prev, t)];
 
   // store buffer has been flushed
@@ -168,11 +199,10 @@ std::unique_ptr<Trace> External::trace (const Encoder & encoder)
 {
   size_t lineno = 2;
   size_t next = 2;
-  const std::shared_ptr<Program::List> & programs = encoder.programs;
-
+  const auto & programs = encoder.programs;
   auto trace = std::make_unique<Trace>(programs, encoder.mmap);
 
-  for (std::string line_buf; getline(std_out, line_buf); lineno++)
+  for (std::string line_buf; getline(stdout, line_buf); lineno++)
     {
       // skip empty lines
       if (line_buf.empty())
@@ -245,30 +275,6 @@ std::unique_ptr<Trace> External::trace (const Encoder & encoder)
     update_heap(*trace, next - 2, step);
 
   return trace;
-}
-
-// External::sat ---------------------------------------------------------------
-
-bool External::sat (const std::string & input)
-{
-  using namespace std::chrono;
-
-  high_resolution_clock::time_point t = high_resolution_clock::now();
-
-  std_out = std::move(shell::run(command(), input).stdout);
-
-  time = duration_cast<milliseconds>(high_resolution_clock::now() - t).count();
-
-  std::string sat;
-  return (std_out >> sat) && sat == "sat";
-}
-
-// External::solve -------------------------------------------------------------
-
-std::unique_ptr<Trace> External::solve (Encoder & encoder)
-{
-  sat(formula(encoder));
-  return trace(encoder);
 }
 
 } // namespace ConcuBinE

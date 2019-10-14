@@ -25,7 +25,7 @@ TEST_F(BtorMC, sat)
     "0 1 x#0\n"
     "@0\n"
     ".\n",
-    solver.std_out.str());
+    solver.stdout.str());
 }
 
 TEST_F(BtorMC, unsat)
@@ -33,7 +33,7 @@ TEST_F(BtorMC, unsat)
   ASSERT_FALSE(solver.sat(
     "1 sort bitvec 1\n"
     "2 state 1 x\n"));
-  ASSERT_EQ("", solver.std_out.str());
+  ASSERT_EQ("", solver.stdout.str());
 }
 
 // BtorMC::solve ===============================================================

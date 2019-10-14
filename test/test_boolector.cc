@@ -15,13 +15,13 @@ using Boolector = Solver<Boolector>;
 TEST_F(Boolector, sat)
 {
   ASSERT_TRUE(solver.sat("(assert true)(check-sat)"));
-  ASSERT_EQ("sat\n", solver.std_out.str());
+  ASSERT_EQ("sat\n", solver.stdout.str());
 }
 
 TEST_F(Boolector, unsat)
 {
   ASSERT_FALSE(solver.sat("(assert false)(check-sat)"));
-  ASSERT_EQ("unsat\n", solver.std_out.str());
+  ASSERT_EQ("unsat\n", solver.stdout.str());
 }
 
 // Boolector::solve ============================================================

@@ -11,6 +11,8 @@
 #include "smtlib.hh"
 #include "trace.hh"
 
+#include "publicate.hh"
+
 #include "solver.hh"
 
 namespace ConcuBinE::test {
@@ -182,7 +184,7 @@ struct Solver : public ::testing::Test
       write(mktmp(stem, ext<Encoder>(sext + ".replay.trace")), replay->print());
 
       if constexpr(std::is_base_of<External, S>::value)
-        write(mktmp(stem, ext<Encoder>(sext + ".model")), solver.std_out.str());
+        write(mktmp(stem, ext<Encoder>(sext + ".model")), solver.stdout.str());
 
       ASSERT_EQ(*replay, *trace);
     }
@@ -318,7 +320,7 @@ struct Solver : public ::testing::Test
           fs::write(fs::mktmp(stem, ".replay.trace"), replay->print());
 
           if constexpr(std::is_base_of<External, S>::value)
-            fs::write(fs::mktmp(stem, ".model"), solver.std_out.str());
+            fs::write(fs::mktmp(stem, ".model"), solver.stdout.str());
 
           ASSERT_EQ(e.bound, trace->size());
           ASSERT_EQ(*replay, *trace);

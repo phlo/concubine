@@ -1,15 +1,20 @@
 #include "z3.hh"
 
-#include <chrono>
 #include <z3++.h>
 
 #include "encoder.hh"
+#include "runtime.hh"
+#include "trace.hh"
 
 namespace ConcuBinE {
 
 //==============================================================================
 // Z3
 //==============================================================================
+
+//------------------------------------------------------------------------------
+// public member functions inherited from Solver
+//------------------------------------------------------------------------------
 
 // Z3::name --------------------------------------------------------------------
 
@@ -35,18 +40,14 @@ std::string Z3::version () const
 
 bool Z3::sat (const std::string & formula)
 {
-  using namespace std::chrono;
-
+  bool sat;
   z3::context c;
   z3::solver s = c;
 
-  high_resolution_clock::time_point t = high_resolution_clock::now();
-
-  s.from_string(formula.c_str());
-
-  bool sat = s.check() == z3::sat;
-
-  time = duration_cast<milliseconds>(high_resolution_clock::now() - t).count();
+  time = runtime::measure([&formula, &sat, &s] {
+    s.from_string(formula.c_str());
+    sat = s.check() == z3::sat;
+  });
 
   return sat;
 }
@@ -86,24 +87,18 @@ inline word_t eval_array (z3::context & c,
 
 std::unique_ptr<Trace> Z3::solve (Encoder & encoder)
 {
-  using namespace std::chrono;
-
   z3::context c;
   z3::solver s = c;
+  z3::model m = c;
 
-  high_resolution_clock::time_point t = high_resolution_clock::now();
-
-  s.from_string(formula(encoder).c_str());
-
-  if (s.check() != z3::sat)
-    throw std::runtime_error("formula is not sat");
-
-  z3::model m = s.get_model();
-
-  time = duration_cast<milliseconds>(high_resolution_clock::now() - t).count();
+  time = runtime::measure([this, &encoder, &s, &m] {
+    s.from_string(formula(encoder).c_str());
+    if (s.check() != z3::sat)
+      throw std::runtime_error("formula is not sat");
+    m = s.get_model();
+  });
 
   const auto & programs = encoder.programs;
-
   auto trace = std::make_unique<Trace>(programs, encoder.mmap);
 
   for (size_t step = 0; step <= encoder.bound; step++)

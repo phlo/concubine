@@ -1,4 +1,5 @@
 #include <cstring>
+#include <iostream>
 
 #include "btor2.hh"
 #include "smtlib.hh"
