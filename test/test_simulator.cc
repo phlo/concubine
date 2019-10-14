@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include "publicate.hh"
+
 #include "simulator.hh"
 
 #include "mmap.hh"

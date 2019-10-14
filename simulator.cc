@@ -487,7 +487,7 @@ std::unique_ptr<Trace> Simulator::simulate (const std::shared_ptr<Program::List>
 
 std::unique_ptr<Trace> Simulator::replay (const Trace & t, const size_t b)
 {
-  init(t.programs, t.mmap, b && b < t.length ? bound : t.length - 1);
+  init(t.programs, t.mmap, b && b < t.size() ? bound : t.size() - 1);
 
   // replay scheduler
   Trace::iterator it = t.begin();

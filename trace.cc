@@ -14,29 +14,28 @@ namespace ConcuBinE {
 //==============================================================================
 
 //------------------------------------------------------------------------------
-// constructors
+// public constructors
 //------------------------------------------------------------------------------
 
 Trace::Trace (const std::shared_ptr<Program::List> & p,
               const std::shared_ptr<MMap> & m) :
   programs(p),
   mmap(m),
-  length(0),
-  exit(0)
+  exit(0),
+  length(0)
 {
   init_register_states();
 }
 
 Trace::Trace(std::istream & file, const std::string & path) :
   programs(std::make_shared<Program::List>()),
-  length(0),
-  exit(0)
+  exit(0),
+  length(0)
 {
   std::string token;
 
-  size_t line_num = 1;
-
   // parse programs
+  size_t line_num = 1;
   for (std::string line_buf; std::getline(file, line_buf); ++line_num)
     {
       // skip empty lines
@@ -324,22 +323,8 @@ Trace::Trace(std::istream & file, const std::string & path) :
 }
 
 //------------------------------------------------------------------------------
-// member functions
+// public member functions
 //------------------------------------------------------------------------------
-
-// Trace::init_register_states -------------------------------------------------
-
-void Trace::init_register_states ()
-{
-  const size_t num_threads = programs->size();
-
-  pc_updates.resize(num_threads);
-  accu_updates.resize(num_threads);
-  mem_updates.resize(num_threads);
-  sb_adr_updates.resize(num_threads);
-  sb_val_updates.resize(num_threads);
-  sb_full_updates.resize(num_threads);
-}
 
 // Trace::init_heap ------------------------------------------------------------
 
@@ -352,36 +337,6 @@ void Trace::init_heap (const word_t address, const word_t value)
 }
 
 // Trace::push_back ------------------------------------------------------------
-
-template <class T>
-bool Trace::push_back (Trace::update_map<T> & updates,
-                       const size_t step,
-                       const T value)
-{
-  if (updates.empty())
-    {
-      updates[step] = value;
-      return true;
-    }
-  else
-    {
-      auto end = updates.cend();
-      auto prev = updates.crbegin();
-
-      // ensure that no update exists for this step
-      if (prev->first == step)
-        throw std::runtime_error("update already exists");
-
-      // insert if value doesn't change
-      if (prev->second != value)
-        {
-          updates.emplace_hint(end, step, value);
-          return true;
-        }
-    }
-
-  return false;
-}
 
 void Trace::push_back (const word_t thread,
                        const word_t pc,
@@ -526,7 +481,7 @@ word_t Trace::thread (const size_t k) const
 
 // Trace::flush ----------------------------------------------------------------
 
-bool Trace::flush (const word_t step) const
+bool Trace::flush (const size_t step) const
 {
   return flushes.find(step) != flushes.end();
 }
@@ -657,14 +612,6 @@ std::optional<word_t> Trace::heap (const size_t k, const word_t address) const
   return {};
 }
 
-// Trace::size -----------------------------------------------------------------
-
-size_t Trace::size () const { return length; }
-
-// Trace::empty ----------------------------------------------------------------
-
-bool Trace::empty () const { return !size(); }
-
 // Trace::begin ----------------------------------------------------------------
 
 Trace::iterator Trace::begin () const
@@ -678,6 +625,14 @@ Trace::iterator Trace::end () const
 {
   return iterator(this, size());
 }
+
+// Trace::empty ----------------------------------------------------------------
+
+bool Trace::empty () const { return !length; }
+
+// Trace::size -----------------------------------------------------------------
+
+size_t Trace::size () const { return length; }
 
 // Trace::print ----------------------------------------------------------------
 
@@ -774,18 +729,68 @@ std::string Trace::print () const
   return ss.str();
 }
 
+//------------------------------------------------------------------------------
+// private member functions
+//------------------------------------------------------------------------------
+
+// Trace::init_register_states -------------------------------------------------
+
+void Trace::init_register_states ()
+{
+  const size_t num_threads = programs->size();
+
+  pc_updates.resize(num_threads);
+  accu_updates.resize(num_threads);
+  mem_updates.resize(num_threads);
+  sb_adr_updates.resize(num_threads);
+  sb_val_updates.resize(num_threads);
+  sb_full_updates.resize(num_threads);
+}
+
+// Trace::push_back ------------------------------------------------------------
+
+template <class T>
+bool Trace::push_back (Trace::update_map<T> & updates,
+                       const size_t step,
+                       const T value)
+{
+  if (updates.empty())
+    {
+      updates[step] = value;
+      return true;
+    }
+  else
+    {
+      auto end = updates.cend();
+      auto prev = updates.crbegin();
+
+      // ensure that no update exists for this step
+      if (prev->first == step)
+        throw std::runtime_error("update already exists");
+
+      // insert if value doesn't change
+      if (prev->second != value)
+        {
+          updates.emplace_hint(end, step, value);
+          return true;
+        }
+    }
+
+  return false;
+}
+
 //==============================================================================
 // Trace::Step
 //==============================================================================
 
 //------------------------------------------------------------------------------
-// constructors
+// public constructors
 //------------------------------------------------------------------------------
 
 Trace::Step::Step (size_t k) : number(k) {}
 
 //------------------------------------------------------------------------------
-// member operators
+// public member operators
 //------------------------------------------------------------------------------
 
 // conversion to size_t
@@ -801,7 +806,7 @@ Trace::Step & Trace::Step::operator ++ () { number++; return *this; }
 //==============================================================================
 
 //------------------------------------------------------------------------------
-// constructors
+// public constructors
 //------------------------------------------------------------------------------
 
 Trace::iterator::iterator (const Trace * t, const size_t s) :
@@ -828,7 +833,54 @@ Trace::iterator::iterator (const Trace * t, const size_t s) :
 }
 
 //------------------------------------------------------------------------------
-// member functions
+// public member operators
+//------------------------------------------------------------------------------
+
+// increment -------------------------------------------------------------------
+
+Trace::iterator & Trace::iterator::operator ++ ()
+{
+  // prevent increments beyond end()
+  if (step < trace->length)
+    if (++step < trace->length)
+      assign();
+
+  return *this;
+}
+
+Trace::iterator Trace::iterator::operator ++ (int)
+{
+  iterator retval = *this;
+  ++(*this);
+  return retval;
+}
+
+// equality --------------------------------------------------------------------
+
+bool Trace::iterator::operator == (const iterator & other) const
+{
+  return trace == other.trace && step.number == other.step.number;
+}
+
+bool Trace::iterator::operator != (const iterator & other) const
+{
+  return !(*this == other);
+}
+
+// dereference -----------------------------------------------------------------
+
+Trace::iterator::reference Trace::iterator::operator * () const
+{
+  return step;
+}
+
+Trace::iterator::pointer Trace::iterator::operator -> () const
+{
+  return &step;
+}
+
+//------------------------------------------------------------------------------
+// private member functions
 //------------------------------------------------------------------------------
 
 // Trace::iterator::init_iterators ---------------------------------------------
@@ -886,53 +938,6 @@ void Trace::iterator::assign ()
   step.sb_full = next_state(sb_full[step.thread]);
   step.flush   = trace->flushes.find(step) != trace->flushes.end();
   step.heap    = next_heap_state();
-}
-
-//------------------------------------------------------------------------------
-// member operators
-//------------------------------------------------------------------------------
-
-// increment -------------------------------------------------------------------
-
-Trace::iterator & Trace::iterator::operator ++ ()
-{
-  // prevent increments beyond end()
-  if (step < trace->length)
-    if (++step < trace->length)
-      assign();
-
-  return *this;
-}
-
-Trace::iterator Trace::iterator::operator ++ (int)
-{
-  iterator retval = *this;
-  ++(*this);
-  return retval;
-}
-
-// equality --------------------------------------------------------------------
-
-bool Trace::iterator::operator == (const iterator & other) const
-{
-  return trace == other.trace && step.number == other.step.number;
-}
-
-bool Trace::iterator::operator != (const iterator & other) const
-{
-  return !(*this == other);
-}
-
-// dereference -----------------------------------------------------------------
-
-Trace::iterator::reference Trace::iterator::operator * () const
-{
-  return step;
-}
-
-Trace::iterator::pointer Trace::iterator::operator -> () const
-{
-  return &step;
 }
 
 //==============================================================================
