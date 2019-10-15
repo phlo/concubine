@@ -5,6 +5,7 @@
 #include "smtlib.hh"
 
 #include "mmap.hh"
+#include "trace.hh"
 #include "parser.hh"
 
 #include "encoder.hh"

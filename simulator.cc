@@ -4,6 +4,9 @@
 #include <random>
 #include <sstream>
 
+#include "instruction.hh"
+#include "trace.hh"
+
 namespace ConcuBinE {
 
 //==============================================================================
@@ -23,13 +26,253 @@ inline void erase (C & container, T & val)
 //==============================================================================
 
 //------------------------------------------------------------------------------
-// constructors
+// public constructors
 //------------------------------------------------------------------------------
 
 Simulator::Simulator () : random(seed) {}
 
 //------------------------------------------------------------------------------
-// member functions
+// public member functions
+//------------------------------------------------------------------------------
+
+// Simulator::simulate ---------------------------------------------------------
+
+std::unique_ptr<Trace> Simulator::simulate (const std::shared_ptr<Program::List> & p,
+                                            const std::shared_ptr<MMap> & m,
+                                            const size_t b)
+{
+  init(p, m, b);
+
+  // random scheduler
+  return run([this] {
+    thread = active[random() % active.size()];
+
+    assert(state[thread] == State::running);
+
+    // rule 2, 5, 7: store buffer may be flushed at any time or must be empty
+    if (sb_full())
+      if (random() % 2 || (*programs)[thread][pc()].requires_flush())
+        state[thread] = State::flushing;
+  });
+}
+
+// Simulator::replay -----------------------------------------------------------
+
+std::unique_ptr<Trace> Simulator::replay (const Trace & t, const size_t b)
+{
+  init(t.programs, t.mmap, b && b < t.size() ? bound : t.size() - 1);
+
+  // replay scheduler
+  Trace::iterator it = t.begin();
+
+  return run([this, &it] {
+    if (it->flush)
+      state[it->thread] = State::flushing;
+
+    thread = it++->thread;
+  });
+}
+
+// Simulator::execute ----------------------------------------------------------
+
+template <>
+void Simulator::execute (const Instruction::Load & l)
+{
+  pc_increment();
+
+  accu(load(l.arg, l.indirect));
+}
+
+template <>
+void Simulator::execute (const Instruction::Store & s)
+{
+  pc_increment();
+
+  store(s.arg, accu(), s.indirect);
+}
+
+template <>
+void Simulator::execute (const Instruction::Fence & f [[maybe_unused]])
+{
+  pc_increment();
+}
+
+template <>
+void Simulator::execute (const Instruction::Add & a)
+{
+  pc_increment();
+
+  accu(accu() + load(a.arg, a.indirect));
+}
+
+template <>
+void Simulator::execute (const Instruction::Addi & a)
+{
+  pc_increment();
+
+  accu(accu() + a.arg);
+}
+
+template <>
+void Simulator::execute (const Instruction::Sub & s)
+{
+  pc_increment();
+
+  accu(accu() - load(s.arg, s.indirect));
+}
+
+template <>
+void Simulator::execute (const Instruction::Subi & s)
+{
+  pc_increment();
+
+  accu(accu() - s.arg);
+}
+
+template <>
+void Simulator::execute (const Instruction::Mul & s)
+{
+  pc_increment();
+
+  accu(accu() * load(s.arg, s.indirect));
+}
+
+template <>
+void Simulator::execute (const Instruction::Muli & s)
+{
+  pc_increment();
+
+  accu(accu() * s.arg);
+}
+
+template <>
+void Simulator::execute (const Instruction::Cmp & c)
+{
+  pc_increment();
+
+  accu(accu() - load(c.arg, c.indirect));
+}
+
+template <>
+void Simulator::execute (const Instruction::Jmp & j)
+{
+  pc(j.arg);
+}
+
+template <>
+void Simulator::execute (const Instruction::Jz & j)
+{
+  if (accu())
+    pc_increment();
+  else
+    pc(j.arg);
+}
+
+template <>
+void Simulator::execute (const Instruction::Jnz & j)
+{
+  if (accu())
+    pc(j.arg);
+  else
+    pc_increment();
+}
+
+template <>
+void Simulator::execute (const Instruction::Js & j)
+{
+  if (static_cast<sword_t>(accu()) < 0)
+    pc(j.arg);
+  else
+    pc_increment();
+}
+
+template <>
+void Simulator::execute (const Instruction::Jns & j)
+{
+  if (static_cast<sword_t>(accu()) >= 0)
+    pc(j.arg);
+  else
+    pc_increment();
+}
+
+template <>
+void Simulator::execute (const Instruction::Jnzns & j)
+{
+  if (static_cast<sword_t>(accu()) > 0)
+    pc(j.arg);
+  else
+    pc_increment();
+}
+
+template <>
+void Simulator::execute (const Instruction::Mem & m)
+{
+  pc_increment();
+
+  accu(load(m.arg, m.indirect));
+  mem(accu());
+}
+
+template <>
+void Simulator::execute (const Instruction::Cas & c)
+{
+  pc_increment();
+
+  if (mem() == load(c.arg, c.indirect))
+    {
+      store(c.arg, accu(), c.indirect, true);
+      accu(1);
+    }
+  else
+    {
+      accu(0);
+    }
+}
+
+template <>
+void Simulator::execute (const Instruction::Check & c)
+{
+  pc_increment();
+
+  state[thread] = State::waiting;
+
+  // remove from list of active threads
+  erase(active, thread);
+
+  // add to set of waiting threads
+  waiting_for_checkpoint[c.arg]++;
+
+  // all other threads already at this checkpoint (or halted)?
+  if (waiting_for_checkpoint[c.arg] >= threads_per_checkpoint[c.arg].size())
+    {
+      // reset number of waiting threads
+      waiting_for_checkpoint[c.arg] = 0;
+
+      // reactivate threads
+      for (const word_t t : threads_per_checkpoint[c.arg])
+        {
+          state[t] = State::running;
+          active.push_back(t);
+        }
+    }
+}
+
+template <>
+void Simulator::execute (const Instruction::Halt & h [[maybe_unused]])
+{
+  state[thread] = State::halted;
+  erase(active, thread);
+}
+
+template <>
+void Simulator::execute (const Instruction::Exit & e)
+{
+  trace->exit = e.arg;
+  state[thread] = State::exited;
+}
+
+//------------------------------------------------------------------------------
+// private member functions
 //------------------------------------------------------------------------------
 
 // Simulator::init -------------------------------------------------------------
@@ -241,181 +484,6 @@ void Simulator::execute ()
     }
 }
 
-void Simulator::execute (const Instruction::Load & l)
-{
-  pc_increment();
-
-  accu(load(l.arg, l.indirect));
-}
-
-void Simulator::execute (const Instruction::Store & s)
-{
-  pc_increment();
-
-  store(s.arg, accu(), s.indirect);
-}
-
-void Simulator::execute (const Instruction::Fence & f [[maybe_unused]])
-{
-  pc_increment();
-}
-
-void Simulator::execute (const Instruction::Add & a)
-{
-  pc_increment();
-
-  accu(accu() + load(a.arg, a.indirect));
-}
-
-void Simulator::execute (const Instruction::Addi & a)
-{
-  pc_increment();
-
-  accu(accu() + a.arg);
-}
-
-void Simulator::execute (const Instruction::Sub & s)
-{
-  pc_increment();
-
-  accu(accu() - load(s.arg, s.indirect));
-}
-
-void Simulator::execute (const Instruction::Subi & s)
-{
-  pc_increment();
-
-  accu(accu() - s.arg);
-}
-
-void Simulator::execute (const Instruction::Mul & s)
-{
-  pc_increment();
-
-  accu(accu() * load(s.arg, s.indirect));
-}
-
-void Simulator::execute (const Instruction::Muli & s)
-{
-  pc_increment();
-
-  accu(accu() * s.arg);
-}
-
-void Simulator::execute (const Instruction::Cmp & c)
-{
-  pc_increment();
-
-  accu(accu() - load(c.arg, c.indirect));
-}
-
-void Simulator::execute (const Instruction::Jmp & j)
-{
-  pc(j.arg);
-}
-
-void Simulator::execute (const Instruction::Jz & j)
-{
-  if (accu())
-    pc_increment();
-  else
-    pc(j.arg);
-}
-
-void Simulator::execute (const Instruction::Jnz & j)
-{
-  if (accu())
-    pc(j.arg);
-  else
-    pc_increment();
-}
-
-void Simulator::execute (const Instruction::Js & j)
-{
-  if (static_cast<sword_t>(accu()) < 0)
-    pc(j.arg);
-  else
-    pc_increment();
-}
-
-void Simulator::execute (const Instruction::Jns & j)
-{
-  if (static_cast<sword_t>(accu()) >= 0)
-    pc(j.arg);
-  else
-    pc_increment();
-}
-
-void Simulator::execute (const Instruction::Jnzns & j)
-{
-  if (static_cast<sword_t>(accu()) > 0)
-    pc(j.arg);
-  else
-    pc_increment();
-}
-
-void Simulator::execute (const Instruction::Mem & m)
-{
-  pc_increment();
-
-  accu(load(m.arg, m.indirect));
-  mem(accu());
-}
-
-void Simulator::execute (const Instruction::Cas & c)
-{
-  pc_increment();
-
-  if (mem() == load(c.arg, c.indirect))
-    {
-      store(c.arg, accu(), c.indirect, true);
-      accu(1);
-    }
-  else
-    {
-      accu(0);
-    }
-}
-
-void Simulator::execute (const Instruction::Check & c)
-{
-  pc_increment();
-
-  state[thread] = State::waiting;
-
-  // remove from list of active threads
-  erase(active, thread);
-
-  // add to set of waiting threads
-  waiting_for_checkpoint[c.arg]++;
-
-  // all other threads already at this checkpoint (or halted)?
-  if (waiting_for_checkpoint[c.arg] >= threads_per_checkpoint[c.arg].size())
-    {
-      // reset number of waiting threads
-      waiting_for_checkpoint[c.arg] = 0;
-
-      // reactivate threads
-      for (const word_t t : threads_per_checkpoint[c.arg])
-        {
-          state[t] = State::running;
-          active.push_back(t);
-        }
-    }
-}
-
-void Simulator::execute (const Instruction::Halt & h [[maybe_unused]])
-{
-  state[thread] = State::halted;
-  erase(active, thread);
-}
-
-void Simulator::execute (const Instruction::Exit & e)
-{
-  trace->exit = e.arg;
-  state[thread] = State::exited;
-}
-
 // Simulator::run --------------------------------------------------------------
 
 std::unique_ptr<Trace> Simulator::run (std::function<void()> scheduler)
@@ -456,48 +524,6 @@ std::unique_ptr<Trace> Simulator::run (std::function<void()> scheduler)
     }
 
   return std::move(trace);
-}
-
-// Simulator::simulate ---------------------------------------------------------
-
-std::unique_ptr<Trace> Simulator::simulate (const std::shared_ptr<Program::List> & p,
-                                            const std::shared_ptr<MMap> & m,
-                                            const size_t b)
-{
-  init(p, m, b);
-
-  // random scheduler
-  return run([this] {
-    thread = active[random() % active.size()];
-
-    assert(state[thread] == State::running);
-
-    // rule 2, 5, 7: store buffer may be flushed at any time or must be empty
-    if (sb_full())
-      {
-        const Instruction & op = (*programs)[thread][pc()];
-
-        if (random() % 2 || op.requires_flush())
-          state[thread] = State::flushing;
-      }
-  });
-}
-
-// Simulator::replay -----------------------------------------------------------
-
-std::unique_ptr<Trace> Simulator::replay (const Trace & t, const size_t b)
-{
-  init(t.programs, t.mmap, b && b < t.size() ? bound : t.size() - 1);
-
-  // replay scheduler
-  Trace::iterator it = t.begin();
-
-  return run([this, &it] {
-    if (it->flush)
-      state[it->thread] = State::flushing;
-
-    thread = it++->thread;
-  });
 }
 
 //==============================================================================

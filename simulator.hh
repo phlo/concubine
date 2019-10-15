@@ -2,13 +2,10 @@
 #define MACHINE_HH_
 
 #include <functional>
+#include <unordered_set>
 
 #include "common.hh"
-#include "instruction.hh"
-
-// TODO: forward-declare
 #include "program.hh"
-#include "trace.hh"
 
 namespace ConcuBinE {
 
@@ -17,15 +14,18 @@ namespace ConcuBinE {
 //==============================================================================
 
 class MMap;
+class Trace;
 
 //==============================================================================
-// Simulator class
+// Simulator
 //==============================================================================
 
-struct Simulator
+class Simulator
 {
+public: //======================================================================
+
   //----------------------------------------------------------------------------
-  // member types
+  // public member types
   //----------------------------------------------------------------------------
 
   // thread state
@@ -41,7 +41,99 @@ struct Simulator
   };
 
   //----------------------------------------------------------------------------
-  // members
+  // public constructors
+  //----------------------------------------------------------------------------
+
+  Simulator ();
+
+  //----------------------------------------------------------------------------
+  // public member functions
+  //----------------------------------------------------------------------------
+
+  // simulate given programs using a random scheduler
+  //
+  std::unique_ptr<Trace> simulate (const std::shared_ptr<Program::List> & programs,
+                                   const std::shared_ptr<MMap> & mmap = {},
+                                   size_t bound = 0);
+
+  // replay given trace
+  //
+  std::unique_ptr<Trace> replay (const Trace & trace, size_t bound = 0);
+
+  // double-dispatched execute functions
+  //
+  template <class Instruction>
+  void execute (const Instruction & op);
+
+private: //=====================================================================
+
+  //----------------------------------------------------------------------------
+  // private member functions
+  //----------------------------------------------------------------------------
+
+  // (re)initialize
+  //
+  void init (const std::shared_ptr<Program::List> & programs,
+             const std::shared_ptr<MMap> & mmap,
+             size_t bound);
+
+  // get or set program counter
+  //
+  word_t pc () const;
+  void pc (word_t value);
+  void pc_increment ();
+
+  // get or set accumulator register
+  //
+  word_t accu () const;
+  void accu (word_t value);
+
+  // get or set special CAS register
+  //
+  word_t mem () const;
+  void mem (word_t value);
+
+  // get or set store buffer address
+  //
+  word_t sb_adr () const;
+  void sb_adr (word_t value);
+
+  // get or set store buffer value
+  //
+  word_t sb_val () const;
+  void sb_val (word_t value);
+
+  // get or set store buffer full flag
+  //
+  bool sb_full () const;
+  void sb_full (bool value);
+
+  // load value from given address
+  //
+  word_t load (word_t address);
+  word_t load (word_t address, bool indirect);
+
+  // store given value at address
+  //
+  void store (word_t address,
+              word_t value,
+              bool indirect = false,
+              bool flush = false);
+
+  // flush store buffer
+  //
+  void flush ();
+
+  // execute current instruction
+  //
+  void execute ();
+
+  // run simulator with given scheduler
+  //
+  std::unique_ptr<Trace> run (std::function<void()> scheduler);
+
+  //----------------------------------------------------------------------------
+  // private data members
   //----------------------------------------------------------------------------
 
   // Mersenne Twister pseudo-random number generator
@@ -89,121 +181,6 @@ struct Simulator
   // checkpoint id -> number of threads
   //
   std::unordered_map<word_t, word_t> waiting_for_checkpoint;
-
-  //----------------------------------------------------------------------------
-  // constructors
-  //----------------------------------------------------------------------------
-
-  Simulator ();
-
-  //----------------------------------------------------------------------------
-  // private functions
-  //----------------------------------------------------------------------------
-
-  // (re)initialize
-  //
-  void init (const std::shared_ptr<Program::List> & programs,
-             const std::shared_ptr<MMap> & mmap,
-             size_t bound);
-
-  // program counter
-  //
-  word_t pc () const;
-  void pc (word_t value);
-  void pc_increment ();
-
-  // accumulator register
-  //
-  word_t accu () const;
-  void accu (word_t value);
-
-  // special CAS register
-  //
-  word_t mem () const;
-  void mem (word_t value);
-
-  // store buffer address
-  //
-  word_t sb_adr () const;
-  void sb_adr (word_t value);
-
-  // store buffer value
-  //
-  word_t sb_val () const;
-  void sb_val (word_t value);
-
-  // store buffer full flag
-  //
-  bool sb_full () const;
-  void sb_full (bool value);
-
-  // load value from given address
-  //
-  word_t load (word_t address);
-  word_t load (word_t address, bool indirect);
-
-  // store given value at address
-  //
-  void store (word_t address,
-              word_t value,
-              bool indirect = false,
-              bool flush = false);
-
-  // flush store buffer
-  //
-  void flush ();
-
-  // execute current instruction
-  //
-  void execute ();
-
-  // double-dispatched execute functions
-  //
-  void execute (const Instruction::Load &);
-  void execute (const Instruction::Store &);
-
-  void execute (const Instruction::Fence &);
-
-  void execute (const Instruction::Add &);
-  void execute (const Instruction::Addi &);
-  void execute (const Instruction::Sub &);
-  void execute (const Instruction::Subi &);
-  void execute (const Instruction::Mul &);
-  void execute (const Instruction::Muli &);
-
-  void execute (const Instruction::Cmp &);
-  void execute (const Instruction::Jmp &);
-  void execute (const Instruction::Jz &);
-  void execute (const Instruction::Jnz &);
-  void execute (const Instruction::Js &);
-  void execute (const Instruction::Jns &);
-  void execute (const Instruction::Jnzns &);
-
-  void execute (const Instruction::Mem &);
-  void execute (const Instruction::Cas &);
-
-  void execute (const Instruction::Check &);
-
-  void execute (const Instruction::Halt &);
-  void execute (const Instruction::Exit &);
-
-  // run the simulator, using the specified scheduler
-  //
-  std::unique_ptr<Trace> run (std::function<void()> scheduler);
-
-  //----------------------------------------------------------------------------
-  // public functions
-  //----------------------------------------------------------------------------
-
-  // simulate given programs using a random scheduler
-  //
-  std::unique_ptr<Trace> simulate (const std::shared_ptr<Program::List> & programs,
-                                   const std::shared_ptr<MMap> & mmap = {},
-                                   size_t bound = 0);
-
-  // replay given trace
-  //
-  std::unique_ptr<Trace> replay (const Trace & trace, size_t bound = 0);
 };
 
 //==============================================================================

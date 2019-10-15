@@ -5,6 +5,7 @@
 #include "simulator.hh"
 
 #include "mmap.hh"
+#include "trace.hh"
 #include "parser.hh"
 
 namespace ConcuBinE::test {
