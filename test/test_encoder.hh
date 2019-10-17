@@ -1,9 +1,13 @@
 #include <gtest/gtest.h>
 
-#include "encoder.hh"
 #include "fs.hh"
 #include "mmap.hh"
 #include "parser.hh"
+
+#include "publicate.hh"
+
+#include "encoder_btor2.hh"
+#include "encoder_smtlib.hh"
 
 namespace ConcuBinE::test {
 
@@ -140,7 +144,7 @@ inline void encode (std::filesystem::path && basename,
   std::ifstream ifs(basename);
   const std::string expected((std::istreambuf_iterator<char>(ifs)),
                               std::istreambuf_iterator<char>());
-  const std::string actual = encoder.str();
+  const std::string actual = encoder.formula.str();
 
   fs::write(fs::mktmp(basename), actual);
   ASSERT_EQ(expected, actual);

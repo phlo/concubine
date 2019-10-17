@@ -1,4 +1,4 @@
-#include "encoder.hh"
+#include "encoder_btor2.hh"
 
 #include <algorithm>
 #include <cassert>
@@ -42,12 +42,160 @@ V & lookup (std::unordered_map<K, V> & m, K k, F fun)
 //==============================================================================
 
 //------------------------------------------------------------------------------
-// static members
+// public constants
 //------------------------------------------------------------------------------
 
 // exit code variable ----------------------------------------------------------
 
 const std::string & Encoder::exit_code_var = exit_code_sym;
+
+//------------------------------------------------------------------------------
+// public constructors
+//------------------------------------------------------------------------------
+
+Encoder::Encoder (const std::shared_ptr<Program::List> & p,
+                  const std::shared_ptr<MMap> & m,
+                  const size_t b) :
+  ConcuBinE::Encoder(p, m, b),
+  node(1)
+{
+  // collect constants
+  nids_const[0] = "";
+  nids_const[bound] = "";
+
+  iterate_programs([this] (const Program & program) {
+    for (pc = 0; pc < program.size(); pc++)
+      if (program[pc].is_unary())
+        nids_const[program[pc].arg()];
+  });
+
+  if (mmap && !mmap->empty())
+    for (const auto & [adr, val] : *mmap)
+      nids_const[adr] = nids_const[val];
+}
+
+//------------------------------------------------------------------------------
+// public member functions
+//------------------------------------------------------------------------------
+
+// btor2::Encoder::accu_var ----------------------------------------------------
+
+std::string Encoder::accu_var (const word_t t)
+{
+  return accu_sym + '_' + std::to_string(t);
+}
+
+// btor2::Encoder::mem_var -----------------------------------------------------
+
+std::string Encoder::mem_var (const word_t t)
+{
+  return mem_sym + '_' + std::to_string(t);
+}
+
+// btor2::Encoder::sb_adr_var --------------------------------------------------
+
+std::string Encoder::sb_adr_var (const word_t t)
+{
+  return sb_adr_sym + '_' + std::to_string(t);
+}
+
+// btor2::Encoder::sb_val_var --------------------------------------------------
+
+std::string Encoder::sb_val_var (const word_t t)
+{
+  return sb_val_sym + '_' + std::to_string(t);
+}
+
+// btor2::Encoder::sb_full_var -------------------------------------------------
+
+std::string Encoder::sb_full_var (const word_t t)
+{
+  return sb_full_sym + '_' + std::to_string(t);
+}
+
+// btor2::Encoder::stmt_var ----------------------------------------------------
+
+std::string Encoder::stmt_var (const word_t t, const word_t pc)
+{
+  return stmt_sym + '_' + std::to_string(t) + '_' + std::to_string(pc);
+}
+
+// btor2::Encoder::block_var ---------------------------------------------------
+
+std::string Encoder::block_var (const word_t t, const word_t id)
+{
+  return block_sym + '_' + std::to_string(t) + '_' + std::to_string(id);
+}
+
+// btor2::Encoder::halt_var ----------------------------------------------------
+
+std::string Encoder::halt_var (const word_t t)
+{
+  return halt_sym + '_' + std::to_string(t);
+}
+
+// btor2::Encoder::thread_var --------------------------------------------------
+
+std::string Encoder::thread_var (const word_t t)
+{
+  return thread_sym + '_' + std::to_string(t);
+}
+
+// btor2::Encoder::exec_var ----------------------------------------------------
+
+std::string Encoder::exec_var (const word_t t, const word_t pc)
+{
+  return exec_sym + '_' + std::to_string(t) + '_' + std::to_string(pc);
+}
+
+// btor2::Encoder::flush_var ---------------------------------------------------
+
+std::string Encoder::flush_var (const word_t t)
+{
+  return flush_sym + '_' + std::to_string(t);
+}
+
+// btor2::Encoder::check_var ---------------------------------------------------
+
+std::string Encoder::check_var (const word_t id)
+{
+  return check_sym + '_' + std::to_string(id);
+}
+
+//------------------------------------------------------------------------------
+// public member functions inherited from ConcuBinE::Encoder
+//------------------------------------------------------------------------------
+
+// btor2::Encoder::encode ------------------------------------------------------
+
+void Encoder::encode ()
+{
+  declare_sorts();
+  declare_constants();
+  define_mmap();
+  declare_states();
+  declare_inputs();
+  define_transitions();
+  define_states();
+  define_constraints();
+}
+
+// btor2::Encoder::assert_exit -------------------------------------------------
+
+void Encoder::assert_exit ()
+{
+  formula <<
+    btor2::neq(
+      nid(),
+      sid_bool,
+      nids_const[0],
+      nid_exit_code) <<
+    btor2::bad(node);
+}
+
+//------------------------------------------------------------------------------
+// private constants
+//------------------------------------------------------------------------------
 
 // variable comments -----------------------------------------------------------
 
@@ -161,167 +309,48 @@ const std::string Encoder::check_comment =
 const std::string Encoder::msb = std::to_string(word_size - 1);
 
 //------------------------------------------------------------------------------
-// constructors
-//------------------------------------------------------------------------------
-
-Encoder::Encoder (const std::shared_ptr<Program::List> & p,
-                  const std::shared_ptr<MMap> & m,
-                  const size_t b) :
-  ConcuBinE::Encoder(p, m, b),
-  node(1)
-{
-  // collect constants
-  nids_const[0] = "";
-  nids_const[bound] = "";
-
-  iterate_programs([this] (const Program & program) {
-    for (pc = 0; pc < program.size(); pc++)
-      if (program[pc].is_unary())
-        nids_const[program[pc].arg()];
-  });
-
-  if (mmap && !mmap->empty())
-    for (const auto & [adr, val] : *mmap)
-      nids_const[adr] = nids_const[val];
-}
-
-//------------------------------------------------------------------------------
 // private member functions
 //------------------------------------------------------------------------------
 
 // btor2::Encoder::accu_var ----------------------------------------------------
 
-std::string Encoder::accu_var (const word_t t)
-{
-  return accu_sym + '_' + std::to_string(t);
-}
-
-std::string Encoder::accu_var () const
-{
-  return accu_var(thread);
-}
+std::string Encoder::accu_var () const { return accu_var(thread); }
 
 // btor2::Encoder::mem_var -----------------------------------------------------
 
-std::string Encoder::mem_var (const word_t t)
-{
-  return mem_sym + '_' + std::to_string(t);
-}
-
-std::string Encoder::mem_var () const
-{
-  return mem_var(thread);
-}
+std::string Encoder::mem_var () const { return mem_var(thread); }
 
 // btor2::Encoder::sb_adr_var --------------------------------------------------
 
-std::string Encoder::sb_adr_var (const word_t t)
-{
-  return sb_adr_sym + '_' + std::to_string(t);
-}
-
-std::string Encoder::sb_adr_var () const
-{
-  return sb_adr_var(thread);
-}
+std::string Encoder::sb_adr_var () const { return sb_adr_var(thread); }
 
 // btor2::Encoder::sb_val_var --------------------------------------------------
 
-std::string Encoder::sb_val_var (const word_t t)
-{
-  return sb_val_sym + '_' + std::to_string(t);
-}
-
-std::string Encoder::sb_val_var () const
-{
-  return sb_val_var(thread);
-}
+std::string Encoder::sb_val_var () const { return sb_val_var(thread); }
 
 // btor2::Encoder::sb_full_var -------------------------------------------------
 
-std::string Encoder::sb_full_var (const word_t t)
-{
-  return sb_full_sym + '_' + std::to_string(t);
-}
-
-std::string Encoder::sb_full_var () const
-{
-  return sb_full_var(thread);
-}
+std::string Encoder::sb_full_var () const { return sb_full_var(thread); }
 
 // btor2::Encoder::stmt_var ----------------------------------------------------
 
-std::string Encoder::stmt_var (const word_t t, const word_t pc)
-{
-  return stmt_sym + '_' + std::to_string(t) + '_' + std::to_string(pc);
-}
-
-std::string Encoder::stmt_var () const
-{
-  return stmt_var(thread, pc);
-}
-
-// btor2::Encoder::block_var ---------------------------------------------------
-
-std::string Encoder::block_var (const word_t t, const word_t id)
-{
-  return block_sym + '_' + std::to_string(t) + '_' + std::to_string(id);
-}
+std::string Encoder::stmt_var () const { return stmt_var(thread, pc); }
 
 // btor2::Encoder::halt_var ----------------------------------------------------
 
-std::string Encoder::halt_var (const word_t t)
-{
-  return halt_sym + '_' + std::to_string(t);
-}
-
-std::string Encoder::halt_var () const
-{
-  return halt_var(thread);
-}
+std::string Encoder::halt_var () const { return halt_var(thread); }
 
 // btor2::Encoder::thread_var --------------------------------------------------
 
-std::string Encoder::thread_var (const word_t t)
-{
-  return thread_sym + '_' + std::to_string(t);
-}
-
-std::string Encoder::thread_var () const
-{
-  return thread_var(thread);
-}
+std::string Encoder::thread_var () const { return thread_var(thread); }
 
 // btor2::Encoder::exec_var ----------------------------------------------------
 
-std::string Encoder::exec_var (const word_t t, const word_t pc)
-{
-  return exec_sym + '_' + std::to_string(t) + '_' + std::to_string(pc);
-}
-
-std::string Encoder::exec_var () const
-{
-  return exec_var(thread, pc);
-}
+std::string Encoder::exec_var () const { return exec_var(thread, pc); }
 
 // btor2::Encoder::flush_var ---------------------------------------------------
 
-std::string Encoder::flush_var (const word_t t)
-{
-  return flush_sym + '_' + std::to_string(t);
-}
-
-std::string Encoder::flush_var () const
-{
-  return flush_var(thread);
-}
-
-// btor2::Encoder::check_var ---------------------------------------------------
-
-std::string Encoder::check_var (const word_t id)
-{
-  return check_sym + '_' + std::to_string(id);
-}
+std::string Encoder::flush_var () const { return flush_var(thread); }
 
 // btor2::Encoder::nid ---------------------------------------------------------
 
@@ -897,7 +926,6 @@ void Encoder::define_check ()
       assert(blocks.size() > 1);
 
       std::vector<std::string> args;
-
       args.reserve(blocks.size());
 
       for (const auto & [t, nid_block] : blocks)
@@ -959,7 +987,7 @@ void Encoder::define_accu ()
   if (verbose)
     formula << accu_comment;
 
-  update = State::accu;
+  update = Update::accu;
 
   iterate_threads([this] {
     define_state_bv(
@@ -976,7 +1004,7 @@ void Encoder::define_mem ()
   if (verbose)
     formula << mem_comment;
 
-  update = State::mem;
+  update = Update::mem;
 
   iterate_threads([this] {
     define_state_bv(
@@ -993,7 +1021,7 @@ void Encoder::define_sb_adr ()
   if (verbose)
     formula << sb_adr_comment;
 
-  update = State::sb_adr;
+  update = Update::sb_adr;
 
   iterate_threads([this] {
     define_state_bv(
@@ -1010,7 +1038,7 @@ void Encoder::define_sb_val ()
   if (verbose)
     formula << sb_val_comment;
 
-  update = State::sb_val;
+  update = Update::sb_val;
 
   iterate_threads([this] {
     define_state_bv(
@@ -1045,7 +1073,12 @@ void Encoder::define_sb_full ()
       }
 
     formula <<
-      ite(nid_next = nid(), sid_bool, nids_flush[thread], nid_false, nid_next) <<
+      ite(
+        nid_next = nid(),
+        sid_bool,
+        nids_flush[thread],
+        nid_false,
+        nid_next) <<
       next(nid(), sid_bool, nids_sb_full[thread], nid_next, sb_full_var()) <<
       eol;
   });
@@ -1084,7 +1117,6 @@ void Encoder::define_stmt ()
         for (word_t prev : predecessors[thread][pc])
           {
             nid_exec = nids_exec[thread][prev];
-
             const Instruction & pred = program[prev];
 
             // predecessor is a conditional jump
@@ -1145,7 +1177,6 @@ void Encoder::define_block ()
         {
           std::string & nid_block = nid_block_it++->second;
           std::vector<std::string> args;
-
           args.reserve(pcs.size() + 1);
 
           for (const auto & p : pcs)
@@ -1178,7 +1209,6 @@ void Encoder::define_halt ()
   for (const auto & [t, pcs] : halts)
     {
       std::vector<std::string> args;
-
       args.reserve(pcs.size() + 1);
 
       for (const word_t p : pcs)
@@ -1211,7 +1241,7 @@ void Encoder::define_heap ()
     formula << init(nid(), sid_heap, nid_heap, nid_mmap);
 
   // next
-  update = State::heap;
+  update = Update::heap;
 
   std::string nid_next = nid_heap;
 
@@ -1267,7 +1297,6 @@ void Encoder::define_exit_flag ()
   formula << init(nid(), sid_bool, nid_exit_flag, nid_false);
 
   std::vector<std::string> args({nid_exit_flag});
-
   std::string nid_next = nid_exit_flag;
 
   if (!halts.empty())
@@ -1517,19 +1546,11 @@ void Encoder::define_bound ()
     << bad(nid(), nid_prev);
 }
 
-// btor2::Encoder::encode ------------------------------------------------------
+//------------------------------------------------------------------------------
+// private member functions inherited from ConcuBinE::Encoder
+//------------------------------------------------------------------------------
 
-void Encoder::encode ()
-{
-  declare_sorts();
-  declare_constants();
-  define_mmap();
-  declare_states();
-  declare_inputs();
-  define_transitions();
-  define_states();
-  define_constraints();
-}
+// btor2::Encoder::encode ------------------------------------------------------
 
 std::string Encoder::encode (const Instruction::Load & l)
 {
@@ -1540,10 +1561,10 @@ std::string Encoder::encode (const Instruction::Store & s)
 {
   switch (update)
     {
-    case State::sb_adr:
+    case Update::sb_adr:
       return s.indirect ? load(s.arg) : nids_const[s.arg];
 
-    case State::sb_val:
+    case Update::sb_val:
       return nids_accu[thread];
 
     default: throw std::runtime_error("illegal state update");
@@ -1696,7 +1717,7 @@ std::string Encoder::encode (const Instruction::Cas & c)
 
   switch (update)
     {
-    case State::accu:
+    case Update::accu:
         {
           formula <<
             ite(
@@ -1708,7 +1729,7 @@ std::string Encoder::encode (const Instruction::Cas & c)
 
           break;
         }
-    case State::heap:
+    case Update::heap:
         {
           std::string nid_write = nid();
 

@@ -2,7 +2,7 @@
 
 #include <z3++.h>
 
-#include "encoder.hh"
+#include "encoder_smtlib.hh"
 #include "runtime.hh"
 #include "trace.hh"
 

@@ -1,4 +1,4 @@
-#include "encoder.hh"
+#include "encoder_smtlib.hh"
 
 #include <cassert>
 
@@ -12,16 +12,185 @@ namespace ConcuBinE::smtlib {
 //==============================================================================
 
 //------------------------------------------------------------------------------
-// static members
+// public constants
+//------------------------------------------------------------------------------
+
+const std::string & Encoder::exit_code_var = exit_code_sym;
+
+//------------------------------------------------------------------------------
+// public constructors
+//------------------------------------------------------------------------------
+
+Encoder::Encoder (const std::shared_ptr<Program::List> & p,
+                  const std::shared_ptr<MMap> & m,
+                  const size_t b) :
+  ConcuBinE::Encoder(p, m, b),
+  step(0)
+{}
+
+//------------------------------------------------------------------------------
+// public member functions
+//------------------------------------------------------------------------------
+
+// smtlib::Encoder::accu_var ---------------------------------------------------
+
+std::string Encoder::accu_var (const word_t k, const word_t t)
+{
+  return accu_sym + '_' + std::to_string(k) + '_' + std::to_string(t);
+}
+
+// smtlib::Encoder::mem_var ----------------------------------------------------
+
+std::string Encoder::mem_var (const word_t k, const word_t t)
+{
+  return mem_sym + '_' + std::to_string(k) + '_' + std::to_string(t);
+}
+
+// smtlib::Encoder::sb_adr_var -------------------------------------------------
+
+std::string Encoder::sb_adr_var (const word_t k, const word_t t)
+{
+  return sb_adr_sym + '_' + std::to_string(k) + '_' + std::to_string(t);
+}
+
+// smtlib::Encoder::sb_val_var -------------------------------------------------
+
+std::string Encoder::sb_val_var (const word_t k, const word_t t)
+{
+  return sb_val_sym + '_' + std::to_string(k) + '_' + std::to_string(t);
+}
+
+// smtlib::Encoder::sb_full_var ------------------------------------------------
+
+std::string Encoder::sb_full_var (const word_t k, const word_t t)
+{
+  return sb_full_sym + '_' + std::to_string(k) + '_' + std::to_string(t);
+}
+
+// smtlib::Encoder::stmt_var ---------------------------------------------------
+
+std::string Encoder::stmt_var (const word_t k, const word_t t, const word_t p)
+{
+  return
+    stmt_sym + '_' +
+    std::to_string(k) + '_' +
+    std::to_string(t) + '_' +
+    std::to_string(p);
+}
+
+// smtlib::Encoder::block_var --------------------------------------------------
+
+std::string Encoder::block_var (const word_t k,
+                                const word_t id,
+                                const word_t tid)
+{
+  return
+    block_sym + '_' +
+    std::to_string(k) + '_' +
+    std::to_string(id) + '_' +
+    std::to_string(tid);
+}
+
+// smtlib::Encoder::halt_var ---------------------------------------------------
+
+std::string Encoder::halt_var (const word_t k, const word_t t)
+{
+  return halt_sym + '_' + std::to_string(k) + '_' + std::to_string(t);
+}
+
+// smtlib::Encoder::heap_var ---------------------------------------------------
+
+std::string Encoder::heap_var (const word_t k)
+{
+  return heap_sym + '_' + std::to_string(k);
+}
+
+// smtlib::Encoder::exit_flag_var ----------------------------------------------
+
+std::string Encoder::exit_flag_var (const word_t k)
+{
+  return exit_flag_sym + '_' + std::to_string(k);
+}
+
+// smtlib::Encoder::thread_var -------------------------------------------------
+
+std::string Encoder::thread_var (const word_t k, const word_t t)
+{
+  return thread_sym + '_' + std::to_string(k) + '_' + std::to_string(t);
+}
+
+// smtlib::Encoder::exec_var ---------------------------------------------------
+
+std::string Encoder::exec_var (const word_t k, const word_t t, const word_t p)
+{
+  return
+    exec_sym + '_' +
+    std::to_string(k) + '_' +
+    std::to_string(t) + '_' +
+    std::to_string(p);
+}
+
+// smtlib::Encoder::flush_var --------------------------------------------------
+
+std::string Encoder::flush_var (const word_t k, const word_t t)
+{
+  return flush_sym + '_' + std::to_string(k) + '_' + std::to_string(t);
+}
+
+// smtlib::Encoder::check_var --------------------------------------------------
+
+std::string Encoder::check_var (const word_t k, const word_t id)
+{
+  return check_sym + '_' + std::to_string(k) + '_' + std::to_string(id);
+}
+
+//------------------------------------------------------------------------------
+// public member functions inherited from ConcuBinE::Encoder
+//------------------------------------------------------------------------------
+
+// smtlib::Encoder::encode -----------------------------------------------------
+
+void Encoder::encode ()
+{
+  formula << set_logic() << eol << eol;
+
+  for (step = 0, prev = static_cast<size_t>(-1); step <= bound; step++, prev++)
+    {
+      if (verbose)
+        formula << comment_section("step " + std::to_string(step));
+
+      declare_states();
+      declare_transitions();
+      define_transitions();
+
+      if (step)
+        define_states();
+      else
+        init_states();
+
+      define_constraints ();
+    }
+}
+
+// smtlib::Encoder::assert_exit ------------------------------------------------
+
+void Encoder::assert_exit ()
+{
+  formula <<
+    smtlib::assertion(
+      smtlib::lnot(
+        smtlib::equality({
+          smtlib::Encoder::exit_code_var,
+          smtlib::word2hex(0)})));
+}
+
+//------------------------------------------------------------------------------
+// protected constants
 //------------------------------------------------------------------------------
 
 // bitvector sort declaration --------------------------------------------------
 
 const std::string Encoder::bv_sort = bitvector(word_size);
-
-// exit code variable ----------------------------------------------------------
-
-const std::string & Encoder::exit_code_var = exit_code_sym;
 
 // variable comments -----------------------------------------------------------
 
@@ -141,191 +310,56 @@ const std::string Encoder::check_comment =
     + eol);
 
 //------------------------------------------------------------------------------
-// constructors
-//------------------------------------------------------------------------------
-
-Encoder::Encoder (const std::shared_ptr<Program::List> & p,
-                  const std::shared_ptr<MMap> & m,
-                  const size_t b) :
-  ConcuBinE::Encoder(p, m, b),
-  step(0)
-{}
-
-//------------------------------------------------------------------------------
-// private member functions
+// protected member functions
 //------------------------------------------------------------------------------
 
 // smtlib::Encoder::accu_var ---------------------------------------------------
 
-std::string Encoder::accu_var (const word_t k, const word_t t)
-{
-  return accu_sym + '_' + std::to_string(k) + '_' + std::to_string(t);
-}
-
-std::string Encoder::accu_var () const
-{
-  return accu_var(step, thread);
-}
+std::string Encoder::accu_var () const { return accu_var(step, thread); }
 
 // smtlib::Encoder::mem_var ----------------------------------------------------
 
-std::string Encoder::mem_var (const word_t k, const word_t t)
-{
-  return mem_sym + '_' + std::to_string(k) + '_' + std::to_string(t);
-}
-
-std::string Encoder::mem_var () const
-{
-  return mem_var(step, thread);
-}
+std::string Encoder::mem_var () const { return mem_var(step, thread); }
 
 // smtlib::Encoder::sb_adr_var -------------------------------------------------
 
-std::string Encoder::sb_adr_var (const word_t k, const word_t t)
-{
-  return sb_adr_sym + '_' + std::to_string(k) + '_' + std::to_string(t);
-}
-
-std::string Encoder::sb_adr_var () const
-{
-  return sb_adr_var(step, thread);
-}
+std::string Encoder::sb_adr_var () const { return sb_adr_var(step, thread); }
 
 // smtlib::Encoder::sb_val_var -------------------------------------------------
 
-std::string Encoder::sb_val_var (const word_t k, const word_t t)
-{
-  return sb_val_sym + '_' + std::to_string(k) + '_' + std::to_string(t);
-}
-
-std::string Encoder::sb_val_var () const
-{
-  return sb_val_var(step, thread);
-}
+std::string Encoder::sb_val_var () const { return sb_val_var(step, thread); }
 
 // smtlib::Encoder::sb_full_var ------------------------------------------------
 
-std::string Encoder::sb_full_var (const word_t k, const word_t t)
-{
-  return sb_full_sym + '_' + std::to_string(k) + '_' + std::to_string(t);
-}
-
-std::string Encoder::sb_full_var () const
-{
-  return sb_full_var(step, thread);
-}
+std::string Encoder::sb_full_var () const { return sb_full_var(step, thread); }
 
 // smtlib::Encoder::stmt_var ---------------------------------------------------
 
-std::string Encoder::stmt_var (const word_t k, const word_t t, const word_t p)
-{
-  return
-    stmt_sym + '_' +
-    std::to_string(k) + '_' +
-    std::to_string(t) + '_' +
-    std::to_string(p);
-}
-
-std::string Encoder::stmt_var () const
-{
-  return stmt_var(step, thread, pc);
-}
-
-// smtlib::Encoder::block_var --------------------------------------------------
-
-std::string Encoder::block_var (const word_t k,
-                                const word_t id,
-                                const word_t tid)
-{
-  return
-    block_sym + '_' +
-    std::to_string(k) + '_' +
-    std::to_string(id) + '_' +
-    std::to_string(tid);
-}
+std::string Encoder::stmt_var () const { return stmt_var(step, thread, pc); }
 
 // smtlib::Encoder::halt_var ---------------------------------------------------
 
-std::string Encoder::halt_var (const word_t k, const word_t t)
-{
-  return halt_sym + '_' + std::to_string(k) + '_' + std::to_string(t);
-}
-
-std::string Encoder::halt_var () const
-{
-  return halt_var(step, thread);
-}
+std::string Encoder::halt_var () const { return halt_var(step, thread); }
 
 // smtlib::Encoder::heap_var ---------------------------------------------------
 
-std::string Encoder::heap_var (const word_t k)
-{
-  return heap_sym + '_' + std::to_string(k);
-}
-
-std::string Encoder::heap_var () const
-{
-  return heap_var(step);
-}
+std::string Encoder::heap_var () const { return heap_var(step); }
 
 // smtlib::Encoder::exit_flag_var ----------------------------------------------
 
-std::string Encoder::exit_flag_var (const word_t k)
-{
-  return exit_flag_sym + '_' + std::to_string(k);
-}
-
-std::string Encoder::exit_flag_var () const
-{
-  return exit_flag_var(step);
-}
+std::string Encoder::exit_flag_var () const { return exit_flag_var(step); }
 
 // smtlib::Encoder::thread_var -------------------------------------------------
 
-std::string Encoder::thread_var (const word_t k, const word_t t)
-{
-  return thread_sym + '_' + std::to_string(k) + '_' + std::to_string(t);
-}
-
-std::string Encoder::thread_var () const
-{
-  return thread_var(step, thread);
-}
+std::string Encoder::thread_var () const { return thread_var(step, thread); }
 
 // smtlib::Encoder::exec_var ---------------------------------------------------
 
-std::string Encoder::exec_var (const word_t k, const word_t t, const word_t p)
-{
-  return
-    exec_sym + '_' +
-    std::to_string(k) + '_' +
-    std::to_string(t) + '_' +
-    std::to_string(p);
-}
-
-std::string Encoder::exec_var () const
-{
-  return exec_var(step, thread, pc);
-}
+std::string Encoder::exec_var () const { return exec_var(step, thread, pc); }
 
 // smtlib::Encoder::flush_var --------------------------------------------------
 
-std::string Encoder::flush_var (const word_t k, const word_t t)
-{
-  return flush_sym + '_' + std::to_string(k) + '_' + std::to_string(t);
-}
-
-std::string Encoder::flush_var () const
-{
-  return flush_var(step, thread);
-}
-
-// smtlib::Encoder::check_var --------------------------------------------------
-
-std::string Encoder::check_var (const word_t k, const word_t id)
-{
-  return check_sym + '_' + std::to_string(k) + '_' + std::to_string(id);
-}
+std::string Encoder::flush_var () const { return flush_var(step, thread); }
 
 // smtlib::Encoder::assign -----------------------------------------------------
 
@@ -334,6 +368,185 @@ std::string Encoder::assign (const std::string & var,
 {
   return assertion(equality({var, expr}));
 }
+
+//------------------------------------------------------------------------------
+// protected member functions inherited from ConcuBinE::Encoder
+//------------------------------------------------------------------------------
+
+// smtlib::Encoder::encode -----------------------------------------------------
+
+std::string Encoder::encode (const Instruction::Load & l)
+{
+  return load(l.arg, l.indirect);
+}
+
+std::string Encoder::encode (const Instruction::Store & s)
+{
+  switch (update)
+    {
+    case Update::sb_adr:
+      return s.indirect ? load(s.arg) : word2hex(s.arg);
+
+    case Update::sb_val:
+      return accu_var(prev, thread);
+
+    default: throw std::runtime_error("illegal state update");
+    }
+}
+
+std::string Encoder::encode (const Instruction::Fence & f [[maybe_unused]])
+{
+  return "";
+}
+
+std::string Encoder::encode (const Instruction::Add & a)
+{
+  return bvadd({accu_var(prev, thread), load(a.arg, a.indirect)});
+}
+
+std::string Encoder::encode (const Instruction::Addi & a)
+{
+  return bvadd({accu_var(prev, thread), word2hex(a.arg)});
+}
+
+std::string Encoder::encode (const Instruction::Sub & s)
+{
+  return bvsub({accu_var(prev, thread), load(s.arg, s.indirect)});
+}
+
+std::string Encoder::encode (const Instruction::Subi & s)
+{
+  return bvsub({accu_var(prev, thread), word2hex(s.arg)});
+}
+
+std::string Encoder::encode (const Instruction::Mul & m)
+{
+  return bvmul({accu_var(prev, thread), load(m.arg, m.indirect)});
+}
+
+std::string Encoder::encode (const Instruction::Muli & m)
+{
+  return bvmul({accu_var(prev, thread), word2hex(m.arg)});
+}
+
+std::string Encoder::encode (const Instruction::Cmp & c)
+{
+  return bvsub({accu_var(prev, thread), load(c.arg, c.indirect)});
+}
+
+std::string Encoder::encode (const Instruction::Jmp & j [[maybe_unused]])
+{
+  return "";
+}
+
+std::string Encoder::encode (const Instruction::Jz & j [[maybe_unused]])
+{
+  return equality({accu_var(prev, thread), word2hex(0)});
+}
+
+std::string Encoder::encode (const Instruction::Jnz & j [[maybe_unused]])
+{
+  return
+    lnot(
+      equality({
+        accu_var(prev, thread),
+        word2hex(0)}));
+}
+
+std::string Encoder::encode (const Instruction::Js & j [[maybe_unused]])
+{
+  static const std::string bw = std::to_string(word_size - 1);
+
+  return
+      equality({
+        "#b1",
+        extract(bw, bw, accu_var(prev, thread))});
+}
+
+std::string Encoder::encode (const Instruction::Jns & j [[maybe_unused]])
+{
+  static const std::string bw = std::to_string(word_size - 1);
+
+  return
+      equality({
+        "#b0",
+        extract(bw, bw, accu_var(prev, thread))});
+}
+
+std::string Encoder::encode (const Instruction::Jnzns & j [[maybe_unused]])
+{
+  static const std::string bw = std::to_string(word_size - 1);
+
+  return
+    land({
+      lnot(
+        equality({
+          accu_var(prev, thread),
+          word2hex(0)})),
+      equality({
+        "#b0",
+        extract(bw, bw, accu_var(prev, thread))})});
+}
+
+std::string Encoder::encode (const Instruction::Mem & m)
+{
+  return load(m.arg, m.indirect);
+}
+
+std::string Encoder::encode (const Instruction::Cas & c)
+{
+  std::string heap = heap_var(prev);
+
+  std::string address = c.indirect
+    ? select(heap, word2hex(c.arg))
+    : word2hex(c.arg);
+
+  std::string condition =
+    equality({
+      mem_var(prev, thread),
+      select(heap, address)});
+
+  switch (update)
+    {
+    case Update::accu:
+      return
+        ite(
+          condition,
+          word2hex(1),
+          word2hex(0));
+
+    case Update::heap:
+      return
+        ite(
+          condition,
+          store(
+            heap,
+            address,
+            accu_var(prev, thread)),
+          heap);
+
+    default: throw std::runtime_error("illegal state update");
+    }
+}
+
+std::string Encoder::encode (const Instruction::Check & s [[maybe_unused]])
+{
+  return "";
+}
+
+std::string Encoder::encode (const Instruction::Halt & h [[maybe_unused]])
+{
+  return "";
+}
+
+std::string Encoder::encode (const Instruction::Exit & e)
+{
+  return word2hex(e.arg);
+}
+
+//------------------------------------------------------------------------------
+// private member functions
+//------------------------------------------------------------------------------
 
 // smtlib::Encoder::load -------------------------------------------------------
 
@@ -1024,200 +1237,6 @@ void Encoder::define_constraints ()
   define_store_buffer_constraints();
   define_checkpoint_constraints();
   define_halt_constraints();
-}
-
-// smtlib::Encoder::encode -----------------------------------------------------
-
-void Encoder::encode ()
-{
-  formula << set_logic() << eol << eol;
-
-  for (step = 0, prev = static_cast<size_t>(-1); step <= bound; step++, prev++)
-    {
-      if (verbose)
-        formula << comment_section("step " + std::to_string(step));
-
-      declare_states();
-      declare_transitions();
-      define_transitions();
-
-      if (step)
-        define_states();
-      else
-        init_states();
-
-      define_constraints ();
-    }
-}
-
-std::string Encoder::encode (const Instruction::Load & l)
-{
-  return load(l.arg, l.indirect);
-}
-
-std::string Encoder::encode (const Instruction::Store & s)
-{
-  switch (update)
-    {
-    case State::sb_adr:
-      return s.indirect ? load(s.arg) : word2hex(s.arg);
-
-    case State::sb_val:
-      return accu_var(prev, thread);
-
-    default: throw std::runtime_error("illegal state update");
-    }
-}
-
-std::string Encoder::encode (const Instruction::Fence & f [[maybe_unused]])
-{
-  return "";
-}
-
-std::string Encoder::encode (const Instruction::Add & a)
-{
-  return bvadd({accu_var(prev, thread), load(a.arg, a.indirect)});
-}
-
-std::string Encoder::encode (const Instruction::Addi & a)
-{
-  return bvadd({accu_var(prev, thread), word2hex(a.arg)});
-}
-
-std::string Encoder::encode (const Instruction::Sub & s)
-{
-  return bvsub({accu_var(prev, thread), load(s.arg, s.indirect)});
-}
-
-std::string Encoder::encode (const Instruction::Subi & s)
-{
-  return bvsub({accu_var(prev, thread), word2hex(s.arg)});
-}
-
-std::string Encoder::encode (const Instruction::Mul & m)
-{
-  return bvmul({accu_var(prev, thread), load(m.arg, m.indirect)});
-}
-
-std::string Encoder::encode (const Instruction::Muli & m)
-{
-  return bvmul({accu_var(prev, thread), word2hex(m.arg)});
-}
-
-std::string Encoder::encode (const Instruction::Cmp & c)
-{
-  return bvsub({accu_var(prev, thread), load(c.arg, c.indirect)});
-}
-
-std::string Encoder::encode (const Instruction::Jmp & j [[maybe_unused]])
-{
-  return "";
-}
-
-std::string Encoder::encode (const Instruction::Jz & j [[maybe_unused]])
-{
-  return equality({accu_var(prev, thread), word2hex(0)});
-}
-
-std::string Encoder::encode (const Instruction::Jnz & j [[maybe_unused]])
-{
-  return
-    lnot(
-      equality({
-        accu_var(prev, thread),
-        word2hex(0)}));
-}
-
-std::string Encoder::encode (const Instruction::Js & j [[maybe_unused]])
-{
-  static const std::string bw = std::to_string(word_size - 1);
-
-  return
-      equality({
-        "#b1",
-        extract(bw, bw, accu_var(prev, thread))});
-}
-
-std::string Encoder::encode (const Instruction::Jns & j [[maybe_unused]])
-{
-  static const std::string bw = std::to_string(word_size - 1);
-
-  return
-      equality({
-        "#b0",
-        extract(bw, bw, accu_var(prev, thread))});
-}
-
-std::string Encoder::encode (const Instruction::Jnzns & j [[maybe_unused]])
-{
-  static const std::string bw = std::to_string(word_size - 1);
-
-  return
-    land({
-      lnot(
-        equality({
-          accu_var(prev, thread),
-          word2hex(0)})),
-      equality({
-        "#b0",
-        extract(bw, bw, accu_var(prev, thread))})});
-}
-
-std::string Encoder::encode (const Instruction::Mem & m)
-{
-  return load(m.arg, m.indirect);
-}
-
-std::string Encoder::encode (const Instruction::Cas & c)
-{
-  std::string heap = heap_var(prev);
-
-  std::string address = c.indirect
-    ? select(heap, word2hex(c.arg))
-    : word2hex(c.arg);
-
-  std::string condition =
-    equality({
-      mem_var(prev, thread),
-      select(heap, address)});
-
-  switch (update)
-    {
-    case State::accu:
-      return
-        ite(
-          condition,
-          word2hex(1),
-          word2hex(0));
-
-    case State::heap:
-      return
-        ite(
-          condition,
-          store(
-            heap,
-            address,
-            accu_var(prev, thread)),
-          heap);
-
-    default: throw std::runtime_error("illegal state update");
-    }
-}
-
-std::string Encoder::encode (const Instruction::Check & s [[maybe_unused]])
-{
-  return "";
-}
-
-// TODO
-std::string Encoder::encode (const Instruction::Halt & h [[maybe_unused]])
-{
-  throw std::runtime_error("not implemented");
-}
-
-std::string Encoder::encode (const Instruction::Exit & e)
-{
-  return word2hex(e.arg);
 }
 
 } // namespace ConcuBinE::smtlib

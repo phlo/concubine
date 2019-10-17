@@ -1,7 +1,11 @@
 #include <gtest/gtest.h>
 
+#include "publicate.hh"
+
 #include "btor2.hh"
-#include "encoder.hh"
+#include "encoder_btor2.hh"
+#include "encoder_smtlib_functional.hh"
+#include "encoder_smtlib_relational.hh"
 #include "fs.hh"
 #include "markdown.hh"
 #include "mmap.hh"
@@ -10,8 +14,6 @@
 #include "simulator.hh"
 #include "smtlib.hh"
 #include "trace.hh"
-
-#include "publicate.hh"
 
 #include "solver.hh"
 
@@ -172,14 +174,13 @@ struct Solver : public ::testing::Test
 
       ASSERT_FALSE(trace->empty());
 
-      // std::cout << "time to solve = " << solver.time << " ms" << eol;
-
+      const auto formula = encoder.formula.str();
       const auto replay = Simulator().replay(*trace);
       const auto sext = '.' + solver.name();
 
       using namespace fs;
 
-      write(mktmp(stem, ext<Encoder>(programs->size(), bound)), encoder.str());
+      write(mktmp(stem, ext<Encoder>(programs->size(), bound)), formula);
       write(mktmp(stem, ext<Encoder>(sext + ".trace")), trace->print());
       write(mktmp(stem, ext<Encoder>(sext + ".replay.trace")), replay->print());
 
@@ -303,26 +304,27 @@ struct Solver : public ::testing::Test
   template <class Encoder>
   auto litmus_sat (const std::filesystem::path & dir)
     {
-      return [this, &dir] (Encoder & e)
+      return [this, &dir] (Encoder & encoder)
         {
-          const auto trace = solver.solve(e);
+          const auto trace = solver.solve(encoder);
 
           ASSERT_FALSE(trace->empty());
 
           // std::cout << "time to solve = " << solver.time << " ms" << eol;
 
+          const auto formula = encoder.formula.str();
           const auto replay = Simulator().replay(*trace);
           const auto stem = dir / solver.name();
 
-          fs::write(fs::mktmp(dir / "formula", fs::ext<Encoder>()), e.str());
-          fs::write(fs::mktmp(dir / "formula", fs::ext<Encoder>()), e.str());
+          fs::write(fs::mktmp(dir / "formula", fs::ext<Encoder>()), formula);
+          fs::write(fs::mktmp(dir / "formula", fs::ext<Encoder>()), formula);
           fs::write(fs::mktmp(stem, ".trace"), trace->print());
           fs::write(fs::mktmp(stem, ".replay.trace"), replay->print());
 
           if constexpr(std::is_base_of<External, S>::value)
             fs::write(fs::mktmp(stem, ".model"), solver.stdout.str());
 
-          ASSERT_EQ(e.bound, trace->size());
+          ASSERT_EQ(encoder.bound, trace->size());
           ASSERT_EQ(*replay, *trace);
         };
     }
@@ -359,19 +361,21 @@ struct Solver : public ::testing::Test
       if constexpr(std::is_base_of<smtlib::Encoder, Encoder>::value)
         {
           constraints_smtlib(ss);
-          constraints = std::make_pair(fs::mktmp(dir / "constraints.smt2"), ss.str());
+          constraints = {fs::mktmp(dir / "constraints.smt2"), ss.str()};
         }
       else
         {
           constraints_btor2(ss, encoder);
-          constraints = std::make_pair(fs::mktmp(dir / "constraints.btor2"), ss.str());
+          constraints = {fs::mktmp(dir / "constraints.btor2"), ss.str()};
         }
 
       std::ofstream ofs(constraints.first);
 
       ofs << constraints.second;
       encoder.formula << constraints.second;
-      fs::write(fs::mktmp(dir / "formula", fs::ext<Encoder>()), encoder.str());
+      fs::write(
+        fs::mktmp(dir / "formula", fs::ext<Encoder>()),
+        encoder.formula.str());
       test(encoder);
       fs::update(constraints.first);
 

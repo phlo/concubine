@@ -1,5 +1,7 @@
 #include "test_encoder.hh"
 
+#include "encoder_smtlib_functional.hh"
+
 namespace ConcuBinE::test {
 
 //==============================================================================
@@ -159,7 +161,7 @@ TEST(smtlib_Functional, define_accu)
                             "#x0000) "
                           "accu_0_2))))))))))))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   encoder = create<E>(dummy(1));
@@ -171,7 +173,7 @@ TEST(smtlib_Functional, define_accu)
   ASSERT_EQ(
     "(assert (= accu_1_0 (ite exec_0_0_0 (bvadd accu_0_0 #x0001) accu_0_0)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Functional::define_mem ==============================================
@@ -203,7 +205,7 @@ TEST(smtlib_Functional, define_mem)
           "(select heap_0 #x0001)) "
         "mem_0_2)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -232,7 +234,7 @@ TEST(smtlib_Functional, define_mem)
           "(select heap_0 #x0001)) "
         "mem_0_2)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Functional::define_sb_adr ===========================================
@@ -249,7 +251,7 @@ TEST(smtlib_Functional, define_sb_adr)
     "(assert (= sb-adr_1_1 (ite exec_0_1_1 #x0001 sb-adr_0_1)))\n"
     "(assert (= sb-adr_1_2 (ite exec_0_2_1 #x0001 sb-adr_0_2)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -263,7 +265,7 @@ TEST(smtlib_Functional, define_sb_adr)
     "(assert (= sb-adr_1_1 (ite exec_0_1_1 #x0001 sb-adr_0_1)))\n"
     "(assert (= sb-adr_1_2 (ite exec_0_2_1 #x0001 sb-adr_0_2)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Functional::define_sb_val ===========================================
@@ -280,7 +282,7 @@ TEST(smtlib_Functional, define_sb_val)
     "(assert (= sb-val_1_1 (ite exec_0_1_1 accu_0_1 sb-val_0_1)))\n"
     "(assert (= sb-val_1_2 (ite exec_0_2_1 accu_0_2 sb-val_0_2)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -294,7 +296,7 @@ TEST(smtlib_Functional, define_sb_val)
     "(assert (= sb-val_1_1 (ite exec_0_1_1 accu_0_1 sb-val_0_1)))\n"
     "(assert (= sb-val_1_2 (ite exec_0_2_1 accu_0_2 sb-val_0_2)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Functional::define_sb_full ==========================================
@@ -311,7 +313,7 @@ TEST(smtlib_Functional, define_sb_full)
     "(assert (= sb-full_1_1 (ite flush_0_1 false (or exec_0_1_1 sb-full_0_1))))\n"
     "(assert (= sb-full_1_2 (ite flush_0_2 false (or exec_0_2_1 sb-full_0_2))))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -325,7 +327,7 @@ TEST(smtlib_Functional, define_sb_full)
     "(assert (= sb-full_1_1 (ite flush_0_1 false (or exec_0_1_1 sb-full_0_1))))\n"
     "(assert (= sb-full_1_2 (ite flush_0_2 false (or exec_0_2_1 sb-full_0_2))))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 TEST(smtlib_Functional, define_stmt)
@@ -371,7 +373,7 @@ TEST(smtlib_Functional, define_stmt)
         "exec_0_2_1 "
         "(and stmt_0_2_2 (not exec_0_2_2)))))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -411,7 +413,7 @@ TEST(smtlib_Functional, define_stmt)
         "exec_0_2_1 "
         "(and stmt_0_2_2 (not exec_0_2_2)))))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 TEST(smtlib_Functional, define_stmt_jmp)
@@ -463,7 +465,7 @@ TEST(smtlib_Functional, define_stmt_jmp)
         "exec_0_2_1 "
         "(and stmt_0_2_2 (not exec_0_2_2)))))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 TEST(smtlib_Functional, define_stmt_jmp_conditional)
@@ -528,7 +530,7 @@ TEST(smtlib_Functional, define_stmt_jmp_conditional)
         "(and exec_0_2_2 (not (not (= accu_0_2 #x0000)))) "
         "(and stmt_0_2_3 (not exec_0_2_3)))))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 TEST(smtlib_Functional, define_stmt_jmp_start)
@@ -596,7 +598,7 @@ TEST(smtlib_Functional, define_stmt_jmp_start)
         "(and exec_0_2_2 (not (not (= accu_0_2 #x0000)))) "
         "(and stmt_0_2_3 (not exec_0_2_3)))))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 TEST(smtlib_Functional, define_stmt_jmp_twice)
@@ -680,7 +682,7 @@ TEST(smtlib_Functional, define_stmt_jmp_twice)
         "(and exec_0_2_3 (not (not (= accu_0_2 #x0000)))) "
         "(and stmt_0_2_4 (not exec_0_2_4)))))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Functional::define_block ============================================
@@ -697,7 +699,7 @@ TEST(smtlib_Functional, define_block)
     "(assert (= block_1_1_1 (ite check_0_1 false (or exec_0_1_17 block_0_1_1))))\n"
     "(assert (= block_1_1_2 (ite check_0_1 false (or exec_0_2_17 block_0_1_2))))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -711,7 +713,7 @@ TEST(smtlib_Functional, define_block)
     "(assert (= block_1_1_1 (ite check_0_1 false (or exec_0_1_17 block_0_1_1))))\n"
     "(assert (= block_1_1_2 (ite check_0_1 false (or exec_0_2_17 block_0_1_2))))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 TEST(smtlib_Functional, define_block_empty)
@@ -744,7 +746,7 @@ TEST(smtlib_Functional, define_halt)
     "(assert (= halt_1_1 (or exec_0_1_2 exec_0_1_4 halt_0_1)))\n"
     "(assert (= halt_1_2 (or exec_0_2_2 exec_0_2_4 halt_0_2)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -758,7 +760,7 @@ TEST(smtlib_Functional, define_halt)
     "(assert (= halt_1_1 (or exec_0_1_2 exec_0_1_4 halt_0_1)))\n"
     "(assert (= halt_1_2 (or exec_0_2_2 exec_0_2_4 halt_0_2)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 TEST(smtlib_Functional, define_halt_empty)
@@ -801,7 +803,7 @@ TEST(smtlib_Functional, define_heap)
                     "heap_0) "
                   "heap_0))))))))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -832,7 +834,7 @@ TEST(smtlib_Functional, define_heap)
                     "heap_0) "
                   "heap_0))))))))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Functional::define_exit_flag ========================================
@@ -855,7 +857,7 @@ TEST(smtlib_Functional, define_exit_flag)
       "(and halt_1_0 halt_1_1 halt_1_2) "
       "exec_0_0_2 exec_0_1_2 exec_0_2_2)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -870,7 +872,7 @@ TEST(smtlib_Functional, define_exit_flag)
       "(and halt_1_0 halt_1_1 halt_1_2) "
       "exec_0_0_2 exec_0_1_2 exec_0_2_2)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 TEST(smtlib_Functional, define_exit_flag_empty)
@@ -904,7 +906,7 @@ TEST(smtlib_Functional, define_exit_code)
             "#x0002 "
             "#x0000)))))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -923,7 +925,7 @@ TEST(smtlib_Functional, define_exit_code)
             "#x0002 "
             "#x0000)))))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 TEST(smtlib_Functional, define_exit_code_empty)
@@ -939,7 +941,7 @@ TEST(smtlib_Functional, define_exit_code_empty)
     "\n"
     "(assert (= exit-code #x0000))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Functional::define_states ===========================================
@@ -974,7 +976,7 @@ TEST(smtlib_Functional, define_states)
     "; heap variable - heap_<step>\n"
     "(assert (= heap_1 (ite flush_0_0 (store heap_0 sb-adr_0_0 sb-val_0_0) heap_0)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -998,7 +1000,7 @@ TEST(smtlib_Functional, define_states)
     "\n"
     "(assert (= heap_1 (ite flush_0_0 (store heap_0 sb-adr_0_0 sb-val_0_0) heap_0)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 TEST(smtlib_Functional, define_states_check_exit)
@@ -1068,7 +1070,7 @@ TEST(smtlib_Functional, define_states_check_exit)
     "; exit flag variable - exit_<step>\n"
     "(assert (= exit_1 (or exit_0 exec_0_0_1 exec_0_1_1 exec_0_2_1)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Functional::encode ==================================================

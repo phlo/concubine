@@ -14,7 +14,10 @@ namespace ConcuBinE {
 
 // Solver::formula -------------------------------------------------------------
 
-std::string Solver::formula (Encoder & encoder) const { return encoder.str(); }
+std::string Solver::formula (Encoder & encoder) const
+{
+  return encoder.formula.str();
+}
 
 //==============================================================================
 // External

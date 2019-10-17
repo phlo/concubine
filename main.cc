@@ -1,15 +1,14 @@
 #include <cstring>
 #include <iostream>
 
-#include "btor2.hh"
-#include "smtlib.hh"
-
 #include "mmap.hh"
 #include "trace.hh"
 #include "parser.hh"
 
-#include "encoder.hh"
 #include "simulator.hh"
+#include "encoder_btor2.hh"
+#include "encoder_smtlib_functional.hh"
+#include "encoder_smtlib_relational.hh"
 
 #include "boolector.hh"
 #include "btormc.hh"
@@ -469,7 +468,9 @@ int solve (const char * name, const int argc, const char ** argv)
       encoder->encode();
 
       // append constraints
-      if (!constraints.empty())
+      if (constraints.empty())
+        encoder->assert_exit();
+      else
         {
           std::ifstream ifs(constraints);
 
@@ -480,26 +481,6 @@ int solve (const char * name, const int argc, const char ** argv)
             }
 
           encoder->formula << ifs.rdbuf();
-        }
-      else if (encoder_type == btor2)
-        {
-          auto & e = dynamic_cast<btor2::Encoder &>(*encoder);
-          encoder->formula <<
-            btor2::neq(
-              e.nid(),
-              e.sid_bool,
-              e.nids_const[0],
-              e.nid_exit_code) <<
-            btor2::bad(e.node);
-        }
-      else
-        {
-          encoder->formula <<
-            smtlib::assertion(
-              smtlib::lnot(
-                smtlib::equality({
-                  smtlib::Encoder::exit_code_var,
-                  smtlib::word2hex(0)})));
         }
 
       // select solver

@@ -1,5 +1,7 @@
 #include "test_encoder.hh"
 
+#include "encoder_smtlib_functional.hh"
+
 namespace ConcuBinE::test {
 
 //==============================================================================
@@ -392,7 +394,7 @@ TEST(smtlib_Encoder, declare_accu)
     "(declare-fun accu_1_1 () (_ BitVec 16))\n"
     "(declare-fun accu_1_2 () (_ BitVec 16))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -406,7 +408,7 @@ TEST(smtlib_Encoder, declare_accu)
     "(declare-fun accu_1_1 () (_ BitVec 16))\n"
     "(declare-fun accu_1_2 () (_ BitVec 16))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Encoder::declare_mem ================================================
@@ -423,7 +425,7 @@ TEST(smtlib_Encoder, declare_mem)
     "(declare-fun mem_1_1 () (_ BitVec 16))\n"
     "(declare-fun mem_1_2 () (_ BitVec 16))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -437,7 +439,7 @@ TEST(smtlib_Encoder, declare_mem)
     "(declare-fun mem_1_1 () (_ BitVec 16))\n"
     "(declare-fun mem_1_2 () (_ BitVec 16))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Encoder::declare_sb_adr =============================================
@@ -454,7 +456,7 @@ TEST(smtlib_Encoder, declare_sb_adr)
     "(declare-fun sb-adr_1_1 () (_ BitVec 16))\n"
     "(declare-fun sb-adr_1_2 () (_ BitVec 16))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -468,7 +470,7 @@ TEST(smtlib_Encoder, declare_sb_adr)
     "(declare-fun sb-adr_1_1 () (_ BitVec 16))\n"
     "(declare-fun sb-adr_1_2 () (_ BitVec 16))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Encoder::declare_sb_val =============================================
@@ -485,7 +487,7 @@ TEST(smtlib_Encoder, declare_sb_val)
     "(declare-fun sb-val_1_1 () (_ BitVec 16))\n"
     "(declare-fun sb-val_1_2 () (_ BitVec 16))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -499,7 +501,7 @@ TEST(smtlib_Encoder, declare_sb_val)
     "(declare-fun sb-val_1_1 () (_ BitVec 16))\n"
     "(declare-fun sb-val_1_2 () (_ BitVec 16))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Encoder::declare_sb_full ============================================
@@ -516,7 +518,7 @@ TEST(smtlib_Encoder, declare_sb_full)
     "(declare-fun sb-full_1_1 () Bool)\n"
     "(declare-fun sb-full_1_2 () Bool)\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -530,7 +532,7 @@ TEST(smtlib_Encoder, declare_sb_full)
     "(declare-fun sb-full_1_1 () Bool)\n"
     "(declare-fun sb-full_1_2 () Bool)\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Encoder::declare_stmt ===============================================
@@ -555,7 +557,7 @@ TEST(smtlib_Encoder, declare_stmt)
     "(declare-fun stmt_1_2_1 () Bool)\n"
     "(declare-fun stmt_1_2_2 () Bool)\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -577,7 +579,7 @@ TEST(smtlib_Encoder, declare_stmt)
     "(declare-fun stmt_1_2_1 () Bool)\n"
     "(declare-fun stmt_1_2_2 () Bool)\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Encoder::declare_block ==============================================
@@ -602,7 +604,7 @@ TEST(smtlib_Encoder, declare_block)
     "(declare-fun block_1_1_1 () Bool)\n"
     "(declare-fun block_1_1_2 () Bool)\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -620,7 +622,7 @@ TEST(smtlib_Encoder, declare_block)
     "(declare-fun block_1_1_1 () Bool)\n"
     "(declare-fun block_1_1_2 () Bool)\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 TEST(smtlib_Encoder, declare_block_empty)
@@ -646,7 +648,7 @@ TEST(smtlib_Encoder, declare_halt)
     "(declare-fun halt_1_1 () Bool)\n"
     "(declare-fun halt_1_2 () Bool)\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -660,7 +662,7 @@ TEST(smtlib_Encoder, declare_halt)
     "(declare-fun halt_1_1 () Bool)\n"
     "(declare-fun halt_1_2 () Bool)\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 TEST(smtlib_Encoder, declare_halt_empty)
@@ -686,7 +688,7 @@ TEST(smtlib_Encoder, declare_heap)
     "; heap variable - heap_<step>\n"
     "(declare-fun heap_1 () (Array (_ BitVec 16) (_ BitVec 16)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -697,7 +699,7 @@ TEST(smtlib_Encoder, declare_heap)
 
   ASSERT_EQ(
     "(declare-fun heap_1 () (Array (_ BitVec 16) (_ BitVec 16)))\n\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Encoder::declare_exit_flag ==========================================
@@ -712,7 +714,7 @@ TEST(smtlib_Encoder, declare_exit_flag)
     "; exit flag variable - exit_<step>\n"
     "(declare-fun exit_1 () Bool)\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -721,7 +723,7 @@ TEST(smtlib_Encoder, declare_exit_flag)
   encoder.declare_exit_flag();
   verbose = true;
 
-  ASSERT_EQ("(declare-fun exit_1 () Bool)\n\n", encoder.str());
+  ASSERT_EQ("(declare-fun exit_1 () Bool)\n\n", encoder.formula.str());
 }
 
 TEST(smtlib_Encoder, declare_exit_flag_empty)
@@ -745,7 +747,7 @@ TEST(smtlib_Encoder, declare_exit_code)
     "; exit code variable\n"
     "(declare-fun exit-code () (_ BitVec 16))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Encoder::declare_thread =============================================
@@ -762,7 +764,7 @@ TEST(smtlib_Encoder, declare_thread)
     "(declare-fun thread_1_1 () Bool)\n"
     "(declare-fun thread_1_2 () Bool)\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -776,7 +778,7 @@ TEST(smtlib_Encoder, declare_thread)
     "(declare-fun thread_1_1 () Bool)\n"
     "(declare-fun thread_1_2 () Bool)\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Encoder::declare_exec ===============================================
@@ -801,7 +803,7 @@ TEST(smtlib_Encoder, declare_exec)
     "(declare-fun exec_1_2_1 () Bool)\n"
     "(declare-fun exec_1_2_2 () Bool)\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -823,7 +825,7 @@ TEST(smtlib_Encoder, declare_exec)
     "(declare-fun exec_1_2_1 () Bool)\n"
     "(declare-fun exec_1_2_2 () Bool)\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Encoder::declare_flush ==============================================
@@ -840,7 +842,7 @@ TEST(smtlib_Encoder, declare_flush)
     "(declare-fun flush_1_1 () Bool)\n"
     "(declare-fun flush_1_2 () Bool)\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -854,7 +856,7 @@ TEST(smtlib_Encoder, declare_flush)
     "(declare-fun flush_1_1 () Bool)\n"
     "(declare-fun flush_1_2 () Bool)\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Encoder::declare_check ==============================================
@@ -873,7 +875,7 @@ TEST(smtlib_Encoder, declare_check)
 
   encoder.declare_check();
 
-  ASSERT_EQ("", encoder.str());
+  ASSERT_EQ("", encoder.formula.str());
 
   // same checkpoint ids
   for (auto & p : *programs)
@@ -887,7 +889,7 @@ TEST(smtlib_Encoder, declare_check)
     "; checkpoint variables - check_<step>_<id>\n"
     "(declare-fun check_1_4 () Bool)\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -899,7 +901,7 @@ TEST(smtlib_Encoder, declare_check)
   ASSERT_EQ(
     "(declare-fun check_1_4 () Bool)\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 TEST(smtlib_Encoder, declare_check_empty)
@@ -925,7 +927,7 @@ TEST(smtlib_Encoder, init_accu)
     "(assert (= accu_0_1 #x0000))\n"
     "(assert (= accu_0_2 #x0000))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -939,7 +941,7 @@ TEST(smtlib_Encoder, init_accu)
     "(assert (= accu_0_1 #x0000))\n"
     "(assert (= accu_0_2 #x0000))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Encoder::init_mem ===================================================
@@ -956,7 +958,7 @@ TEST(smtlib_Encoder, init_mem)
     "(assert (= mem_0_1 #x0000))\n"
     "(assert (= mem_0_2 #x0000))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -970,7 +972,7 @@ TEST(smtlib_Encoder, init_mem)
     "(assert (= mem_0_1 #x0000))\n"
     "(assert (= mem_0_2 #x0000))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Encoder::init_sb_adr ================================================
@@ -987,7 +989,7 @@ TEST(smtlib_Encoder, init_sb_adr)
     "(assert (= sb-adr_0_1 #x0000))\n"
     "(assert (= sb-adr_0_2 #x0000))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -1001,7 +1003,7 @@ TEST(smtlib_Encoder, init_sb_adr)
     "(assert (= sb-adr_0_1 #x0000))\n"
     "(assert (= sb-adr_0_2 #x0000))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Encoder::init_sb_val ================================================
@@ -1018,7 +1020,7 @@ TEST(smtlib_Encoder, init_sb_val)
     "(assert (= sb-val_0_1 #x0000))\n"
     "(assert (= sb-val_0_2 #x0000))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -1032,7 +1034,7 @@ TEST(smtlib_Encoder, init_sb_val)
     "(assert (= sb-val_0_1 #x0000))\n"
     "(assert (= sb-val_0_2 #x0000))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Encoder::init_sb_full ===============================================
@@ -1049,7 +1051,7 @@ TEST(smtlib_Encoder, init_sb_full)
     "(assert (not sb-full_0_1))\n"
     "(assert (not sb-full_0_2))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -1063,7 +1065,7 @@ TEST(smtlib_Encoder, init_sb_full)
     "(assert (not sb-full_0_1))\n"
     "(assert (not sb-full_0_2))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Encoder::init_stmt ==================================================
@@ -1088,7 +1090,7 @@ TEST(smtlib_Encoder, init_stmt)
     "(assert (not stmt_0_2_1))\n"
     "(assert (not stmt_0_2_2))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -1110,7 +1112,7 @@ TEST(smtlib_Encoder, init_stmt)
     "(assert (not stmt_0_2_1))\n"
     "(assert (not stmt_0_2_2))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Encoder::init_block =================================================
@@ -1135,7 +1137,7 @@ TEST(smtlib_Encoder, init_block)
     "(assert (not block_0_1_1))\n"
     "(assert (not block_0_1_2))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -1153,7 +1155,7 @@ TEST(smtlib_Encoder, init_block)
     "(assert (not block_0_1_1))\n"
     "(assert (not block_0_1_2))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 TEST(smtlib_Encoder, init_block_empty)
@@ -1179,7 +1181,7 @@ TEST(smtlib_Encoder, init_halt)
     "(assert (not halt_0_1))\n"
     "(assert (not halt_0_2))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -1193,7 +1195,7 @@ TEST(smtlib_Encoder, init_halt)
     "(assert (not halt_0_1))\n"
     "(assert (not halt_0_2))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 TEST(smtlib_Encoder, init_halt_empty)
@@ -1218,7 +1220,7 @@ TEST(smtlib_Encoder, init_heap)
     "(assert (= (select heap_0 #x0000) #x0001))\n"
     "(assert (= (select heap_0 #x0001) #x0001))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -1231,7 +1233,7 @@ TEST(smtlib_Encoder, init_heap)
     "(assert (= (select heap_0 #x0000) #x0001))\n"
     "(assert (= (select heap_0 #x0001) #x0001))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 TEST(smtlib_Encoder, init_heap_empty)
@@ -1258,7 +1260,7 @@ TEST(smtlib_Encoder, init_exit_flag)
     "; exit flag variable - exit_<step>\n"
     "(assert (not exit_0))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -1267,7 +1269,7 @@ TEST(smtlib_Encoder, init_exit_flag)
   encoder.init_exit_flag();
   verbose = true;
 
-  ASSERT_EQ("(assert (not exit_0))\n\n", encoder.str());
+  ASSERT_EQ("(assert (not exit_0))\n\n", encoder.formula.str());
 }
 
 TEST(smtlib_Encoder, init_exit_flag_empty)
@@ -1308,7 +1310,7 @@ TEST(smtlib_Encoder, init_states)
     "; statement activation variables - stmt_<step>_<thread>_<pc>\n"
     "(assert stmt_0_0_0)\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -1330,7 +1332,7 @@ TEST(smtlib_Encoder, init_states)
     "\n"
     "(assert stmt_0_0_0)\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 TEST(smtlib_Encoder, init_states_check_exit)
@@ -1389,7 +1391,7 @@ TEST(smtlib_Encoder, init_states_check_exit)
     "; exit flag variable - exit_<step>\n"
     "(assert (not exit_0))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Encoder::define_exec ================================================
@@ -1414,7 +1416,7 @@ TEST(smtlib_Encoder, define_exec)
     "(assert (= exec_1_2_1 (and stmt_1_2_1 thread_1_2)))\n"
     "(assert (= exec_1_2_2 (and stmt_1_2_2 thread_1_2)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -1436,7 +1438,7 @@ TEST(smtlib_Encoder, define_exec)
     "(assert (= exec_1_2_1 (and stmt_1_2_1 thread_1_2)))\n"
     "(assert (= exec_1_2_2 (and stmt_1_2_2 thread_1_2)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Encoder::define_check ===============================================
@@ -1452,7 +1454,7 @@ TEST(smtlib_Encoder, define_check)
     "; checkpoint variables - check_<step>_<id>\n"
     "(assert (not check_0_1))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // step 1
   reset(encoder, 1);
@@ -1463,7 +1465,7 @@ TEST(smtlib_Encoder, define_check)
     "; checkpoint variables - check_<step>_<id>\n"
     "(assert (= check_1_1 (and block_1_1_0 block_1_1_1 block_1_1_2)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder, 0);
@@ -1472,7 +1474,7 @@ TEST(smtlib_Encoder, define_check)
   encoder.define_check();
   verbose = true;
 
-  ASSERT_EQ("(assert (not check_0_1))\n\n", encoder.str());
+  ASSERT_EQ("(assert (not check_0_1))\n\n", encoder.formula.str());
 }
 
 TEST(smtlib_Encoder, define_check_empty)
@@ -1507,7 +1509,7 @@ TEST(smtlib_Encoder, define_scheduling_constraints)
     "(assert (or (not thread_1_1) (not exit_1)))\n"
     "(assert (or (not flush_1_1) (not exit_1)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -1529,7 +1531,7 @@ TEST(smtlib_Encoder, define_scheduling_constraints)
     "(assert (or (not thread_1_1) (not exit_1)))\n"
     "(assert (or (not flush_1_1) (not exit_1)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 TEST(smtlib_Encoder, define_scheduling_constraints_exit)
@@ -1553,7 +1555,7 @@ TEST(smtlib_Encoder, define_scheduling_constraints_exit)
     "(assert (or (not thread_1_1) (not exit_1)))\n"
     "(assert (or (not flush_1_1) (not exit_1)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -1575,7 +1577,7 @@ TEST(smtlib_Encoder, define_scheduling_constraints_exit)
     "(assert (or (not thread_1_1) (not exit_1)))\n"
     "(assert (or (not flush_1_1) (not exit_1)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 TEST(smtlib_Encoder, define_scheduling_constraints_single_thread)
@@ -1589,7 +1591,7 @@ TEST(smtlib_Encoder, define_scheduling_constraints_single_thread)
     "\n"
     "(assert (xor thread_1_0 flush_1_0))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -1598,7 +1600,7 @@ TEST(smtlib_Encoder, define_scheduling_constraints_single_thread)
   encoder.define_scheduling_constraints();
   verbose = true;
 
-  ASSERT_EQ("(assert (xor thread_1_0 flush_1_0))\n\n", encoder.str());
+  ASSERT_EQ("(assert (xor thread_1_0 flush_1_0))\n\n", encoder.formula.str());
 }
 
 // smtlib::Encoder::define_store_buffer_constraints ============================
@@ -1631,7 +1633,7 @@ TEST(smtlib_Encoder, define_store_buffer_constraints)
         "(=> (or stmt_1_2_0 stmt_1_2_1 stmt_1_2_2 stmt_1_2_3) (not thread_1_2)) "
         "(not flush_1_2)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -1654,7 +1656,7 @@ TEST(smtlib_Encoder, define_store_buffer_constraints)
         "(=> (or stmt_1_2_0 stmt_1_2_1 stmt_1_2_2 stmt_1_2_3) (not thread_1_2)) "
         "(not flush_1_2)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Encoder::define_checkpoint_constraints ==============================
@@ -1673,7 +1675,7 @@ TEST(smtlib_Encoder, define_checkpoint_constraints)
     "(assert (=> (and block_1_1_1 (not check_1_1)) (not thread_1_1))) ; checkpoint 1: thread 1\n"
     "(assert (=> (and block_1_1_2 (not check_1_1)) (not thread_1_2))) ; checkpoint 1: thread 2\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // two different checkpoints
   for (auto & p : *programs)
@@ -1694,7 +1696,7 @@ TEST(smtlib_Encoder, define_checkpoint_constraints)
     "(assert (=> (and block_1_2_1 (not check_1_2)) (not thread_1_1))) ; checkpoint 2: thread 1\n"
     "(assert (=> (and block_1_2_2 (not check_1_2)) (not thread_1_2))) ; checkpoint 2: thread 2\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // two identical checkpoints
   for (auto & p : *programs)
@@ -1715,7 +1717,7 @@ TEST(smtlib_Encoder, define_checkpoint_constraints)
     "(assert (=> (and block_1_2_1 (not check_1_2)) (not thread_1_1))) ; checkpoint 2: thread 1\n"
     "(assert (=> (and block_1_2_2 (not check_1_2)) (not thread_1_2))) ; checkpoint 2: thread 2\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -1733,7 +1735,7 @@ TEST(smtlib_Encoder, define_checkpoint_constraints)
     "(assert (=> (and block_1_2_1 (not check_1_2)) (not thread_1_1)))\n"
     "(assert (=> (and block_1_2_2 (not check_1_2)) (not thread_1_2)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 TEST(smtlib_Encoder, define_checkpoint_constraints_empty)
@@ -1760,7 +1762,7 @@ TEST(smtlib_Encoder, define_halt_constraints)
     "(assert (=> halt_1_1 (not thread_1_1)))\n"
     "(assert (=> halt_1_2 (not thread_1_2)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -1774,7 +1776,7 @@ TEST(smtlib_Encoder, define_halt_constraints)
     "(assert (=> halt_1_1 (not thread_1_1)))\n"
     "(assert (=> halt_1_2 (not thread_1_2)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 TEST(smtlib_Encoder, define_halt_constraints_empty)
@@ -1812,10 +1814,10 @@ TEST(smtlib_Encoder, STORE)
 
   Instruction::Store store {Instruction::Instruction::Type::none, 1};
 
-  encoder.update = E::State::sb_adr;
+  encoder.update = E::Update::sb_adr;
   ASSERT_EQ("#x0001", encoder.encode(store));
 
-  encoder.update = E::State::sb_val;
+  encoder.update = E::Update::sb_val;
   ASSERT_EQ("accu_0_0", encoder.encode(store));
 }
 
@@ -1825,10 +1827,10 @@ TEST(smtlib_Encoder, STORE_indirect)
 
   Instruction::Store store {Instruction::Type::none, 1, true};
 
-  encoder.update = E::State::sb_adr;
+  encoder.update = E::Update::sb_adr;
   ASSERT_EQ(encoder.load(store.arg), encoder.encode(store));
 
-  encoder.update = E::State::sb_val;
+  encoder.update = E::Update::sb_val;
   ASSERT_EQ("accu_0_0", encoder.encode(store));
 }
 
@@ -2045,13 +2047,13 @@ TEST(smtlib_Encoder, CAS)
 
   Instruction::Cas cas {Instruction::Type::none, 1};
 
-  encoder.update = E::State::accu;
+  encoder.update = E::Update::accu;
 
   ASSERT_EQ(
     "(ite (= mem_0_0 (select heap_0 #x0001)) #x0001 #x0000)",
     encoder.encode(cas));
 
-  encoder.update = E::State::heap;
+  encoder.update = E::Update::heap;
 
   ASSERT_EQ(
     "(ite "
@@ -2067,13 +2069,13 @@ TEST(smtlib_Encoder, CAS_indirect)
 
   Instruction::Cas cas {Instruction::Type::none, 1, true};
 
-  encoder.update = E::State::accu;
+  encoder.update = E::Update::accu;
 
   ASSERT_EQ(
     "(ite (= mem_0_0 (select heap_0 (select heap_0 #x0001))) #x0001 #x0000)",
     encoder.encode(cas));
 
-  encoder.update = E::State::heap;
+  encoder.update = E::Update::heap;
 
   ASSERT_EQ(
     "(ite "

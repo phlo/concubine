@@ -1,4 +1,4 @@
-#include "encoder.hh"
+#include "encoder_smtlib_functional.hh"
 
 #include <cassert>
 
@@ -11,10 +11,20 @@ namespace ConcuBinE::smtlib {
 //==============================================================================
 
 //------------------------------------------------------------------------------
-// functions
+// public member functions inherited from ConcuBinE::smtlib::Encoder
 //------------------------------------------------------------------------------
 
-// smtlib::Functional::define_accu ---------------------------------------------
+// smtlib::Functional::encode --------------------------------------------------
+
+void Functional::encode ()
+{
+  Encoder::encode();
+  define_exit_code();
+}
+
+//------------------------------------------------------------------------------
+// private member functions
+//------------------------------------------------------------------------------
 
 #define DEFINE_STATE(_update, _type, _var) \
   do { \
@@ -33,12 +43,14 @@ namespace ConcuBinE::smtlib {
     formula << eol; \
   } while (0)
 
+// smtlib::Functional::define_accu ---------------------------------------------
+
 void Functional::define_accu ()
 {
   if (verbose)
     formula << accu_comment;
 
-  DEFINE_STATE(State::accu, Instruction::Type::accu, accu_var);
+  DEFINE_STATE(Update::accu, Instruction::Type::accu, accu_var);
 }
 
 // smtlib::Functional::define_mem ----------------------------------------------
@@ -48,7 +60,7 @@ void Functional::define_mem ()
   if (verbose)
     formula << mem_comment;
 
-  DEFINE_STATE(State::mem, Instruction::Type::mem, mem_var);
+  DEFINE_STATE(Update::mem, Instruction::Type::mem, mem_var);
 }
 
 // smtlib::Functional::define_sb_adr -------------------------------------------
@@ -58,7 +70,7 @@ void Functional::define_sb_adr ()
   if (verbose)
     formula << sb_adr_comment;
 
-  DEFINE_STATE(State::sb_adr, Instruction::Type::write, sb_adr_var);
+  DEFINE_STATE(Update::sb_adr, Instruction::Type::write, sb_adr_var);
 }
 
 // smtlib::Functional::define_sb_val -------------------------------------------
@@ -68,7 +80,7 @@ void Functional::define_sb_val ()
   if (verbose)
     formula << sb_val_comment;
 
-  DEFINE_STATE(State::sb_val, Instruction::Type::write, sb_val_var);
+  DEFINE_STATE(Update::sb_val, Instruction::Type::write, sb_val_var);
 }
 
 // smtlib::Functional::define_sb_full ------------------------------------------
@@ -170,7 +182,6 @@ void Functional::define_block ()
       for (const auto & [t, pcs] : threads)
         {
           std::vector<std::string> args;
-
           args.reserve(pcs.size() + 1);
 
           for (const word_t p : pcs)
@@ -205,7 +216,6 @@ void Functional::define_halt ()
   for (const auto & [t, pcs] : halts)
     {
       std::vector<std::string> args;
-
       args.reserve(pcs.size() + 1);
 
       for (const word_t p : pcs)
@@ -226,7 +236,7 @@ void Functional::define_heap ()
   if (verbose)
     formula << heap_comment;
 
-  update = State::heap;
+  update = Update::heap;
 
   const std::string heap_prev = heap_var(prev);
   std::string expr = heap_prev;
@@ -270,7 +280,6 @@ void Functional::define_exit_flag ()
   if (!halts.empty())
     {
       std::vector<std::string> halt;
-
       halt.reserve(halts.size());
 
       for (const auto & it : halts)
@@ -310,6 +319,10 @@ void Functional::define_exit_code ()
   formula << assign(exit_code_var, expr) << eol << eol;
 }
 
+//------------------------------------------------------------------------------
+// private member functions inherited from ConcuBinE::smtlib::Encoder
+//------------------------------------------------------------------------------
+
 // smtlib::Functional::define_states -------------------------------------------
 
 void Functional::define_states ()
@@ -330,15 +343,6 @@ void Functional::define_states ()
 
   define_heap();
   define_exit_flag();
-}
-
-// smtlib::Functional::encode --------------------------------------------------
-
-void Functional::encode ()
-{
-  Encoder::encode();
-
-  define_exit_code();
 }
 
 } // namespace ConcuBinE::smtlib

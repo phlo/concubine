@@ -1,4 +1,4 @@
-#include "encoder.hh"
+#include "encoder_smtlib_relational.hh"
 
 #include <cassert>
 
@@ -7,73 +7,11 @@
 namespace ConcuBinE::smtlib {
 
 //==============================================================================
-// smtlib::Relational::State
-//==============================================================================
-
-//------------------------------------------------------------------------------
-// constructors
-//------------------------------------------------------------------------------
-
-Relational::State::State (Relational & e) :
-  accu(e.restore_accu()),
-  mem(e.restore_mem()),
-  sb_adr(e.restore_sb_adr()),
-  sb_val(e.restore_sb_val()),
-  sb_full(e.restore_sb_full()),
-  block(e.restore_block()),
-  halt(e.restore_halt()),
-  heap(e.restore_heap()),
-  exit_flag(e.unset_exit_flag())
-{
-  assert(!stmt);
-  assert(!exit_code);
-}
-
-//------------------------------------------------------------------------------
-// member operators
-//------------------------------------------------------------------------------
-
-// conversion ------------------------------------------------------------------
-
-Relational::State::operator std::string () const
-{
-  std::vector<std::string> args;
-
-  args.reserve(10);
-
-  args.push_back(*accu);
-  args.push_back(*mem);
-  args.push_back(*sb_adr);
-  args.push_back(*sb_val);
-  args.push_back(*sb_full);
-
-  if (stmt)
-    args.push_back(*stmt);
-
-  if (block)
-    args.push_back(*block);
-
-  if (halt)
-    args.push_back(*halt);
-
-  if (heap)
-    args.push_back(*heap);
-
-  if (exit_flag)
-    args.push_back(*exit_flag);
-
-  if (exit_code)
-    args.push_back(*exit_code);
-
-  return land(args);
-}
-
-//==============================================================================
 // smtlib::Relational
 //==============================================================================
 
 //------------------------------------------------------------------------------
-// member functions
+// private member functions
 //------------------------------------------------------------------------------
 
 // smtlib::Relational::imply ---------------------------------------------------
@@ -89,7 +27,7 @@ std::string Relational::imply (const std::string & ante,
 template <class T>
 std::shared_ptr<std::string> Relational::set_accu (const T & op)
 {
-  update = Encoder::State::accu;
+  update = Update::accu;
 
   return
     std::make_shared<std::string>(
@@ -110,7 +48,7 @@ std::shared_ptr<std::string> Relational::restore_accu () const
 template <class T>
 std::shared_ptr<std::string> Relational::set_mem (const T & op)
 {
-  update = Encoder::State::mem;
+  update = Update::mem;
 
   return
     std::make_shared<std::string>(
@@ -131,7 +69,7 @@ std::shared_ptr<std::string> Relational::restore_mem () const
 template <class T>
 std::shared_ptr<std::string> Relational::set_sb_adr (const T & op)
 {
-  update = Encoder::State::sb_adr;
+  update = Update::sb_adr;
 
   return
     std::make_shared<std::string>(
@@ -152,7 +90,7 @@ std::shared_ptr<std::string> Relational::restore_sb_adr () const
 template <class T>
 std::shared_ptr<std::string> Relational::set_sb_val (const T & op)
 {
-  update = Encoder::State::sb_val;
+  update = Update::sb_val;
 
   return
     std::make_shared<std::string>(
@@ -386,7 +324,7 @@ std::shared_ptr<std::string> Relational::restore_halt () const
 template <class T>
 std::shared_ptr<std::string> Relational::set_heap (const T & op)
 {
-  update = Encoder::State::heap;
+  update = Update::heap;
 
   return
     std::make_shared<std::string>(
@@ -532,6 +470,10 @@ void Relational::imply_machine_exited ()
       eol;
 }
 
+//------------------------------------------------------------------------------
+// private member functions inherited from ConcuBinE::smtlib::Encoder
+//------------------------------------------------------------------------------
+
 // smtlib::Relational::define_states -------------------------------------------
 
 void Relational::define_states ()
@@ -572,7 +514,6 @@ std::string Relational::encode (const Instruction::Store & s)
   return state;
 }
 
-// TODO
 std::string Relational::encode (const Instruction::Fence & f [[maybe_unused]])
 {
   state.stmt = set_stmt_next();
@@ -720,6 +661,68 @@ std::string Relational::encode (const Instruction::Exit & e)
   state.exit_code = set_exit_code(e.arg);
 
   return state;
+}
+
+//==============================================================================
+// smtlib::Relational::State
+//==============================================================================
+
+//------------------------------------------------------------------------------
+// public constructors
+//------------------------------------------------------------------------------
+
+Relational::State::State (Relational & e) :
+  accu(e.restore_accu()),
+  mem(e.restore_mem()),
+  sb_adr(e.restore_sb_adr()),
+  sb_val(e.restore_sb_val()),
+  sb_full(e.restore_sb_full()),
+  block(e.restore_block()),
+  halt(e.restore_halt()),
+  heap(e.restore_heap()),
+  exit_flag(e.unset_exit_flag())
+{
+  assert(!stmt);
+  assert(!exit_code);
+}
+
+//------------------------------------------------------------------------------
+// public member operators
+//------------------------------------------------------------------------------
+
+// conversion ------------------------------------------------------------------
+
+Relational::State::operator std::string () const
+{
+  std::vector<std::string> args;
+
+  args.reserve(10);
+
+  args.push_back(*accu);
+  args.push_back(*mem);
+  args.push_back(*sb_adr);
+  args.push_back(*sb_val);
+  args.push_back(*sb_full);
+
+  if (stmt)
+    args.push_back(*stmt);
+
+  if (block)
+    args.push_back(*block);
+
+  if (halt)
+    args.push_back(*halt);
+
+  if (heap)
+    args.push_back(*heap);
+
+  if (exit_flag)
+    args.push_back(*exit_flag);
+
+  if (exit_code)
+    args.push_back(*exit_code);
+
+  return land(args);
 }
 
 } // namespace ConcuBinE::smtlib

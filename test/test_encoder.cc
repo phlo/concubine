@@ -1,5 +1,7 @@
 #include "test_encoder.hh"
 
+#include "encoder_smtlib_functional.hh"
+
 namespace ConcuBinE::test {
 
 //==============================================================================
@@ -155,17 +157,6 @@ TEST(Encoder, iterate_programs_reverse)
     ASSERT_EQ(thread, encoder.thread);
     ASSERT_EQ(&(*programs)[thread--], &p);
   });
-}
-
-// Encoder::str ================================================================
-
-TEST(Encoder, str)
-{
-  const auto str = "foo";
-  auto encoder = create<E>();
-
-  encoder.formula << str;
-  ASSERT_EQ(str, encoder.str());
 }
 
 } // namespace ConcuBinE::test

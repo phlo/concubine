@@ -1,5 +1,7 @@
 #include "test_encoder.hh"
 
+#include "encoder_smtlib_relational.hh"
+
 namespace ConcuBinE::test {
 
 //==============================================================================
@@ -90,7 +92,7 @@ TEST(smtlib_Relational, imply_thread_executed)
         "exit_1 "
         "(= exit-code #x0001))))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Relational::imply_thread_not_executed ===============================
@@ -120,7 +122,7 @@ TEST(smtlib_Relational, imply_thread_not_executed)
           "(= stmt_1_0_2 stmt_0_0_2)) "
         "(= block_1_0_0 (ite check_0_0 false block_0_0_0)))))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Relational::imply_thread_flushed ====================================
@@ -138,7 +140,7 @@ TEST(smtlib_Relational, imply_thread_flushed)
         "(= heap_1 (store heap_0 sb-adr_0_0 sb-val_0_0)) "
         "(not exit_1))))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Relational::imply_machine_exited ====================================
@@ -155,7 +157,7 @@ TEST(smtlib_Relational, imply_machine_exited)
     "\n"
     "(assert (=> (not exit_1) (= exit-code #x0000)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Relational::define_states ===========================================
@@ -197,7 +199,7 @@ TEST(smtlib_Relational, define_states)
     "; exit code\n"
     "(assert (= exit-code #x0000))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -233,7 +235,7 @@ TEST(smtlib_Relational, define_states)
     "\n"
     "(assert (= exit-code #x0000))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 TEST(smtlib_Relational, define_states_check_exit)
@@ -308,7 +310,7 @@ TEST(smtlib_Relational, define_states_check_exit)
     "\n"
     "(assert (=> (not exit_1) (= exit-code #x0000)))\n"
     "\n",
-    encoder.str());
+    encoder.formula.str());
 }
 
 // smtlib::Relational::encode ==================================================

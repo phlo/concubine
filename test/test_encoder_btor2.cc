@@ -305,14 +305,14 @@ TEST(btor2_Encoder, declare_sorts)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
 
   verbose = false;
   encoder.declare_sorts();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -344,7 +344,7 @@ TEST(btor2_Encoder, declare_constants)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -354,7 +354,7 @@ TEST(btor2_Encoder, declare_constants)
 
   verbose = false;
   encoder.declare_constants();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -394,7 +394,7 @@ TEST(btor2_Encoder, define_mmap)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -403,7 +403,7 @@ TEST(btor2_Encoder, define_mmap)
   verbose = false;
   nid = encoder.node;
   encoder.define_mmap();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -445,7 +445,7 @@ TEST(btor2_Encoder, declare_accu)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -453,7 +453,7 @@ TEST(btor2_Encoder, declare_accu)
 
   verbose = false;
   encoder.declare_accu();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -486,7 +486,7 @@ TEST(btor2_Encoder, declare_mem)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -494,7 +494,7 @@ TEST(btor2_Encoder, declare_mem)
 
   verbose = false;
   encoder.declare_mem();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -527,7 +527,7 @@ TEST(btor2_Encoder, declare_sb_adr)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -535,7 +535,7 @@ TEST(btor2_Encoder, declare_sb_adr)
 
   verbose = false;
   encoder.declare_sb_adr();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -568,7 +568,7 @@ TEST(btor2_Encoder, declare_sb_val)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -576,7 +576,7 @@ TEST(btor2_Encoder, declare_sb_val)
 
   verbose = false;
   encoder.declare_sb_val();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -609,7 +609,7 @@ TEST(btor2_Encoder, declare_sb_full)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -617,7 +617,7 @@ TEST(btor2_Encoder, declare_sb_full)
 
   verbose = false;
   encoder.declare_sb_full();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -654,7 +654,7 @@ TEST(btor2_Encoder, declare_stmt)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -662,7 +662,7 @@ TEST(btor2_Encoder, declare_stmt)
 
   verbose = false;
   encoder.declare_stmt();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -697,7 +697,7 @@ TEST(btor2_Encoder, declare_block)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -705,7 +705,7 @@ TEST(btor2_Encoder, declare_block)
 
   verbose = false;
   encoder.declare_block();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -746,7 +746,7 @@ TEST(btor2_Encoder, declare_halt)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -754,7 +754,7 @@ TEST(btor2_Encoder, declare_halt)
 
   verbose = false;
   encoder.declare_halt();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -788,7 +788,7 @@ TEST(btor2_Encoder, declare_heap)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -796,7 +796,7 @@ TEST(btor2_Encoder, declare_heap)
 
   verbose = false;
   encoder.declare_heap();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -821,7 +821,7 @@ TEST(btor2_Encoder, declare_exit_flag)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -829,7 +829,7 @@ TEST(btor2_Encoder, declare_exit_flag)
 
   verbose = false;
   encoder.declare_exit_flag();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -863,7 +863,7 @@ TEST(btor2_Encoder, declare_exit_code)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -871,7 +871,7 @@ TEST(btor2_Encoder, declare_exit_code)
 
   verbose = false;
   encoder.declare_exit_code();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -904,7 +904,7 @@ TEST(btor2_Encoder, declare_thread)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -912,7 +912,7 @@ TEST(btor2_Encoder, declare_thread)
 
   verbose = false;
   encoder.declare_thread();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -945,7 +945,7 @@ TEST(btor2_Encoder, declare_flush)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -953,7 +953,7 @@ TEST(btor2_Encoder, declare_flush)
 
   verbose = false;
   encoder.declare_flush();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -992,7 +992,7 @@ TEST(btor2_Encoder, define_exec)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -1000,7 +1000,7 @@ TEST(btor2_Encoder, define_exec)
 
   verbose = false;
   encoder.define_exec();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -1034,7 +1034,7 @@ TEST(btor2_Encoder, define_check)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -1043,7 +1043,7 @@ TEST(btor2_Encoder, define_check)
   verbose = false;
   nid = encoder.node;
   encoder.define_check();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -1329,7 +1329,7 @@ TEST(btor2_Encoder, define_accu)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -1338,7 +1338,7 @@ TEST(btor2_Encoder, define_accu)
   verbose = false;
   nid = encoder.node;
   encoder.define_accu();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -1395,7 +1395,7 @@ TEST(btor2_Encoder, define_sb_adr)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -1404,7 +1404,7 @@ TEST(btor2_Encoder, define_sb_adr)
   verbose = false;
   nid = encoder.node;
   encoder.define_sb_adr();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -1461,7 +1461,7 @@ TEST(btor2_Encoder, define_sb_val)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -1470,7 +1470,7 @@ TEST(btor2_Encoder, define_sb_val)
   verbose = false;
   nid = encoder.node;
   encoder.define_sb_val();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -1533,7 +1533,7 @@ TEST(btor2_Encoder, define_sb_full)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -1542,7 +1542,7 @@ TEST(btor2_Encoder, define_sb_full)
   verbose = false;
   nid = encoder.node;
   encoder.define_sb_full();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -1675,7 +1675,7 @@ TEST(btor2_Encoder, define_stmt)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -1684,7 +1684,7 @@ TEST(btor2_Encoder, define_stmt)
   verbose = false;
   nid = encoder.node;
   encoder.define_stmt();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -1829,7 +1829,7 @@ TEST(btor2_Encoder, define_stmt_jmp)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -1838,7 +1838,7 @@ TEST(btor2_Encoder, define_stmt_jmp)
   verbose = false;
   nid = encoder.node;
   encoder.define_stmt();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -2043,7 +2043,7 @@ TEST(btor2_Encoder, define_stmt_jmp_conditional)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -2052,7 +2052,7 @@ TEST(btor2_Encoder, define_stmt_jmp_conditional)
   verbose = false;
   nid = encoder.node;
   encoder.define_stmt();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -2257,7 +2257,7 @@ TEST(btor2_Encoder, define_stmt_jmp_start)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -2266,7 +2266,7 @@ TEST(btor2_Encoder, define_stmt_jmp_start)
   verbose = false;
   nid = encoder.node;
   encoder.define_stmt();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -2540,7 +2540,7 @@ TEST(btor2_Encoder, define_stmt_jmp_twice)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -2549,7 +2549,7 @@ TEST(btor2_Encoder, define_stmt_jmp_twice)
   verbose = false;
   nid = encoder.node;
   encoder.define_stmt();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -2612,7 +2612,7 @@ TEST(btor2_Encoder, define_block)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -2621,7 +2621,7 @@ TEST(btor2_Encoder, define_block)
   verbose = false;
   nid = encoder.node;
   encoder.define_block();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -2698,7 +2698,7 @@ TEST(btor2_Encoder, define_halt)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -2707,7 +2707,7 @@ TEST(btor2_Encoder, define_halt)
   verbose = false;
   nid = encoder.node;
   encoder.define_halt();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -2844,7 +2844,7 @@ TEST(btor2_Encoder, define_heap)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -2853,7 +2853,7 @@ TEST(btor2_Encoder, define_heap)
   verbose = false;
   nid = encoder.node;
   encoder.define_heap();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -2894,7 +2894,7 @@ TEST(btor2_Encoder, define_heap_mmap)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 }
 
 // btor2::Encoder::define_exit_flag ============================================
@@ -2985,7 +2985,7 @@ TEST(btor2_Encoder, define_exit_flag)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -2996,7 +2996,7 @@ TEST(btor2_Encoder, define_exit_flag)
   verbose = false;
   nid = encoder.node;
   encoder.define_exit_flag();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -3075,7 +3075,7 @@ TEST(btor2_Encoder, define_exit_code)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -3084,7 +3084,7 @@ TEST(btor2_Encoder, define_exit_code)
   verbose = false;
   nid = encoder.node;
   encoder.define_exit_code();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -3125,7 +3125,7 @@ TEST(btor2_Encoder, define_scheduling_constraints)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -3134,7 +3134,7 @@ TEST(btor2_Encoder, define_scheduling_constraints)
   verbose = false;
   nid = encoder.node;
   encoder.define_scheduling_constraints();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -3173,7 +3173,7 @@ TEST(btor2_Encoder, define_scheduling_constraints_exit)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -3182,7 +3182,7 @@ TEST(btor2_Encoder, define_scheduling_constraints_exit)
   verbose = false;
   nid = encoder.node;
   encoder.define_scheduling_constraints();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -3223,7 +3223,7 @@ TEST(btor2_Encoder, define_scheduling_constraints_single_thread)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -3232,7 +3232,7 @@ TEST(btor2_Encoder, define_scheduling_constraints_single_thread)
   verbose = false;
   nid = encoder.node;
   encoder.define_scheduling_constraints();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -3285,7 +3285,7 @@ TEST(btor2_Encoder, define_store_buffer_constraints)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -3294,7 +3294,7 @@ TEST(btor2_Encoder, define_store_buffer_constraints)
   verbose = false;
   nid = encoder.node;
   encoder.define_store_buffer_constraints();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -3329,7 +3329,7 @@ TEST(btor2_Encoder, define_store_buffer_constraints_no_barrier)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -3338,7 +3338,7 @@ TEST(btor2_Encoder, define_store_buffer_constraints_no_barrier)
   verbose = false;
   nid = encoder.node;
   encoder.define_store_buffer_constraints();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -3389,7 +3389,7 @@ TEST(btor2_Encoder, define_checkpoint_constraints)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -3398,7 +3398,7 @@ TEST(btor2_Encoder, define_checkpoint_constraints)
   verbose = false;
   nid = encoder.node;
   encoder.define_checkpoint_constraints();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -3446,7 +3446,7 @@ TEST(btor2_Encoder, define_halt_constraints)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -3455,7 +3455,7 @@ TEST(btor2_Encoder, define_halt_constraints)
   verbose = false;
   nid = encoder.node;
   encoder.define_halt_constraints();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -3529,7 +3529,7 @@ TEST(btor2_Encoder, define_bound)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   // verbosity
   reset(encoder);
@@ -3538,7 +3538,7 @@ TEST(btor2_Encoder, define_bound)
   verbose = false;
   nid = encoder.node;
   encoder.define_bound();
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
   verbose = true;
 }
 
@@ -3585,7 +3585,7 @@ TEST(btor2_Encoder, LOAD)
   ASSERT_EQ(
     encoder.nids_load[encoder.thread][address],
     encoder.encode(load));
-  ASSERT_EQ(expected_load(encoder, nid, address), encoder.str());
+  ASSERT_EQ(expected_load(encoder, nid, address), encoder.formula.str());
 }
 
 TEST(btor2_Encoder, LOAD_indirect)
@@ -3603,7 +3603,9 @@ TEST(btor2_Encoder, LOAD_indirect)
   ASSERT_EQ(
     encoder.nids_load_indirect[encoder.thread][address],
     encoder.encode(load));
-  ASSERT_EQ(expected_load_indirect(encoder, nid, address), encoder.str());
+  ASSERT_EQ(
+    expected_load_indirect(encoder, nid, address),
+    encoder.formula.str());
 }
 
 TEST(btor2_Encoder, STORE)
@@ -3616,10 +3618,10 @@ TEST(btor2_Encoder, STORE)
 
   Instruction::Store store {Instruction::Type::none, address};
 
-  encoder.update = E::State::sb_adr;
+  encoder.update = E::Update::sb_adr;
   ASSERT_EQ(encoder.nids_const[address], encoder.encode(store));
 
-  encoder.update = E::State::sb_val;
+  encoder.update = E::Update::sb_val;
   ASSERT_EQ(encoder.nids_accu[0], encoder.encode(store));
 }
 
@@ -3635,13 +3637,13 @@ TEST(btor2_Encoder, STORE_indirect)
 
   Instruction::Store store {Instruction::Type::none, address, true};
 
-  encoder.update = E::State::sb_adr;
+  encoder.update = E::Update::sb_adr;
   ASSERT_EQ(
     encoder.nids_load[encoder.thread][address],
     encoder.encode(store));
-  ASSERT_EQ(expected_load(encoder, nid, address), encoder.str());
+  ASSERT_EQ(expected_load(encoder, nid, address), encoder.formula.str());
 
-  encoder.update = E::State::sb_val;
+  encoder.update = E::Update::sb_val;
   ASSERT_EQ(encoder.nids_accu[0], encoder.encode(store));
 }
 
@@ -3674,7 +3676,7 @@ TEST(btor2_Encoder, ADD)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 }
 
 TEST(btor2_Encoder, ADD_indirect)
@@ -3706,7 +3708,7 @@ TEST(btor2_Encoder, ADD_indirect)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 }
 
 TEST(btor2_Encoder, ADDI)
@@ -3737,7 +3739,7 @@ TEST(btor2_Encoder, ADDI)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 }
 
 TEST(btor2_Encoder, SUB)
@@ -3769,7 +3771,7 @@ TEST(btor2_Encoder, SUB)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 }
 
 TEST(btor2_Encoder, SUB_indirect)
@@ -3801,7 +3803,7 @@ TEST(btor2_Encoder, SUB_indirect)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 }
 
 TEST(btor2_Encoder, SUBI)
@@ -3832,7 +3834,7 @@ TEST(btor2_Encoder, SUBI)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 }
 
 TEST(btor2_Encoder, MUL)
@@ -3864,7 +3866,7 @@ TEST(btor2_Encoder, MUL)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 }
 
 TEST(btor2_Encoder, MUL_indirect)
@@ -3896,7 +3898,7 @@ TEST(btor2_Encoder, MUL_indirect)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 }
 
 TEST(btor2_Encoder, MULI)
@@ -3927,7 +3929,7 @@ TEST(btor2_Encoder, MULI)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 }
 
 TEST(btor2_Encoder, CMP)
@@ -3959,7 +3961,7 @@ TEST(btor2_Encoder, CMP)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 }
 
 TEST(btor2_Encoder, CMP_indirect)
@@ -3991,7 +3993,7 @@ TEST(btor2_Encoder, CMP_indirect)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 }
 
 TEST(btor2_Encoder, JMP)
@@ -4030,7 +4032,7 @@ TEST(btor2_Encoder, JZ)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 }
 
 TEST(btor2_Encoder, JNZ)
@@ -4059,7 +4061,7 @@ TEST(btor2_Encoder, JNZ)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 }
 
 TEST(btor2_Encoder, JS)
@@ -4089,7 +4091,7 @@ TEST(btor2_Encoder, JS)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 }
 
 TEST(btor2_Encoder, JNS)
@@ -4119,7 +4121,7 @@ TEST(btor2_Encoder, JNS)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 }
 
 TEST(btor2_Encoder, JNZNS)
@@ -4163,7 +4165,7 @@ TEST(btor2_Encoder, JNZNS)
     return s.str();
   };
 
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 }
 
 TEST(btor2_Encoder, MEM)
@@ -4181,7 +4183,7 @@ TEST(btor2_Encoder, MEM)
   ASSERT_EQ(
     encoder.nids_load[encoder.thread][address],
     encoder.encode(mem));
-  ASSERT_EQ(expected_load(encoder, nid, address), encoder.str());
+  ASSERT_EQ(expected_load(encoder, nid, address), encoder.formula.str());
 }
 
 TEST(btor2_Encoder, MEM_indirect)
@@ -4199,7 +4201,9 @@ TEST(btor2_Encoder, MEM_indirect)
   ASSERT_EQ(
     encoder.nids_load_indirect[encoder.thread][address],
     encoder.encode(mem));
-  ASSERT_EQ(expected_load_indirect(encoder, nid, address), encoder.str());
+  ASSERT_EQ(
+    expected_load_indirect(encoder, nid, address),
+    encoder.formula.str());
 }
 
 TEST(btor2_Encoder, CAS)
@@ -4219,7 +4223,7 @@ TEST(btor2_Encoder, CAS)
   auto expected = [&encoder, &nid, &address, &nid_cas] {
     std::ostringstream s;
 
-    if (encoder.update == E::State::accu)
+    if (encoder.update == E::Update::accu)
       {
         s << expected_load(encoder, nid, address);
         s <<
@@ -4238,7 +4242,7 @@ TEST(btor2_Encoder, CAS)
             encoder.nids_const[0]);
         nid++;
       }
-    else if (encoder.update == E::State::heap)
+    else if (encoder.update == E::Update::heap)
       {
         s <<
           btor2::write(
@@ -4261,15 +4265,15 @@ TEST(btor2_Encoder, CAS)
     return s.str();
   };
 
-  encoder.update = E::State::accu;
+  encoder.update = E::Update::accu;
   nid_cas = encoder.encode(cas);
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   encoder.formula.str("");
 
-  encoder.update = E::State::heap;
+  encoder.update = E::Update::heap;
   nid_cas = encoder.encode(cas);
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 }
 
 TEST(btor2_Encoder, CAS_indirect)
@@ -4289,7 +4293,7 @@ TEST(btor2_Encoder, CAS_indirect)
   auto expected = [&encoder, &nid, &address, &nid_cas] {
     std::ostringstream s;
 
-    if (encoder.update == E::State::accu)
+    if (encoder.update == E::Update::accu)
       {
         s << expected_load(encoder, nid, address);
         s <<
@@ -4308,7 +4312,7 @@ TEST(btor2_Encoder, CAS_indirect)
             encoder.nids_const[0]);
         nid++;
       }
-    else if (encoder.update == E::State::heap)
+    else if (encoder.update == E::Update::heap)
       {
         s <<
           btor2::write(
@@ -4331,15 +4335,15 @@ TEST(btor2_Encoder, CAS_indirect)
     return s.str();
   };
 
-  encoder.update = E::State::accu;
+  encoder.update = E::Update::accu;
   nid_cas = encoder.encode(cas);
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 
   encoder.formula.str("");
 
-  encoder.update = E::State::heap;
+  encoder.update = E::Update::heap;
   nid_cas = encoder.encode(cas);
-  ASSERT_EQ(expected(), encoder.str());
+  ASSERT_EQ(expected(), encoder.formula.str());
 }
 
 TEST(btor2_Encoder, EXIT)
