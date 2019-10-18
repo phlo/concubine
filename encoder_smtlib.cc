@@ -982,9 +982,8 @@ void Encoder::init_halt ()
   if (verbose)
     formula << halt_comment;
 
-  iterate_threads([this] {
-    formula << assertion(lnot(halt_var())) << eol;
-  });
+  for (const auto & it : halts)
+    formula << assertion(lnot(halt_var(step, it.first))) << eol;
 
   formula << eol;
 }
