@@ -277,8 +277,14 @@ TEST(smtlib, cardinality_exactly_one_naive_verify)
 
   formula += smtlib::card_constraint_naive(vars);
 
+  // exactly one
+  std::string spec =
+    formula + smtlib::assertion(vars[0]) + eol + smtlib::check_sat() + eol;
+
+  ASSERT_TRUE(btor.sat(spec));
+
   // not none
-  std::string spec = formula;
+  spec = formula;
 
   for (const auto & v : vars)
     spec += smtlib::assertion(smtlib::lnot(v)) + eol;
@@ -357,8 +363,14 @@ TEST(smtlib, cardinality_exactly_one_sinz_verify)
 
   formula += smtlib::card_constraint_sinz(vars);
 
+  // exactly one
+  std::string spec =
+    formula + smtlib::assertion(vars[0]) + eol + smtlib::check_sat() + eol;
+
+  ASSERT_TRUE(btor.sat(spec));
+
   // not none
-  std::string spec = formula;
+  spec = formula;
 
   for (const auto & v : vars)
     spec += smtlib::assertion(smtlib::lnot(v)) + eol;

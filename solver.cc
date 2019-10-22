@@ -142,13 +142,19 @@ External::Symbol External::symbol (std::istringstream & line)
     {
       step = attribute(line, "step");
       thread = attribute(line, "thread");
-      return Symbol::thread;
+
+      // ignore auxiliary variables
+      if (line.peek() != '_')
+        return Symbol::thread;
     }
   else if (name == Encoder::flush_sym)
     {
       step = attribute(line, "step");
       thread = attribute(line, "thread");
-      return Symbol::flush;
+
+      // ignore auxiliary variables
+      if (line.peek() != '_')
+        return Symbol::flush;
     }
 
   return Symbol::ignore;

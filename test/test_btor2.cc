@@ -823,9 +823,16 @@ TEST(btor2, cardinality_exactly_one_naive_verify)
 
   formula += btor2::card_constraint_naive(nid, "1", vars);
 
+  // exactly one
+  std::string spec = formula;
+  spec += btor2::eq(std::to_string(nid++), "1", "3", vars[0]);
+  spec += btor2::bad(nid);
+
+  ASSERT_TRUE(btormc.sat(spec));
+
   // not none
   std::vector<std::string> eqs_zero;
-  std::string spec = formula;
+  spec = formula;
 
   for (const auto & v : vars)
     spec +=
@@ -949,9 +956,16 @@ TEST(btor2, cardinality_exactly_one_sinz_verify)
 
   formula += btor2::card_constraint_sinz(nid, "1", vars);
 
+  // exactly one
+  std::string spec = formula;
+  spec += btor2::eq(std::to_string(nid++), "1", "3", vars[0]);
+  spec += btor2::bad(nid);
+
+  ASSERT_TRUE(btormc.sat(spec));
+
   // not none
   std::vector<std::string> eqs_zero;
-  std::string spec = formula;
+  spec = formula;
 
   for (const auto & v : vars)
     spec +=
