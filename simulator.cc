@@ -26,12 +26,6 @@ inline void erase (C & container, T & val)
 //==============================================================================
 
 //------------------------------------------------------------------------------
-// public constructors
-//------------------------------------------------------------------------------
-
-Simulator::Simulator () : random(seed) {}
-
-//------------------------------------------------------------------------------
 // public member functions
 //------------------------------------------------------------------------------
 
@@ -283,6 +277,7 @@ void Simulator::init (const std::shared_ptr<Program::List> & p,
 {
   const size_t num_threads = p->size();
 
+  random.seed(seed);
   programs = p.get();
   trace = std::make_unique<Trace>(p, m);
   bound = b ? b : static_cast<size_t>(-1);

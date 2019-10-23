@@ -121,7 +121,7 @@ TEST_F(Main, simulate)
   ASSERT_EQ(0, out.exit);
   ASSERT_EQ("", out.stdout.str());
 
-  auto trace = create_from_file<Trace>(sim_trace);
+  const auto trace = create_from_file<Trace>(sim_trace);
 
   ASSERT_EQ(2, trace.size());
   for (const auto & it : trace) ASSERT_EQ(0, it.pc);
@@ -142,12 +142,40 @@ TEST_F(Main, simulate_uninitialized)
   ASSERT_EQ(0, out.exit);
   ASSERT_EQ("", out.stdout.str());
 
-  auto trace = create_from_file<Trace>(sim_trace);
-  auto mmap = create_from_file<MMap>(sim_mmap);
+  const auto trace = create_from_file<Trace>(sim_trace);
+  const auto mmap = create_from_file<MMap>(sim_mmap);
 
   ASSERT_EQ(4, trace.size());
-  ASSERT_EQ(mmap[0], trace.accu(0));
-  ASSERT_EQ(mmap[1], trace.accu(1));
+  ASSERT_EQ(mmap.at(0), trace.accu(0));
+  ASSERT_EQ(mmap.at(1), trace.accu(1));
+}
+
+TEST_F(Main, simulate_exit_greater_zero)
+{
+  const std::filesystem::path demo = "examples/demo/";
+
+  fs::cd(fs::mktmp(demo));
+
+  const auto out =
+    shell::run({
+      bin,
+      simulate,
+      "-c",
+      "-s", "0",
+      "-m", cwd / demo / "init.mmap",
+      cwd / demo / "processor.0.asm",
+      cwd / demo / "processor.1.asm",
+      cwd / demo / "checker.asm"});
+
+  ASSERT_EQ(1, out.exit);
+  ASSERT_EQ("", out.stdout.str());
+
+  const auto trace = create_from_file<Trace>(sim_trace);
+  const auto mmap = create_from_file<MMap>(sim_mmap);
+
+  ASSERT_EQ(15, trace.size());
+  ASSERT_EQ(0, trace.accu(0));
+  ASSERT_EQ(0, trace.accu(1));
 }
 
 TEST_F(Main, simulate_missing_args)
@@ -175,7 +203,7 @@ TEST_F(Main, simulate_bound)
   ASSERT_EQ(0, out.exit);
   ASSERT_EQ("", out.stdout.str());
 
-  auto trace = create_from_file<Trace>(sim_trace);
+  const auto trace = create_from_file<Trace>(sim_trace);
 
   ASSERT_EQ(5, trace.size());
   for (const auto & it : trace) ASSERT_EQ(0, it.pc);
@@ -213,16 +241,16 @@ TEST_F(Main, simulate_mmap)
   ASSERT_EQ(0, out.exit);
   ASSERT_EQ("", out.stderr.str());
 
-  auto trace = create_from_file<Trace>(sim_trace);
+  const auto trace = create_from_file<Trace>(sim_trace);
 
   ASSERT_EQ(sim_mmap, trace.mmap->path);
 
-  auto mmap = create_from_file<MMap>(sim_mmap);
+  const auto mmap = create_from_file<MMap>(sim_mmap);
 
   ASSERT_EQ(6, trace.size());
-  ASSERT_EQ(mmap[1], trace.accu(0));
-  ASSERT_EQ(mmap[2], trace.accu(1));
-  ASSERT_EQ(mmap[3], trace.accu(2));
+  ASSERT_EQ(mmap.at(1), trace.accu(0));
+  ASSERT_EQ(mmap.at(2), trace.accu(1));
+  ASSERT_EQ(mmap.at(3), trace.accu(2));
 }
 
 TEST_F(Main, simulate_mmap_missing)
@@ -251,11 +279,11 @@ TEST_F(Main, simulate_outfile)
   ASSERT_EQ(0, out.exit);
   ASSERT_EQ("", out.stdout.str());
 
-  auto trace = create_from_file<Trace>(stem + ".trace");
-  auto mmap = create_from_file<MMap>(stem + ".mmap");
+  const auto trace = create_from_file<Trace>(stem + ".trace");
+  const auto mmap = create_from_file<MMap>(stem + ".mmap");
 
   ASSERT_EQ(2, trace.size());
-  ASSERT_EQ(mmap[0], trace.accu(0));
+  ASSERT_EQ(mmap.at(0), trace.accu(0));
 }
 
 TEST_F(Main, simulate_outfile_missing)
@@ -284,13 +312,13 @@ TEST_F(Main, simulate_seed)
   ASSERT_EQ(0, out.exit);
   ASSERT_EQ("", out.stdout.str());
 
-  auto t1 = create_from_file<Trace>(sim_trace);
+  const auto t1 = create_from_file<Trace>(sim_trace);
 
   out = shell::run(cmd);
   ASSERT_EQ(0, out.exit);
   ASSERT_EQ("", out.stdout.str());
 
-  auto t2 = create_from_file<Trace>(sim_trace);
+  const auto t2 = create_from_file<Trace>(sim_trace);
 
   ASSERT_EQ(t1, t2);
 }
@@ -331,7 +359,7 @@ TEST_F(Main, solve)
   ASSERT_EQ(0, out.exit);
   ASSERT_EQ("", out.stdout.str());
 
-  auto trace = create_from_file<Trace>(smt_trace);
+  const auto trace = create_from_file<Trace>(smt_trace);
 
   ASSERT_EQ(2, trace.size());
   for (const auto & it : trace) ASSERT_EQ(0, it.pc);
@@ -355,12 +383,12 @@ TEST_F(Main, solve_uninitialized)
   ASSERT_EQ(0, out.exit);
   ASSERT_EQ("", out.stdout.str());
 
-  auto trace = create_from_file<Trace>(smt_trace);
-  auto mmap = create_from_file<MMap>(smt_mmap);
+  const auto trace = create_from_file<Trace>(smt_trace);
+  const auto mmap = create_from_file<MMap>(smt_mmap);
 
   ASSERT_EQ(4, trace.size());
-  ASSERT_EQ(mmap[0], trace.accu(0));
-  ASSERT_EQ(mmap[1], trace.accu(1));
+  ASSERT_EQ(mmap.at(0), trace.accu(0));
+  ASSERT_EQ(mmap.at(1), trace.accu(1));
 }
 
 TEST_F(Main, solve_missing_args)
@@ -395,7 +423,7 @@ TEST_F(Main, solve_bound)
   ASSERT_EQ(0, out.exit);
   ASSERT_EQ("", out.stdout.str());
 
-  auto trace = create_from_file<Trace>(smt_trace);
+  const auto trace = create_from_file<Trace>(smt_trace);
 
   ASSERT_EQ(5, trace.size());
   for (const auto & it : trace) ASSERT_EQ(0, it.pc);
@@ -616,16 +644,16 @@ TEST_F(Main, solve_mmap)
   ASSERT_EQ(0, out.exit);
   ASSERT_EQ("", out.stdout.str());
 
-  auto trace = create_from_file<Trace>(smt_trace);
+  const auto trace = create_from_file<Trace>(smt_trace);
 
   ASSERT_EQ(smt_mmap, trace.mmap->path);
 
-  auto mmap = create_from_file<MMap>(smt_mmap);
+  const auto mmap = create_from_file<MMap>(smt_mmap);
 
   ASSERT_EQ(6, trace.size());
-  ASSERT_EQ(mmap[1], trace.accu(0));
-  ASSERT_EQ(mmap[2], trace.accu(1));
-  ASSERT_EQ(mmap[3], trace.accu(2));
+  ASSERT_EQ(mmap.at(1), trace.accu(0));
+  ASSERT_EQ(mmap.at(2), trace.accu(1));
+  ASSERT_EQ(mmap.at(3), trace.accu(2));
 }
 
 TEST_F(Main, solve_mmap_missing)
@@ -662,11 +690,11 @@ TEST_F(Main, solve_outfile)
   ASSERT_EQ(0, out.exit);
   ASSERT_EQ("", out.stdout.str());
 
-  auto trace = create_from_file<Trace>(stem + ".trace");
-  auto mmap = create_from_file<MMap>(stem + ".mmap");
+  const auto trace = create_from_file<Trace>(stem + ".trace");
+  const auto mmap = create_from_file<MMap>(stem + ".mmap");
 
   ASSERT_EQ(2, trace.size());
-  ASSERT_EQ(mmap[0], trace.accu(0));
+  ASSERT_EQ(mmap.at(0), trace.accu(0));
 }
 
 TEST_F(Main, solve_outfile_missing)
@@ -704,12 +732,12 @@ TEST_F(Main, solve_solver_btormc)
   ASSERT_EQ(0, out.exit);
   ASSERT_EQ("", out.stdout.str());
 
-  auto trace = create_from_file<Trace>(smt_trace);
-  auto mmap = create_from_file<MMap>(smt_mmap);
+  const auto trace = create_from_file<Trace>(smt_trace);
+  const auto mmap = create_from_file<MMap>(smt_mmap);
 
   ASSERT_EQ(4, trace.size());
-  ASSERT_EQ(mmap[0], trace.accu(0));
-  ASSERT_EQ(mmap[1], trace.accu(1));
+  ASSERT_EQ(mmap.at(0), trace.accu(0));
+  ASSERT_EQ(mmap.at(1), trace.accu(1));
 }
 
 TEST_F(Main, solve_solver_boolector)
@@ -730,12 +758,12 @@ TEST_F(Main, solve_solver_boolector)
   ASSERT_EQ(0, out.exit);
   ASSERT_EQ("", out.stdout.str());
 
-  auto trace = create_from_file<Trace>(smt_trace);
-  auto mmap = create_from_file<MMap>(smt_mmap);
+  const auto trace = create_from_file<Trace>(smt_trace);
+  const auto mmap = create_from_file<MMap>(smt_mmap);
 
   ASSERT_EQ(4, trace.size());
-  ASSERT_EQ(mmap[0], trace.accu(0));
-  ASSERT_EQ(mmap[1], trace.accu(1));
+  ASSERT_EQ(mmap.at(0), trace.accu(0));
+  ASSERT_EQ(mmap.at(1), trace.accu(1));
 }
 
 TEST_F(Main, solve_solver_cvc4)
@@ -756,12 +784,12 @@ TEST_F(Main, solve_solver_cvc4)
   ASSERT_EQ(0, out.exit);
   ASSERT_EQ("", out.stdout.str());
 
-  auto trace = create_from_file<Trace>(smt_trace);
-  auto mmap = create_from_file<MMap>(smt_mmap);
+  const auto trace = create_from_file<Trace>(smt_trace);
+  const auto mmap = create_from_file<MMap>(smt_mmap);
 
   ASSERT_EQ(4, trace.size());
-  ASSERT_EQ(mmap[0], trace.accu(0));
-  ASSERT_EQ(mmap[1], trace.accu(1));
+  ASSERT_EQ(mmap.at(0), trace.accu(0));
+  ASSERT_EQ(mmap.at(1), trace.accu(1));
 }
 
 TEST_F(Main, solve_solver_z3)
@@ -782,12 +810,12 @@ TEST_F(Main, solve_solver_z3)
   ASSERT_EQ(0, out.exit);
   ASSERT_EQ("", out.stdout.str());
 
-  auto trace = create_from_file<Trace>(smt_trace);
-  auto mmap = create_from_file<MMap>(smt_mmap);
+  const auto trace = create_from_file<Trace>(smt_trace);
+  const auto mmap = create_from_file<MMap>(smt_mmap);
 
   ASSERT_EQ(4, trace.size());
-  ASSERT_EQ(mmap[0], trace.accu(0));
-  ASSERT_EQ(mmap[1], trace.accu(1));
+  ASSERT_EQ(mmap.at(0), trace.accu(0));
+  ASSERT_EQ(mmap.at(1), trace.accu(1));
 }
 
 TEST_F(Main, solve_solver_missing)

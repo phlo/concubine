@@ -51,6 +51,7 @@ void print_usage_simulate (const char * name)
   " simulate [options] <program> ..." <<
   eol << eol <<
   "options:" << eol <<
+  "  -c         run until an exit code > 0 is encountered" << eol <<
   "  -k bound   execute a specific number of steps" << eol <<
   "  -m mmap    read initial heap contents from file" << eol <<
   "  -o name    output file name (default: sim.{trace,mmap})" << eol <<
@@ -163,11 +164,18 @@ int simulate (const char * name, const int argc, const char ** argv)
       // output file name
       std::string outfile = "sim";
 
+      // run until exit > 0
+      bool check = false;
+
       // parse options
       int i = 0;
       do
         {
-          if (!strcmp(argv[i], "-k"))
+          if (!strcmp(argv[i], "-c"))
+            {
+              check = true;
+            }
+          else if (!strcmp(argv[i], "-k"))
             {
               if (++i >= argc)
                 {
@@ -248,7 +256,12 @@ int simulate (const char * name, const int argc, const char ** argv)
         programs->push_back(create_from_file<Program>(argv[i++]));
 
       // simulate
-      auto trace = Simulator().simulate(programs, mmap, bound);
+      Simulator simulator;
+      auto trace = simulator.simulate(programs, mmap, bound);
+
+      for (; check && !trace->exit; seed++)
+        trace = simulator.simulate(programs, mmap, bound);
+
       write(*trace, outfile);
       return trace->exit;
     }

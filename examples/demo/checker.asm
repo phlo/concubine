@@ -1,0 +1,6 @@
+CHECK 0
+ADD 0
+ADD 1
+JZ error
+EXIT 0
+error: EXIT 1
