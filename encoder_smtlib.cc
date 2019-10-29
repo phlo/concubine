@@ -179,9 +179,9 @@ void Encoder::assert_exit ()
   formula <<
     smtlib::assertion(
       smtlib::lnot(
-        smtlib::equality({
+        smtlib::equality(
           smtlib::Encoder::exit_code_var,
-          smtlib::word2hex(0)})));
+          smtlib::word2hex(0))));
 }
 
 //------------------------------------------------------------------------------
@@ -366,7 +366,7 @@ std::string Encoder::flush_var () const { return flush_var(step, thread); }
 std::string Encoder::assign (const std::string & var,
                              const std::string & expr) const
 {
-  return assertion(equality({var, expr}));
+  return assertion(equality(var, expr));
 }
 
 //------------------------------------------------------------------------------
@@ -401,37 +401,37 @@ std::string Encoder::encode (const Instruction::Fence & f [[maybe_unused]])
 
 std::string Encoder::encode (const Instruction::Add & a)
 {
-  return bvadd({accu_var(prev, thread), load(a.arg, a.indirect)});
+  return bvadd(accu_var(prev, thread), load(a.arg, a.indirect));
 }
 
 std::string Encoder::encode (const Instruction::Addi & a)
 {
-  return bvadd({accu_var(prev, thread), word2hex(a.arg)});
+  return bvadd(accu_var(prev, thread), word2hex(a.arg));
 }
 
 std::string Encoder::encode (const Instruction::Sub & s)
 {
-  return bvsub({accu_var(prev, thread), load(s.arg, s.indirect)});
+  return bvsub(accu_var(prev, thread), load(s.arg, s.indirect));
 }
 
 std::string Encoder::encode (const Instruction::Subi & s)
 {
-  return bvsub({accu_var(prev, thread), word2hex(s.arg)});
+  return bvsub(accu_var(prev, thread), word2hex(s.arg));
 }
 
 std::string Encoder::encode (const Instruction::Mul & m)
 {
-  return bvmul({accu_var(prev, thread), load(m.arg, m.indirect)});
+  return bvmul(accu_var(prev, thread), load(m.arg, m.indirect));
 }
 
 std::string Encoder::encode (const Instruction::Muli & m)
 {
-  return bvmul({accu_var(prev, thread), word2hex(m.arg)});
+  return bvmul(accu_var(prev, thread), word2hex(m.arg));
 }
 
 std::string Encoder::encode (const Instruction::Cmp & c)
 {
-  return bvsub({accu_var(prev, thread), load(c.arg, c.indirect)});
+  return bvsub(accu_var(prev, thread), load(c.arg, c.indirect));
 }
 
 std::string Encoder::encode (const Instruction::Jmp & j [[maybe_unused]])
@@ -441,16 +441,16 @@ std::string Encoder::encode (const Instruction::Jmp & j [[maybe_unused]])
 
 std::string Encoder::encode (const Instruction::Jz & j [[maybe_unused]])
 {
-  return equality({accu_var(prev, thread), word2hex(0)});
+  return equality(accu_var(prev, thread), word2hex(0));
 }
 
 std::string Encoder::encode (const Instruction::Jnz & j [[maybe_unused]])
 {
   return
     lnot(
-      equality({
+      equality(
         accu_var(prev, thread),
-        word2hex(0)}));
+        word2hex(0)));
 }
 
 std::string Encoder::encode (const Instruction::Js & j [[maybe_unused]])
@@ -458,9 +458,9 @@ std::string Encoder::encode (const Instruction::Js & j [[maybe_unused]])
   static const std::string bw = std::to_string(word_size - 1);
 
   return
-      equality({
+      equality(
         "#b1",
-        extract(bw, bw, accu_var(prev, thread))});
+        extract(bw, bw, accu_var(prev, thread)));
 }
 
 std::string Encoder::encode (const Instruction::Jns & j [[maybe_unused]])
@@ -468,9 +468,9 @@ std::string Encoder::encode (const Instruction::Jns & j [[maybe_unused]])
   static const std::string bw = std::to_string(word_size - 1);
 
   return
-      equality({
+      equality(
         "#b0",
-        extract(bw, bw, accu_var(prev, thread))});
+        extract(bw, bw, accu_var(prev, thread)));
 }
 
 std::string Encoder::encode (const Instruction::Jnzns & j [[maybe_unused]])
@@ -478,14 +478,14 @@ std::string Encoder::encode (const Instruction::Jnzns & j [[maybe_unused]])
   static const std::string bw = std::to_string(word_size - 1);
 
   return
-    land({
+    land(
       lnot(
-        equality({
+        equality(
           accu_var(prev, thread),
-          word2hex(0)})),
-      equality({
+          word2hex(0))),
+      equality(
         "#b0",
-        extract(bw, bw, accu_var(prev, thread))})});
+        extract(bw, bw, accu_var(prev, thread))));
 }
 
 std::string Encoder::encode (const Instruction::Mem & m)
@@ -502,9 +502,9 @@ std::string Encoder::encode (const Instruction::Cas & c)
     : word2hex(c.arg);
 
   std::string condition =
-    equality({
+    equality(
       mem_var(prev, thread),
-      select(heap, address)});
+      select(heap, address));
 
   switch (update)
     {
@@ -601,20 +601,20 @@ std::string Encoder::load (const word_t adr, const bool indirect)
         ite(
           sb_full,
           ite(
-            equality({sb_adr, address}),
+            equality(sb_adr, address),
             ite(
-              equality({sb_val, address}),
+              equality(sb_val, address),
               sb_val,
               select(heap, sb_val)),
             ite(
-              equality({sb_adr, load}),
+              equality(sb_adr, load),
               sb_val,
               load_indirect)),
           load_indirect);
     }
   else
     {
-      return ite(land({sb_full, equality({sb_adr, address})}), sb_val, load);
+      return ite(land(sb_full, equality(sb_adr, address)), sb_val, load);
     }
 }
 
@@ -1049,7 +1049,7 @@ void Encoder::define_exec ()
   iterate_programs([this] (const Program & program) {
     for (pc = 0; pc < program.size(); pc++)
       formula
-        << assign(exec_var(), land({stmt_var(), thread_var()}))
+        << assign(exec_var(), land(stmt_var(), thread_var()))
         << eol;
 
     formula << eol;
@@ -1192,9 +1192,9 @@ void Encoder::define_checkpoint_constraints ()
           formula <<
             assertion(
               implication(
-                land({
+                land(
                   block_var(step, c, t),
-                  lnot(check_var(step, c))}),
+                  lnot(check_var(step, c))),
                 lnot(thread_var(step, t))));
 
           if (verbose)

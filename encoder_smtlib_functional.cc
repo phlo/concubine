@@ -125,9 +125,9 @@ void Functional::define_stmt ()
       {
         // statement reactivation
         std::string expr =
-          land({
+          land(
             stmt_var(prev, thread, pc),
-            lnot(exec_var(prev, thread, pc))});
+            lnot(exec_var(prev, thread, pc)));
 
         const auto & pred = predecessors[thread][pc];
 
@@ -146,12 +146,12 @@ void Functional::define_stmt ()
                 // JMP has no condition and returns an empty std::string
                 if (!cond.empty())
                   val =
-                    land({
+                    land(
                       val,
                       // only activate successor if jump condition failed
                       *rit == pc - 1 && pre.arg() != pc
                         ? lnot(cond)
-                        : cond});
+                        : cond);
               }
 
             // add predecessor to the activation

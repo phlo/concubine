@@ -31,7 +31,7 @@ std::shared_ptr<std::string> Relational::set_accu (const T & op)
 
   return
     std::make_shared<std::string>(
-      equality({accu_var(), Encoder::encode(op)}));
+      equality(accu_var(), Encoder::encode(op)));
 }
 
 // smtlib::Relational::restore_accu --------------------------------------------
@@ -40,7 +40,7 @@ std::shared_ptr<std::string> Relational::restore_accu () const
 {
   return
     std::make_shared<std::string>(
-      equality({accu_var(), accu_var(prev, thread)}));
+      equality(accu_var(), accu_var(prev, thread)));
 }
 
 // smtlib::Relational::set_mem -------------------------------------------------
@@ -52,7 +52,7 @@ std::shared_ptr<std::string> Relational::set_mem (const T & op)
 
   return
     std::make_shared<std::string>(
-      equality({mem_var(), Encoder::encode(op)}));
+      equality(mem_var(), Encoder::encode(op)));
 }
 
 // smtlib::Relational::restore_mem ---------------------------------------------
@@ -61,7 +61,7 @@ std::shared_ptr<std::string> Relational::restore_mem () const
 {
   return
     std::make_shared<std::string>(
-      equality({mem_var(), mem_var(prev, thread)}));
+      equality(mem_var(), mem_var(prev, thread)));
 }
 
 // smtlib::Relational::set_sb_adr ----------------------------------------------
@@ -73,7 +73,7 @@ std::shared_ptr<std::string> Relational::set_sb_adr (const T & op)
 
   return
     std::make_shared<std::string>(
-      equality({sb_adr_var(), Encoder::encode(op)}));
+      equality(sb_adr_var(), Encoder::encode(op)));
 }
 
 // smtlib::Relational::restore_sb_adr ------------------------------------------
@@ -82,7 +82,7 @@ std::shared_ptr<std::string> Relational::restore_sb_adr () const
 {
   return
     std::make_shared<std::string>(
-      equality({sb_adr_var(), sb_adr_var(prev, thread)}));
+      equality(sb_adr_var(), sb_adr_var(prev, thread)));
 }
 
 // smtlib::Relational::set_sb_val ----------------------------------------------
@@ -94,7 +94,7 @@ std::shared_ptr<std::string> Relational::set_sb_val (const T & op)
 
   return
     std::make_shared<std::string>(
-      equality({sb_val_var(), Encoder::encode(op)}));
+      equality(sb_val_var(), Encoder::encode(op)));
 }
 
 // smtlib::Relational::restore_sb_val ------------------------------------------
@@ -103,7 +103,7 @@ std::shared_ptr<std::string> Relational::restore_sb_val () const
 {
   return
     std::make_shared<std::string>(
-      equality({sb_val_var(), sb_val_var(prev, thread)}));
+      equality(sb_val_var(), sb_val_var(prev, thread)));
 }
 
 // smtlib::Relational::set_sb_full ---------------------------------------------
@@ -119,12 +119,12 @@ std::shared_ptr<std::string> Relational::reset_sb_full () const
 {
   return
     std::make_shared<std::string>(
-      equality({
+      equality(
         sb_full_var(),
         ite(
           flush_var(prev, thread),
           FALSE,
-          sb_full_var(prev, thread))}));
+          sb_full_var(prev, thread))));
 }
 
 // smtlib::Relational::restor_sb_full ------------------------------------------
@@ -133,7 +133,7 @@ std::shared_ptr<std::string> Relational::restore_sb_full () const
 {
   return
     std::make_shared<std::string>(
-      equality({sb_full_var(), sb_full_var(prev, thread)}));
+      equality(sb_full_var(), sb_full_var(prev, thread)));
 }
 
 // smtlib::Relational::set_stmt ------------------------------------------------
@@ -210,9 +210,9 @@ std::shared_ptr<std::string> Relational::restore_stmt ()
 
   for (pc = 0; pc < program.size(); pc++)
     stmts.push_back(
-      equality({
+      equality(
         stmt_var(step, thread, pc),
-        stmt_var(prev, thread, pc)}));
+        stmt_var(prev, thread, pc)));
 
   pc = cur;
 
@@ -244,12 +244,12 @@ std::shared_ptr<std::string> Relational::set_block (const T & op) const
 std::string Relational::reset_block (const word_t id) const
 {
   return
-    equality({
+    equality(
       block_var(step, id, thread),
       ite(
         check_var(prev, id),
         FALSE,
-        block_var(prev, id, thread))});
+        block_var(prev, id, thread)));
 }
 
 // smtlib::Relational::restore_block -------------------------------------------
@@ -287,23 +287,23 @@ std::shared_ptr<std::string> Relational::set_halt () const
 
       return
         std::make_shared<std::string>(
-          land({
+          land(
             halt_var(),
             ite(
               land(args),
-              land({
+              land(
                 exit_flag_var(),
-                equality({exit_code_var, word2hex(0)})}),
-              lnot(exit_flag_var()))}));
+                equality(exit_code_var, word2hex(0))),
+              lnot(exit_flag_var()))));
     }
   else
     {
       return
         std::make_shared<std::string>(
-          land({
+          land(
             halt_var(),
             exit_flag_var(),
-            equality({exit_code_var, word2hex(0)})}));
+            equality(exit_code_var, word2hex(0))));
     }
 }
 
@@ -316,7 +316,7 @@ std::shared_ptr<std::string> Relational::restore_halt () const
 
   return
     std::make_shared<std::string>(
-      equality({halt_var(), halt_var(prev, thread)}));
+      equality(halt_var(), halt_var(prev, thread)));
 }
 
 // smtlib::Relational::set_heap ------------------------------------------------
@@ -328,14 +328,14 @@ std::shared_ptr<std::string> Relational::set_heap (const T & op)
 
   return
     std::make_shared<std::string>(
-      equality({heap_var(), Encoder::encode(op)}));
+      equality(heap_var(), Encoder::encode(op)));
 }
 
 // smtlib::Relational::restore_heap --------------------------------------------
 
 std::shared_ptr<std::string> Relational::restore_heap () const
 {
-  return std::make_shared<std::string>(equality({heap_var(), heap_var(prev)}));
+  return std::make_shared<std::string>(equality(heap_var(), heap_var(prev)));
 }
 
 // smtlib::Relational::set_exit_flag -------------------------------------------
@@ -362,7 +362,7 @@ std::shared_ptr<std::string> Relational::unset_exit_flag () const
 
 std::shared_ptr<std::string> Relational::set_exit_code (const word_t e) const
 {
-  return std::make_shared<std::string>(equality({exit_code_var, word2hex(e)}));
+  return std::make_shared<std::string>(equality(exit_code_var, word2hex(e)));
 }
 
 // smtlib::Relational::imply_thread_executed -----------------------------------
@@ -410,12 +410,12 @@ void Relational::imply_thread_flushed ()
 {
   std::vector<std::string> args({
     lnot(sb_full_var()),
-    equality({
+    equality(
       heap_var(),
       store(
         heap_var(prev),
         sb_adr_var(prev, thread),
-        sb_val_var(prev, thread))})});
+        sb_val_var(prev, thread)))});
 
   if (!halts.empty() || !exits.empty())
     args.push_back(lnot(exit_flag_var()));
@@ -452,11 +452,11 @@ void Relational::imply_machine_exited ()
   formula <<
     imply(
       exit_flag_var(prev),
-      land({
-        equality({
+      land(
+        equality(
           heap_var(),
-          heap_var(prev)}),
-        exit_flag_var()})) <<
+          heap_var(prev)),
+        exit_flag_var())) <<
     eol;
 
   // set exit if machine didn't exit within bound
@@ -464,9 +464,9 @@ void Relational::imply_machine_exited ()
     formula <<
       imply(
         lnot(exit_flag_var()),
-        equality({
+        equality(
           exit_code_var,
-          word2hex(0)})) <<
+          word2hex(0))) <<
       eol;
 }
 

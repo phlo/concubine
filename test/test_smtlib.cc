@@ -11,7 +11,7 @@ namespace ConcuBinE::test {
 
 // word2hex ====================================================================
 
-  TEST(smtlib, word2hex)
+TEST(smtlib, word2hex)
 {
   ASSERT_EQ("#x0000", smtlib::word2hex(0));
   ASSERT_EQ("#x0001", smtlib::word2hex(1));
@@ -24,7 +24,7 @@ namespace ConcuBinE::test {
 
 TEST(smtlib, expr)
 {
-  ASSERT_EQ("(op x1 x2 x3)", smtlib::expr("op", {"x1", "x2", "x3"}));
+  ASSERT_EQ("(op x1 x2 x3)", smtlib::expr("op", "x1", "x2", "x3"));
 }
 
 // comment =====================================================================
@@ -75,33 +75,24 @@ TEST(smtlib, lnot)
 
 TEST(smtlib, land)
 {
-  ASSERT_THROW(smtlib::land({}), std::runtime_error);
-
-  ASSERT_EQ("x1", smtlib::land({"x1"}));
-
-  ASSERT_EQ("(and x1 x2 x3)", smtlib::land({"x1", "x2", "x3"}));
+  ASSERT_EQ("x1", smtlib::land("x1"));
+  ASSERT_EQ("(and x1 x2 x3)", smtlib::land("x1", "x2", "x3"));
 }
 
 // lor =========================================================================
 
 TEST(smtlib, lor)
 {
-  ASSERT_THROW(smtlib::lor({}), std::runtime_error);
-
-  ASSERT_EQ("x1", smtlib::lor({"x1"}));
-
-  ASSERT_EQ("(or x1 x2 x3)", smtlib::lor({"x1", "x2", "x3"}));
+  ASSERT_EQ("x1", smtlib::lor("x1"));
+  ASSERT_EQ("(or x1 x2 x3)", smtlib::lor("x1", "x2", "x3"));
 }
 
 // lxor ========================================================================
 
 TEST(smtlib, lxor)
 {
-  ASSERT_THROW(smtlib::lxor({}), std::runtime_error);
-
-  ASSERT_EQ("x1", smtlib::lxor({"x1"}));
-
-  ASSERT_EQ("(xor x1 x2 x3)", smtlib::lxor({"x1", "x2", "x3"}));
+  ASSERT_EQ("x1", smtlib::lxor("x1"));
+  ASSERT_EQ("(xor x1 x2 x3)", smtlib::lxor("x1", "x2", "x3"));
 }
 
 // implication =================================================================
@@ -115,11 +106,7 @@ TEST(smtlib, implication)
 
 TEST(smtlib, equality)
 {
-  ASSERT_THROW(smtlib::equality({}), std::runtime_error);
-
-  ASSERT_THROW(smtlib::equality({"x1"}), std::runtime_error);
-
-  ASSERT_EQ("(= x1 x2 x3)", smtlib::equality({"x1", "x2", "x3"}));
+  ASSERT_EQ("(= x1 x2 x3)", smtlib::equality("x1", "x2", "x3"));
 }
 
 // ite =========================================================================
@@ -133,33 +120,21 @@ TEST(smtlib, ite)
 
 TEST(smtlib, bvadd)
 {
-  ASSERT_THROW(smtlib::bvadd({}), std::runtime_error);
-
-  ASSERT_THROW(smtlib::bvadd({"x1"}), std::runtime_error);
-
-  ASSERT_EQ("(bvadd x1 x2 x3)", smtlib::bvadd({"x1", "x2", "x3"}));
+  ASSERT_EQ("(bvadd x1 x2 x3)", smtlib::bvadd("x1", "x2", "x3"));
 }
 
 // bvsub =======================================================================
 
 TEST(smtlib, bvsub)
 {
-  ASSERT_THROW(smtlib::bvsub({}), std::runtime_error);
-
-  ASSERT_THROW(smtlib::bvsub({"x1"}), std::runtime_error);
-
-  ASSERT_EQ("(bvsub x1 x2 x3)", smtlib::bvsub({"x1", "x2", "x3"}));
+  ASSERT_EQ("(bvsub x1 x2 x3)", smtlib::bvsub("x1", "x2", "x3"));
 }
 
 // bvmul =======================================================================
 
 TEST(smtlib, bvmul)
 {
-  ASSERT_THROW(smtlib::bvmul({}), std::runtime_error);
-
-  ASSERT_THROW(smtlib::bvmul({"x1"}), std::runtime_error);
-
-  ASSERT_EQ("(bvmul x1 x2 x3)", smtlib::bvmul({"x1", "x2", "x3"}));
+  ASSERT_EQ("(bvmul x1 x2 x3)", smtlib::bvmul("x1", "x2", "x3"));
 }
 
 // select ======================================================================
@@ -239,8 +214,6 @@ TEST(smtlib, declare_array_var)
 
 TEST(smtlib, cardinality_exactly_one_naive)
 {
-  ASSERT_THROW(smtlib::card_constraint_naive({}), std::runtime_error);
-
   ASSERT_EQ("(assert x1)\n", smtlib::card_constraint_naive({"x1"}));
 
   ASSERT_EQ(
@@ -298,7 +271,7 @@ TEST(smtlib, cardinality_exactly_one_naive_verify)
 
   for (size_t i = 0; i < vars.size() - 1; i++)
     for (size_t j = i + 1; j < vars.size(); j++)
-      spec += smtlib::assertion(smtlib::land({vars[i], vars[j]})) + eol;
+      spec += smtlib::assertion(smtlib::land(vars[i], vars[j])) + eol;
 
   spec += smtlib::check_sat() + eol;
 
@@ -309,8 +282,6 @@ TEST(smtlib, cardinality_exactly_one_naive_verify)
 
 TEST(smtlib, cardinality_exactly_one_sinz)
 {
-  ASSERT_THROW(smtlib::card_constraint_sinz({}), std::runtime_error);
-
   ASSERT_EQ("(assert x1)\n", smtlib::card_constraint_sinz({"x1"}));
 
   ASSERT_EQ(
@@ -384,7 +355,7 @@ TEST(smtlib, cardinality_exactly_one_sinz_verify)
 
   for (size_t i = 0; i < vars.size() - 1; i++)
     for (size_t j = i + 1; j < vars.size(); j++)
-      spec += smtlib::assertion(smtlib::land({vars[i], vars[j]})) + eol;
+      spec += smtlib::assertion(smtlib::land(vars[i], vars[j])) + eol;
 
   spec += smtlib::check_sat() + eol;
 

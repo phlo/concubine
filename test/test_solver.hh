@@ -274,9 +274,9 @@ struct Solver : public ::testing::Test
         encoder.formula <<
           smtlib::assertion(
             smtlib::lnot(
-              smtlib::equality({
+              smtlib::equality(
                 smtlib::Encoder::accu_var(bound, 0),
-                smtlib::word2hex(0)}))) <<
+                smtlib::word2hex(0)))) <<
           eol;
       else
         encoder.formula <<
@@ -410,13 +410,13 @@ struct Solver : public ::testing::Test
           ss <<
             smtlib::comment_section("litmus test constraints") <<
             smtlib::assertion(
-              smtlib::land({
-                smtlib::equality({
+              smtlib::land(
+                smtlib::equality(
                   smtlib::Encoder::mem_var(bound, 1),
-                  smtlib::word2hex(1)}),
-                smtlib::equality({
+                  smtlib::word2hex(1)),
+                smtlib::equality(
                   smtlib::Encoder::accu_var(bound, 1),
-                  smtlib::word2hex(0)})})) <<
+                  smtlib::word2hex(0)))) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {
@@ -459,13 +459,13 @@ struct Solver : public ::testing::Test
           ss <<
             smtlib::comment_section("litmus test constraints") <<
             smtlib::assertion(
-              smtlib::land({
-                smtlib::equality({
+              smtlib::land(
+                smtlib::equality(
                   smtlib::Encoder::mem_var(bound, 0),
-                  smtlib::word2hex(1)}),
-                smtlib::equality({
+                  smtlib::word2hex(1)),
+                smtlib::equality(
                   smtlib::Encoder::mem_var(bound, 1),
-                  smtlib::word2hex(1)})})) <<
+                  smtlib::word2hex(1)))) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {
@@ -508,13 +508,13 @@ struct Solver : public ::testing::Test
           ss <<
             smtlib::comment_section("litmus test constraints") <<
             smtlib::assertion(
-              smtlib::land({
-                smtlib::equality({
+              smtlib::land(
+                smtlib::equality(
                   smtlib::Encoder::accu_var(bound, 0),
-                  smtlib::word2hex(0)}),
-                smtlib::equality({
+                  smtlib::word2hex(0)),
+                smtlib::equality(
                   smtlib::Encoder::accu_var(bound, 1),
-                  smtlib::word2hex(0)})})) <<
+                  smtlib::word2hex(0)))) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {
@@ -556,9 +556,9 @@ struct Solver : public ::testing::Test
           ss <<
             smtlib::comment_section("litmus test constraints") <<
             smtlib::assertion(
-              smtlib::equality({
+              smtlib::equality(
                 smtlib::Encoder::accu_var(bound, 0),
-                smtlib::word2hex(0)})) <<
+                smtlib::word2hex(0))) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {
@@ -595,13 +595,13 @@ struct Solver : public ::testing::Test
           ss <<
             smtlib::comment_section("litmus test constraints") <<
             smtlib::assertion(
-              smtlib::land({
-                smtlib::equality({
+              smtlib::land(
+                smtlib::equality(
                   smtlib::Encoder::accu_var(bound, 0),
-                  smtlib::word2hex(0)}),
-                smtlib::equality({
+                  smtlib::word2hex(0)),
+                smtlib::equality(
                   smtlib::Encoder::accu_var(bound, 1),
-                  smtlib::word2hex(0)})})) <<
+                  smtlib::word2hex(0)))) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {
@@ -645,16 +645,16 @@ struct Solver : public ::testing::Test
           ss <<
             smtlib::comment_section("litmus test constraints") <<
             smtlib::assertion(
-              smtlib::land({
-                smtlib::equality({
+              smtlib::land(
+                smtlib::equality(
                   smtlib::Encoder::mem_var(bound, 1),
-                  smtlib::word2hex(1)}),
-                smtlib::equality({
+                  smtlib::word2hex(1)),
+                smtlib::equality(
                   smtlib::Encoder::mem_var(bound, 2),
-                  smtlib::word2hex(1)}),
-                smtlib::equality({
+                  smtlib::word2hex(1)),
+                smtlib::equality(
                   smtlib::Encoder::accu_var(bound, 2),
-                  smtlib::word2hex(0)})})) <<
+                  smtlib::word2hex(0)))) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {
@@ -705,19 +705,19 @@ struct Solver : public ::testing::Test
           ss <<
             smtlib::comment_section("litmus test constraints") <<
             smtlib::assertion(
-              smtlib::land({
-                smtlib::equality({
+              smtlib::land(
+                smtlib::equality(
                   smtlib::Encoder::mem_var(bound, 2),
-                  smtlib::word2hex(1)}),
-                smtlib::equality({
+                  smtlib::word2hex(1)),
+                smtlib::equality(
                   smtlib::Encoder::accu_var(bound, 2),
-                  smtlib::word2hex(0)}),
-                smtlib::equality({
+                  smtlib::word2hex(0)),
+                smtlib::equality(
                   smtlib::Encoder::mem_var(bound, 3),
-                  smtlib::word2hex(1)}),
-                smtlib::equality({
+                  smtlib::word2hex(1)),
+                smtlib::equality(
                   smtlib::Encoder::accu_var(bound, 3),
-                  smtlib::word2hex(0)})})) <<
+                  smtlib::word2hex(0)))) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {
@@ -774,19 +774,19 @@ struct Solver : public ::testing::Test
           ss <<
             smtlib::comment_section("litmus test constraints") <<
             smtlib::assertion(
-              smtlib::land({
-                smtlib::equality({
+              smtlib::land(
+                smtlib::equality(
                   smtlib::Encoder::mem_var(bound, 2),
-                  smtlib::word2hex(1)}),
-                smtlib::equality({
+                  smtlib::word2hex(1)),
+                smtlib::equality(
                   smtlib::Encoder::accu_var(bound, 2),
-                  smtlib::word2hex(0)}),
-                smtlib::equality({
+                  smtlib::word2hex(0)),
+                smtlib::equality(
                   smtlib::Encoder::mem_var(bound, 3),
-                  smtlib::word2hex(1)}),
-                smtlib::equality({
+                  smtlib::word2hex(1)),
+                smtlib::equality(
                   smtlib::Encoder::accu_var(bound, 3),
-                  smtlib::word2hex(0)})})) <<
+                  smtlib::word2hex(0)))) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {
@@ -841,13 +841,13 @@ struct Solver : public ::testing::Test
           ss <<
             smtlib::comment_section("litmus test constraints") <<
             smtlib::assertion(
-              smtlib::land({
-                smtlib::equality({
+              smtlib::land(
+                smtlib::equality(
                   smtlib::Encoder::accu_var(bound, 0),
-                  smtlib::word2hex(0)}),
-                smtlib::equality({
+                  smtlib::word2hex(0)),
+                smtlib::equality(
                   smtlib::Encoder::accu_var(bound, 1),
-                  smtlib::word2hex(0)})})) <<
+                  smtlib::word2hex(0)))) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {
@@ -890,13 +890,13 @@ struct Solver : public ::testing::Test
           ss <<
             smtlib::comment_section("litmus test constraints") <<
             smtlib::assertion(
-              smtlib::land({
-                smtlib::equality({
+              smtlib::land(
+                smtlib::equality(
                   smtlib::Encoder::mem_var(bound, 1),
-                  smtlib::word2hex(1)}),
-                smtlib::equality({
+                  smtlib::word2hex(1)),
+                smtlib::equality(
                   smtlib::Encoder::accu_var(bound, 1),
-                  smtlib::word2hex(0)})})) <<
+                  smtlib::word2hex(0)))) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {
@@ -939,13 +939,13 @@ struct Solver : public ::testing::Test
           ss <<
             smtlib::comment_section("litmus test constraints") <<
             smtlib::assertion(
-              smtlib::land({
-                smtlib::equality({
+              smtlib::land(
+                smtlib::equality(
                   smtlib::Encoder::mem_var(bound, 1),
-                  smtlib::word2hex(1)}),
-                smtlib::equality({
+                  smtlib::word2hex(1)),
+                smtlib::equality(
                   smtlib::Encoder::accu_var(bound, 1),
-                  smtlib::word2hex(0)})})) <<
+                  smtlib::word2hex(0)))) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {
@@ -988,13 +988,13 @@ struct Solver : public ::testing::Test
           ss <<
             smtlib::comment_section("litmus test constraints") <<
             smtlib::assertion(
-              smtlib::land({
-                smtlib::equality({
+              smtlib::land(
+                smtlib::equality(
                   smtlib::Encoder::mem_var(bound, 0),
-                  smtlib::word2hex(1)}),
-                smtlib::equality({
+                  smtlib::word2hex(1)),
+                smtlib::equality(
                   smtlib::Encoder::mem_var(bound, 1),
-                  smtlib::word2hex(1)})})) <<
+                  smtlib::word2hex(1)))) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {
@@ -1037,13 +1037,13 @@ struct Solver : public ::testing::Test
           ss <<
             smtlib::comment_section("litmus test constraints") <<
             smtlib::assertion(
-              smtlib::land({
-                smtlib::equality({
+              smtlib::land(
+                smtlib::equality(
                   smtlib::Encoder::accu_var(bound, 0),
-                  smtlib::word2hex(1)}),
-                smtlib::equality({
+                  smtlib::word2hex(1)),
+                smtlib::equality(
                   smtlib::Encoder::accu_var(bound, 1),
-                  smtlib::word2hex(1)})})) <<
+                  smtlib::word2hex(1)))) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {
@@ -1090,14 +1090,14 @@ struct Solver : public ::testing::Test
           ss <<
             smtlib::comment_section("litmus test constraints") <<
             smtlib::assertion(
-              smtlib::land({
-                smtlib::lor({
-                  smtlib::equality({accu_0, zero}),
-                  smtlib::equality({accu_0, one})
-                }),
-                smtlib::lor({
-                  smtlib::equality({accu_1, zero}),
-                  smtlib::equality({accu_1, one})})})) <<
+              smtlib::land(
+                smtlib::lor(
+                  smtlib::equality(accu_0, zero),
+                  smtlib::equality(accu_0, one)
+                ),
+                smtlib::lor(
+                  smtlib::equality(accu_1, zero),
+                  smtlib::equality(accu_1, one)))) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {
@@ -1149,13 +1149,13 @@ struct Solver : public ::testing::Test
           ss <<
             smtlib::comment_section("litmus test constraints") <<
             smtlib::assertion(
-              smtlib::land({
-                smtlib::equality({
+              smtlib::land(
+                smtlib::equality(
                   smtlib::Encoder::accu_var(bound, 0),
-                  smtlib::word2hex(0)}),
-                smtlib::equality({
+                  smtlib::word2hex(0)),
+                smtlib::equality(
                   smtlib::Encoder::accu_var(bound, 1),
-                  smtlib::word2hex(0)})})) <<
+                  smtlib::word2hex(0)))) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {
@@ -1200,19 +1200,19 @@ struct Solver : public ::testing::Test
           ss <<
             smtlib::comment_section("litmus test constraints") <<
             smtlib::assertion(
-              smtlib::land({
-                smtlib::equality({
+              smtlib::land(
+                smtlib::equality(
                   smtlib::Encoder::mem_var(bound, 2),
-                  smtlib::word2hex(1)}),
-                smtlib::equality({
+                  smtlib::word2hex(1)),
+                smtlib::equality(
                   smtlib::Encoder::accu_var(bound, 2),
-                  smtlib::word2hex(0)}),
-                smtlib::equality({
+                  smtlib::word2hex(0)),
+                smtlib::equality(
                   smtlib::Encoder::mem_var(bound, 3),
-                  smtlib::word2hex(1)}),
-                smtlib::equality({
+                  smtlib::word2hex(1)),
+                smtlib::equality(
                   smtlib::Encoder::accu_var(bound, 3),
-                  smtlib::word2hex(0)})})) <<
+                  smtlib::word2hex(0)))) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {
@@ -1268,16 +1268,16 @@ struct Solver : public ::testing::Test
           ss <<
             smtlib::comment_section("litmus test constraints") <<
             smtlib::assertion(
-              smtlib::land({
-                smtlib::equality({
+              smtlib::land(
+                smtlib::equality(
                   smtlib::Encoder::mem_var(bound, 1),
-                  smtlib::word2hex(1)}),
-                smtlib::equality({
+                  smtlib::word2hex(1)),
+                smtlib::equality(
                   smtlib::Encoder::mem_var(bound, 2),
-                  smtlib::word2hex(1)}),
-                smtlib::equality({
+                  smtlib::word2hex(1)),
+                smtlib::equality(
                   smtlib::Encoder::accu_var(bound, 2),
-                  smtlib::word2hex(0)})})) <<
+                  smtlib::word2hex(0)))) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {
@@ -1326,19 +1326,19 @@ struct Solver : public ::testing::Test
           ss <<
             smtlib::comment_section("litmus test constraints") <<
             smtlib::assertion(
-              smtlib::land({
-                smtlib::equality({
+              smtlib::land(
+                smtlib::equality(
                   smtlib::Encoder::mem_var(bound, 0),
-                  smtlib::word2hex(1)}),
-                smtlib::equality({
+                  smtlib::word2hex(1)),
+                smtlib::equality(
                   smtlib::Encoder::accu_var(bound, 0),
-                  smtlib::word2hex(0)}),
-                smtlib::equality({
+                  smtlib::word2hex(0)),
+                smtlib::equality(
                   smtlib::Encoder::mem_var(bound, 1),
-                  smtlib::word2hex(1)}),
-                smtlib::equality({
+                  smtlib::word2hex(1)),
+                smtlib::equality(
                   smtlib::Encoder::accu_var(bound, 1),
-                  smtlib::word2hex(0)})})) <<
+                  smtlib::word2hex(0)))) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {
@@ -1390,19 +1390,19 @@ struct Solver : public ::testing::Test
           ss <<
             smtlib::comment_section("litmus test constraints") <<
             smtlib::assertion(
-              smtlib::land({
-                smtlib::equality({
+              smtlib::land(
+                smtlib::equality(
                   smtlib::Encoder::mem_var(bound, 0),
-                  smtlib::word2hex(1)}),
-                smtlib::equality({
+                  smtlib::word2hex(1)),
+                smtlib::equality(
                   smtlib::Encoder::accu_var(bound, 0),
-                  smtlib::word2hex(0)}),
-                smtlib::equality({
+                  smtlib::word2hex(0)),
+                smtlib::equality(
                   smtlib::Encoder::mem_var(bound, 1),
-                  smtlib::word2hex(1)}),
-                smtlib::equality({
+                  smtlib::word2hex(1)),
+                smtlib::equality(
                   smtlib::Encoder::accu_var(bound, 1),
-                  smtlib::word2hex(0)})})) <<
+                  smtlib::word2hex(0)))) <<
             eol;
         },
         [] (std::ostringstream & ss, btor2::Encoder & e) {

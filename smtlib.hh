@@ -3,9 +3,10 @@
 
 #include "common.hh"
 
-#include <string>
+#include <cassert>
 #include <iomanip>
 #include <sstream>
+#include <unordered_map>
 #include <vector>
 
 namespace ConcuBinE::smtlib {
@@ -16,100 +17,31 @@ namespace ConcuBinE::smtlib {
 
 // constants
 //
-static const std::string TRUE = "true";
-static const std::string FALSE = "false";
+const std::string TRUE = "true";
+const std::string FALSE = "false";
 
-// converts integer to its word sized SMT-Lib hex constant
+// convert integer to its word sized SMT-Lib hex constant
 //
 inline std::string word2hex (const word_t val)
 {
-  std::ostringstream s;
-  s << "#x"
-    << std::setfill('0')
-    << std::setw(word_size / 4)
-    << std::hex
-    << val;
+  static std::unordered_map<word_t, std::string> values;
 
-  return s.str();
+  const auto it = values.find(val);
+
+  if (it == values.end())
+    {
+      std::ostringstream s;
+      s << "#x"
+        << std::setfill('0')
+        << std::setw(word_size / 4)
+        << std::hex
+        << val;
+
+      return values.emplace(val, s.str()).first->second;
+    }
+
+  return it->second;
 }
-
-// unary expression
-//
-inline std::string expr (const char * op, const std::string & arg)
-{
-  return '(' + (op + (' ' + arg + ')'));
-}
-
-// binary expression
-//
-inline std::string expr (const char * op,
-                         const std::string & arg1,
-                         const std::string & arg2)
-{
-  return '(' + (op + (' ' + arg1 + ' ' + arg2 + ')'));
-}
-
-// ternary expression
-//
-inline std::string expr (const char * op,
-                         const std::string & arg1,
-                         const std::string & arg2,
-                         const std::string & arg3)
-{
-  return '(' + (op + (' ' + arg1 + ' ' + arg2 + ' ' + arg3 + ')'));
-}
-
-// n-ary expression
-//
-template <template <class, class...> class C>
-inline std::string expr (const char * op, const C<std::string> & args)
-{
-  std::ostringstream sb;
-  sb << '(' << op;
-  for (const auto & a : args)
-    sb << ' ' << a;
-  sb << ')';
-  return sb.str();
-}
-
-// allows mixing const char and strings in init list
-//
-inline std::string expr (const char * op,
-                         std::initializer_list<std::string> args)
-{
-  return expr<std::initializer_list>(op, args);
-}
-
-#define EXPR_SIGNATURE(name) \
-template <template<class, class...> class C> \
-inline std::string name (const C<std::string> & args) \
-
-#define EXPR_INIIIALIZER_LIST(name) \
-inline std::string name (std::initializer_list<std::string> args) \
-  { \
-    return name<std::initializer_list>(args); \
-  }
-
-#define EXPR_UNARY_OR_MORE(name, op) \
-EXPR_SIGNATURE(name) \
-  { \
-    size_t nargs = args.size(); \
-    if (!nargs) throw std::runtime_error("no arguments"); \
-    return nargs < 2 \
-      ? *args.begin() \
-      : expr(op, args); \
-  } \
-EXPR_INIIIALIZER_LIST(name)
-
-#define EXPR_BINARY_OR_MORE(name, op) \
-EXPR_SIGNATURE(name) \
-  { \
-    size_t nargs = args.size(); \
-    if (!nargs) throw std::runtime_error("no arguments"); \
-    else if (nargs < 2) throw std::runtime_error("single argument"); \
-    return expr(op, args); \
-  } \
-EXPR_INIIIALIZER_LIST(name)
 
 // comment
 //
@@ -128,7 +60,12 @@ const std::string comment_line =
 //
 inline std::string comment_section (const std::string & comment)
 {
-  return comment_line + "; " + comment + eol + comment_line + eol;
+  std::string c = comment_line + "; ";
+  c += comment;
+  c += eol;
+  c += comment_line;
+  c += eol;
+  return c;
 }
 
 // comment subsection
@@ -136,7 +73,62 @@ inline std::string comment_section (const std::string & comment)
 inline std::string comment_subsection (const std::string & comment)
 {
   std::string c = comment_line + eol;
-  return c.replace(1, 2 + comment.size(), " " + comment + " ");
+  c[1] = ' ';
+  c[comment.size() + 2] = ' ';
+  return c.replace(2, comment.size(), comment);
+}
+
+// expression builders
+//
+template <class ... T>
+inline std::string expr (const char * op, const T & ... args)
+{
+  std::string e;
+  (e += '(') += op;
+  (((e += ' ') += args), ...);
+  return e += ')';
+}
+
+template <template <class, class...> class C>
+inline std::string expr (const char * op, const C<std::string> & args)
+{
+  std::string e;
+  (e += '(') += op;
+  for (const auto & a : args)
+    (e += ' ') += a;
+  return e += ')';
+}
+
+// definition helpers
+//
+#define UNARY_OR_MORE(name, op) \
+template <template<class, class...> class C> \
+inline std::string name (const C<std::string> & args) \
+{ \
+  const size_t nargs = args.size(); \
+  assert(nargs); \
+  return nargs < 2 ? *args.begin() : expr(op, args); \
+} \
+inline std::string name (const std::string & arg) { return arg; } \
+template <class ... T> \
+inline std::string name (const std::string & arg, const T & ... args) \
+{ \
+  return expr(op, arg, args...); \
+}
+
+#define BINARY_OR_MORE(name, op) \
+template <template<class, class...> class C> \
+inline std::string name (const C<std::string> & args) \
+{ \
+  assert(args.size() && args.size() > 1); \
+  return expr(op, args); \
+} \
+template <class ... T> \
+inline std::string name (const std::string & arg1, \
+                         const std::string & arg2, \
+                         const T & ... args) \
+{ \
+  return expr(op, arg1, arg2, args...); \
 }
 
 // assertion
@@ -155,15 +147,15 @@ inline std::string lnot (const std::string & arg)
 
 // logical and
 //
-EXPR_UNARY_OR_MORE(land, "and")
+UNARY_OR_MORE(land, "and")
 
 // logical or
 //
-EXPR_UNARY_OR_MORE(lor, "or")
+UNARY_OR_MORE(lor, "or")
 
 // logical xor
 //
-EXPR_UNARY_OR_MORE(lxor, "xor")
+UNARY_OR_MORE(lxor, "xor")
 
 // implication
 //
@@ -175,7 +167,7 @@ inline std::string implication (const std::string & antecedent,
 
 // equality
 //
-EXPR_BINARY_OR_MORE(equality, "=")
+BINARY_OR_MORE(equality, "=")
 
 // if-then-else
 //
@@ -188,15 +180,15 @@ inline std::string ite (const std::string & condition,
 
 // bit-vector add
 //
-EXPR_BINARY_OR_MORE(bvadd, "bvadd")
+BINARY_OR_MORE(bvadd, "bvadd")
 
 // bit-vector sub
 //
-EXPR_BINARY_OR_MORE(bvsub, "bvsub")
+BINARY_OR_MORE(bvsub, "bvsub")
 
 // bit-vector mul
 //
-EXPR_BINARY_OR_MORE(bvmul, "bvmul")
+BINARY_OR_MORE(bvmul, "bvmul")
 
 // array select
 //
@@ -232,9 +224,9 @@ inline std::string bitvector (const unsigned size)
 
 // array sort
 //
-inline std::string array (const std::string & idx_t, const std::string & val_t)
+inline std::string array (const std::string & idx, const std::string & val)
 {
-  return expr("Array", idx_t, val_t);
+  return expr("Array", idx, val);
 }
 
 // variable declaration
@@ -242,7 +234,8 @@ inline std::string array (const std::string & idx_t, const std::string & val_t)
 inline std::string declare_var (const std::string & name,
                                 const std::string & sort)
 {
-  return expr("declare-fun", name, "()", sort);
+  static const std::string pars = "()";
+  return expr("declare-fun", name, pars, sort);
 }
 
 // boolean variable declaration
@@ -263,10 +256,10 @@ inline std::string declare_bv_var (const std::string & name,
 // array variable declaration
 //
 inline std::string declare_array_var (const std::string & name,
-                                      const std::string & idx_t,
-                                      const std::string & val_t)
+                                      const std::string & idx,
+                                      const std::string & val)
 {
-  return declare_var(name, array(idx_t, val_t));
+  return declare_var(name, array(idx, val));
 }
 
 // set logic to QF_AUFBV
@@ -289,79 +282,76 @@ inline std::string exit () { return "(exit)"; }
 //
 inline std::string card_constraint_naive (const std::vector<std::string> & vars)
 {
-  switch (vars.size())
+  const size_t n = vars.size();
+
+  assert(n);
+
+  switch (n)
     {
-    case 0: throw std::runtime_error("no arguments");
-    case 1: return assertion(vars.front()) + eol;
-    case 2: return assertion(lxor(vars)) + eol;
+    case 1: return assertion(vars.front()) += eol;
+    case 2: return assertion(lxor(vars)) += eol;
     default: break;
     }
 
-  std::ostringstream constraint;
-  std::vector<std::string>::const_iterator it1, it2;
+  // >= 1 constraint
+  std::string constraint = assertion(lor(vars)) += eol;
 
-  // require one to be true
-  constraint << assertion(lor(vars)) << eol;
+  // <= 1 constraint
+  for (auto it1 = vars.cbegin(), cend = vars.cend(); it1 != cend; ++it1)
+    for (auto it2 = it1 + 1; it2 != cend; ++it2)
+      (constraint += assertion(lor(lnot(*it1), lnot(*it2)))) += eol;
 
-  // iterators
-  for (it1 = vars.begin(); it1 != vars.end(); ++it1)
-    for (it2 = it1 + 1; it2 != vars.end(); ++it2)
-      constraint << assertion(lor({lnot(*it1), lnot(*it2)})) << eol;
-
-  // indices
-  /*
-  for (size_t i = 0; i < vars.size(); i++)
-    for (size_t j = i + 1; j < vars.size(); j++)
-      constraint << assertion(lor({lnot(vars[i]), lnot(vars[j])})) << eol;
-  */
-
-  return constraint.str();
+  return constraint;
 }
 
 // boolean cardinality constraint =1: Carsten Sinz's sequential counter
 //
 inline std::string card_constraint_sinz (const std::vector<std::string> & vars)
 {
-  size_t n = vars.size();
+  const size_t n = vars.size();
+
+  assert(n);
 
   switch (n)
     {
-    case 0: throw std::runtime_error("no arguments");
     case 1: return assertion(vars.front()) + eol;
     case 2: return assertion(lxor(vars)) + eol;
     default: break;
     }
 
-  std::vector<std::string> aux;
-  std::ostringstream constraint;
+  std::string constraint;
 
   // n-1 auxiliary variables
+  std::vector<std::string> aux;
+  aux.reserve(n - 1);
   for (size_t i = 0; i < n - 1; i++)
     {
-      aux.push_back(vars[i] + "_aux");
-      constraint << declare_var(aux[i], "Bool") << eol;
+      constraint += declare_bool_var(aux.emplace_back(vars[i] + "_aux"));
+      constraint += eol;
     }
 
-  // constraint
-  constraint
-    << eol
-    << assertion(lor(vars))
-    << eol
-    << assertion(lor({lnot(vars[0]), aux[0]}))
-    << eol
-    << assertion(lor({lnot(vars[n - 1]), lnot(aux[n - 2])}))
-    << eol;
+  // >= 1 constraint
+  constraint += eol;
+  constraint += assertion(lor(vars));
+  constraint += eol;
+
+  // <= 1 constraint
+  constraint += assertion(lor(lnot(vars[0]), aux[0]));
+  constraint += eol;
+  constraint += assertion(lor(lnot(vars[n - 1]), lnot(aux[n - 2])));
+  constraint += eol;
 
   for (size_t i = 1; i < n - 1; i++)
-    constraint
-      << assertion(lor({lnot(vars[i]), aux[i]}))
-      << eol
-      << assertion(lor({lnot(aux[i - 1]), aux[i]}))
-      << eol
-      << assertion(lor({lnot(vars[i]), lnot(aux[i - 1])}))
-      << eol;
+    {
+      constraint += assertion(lor(lnot(vars[i]), aux[i]));
+      constraint += eol;
+      constraint += assertion(lor(lnot(aux[i - 1]), aux[i]));
+      constraint += eol;
+      constraint += assertion(lor(lnot(vars[i]), lnot(aux[i - 1])));
+      constraint += eol;
+    }
 
-  return constraint.str();
+  return constraint;
 }
 
 } // namespace ConcuBinE::smtlib
