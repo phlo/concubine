@@ -39,24 +39,24 @@ TEST(btor2, comment_subsection)
     btor2::comment_subsection("foo"));
 }
 
-// declare_sort ================================================================
+// sort_bitvec =================================================================
 
-TEST(btor2, declare_sort)
+TEST(btor2, sort_bitvec)
 {
-  ASSERT_EQ("1 sort bitvec 1\n", btor2::declare_sort("1", "1"));
-  ASSERT_EQ("2 sort bitvec 16\n", btor2::declare_sort("2", "16"));
-  ASSERT_EQ("3 sort bitvec 32 foo\n", btor2::declare_sort("3", "32", "foo"));
+  ASSERT_EQ("1 sort bitvec 1\n", btor2::sort_bitvec("1", "1"));
+  ASSERT_EQ("2 sort bitvec 16\n", btor2::sort_bitvec("2", "16"));
+  ASSERT_EQ("3 sort bitvec 32 foo\n", btor2::sort_bitvec("3", "32", "foo"));
 }
 
-// declare_array ===============================================================
+// sort_array ==================================================================
 
-TEST(btor2, declare_array)
+TEST(btor2, sort_array)
 {
-  ASSERT_EQ("1 sort array 2 2\n", btor2::declare_array("1", "2", "2"));
-  ASSERT_EQ("2 sort array 16 16\n", btor2::declare_array("2", "16", "16"));
+  ASSERT_EQ("1 sort array 2 2\n", btor2::sort_array("1", "2", "2"));
+  ASSERT_EQ("2 sort array 16 16\n", btor2::sort_array("2", "16", "16"));
   ASSERT_EQ(
     "3 sort array 32 32 foo\n",
-    btor2::declare_array("3", "32", "32", "foo"));
+    btor2::sort_array("3", "32", "32", "foo"));
 }
 
 // constd ======================================================================
@@ -400,7 +400,6 @@ TEST(btor2, land_variadic)
 
   // 2 arguments
   ASSERT_EQ("11 and 1 2 3\n", btor2::land(nid, "1", {"2", "3"}));
-
   ASSERT_EQ(12, nid);
 
   // 3 arguments
@@ -410,7 +409,6 @@ TEST(btor2, land_variadic)
     "11 and 1 2 3\n"
     "12 and 1 4 11\n",
     btor2::land(nid, "1", {"2", "3", "4"}));
-
   ASSERT_EQ(13, nid);
 
   // 4 arguments
@@ -421,17 +419,6 @@ TEST(btor2, land_variadic)
     "12 and 1 4 11\n"
     "13 and 1 5 12 foo\n",
     btor2::land(nid, "1", {"2", "3", "4", "5"}, "foo"));
-
-  ASSERT_EQ(14, nid);
-
-  // empty argument
-  ASSERT_THROW(btor2::land(nid, "1", {}), std::runtime_error);
-
-  ASSERT_EQ(14, nid);
-
-  // single argument
-  ASSERT_THROW(btor2::land(nid, "1", {"2"}), std::runtime_error);
-
   ASSERT_EQ(14, nid);
 }
 
@@ -468,7 +455,6 @@ TEST(btor2, lor_variadic)
 
   // 2 arguments
   ASSERT_EQ("11 or 1 2 3\n", btor2::lor(nid, "1", {"2", "3"}));
-
   ASSERT_EQ(12, nid);
 
   // 3 arguments
@@ -478,7 +464,6 @@ TEST(btor2, lor_variadic)
     "11 or 1 2 3\n"
     "12 or 1 4 11\n",
     btor2::lor(nid, "1", {"2", "3", "4"}));
-
   ASSERT_EQ(13, nid);
 
   // 4 arguments
@@ -489,17 +474,6 @@ TEST(btor2, lor_variadic)
     "12 or 1 4 11\n"
     "13 or 1 5 12 foo\n",
     btor2::lor(nid, "1", {"2", "3", "4", "5"}, "foo"));
-
-  ASSERT_EQ(14, nid);
-
-  // empty argument
-  ASSERT_THROW(btor2::lor(nid, "1", {}), std::runtime_error);
-
-  ASSERT_EQ(14, nid);
-
-  // single argument
-  ASSERT_THROW(btor2::lor(nid, "1", {"2"}), std::runtime_error);
-
   ASSERT_EQ(14, nid);
 }
 
@@ -759,14 +733,12 @@ TEST(btor2, cardinality_exactly_one_naive)
   ASSERT_EQ(
     "10 constraint 2\n",
     btor2::card_constraint_naive(nid, "1", {"2"}));
-
   ASSERT_EQ(nid, 11);
 
   ASSERT_EQ(
     "10 xor 1 2 3\n"
     "11 constraint 10\n",
     btor2::card_constraint_naive(nid = 10, "1", {"2", "3"}));
-
   ASSERT_EQ(nid, 12);
 
   ASSERT_EQ(
@@ -780,7 +752,6 @@ TEST(btor2, cardinality_exactly_one_naive)
     "17 and 1 15 16\n"
     "18 constraint 17\n",
     btor2::card_constraint_naive(nid = 10, "1", {"2", "3", "4"}));
-
   ASSERT_EQ(nid, 19);
 
   ASSERT_EQ(
@@ -801,7 +772,6 @@ TEST(btor2, cardinality_exactly_one_naive)
     "24 and 1 19 23\n"
     "25 constraint 24\n",
     btor2::card_constraint_naive(nid = 10, "1", {"2", "3", "4", "5"}));
-
   ASSERT_EQ(nid, 26);
 }
 
@@ -810,7 +780,7 @@ TEST(btor2, cardinality_exactly_one_naive_verify)
   BtorMC btormc;
 
   std::string formula =
-    btor2::declare_sort("1", "1") +
+    btor2::sort_bitvec("1", "1") +
     btor2::constd("2", "1", "0") +
     btor2::constd("3", "1", "1");
 
@@ -841,6 +811,8 @@ TEST(btor2, cardinality_exactly_one_naive_verify)
   spec += btor2::land(nid, "1", eqs_zero);
   spec += btor2::bad(nid);
 
+  ASSERT_FALSE(btormc.sat(spec));
+
   // not more than one
   std::vector<std::string> eqs_one;
 
@@ -866,76 +838,60 @@ TEST(btor2, cardinality_exactly_one_sinz)
 
   ASSERT_EQ(
     "10 constraint 2\n",
-    btor2::card_constraint_naive(nid, "1", {"2"}));
-
+    btor2::card_constraint_sinz(nid, "1", {"2"}));
   ASSERT_EQ(nid, 11);
 
   ASSERT_EQ(
     "10 xor 1 2 3\n"
     "11 constraint 10\n",
-    btor2::card_constraint_naive(nid = 10, "1", {"2", "3"}));
-
+    btor2::card_constraint_sinz(nid = 10, "1", {"2", "3"}));
   ASSERT_EQ(nid, 12);
 
   ASSERT_EQ(
     "10 or 1 2 3\n"
     "11 or 1 4 10\n"
     "12 constraint 11\n"
-    "13 input 1 card_aux_0\n"
-    "14 input 1 card_aux_1\n"
-    "15 not 1 2\n"
-    "16 or 1 13 15\n"
-    "17 constraint 16\n"
-    "18 not 1 4\n"
-    "19 not 1 14\n"
-    "20 or 1 18 19\n"
-    "21 constraint 20\n"
-    "22 not 1 3\n"
-    "23 or 1 14 22\n"
-    "24 constraint 23\n"
-    "25 not 1 13\n"
-    "26 or 1 14 25\n"
-    "27 constraint 26\n"
-    "28 or 1 22 25\n"
-    "29 constraint 28\n",
+    "13 input 1 2_aux\n"
+    "14 input 1 3_aux\n"
+    "15 or 1 -2 13\n"
+    "16 or 1 -3 14\n"
+    "17 or 1 -13 14\n"
+    "18 or 1 -3 -13\n"
+    "19 or 1 -4 -14\n"
+    "20 and 1 15 16\n"
+    "21 and 1 17 20\n"
+    "22 and 1 18 21\n"
+    "23 and 1 19 22\n"
+    "24 constraint 23\n",
     btor2::card_constraint_sinz(nid = 10, "1", {"2", "3", "4"}));
-
-  ASSERT_EQ(nid, 30);
+  ASSERT_EQ(nid, 25);
 
   ASSERT_EQ(
-    "10 or 1 1 2\n"
-    "11 or 1 3 10\n"
-    "12 or 1 4 11\n"
+    "10 or 1 2 3\n"
+    "11 or 1 4 10\n"
+    "12 or 1 5 11\n"
     "13 constraint 12\n"
-    "14 input 1 card_aux_0\n"
-    "15 input 1 card_aux_1\n"
-    "16 input 1 card_aux_2\n"
-    "17 not 1 1\n"
-    "18 or 1 14 17\n"
-    "19 constraint 18\n"
-    "20 not 1 4\n"
-    "21 not 1 16\n"
-    "22 or 1 20 21\n"
-    "23 constraint 22\n"
-    "24 not 1 2\n"
-    "25 or 1 15 24\n"
-    "26 constraint 25\n"
-    "27 not 1 14\n"
-    "28 or 1 15 27\n"
-    "29 constraint 28\n"
-    "30 or 1 24 27\n"
-    "31 constraint 30\n"
-    "32 not 1 3\n"
-    "33 or 1 16 32\n"
-    "34 constraint 33\n"
-    "35 not 1 15\n"
-    "36 or 1 16 35\n"
-    "37 constraint 36\n"
-    "38 or 1 32 35\n"
-    "39 constraint 38\n",
-    btor2::card_constraint_sinz(nid = 10, "1", {"1", "2", "3", "4"}));
-
-  ASSERT_EQ(nid, 40);
+    "14 input 1 2_aux\n"
+    "15 input 1 3_aux\n"
+    "16 input 1 4_aux\n"
+    "17 or 1 -2 14\n"
+    "18 or 1 -3 15\n"
+    "19 or 1 -14 15\n"
+    "20 or 1 -3 -14\n"
+    "21 or 1 -4 16\n"
+    "22 or 1 -15 16\n"
+    "23 or 1 -4 -15\n"
+    "24 or 1 -5 -16\n"
+    "25 and 1 17 18\n"
+    "26 and 1 19 25\n"
+    "27 and 1 20 26\n"
+    "28 and 1 21 27\n"
+    "29 and 1 22 28\n"
+    "30 and 1 23 29\n"
+    "31 and 1 24 30\n"
+    "32 constraint 31\n",
+    btor2::card_constraint_sinz(nid = 10, "1", {"2", "3", "4", "5"}));
+  ASSERT_EQ(nid, 33);
 }
 
 TEST(btor2, cardinality_exactly_one_sinz_verify)
@@ -943,7 +899,7 @@ TEST(btor2, cardinality_exactly_one_sinz_verify)
   BtorMC btormc;
 
   std::string formula =
-    btor2::declare_sort("1", "1") +
+    btor2::sort_bitvec("1", "1") +
     btor2::constd("2", "1", "0") +
     btor2::constd("3", "1", "1");
 
@@ -973,6 +929,8 @@ TEST(btor2, cardinality_exactly_one_sinz_verify)
 
   spec += btor2::land(nid, "1", eqs_zero);
   spec += btor2::bad(nid);
+
+  ASSERT_FALSE(btormc.sat(spec));
 
   // not more than one
   std::vector<std::string> eqs_one;

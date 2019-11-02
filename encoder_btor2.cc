@@ -1,6 +1,5 @@
 #include "encoder_btor2.hh"
 
-#include <algorithm>
 #include <cassert>
 
 #include "btor2.hh"
@@ -562,20 +561,23 @@ std::string Encoder::load (const word_t address, const bool indirect)
       lookup(
         nids_load[thread],
         address,
-        [&] {
-          std::string nid_load = nid();
+        [this, &nid_sb_val, &nid_sb_full, &nid_read_adr, &nid_eq_sb_adr_adr] {
 
           // sb-full && (sb-adr == address)
-          formula << land(nid_load, sid_bool, nid_sb_full, nid_eq_sb_adr_adr);
+          std::string nid_sb = nid();
+
+          formula << land(nid_sb, sid_bool, nid_sb_full, nid_eq_sb_adr_adr);
 
           // sb-full && (sb-adr == address)
           // ? sb-val
           // : heap[address]
+          std::string nid_load = nid();
+
           formula <<
             ite(
-              nid_load = nid(),
-              sid_bv,
               nid_load,
+              sid_bv,
+              nid_sb,
               nid_sb_val,
               nid_read_adr);
 
@@ -591,9 +593,9 @@ void Encoder::declare_sorts ()
     formula << comment_section("sorts");
 
   formula <<
-    declare_sort(sid_bool = nid(), "1") <<
-    declare_sort(sid_bv = nid(), std::to_string(word_size)) <<
-    declare_array(sid_heap = nid(), "2", "2") <<
+    sort_bitvec(sid_bool = nid(), "1") <<
+    sort_bitvec(sid_bv = nid(), std::to_string(word_size)) <<
+    sort_array(sid_heap = nid(), "2", "2") <<
     eol;
 }
 
@@ -631,13 +633,18 @@ void Encoder::define_mmap ()
   formula << state(nid_mmap = nid(), sid_heap, "mmap");
 
   for (const auto & [adr, val] : *mmap)
-    formula <<
-      write(
-        nid_mmap = nid(),
-        sid_heap,
-        nid_mmap,
-        nids_const[adr],
-        nids_const[val]);
+    {
+      std::string nid_prev = std::move(nid_mmap);
+      nid_mmap = nid();
+
+      formula <<
+        write(
+          nid_mmap,
+          sid_heap,
+          nid_prev,
+          nids_const[adr],
+          nids_const[val]);
+    }
 
   formula << eol;
 }
@@ -962,6 +969,8 @@ void Encoder::define_state_bv (Instruction::Type type,
   formula << init(nid(), sid_bv, nid_state, nids_const[0]);
 
   std::string nid_next = nid_state;
+  std::string nid_prev;
+
   for (pc = 0; pc < program.size(); pc++)
     {
       const Instruction & op = program[pc];
@@ -973,7 +982,7 @@ void Encoder::define_state_bv (Instruction::Type type,
             sid_bv,
             exec[pc],
             op.encode(*this),
-            nid_next,
+            nid_prev = std::move(nid_next),
             verbose ? debug_symbol(thread, pc) : "");
     }
 
@@ -1072,13 +1081,16 @@ void Encoder::define_sb_full ()
         nid_next = nid(-1);
       }
 
+    std::string nid_prev = std::move(nid_next);
+    nid_next = nid();
+
     formula <<
       ite(
-        nid_next = nid(),
+        nid_next,
         sid_bool,
         nids_flush[thread],
         nid_false,
-        nid_next) <<
+        nid_prev) <<
       next(nid(), sid_bool, nids_sb_full[thread], nid_next, sb_full_var()) <<
       eol;
   });
@@ -1092,39 +1104,39 @@ void Encoder::define_stmt ()
     formula << stmt_comment;
 
   iterate_programs([this] (const Program & program) {
-    std::unordered_map<word_t, std::string> nid_jmp; // nids of jump conditions
+    // nids of jump conditions
+    std::unordered_map<word_t, std::string> nids_jmp;
 
     for (pc = 0; pc < program.size(); pc++)
       {
-        std::string nid_next = nid();
-        std::string nid_exec = nids_exec[thread][pc];
-        std::string nid_stmt = nids_stmt[thread][pc];
+        std::string & nid_stmt = nids_stmt[thread][pc];
 
         // init
-        formula <<
-          init(nid_next, sid_bool, nid_stmt, pc ? nid_false : nid_true);
+        formula << init(nid(), sid_bool, nid_stmt, pc ? nid_false : nid_true);
 
         // add statement reactivation
+        std::string nid_next = nid();
+
         formula <<
           land(
-            nid_next = nid(),
+            nid_next,
             sid_bool,
             nid_stmt,
-            lnot(nid_exec),
+            lnot(nids_exec[thread][pc]),
             verbose ? debug_symbol(thread, pc) : "");
 
         // add activation by predecessor's execution
         for (word_t prev : predecessors[thread][pc])
           {
-            nid_exec = nids_exec[thread][prev];
             const Instruction & pred = program[prev];
+            std::string nid_exec = nids_exec[thread][prev];
 
             // predecessor is a conditional jump
             if (pred.is_jump() && &pred.symbol() != &Instruction::Jmp::symbol)
               {
                 std::string nid_cond =
                   lookup(
-                    nid_jmp,
+                    nids_jmp,
                     prev,
                     [this, &pred] { return pred.encode(*this); });
 
@@ -1133,18 +1145,23 @@ void Encoder::define_stmt ()
                   nid_cond = lnot(nid_cond);
 
                 // add conjunction of execution variable & jump condition
-                formula <<
-                  land(nid_exec = nid(), sid_bool, nid_exec, nid_cond);
+                std::string nid_prev = std::move(nid_exec);
+                nid_exec = nid();
+
+                formula << land(nid_exec, sid_bool, nid_prev, nid_cond);
               }
 
             // add predecessors activation
+            std::string nid_prev = std::move(nid_next);
+            nid_next = nid();
+
             formula <<
               ite(
-                nid_next = nid(),
+                nid_next,
                 sid_bool,
                 nids_stmt[thread][prev],
                 nid_exec,
-                nid_next,
+                nid_prev,
                 verbose ? debug_symbol(thread, prev) : "");
           }
 
@@ -1248,6 +1265,7 @@ void Encoder::define_heap ()
   iterate_programs([this, &nid_next] (const Program & program) {
     // store buffer flush
     std::string nid_flush = nid();
+    std::string nid_prev = std::move(nid_next);
 
     formula <<
       write(
@@ -1261,7 +1279,7 @@ void Encoder::define_heap ()
         sid_heap,
         nids_flush[thread],
         nid_flush,
-        nid_next,
+        nid_prev,
         verbose ? flush_var() : "");
 
     // atomic instructions
@@ -1276,7 +1294,7 @@ void Encoder::define_heap ()
               sid_heap,
               nids_exec[thread][pc],
               op.encode(*this),
-              nid_next,
+              nid_prev = std::move(nid_next),
               verbose ? debug_symbol(thread, pc) : "");
       }
   });
@@ -1344,21 +1362,27 @@ void Encoder::define_exit_code ()
 
   formula << init(nid(), sid_bv, nid_exit_code, nids_const[0]);
 
-  std::string nid_next = nid_exit_code;
+  std::string nid_prev = nid_exit_code;
+  std::string nid_cur = nid();
 
   for (const auto & [t, pcs] : exits)
     for (const auto & p : pcs)
-      formula <<
-        ite(
-          nid_next = nid(),
-          sid_bv,
-          nids_exec[t][p],
-          (*programs)[t][p].encode(*this),
-          nid_next,
-          verbose ? debug_symbol(t, p) : "");
+      {
+        formula <<
+          ite(
+            nid_cur,
+            sid_bv,
+            nids_exec[t][p],
+            (*programs)[t][p].encode(*this),
+            nid_prev,
+            verbose ? debug_symbol(t, p) : "");
+
+        nid_prev = std::move(nid_cur);
+        nid_cur = nid();
+      }
 
   formula
-    << next(nid(), sid_bv, nid_exit_code, nid_next, exit_code_var)
+    << next(nid_cur, sid_bv, nid_exit_code, nid_prev, exit_code_var)
     << eol;
 }
 
@@ -1482,7 +1506,7 @@ void Encoder::define_checkpoint_constraints ()
 
           formula
             << land(prev, sid_bool, nid_block, not_check)
-            << implies(prev = nid(), sid_bool, prev, lnot(nids_thread[t]))
+            << implies(nid(), sid_bool, prev, lnot(nids_thread[t]))
             << constraint(node, block_var(c, t))
             << eol;
         }
@@ -1579,63 +1603,67 @@ std::string Encoder::encode (const Instruction::Fence & f [[maybe_unused]])
 
 std::string Encoder::encode (const Instruction::Add & a)
 {
-  std::string nid_add = load(a.arg, a.indirect);
+  std::string nid_load = load(a.arg, a.indirect);
+  std::string nid_add = nid();
 
-  formula << add(nid_add = nid(), sid_bv, nids_accu[thread], nid_add);
+  formula << add(nid_add, sid_bv, nids_accu[thread], nid_load);
 
   return nid_add;
 }
 
 std::string Encoder::encode (const Instruction::Addi & a)
 {
-  std::string nid_addi = nids_const[a.arg];
+  std::string nid_addi = nid();
 
-  formula << add(nid_addi = nid(), sid_bv, nids_accu[thread], nid_addi);
+  formula << add(nid_addi, sid_bv, nids_accu[thread], nids_const[a.arg]);
 
   return nid_addi;
 }
 
 std::string Encoder::encode (const Instruction::Sub & s)
 {
-  std::string nid_sub = load(s.arg, s.indirect);
+  std::string nid_load = load(s.arg, s.indirect);
+  std::string nid_sub = nid();
 
-  formula << sub(nid_sub = nid(), sid_bv, nids_accu[thread], nid_sub);
+  formula << sub(nid_sub, sid_bv, nids_accu[thread], nid_load);
 
   return nid_sub;
 }
 
 std::string Encoder::encode (const Instruction::Subi & s)
 {
-  std::string nid_subi = nids_const[s.arg];
+  std::string nid_subi = nid();
 
-  formula << sub(nid_subi = nid(), sid_bv, nids_accu[thread], nid_subi);
+  formula << sub(nid_subi, sid_bv, nids_accu[thread], nids_const[s.arg]);
 
   return nid_subi;
 }
 
 std::string Encoder::encode (const Instruction::Mul & m)
 {
-  std::string nid_mul = load(m.arg, m.indirect);
+  std::string nid_load = load(m.arg, m.indirect);
+  std::string nid_mul = nid();
 
-  formula << mul(nid_mul = nid(), sid_bv, nids_accu[thread], nid_mul);
+  formula << mul(nid_mul, sid_bv, nids_accu[thread], nid_load);
 
   return nid_mul;
 }
 
 std::string Encoder::encode (const Instruction::Muli & m)
 {
-  std::string nid_muli = nids_const[m.arg];
+  std::string nid_muli = nid();
 
-  formula << mul(nid_muli = nid(), sid_bv, nids_accu[thread], nid_muli);
+  formula << mul(nid_muli, sid_bv, nids_accu[thread], nids_const[m.arg]);
 
   return nid_muli;
 }
 
 std::string Encoder::encode (const Instruction::Cmp & c)
 {
-  std::string nid_sub = load(c.arg, c.indirect);
+  std::string nid_load = load(c.arg, c.indirect);
+  std::string nid_sub = nid();
 
-  formula << sub(nid_sub = nid(), sid_bv, nids_accu[thread], nid_sub);
+  formula << sub(nid_sub, sid_bv, nids_accu[thread], nid_load);
 
   return nid_sub;
 }
@@ -1708,12 +1736,13 @@ std::string Encoder::encode (const Instruction::Cas & c)
       c.indirect ? nids_cas_indirect[thread] : nids_cas[thread],
       c.arg,
       [this, &c] {
-        std::string nid_cond = load(c.arg);
-
-        formula << eq(nid_cond = nid(), sid_bool, nids_mem[thread], nid_cond);
-
+        std::string nid_load = load(c.arg);
+        std::string nid_cond = nid();
+        formula << eq(nid_cond, sid_bool, nids_mem[thread], nid_load);
         return nid_cond;
       });
+
+  std::string nid_cond = nid_cas;
 
   switch (update)
     {
@@ -1723,7 +1752,7 @@ std::string Encoder::encode (const Instruction::Cas & c)
             ite(
               nid_cas = nid(),
               sid_bv,
-              nid_cas,
+              nid_cond,
               nids_const[1],
               nids_const[0]);
 
@@ -1745,7 +1774,7 @@ std::string Encoder::encode (const Instruction::Cas & c)
             ite(
               nid_cas = nid(),
               sid_heap,
-              nid_cas,
+              nid_cond,
               nid_write,
               nid_heap);
 

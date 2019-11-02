@@ -376,18 +376,19 @@ TEST(btor2_Encoder, define_mmap)
     if (verbose)
       s << btor2::comment_section("memory map");
 
-    std::string nid_init = std::to_string(nid++);
-
-    s << btor2::state(nid_init, encoder.sid_heap, "mmap");
+    s << btor2::state(std::to_string(nid++), encoder.sid_heap, "mmap");
 
     for (const auto & [adr, val] : *encoder.mmap)
-      s <<
-        btor2::write(
-          nid_init = std::to_string(nid++),
-          encoder.sid_heap,
-          nid_init,
-          encoder.nids_const[adr],
-          encoder.nids_const[val]);
+      {
+        s <<
+          btor2::write(
+            std::to_string(nid),
+            encoder.sid_heap,
+            std::to_string(nid - 1),
+            encoder.nids_const[adr],
+            encoder.nids_const[val]);
+        nid++;
+      }
 
     s << eol;
 
@@ -2753,13 +2754,15 @@ TEST(btor2_Encoder, define_heap)
           encoder.nids_sb_adr[thread],
           encoder.nids_sb_val[thread]);
       nid++;
+      std::string nid_prev = std::move(nid_next);
+      nid_next = std::to_string(nid);
       s <<
         btor2::ite(
-          nid_next = std::to_string(nid),
+          nid_next,
           encoder.sid_heap,
           encoder.nids_flush[thread],
           std::to_string(nid - 1),
-          nid_next,
+          nid_prev,
           verbose ? encoder.flush_var() : "");
       nid++;
 
@@ -2819,13 +2822,15 @@ TEST(btor2_Encoder, define_heap)
           std::to_string(nid - 1),
           encoder.nid_heap);
       nid++;
+      nid_prev = std::move(nid_next);
+      nid_next = std::to_string(nid);
       s <<
         btor2::ite(
-          nid_next = std::to_string(nid),
+          nid_next,
           encoder.sid_heap,
           encoder.nids_exec[thread][pc],
           std::to_string(nid - 1),
-          nid_next,
+          nid_prev,
           verbose ? encoder.debug_symbol(thread, pc) : "");
       nid++;
     });
@@ -2870,8 +2875,6 @@ TEST(btor2_Encoder, define_heap_mmap)
   auto expected = [&encoder, &nid] {
     std::ostringstream s;
 
-    std::string nid_next = encoder.nid_heap;
-
     if (verbose)
       s << encoder.heap_comment;
 
@@ -2886,7 +2889,7 @@ TEST(btor2_Encoder, define_heap_mmap)
         std::to_string(nid),
         encoder.sid_heap,
         encoder.nid_heap,
-        nid_next,
+        encoder.nid_heap,
         encoder.heap_sym);
 
     s << eol;

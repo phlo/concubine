@@ -297,8 +297,8 @@ inline std::string card_constraint_naive (const std::vector<std::string> & vars)
   std::string constraint = assertion(lor(vars)) += eol;
 
   // <= 1 constraint
-  for (auto it1 = vars.cbegin(), cend = vars.cend(); it1 != cend; ++it1)
-    for (auto it2 = it1 + 1; it2 != cend; ++it2)
+  for (auto it1 = vars.begin(); it1 != vars.end(); ++it1)
+    for (auto it2 = it1 + 1; it2 != vars.end(); ++it2)
       (constraint += assertion(lor(lnot(*it1), lnot(*it2)))) += eol;
 
   return constraint;
@@ -322,11 +322,14 @@ inline std::string card_constraint_sinz (const std::vector<std::string> & vars)
   std::string constraint;
 
   // n-1 auxiliary variables
-  std::vector<std::string> aux;
-  aux.reserve(n - 1);
-  for (size_t i = 0; i < n - 1; i++)
+  std::vector<std::string> auxs;
+  auxs.reserve(n - 1);
+
+  const auto end = --vars.end();
+
+  for (auto it = vars.begin(); it != end; ++it)
     {
-      constraint += declare_bool_var(aux.emplace_back(vars[i] + "_aux"));
+      constraint += declare_bool_var(auxs.emplace_back(*it + "_aux"));
       constraint += eol;
     }
 
@@ -336,20 +339,26 @@ inline std::string card_constraint_sinz (const std::vector<std::string> & vars)
   constraint += eol;
 
   // <= 1 constraint
-  constraint += assertion(lor(lnot(vars[0]), aux[0]));
-  constraint += eol;
-  constraint += assertion(lor(lnot(vars[n - 1]), lnot(aux[n - 2])));
+  auto var = vars.begin();
+  auto aux = auxs.begin();
+
+  constraint += assertion(lor(lnot(*var), *aux));
   constraint += eol;
 
-  for (size_t i = 1; i < n - 1; i++)
+  while (++var != end)
     {
-      constraint += assertion(lor(lnot(vars[i]), aux[i]));
+      const std::string & aux_prev = *aux++;
+
+      constraint += assertion(lor(lnot(*var), *aux));
       constraint += eol;
-      constraint += assertion(lor(lnot(aux[i - 1]), aux[i]));
+      constraint += assertion(lor(lnot(aux_prev), *aux));
       constraint += eol;
-      constraint += assertion(lor(lnot(vars[i]), lnot(aux[i - 1])));
+      constraint += assertion(lor(lnot(*var), lnot(aux_prev)));
       constraint += eol;
     }
+
+  constraint += assertion(lor(lnot(*var), lnot(*aux)));
+  constraint += eol;
 
   return constraint;
 }

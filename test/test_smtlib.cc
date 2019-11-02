@@ -295,11 +295,12 @@ TEST(smtlib, cardinality_exactly_one_sinz)
     "(assert (or x1 x2 x3))\n"
 
     "(assert (or (not x1) x1_aux))\n"
-    "(assert (or (not x3) (not x2_aux)))\n"
 
     "(assert (or (not x2) x2_aux))\n"
     "(assert (or (not x1_aux) x2_aux))\n"
-    "(assert (or (not x2) (not x1_aux)))\n",
+    "(assert (or (not x2) (not x1_aux)))\n"
+
+    "(assert (or (not x3) (not x2_aux)))\n",
     smtlib::card_constraint_sinz({"x1", "x2", "x3"}));
 
   ASSERT_EQ(
@@ -310,7 +311,6 @@ TEST(smtlib, cardinality_exactly_one_sinz)
     "(assert (or x1 x2 x3 x4))\n"
 
     "(assert (or (not x1) x1_aux))\n"
-    "(assert (or (not x4) (not x3_aux)))\n"
 
     "(assert (or (not x2) x2_aux))\n"
     "(assert (or (not x1_aux) x2_aux))\n"
@@ -318,7 +318,9 @@ TEST(smtlib, cardinality_exactly_one_sinz)
 
     "(assert (or (not x3) x3_aux))\n"
     "(assert (or (not x2_aux) x3_aux))\n"
-    "(assert (or (not x3) (not x2_aux)))\n",
+    "(assert (or (not x3) (not x2_aux)))\n"
+
+    "(assert (or (not x4) (not x3_aux)))\n",
     smtlib::card_constraint_sinz({"x1", "x2", "x3", "x4"}));
 }
 
