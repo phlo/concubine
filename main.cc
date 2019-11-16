@@ -149,7 +149,7 @@ int simulate (const char * name, const int argc, const char ** argv)
   if (argc < 1)
     {
       print_error("too few arguments");
-      print_usage_solve(name);
+      print_usage_simulate(name);
       return -1;
     }
 
