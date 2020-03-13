@@ -1,0 +1,55 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% preamble
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[12pt,a4paper]{article}
+
+% character encoding
+\usepackage[utf8]{inputenc}
+
+% hyperlinks
+\usepackage{hyperref}
+
+% tikz
+\usepackage{tikz}
+\tikzset{>=latex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% commands
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% variable names
+\newcommand{\accu}{\texttt{accu}}
+\newcommand{\mem}{\texttt{mem}}
+\newcommand{\sbfull}{\texttt{sb-full}}
+\newcommand{\sbadr}{\texttt{sb-adr}}
+\newcommand{\sbval}{\texttt{sb-val}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% document
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+% \input{cover/coversheet}
+
+\tableofcontents
+
+\newpage
+
+\listoffigures
+
+\newpage
+
+\input{introduction}
+
+\newpage
+
+\input{machine}
+
+\newpage
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}

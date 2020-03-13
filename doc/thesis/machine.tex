@@ -1,0 +1,88 @@
+\section{Machine Model}
+
+% intro
+
+% Our abstract machine model of a x86 multiprocessor system is illustrated in Figure \ref{fig:machine:overview}.
+
+%We will start by defining an abstract machine model of a multiprocessor system that allows stores to be reordered after loads.
+%Since we are only concerned with the machine's behaviour as observed by assembly programs, the internal structure of any real processor's microarchitecture is a highly abstracted.
+%To keep the state space of the resulting model checking problems as small as possible, we defined our model on the basis of a 16 bit, 1 register machine.
+
+% consistent with amd/intel litmus tests
+
+% as observed by assembly programs.
+
+% to reduce the state space, while emulating the behaviour of a x86 multiprocessor system.
+
+% * abstract machine model to investigate the interaction of parallel programs through shared memory.
+
+We will start by defining an abstract machine model of a multiprocessor system as observed by assembly programs.
+To keep the state space of the resulting model checking problems as small as possible, it is based on a 16 bit architecture, using only a minimal set of registers and a radically reduced instruction set.
+
+\begin{figure}[h]
+  \centering
+  \input{figures/architecture.tex}
+  \caption{Abstract Machine Model}
+  \label{fig:machine:overview}
+\end{figure}
+
+A schematic overview is illustrated in Figure \ref{fig:machine:overview}.
+At the top of the figure are an arbitrary number of processors, each containing:
+
+\begin{itemize}
+  \item \accu: a single 16 bit accumulator register
+  \item \mem: a special purpose 16 bit register, storing the expected value required by a unary \emph{compare and swap} instruction
+  % \item a \emph{store buffer} to break sequential consistency by delaying a single write, consisting of:
+  \item a single element \emph{store buffer}, consisting of:
+    \begin{itemize}
+      \item \sbfull: a one bit flag register, signaling that it contains a value and may be flushed
+      \item \sbadr: a 16 bit address register
+      \item \sbval: a 16 bit value register
+    \end{itemize}
+\end{itemize}
+
+All processors are directly connected to the machine's shared memory, which will be uninitialized with the exception of any eventual input data.
+In terms of memory ordering, the addition of a \emph{store buffer} allows stores to be reordered after loads, making our model consistent with Intel's or AMD's x86 memory ordering model \cite{intel, amd}.
+
+\subsection{Instructions}
+
+To keep things simple, instructions are not stored in memory and labelled using the following attributes:
+
+% Since we are not considering an actual implementation, the stream of instructions can be seen as hardwired to each of the processors.
+
+\begin{itemize}
+  \item \textbf{accu} -- modifies accumulator contents
+  \item \textbf{mem} -- modifies CAS memory register contents
+  \item \textbf{modify} -- modifies a register's content (accu or mem)
+  \item \textbf{read} -- reads from memory
+  \item \textbf{write} -- writes to memory
+  \item \textbf{barrier} -- memory barrier - requires the store buffer to be flushed
+  \item \textbf{atomic} -- atomic operations (implies barrier)
+  \item \textbf{control} -- control flow operation
+\end{itemize}
+
+\subsubsection{ADDI - Immediate Addition}
+
+\paragraph{Syntax:} \texttt{ADDI val}
+\paragraph{Description:} Adds an intermediate value \texttt{val} to \accu.
+
+\begin{tabular}{|l|l|l|}
+  \hline
+  \textbf{Symbol} & \textbf{Operand} & \textbf{Description} \\
+  \hline
+  \texttt{ADDI} & val & Adds the immediate value val to the accumulator \\
+  \hline
+\end{tabular}
+
+\subsection{Operational Semantics}
+
+\begin{enumerate}
+  \item thread $t$ can execute a read, modify or control operation at any time
+  \item thread $t$ can voluntarily flush its store buffer to memory at any time
+  \item thread $t$ can read value $v$ from it's store buffer for address $a$ only if it contains a write to $a$
+  \item thread $t$ can read value $v$ directly from memory at address $a$ only if it's store buffer does not contain a write to $a$
+  \item thread $t$ can write value $v$ for address $a$ to its store buffer only if it is empty and $t$ performs a write operation
+  \item thread $t$ can write value $v$ directly to memory at address $a$ only if it performs an *atomic* operation
+  \item thread $t$ can perform an atomic or barrier operation only if its store buffer is empty
+  \item the machine stops and returns exit code $e$ if any thread $t$ executes an EXIT instruction
+\end{enumerate}
