@@ -46,21 +46,36 @@ In terms of memory ordering, the addition of a \emph{store buffer} allows stores
 
 \subsection{Instructions}
 
-To keep things simple, instructions are not stored in memory and labelled using the following attributes:
+% not stored in memory
+
+% simple format - unary at most
+Instructions are stored separately for each processor and are therefore not contained in memory.
+Our machine uses a radically reduced instruction set that contains only the most substantial operations.
+To simplify the latter definition of operational semantics, instructions are labelled using the following attributes:
+
+% To keep things simple, instructions are not stored in memory and labelled using the following attributes:
 
 % Since we are not considering an actual implementation, the stream of instructions can be seen as hardwired to each of the processors.
 
 \begin{itemize}
-  \item \textbf{accu} -- modifies accumulator contents
-  \item \textbf{mem} -- modifies CAS memory register contents
-  \item \textbf{modify} -- modifies a register's content (accu or mem)
+  % \item \textbf{accu} -- modifies accumulator contents
+  % \item \textbf{mem} -- modifies CAS memory register contents
+  \item \textbf{modify} -- modifies a register's content
   \item \textbf{read} -- reads from memory
   \item \textbf{write} -- writes to memory
-  \item \textbf{barrier} -- memory barrier - requires the store buffer to be flushed
-  \item \textbf{atomic} -- atomic operations (implies barrier)
+  \item \textbf{barrier} -- memory barrier% - requires the store buffer to be flushed
+  \item \textbf{atomic} -- atomic operation% (implies barrier)
   \item \textbf{control} -- control flow operation
 \end{itemize}
 
+Due to the single register architecture, all instructions have at most one operand.
+Two addressing modes are supported, direct and indirect, denoted by square brackets (e.g. \texttt{LOAD [adr]}).
+
+\subsubsection{LOAD - Read from Memory}
+
+\texttt{LOAD adr} loads the value at \texttt{adr} into \accu.
+
+\subsubsection{STORE - Write to Memory}
 \subsubsection{ADDI - Immediate Addition}
 
 \paragraph{Syntax:} \texttt{ADDI val}
