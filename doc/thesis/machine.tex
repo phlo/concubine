@@ -41,7 +41,7 @@ At the top of the figure are an arbitrary number of processors, each containing:
     \end{itemize}
 \end{itemize}
 
-All processors are directly connected to the machine's shared memory, which will be uninitialized with the exception of any eventual input data.
+All processors are directly connected to the machine's shared memory, referred to as \texttt{heap}, which will be uninitialized with the exception of any eventual input data.
 In terms of memory ordering, the addition of a \emph{store buffer} allows stores to be reordered after loads, making our model consistent with Intel's or AMD's x86 memory ordering model \cite{intel, amd}.
 
 \subsection{Instructions}
@@ -60,9 +60,9 @@ To simplify the latter definition of operational semantics, instructions are lab
 \begin{itemize}
   % \item \textbf{accu} -- modifies accumulator contents
   % \item \textbf{mem} -- modifies CAS memory register contents
-  \item \textbf{modify} -- modifies a register's content
-  \item \textbf{read} -- reads from memory
-  \item \textbf{write} -- writes to memory
+  \item \textbf{modify} -- Modifies a register's content.
+  \item \textbf{read} -- Reads from memory using \emph{store forwarding}: if \sbfull{} is set and \sbadr{} equals the given target address, the value contained in \sbval{} is read instead of the corresponding shared memory location.
+  \item \textbf{write} -- Writes to memory by setting \sbfull{} to true, \sbadr{} to the given target address and \sbval{} to the value contained in \accu{}.
   \item \textbf{barrier} -- memory barrier% - requires the store buffer to be flushed
   \item \textbf{atomic} -- atomic operation% (implies barrier)
   \item \textbf{control} -- control flow operation
@@ -71,33 +71,194 @@ To simplify the latter definition of operational semantics, instructions are lab
 Due to the single register architecture, all instructions have at most one operand.
 Two addressing modes are supported, direct and indirect, denoted by square brackets (e.g. \texttt{LOAD [adr]}).
 
-\subsubsection{LOAD - Read from Memory}
+% \newpage
+% \subsubsection{Instruction Set}
 
-\texttt{LOAD adr} loads the value at \texttt{adr} into \accu.
+\newcommand{\oprule}{\rule[0.5\baselineskip]{\textwidth}{0.1pt}\vspace{-0.5\baselineskip}\par\noindent}
 
-\subsubsection{STORE - Write to Memory}
-\subsubsection{ADDI - Immediate Addition}
+\newcommand{\defop}[3]{
+  \paragraph{#1} \hfill #2
+  \rule[0.5\baselineskip]{\textwidth}{0.1pt}\vspace{-0.5\baselineskip}\par\noindent
+  #3
+}
 
-\paragraph{Syntax:} \texttt{ADDI val}
-\paragraph{Description:} Adds an intermediate value \texttt{val} to \accu.
+\newcommand{\defopnew}[4]{
+  \par\noindent
+  \begin{tabu} to \textwidth {X[l]X[l]X[r]}
+    #1 & #2 & #3
+  \end{tabu}
+  \rule[0.5\baselineskip]{\textwidth}{0.1pt}\vspace{-0.5\baselineskip}
+  #4
+}
 
-\begin{tabular}{|l|l|l|}
-  \hline
-  \textbf{Symbol} & \textbf{Operand} & \textbf{Description} \\
-  \hline
-  \texttt{ADDI} & val & Adds the immediate value val to the accumulator \\
-  \hline
-\end{tabular}
+% \noindent
+% \begin{tabu} to \textwidth {X[l]X[l]X[r]}
+% \texttt{LOAD adr} & \texttt{accu = heap[adr]} & accu, read \\
+% \texttt{STORE adr} & \texttt{heap[adr] = accu} & write
+% \end{tabu}
 
-\subsection{Operational Semantics}
+\newpage
+\subsubsection{Memory}
+
+\defop
+{\texttt{LOAD adr}}
+{accu, read}
+{Loads the value found at address \texttt{adr} into \accu.}
+
+\defop
+{\texttt{STORE adr}}
+{write}
+{Stores the value found in \accu{} at address \texttt{adr}.}
+
+\defop
+{\texttt{FENCE}}
+{barrier}
+{Memory barrier.}
+
+\subsubsection{Arithmetic}
+
+\defop
+{\texttt{ADD adr}}
+{accu, read}
+{Adds the value found at address \texttt{adr} to \accu.}
+
+\defop
+{\texttt{ADDI val}}
+{accu}
+{Adds the immediate value \texttt{val} to \accu.}
+
+\defop
+{\texttt{SUB adr}}
+{accu, read}
+{Subtracts the value found at address \texttt{adr} from \accu.}
+
+\defop
+{\texttt{SUBI val}}
+{accu}
+{Subtracts the immediate value \texttt{val} from \accu.}
+
+\defop
+{\texttt{MUL adr}}
+{accu, read}
+{Multiplies \accu{} with the value found at address \texttt{adr}.}
+
+\defop
+{\texttt{MULI val}}
+{accu}
+{Multiplies \accu{} with the immediate value \texttt{val}.}
+
+\subsubsection{Control Flow}
+
+\defop
+{\texttt{CMP adr}}
+{accu, read}
+{Compares \accu{} to the value found at address \texttt{adr} by performing an unsigned subtraction.}
+
+\defop
+{\texttt{JMP pc}}
+{control}
+{Jumps to the statement at \texttt{pc} unconditionally.}
+
+\defop
+{\texttt{JZ pc}}
+{control}
+{Jumps to the statement at \texttt{pc} if \accu{} is zero.}
+
+\defop
+{\texttt{JNZ pc}}
+{control}
+{Jumps to the statement at \texttt{pc} if \accu{} is non-zero.}
+
+\defop
+{\texttt{JS pc}}
+{control}
+{Jumps to the statement at \texttt{pc} if \accu{} is negative (least significant bit is set).}
+
+\defop
+{\texttt{JNS pc}}
+{control}
+{Jumps to the statement at \texttt{pc} if \accu{} is zero or positive (least significant bit is unset).}
+
+\defop
+{\texttt{JNZNS pc}}
+{control}
+{Jumps to the statement at \texttt{pc} if \accu{} is positive (non-zero and least significant bit is unset).}
+
+\subsubsection{Atomic}
+
+\defop
+{\texttt{MEM adr}}
+{accu, mem, read}
+{Loads the value found at address \texttt{adr} into \accu{} and \mem{} as the expectation during a latter \emph{compare and swap} operation.}
+
+\defop
+{\texttt{CAS adr}}
+{accu, read, atomic, barrier}
+{Atomically compares the expected value in \mem{} to the actual value found at address \texttt{adr} and only writes the value found in \accu{} back to address \texttt{adr} if they are equal.
+Acts like a memory barrier.}
+
+\subsubsection{Termination}
+
+\defop
+{\texttt{HALT}}
+{control}
+{Halts the current thread.}
+
+\defop
+{\texttt{EXIT val}}
+{control}
+{Stops the machine with exit code \texttt{val}.}
+
+\subsubsection{Meta}
+
+\defop
+{\texttt{CHECK id}}
+{control}
+{Synchronize on checkpoint \texttt{id}.
+This high-level meta instruction shall simplify the implementation of so called \emph{checker threads} used to validate machine states.}
+
+\subsection{Programs}
+
+\begin{figure}[h]
+\begin{grammar}
+
+<int> ::= an integer number
+
+<label> ::= a sequence of printable characters, excluding whitespaces
+
+<nullary> ::= "FENCE" | "HALT"
+
+<unary> ::= "ADDI" | "SUBI" | "MULI" | "EXIT" | "CHECK"
+
+<memory> ::= "LOAD" | "STORE" | "ADD" | "SUB" | "MUL" | "CMP" | "MEM" | "CAS"
+
+<jump> ::= "JMP" | "JZ" | "JNZ" | "JS" | "JNS" | "JNZNS"
+
+<instruction> ::= <nullary>
+\alt <unary> <int>
+\alt <memory> ( <int> | "["<int>"]" )
+\alt <jump> ( <int> | <label> )
+
+<statement> ::= <label>":" <instruction> | <instruction>
+
+<program> ::= <statement> | <statement> <program>
+\end{grammar}
+
+\caption{Program Syntax}
+\label{fig:machine:program}
+\end{figure}
+
+\newpage
+% \subsection{Operational Semantics}
+\subsection{Scheduling}
 
 \begin{enumerate}
   \item thread $t$ can execute a read, modify or control operation at any time
   \item thread $t$ can voluntarily flush its store buffer to memory at any time
-  \item thread $t$ can read value $v$ from it's store buffer for address $a$ only if it contains a write to $a$
-  \item thread $t$ can read value $v$ directly from memory at address $a$ only if it's store buffer does not contain a write to $a$
+  % \item thread $t$ can read value $v$ from it's store buffer for address $a$ only if it contains a write to $a$
+  % \item thread $t$ can read value $v$ directly from memory at address $a$ only if it's store buffer does not contain a write to $a$
   \item thread $t$ can write value $v$ for address $a$ to its store buffer only if it is empty and $t$ performs a write operation
-  \item thread $t$ can write value $v$ directly to memory at address $a$ only if it performs an *atomic* operation
+  % \item thread $t$ can write value $v$ directly to memory at address $a$ only if it performs an *atomic* operation
   \item thread $t$ can perform an atomic or barrier operation only if its store buffer is empty
   \item the machine stops and returns exit code $e$ if any thread $t$ executes an EXIT instruction
 \end{enumerate}
