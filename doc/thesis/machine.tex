@@ -46,49 +46,27 @@ In terms of memory ordering, the addition of a \emph{store buffer} allows stores
 
 \subsection{Instructions}
 
-% not stored in memory
-
-% simple format - unary at most
-Instructions are stored separately for each processor and are therefore not contained in memory.
 Our machine uses a radically reduced instruction set that contains only the most substantial operations.
-To simplify the latter definition of operational semantics, instructions are labelled using the following attributes:
-
-% To keep things simple, instructions are not stored in memory and labelled using the following attributes:
-
-% Since we are not considering an actual implementation, the stream of instructions can be seen as hardwired to each of the processors.
+Instructions are stored separately for each processor and are therefore not contained in memory.
+This abstraction allows the program counter to address instructions by their index, starting from zero.
+To simplify the definition of operational semantics, instructions are labelled using the following attributes:
 
 \begin{itemize}
-  % \item \textbf{accu} -- modifies accumulator contents
-  % \item \textbf{mem} -- modifies CAS memory register contents
   \item \textbf{modify} -- Modifies a register's content.
   \item \textbf{read} -- Reads from memory using \emph{store forwarding}: if \sbfull{} is set and \sbadr{} equals the given target address, the value contained in \sbval{} is read instead of the corresponding shared memory location.
-  \item \textbf{write} -- Writes to memory by setting \sbfull{} to true, \sbadr{} to the given target address and \sbval{} to the value contained in \accu{}.
-  \item \textbf{barrier} -- memory barrier% - requires the store buffer to be flushed
-  \item \textbf{atomic} -- atomic operation% (implies barrier)
-  \item \textbf{control} -- control flow operation
+  \item \textbf{write} -- Writes to the store buffer by setting \sbfull{} to true, \sbadr{} to the given target address and \sbval{} to the value contained in \accu{}.
+  \item \textbf{barrier} -- Blocks execution if the store buffer is full (\sbadr{} is set). %memory barrier% - requires the store buffer to be flushed
+  \item \textbf{atomic} -- Multiple micro operations performed as a single, uninterruptible instruction.% (implies barrier)
+  \item \textbf{control} -- Modifies the order in which instructions are executed.
 \end{itemize}
 
 Due to the single register architecture, all instructions have at most one operand.
 Two addressing modes are supported, direct and indirect, denoted by square brackets (e.g. \texttt{LOAD [adr]}).
 
-% \newpage
-% \subsubsection{Instruction Set}
-
-\newcommand{\oprule}{\rule[0.5\baselineskip]{\textwidth}{0.1pt}\vspace{-0.5\baselineskip}\par\noindent}
-
 \newcommand{\defop}[3]{
   \paragraph{#1} \hfill #2
   \rule[0.5\baselineskip]{\textwidth}{0.1pt}\vspace{-0.5\baselineskip}\par\noindent
   #3
-}
-
-\newcommand{\defopnew}[4]{
-  \par\noindent
-  \begin{tabu} to \textwidth {X[l]X[l]X[r]}
-    #1 & #2 & #3
-  \end{tabu}
-  \rule[0.5\baselineskip]{\textwidth}{0.1pt}\vspace{-0.5\baselineskip}
-  #4
 }
 
 % \noindent
@@ -97,7 +75,6 @@ Two addressing modes are supported, direct and indirect, denoted by square brack
 % \texttt{STORE adr} & \texttt{heap[adr] = accu} & write
 % \end{tabu}
 
-\newpage
 \subsubsection{Memory}
 
 \defop
@@ -201,8 +178,8 @@ Acts like a memory barrier.}
 
 \defop
 {\texttt{HALT}}
-{control}
-{Halts the current thread.}
+{barrier, control}
+{Stops the current thread.}
 
 \defop
 {\texttt{EXIT val}}
@@ -215,16 +192,24 @@ Acts like a memory barrier.}
 {\texttt{CHECK id}}
 {control}
 {Synchronize on checkpoint \texttt{id}.
-This high-level meta instruction shall simplify the implementation of so called \emph{checker threads} used to validate machine states.}
+Suspends execution until all threads, containing a call to checkpoint \texttt{id}, reached the corresponding \texttt{CHECK} statement.
+This high-level meta instruction shall simplify the implementation of so called \emph{checker threads} used to validate machine states at runtime.}
 
 \subsection{Programs}
 
+Each processor is programmed using an assembly style language, defined by the following syntax.
+
 \begin{figure}[h]
 \begin{grammar}
+\small
 
 <int> ::= an integer number
 
-<label> ::= a sequence of printable characters, excluding whitespaces
+<label> ::= a sequence of printable characters without "#"
+
+<string> ::= a sequence of whitespace and printable characters without "#" and "\\n"
+
+<comment> ::= "#" <string>
 
 <nullary> ::= "FENCE" | "HALT"
 
@@ -241,24 +226,23 @@ This high-level meta instruction shall simplify the implementation of so called 
 
 <statement> ::= <label>":" <instruction> | <instruction>
 
-<program> ::= <statement> | <statement> <program>
-\end{grammar}
+<line> ::= <statement> | <statement> <comment> | <comment>
 
+<program> ::= <line> | <line> "\\n" <program>
+\end{grammar}
 \caption{Program Syntax}
-\label{fig:machine:program}
+\label{fig:syntax:program}
 \end{figure}
 
-\newpage
-% \subsection{Operational Semantics}
+If the final statement in a given program is no control instruction, a final \texttt{HALT} is inserted implicitly.
+
 \subsection{Scheduling}
 
+At each step a processors either executes an instruction or flushes it's store buffer back to memory.
+Scheduling is generally performed non-deterministically under the following constraints.
+
 \begin{enumerate}
-  \item thread $t$ can execute a read, modify or control operation at any time
-  \item thread $t$ can voluntarily flush its store buffer to memory at any time
-  % \item thread $t$ can read value $v$ from it's store buffer for address $a$ only if it contains a write to $a$
-  % \item thread $t$ can read value $v$ directly from memory at address $a$ only if it's store buffer does not contain a write to $a$
-  \item thread $t$ can write value $v$ for address $a$ to its store buffer only if it is empty and $t$ performs a write operation
-  % \item thread $t$ can write value $v$ directly to memory at address $a$ only if it performs an *atomic* operation
-  \item thread $t$ can perform an atomic or barrier operation only if its store buffer is empty
-  \item the machine stops and returns exit code $e$ if any thread $t$ executes an EXIT instruction
+  \item A processor can execute a read, modify or control operation at any time.
+  \item A processor can voluntarily flush its store buffer to memory only if it is full.
+  \item A processor can execute a write, atomic or barrier operation only if it's store buffer is empty.
 \end{enumerate}

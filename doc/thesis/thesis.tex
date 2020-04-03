@@ -7,6 +7,9 @@
 % character encoding
 \usepackage[utf8]{inputenc}
 
+% colors
+\usepackage{xcolor}
+
 % math
 \usepackage{amsmath}
 
@@ -16,12 +19,53 @@
 % tables
 \usepackage{tabu}
 
+% code
+\usepackage{listings}
+\lstset{
+  aboveskip=\bigskipamount,
+  belowskip=\bigskipamount,
+  captionpos=b,
+  abovecaptionskip=\bigskipamount,
+  belowcaptionskip=\bigskipamount,
+  escapeinside=@@,
+  columns=fullflexible,
+}
+\lstdefinelanguage[concubine]{Assembler}{
+  morekeywords={[1]LOAD,STORE,FENCE,ADD,ADDI,SUB,SUBI},
+  morecomment=[l]\#,
+  basicstyle=\ttfamily,
+  commentstyle=\color{gray},
+  % columns=fullflexible,
+  keepspaces,
+  % tabsize=6,
+  % xleftmargin=\parindent,
+}
+\lstdefinestyle{c}{
+  belowcaptionskip=1\baselineskip,
+  breaklines=true,
+  % frame=L,
+  % xleftmargin=\parindent,
+  language=C,
+  showstringspaces=false,
+  basicstyle=\footnotesize\ttfamily,
+  keywordstyle=\bfseries\color{green!40!black},
+  % commentstyle=\itshape\color{purple!40!black},
+  commentstyle=\itshape\color{gray},
+  identifierstyle=\color{blue},
+  stringstyle=\color{orange},
+  % columns=fullflexible,
+}
+
 % tikz
 \usepackage{tikz}
 \tikzset{>=latex}
 
 % grammars
 \usepackage{syntax}
+\setlength{\grammarparsep}{0pt}
+
+% sideways
+\usepackage{rotating}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % commands
@@ -33,6 +77,14 @@
 \newcommand{\sbfull}{\texttt{sb-full}}
 \newcommand{\sbadr}{\texttt{sb-adr}}
 \newcommand{\sbval}{\texttt{sb-val}}
+
+% todos
+\newcommand{\todo}[1]{
+  \begin{flushleft}
+    \color{red}
+    $\rightarrow$ #1
+  \end{flushleft}
+}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % document
@@ -55,6 +107,14 @@
 \newpage
 
 \input{machine}
+
+\newpage
+
+\input{execution}
+
+\newpage
+
+\input{conclusion}
 
 \newpage
 
