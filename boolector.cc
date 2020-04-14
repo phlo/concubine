@@ -1,6 +1,7 @@
 #include "boolector.hh"
 
 #include "shell.hh"
+#include "smtlib.hh"
 #include "trace.hh"
 
 namespace ConcuBinE {
@@ -29,6 +30,13 @@ std::string Boolector::version () const
   return version;
 }
 
+// Boolector::formula ----------------------------------------------------------
+
+std::string Boolector::formula (Encoder & encoder) const
+{
+  return Solver::formula(encoder) + smtlib::check_sat() + eol;
+}
+
 //------------------------------------------------------------------------------
 // public member functions inherited from External
 //------------------------------------------------------------------------------
@@ -37,7 +45,11 @@ std::string Boolector::version () const
 
 const std::vector<std::string> & Boolector::command () const
 {
-  static const std::vector<std::string> cmd({name(), "--model-gen"});
+  static const std::vector<std::string> cmd({
+    name(),
+    "--model-gen",
+    "--output-format=btor"});
+
   return cmd;
 }
 

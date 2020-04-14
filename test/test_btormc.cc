@@ -20,7 +20,7 @@ TEST_F(BtorMC, sat)
     "3 bad 2\n"));
   ASSERT_EQ(
     "sat\n"
-    "b0 \n"
+    "b0\n"
     "#0\n"
     "0 1 x#0\n"
     "@0\n"

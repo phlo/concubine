@@ -25,6 +25,10 @@ public: //======================================================================
   //
   virtual std::string version () const;
 
+  // build formula from given encoding
+  //
+  virtual std::string formula (Encoder & encoder) const;
+
   //----------------------------------------------------------------------------
   // public member functions inherited from External
   //----------------------------------------------------------------------------

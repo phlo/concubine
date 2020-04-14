@@ -8,6 +8,7 @@
 #include "mmap.hh"
 #include "parser.hh"
 #include "shell.hh"
+#include "smtlib.hh"
 #include "trace.hh"
 
 namespace ConcuBinE::test {
@@ -491,7 +492,9 @@ TEST_F(Main, solve_encoder_btor2)
 TEST_F(Main, solve_encoder_smtlib_functional)
 {
   ASSERT_EQ(
-    fs::read("test/data/halt.t2.k10.functional.smt2"),
+    fs::read("test/data/halt.t2.k10.functional.smt2") +
+      smtlib::check_sat() +
+      eol,
     shell::run({
       bin,
       solve,
@@ -509,7 +512,9 @@ TEST_F(Main, solve_encoder_smtlib_functional)
 TEST_F(Main, solve_encoder_smtlib_relational)
 {
   ASSERT_EQ(
-    fs::read("test/data/halt.t2.k10.relational.smt2"),
+    fs::read("test/data/halt.t2.k10.relational.smt2") +
+      smtlib::check_sat() +
+      eol,
     shell::run({
       bin,
       solve,

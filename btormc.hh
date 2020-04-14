@@ -21,6 +21,10 @@ public: //======================================================================
   //
   virtual std::string name () const;
 
+  // build formula from given encoding
+  //
+  virtual std::string formula (Encoder & encoder) const;
+
   // evaluate arbitrary formula
   //
   using Boolector::sat;

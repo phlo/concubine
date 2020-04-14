@@ -17,6 +17,13 @@ namespace ConcuBinE {
 
 std::string BtorMC::name () const { return "btormc"; }
 
+// BtorMC::formula -------------------------------------------------------------
+
+std::string BtorMC::formula (Encoder & encoder) const
+{
+  return Solver::formula(encoder);
+}
+
 // BtorMC::sat -----------------------------------------------------------------
 
 bool BtorMC::sat (const std::string & formula, const size_t k)

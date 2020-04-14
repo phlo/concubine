@@ -39,10 +39,11 @@ std::string CVC4::version () const
 std::string CVC4::formula (Encoder & encoder) const
 {
   return
-    External::formula(encoder) +
+    Solver::formula(encoder) +
     smtlib::check_sat() +
     eol +
-    smtlib::get_model();
+    smtlib::get_model() +
+    eol;
 }
 
 //------------------------------------------------------------------------------
