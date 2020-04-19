@@ -12,6 +12,10 @@
 
 % math
 \usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+\newtheorem*{definition}{Definition}
 
 % hyperlinks
 \usepackage{hyperref}
@@ -72,11 +76,19 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % variable names
+\newcommand{\heap}{\texttt{heap}}
+\newcommand{\exit}{\texttt{exit}}
+\newcommand{\exitcode}{\texttt{exit-code}}
+
 \newcommand{\accu}{\texttt{accu}}
 \newcommand{\mem}{\texttt{mem}}
 \newcommand{\sbfull}{\texttt{sb-full}}
 \newcommand{\sbadr}{\texttt{sb-adr}}
 \newcommand{\sbval}{\texttt{sb-val}}
+
+% sorts
+\newcommand{\asort}{\mathcal{A}}
+\newcommand{\bvsort}[1][16]{\mathcal{B}^{#1}}
 
 % todos
 \newcommand{\todo}[1]{
@@ -111,6 +123,10 @@
 \newpage
 
 \input{execution}
+
+\newpage
+
+\input{encoding}
 
 \newpage
 
