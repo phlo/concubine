@@ -30,14 +30,14 @@ A schematic overview is illustrated in Figure \ref{fig:machine:overview}.
 At the top of the figure are an arbitrary number of processors, each containing:
 
 \begin{itemize}
-  \item \accu: a single 16 bit accumulator register
-  \item \mem: a special purpose 16 bit register, storing the expected value required by a unary \emph{compare and swap} instruction
+  \item \ACCU: a single 16 bit accumulator register
+  \item \MEM: a special purpose 16 bit register, storing the expected value required by a unary \emph{compare and swap} instruction
   % \item a \emph{store buffer} to break sequential consistency by delaying a single write, consisting of:
   \item a single element \emph{store buffer}, consisting of:
     \begin{itemize}
-      \item \sbfull: a one bit flag register, signaling that it contains a value and may be flushed
-      \item \sbadr: a 16 bit address register
-      \item \sbval: a 16 bit value register
+      \item \SBFULL: a one bit flag register, signaling that it contains a value and may be flushed
+      \item \SBADR: a 16 bit address register
+      \item \SBVAL: a 16 bit value register
     \end{itemize}
 \end{itemize}
 
@@ -53,9 +53,9 @@ To simplify the definition of operational semantics, instructions are labelled u
 
 \begin{itemize}
   \item \textbf{modify} -- Modifies a register's content.
-  \item \textbf{read} -- Reads from memory using \emph{store forwarding}: if \sbfull{} is set and \sbadr{} equals the given target address, the value contained in \sbval{} is read instead of the corresponding shared memory location.
-  \item \textbf{write} -- Writes to the store buffer by setting \sbfull{} to true, \sbadr{} to the given target address and \sbval{} to the value contained in \accu{}.
-  \item \textbf{barrier} -- Blocks execution if the store buffer is full (\sbadr{} is set). %memory barrier% - requires the store buffer to be flushed
+  \item \textbf{read} -- Reads from memory using \emph{store forwarding}: if \SBFULL{} is set and \SBADR{} equals the given target address, the value contained in \SBVAL{} is read instead of the corresponding shared memory location.
+  \item \textbf{write} -- Writes to the store buffer by setting \SBFULL{} to true, \SBADR{} to the given target address and \SBVAL{} to the value contained in \ACCU{}.
+  \item \textbf{barrier} -- Blocks execution if the store buffer is full (\SBADR{} is set). %memory barrier% - requires the store buffer to be flushed
   \item \textbf{atomic} -- Multiple micro operations performed as a single, uninterruptible instruction.% (implies barrier)
   \item \textbf{control} -- Modifies the order in which instructions are executed.
 \end{itemize}
@@ -80,12 +80,12 @@ Two addressing modes are supported, direct and indirect, denoted by square brack
 \defop
 {\texttt{LOAD adr}}
 {accu, read}
-{Loads the value found at address \texttt{adr} into \accu.}
+{Loads the value found at address \texttt{adr} into \ACCU.}
 
 \defop
 {\texttt{STORE adr}}
 {write}
-{Stores the value found in \accu{} at address \texttt{adr}.}
+{Stores the value found in \ACCU{} at address \texttt{adr}.}
 
 \defop
 {\texttt{FENCE}}
@@ -97,39 +97,39 @@ Two addressing modes are supported, direct and indirect, denoted by square brack
 \defop
 {\texttt{ADD adr}}
 {accu, read}
-{Adds the value found at address \texttt{adr} to \accu.}
+{Adds the value found at address \texttt{adr} to \ACCU.}
 
 \defop
 {\texttt{ADDI val}}
 {accu}
-{Adds the immediate value \texttt{val} to \accu.}
+{Adds the immediate value \texttt{val} to \ACCU.}
 
 \defop
 {\texttt{SUB adr}}
 {accu, read}
-{Subtracts the value found at address \texttt{adr} from \accu.}
+{Subtracts the value found at address \texttt{adr} from \ACCU.}
 
 \defop
 {\texttt{SUBI val}}
 {accu}
-{Subtracts the immediate value \texttt{val} from \accu.}
+{Subtracts the immediate value \texttt{val} from \ACCU.}
 
 \defop
 {\texttt{MUL adr}}
 {accu, read}
-{Multiplies \accu{} with the value found at address \texttt{adr}.}
+{Multiplies \ACCU{} with the value found at address \texttt{adr}.}
 
 \defop
 {\texttt{MULI val}}
 {accu}
-{Multiplies \accu{} with the immediate value \texttt{val}.}
+{Multiplies \ACCU{} with the immediate value \texttt{val}.}
 
 \subsubsection{Control Flow}
 
 \defop
 {\texttt{CMP adr}}
 {accu, read}
-{Compares \accu{} to the value found at address \texttt{adr} by performing an unsigned subtraction.}
+{Compares \ACCU{} to the value found at address \texttt{adr} by performing an unsigned subtraction.}
 
 \defop
 {\texttt{JMP pc}}
@@ -139,39 +139,39 @@ Two addressing modes are supported, direct and indirect, denoted by square brack
 \defop
 {\texttt{JZ pc}}
 {control}
-{Jumps to the statement at \texttt{pc} if \accu{} is zero.}
+{Jumps to the statement at \texttt{pc} if \ACCU{} is zero.}
 
 \defop
 {\texttt{JNZ pc}}
 {control}
-{Jumps to the statement at \texttt{pc} if \accu{} is non-zero.}
+{Jumps to the statement at \texttt{pc} if \ACCU{} is non-zero.}
 
 \defop
 {\texttt{JS pc}}
 {control}
-{Jumps to the statement at \texttt{pc} if \accu{} is negative (least significant bit is set).}
+{Jumps to the statement at \texttt{pc} if \ACCU{} is negative (least significant bit is set).}
 
 \defop
 {\texttt{JNS pc}}
 {control}
-{Jumps to the statement at \texttt{pc} if \accu{} is zero or positive (least significant bit is unset).}
+{Jumps to the statement at \texttt{pc} if \ACCU{} is zero or positive (least significant bit is unset).}
 
 \defop
 {\texttt{JNZNS pc}}
 {control}
-{Jumps to the statement at \texttt{pc} if \accu{} is positive (non-zero and least significant bit is unset).}
+{Jumps to the statement at \texttt{pc} if \ACCU{} is positive (non-zero and least significant bit is unset).}
 
 \subsubsection{Atomic}
 
 \defop
 {\texttt{MEM adr}}
 {accu, mem, read}
-{Loads the value found at address \texttt{adr} into \accu{} and \mem{} as the expectation during a latter \emph{compare and swap} operation.}
+{Loads the value found at address \texttt{adr} into \ACCU{} and \MEM{} as the expectation during a latter \emph{compare and swap} operation.}
 
 \defop
 {\texttt{CAS adr}}
 {accu, read, atomic, barrier}
-{Atomically compares the expected value in \mem{} to the actual value found at address \texttt{adr} and only writes the value found in \accu{} back to address \texttt{adr} if they are equal.
+{Atomically compares the expected value in \MEM{} to the actual value found at address \texttt{adr} and only writes the value found in \ACCU{} back to address \texttt{adr} if they are equal.
 Acts like a memory barrier.}
 
 \subsubsection{Termination}

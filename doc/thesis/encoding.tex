@@ -11,7 +11,7 @@
 
 \todo{states
   \begin{itemize}
-    \item $\texttt{accu}_t^k$ - accumulator of thread $t$
+    \item $\ACCU^k_t$ - accumulator of thread $t$
     \item mem
     \item sb-adr
     \item sb-val
@@ -25,13 +25,13 @@
   \end{itemize}
 }
 
-\paragraph{$\accu^k_t$} accumulator register state
+\newpage
 
-The following variables are used to encode the machine's state at a particular step $k \in [0, bound] \subseteq \mathbb{N}$, where $k = 0$ is the machine's initial state.
+The following variables are used to encode the machine's state at a particular step $k \in [0, bound] \subset \mathbb{N}$, where $k = 0$ is the machine's initial state.
 
 \cite{btor2}
 
-Let $\bvsort[n]$ be the fixed size bitvector sort of width $n$ and $\mathcal{A}$ the array sort with index and element sorts $\bvsort$.
+Let $\BVSORT[n]$ be the fixed size bitvector sort of width $n$ and $\ASORT[n]$ the array sort with index and element sorts $\BVSORT[n]$.
 
 \renewcommand{\arraystretch}{1.25}
 \begin{table}[h!]
@@ -39,20 +39,20 @@ Let $\bvsort[n]$ be the fixed size bitvector sort of width $n$ and $\mathcal{A}$
   \hline
   \textbf{global} &&\\
   \hline
-  $\texttt{heap}^k$ & $\mathcal{A}$ & shared memory state in step $k$ \\
-  $\texttt{exit}^k$ & $\bvsort[1]$ & exit flag in step $k$ \\
-  $\texttt{exit-code}^k$ & $\bvsort$ & exit code in step $k$ \\
+  $\HEAP^k$ & $\ASORT$ & shared memory state in step $k$ \\
+  $\EXIT^k$ & $\BVSORT[1]$ & exit flag in step $k$ \\
+  $\EXITCODE^k$ & $\BVSORT$ & exit code in step $k$ \\
   \hline
-  \textbf{thread local} &&\\
+  \textbf{local} &&\\
   \hline
-  $\accu^k_t$ & $\bvsort$ & accumulator register state of thread $t$ in step $k$ \\
-  $\texttt{mem}^k_t$ & $\bvsort$ & CAS memory register state of thread $t$ in step $k$ \\
-  $\texttt{sb-adr}^k_t$ & $\bvsort$ & store buffer address register of thread $t$ in step $k$ \\
-  $\texttt{sb-val}^k_t$ & $\bvsort$ & store buffer value register of thread $t$ in step $k$ \\
-  $\texttt{sb-full}^k_t$ & $\bvsort[1]$ & store buffer full flag of thread $t$ in step $k$ \\
-  $\texttt{stmt}^k_{t, pc}$ & $\bvsort[1]$ & statement activation for $pc$ of thread $t$ in step $k$ \\
-  $\texttt{block}^k_{t, id}$ & $\bvsort[1]$ & block flag for checkpoint $id$ of thread $t$ in step $k$ \\
-  $\texttt{halt}^k_t$ & $\bvsort[1]$ & halt flag of thread $t$ in step $k$ \\
+  $\ACCU^k_t$ & $\BVSORT$ & accumulator register state of thread $t$ in step $k$ \\
+  $\MEM^k_t$ & $\BVSORT$ & CAS memory register state of thread $t$ in step $k$ \\
+  $\SBADR^k_t$ & $\BVSORT$ & store buffer address register of thread $t$ in step $k$ \\
+  $\SBVAL^k_t$ & $\BVSORT$ & store buffer value register of thread $t$ in step $k$ \\
+  $\SBFULL^k_t$ & $\BVSORT[1]$ & store buffer full flag of thread $t$ in step $k$ \\
+  $\STMT^k_{t, pc}$ & $\BVSORT[1]$ & statement activation for $pc$ of thread $t$ in step $k$ \\
+  $\BLOCK^k_{t, id}$ & $\BVSORT[1]$ & block flag for checkpoint $id$ of thread $t$ in step $k$ \\
+  $\HALT^k_t$ & $\BVSORT[1]$ & halt flag of thread $t$ in step $k$ \\
   \hline
 \end{tabular}
 \caption{State Variables}
@@ -66,47 +66,85 @@ Let $\bvsort[n]$ be the fixed size bitvector sort of width $n$ and $\mathcal{A}$
   \end{itemize}
 }
 
+\begin{table}[h!]
+\begin{tabular}{lll}
+  \hline
+  $\THREAD^k_t$ & $\BVSORT$ & accumulator register state of thread $t$ in step $k$ \\
+  $\MEM^k_t$ & $\BVSORT$ & CAS memory register state of thread $t$ in step $k$ \\
+  $\SBADR^k_t$ & $\BVSORT$ & store buffer address register of thread $t$ in step $k$ \\
+  $\SBVAL^k_t$ & $\BVSORT$ & store buffer value register of thread $t$ in step $k$ \\
+  $\SBFULL^k_t$ & $\BVSORT[1]$ & store buffer full flag of thread $t$ in step $k$ \\
+  $\STMT^k_{t, pc}$ & $\BVSORT[1]$ & statement activation for $pc$ of thread $t$ in step $k$ \\
+  $\BLOCK^k_{t, id}$ & $\BVSORT[1]$ & block flag for checkpoint $id$ of thread $t$ in step $k$ \\
+  $\HALT^k_t$ & $\BVSORT[1]$ & halt flag of thread $t$ in step $k$ \\
+  \hline
+\end{tabular}
+\caption{State Variables}
+\end{table}
+
 \todo{memory access
   \begin{itemize}
     \item $load$ predicate
   \end{itemize}
 }
 
-Let $ite: \bvsort[1] \times \bvsort[n] \times \bvsort[n] \to \bvsort[n]$ be a functional if-then-else, returning the value $a \in \bvsort[n]$ if $x \in \bvsort[1]$ is \emph{true}, else the value $b \in \bvsort[n]$.
+\newcommand{\ITE}{\texttt{ite}}
+\newcommand{\ITEindent}{\;\;\;\;\;\;\;}
+
+Let $\ITE: \BVSORT[1] \times \BVSORT[n] \times \BVSORT[n] \to \BVSORT[n]$ be a functional if-then-else, returning the value $a \in \BVSORT[n]$ if $x \in \BVSORT[1]$ is \emph{true}, else the value $b \in \BVSORT[n]$.
 \[
-  ite(x, a, b) =
+  \ITE(x, a, b) =
   \begin{cases}
     a \text{ if } x \text{ is } true \\
     b \text{ otherwise}
   \end{cases}
 \]
 
-Let $read^k: \bvsort \to \bvsort$ be the function returning the element $e \in \bvsort$ with index $i \in \bvsort$ from array $a \in \asort$.
+\newcommand{\READ}{\texttt{read}}
 
-Let $load^k_t: \asort \times \bvsort \times \bvsort[1] \to \bvsort$ be the function for loading a particular shared memory element $e \in \bvsort$ with index $i \in \bvsort$ from array $a \in \asort$ and the indirection flag $indirect \in \bvsort[1]$, defined as follows.
+Let $\READ^k: \BVSORT \to \BVSORT$ be the function returning the shared memory element at index $adr \in \BVSORT$ from array $\HEAP^k \in \ASORT$.
 
+~\\
+
+\newcommand{\LOAD}{\texttt{load}}
+
+Let $\LOAD^k_t: \BVSORT \times \BVSORT[1] \to \BVSORT$ be the function for loading a particular shared memory element $e \in \BVSORT$ with index $i \in \BVSORT$ from array $a \in \ASORT$ and the indirection flag $indirect \in \BVSORT[1]$, defined as follows.
 \begin{align}
-  load(a, i, indirect) = ite( & indirect, \\
-                              & ite(\sbfull^k, \\
-                              & \;\;\;\;\;\, ite(\sbadr^k = i, \\
-                              & \;\;\;\;\;\, \;\;\;\;\;\, ite(\sbval^k_t = i, \\
-                              & \;\;\;\;\;\, \;\;\;\;\;\, \;\;\;\;\;\, \sbval^k_t, \\
-                              & \;\;\;\;\;\, \;\;\;\;\;\, \;\;\;\;\;\, read^k(i)), \\
-                              & \;\;\;\;\;\, \;\;\;\;\;\, ite(\sbadr^k_t = read^k(i), \\
-                              & \;\;\;\;\;\, \;\;\;\;\;\, \;\;\;\;\;\, \sbval^k_t, \\
-                              & \;\;\;\;\;\, \;\;\;\;\;\, \;\;\;\;\;\, read(read^k(i)))), \\
-                              & \;\;\;\;\;\, read^k(read^k(i))), \\
-                              & ite(\sbfull^k_t \land \sbadr^k_t = i, \\
-                              & \;\;\;\;\;\, \sbval, \\
-                              & \;\;\;\;\;\, read^k(a, i)))
+  \LOAD^k_t(adr, indirect) = \ITE(& indirect, \\
+  & \ITE(\SBFULL^k_t, \label{def:load:sbfull} \\
+  & \ITEindent \ITE(\SBADR^k_t = adr, \\
+  & \ITEindent \ITEindent \ITE(\SBVAL^k_t = adr, \\
+  & \ITEindent \ITEindent \ITEindent \SBVAL^k_t, \\
+  & \ITEindent \ITEindent \ITEindent \READ^k(\SBVAL^k_t)), \\
+  & \ITEindent \ITEindent \ITE(\SBADR^k_t = \READ^k(adr), \\
+  & \ITEindent \ITEindent \ITEindent \SBVAL^k_t, \\
+  & \ITEindent \ITEindent \ITEindent \READ^k(\READ^k(adr)))), \\
+  & \ITEindent \READ^k(\READ^k(adr))), \\
+  & \ITE(\SBFULL^k_t \land \SBADR^k_t = adr, \\
+  & \ITEindent \SBVAL^k_t, \\
+  & \ITEindent \READ^k(adr)))
 \end{align}
 
-\paragraph{Store Forwarding:} $\sbfull \; \land \; \sbadr = adr \land \accu = \sbval \lor \lnot (\sbfull \land \sbadr = adr)$
+\ref{def:load:sbfull}
+
+% \paragraph{Store Forwarding:} $\sbfull \; \land \; \sbadr = adr \land \accu = \sbval \lor \lnot (\sbfull \land \sbadr = adr)$
 
 \todo{frame axioms
   \begin{itemize}
     \item instructions
-    \item \texttt{ADDI val}\\ $\texttt{exec}^k_{t, pc} \land \accu^{k + 1}_t = \accu^k_t + \texttt{val} \land \mem^{k + 1}_t = \mem^k_t$
+    \item Programs: $\{p_1, \ldots, p_n\} \in \mathcal{P}^n$
+    \item \texttt{ADDI val}
+      \[
+        \ACCU^{k + 1}_t = \ACCU^k_t + \texttt{val}
+      \]
+    \item \texttt{ADD adr}
+      \[
+        \ACCU^{k + 1}_t = \ACCU^k_t + \LOAD^k_t(adr, false)
+      \]
+    \item \texttt{ADD [adr]}
+      \[
+        \ACCU^{k + 1}_t = \ACCU^k_t + \LOAD^k_t(adr, true)
+      \]
   \end{itemize}
 }
 

@@ -75,20 +75,29 @@
 % commands
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% variable names
-\newcommand{\heap}{\texttt{heap}}
-\newcommand{\exit}{\texttt{exit}}
-\newcommand{\exitcode}{\texttt{exit-code}}
+% state variables
+\newcommand{\HEAP}{\texttt{heap}}
+\newcommand{\EXIT}{\texttt{exit}}
+\newcommand{\EXITCODE}{\texttt{exit-code}}
 
-\newcommand{\accu}{\texttt{accu}}
-\newcommand{\mem}{\texttt{mem}}
-\newcommand{\sbfull}{\texttt{sb-full}}
-\newcommand{\sbadr}{\texttt{sb-adr}}
-\newcommand{\sbval}{\texttt{sb-val}}
+\newcommand{\ACCU}{\texttt{accu}}
+\newcommand{\MEM}{\texttt{mem}}
+\newcommand{\SBADR}{\texttt{sb-adr}}
+\newcommand{\SBVAL}{\texttt{sb-val}}
+\newcommand{\SBFULL}{\texttt{sb-full}}
+\newcommand{\STMT}{\texttt{stmt}}
+\newcommand{\BLOCK}{\texttt{block}}
+\newcommand{\HALT}{\texttt{halt}}
+
+% transition variables
+\newcommand{\THREAD}{\texttt{thread}}
+\newcommand{\EXEC}{\texttt{exec}}
+\newcommand{\FLUSH}{\texttt{flush}}
+\newcommand{\CHECK}{\texttt{check}}
 
 % sorts
-\newcommand{\asort}{\mathcal{A}}
-\newcommand{\bvsort}[1][16]{\mathcal{B}^{#1}}
+\newcommand{\ASORT}[1][16]{\mathcal{A}^{#1}}
+\newcommand{\BVSORT}[1][16]{\mathcal{B}^{#1}}
 
 % todos
 \newcommand{\todo}[1]{
