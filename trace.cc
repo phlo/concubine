@@ -131,6 +131,10 @@ Trace::Trace(std::istream & file, const std::string & path) :
 
       const Instruction & op = program[pc];
 
+      // parse EXIT - not included in thread state update list
+      if (&op.symbol() == &Instruction::Exit::symbol)
+        exit = op.arg();
+
       // parse instruction symbol
       std::string symbol;
 
@@ -765,7 +769,8 @@ bool Trace::push_back (Trace::update_map<T> & updates,
       auto prev = updates.crbegin();
 
       // ensure that no update exists for this step
-      if (prev->first == step)
+      assert(prev->first < step);
+      if (prev->first >= step)
         throw std::runtime_error("update already exists");
 
       // insert if value doesn't change
