@@ -311,12 +311,12 @@ std::shared_ptr<std::string> Relational::set_halt () const
 
 std::shared_ptr<std::string> Relational::restore_halt () const
 {
-  if (halts.empty())
+  if (halts.find(thread) != halts.end())
+    return
+      std::make_shared<std::string>(
+        equality(halt_var(), halt_var(prev, thread)));
+  else
     return {};
-
-  return
-    std::make_shared<std::string>(
-      equality(halt_var(), halt_var(prev, thread)));
 }
 
 // smtlib::Relational::set_heap ------------------------------------------------
