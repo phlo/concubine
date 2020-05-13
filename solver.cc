@@ -206,6 +206,7 @@ void External::update_heap (Trace & trace, const size_t prev, const size_t cur)
 
 std::unique_ptr<Trace> External::trace (const Encoder & encoder)
 {
+  bool halted = false;
   size_t lineno = 2;
   size_t next = 2;
   const auto & programs = encoder.programs;
@@ -226,51 +227,60 @@ std::unique_ptr<Trace> External::trace (const Encoder & encoder)
           if (symbol == Symbol::ignore)
             continue;
 
-          // detect an eventual heap update
-          // reached next step: previous state at step - 1 fully visible
-          if (step > 1 && step == next)
-            update_heap(*trace, next++ - 2, step - 1);
-
-          if (symbol == Symbol::accu)
+          // check if machine halted
+          if (symbol == Symbol::exit_flag)
             {
-              trace->push_back_accu(step, thread, value);
+              halted = true;
             }
-          else if (symbol == Symbol::mem)
-            {
-              trace->push_back_mem(step, thread, value);
-            }
-          else if (symbol == Symbol::sb_adr)
-            {
-              trace->push_back_sb_adr(step, thread, value);
-            }
-          else if (symbol == Symbol::sb_val)
-            {
-              trace->push_back_sb_val(step, thread, value);
-            }
-          else if (symbol == Symbol::sb_full)
-            {
-              trace->push_back_sb_full(step, thread, value);
-            }
-          else if (symbol == Symbol::stmt)
-            {
-              trace->push_back_pc(step, thread, pc);
-            }
-          else if (symbol == Symbol::exit_flag)
-            {
-              break;
-            }
+          // keep looking for an exit-code after the machine has halted (BtorMC)
           else if (symbol == Symbol::exit_code)
             {
               trace->exit = value;
+
+              if (halted)
+                break;
             }
-          else if (symbol == Symbol::thread)
+          // skip all other state updates after the machine has halted
+          else if (!halted)
             {
-              trace->push_back_thread(step, thread);
-            }
-          else if (symbol == Symbol::flush)
-            {
-              trace->push_back_thread(step, thread);
-              trace->push_back_flush(step);
+              // detect an eventual heap update
+              // reached next step: previous state at step - 1 fully visible
+              if (step > 1 && step == next)
+                update_heap(*trace, next++ - 2, step - 1);
+
+              if (symbol == Symbol::accu)
+                {
+                  trace->push_back_accu(step, thread, value);
+                }
+              else if (symbol == Symbol::mem)
+                {
+                  trace->push_back_mem(step, thread, value);
+                }
+              else if (symbol == Symbol::sb_adr)
+                {
+                  trace->push_back_sb_adr(step, thread, value);
+                }
+              else if (symbol == Symbol::sb_val)
+                {
+                  trace->push_back_sb_val(step, thread, value);
+                }
+              else if (symbol == Symbol::sb_full)
+                {
+                  trace->push_back_sb_full(step, thread, value);
+                }
+              else if (symbol == Symbol::stmt)
+                {
+                  trace->push_back_pc(step, thread, pc);
+                }
+              else if (symbol == Symbol::thread)
+                {
+                  trace->push_back_thread(step, thread);
+                }
+              else if (symbol == Symbol::flush)
+                {
+                  trace->push_back_thread(step, thread);
+                  trace->push_back_flush(step);
+                }
             }
         }
       catch (const std::exception & e)
