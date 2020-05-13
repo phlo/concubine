@@ -296,6 +296,48 @@ struct Solver : public ::testing::Test
     }
 
   //----------------------------------------------------------------------------
+  // demo example tests
+  //----------------------------------------------------------------------------
+
+  template <class Encoder>
+  void demo ()
+  {
+    const std::filesystem::path dir("examples/demo");
+
+    Encoder encoder(
+      std::make_shared<Program::List>(
+        create_from_file<Program>(dir / "processor.0.asm"),
+        create_from_file<Program>(dir / "processor.1.asm"),
+        create_from_file<Program>(dir / "checker.asm")),
+      std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
+      17);
+
+    encoder.encode();
+    encoder.assert_exit();
+
+    fs::write(
+      fs::mktmp(dir / "formula", fs::ext<Encoder>()),
+      encoder.formula.str());
+
+    const auto trace = solver.solve(encoder);
+
+    ASSERT_FALSE(trace->empty());
+
+    // std::cout << "time to solve = " << solver.time << " ms" << eol;
+
+    const auto replay = Simulator().replay(*trace, trace->size());
+    const auto stem = dir / solver.name();
+
+    fs::write(fs::mktmp(stem, ".trace"), trace->print());
+    fs::write(fs::mktmp(stem, ".replay.trace"), replay->print());
+
+    if constexpr(std::is_base_of<External, S>::value)
+      fs::write(fs::mktmp(stem, ".model"), solver.stdout.str());
+
+    ASSERT_EQ(*replay, *trace);
+  }
+
+  //----------------------------------------------------------------------------
   // litmus tests
   //----------------------------------------------------------------------------
 
@@ -312,12 +354,9 @@ struct Solver : public ::testing::Test
 
           // std::cout << "time to solve = " << solver.time << " ms" << eol;
 
-          const auto formula = encoder.formula.str();
           const auto replay = Simulator().replay(*trace);
           const auto stem = dir / solver.name();
 
-          fs::write(fs::mktmp(dir / "formula", fs::ext<Encoder>()), formula);
-          fs::write(fs::mktmp(dir / "formula", fs::ext<Encoder>()), formula);
           fs::write(fs::mktmp(stem, ".trace"), trace->print());
           fs::write(fs::mktmp(stem, ".replay.trace"), replay->print());
 

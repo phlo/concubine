@@ -3552,6 +3552,8 @@ TEST(btor2_Encoder, encode_cas) { encode_cas<E>(); }
 TEST(btor2_Encoder, encode_indirect) { encode_indirect<E>(); }
 TEST(btor2_Encoder, encode_halt) { encode_halt<E>(); }
 
+TEST(btor2_Encoder, encode_demo) { encode_demo<E>(); }
+
 TEST(btor2_Encoder, encode_litmus_intel_1) { encode_litmus_intel_1<E>(); }
 TEST(btor2_Encoder, encode_litmus_intel_2) { encode_litmus_intel_2<E>(); }
 TEST(btor2_Encoder, encode_litmus_intel_3) { encode_litmus_intel_3<E>(); }

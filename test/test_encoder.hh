@@ -215,6 +215,25 @@ inline void encode_halt ()
 }
 
 // =============================================================================
+// demo example encodings
+// =============================================================================
+
+template <class Encoder>
+inline void encode_demo ()
+{
+  const std::filesystem::path dir("examples/demo");
+
+  encode<Encoder>(
+    dir / "formula",
+    lst(
+      create_from_file<Program>(dir / "processor.0.asm"),
+      create_from_file<Program>(dir / "processor.1.asm"),
+      create_from_file<Program>(dir / "checker.asm")),
+    mmap(create_from_file<MMap>(dir / "init.mmap")),
+    17);
+}
+
+// =============================================================================
 // litmus test encodings
 // =============================================================================
 

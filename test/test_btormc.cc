@@ -49,7 +49,10 @@ TEST_F(BtorMC, simulate_halt) { simulate_halt<E>(); }
 
 // feature tests
 //
-TEST_F(BtorMC, verify_indirect_functional) { verify_indirect<E>(); }
+TEST_F(BtorMC, verify_indirect) { verify_indirect<E>(); }
+
+// demo example test
+TEST_F(BtorMC, demo) { demo<E>(); }
 
 // litmus tests
 //

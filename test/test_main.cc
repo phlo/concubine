@@ -172,7 +172,6 @@ TEST_F(Main, simulate_demo)
   ASSERT_EQ("", out.stdout.str());
 
   const auto trace = create_from_file<Trace>(sim_trace);
-  const auto mmap = create_from_file<MMap>(sim_mmap);
 
   ASSERT_FALSE(trace.empty());
   ASSERT_EQ(1, trace.exit);
@@ -391,6 +390,33 @@ TEST_F(Main, solve_uninitialized)
   ASSERT_EQ(4, trace.size());
   ASSERT_EQ(mmap.at(0), trace.accu(0));
   ASSERT_EQ(mmap.at(1), trace.accu(1));
+}
+
+TEST_F(Main, solve_demo)
+{
+  const std::filesystem::path demo = "examples/demo/";
+
+  fs::cd(fs::mktmp(demo));
+
+  const auto out =
+    shell::run({
+      bin,
+      solve,
+      "-m", cwd / demo / "init.mmap",
+      "17",
+      cwd / demo / "processor.0.asm",
+      cwd / demo / "processor.1.asm",
+      cwd / demo / "checker.asm"});
+
+  ASSERT_EQ(1, out.exit);
+  ASSERT_EQ("", out.stdout.str());
+
+  const auto trace = create_from_file<Trace>(smt_trace);
+
+  ASSERT_FALSE(trace.empty());
+  ASSERT_EQ(1, trace.exit);
+  ASSERT_EQ(0, trace.accu(0));
+  ASSERT_EQ(0, trace.accu(1));
 }
 
 TEST_F(Main, solve_missing_args)

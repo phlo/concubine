@@ -48,6 +48,10 @@ TEST_F(Boolector, simulate_halt_relational) { simulate_halt<R>(); }
 TEST_F(Boolector, verify_indirect_functional) { verify_indirect<F>(); }
 TEST_F(Boolector, verify_indirect_relational) { verify_indirect<R>(); }
 
+// demo example tests
+TEST_F(Boolector, demo_functional) { demo<F>(); }
+TEST_F(Boolector, demo_relational) { demo<R>(); }
+
 // litmus tests
 //
 TEST_F(Boolector, litmus_intel_1_functional) { litmus_intel_1<F>(); }

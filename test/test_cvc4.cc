@@ -48,6 +48,10 @@ TEST_F(CVC4, simulate_halt_relational) { simulate_halt<R>(); }
 TEST_F(CVC4, verify_indirect_functional) { verify_indirect<F>(); }
 TEST_F(CVC4, verify_indirect_relational) { verify_indirect<R>(); }
 
+// demo example tests
+TEST_F(CVC4, DISABLED_demo_functional) { demo<F>(); }
+TEST_F(CVC4, DISABLED_demo_relational) { demo<R>(); }
+
 // litmus tests
 //
 TEST_F(CVC4, litmus_intel_1_functional) { litmus_intel_1<F>(); }
