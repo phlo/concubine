@@ -85,7 +85,9 @@ inline word_t parse_bv (std::istringstream & line, std::string & token)
 CVC4::Symbol CVC4::parse (std::istringstream & line)
 {
   std::string token;
-  Symbol sym = symbol(line);
+  line >> token;
+  std::istringstream iss(token);
+  Symbol sym = symbol(iss);
 
   if (!std::getline(line, token, '='))
     throw std::runtime_error("missing value");
