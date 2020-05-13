@@ -457,12 +457,12 @@ void Simulator::flush ()
 
 void Simulator::execute ()
 {
-  // skip state updates during final step
-  if (step > bound)
-    return;
-
   const Program & program = (*programs)[thread];
   const Instruction & op = program[pc()];
+
+  // skip all state updates except EXIT calls during the final step
+  if (step > bound && &op.symbol() != &Instruction::Exit::symbol)
+    return;
 
   op.execute(*this);
 

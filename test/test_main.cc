@@ -151,7 +151,7 @@ TEST_F(Main, simulate_uninitialized)
   ASSERT_EQ(mmap.at(1), trace.accu(1));
 }
 
-TEST_F(Main, simulate_exit_greater_zero)
+TEST_F(Main, simulate_demo)
 {
   const std::filesystem::path demo = "examples/demo/";
 
@@ -174,7 +174,8 @@ TEST_F(Main, simulate_exit_greater_zero)
   const auto trace = create_from_file<Trace>(sim_trace);
   const auto mmap = create_from_file<MMap>(sim_mmap);
 
-  ASSERT_EQ(15, trace.size());
+  ASSERT_FALSE(trace.empty());
+  ASSERT_EQ(1, trace.exit);
   ASSERT_EQ(0, trace.accu(0));
   ASSERT_EQ(0, trace.accu(1));
 }
