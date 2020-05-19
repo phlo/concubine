@@ -1,92 +1,190 @@
 \section{Verification}
 
-\todo{intro
-  \begin{itemize}
-    \item submodule \texttt{solve}
-    \item verification of assembly programs by bounded model checking based on register states
-    \item using satisfiability modulo theories (arrays and bitvectors)
-    \item problem defined by state and transition variables
-  \end{itemize}
-}
+The main part of this work is implemented in the \texttt{solve} submodule,
+% allowing the verification of concurrent assembly programs by bounded model checking based on register states in our abstract machine model.
+% allowing bounded model checking of concurrent assembly programs based on register states in our abstract machine model.
+% performing bounded model checking of concurrent software running on our abstract machine model.
+allowing verification of concurrent software running on our abstract machine model by the means of bounded model checking \cite{ref:BMC}.
+It takes an arbitrary number of programs plus the upper bound as input and encodes them into a finite state machine, expressed as a SMT formula where each transition translates to the execution of a single thread.
+SMT-Lib \cite{ref:SMT-Lib} and the novel BTOR2 \cite{ref:BTOR2} word level model checking format can be generated, using the theories of arrays, uninterpreted functions and bitvectors.
+To simplify the definition of bad states directly in the program code, the possibility of encountering an exit code greater than zero is checked for per default, but custom properties may be defined in a separate file and added with the \texttt{-c} command line parameter.
+The resulting formula is then evaluated by a state-of-the-art solver.
+If it is satisfiable, the corresponding execution trace is extracted from the resulting model and stored for later inspection.
 
-\todo{states
-  \begin{itemize}
-    \item $\ACCU^k_t$ - accumulator of thread $t$
-    \item mem
-    \item sb-adr
-    \item sb-val
-    \item sb-full
-    \item stmt
-    \item block
-    \item halt
-    \item heap
-    \item exit-flag
-    \item exit-code
-  \end{itemize}
-}
+% \todo{intro
+  % \begin{itemize}
+    % \item submodule \texttt{solve}
+    % \item verification of assembly programs by bounded model checking based on register states
+    % \item property: there exists a trace in which $\mathbf{EG^?F^?}(\EXITCODE \neq 0)$ holds (exists globally)
+    % \item using satisfiability modulo theories (arrays and bitvectors)
+    % \item problem defined by state and transition variables
+    % \item one step corresponds to a specific thread's execution of a single instruction
+  % \end{itemize}
+% }
 
-\newpage
-
-The following variables are used to encode the machine's state at a particular step $k \in [0, bound] \subset \mathbb{N}$, where $k = 0$ is the machine's initial state.
-
-\cite{btor2}
+\subsection{Basic Encoding Scheme}
 
 Let $\BVSORT[n]$ be the fixed size bitvector sort of width $n$ and $\ASORT[n]$ the array sort with index and element sorts $\BVSORT[n]$.
+The following variables are used to encode the machine state at a particular step $k \in [0, bound] \subset \mathbb{N}$, where $k = 0$ is the initial state.
 
-\renewcommand{\arraystretch}{1.25}
-\begin{table}[h!]
-\begin{tabular}{lll}
+% \renewcommand{\arraystretch}{1.5}
+\setlength{\tabulinesep}{3pt}
+\begin{longtabu}{llX}
+  \firsthline
+  % \textbf{Machine} &&\\
+  % \hline
+  $\HEAP^k$ & $\in \ASORT$ & shared memory \\
+  $\EXIT^k$ & $\in \BVSORT[1]$ & exit flag \\
+  $\EXITCODE^k$ & $\in \BVSORT$ & exit code \\
   \hline
-  \textbf{global} &&\\
-  \hline
-  $\HEAP^k$ & $\ASORT$ & shared memory state in step $k$ \\
-  $\EXIT^k$ & $\BVSORT[1]$ & exit flag in step $k$ \\
-  $\EXITCODE^k$ & $\BVSORT$ & exit code in step $k$ \\
-  \hline
-  \textbf{local} &&\\
-  \hline
-  $\ACCU^k_t$ & $\BVSORT$ & accumulator register state of thread $t$ in step $k$ \\
-  $\MEM^k_t$ & $\BVSORT$ & CAS memory register state of thread $t$ in step $k$ \\
-  $\SBADR^k_t$ & $\BVSORT$ & store buffer address register of thread $t$ in step $k$ \\
-  $\SBVAL^k_t$ & $\BVSORT$ & store buffer value register of thread $t$ in step $k$ \\
-  $\SBFULL^k_t$ & $\BVSORT[1]$ & store buffer full flag of thread $t$ in step $k$ \\
-  $\STMT^k_{t, pc}$ & $\BVSORT[1]$ & statement activation for $pc$ of thread $t$ in step $k$ \\
-  $\BLOCK^k_{t, id}$ & $\BVSORT[1]$ & block flag for checkpoint $id$ of thread $t$ in step $k$ \\
-  $\HALT^k_t$ & $\BVSORT[1]$ & halt flag of thread $t$ in step $k$ \\
-  \hline
-\end{tabular}
-\caption{State Variables}
-\end{table}
+  % \textbf{Threads} &&\\
+  % \hline
+  $\ACCU^k_t$ & $\in \BVSORT$ & accumulator register of thread $t$ \\
+  $\MEM^k_t$ & $\in \BVSORT$ & CAS memory register of thread $t$ \\
+  $\SBADR^k_t$ & $\in \BVSORT$ & store buffer address register of thread $t$ \\
+  $\SBVAL^k_t$ & $\in \BVSORT$ & store buffer value register of thread $t$ \\
+  $\SBFULL^k_t$ & $\in \BVSORT[1]$ & store buffer full flag of thread $t$ \\
+  $\STMT^k_{t, pc}$ & $\in \BVSORT[1]$ & activation flag for statement at $pc$ of thread $t$ \\
+  $\BLOCK^k_{id, t}$ & $\in \BVSORT[1]$ & block flag for checkpoint $id$ of thread $t$ \\
+  $\HALT^k_t$ & $\in \BVSORT[1]$ & halt flag of thread $t$ \\
+  \lasthline
+  \caption{State Variables}
+  \label{tbl:states}
+\end{longtabu}
 
-\todo{transitions
-  \begin{itemize}
-    \item thread
-    \item flush
-    \item check
-  \end{itemize}
-}
+\newcommand{\READ}{\texttt{read}}
+\newcommand{\WRITE}{\texttt{write}}
 
-\begin{table}[h!]
-\begin{tabular}{lll}
-  \hline
-  $\THREAD^k_t$ & $\BVSORT$ & accumulator register state of thread $t$ in step $k$ \\
-  $\MEM^k_t$ & $\BVSORT$ & CAS memory register state of thread $t$ in step $k$ \\
-  $\SBADR^k_t$ & $\BVSORT$ & store buffer address register of thread $t$ in step $k$ \\
-  $\SBVAL^k_t$ & $\BVSORT$ & store buffer value register of thread $t$ in step $k$ \\
-  $\SBFULL^k_t$ & $\BVSORT[1]$ & store buffer full flag of thread $t$ in step $k$ \\
-  $\STMT^k_{t, pc}$ & $\BVSORT[1]$ & statement activation for $pc$ of thread $t$ in step $k$ \\
-  $\BLOCK^k_{t, id}$ & $\BVSORT[1]$ & block flag for checkpoint $id$ of thread $t$ in step $k$ \\
-  $\HALT^k_t$ & $\BVSORT[1]$ & halt flag of thread $t$ in step $k$ \\
-  \hline
-\end{tabular}
-\caption{State Variables}
-\end{table}
+% Shared memory is modelled using the array variable $\HEAP^k$ in combination with the functions $\READ^k \colon \BVSORT \mapsto \BVSORT$ for retrieving and $\WRITE^k \colon \BVSORT \times \BVSORT \mapsto \ASORT$ for updating the element at $adr \in \BVSORT$ with a given value $val \in \BVSORT$ in step $k$.
+% Shared memory in step $k$ is modelled using the array variable $\HEAP^k$ in combination with the functions $\READ^k \colon \BVSORT \mapsto \BVSORT$ for retrieving an element and $\WRITE^k \colon \BVSORT \times \BVSORT \mapsto \ASORT$, returning an updated version of the shared memory state array with the given element set to a specific value.
+Shared memory states are modelled using the array variables $\HEAP^k$ in combination with the functions $\READ^k \colon \BVSORT \mapsto \BVSORT$ for retrieving an element and $\WRITE^k \colon \BVSORT \times \BVSORT \mapsto \ASORT$ returning an updated version of the shared memory state array with the given element set to a specific value.
+% Its initial state $\HEAP^0$ may contain input data according to a given memory map, but is assumed to be uninitialized in general.
+Register states of a thread $t$ are determined by the bitvector variables $\ACCU^k_t$, $\MEM^k_t$, $\SBADR^k_t$, $\SBVAL^k_t$ and the flag $\SBFULL^k_t$, signalling that the store buffer is full.
+%, which are all initially set to zero.
+To aid solvers by reducing the formulas complexity, program flow is modelled without an explicit problem counter.
+Instead, an activation flag $\STMT^k_{t, pc}$ is added for every statement in the program of thread $t$, expressing that it is about to execute the statement at $pc$.
+%To model the program flow without an explicit program counter, an activation flag $\STMT^k_{t, pc}$ is added for every statement in the program of thread $t$, expressing that it is about to execute the statement at $pc$.
+Blocking a thread $t$ while it is waiting for all other threads to reach a checkpoint $id$ is achieved by a flag $\BLOCK^k_t$.
+% Blocking a thread $t$ while waiting for all other threads to synchronize on a checkpoint $id$ is achieved by the $\BLOCK^k_{id, t}$ state flag.
+Similarly, the flag $\HALT^k_t$ indicates that thread $t$ executed a \texttt{HALT} instruction and is therefore also prevented from being scheduled.
+% Termination due to an call to \texttt{EXIT}, or because all threads finished executing their programs, or \texttt{EXIT}  is captured by
+Termination is captured by the flag $\EXIT^k$ and bitvector variable $\EXITCODE^k$.
 
-\todo{memory access
-  \begin{itemize}
-    \item $load$ predicate
-  \end{itemize}
-}
+% The shared memory state array $\HEAP^0$ may be initialized with input data according to a given memory map, but is assumed to be uninitialized in general.
+% All other states are initially set to zero, with the exception of the initial statement activation flag $\STMT^0_{t, 0}$ of every thread $t$.
+All states are initially set to zero, except the initial statement activation flag $\STMT^0_{t, 0}$ of every thread $t$ and the shared memory state array $\HEAP^0$, which may be initialized with input data according to a given memory map, but is assumed to be uninitialized in general.
+
+\bigskip
+
+% Constraints for valid machine state transitions of the form $s_k \to^k s_{k + 1}$ are governed by the following variables.
+Machine state transitions of the form $s_k \to^k s_{k + 1}$ are governed by the following free variables.
+% Machine state transitions of the form $s_k \to^k s_{k + 1}$ are governed by the free variables given in Table \ref{tbl:encoding:transitions}.
+% Transitions $s_k \to^k s_{k + 1}$ of a state $s_k$ are governed by the following free variables and are allowed to be chosen non-deterministically.
+
+\begin{longtabu}{llX}
+  \firsthline
+  $\THREAD^k_t$ & $\in \BVSORT[1]$ & thread $t$ is scheduled to execute an instruction in step $k$ \\
+  $\FLUSH^k_t$ & $\in \BVSORT[1]$ & thread $t$ flushes its store buffer in step $k$ \\
+  \lasthline
+  \caption{Transition Variables}
+  \label{tbl:encoding:transitions}
+\end{longtabu}
+
+% \todo[inline]{helper variables}
+To simplify the definition of state transitions, the following helper variables capture frequently used terms.
+% The following helper variables are introduced to simplify the latter definition of state transitions by capturing frequently used terms.
+
+\begin{longtabu}{llX}
+  \firsthline
+  $\EXEC^k_{t, pc}$ & $\in \BVSORT[1]$ & thread $t$ is executing instruction at $pc$ in step $k$ \\
+  $\CHECK^k_{id}$ & $\in \BVSORT[1]$ & all threads reached checkpoint $id$ in step $k$ \\
+  \lasthline
+  \caption{Helper Variables}
+\end{longtabu}
+
+% The statement execution variable $\EXEC^k_{t, pc}$,
+The actual execution of a specific statement is encoded by $\EXEC^k_{t, pc}$ and
+% The actual execution of a statement at $pc$ by thread $t$ in step $k$ is encoded by the execution variable $\EXEC^k_{t, pc}$ and
+is defined as a conjunction of the corresponding statement and thread activation variable.
+
+\[
+  \EXEC^k_{t, pc} = \STMT^k_{t, pc} \land \THREAD^k_t
+\]
+
+Furthermore, we use $\CHECK^k_{id}$ to signal that all threads containing a call to checkpoint, given in the set $C_{id}$, have synchronized and the corresponding $\BLOCK^k_{id, t}$ flags set.
+% from a set $C_{id}$ of threads containing a call to checkpoint $id$
+\[
+  \CHECK^k_{id} = \bigwedge^k_{t \in C_{id}} \BLOCK^k_{id, t}
+\]
+
+\bigskip
+
+\newcommand{\CardLt}{\leq^1_n(x_1, \ldots, x_n)}
+\newcommand{\CardLtSeq}{\text{LT}^{n, 1}_{\text{SEQ}}}
+
+% Non-deterministic scheduling of a single thread per step is realized by a boolean cardinality constraint over all $\THREAD^k_t$ and $\FLUSH^k_t$ variables for a number of threads $n$.
+Non-deterministic scheduling of at most one thread per step is realized by a boolean cardinality constraint over all transition variables and the exit flag $\EXIT^k$ to ensure satisfiability if the machine terminates in a step $k < bound$.
+Let $\CardLt$ be a predicate expressing that at most one out of $n$ variables is allowed to be true.
+% The na\"{i}ve way of defining $\leq^1_n(x_1, \ldots, x_n)$ is by explicitly excluding all combinations of two variables being simultaneously true.
+The intuitive way of encoding $\CardLt$ is by excluding all combinations of two variables being simultaneously true.
+% The traditional way of defining such a constraint is by excluding all combinations of two variables being simultaneously true:
+\[
+  \bigwedge_{1 \leq i < j \leq n} (\neg x_i \lor \neg x_j)
+\]
+This na\"ive approach, however, consists of $\binom{n}{2}$ Horn clauses.
+% While this na\"ive approach consists of $\binom{n}{2}$ Horn clauses, a more compact formulation, based on a sequential counter circuit, is presented as $\text{LT}^{n, 1}_{\text{SEQ}}$ in \cite{ref:Sinz}.
+A more compact formulation, based on a sequential counter circuit computing partial sums $s_i = \sum^i_{j = 1} x_j$ for increasing values of $i$ up to the final $i = n$, is presented as $\CardLtSeq$ in \cite{ref:Sinz} and defined as follows.
+% It only requires $3n - 4$ clauses in contrast to the na\"ive approach
+% It is based on a sequential counter circuit, only requiring $3n - 4$ clauses, but $n - 1$ additional auxiliary variables.
+% Beside this na\"ive approach, consisting of $\binom{n}{2}$ Horn clauses, a more compact formulation with respect to the number of clauses is presented as $\text{LT}^{n, 1}_{\text{SEQ}}$ in \cite{ref:Sinz}.
+% This approach consists of $\binom{n}{2}$ Horn clauses.
+% consisting of $\binom{n}{2}$ Horn clauses.
+% A more compact formulation in terms of the number of clauses, called , based on a sequential counter circuit, is  presented in \cite{ref:Sinz} as $\text{LT}^{n, 1}_{\text{SEQ}}$.
+% Cardinality constraint predicate $\leq^1_n(x_1, \ldots, x_n)$ defined as:
+\[
+  (\neg x_1 \lor s_1) \land (\neg x_n \lor \neg s_{n-1}) \bigwedge_{1 < i < n} \big ( (\neg x_i \lor s_i) \land (\neg s_{i-1} \lor s_i) \land (\neg x_i \lor \neg s_{i-1}) \big )
+\]
+% $\CardLtSeq$ only requires $3n - 4$ Horn clauses and $n - 1$ additional auxiliary variables.
+% It is therefore superior to the na\"ive encoding with regard to the number of clauses for all $n > 5$.
+$\CardLtSeq$ is superior to the na\"ive encoding with regard to the number of clauses for all $n > 5$, as it only requires $3n - 4$ Horn clauses and $n - 1$ additional auxiliary variables.
+% \todo[inline]{constraint selection}
+% Since we need to include two times the number of threads plus one variables in the constraint, the actual definition of $\leq^1_n(x_1, \ldots, x_n)$ is therefore determined by the number of threads involved and the na\"ive encoding only used for up to two threads, $\CardLtSeq$ otherwise.
+The actual definition of the at most one constraint predicate $\CardLt$ is therefore determined by the number of threads involved.
+Since we have to include two times the number of threads plus one variables in the constraint, the na\"ive encoding is only used for up to two threads and $\CardLtSeq$ otherwise.
+% \[
+  % \leq^1_n(x_1, \ldots, x_n) \equiv
+    % \begin{cases}
+      % \CardLtSeq & \text{if } n > 5 \\
+      % \text{na\"ive} & \text{otherwise}
+    % \end{cases}
+% \]
+% \todo[inline]{exactly one constraint}
+An at most one constraint alone is not sufficient, as we need exactly one transition variable or the exit flag to be true in every step, such that our generated formula is not trivially satisfiable by never scheduling a single thread.
+\todo[noline]{stuttering?}
+Thus, we define the exactly one constraint predicate $=^1_n\!(x_1, \ldots, x_n)$ by simply adding a disjunction over all variables.% to $\CardLt$.
+% The required exactly one constraint predicate $=^1_n(x_1, \ldots, x_n)$ as a conjunction of $\leq^1_n(x_1, \ldots, x_n)$ with a disjunction over all variables
+% Let $=^1_n(x_1, \ldots, x_n)$ therefore be an exactly one constraint predicate.
+\[
+  %=^1_n(x_1, \ldots, x_n) \equiv
+  (x_1 \lor \ldots \lor x_n) \; \land \CardLt
+  % \CardLt \land (x_1 \lor \ldots \lor x_n)
+\]
+% \todo[inline]{actual constraint added}
+% If we now redeclare $n$ to be the number of threads, the exactly one constraint used for non-deterministic scheduling of a single thread in step $k$ looks as follows.
+If we redeclare $n$ as the number of threads, non-deterministic scheduling of a single thread per step $k$ can now be encoded by the following constraint.
+% We are now able to state the actual exactly one constraint added to our formula as follows.
+\[
+  =^1_{2n + 1}\!(\THREAD^k_0, \ldots, \THREAD^k_{n-1}, \FLUSH^k_0, \ldots, \FLUSH^k_{n-1}, \EXIT^k)
+\]
+
+\todo[inline]{store buffer constraints}
+\todo[inline]{checkpoint constraints}
+\todo[inline]{unsat if deadlock by CHECK}
+\todo[inline]{halt constraints}
+
+\subsubsection{Memory Access}
+
+%Due store forwarding, memory access can no expressed as simple array lookups
 
 \newcommand{\ITE}{\texttt{ite}}
 \newcommand{\ITEindent}{\;\;\;\;\;\;\;}
@@ -129,25 +227,53 @@ Let $\LOAD^k_t: \BVSORT \times \BVSORT[1] \to \BVSORT$ be the function for loadi
 
 % \paragraph{Store Forwarding:} $\sbfull \; \land \; \sbadr = adr \land \accu = \sbval \lor \lnot (\sbfull \land \sbadr = adr)$
 
-\todo{frame axioms
-  \begin{itemize}
-    \item instructions
-    \item Programs: $\{p_1, \ldots, p_n\} \in \mathcal{P}^n$
-    \item \texttt{ADDI val}
-      \[
-        \ACCU^{k + 1}_t = \ACCU^k_t + \texttt{val}
-      \]
-    \item \texttt{ADD adr}
-      \[
-        \ACCU^{k + 1}_t = \ACCU^k_t + \LOAD^k_t(adr, false)
-      \]
-    \item \texttt{ADD [adr]}
-      \[
-        \ACCU^{k + 1}_t = \ACCU^k_t + \LOAD^k_t(adr, true)
-      \]
-  \end{itemize}
+\subsubsection{Statement Activation}
+
+% \setlength{\tabulinesep}{2\lineskip}
+\begin{tabu}{|XX[r]||XX[r]||lr|}
+  \hline
+  \multicolumn{2}{|c||}{\textbf{Thread 0}} & \multicolumn{2}{c||}{\textbf{Thread 1}} & \multicolumn{2}{c|}{\textbf{Thread 2}} \\
+  \hline
+  \texttt{ADDI 1}   & $\STMT^k_{0, 0}$  & \texttt{ADDI 1}   & $\STMT^k_{1, 0}$  && \\
+  \texttt{STORE 0}  & $\STMT^k_{0, 1}$  & \texttt{STORE 1}  & $\STMT^k_{1, 1}$  && \\
+  \texttt{LOAD 1}   & $\STMT^k_{0, 2}$  & \texttt{LOAD 0}   & $\STMT^k_{1, 2}$  && \\
+  \texttt{CHECK 0}  & $\STMT^k_{0, 3}$  & \texttt{CHECK 0}  & $\STMT^k_{1, 3}$  & \texttt{CHECK 0} & $\STMT^k_{2, 0}$ \\
+  \texttt{HALT}     & $\STMT^k_{0, 4}$  & \texttt{HALT}     & $\STMT^k_{1, 4}$  & \texttt{ADD 0}         & $\STMT^k_{2, 1}$ \\
+  &&&& \texttt{ADD 1}         & $\STMT^k_{2, 2}$ \\
+  &&&& \texttt{JZ error}      & $\STMT^k_{2, 3}$ \\
+  &&&& \texttt{EXIT 0}        & $\STMT^k_{2, 4}$ \\
+  &&&& \texttt{error: EXIT 1} & $\STMT^k_{2, 5}$ \\
+  \hline
+\end{tabu}
+
+\todo[inline]{frame axioms
+  % \begin{itemize}
+    % \item instructions
+    % \item Programs: $\{p_1, \ldots, p_n\} \in \mathcal{P}^n$
+    % \item \texttt{ADDI val}
+      % \[
+        % \ACCU^{k + 1}_t = \ACCU^k_t + \texttt{val}
+      % \]
+    % \item \texttt{ADD adr}
+      % \[
+        % \ACCU^{k + 1}_t = \ACCU^k_t + \LOAD^k_t(adr, false)
+      % \]
+    % \item \texttt{ADD [adr]}
+      % \[
+        % \ACCU^{k + 1}_t = \ACCU^k_t + \LOAD^k_t(adr, true)
+      % \]
+  % \end{itemize}
 }
+
+Let $\texttt{define-accu}(k, t, pc)$ be the predicate defining the accumulator register state $\ACCU^k_t$ of thread $t$ in step $k$ and $pc$ the set of program counters, altering that state.% \todonote{refine}
 
 \paragraph{\texttt{LOAD adr}}
 
-\todo{constraints}
+\todo[inline]{constraints}
+
+\subsection{SMT-Lib}
+
+\subsection{BTOR2}
+
+\subsection{Replay}
+

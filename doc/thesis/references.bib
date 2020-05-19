@@ -1,3 +1,13 @@
+@article{ref:BMC,
+  title={Bounded model checking.},
+  author={Biere, Armin and Cimatti, Alessandro and Clarke, Edmund M and Strichman, Ofer and Zhu, Yunshan and others},
+  journal={Advances in computers},
+  volume={58},
+  number={11},
+  pages={117--148},
+  year={2003}
+}
+
 @article{ref:McKenney17,
   author    = {Paul E. McKenney},
   title     = {Is Parallel Programming Hard, And, If So, What Can You Do About It? (v2017.01.02a)},
@@ -7,24 +17,34 @@
 }
 
 @article{ref:Sewell10,
-author = {Sewell, Peter and Sarkar, Susmit and Owens, Scott and Nardelli, Francesco Zappa and Myreen, Magnus O.},
-title = {X86-TSO: A Rigorous and Usable Programmer’s Model for X86 Multiprocessors},
-year = {2010},
-issue_date = {July 2010},
-publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
-volume = {53},
-number = {7},
-issn = {0001-0782},
-url = {https://doi.org/10.1145/1785414.1785443},
-doi = {10.1145/1785414.1785443},
-journal = {Commun. ACM},
-month = jul,
-pages = {89–97},
-numpages = {9}
+  author = {Sewell, Peter and Sarkar, Susmit and Owens, Scott and Nardelli, Francesco Zappa and Myreen, Magnus O.},
+  title = {X86-TSO: A Rigorous and Usable Programmer’s Model for X86 Multiprocessors},
+  year = {2010},
+  issue_date = {July 2010},
+  publisher = {Association for Computing Machinery},
+  address = {New York, NY, USA},
+  volume = {53},
+  number = {7},
+  issn = {0001-0782},
+  url = {https://doi.org/10.1145/1785414.1785443},
+  doi = {10.1145/1785414.1785443},
+  journal = {Commun. ACM},
+  month = jul,
+  pages = {89–97},
+  numpages = {9}
 }
 
-@article{intel,
+@inproceedings{ref:Sinz,
+  author = {Carsten Sinz},
+  title = {Towards an Optimal {CNF} Encoding of Boolean Cardinality Constraints},
+  booktitle = {Proc.\ of the 11th Intl.\ Conf.\ on Principles and Practice of Constraint Programming ({CP 2005})},
+  year = 2005,
+  month = Oct,
+  address = {Sitges, Spain},
+  pages = {827--831}
+}
+
+@techreport{ref:Intel,
   author = {Intel Corporation},
   title = {Intel 64 and IA-32 Architectures Software Developer's Manual, rev. 63},
   month = {October},
@@ -32,7 +52,7 @@ numpages = {9}
   url = {https://software.intel.com/en-us/articles/intel-sdm},
 }
 
-@article{amd,
+@techreport{ref:AMD,
   author = {Advanced Micro Devices},
   title = {AMD64 Architecture Programmer's Manual Volume 2: System Programming, rev 3.32},
   month = {October},
@@ -40,7 +60,7 @@ numpages = {9}
   url = {https://www.amd.com/system/files/TechDocs/24593.pdf},
 }
 
-@inproceedings{btor2,
+@inproceedings{ref:BTOR2,
   author    = {Aina Niemetz and
                Mathias Preiner and
                Clifford Wolf and
@@ -52,4 +72,12 @@ numpages = {9}
   pages     = {587--595},
   publisher = {Springer},
   year      = {2018}
+}
+
+@techreport{ref:SMT-Lib,
+  author =	 {Clark Barrett and Pascal Fontaine and Cesare Tinelli},
+  title =	 {{The SMT-LIB Standard: Version 2.6}},
+  institution =	 {Department of Computer Science, The University of Iowa},
+  year =	 2017,
+  note =	 {Available at {\tt www.SMT-LIB.org}}
 }

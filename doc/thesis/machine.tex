@@ -42,7 +42,7 @@ At the top of the figure are an arbitrary number of processors, each containing:
 \end{itemize}
 
 All processors are directly connected to the machine's shared memory, referred to as \texttt{heap}, which will be uninitialized with the exception of any eventual input data.
-In terms of memory ordering, the addition of a \emph{store buffer} allows stores to be reordered after loads, making our model consistent with Intel's or AMD's x86 memory ordering model \cite{intel, amd}.
+In terms of memory ordering, the addition of a \emph{store buffer} allows stores to be reordered after loads, making our model consistent with Intel's or AMD's x86 memory ordering model \cite{ref:Intel, ref:AMD}.
 
 \subsection{Instructions}
 

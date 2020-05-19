@@ -22,6 +22,9 @@
 
 % tables
 \usepackage{tabu}
+\usepackage{longtable}
+\usepackage{caption}
+% \captionsetup[longtable]{skip=0.5\baselineskip}
 
 % code
 \usepackage{listings}
@@ -62,6 +65,7 @@
 
 % tikz
 \usepackage{tikz}
+\usetikzlibrary{positioning}
 \tikzset{>=latex}
 
 % grammars
@@ -70,6 +74,11 @@
 
 % sideways
 \usepackage{rotating}
+
+% todos
+\setlength{\marginparwidth}{2cm}
+\usepackage{todonotes}
+\setuptodonotes{size=\footnotesize, shadow}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % commands
@@ -100,12 +109,16 @@
 \newcommand{\BVSORT}[1][16]{\mathcal{B}^{#1}}
 
 % todos
-\newcommand{\todo}[1]{
-  \begin{flushleft}
-    \color{red}
-    $\rightarrow$ #1
-  \end{flushleft}
-}
+% \newcommand{\todo}[1]{
+  % \begin{flushleft}
+    % \color{red}
+    % $\rightarrow$ #1
+  % \end{flushleft}
+% }
+
+% \newcommand{\todonote}[1]{
+  % $^{\color{red}#1}$
+% }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % document
@@ -145,5 +158,9 @@
 
 \bibliographystyle{plain}
 \bibliography{references}
+
+\newpage
+
+\listoftodos
 
 \end{document}
