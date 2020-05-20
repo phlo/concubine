@@ -111,10 +111,11 @@ is defined as a conjunction of the corresponding statement and thread activation
   \EXEC^k_{t, pc} = \STMT^k_{t, pc} \land \THREAD^k_t
 \]
 
-Furthermore, we use $\CHECK^k_{id}$ to signal that all threads containing a call to checkpoint, given in the set $C_{id}$, have synchronized and the corresponding $\BLOCK^k_{id, t}$ flags set.
+Furthermore, we use $\CHECK^k_{id}$ to signal that all threads containing a call to checkpoint $id$, given in the set $C_{id}$, have synchronized and the corresponding $\BLOCK^k_{id, t}$ flags set.
+\todo[noline]{$C_{id}$ ok?}
 % from a set $C_{id}$ of threads containing a call to checkpoint $id$
 \[
-  \CHECK^k_{id} = \bigwedge^k_{t \in C_{id}} \BLOCK^k_{id, t}
+  \CHECK^k_{id} = \bigwedge_{t \in C_{id}} \BLOCK^k_{id, t}
 \]
 
 \bigskip
@@ -177,15 +178,7 @@ If we redeclare $n$ as the number of threads, non-deterministic scheduling of a 
   =^1_{2n + 1}\!(\THREAD^k_0, \ldots, \THREAD^k_{n-1}, \FLUSH^k_0, \ldots, \FLUSH^k_{n-1}, \EXIT^k)
 \]
 
-\todo[inline]{store buffer constraints}
-\todo[inline]{checkpoint constraints}
-\todo[inline]{unsat if deadlock by CHECK}
-\todo[inline]{halt constraints}
-
-\subsubsection{Memory Access}
-
-%Due store forwarding, memory access can no expressed as simple array lookups
-
+\todo[inline]{scheduling influenced by constraints}
 \newcommand{\ITE}{\texttt{ite}}
 \newcommand{\ITEindent}{\;\;\;\;\;\;\;}
 
@@ -197,6 +190,30 @@ Let $\ITE: \BVSORT[1] \times \BVSORT[n] \times \BVSORT[n] \to \BVSORT[n]$ be a f
     b \text{ otherwise}
   \end{cases}
 \]
+
+\todo[inline]{store buffer constraints}
+Blocking a thread $t$ not performing a store operation.
+\[
+  \lnot \SBFULL^k_t \implies \lnot \FLUSH^k_t
+\]
+Blocking a thread $t$ about to execute a statement that requires the store buffer being empty.
+Set of statements requiring an empty store buffer $F_t$.
+\[
+  \ITE(\SBFULL^k_t, \bigvee_{pc \in F_t} \STMT^k_{t, pc} \implies \lnot \THREAD^k_t, \lnot \FLUSH^k_t)
+\]
+\todo[inline]{checkpoint constraints}
+\[
+  \BLOCK^k_{id, t} \land \lnot \CHECK_k_t \implies \lnot \THREAD^k_t
+\]
+\todo[noline]{unsat if deadlock by CHECK}
+\todo[inline]{halt constraints}
+\[
+  \HALT^k_t \implies \lnot \THREAD^k_t
+\]
+
+\subsubsection{Memory Access}
+
+%Due store forwarding, memory access can no expressed as simple array lookups
 
 \newcommand{\READ}{\texttt{read}}
 
