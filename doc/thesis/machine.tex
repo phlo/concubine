@@ -244,7 +244,8 @@ Scheduling is generally performed non-deterministically under the following cons
 \begin{enumerate}
   \item A processor can execute a read, modify or control operation at any time.
   \item A processor can voluntarily flush its store buffer to memory only if it is full.
-  \item A processor can execute a write, atomic or barrier operation only if it's store buffer is empty.
+  \item A processor can execute a write or barrier operation only if it's store buffer is empty.
 \end{enumerate}
 
 \todo[inline]{block while waiting for checkpoints?}
+\todo[inline]{prevent scheduling of halted threads?}

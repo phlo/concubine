@@ -22,6 +22,8 @@ If it is satisfiable, the corresponding execution trace is extracted from the re
   % \end{itemize}
 % }
 
+\todo[inline]{Basic Definitions? sorts, functions, etc.}
+
 \subsection{Basic Encoding Scheme}
 
 Let $\BVSORT[n]$ be the fixed size bitvector sort of width $n$ and $\ASORT[n]$ the array sort with index and element sorts $\BVSORT[n]$.
@@ -105,23 +107,27 @@ To simplify the definition of state transitions, the following helper variables 
 % The statement execution variable $\EXEC^k_{t, pc}$,
 The actual execution of a specific statement is encoded by $\EXEC^k_{t, pc}$ and
 % The actual execution of a statement at $pc$ by thread $t$ in step $k$ is encoded by the execution variable $\EXEC^k_{t, pc}$ and
-is defined as a conjunction of the corresponding statement and thread activation variable.
+is defined as a conjunction of the corresponding statement and thread activation variables.
 
 \[
   \EXEC^k_{t, pc} = \STMT^k_{t, pc} \land \THREAD^k_t
 \]
 
-Furthermore, we use $\CHECK^k_{id}$ to signal that all threads containing a call to checkpoint $id$, given in the set $C_{id}$, have synchronized and the corresponding $\BLOCK^k_{id, t}$ flags set.
+Furthermore, we use $\CHECK^k_{id}$ to signal that all threads containing a call to checkpoint $id$, given in the set $C_{id}$, have synchronized.% and the corresponding $\BLOCK^k_{id, t}$ flags set.
 \todo[noline]{$C_{id}$ ok?}
 % from a set $C_{id}$ of threads containing a call to checkpoint $id$
 \[
   \CHECK^k_{id} = \bigwedge_{t \in C_{id}} \BLOCK^k_{id, t}
 \]
 
-\bigskip
+% \bigskip
+\subsubsection{Scheduling}
 
 \newcommand{\CardLt}{\leq^1_n(x_1, \ldots, x_n)}
 \newcommand{\CardLtSeq}{\text{LT}^{n, 1}_{\text{SEQ}}}
+
+\newcommand{\ITE}{\texttt{ite}}
+\newcommand{\ITEindent}{\;\;\;\;\;\;\;}
 
 % Non-deterministic scheduling of a single thread per step is realized by a boolean cardinality constraint over all $\THREAD^k_t$ and $\FLUSH^k_t$ variables for a number of threads $n$.
 Non-deterministic scheduling of at most one thread per step is realized by a boolean cardinality constraint over all transition variables and the exit flag $\EXIT^k$ to ensure satisfiability if the machine terminates in a step $k < bound$.
@@ -172,17 +178,36 @@ Thus, we define the exactly one constraint predicate $=^1_n\!(x_1, \ldots, x_n)$
 \]
 % \todo[inline]{actual constraint added}
 % If we now redeclare $n$ to be the number of threads, the exactly one constraint used for non-deterministic scheduling of a single thread in step $k$ looks as follows.
-If we redeclare $n$ as the number of threads, non-deterministic scheduling of a single thread per step $k$ can now be encoded by the following constraint.
+If we redeclare $n$ as the number of threads, non-deterministic scheduling of a single thread in step $k$ can now be encoded by the following constraint.
 % We are now able to state the actual exactly one constraint added to our formula as follows.
 \[
   =^1_{2n + 1}\!(\THREAD^k_0, \ldots, \THREAD^k_{n-1}, \FLUSH^k_0, \ldots, \FLUSH^k_{n-1}, \EXIT^k)
 \]
+% \todo[inline]{scheduling influenced by constraints}
+% restrictions by our machine model.
+% To comply with our machine model, the cardinality constraint influenced under certain conditions.
+% The scheduling constraint is influenced by  certain transitions
+% influenced by disabling transition variables under certain conditions.
+% to comply with our machine model,
+% This cardinality constraint is further influenced by explicitly disabling transitions from certain states in order to meet the requirements of our machine model.
 
-\todo[inline]{scheduling influenced by constraints}
-\newcommand{\ITE}{\texttt{ite}}
-\newcommand{\ITEindent}{\;\;\;\;\;\;\;}
-
-Let $\ITE: \BVSORT[1] \times \BVSORT[n] \times \BVSORT[n] \to \BVSORT[n]$ be a functional if-then-else, returning the value $a \in \BVSORT[n]$ if $x \in \BVSORT[1]$ is \emph{true}, else the value $b \in \BVSORT[n]$.
+This cardinality constraint is further influenced by explicitly disabling transitions from certain states that are prohibited by our machine model.
+% \todo[inline]{store buffer constraints}
+% Blocking a thread $t$ not performing a store operation.
+% Flushing an empty store buffer of a thread $t$, not containing any barrier \todo{atomic?} operation, can be prevented by a simple implication.
+Flushing an empty store buffer of a thread $t$ can be prevented by a simple implication.
+\[
+  \lnot \SBFULL^k_t \implies \lnot \FLUSH^k_t
+\]
+% If thread $t$ contains a write together with a barrier operation, execution of the latter has to be restricted while the store is full.
+In case thread $t$ containing a write, execution of any barrier operation has to be delayed while the store buffer is full.
+% In this case, both mutually exclusive store buffer constraints are combined in a single expression by using
+% Both store buffer constraints may be combined in a single expression by using $\ITE: \BVSORT[1] \times \BVSORT[n] \times \BVSORT[n] \to \BVSORT[n]$, a functional if-then-else, returning the $a \in \BVSORT[n]$ if $x \in \BVSORT[1]$ is \emph{true}, else $b \in \BVSORT[n]$.
+% If a write or barrier operation
+% Otherwise,
+Let $F_t$ be a set of statements requiring an empty store buffer
+and $\ITE: \BVSORT[1] \times \BVSORT[n] \times \BVSORT[n] \to \BVSORT[n]$ be a functional if-then-else, returning $a \in \BVSORT[n]$ if $x \in \BVSORT[1]$ is \emph{true}, else $b \in \BVSORT[n]$.
+% Let $\ITE: \BVSORT[1] \times \BVSORT[n] \times \BVSORT[n] \to \BVSORT[n]$ be a functional if-then-else, returning $a \in \BVSORT[n]$ if $x \in \BVSORT[1]$ is \emph{true}, else $b \in \BVSORT[n]$
 \[
   \ITE(x, a, b) =
   \begin{cases}
@@ -190,23 +215,23 @@ Let $\ITE: \BVSORT[1] \times \BVSORT[n] \times \BVSORT[n] \to \BVSORT[n]$ be a f
     b \text{ otherwise}
   \end{cases}
 \]
-
-\todo[inline]{store buffer constraints}
-Blocking a thread $t$ not performing a store operation.
-\[
-  \lnot \SBFULL^k_t \implies \lnot \FLUSH^k_t
-\]
-Blocking a thread $t$ about to execute a statement that requires the store buffer being empty.
-Set of statements requiring an empty store buffer $F_t$.
+% Blocking a thread $t$ about to execute a statement that requires the store buffer being empty.
+% Set of statements requiring an empty store buffer $F_t$.
+Since both store buffer related constraints mainly depend on mutually exclusive values of $\SBFULL^k_t$, we are able to encode them in a single expression.
 \[
   \ITE(\SBFULL^k_t, \bigvee_{pc \in F_t} \STMT^k_{t, pc} \implies \lnot \THREAD^k_t, \lnot \FLUSH^k_t)
 \]
-\todo[inline]{checkpoint constraints}
-\[
-  \BLOCK^k_{id, t} \land \lnot \CHECK_k_t \implies \lnot \THREAD^k_t
-\]
+% \todo[inline]{checkpoint constraints}
+% Blocking a thread $t$, while it is waiting for all other threads reaching a checkpoint $id$ is expressed by a conjunction of the corresponding block flag $\BLOCK^k_{id, t}$ and helper variable $\CHECK^k_{id}$ implying a negated thread activation $\THREAD^k_t$.
+Blocking a thread $t$, while it is waiting for all other threads reaching a checkpoint $id$ is implied by a conjunction of the corresponding block flag $\BLOCK^k_{id, t}$ and synchronization variable $\CHECK^k_{id}$.
 \todo[noline]{unsat if deadlock by CHECK}
-\todo[inline]{halt constraints}
+\[
+  \BLOCK^k_{id, t} \land \lnot \CHECK^k_{id} \implies \lnot \THREAD^k_t
+\]
+% \todo[inline]{halt constraints}
+% Finally, a halted thread $t$ is also excluded from the cardinality constraint by disabling its activation variable.% by a simple implication.
+% If a thread $t$ has finally halted, it is also excluded from the cardinality constraint.
+Finally, if a thread $t$ has halted, it must also be stopped from being scheduled.
 \[
   \HALT^k_t \implies \lnot \THREAD^k_t
 \]
