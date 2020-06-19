@@ -93,7 +93,7 @@ Machine state transitions of the form $s_k \to^k s_{k + 1}$ are governed by the 
 \end{longtabu}
 
 % \todo[inline]{helper variables}
-To simplify the definition of state transitions, the following helper variables capture frequently used terms.
+To simplify the definition of successor states, the following helper variables capture frequently used terms.
 % The following helper variables are introduced to simplify the latter definition of state transitions by capturing frequently used terms.
 
 \begin{longtabu}{llX}
@@ -238,36 +238,481 @@ Finally, if a thread $t$ has halted, it must also be stopped from being schedule
 
 \subsubsection{Memory Access}
 
-%Due store forwarding, memory access can no expressed as simple array lookups
-
-\newcommand{\READ}{\texttt{read}}
-
-Let $\READ^k: \BVSORT \to \BVSORT$ be the function returning the shared memory element at index $adr \in \BVSORT$ from array $\HEAP^k \in \ASORT$.
-
-~\\
-
+% \newcommand{\READ}{\texttt{read}}
 \newcommand{\LOAD}{\texttt{load}}
 
-Let $\LOAD^k_t: \BVSORT \times \BVSORT[1] \to \BVSORT$ be the function for loading a particular shared memory element $e \in \BVSORT$ with index $i \in \BVSORT$ from array $a \in \ASORT$ and the indirection flag $indirect \in \BVSORT[1]$, defined as follows.
+% Let $\READ^k: \BVSORT \to \BVSORT$ be a function, returning a given element from array $\HEAP^k$.
+% Due to store forwarding in combination with indirect addressing, memory access can not be expressed by simple array lookups, but turns out to be the most complicated part in our encoding scheme.
+Due store forwarding, memory access can not be expressed as simple array lookups, but is encoded by a separate function $\LOAD^k_t: \BVSORT \to \BVSORT$ for loading the shared memory element at address $adr \in \BVSORT$ with store forwarding from thread $t$. % and indirect addressing signalled by $indirect \in \BVSORT[1]$, being defined as follows.
+\begin{align*}
+  \LOAD^k_t(adr) = \ITE(& \SBFULL^k_t \land \SBADR^k_t = adr, \\
+  & \SBVAL^k_t, \\
+  & \READ^k(adr))
+\end{align*}
+In case of indirect addressing, $\LOAD^k_t$ is redefined as a single expression instead of a composition with itself to prevent dependency on certain features of the target language or the use of additional auxiliary variables.
+\todo[noline]{repeated, iterative, recursive?}
 \begin{align}
-  \LOAD^k_t(adr, indirect) = \ITE(& indirect, \\
-  & \ITE(\SBFULL^k_t, \label{def:load:sbfull} \\
-  & \ITEindent \ITE(\SBADR^k_t = adr, \\
-  & \ITEindent \ITEindent \ITE(\SBVAL^k_t = adr, \\
-  & \ITEindent \ITEindent \ITEindent \SBVAL^k_t, \\
-  & \ITEindent \ITEindent \ITEindent \READ^k(\SBVAL^k_t)), \\
-  & \ITEindent \ITEindent \ITE(\SBADR^k_t = \READ^k(adr), \\
-  & \ITEindent \ITEindent \ITEindent \SBVAL^k_t, \\
-  & \ITEindent \ITEindent \ITEindent \READ^k(\READ^k(adr)))), \\
-  & \ITEindent \READ^k(\READ^k(adr))), \\
-  & \ITE(\SBFULL^k_t \land \SBADR^k_t = adr, \\
-  & \ITEindent \SBVAL^k_t, \\
-  & \ITEindent \READ^k(adr)))
+  \LOAD^k_t(adr) = \ITE(& \SBFULL^k_t, \label{def:load:1} \\
+  & \ITE(\SBADR^k_t = adr, \label{def:load:2} \\
+  & \ITEindent \ITE(\SBVAL^k_t = adr, \label{def:load:3} \\
+  & \ITEindent \ITEindent \SBVAL^k_t, \label{def:load:4} \\
+  & \ITEindent \ITEindent \READ^k(\SBVAL^k_t)), \label{def:load:5} \\
+  & \ITEindent \ITE(\SBADR^k_t = \READ^k(adr), \label{def:load:6} \\
+  & \ITEindent \ITEindent \SBVAL^k_t, \label{def:load:7}\\
+  & \ITEindent \ITEindent \READ^k(\READ^k(adr)))), \label{def:load:8} \\
+  & \READ^k(\READ^k(adr))) \label{def:load:9}
 \end{align}
+First, we check if the store buffer contains an entry and store forwarding might apply (\ref{def:load:1}).
+%, or the requested value can be directly retrieved from memory (\ref{def:load:9}).
+If it is empty, the requested value has to be directly retrieved from memory (\ref{def:load:9}).
+% Otherwise, if the immediate address can be forwarded (\ref{def:load:2}), we must further check if it is equal to the effective address (\ref{def:load:3}) and either both (\ref{def:load:4}), or just the immediate address is forwarded (\ref{def:load:5}).
+Otherwise, if the store buffer contains an entry for the given address (\ref{def:load:2}), we must further check if it is equal to the effective address (\ref{def:load:3}) to determine if either both (\ref{def:load:4}), or just the given address can be forwarded (\ref{def:load:5}).
+% Otherwise, if the store buffer contains an entry for the immediate address (\ref{def:load:2}), we check if it is equal to the effective address (\ref{def:load:3}) and either return the store buffer value (\ref{def:load:4}) or the element at
+% Otherwise, if the store buffer contains an entry for the immediate address (\ref{def:load:2}) and
+% Finally, in case the given address could not be forwarded, the store buffer might contain an entry
+Finally, in case the given address was not contained,
+%we test if and either the effective address can be forwarded (\ref{def:load:7}), or nothing after all (\ref{def:load:8}).
+the effective address is fetched from memory and compared to the store buffer address (\ref{def:load:6}) to see if it
+% can be forwarded (\ref{def:load:7}), or nothing after all (\ref{def:load:8}).
+might be subject to store forwarding (\ref{def:load:7}), or nothing after all (\ref{def:load:8}).
+% fetch the effective address from memory and
+% or nothing after all.
+% and nothing could be forwarded after all.
+% If the immediate address cannot be forwarded,
 
-\ref{def:load:sbfull}
+% If store forwaring does not apply because either the store buffer being empty or it neither contains the immediate nor the effective address,
+% In case of indirect addressing, we first need to check if the store buffer is full (\ref{def:load:indirect:sbfull}) and the given base address can be forwarded (\ref{def:load:indirect:sbadr}).
+% If a value for the base address is contained in the store buffer, we then check if this value
+
+% \begin{align}
+  % \LOAD^k_t(adr, indirect) = \ITE(& indirect, \\
+  % & \ITE(\SBFULL^k_t, \label{def:load:sbfull} \\
+  % & \ITEindent \ITE(\SBADR^k_t = adr, \label{def:load:indirect:sbadr} \\
+  % & \ITEindent \ITEindent \ITE(\SBVAL^k_t = adr, \\
+  % & \ITEindent \ITEindent \ITEindent \SBVAL^k_t, \\
+  % & \ITEindent \ITEindent \ITEindent \READ^k(\SBVAL^k_t)), \\
+  % & \ITEindent \ITEindent \ITE(\SBADR^k_t = \READ^k(adr), \\
+  % & \ITEindent \ITEindent \ITEindent \SBVAL^k_t, \\
+  % & \ITEindent \ITEindent \ITEindent \READ^k(\READ^k(adr)))), \\
+  % & \ITEindent \READ^k(\READ^k(adr))), \\
+  % & \ITE(\SBFULL^k_t \land \SBADR^k_t = adr, \\
+  % & \ITEindent \SBVAL^k_t, \\
+  % & \ITEindent \READ^k(adr)))
+% \end{align}
+
+% \begin{itemize}
+  % \item Nested array lookups if the store buffer is empty and store forwarding does not apply alltogether, or neither the indirect, nor the effective address can be forwarded.
+  % \item The value contained in the store buffer if either the effective or both addresses can be forwarded.
+% \end{itemize}
+
+% store buffer empty: nested lookup
+
+% \begin{enumerate}
+  % \item nothing can be forwarded
+  % \item only the indirect address can be forwarded
+  % \item only the effective address can be forwarded
+  % \item both addresses can be forwarded
+% \end{enumerate}
+
+% \[
+  % \LOAD^k_t(adr) = \ITE(& \SBFULL^k_t \land \SBADR^k_t = adr, \SBVAL^k_t, \READ^k(adr)))
+% \]
+
+% \ref{def:load:sbfull}
 
 % \paragraph{Store Forwarding:} $\sbfull \; \land \; \sbadr = adr \land \accu = \sbval \lor \lnot (\sbfull \land \sbadr = adr)$
+
+% \bigskip
+\subsubsection{Frame Axioms}
+
+\newcommand{\EFFECTIVE}{\texttt{effective}}
+\newcommand{\MSB}{\texttt{msb}}
+
+\todo[inline]{Successor State Axioms?}\noindent
+% The effect of a particular operation, determined by the transition variables $\FLUSH^k_t$ and $\EXEC^k_{t, pc}$
+% The effect of a thread $t$ flushing its store buffer or executing the instruction at $pc$ in step $k$
+Successor states of transitions for all possible types of operations, determined by $\FLUSH^k_t$ and $\EXEC^k_{t, pc}$, are defined by the frame axioms in the table below.
+All state variables, not explicitly altered are assumed to be unchanged in the next step, except the block
+\[
+  \BLOCK^{k + 1}_{id, t} = \ITE(\CHECK^k_{id}, false, \BLOCK^k_{id, t})
+\]
+
+To simplify the definition of axioms two  $\EFFECTIVE^k: \BVSORT \to \BVSORT$
+\todo[inline]{
+\[
+  \EFFECTIVE^k(adr) =
+  \begin{cases}
+    \READ^k(adr) \text{ if indirect} \\
+    adr \text{ otherwise}
+  \end{cases}
+\]
+}
+
+\todo[inline]{
+$\MSB: \BVSORT \to \BVSORT[1]$
+}
+
+% $\SLICE: \BVSORT \times \mathcal{N} \times \mathcal{N} \to \BVSORT[m]$
+
+% \newcommand{\defaxiom}[1]{
+    % \vspace{-0.4cm}
+    % {\begin{align*}#1\end{align*}}
+    % \vspace{-1.3cm}
+% }
+% \begin{longtabu}{lX[lm]}
+  % \firsthline
+    % \texttt{FLUSH} &
+    % \vspace{-0.4cm}
+    % {\begin{align*}
+      % \HEAP^{k + 1} &= \WRITE^k(\SBADR^k_t, \SBVAL^k_t) \\
+      % \SBFULL^{k + 1}_t &= false \\
+    % \end{align*}}
+    % \vspace{-1.3cm}
+    % \\
+  % \hline
+  % \texttt{LOAD adr} &
+    % \defaxiom{
+      % \ACCU^{k + 1}_t &= \LOAD^k_t(\texttt{adr}) \\
+      % \STMT^k_{t, pc} &= false \\
+      % \STMT^k_{t, pc + 1} &= true \\
+    % } \\
+  % \hline
+  % foo & bar \\
+  % \lasthline
+  % \caption{Frame Axioms}
+  % \label{tbl:axioms}
+% \end{longtabu}
+
+% \doublerulesep=6pt
+% \arrayrulewidth=1pt
+% \doublerulesep=1.5 pt
+% \everyrow{\hline\hline}
+
+\newcommand{\defaxiom}[2]{
+  \paragraph{#1} ~\\
+  \rule[0.5\baselineskip]{\textwidth}{0.1pt}\vspace{-1\baselineskip}\par\noindent
+  #2
+}
+
+\newpage
+\defaxiom
+{\texttt{FLUSH}}
+{
+  \begin{itemize}
+    \item[] $\HEAP^{k + 1} = \WRITE^k(\SBADR^k_t, \SBVAL^k_t)$
+    \item[] $\SBFULL^{k + 1} = false$
+  \end{itemize}
+}
+
+\defaxiom
+{\texttt{LOAD arg}}
+{
+  \begin{itemize}
+    \item[] $\ACCU^{k + 1}_t = \LOAD^k_t(\texttt{adr})$
+    \item[] $\STMT^k_{t, pc} = false$
+    \item[] $\STMT^k_{t, pc + 1} = true$
+  \end{itemize}
+}
+
+\defaxiom
+{\texttt{STORE arg}}
+{
+  \begin{itemize}
+    \item[] $\SBADR^{k + 1}_t =
+      \begin{cases}
+        \READ^k(adr) \text{ if indirect} \\
+        adr \text{ otherwise}
+      \end{cases}$
+    \item[] $\SBVAL^{k + 1}_t = \ACCU^k_t$
+    \item[] $\STMT^k_{t, pc} = false$
+    \item[] $\STMT^k_{t, pc + 1} = true$
+  \end{itemize}
+}
+
+\newsavebox{\STORESBADRAXIOM}
+\savebox{\STORESBADRAXIOM}{
+  \hspace{-0.3cm}
+  $\begin{cases}
+    \READ^k(adr) \text{ if indirect} \\
+    adr \text{ otherwise}
+  \end{cases}$
+}
+
+\newsavebox{\CASHEAPAXIOM}
+\savebox{\CASHEAPAXIOM}{
+  \hspace{-0.3cm}
+  % $\begin{cases}
+    % \begin{aligned}
+      % \ITE(& \MEM^k_t = \READ^k(\READ^k(\texttt{arg})), \\
+      % & \WRITE^k(\READ^k(\texttt{arg}), \ACCU^k_t), \\
+      % & \HEAP^k)
+    % \end{aligned}
+    % \hspace{0.2cm}
+    % \text{if indirect} \\
+    % \begin{aligned}
+      % \ITE(& \MEM^k_t = \READ^k(\texttt{arg}), \\
+      % & \WRITE^k(\texttt{arg}, \ACCU^k_t), \\
+      % & \HEAP^k)
+    % \end{aligned}
+    % \hspace{1.5cm}
+    % \text{otherwise}
+  % \end{cases}$
+  $\begin{aligned}
+    \ITE(& \MEM^k_t = \READ^k(\EFFECTIVE^k(\texttt{arg})), \\
+    & \WRITE^k(\EFFECTIVE^k(\texttt{arg}), \ACCU^k_t), \\
+    & \HEAP^k)
+  \end{aligned}$
+}
+
+\newsavebox{\CASACCUAXIOM}
+\savebox{\CASACCUAXIOM}{
+  \hspace{-0.3cm}
+  % $\begin{cases}
+    % \begin{aligned}
+      % \ITE(& \MEM^k_t = \READ^k(\READ^k(\texttt{arg})), \\
+      % & 1, \\
+      % & 0)
+    % \end{aligned}
+    % % \ITE(\MEM^k_t = \READ^k(\READ^k(\texttt{arg})), 1, 0)
+    % \hspace{0.2cm}
+    % \text{if indirect} \\
+    % \begin{aligned}
+      % \ITE(& \MEM^k_t = \READ^k(\texttt{arg}), \\
+      % & 1, \\
+      % & 0) \\
+    % \end{aligned}
+    % % \ITE(\MEM^k_t = \READ^k(\texttt{arg}), 1, 0)
+    % \hspace{1.5cm}
+    % \text{otherwise}
+  % \end{cases}$
+
+  % $\begin{aligned}
+    % \ITE(& \MEM^k_t = \READ^k(\EFFECTIVE^k(\texttt{arg})), \\
+    % & 1, \\
+    % & 0)
+  % \end{aligned}$
+
+  $\ITE(\MEM^k_t = \READ^k(\EFFECTIVE^k(\texttt{arg})), 1, 0)$
+}
+
+% \begin{longtabu}{llX[m]}
+  % \firsthline
+  % \multirow{2.5}{*}{\texttt{STORE adr}}
+    % & $\SBADR^{k + 1}_t$    & $=$ \usebox{\mybox} \\
+    % & $\SBVAL^{k + 1}_t$    & $= \ACCU^k_t$ \\
+    % & $\STMT^k_{t, pc}$     & $= false$ \\
+    % & $\STMT^k_{t, pc + 1}$ & $= true$ \\
+    % \lasthline
+% \end{longtabu}
+
+% \begin{longtabu}{llX[m]}
+  % \firsthline
+  % \multirow{2}{*}{\texttt{FLUSH}}
+    % & $\HEAP^{k + 1}$       & $= \WRITE^k(\SBADR^k_t, \SBVAL^k_t)$ \\
+    % & $\SBFULL^{k + 1}$     & $= false$ \\
+  % \lasthline
+% \end{longtabu}
+% \vspace{-0.9cm}
+% \begin{longtabu}{llX[m]}
+  % \firsthline
+  % \multirow{3}{*}{\texttt{LOAD adr}}
+    % & $\ACCU^{k + 1}_t$     & $= \LOAD^k_t(\texttt{adr})$ \\
+    % & $\STMT^k_{t, pc}$     & $= false$ \\
+    % & $\STMT^k_{t, pc + 1}$ & $= true$ \\
+  % \lasthline
+% \end{longtabu}
+% \vspace{-0.9cm}
+% \begin{longtabu}{llX[m]}
+  % \firsthline
+  % \multirow{2.5}{*}{\texttt{STORE adr}}
+    % & $\SBADR^{k + 1}_t$    & $=$ \usebox{\mybox} \\
+    % & $\SBVAL^{k + 1}_t$    & $= \ACCU^k_t$ \\
+    % & $\STMT^k_{t, pc}$     & $= false$ \\
+    % & $\STMT^k_{t, pc + 1}$ & $= true$ \\
+  % \lasthline
+% \end{longtabu}
+
+% \setlength{\tabulinesep}{2pt}
+% \setlength{\doublerulesep}{4pt}
+\begin{longtabu}{llX[m]}
+  \firsthline
+  \multirow{2}{*}{\texttt{FLUSH}}
+    & $\HEAP^{k + 1}$       & $= \WRITE^k(\SBADR^k_t, \SBVAL^k_t)$ \\
+    & $\SBFULL^{k + 1}$     & $= false$ \\
+  \hline
+  % \hhline{===}
+  % \tabucline[2pt off 2pt]{-}
+  \multirow{3}{*}{\texttt{LOAD adr}}
+    & $\ACCU^{k + 1}_t$     & $= \LOAD^k_t(\texttt{adr})$ \\
+    & $\STMT^k_{t, pc}$     & $= false$ \\
+    & $\STMT^k_{t, pc + 1}$ & $= true$ \\
+  \hline
+  % \hhline{===}
+  % \multirow{2.5}{*}{\texttt{STORE adr}}
+    % & $\SBADR^{k + 1}_t$    & $=$ \usebox{\STORESBADRAXIOM} \\
+    % & $\SBVAL^{k + 1}_t$    & $= \ACCU^k_t$ \\
+    % & $\STMT^k_{t, pc}$     & $= false$ \\
+    % & $\STMT^k_{t, pc + 1}$ & $= true$ \\
+  \multirow{4}{*}{\texttt{STORE adr}}
+    & $\SBADR^{k + 1}_t$    & $= \EFFECTIVE^k(\texttt{arg})$ \\
+    & $\SBVAL^{k + 1}_t$    & $= \ACCU^k_t$ \\
+    & $\STMT^k_{t, pc}$     & $= false$ \\
+    & $\STMT^k_{t, pc + 1}$ & $= true$ \\
+  \hline
+  % \hhline{===}
+  \multirow{2}{*}{\texttt{FENCE}}
+    & $\STMT^k_{t, pc}$     & $= false$ \\
+    & $\STMT^k_{t, pc + 1}$ & $= true$ \\
+  \hline
+  \multirow{3}{*}{\texttt{ADD adr}}
+    & $\ACCU^{k + 1}_t$     & $= \ACCU^k_t + \LOAD^k_t(\texttt{adr})$ \\
+    & $\STMT^k_{t, pc}$     & $= false$ \\
+    & $\STMT^k_{t, pc + 1}$ & $= true$ \\
+  \hline
+  \multirow{3}{*}{\texttt{ADDI val}}
+    & $\ACCU^{k + 1}_t$     & $= \ACCU^k_t + \texttt{val}$ \\
+    & $\STMT^k_{t, pc}$     & $= false$ \\
+    & $\STMT^k_{t, pc + 1}$ & $= true$ \\
+  \hline
+  \multirow{3}{*}{\texttt{SUB adr}}
+    & $\ACCU^{k + 1}_t$     & $= \ACCU^k_t - \LOAD^k_t(\texttt{adr})$ \\
+    & $\STMT^k_{t, pc}$     & $= false$ \\
+    & $\STMT^k_{t, pc + 1}$ & $= true$ \\
+  \hline
+  \multirow{3}{*}{\texttt{SUBI val}}
+    & $\ACCU^{k + 1}_t$     & $= \ACCU^k_t - \texttt{val}$ \\
+    & $\STMT^k_{t, pc}$     & $= false$ \\
+    & $\STMT^k_{t, pc + 1}$ & $= true$ \\
+  \hline
+  \multirow{3}{*}{\texttt{MUL adr}}
+    & $\ACCU^{k + 1}_t$     & $= \ACCU^k_t * \LOAD^k_t(\texttt{adr})$ \\
+    & $\STMT^k_{t, pc}$     & $= false$ \\
+    & $\STMT^k_{t, pc + 1}$ & $= true$ \\
+  \hline
+  \multirow{3}{*}{\texttt{MULI val}}
+    & $\ACCU^{k + 1}_t$     & $= \ACCU^k_t * \texttt{val}$ \\
+    & $\STMT^k_{t, pc}$     & $= false$ \\
+    & $\STMT^k_{t, pc + 1}$ & $= true$ \\
+  \hline
+  \multirow{3}{*}{\texttt{CMP adr}}
+    & $\ACCU^{k + 1}_t$     & $= \ACCU^k_t - \LOAD^k_t(\texttt{adr})$ \\
+    & $\STMT^k_{t, pc}$     & $= false$ \\
+    & $\STMT^k_{t, pc + 1}$ & $= true$ \\
+  \hline
+  \multirow{2}{*}{\texttt{JMP arg}}
+    & $\STMT^k_{t, pc}$     & $= false$ \\
+    & $\STMT^k_{t,\texttt{arg}}$ & $= true$ \\
+  \hline
+  \multirow{3}{*}{\texttt{JZ arg}}
+    & $\STMT^k_{t, pc}$     & $= false$ \\
+    & $\STMT^k_{t, pc + 1}$ & $= \ACCU^k_t$ \\
+    & $\STMT^k_{t,\texttt{arg}}$ & $= \lnot \ACCU^k_t$ \\
+  \hline
+  \multirow{3}{*}{\texttt{JNZ arg}}
+    & $\STMT^k_{t, pc}$     & $= false$ \\
+    & $\STMT^k_{t, pc + 1}$ & $= \lnot \ACCU^k_t$ \\
+    & $\STMT^k_{t,\texttt{arg}}$ & $= \ACCU^k_t$ \\
+  \hline
+  \multirow{3}{*}{\texttt{JS arg}}
+    & $\STMT^k_{t, pc}$     & $= false$ \\
+    % & $\STMT^k_{t, pc + 1}$ & $= \lnot (\ACCU^k_t \mathbin{\&} (1 \ll 15))$ \todo[noline]{shift?} \\
+    & $\STMT^k_{t, pc + 1}$ & $= \lnot \MSB(\ACCU^k_t)$ \\
+    % & $\STMT^k_{t,\texttt{arg}}$ & $= \ACCU^k_t \mathbin{\&} (1 \ll 15)$ \\
+    & $\STMT^k_{t,\texttt{arg}}$ & $= \MSB(\ACCU^k_t)$ \\
+  \hline
+  \multirow{3}{*}{\texttt{JNS arg}}
+    & $\STMT^k_{t, pc}$     & $= false$ \\
+    % & $\STMT^k_{t, pc + 1}$ & $= \ACCU^k_t \mathbin{\&} (1 \ll 15)$ \\
+    & $\STMT^k_{t, pc + 1}$ & $= \MSB(\ACCU^k_t)$ \\
+    % & $\STMT^k_{t,\texttt{arg}}$ & $= \lnot (\ACCU^k_t \mathbin{\&} (1 \ll 15))$ \\
+    & $\STMT^k_{t,\texttt{arg}}$ & $= \lnot \MSB(\ACCU^k_t)$ \\
+  \hline
+  \multirow{3}{*}{\texttt{JNZNS arg}}
+    & $\STMT^{k + 1}_{t, pc}$     & $= false$ \\
+    % & $\STMT^k_{t, pc + 1}$ & $= \lnot \ACCU^k_t \lor (\ACCU^k_t \mathbin{\&} (1 \ll 15))$ \\
+    & $\STMT^{k + 1}_{t, pc + 1}$ & $= \lnot \ACCU^k_t \lor \MSB(\ACCU^k_t)$ \\
+    % & $\STMT^k_{t,\texttt{arg}}$ & $= \ACCU^k_t \land \lnot (\ACCU^k_t \mathbin{\&} (1 \ll 15))$ \\
+    & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \ACCU^k_t \land \lnot \MSB(\ACCU^k_t)$ \\
+  \hline
+  \multirow{4}{*}{\texttt{MEM arg}}
+    & $\ACCU^{k + 1}_t$     & $= \LOAD^k_t(\texttt{adr})$ \\
+    & $\MEM^{k + 1}_t$      & $= \LOAD^k_t(\texttt{adr})$ \\
+    & $\STMT^{k + 1}_{t, pc}$     & $= false$ \\
+    & $\STMT^{k + k}_{t, pc + 1}$ & $= true$ \\
+  \hline
+  \multirow{2.35}{*}{\texttt{CAS arg}}
+    & $\HEAP^{k + 1}$             & $=$ \usebox{\CASHEAPAXIOM} \\
+    & $\ACCU^{k + 1}_t$           & $=$ \usebox{\CASACCUAXIOM} \\
+    & $\STMT^{k + 1}_{t, pc}$     & $= false$ \\
+    & $\STMT^{k + 1}_{t, pc + 1}$ & $= true$ \\
+  \hline
+  \multirow{2}{*}{\texttt{HALT}}
+    % & $\EXIT^{k + 1}_t$ & $= \HALT^{k + 1}_0 \land \ldots \land \HALT^{k + 1}_{n - 1}$ \\
+    & $\EXIT^{k + 1}_t$ & $= \displaystyle \bigwedge^{n - 1}_{i = 0} \HALT^{k + 1}_i$ \\
+    & $\HALT^{k + 1}_t$ & $= true$ \\
+    & $\STMT^{k + 1}_{t, pc}$ & $= false$ \\
+  \hline
+  \multirow{3}{*}{\texttt{EXIT arg}}
+    & $\EXIT^{k + 1}_t$ & $= true$ \\
+    & $\EXITCODE^{k + 1}$ & $= \texttt{arg}$ \\
+    & $\STMT^{k + 1}_{t, pc}$ & $= false$ \\
+  \hline
+  \multirow{3}{*}{\texttt{CHECK arg}}
+    & $\STMT^k_{t, pc}$ & $= false$ \\
+    & $\STMT^k_{t, pc + 1}$ & $= false$ \\
+    & $\BLOCK^{k + 1}_{arg, t}$ & $= true$ \\
+  \lasthline
+\end{longtabu}
+
+% \vspace{0.2cm}
+% \hline
+% \vspace{0.1cm}
+% \noindent
+% \begin{tabu} to \textwidth {lX[m]}
+  % $\HEAP^{k + 1}$       & $= \WRITE^k(\SBADR^k_t, \SBVAL^k_t)$ \\
+  % $\SBFULL^{k + 1}$     & $= false$ \\
+% \end{tabu}
+
+% \paragraph{\texttt{FLUSH}}
+
+% \vspace{0.2cm}
+% \hline
+% \vspace{0.1cm}
+% \noindent
+% \begin{tabu} to \textwidth {lX[m]}
+  % $\HEAP^{k + 1}$       & $= \WRITE^k(\SBADR^k_t, \SBVAL^k_t)$ \\
+  % $\SBFULL^{k + 1}$     & $= false$ \\
+% \end{tabu}
+
+\[
+\texttt{compare}^k_t(adr) =
+\begin{cases}
+  \MEM^k_t = \READ^k(\READ^k(adr)) \text{ if indirect} \\
+  \MEM^k_t = \READ^k(adr) \text{ otherwise}
+\end{cases}
+\]
+
+% $\HEAP^{k + 1} =
+% \begin{cases}
+  % \begin{aligned}
+    % \ITE(& \MEM^k_t = \READ^k(\READ^k(\texttt{arg})), \\
+    % & \WRITE^k(\READ^k(\texttt{arg}), \ACCU^k_t) \\
+    % & \HEAP^k)
+  % \end{aligned}
+  % \text{ if indirect} \\
+  % \begin{aligned}
+    % \ITE(& \MEM^k_t = \READ^k(\texttt{arg}), \\
+    % & \WRITE^k(\texttt{arg}, \ACCU^k_t) \\
+    % & \HEAP^k)
+  % \end{aligned}
+  % \text{ otherwise}
+% \end{cases}$
+
+Let $\texttt{define-accu}(k, t, pc)$ be the predicate defining the accumulator register state $\ACCU^k_t$ of thread $t$ in step $k$ and $pc$ the set of program counters, altering that state.% \todonote{refine}
+
+\paragraph{\texttt{LOAD adr}}
+
+\todo[inline]{frame axioms}
 
 \subsubsection{Statement Activation}
 
@@ -287,31 +732,6 @@ Let $\LOAD^k_t: \BVSORT \times \BVSORT[1] \to \BVSORT$ be the function for loadi
   &&&& \texttt{error: EXIT 1} & $\STMT^k_{2, 5}$ \\
   \hline
 \end{tabu}
-
-\todo[inline]{frame axioms
-  % \begin{itemize}
-    % \item instructions
-    % \item Programs: $\{p_1, \ldots, p_n\} \in \mathcal{P}^n$
-    % \item \texttt{ADDI val}
-      % \[
-        % \ACCU^{k + 1}_t = \ACCU^k_t + \texttt{val}
-      % \]
-    % \item \texttt{ADD adr}
-      % \[
-        % \ACCU^{k + 1}_t = \ACCU^k_t + \LOAD^k_t(adr, false)
-      % \]
-    % \item \texttt{ADD [adr]}
-      % \[
-        % \ACCU^{k + 1}_t = \ACCU^k_t + \LOAD^k_t(adr, true)
-      % \]
-  % \end{itemize}
-}
-
-Let $\texttt{define-accu}(k, t, pc)$ be the predicate defining the accumulator register state $\ACCU^k_t$ of thread $t$ in step $k$ and $pc$ the set of program counters, altering that state.% \todonote{refine}
-
-\paragraph{\texttt{LOAD adr}}
-
-\todo[inline]{constraints}
 
 \subsection{SMT-Lib}
 
