@@ -97,13 +97,15 @@ std::unique_ptr<Trace> Z3::solve (Encoder & encoder)
 
   time = runtime::measure([this, &encoder, &s, &m] {
     s.from_string(formula(encoder).c_str());
-    if (s.check() != z3::sat)
-      throw std::runtime_error("formula is not sat");
-    m = s.get_model();
+    if (s.check() == z3::sat)
+      m = s.get_model();
   });
 
   const auto & programs = encoder.programs;
   auto trace = std::make_unique<Trace>(programs, encoder.mmap);
+
+  if (!m.size())
+    return trace;
 
   for (size_t step = 0; step <= encoder.bound; step++)
     {
