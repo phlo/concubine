@@ -62,11 +62,12 @@ Encoder::Encoder (const std::shared_ptr<Program::List> & p,
   nids_const[0] = "";
   nids_const[bound] = "";
 
-  iterate_programs([this] (const Program & program) {
-    for (pc = 0; pc < program.size(); pc++)
-      if (program[pc].is_unary())
-        nids_const[program[pc].arg()];
-  });
+  iterate_programs([this] (const Program & program)
+    {
+      for (pc = 0; pc < program.size(); pc++)
+        if (program[pc].is_unary())
+          nids_const[program[pc].arg()];
+    });
 
   if (mmap && !mmap->empty())
     for (const auto & [adr, val] : *mmap)
@@ -658,9 +659,10 @@ void Encoder::declare_accu ()
 
   nids_accu.reserve(num_threads);
 
-  iterate_threads([this] {
-    formula << state(nids_accu.emplace_back(nid()), sid_bv, accu_var());
-  });
+  iterate_threads([this]
+    {
+      formula << state(nids_accu.emplace_back(nid()), sid_bv, accu_var());
+    });
 
   formula << eol;
 }
@@ -674,9 +676,10 @@ void Encoder::declare_mem ()
 
   nids_mem.reserve(num_threads);
 
-  iterate_threads([this] {
-    formula << state(nids_mem.emplace_back(nid()), sid_bv, mem_var());
-  });
+  iterate_threads([this]
+    {
+      formula << state(nids_mem.emplace_back(nid()), sid_bv, mem_var());
+    });
 
   formula << eol;
 }
@@ -690,9 +693,10 @@ void Encoder::declare_sb_adr ()
 
   nids_sb_adr.reserve(num_threads);
 
-  iterate_threads([this] {
-    formula << state(nids_sb_adr.emplace_back(nid()), sid_bv, sb_adr_var());
-  });
+  iterate_threads([this]
+    {
+      formula << state(nids_sb_adr.emplace_back(nid()), sid_bv, sb_adr_var());
+    });
 
   formula << eol;
 }
@@ -706,9 +710,10 @@ void Encoder::declare_sb_val ()
 
   nids_sb_val.reserve(num_threads);
 
-  iterate_threads([this] {
-    formula << state(nids_sb_val.emplace_back(nid()), sid_bv, sb_val_var());
-  });
+  iterate_threads([this]
+    {
+      formula << state(nids_sb_val.emplace_back(nid()), sid_bv, sb_val_var());
+    });
 
   formula << eol;
 }
@@ -722,9 +727,11 @@ void Encoder::declare_sb_full ()
 
   nids_sb_full.reserve(num_threads);
 
-  iterate_threads([this] {
-    formula << state(nids_sb_full.emplace_back(nid()), sid_bool, sb_full_var());
-  });
+  iterate_threads([this]
+    {
+      formula <<
+        state(nids_sb_full.emplace_back(nid()), sid_bool, sb_full_var());
+    });
 
   formula << eol;
 }
@@ -738,15 +745,16 @@ void Encoder::declare_stmt ()
 
   nids_stmt.resize(num_threads);
 
-  iterate_programs([this] (const Program & program) {
-    auto & nids = nids_stmt[thread];
-    nids.reserve(program.size());
+  iterate_programs([this] (const Program & program)
+    {
+      auto & nids = nids_stmt[thread];
+      nids.reserve(program.size());
 
-    for (pc = 0; pc < program.size(); pc++)
-      formula << state(nids.emplace_back(nid()), sid_bool, stmt_var());
+      for (pc = 0; pc < program.size(); pc++)
+        formula << state(nids.emplace_back(nid()), sid_bool, stmt_var());
 
-    formula << eol;
-  });
+      formula << eol;
+    });
 }
 
 // btor2::Encoder::declare_block -----------------------------------------------
@@ -861,9 +869,10 @@ void Encoder::declare_thread ()
 
   nids_thread.reserve(num_threads);
 
-  iterate_threads([&] () {
-    formula << input(nids_thread.emplace_back(nid()), sid_bool, thread_var());
-  });
+  iterate_threads([this]
+    {
+      formula << input(nids_thread.emplace_back(nid()), sid_bool, thread_var());
+    });
 
   formula << eol;
 }
@@ -877,9 +886,10 @@ void Encoder::declare_flush ()
 
   nids_flush.reserve(num_threads);
 
-  iterate_threads([&] () {
-    formula << input(nids_flush.emplace_back(nid()), sid_bool, flush_var());
-  });
+  iterate_threads([this]
+    {
+      formula << input(nids_flush.emplace_back(nid()), sid_bool, flush_var());
+    });
 
   formula << eol;
 }
@@ -904,20 +914,21 @@ void Encoder::define_exec ()
 
   nids_exec.resize(num_threads);
 
-  iterate_programs([this] (const Program & program) {
-    nids_exec[thread].reserve(program.size());
+  iterate_programs([this] (const Program & program)
+    {
+      nids_exec[thread].reserve(program.size());
 
-    for (pc = 0; pc < program.size(); pc++)
-      formula <<
-        land(
-          nids_exec[thread].emplace_back(nid()),
-          sid_bool,
-          nids_stmt[thread][pc],
-          nids_thread[thread],
-          exec_var());
+      for (pc = 0; pc < program.size(); pc++)
+        formula <<
+          land(
+            nids_exec[thread].emplace_back(nid()),
+            sid_bool,
+            nids_stmt[thread][pc],
+            nids_thread[thread],
+            exec_var());
 
-    formula << eol;
-  });
+      formula << eol;
+    });
 }
 
 // btor2::Encoder::define_check ------------------------------------------------
@@ -1000,12 +1011,13 @@ void Encoder::define_accu ()
 
   update = Update::accu;
 
-  iterate_threads([this] {
-    define_state_bv(
-      Instruction::Type::accu,
-      nids_accu[thread],
-      accu_var());
-  });
+  iterate_threads([this]
+    {
+      define_state_bv(
+        Instruction::Type::accu,
+        nids_accu[thread],
+        accu_var());
+    });
 }
 
 // btor2::Encoder::define_mem --------------------------------------------------
@@ -1017,12 +1029,13 @@ void Encoder::define_mem ()
 
   update = Update::mem;
 
-  iterate_threads([this] {
-    define_state_bv(
-      Instruction::Type::mem,
-      nids_mem[thread],
-      mem_var());
-  });
+  iterate_threads([this]
+    {
+      define_state_bv(
+        Instruction::Type::mem,
+        nids_mem[thread],
+        mem_var());
+    });
 }
 
 // btor2::Encoder::define_sb_adr -----------------------------------------------
@@ -1034,12 +1047,13 @@ void Encoder::define_sb_adr ()
 
   update = Update::sb_adr;
 
-  iterate_threads([this] {
-    define_state_bv(
-      Instruction::Type::write,
-      nids_sb_adr[thread],
-      sb_adr_var());
-  });
+  iterate_threads([this]
+    {
+      define_state_bv(
+        Instruction::Type::write,
+        nids_sb_adr[thread],
+        sb_adr_var());
+    });
 }
 
 // btor2::Encoder::define_sb_val -----------------------------------------------
@@ -1051,12 +1065,13 @@ void Encoder::define_sb_val ()
 
   update = Update::sb_val;
 
-  iterate_threads([this] {
-    define_state_bv(
-      Instruction::Type::write,
-      nids_sb_val[thread],
-      sb_val_var());
-  });
+  iterate_threads([this]
+    {
+      define_state_bv(
+        Instruction::Type::write,
+        nids_sb_val[thread],
+        sb_val_var());
+    });
 }
 
 // btor2::Encoder::define_sb_full ----------------------------------------------
@@ -1066,36 +1081,37 @@ void Encoder::define_sb_full ()
   if (verbose)
     formula << sb_full_comment;
 
-  iterate_programs([this] (const Program & program) {
-    formula << init(nid(), sid_bool, nids_sb_full[thread], nid_false);
+  iterate_programs([this] (const Program & program)
+    {
+      formula << init(nid(), sid_bool, nids_sb_full[thread], nid_false);
 
-    std::vector<std::string> args;
-    std::string nid_next = nids_sb_full[thread];
+      std::vector<std::string> args;
+      std::string nid_next = nids_sb_full[thread];
 
-    for (pc = 0; pc < program.size(); pc++)
-      if (program[pc].type() & Instruction::Type::write)
-        args.push_back(nids_exec[thread][pc]);
+      for (pc = 0; pc < program.size(); pc++)
+        if (program[pc].type() & Instruction::Type::write)
+          args.push_back(nids_exec[thread][pc]);
 
-    if (!args.empty())
-      {
-        args.push_back(nids_sb_full[thread]);
-        formula << lor(node, sid_bool, args);
-        nid_next = nid(-1);
-      }
+      if (!args.empty())
+        {
+          args.push_back(nids_sb_full[thread]);
+          formula << lor(node, sid_bool, args);
+          nid_next = nid(-1);
+        }
 
-    std::string nid_prev = std::move(nid_next);
-    nid_next = nid();
+      std::string nid_prev = std::move(nid_next);
+      nid_next = nid();
 
-    formula <<
-      ite(
-        nid_next,
-        sid_bool,
-        nids_flush[thread],
-        nid_false,
-        nid_prev) <<
-      next(nid(), sid_bool, nids_sb_full[thread], nid_next, sb_full_var()) <<
-      eol;
-  });
+      formula <<
+        ite(
+          nid_next,
+          sid_bool,
+          nids_flush[thread],
+          nid_false,
+          nid_prev) <<
+        next(nid(), sid_bool, nids_sb_full[thread], nid_next, sb_full_var()) <<
+        eol;
+    });
 }
 
 // btor2::Encoder::define_stmt -------------------------------------------------
@@ -1105,71 +1121,72 @@ void Encoder::define_stmt ()
   if (verbose)
     formula << stmt_comment;
 
-  iterate_programs([this] (const Program & program) {
-    // nids of jump conditions
-    std::unordered_map<word_t, std::string> nids_jmp;
+  iterate_programs([this] (const Program & program)
+    {
+      // nids of jump conditions
+      std::unordered_map<word_t, std::string> nids_jmp;
 
-    for (pc = 0; pc < program.size(); pc++)
-      {
-        std::string & nid_stmt = nids_stmt[thread][pc];
+      for (pc = 0; pc < program.size(); pc++)
+        {
+          std::string & nid_stmt = nids_stmt[thread][pc];
 
-        // init
-        formula << init(nid(), sid_bool, nid_stmt, pc ? nid_false : nid_true);
+          // init
+          formula << init(nid(), sid_bool, nid_stmt, pc ? nid_false : nid_true);
 
-        // add statement reactivation
-        std::string nid_next = nid();
+          // add statement reactivation
+          std::string nid_next = nid();
 
-        formula <<
-          land(
-            nid_next,
-            sid_bool,
-            nid_stmt,
-            lnot(nids_exec[thread][pc]),
-            verbose ? debug_symbol(thread, pc) : "");
+          formula <<
+            land(
+              nid_next,
+              sid_bool,
+              nid_stmt,
+              lnot(nids_exec[thread][pc]),
+              verbose ? debug_symbol(thread, pc) : "");
 
-        // add activation by predecessor's execution
-        for (word_t prev : predecessors[thread][pc])
-          {
-            const Instruction & pred = program[prev];
-            std::string nid_exec = nids_exec[thread][prev];
+          // add activation by predecessor's execution
+          for (word_t prev : predecessors[thread][pc])
+            {
+              const Instruction & pred = program[prev];
+              std::string nid_exec = nids_exec[thread][prev];
 
-            // predecessor is a conditional jump
-            if (pred.is_jump() && &pred.symbol() != &Instruction::Jmp::symbol)
-              {
-                std::string nid_cond =
-                  lookup(
-                    nids_jmp,
-                    prev,
-                    [this, &pred] { return pred.encode(*this); });
+              // predecessor is a conditional jump
+              if (pred.is_jump() && &pred.symbol() != &Instruction::Jmp::symbol)
+                {
+                  std::string nid_cond =
+                    lookup(
+                      nids_jmp,
+                      prev,
+                      [this, &pred] { return pred.encode(*this); });
 
-                // add negated condition if preceding jump failed
-                if (prev == pc - 1 && pred.arg() != pc)
-                  nid_cond = lnot(nid_cond);
+                  // add negated condition if preceding jump failed
+                  if (prev == pc - 1 && pred.arg() != pc)
+                    nid_cond = lnot(nid_cond);
 
-                // add conjunction of execution variable & jump condition
-                std::string nid_prev = std::move(nid_exec);
-                nid_exec = nid();
+                  // add conjunction of execution variable & jump condition
+                  std::string nid_prev = std::move(nid_exec);
+                  nid_exec = nid();
 
-                formula << land(nid_exec, sid_bool, nid_prev, nid_cond);
-              }
+                  formula << land(nid_exec, sid_bool, nid_prev, nid_cond);
+                }
 
-            // add predecessors activation
-            std::string nid_prev = std::move(nid_next);
-            nid_next = nid();
+              // add predecessors activation
+              std::string nid_prev = std::move(nid_next);
+              nid_next = nid();
 
-            formula <<
-              ite(
-                nid_next,
-                sid_bool,
-                nids_stmt[thread][prev],
-                nid_exec,
-                nid_prev,
-                verbose ? debug_symbol(thread, prev) : "");
-          }
+              formula <<
+                ite(
+                  nid_next,
+                  sid_bool,
+                  nids_stmt[thread][prev],
+                  nid_exec,
+                  nid_prev,
+                  verbose ? debug_symbol(thread, prev) : "");
+            }
 
-        formula << next(nid(), sid_bool, nid_stmt, nid_next, stmt_var()) << eol;
-      }
-  });
+          formula << next(nid(), sid_bool, nid_stmt, nid_next, stmt_var()) << eol;
+        }
+    });
 }
 
 // btor2::Encoder::define_block ------------------------------------------------
@@ -1283,42 +1300,43 @@ void Encoder::define_heap ()
 
   std::string nid_next = nid_heap;
 
-  iterate_programs([this, &nid_next] (const Program & program) {
-    // store buffer flush
-    std::string nid_flush = nid();
-    std::string nid_prev = std::move(nid_next);
+  iterate_programs([this, &nid_next] (const Program & program)
+    {
+      // store buffer flush
+      std::string nid_flush = nid();
+      std::string nid_prev = std::move(nid_next);
 
-    formula <<
-      write(
-        nid_flush,
-        sid_heap,
-        nid_heap,
-        nids_sb_adr[thread],
-        nids_sb_val[thread]) <<
-      ite(
-        nid_next = nid(),
-        sid_heap,
-        nids_flush[thread],
-        nid_flush,
-        nid_prev,
-        verbose ? flush_var() : "");
+      formula <<
+        write(
+          nid_flush,
+          sid_heap,
+          nid_heap,
+          nids_sb_adr[thread],
+          nids_sb_val[thread]) <<
+        ite(
+          nid_next = nid(),
+          sid_heap,
+          nids_flush[thread],
+          nid_flush,
+          nid_prev,
+          verbose ? flush_var() : "");
 
-    // atomic instructions
-    for (pc = 0; pc < program.size(); pc++)
-      {
-        const Instruction & op = program[pc];
+      // atomic instructions
+      for (pc = 0; pc < program.size(); pc++)
+        {
+          const Instruction & op = program[pc];
 
-        if (op.type() & Instruction::Type::atomic)
-          formula <<
-            ite(
-              nid_next = nid(),
-              sid_heap,
-              nids_exec[thread][pc],
-              op.encode(*this),
-              nid_prev = std::move(nid_next),
-              verbose ? debug_symbol(thread, pc) : "");
-      }
-  });
+          if (op.type() & Instruction::Type::atomic)
+            formula <<
+              ite(
+                nid_next = nid(),
+                sid_heap,
+                nids_exec[thread][pc],
+                op.encode(*this),
+                nid_prev = std::move(nid_next),
+                verbose ? debug_symbol(thread, pc) : "");
+        }
+    });
 
   formula << next(nid(), sid_heap, nid_heap, nid_next, heap_sym) << eol;
 }
@@ -1458,51 +1476,52 @@ void Encoder::define_store_buffer_constraints ()
   if (verbose)
     formula << comment_section("store buffer constraints");
 
-  iterate_threads([this] {
-    if (flushes.find(thread) != flushes.end())
-      {
-        std::string nid_or;
+  iterate_threads([this]
+    {
+      if (flushes.find(thread) != flushes.end())
+        {
+          std::string nid_or;
 
-        if (flushes[thread].size() > 1)
-          {
-            std::vector<std::string> stmts;
+          if (flushes[thread].size() > 1)
+            {
+              std::vector<std::string> stmts;
 
-            stmts.reserve(flushes[thread].size());
+              stmts.reserve(flushes[thread].size());
 
-            std::transform(
-              flushes[thread].begin(),
-              flushes[thread].end(),
-              back_inserter(stmts),
-              [this] (const word_t p) { return nids_stmt[thread][p]; });
+              std::transform(
+                flushes[thread].begin(),
+                flushes[thread].end(),
+                back_inserter(stmts),
+                [this] (const word_t p) { return nids_stmt[thread][p]; });
 
-            formula << lor(node, sid_bool, stmts);
+              formula << lor(node, sid_bool, stmts);
 
-            nid_or = nid(-1);
-          }
-        else
-          {
-            nid_or = nids_stmt[thread][flushes[thread].front()];
-          }
+              nid_or = nid(-1);
+            }
+          else
+            {
+              nid_or = nids_stmt[thread][flushes[thread].front()];
+            }
 
+          formula <<
+            implies(nid(), sid_bool, nid_or, lnot(nids_thread[thread])) <<
+            ite(
+              nid(),
+              sid_bool,
+              nids_sb_full[thread],
+              nid(-1),
+              lnot(nids_flush[thread]));
+        }
+      else
         formula <<
-          implies(nid(), sid_bool, nid_or, lnot(nids_thread[thread])) <<
-          ite(
+          implies(
             nid(),
             sid_bool,
-            nids_sb_full[thread],
-            nid(-1),
+            lnot(nids_sb_full[thread]),
             lnot(nids_flush[thread]));
-      }
-    else
-      formula <<
-        implies(
-          nid(),
-          sid_bool,
-          lnot(nids_sb_full[thread]),
-          lnot(nids_flush[thread]));
 
-    formula << constraint(node, flush_var()) << eol;
-  });
+      formula << constraint(node, flush_var()) << eol;
+    });
 }
 
 // btor2::Encoder::define_checkpoint_constraints -------------------------------

@@ -138,10 +138,11 @@ TEST(Encoder, iterate_programs)
 
   word_t thread = 0;
 
-  encoder.iterate_programs([&] (const Program & p) {
-    ASSERT_EQ(thread, encoder.thread);
-    ASSERT_EQ(&(*programs)[thread++], &p);
-  });
+  encoder.iterate_programs([&] (const Program & p)
+    {
+      ASSERT_EQ(thread, encoder.thread);
+      ASSERT_EQ(&(*programs)[thread++], &p);
+    });
 }
 
 // Encoder::iterate_programs_reverse ===========================================
@@ -153,10 +154,11 @@ TEST(Encoder, iterate_programs_reverse)
 
   word_t thread = encoder.num_threads - 1;
 
-  encoder.iterate_programs_reverse([&] (const Program & p) {
-    ASSERT_EQ(thread, encoder.thread);
-    ASSERT_EQ(&(*programs)[thread--], &p);
-  });
+  encoder.iterate_programs_reverse([&] (const Program & p)
+    {
+      ASSERT_EQ(thread, encoder.thread);
+      ASSERT_EQ(&(*programs)[thread--], &p);
+    });
 }
 
 } // namespace ConcuBinE::test

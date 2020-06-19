@@ -625,9 +625,10 @@ void Encoder::declare_accu ()
   if (verbose)
     formula << accu_comment;
 
-  iterate_threads([this] {
-    formula << declare_bv_var(accu_var(), word_size) << eol;
-  });
+  iterate_threads([this]
+    {
+      formula << declare_bv_var(accu_var(), word_size) << eol;
+    });
 
   formula << eol;
 }
@@ -639,9 +640,10 @@ void Encoder::declare_mem ()
   if (verbose)
     formula << mem_comment;
 
-  iterate_threads([this] {
-    formula << declare_bv_var(mem_var(), word_size) << eol;
-  });
+  iterate_threads([this]
+    {
+      formula << declare_bv_var(mem_var(), word_size) << eol;
+    });
 
   formula << eol;
 }
@@ -653,9 +655,10 @@ void Encoder::declare_sb_adr ()
   if (verbose)
     formula << sb_adr_comment;
 
-  iterate_threads([this] {
-    formula << declare_bv_var(sb_adr_var(), word_size) << eol;
-  });
+  iterate_threads([this]
+    {
+      formula << declare_bv_var(sb_adr_var(), word_size) << eol;
+    });
 
   formula << eol;
 }
@@ -667,9 +670,10 @@ void Encoder::declare_sb_val ()
   if (verbose)
     formula << sb_val_comment;
 
-  iterate_threads([this] {
-    formula << declare_bv_var(sb_val_var(), word_size) << eol;
-  });
+  iterate_threads([this]
+    {
+      formula << declare_bv_var(sb_val_var(), word_size) << eol;
+    });
 
   formula << eol;
 }
@@ -681,9 +685,10 @@ void Encoder::declare_sb_full ()
   if (verbose)
     formula << sb_full_comment;
 
-  iterate_threads([this] {
-    formula << declare_bool_var(sb_full_var()) << eol;
-  });
+  iterate_threads([this]
+    {
+      formula << declare_bool_var(sb_full_var()) << eol;
+    });
 
   formula << eol;
 }
@@ -695,12 +700,13 @@ void Encoder::declare_stmt ()
   if (verbose)
     formula << stmt_comment;
 
-  iterate_programs([this] (const Program & program) {
-    for (pc = 0; pc < program.size(); pc++)
-      formula << declare_bool_var(stmt_var()) << eol;
+  iterate_programs([this] (const Program & program)
+    {
+      for (pc = 0; pc < program.size(); pc++)
+        formula << declare_bool_var(stmt_var()) << eol;
 
-    formula << eol;
-  });
+      formula << eol;
+    });
 }
 
 // smtlib::Encoder::declare_block ----------------------------------------------
@@ -806,9 +812,7 @@ void Encoder::declare_thread ()
   if (verbose)
     formula << thread_comment;
 
-  iterate_threads([this] {
-    formula << declare_bool_var(thread_var()) << eol;
-  });
+  iterate_threads([this] { formula << declare_bool_var(thread_var()) << eol; });
 
   formula << eol;
 }
@@ -820,12 +824,13 @@ void Encoder::declare_exec ()
   if (verbose)
     formula << exec_comment;
 
-  iterate_programs([this] (const Program & program) {
-    for (pc = 0; pc < program.size(); pc++)
-      formula << declare_bool_var(exec_var()) << eol;
+  iterate_programs([this] (const Program & program)
+    {
+      for (pc = 0; pc < program.size(); pc++)
+        formula << declare_bool_var(exec_var()) << eol;
 
-    formula << eol;
-  });
+      formula << eol;
+    });
 }
 
 // smtlib::Encoder::declare_flush ----------------------------------------------
@@ -835,9 +840,7 @@ void Encoder::declare_flush ()
   if (verbose)
     formula << flush_comment;
 
-  iterate_threads([this] {
-    formula << declare_bool_var(flush_var()) << eol;
-  });
+  iterate_threads([this] { formula << declare_bool_var(flush_var()) << eol; });
 
   formula << eol;
 }
@@ -875,9 +878,10 @@ void Encoder::declare_transitions ()
 
 #define INIT_STATE(_var) \
   do { \
-    iterate_threads([this] { \
-      formula << assign(_var(step, thread), word2hex(0)) << eol; \
-    }); \
+    iterate_threads([this] \
+      { \
+        formula << assign(_var(step, thread), word2hex(0)) << eol; \
+      }); \
     formula << eol; \
   } while (0)
 
@@ -926,9 +930,7 @@ void Encoder::init_sb_full ()
   if (verbose)
     formula << sb_full_comment;
 
-  iterate_threads([this] {
-    formula << assertion(lnot(sb_full_var())) << eol;
-  });
+  iterate_threads([this] { formula << assertion(lnot(sb_full_var())) << eol; });
 
   formula << eol;
 }
@@ -940,14 +942,15 @@ void Encoder::init_stmt ()
   if (verbose)
     formula << stmt_comment;
 
-  iterate_programs([this] (const Program & program) {
-    for (pc = 0; pc < program.size(); pc++)
-      formula
-        << assertion(pc ? lnot(stmt_var()) : stmt_var())
-        << eol;
+  iterate_programs([this] (const Program & program)
+    {
+      for (pc = 0; pc < program.size(); pc++)
+        formula
+          << assertion(pc ? lnot(stmt_var()) : stmt_var())
+          << eol;
 
-    formula << eol;
-  });
+      formula << eol;
+    });
 }
 
 // smtlib::Encoder::init_block -------------------------------------------------
@@ -1044,14 +1047,15 @@ void Encoder::define_exec ()
   if (verbose)
     formula << exec_comment;
 
-  iterate_programs([this] (const Program & program) {
-    for (pc = 0; pc < program.size(); pc++)
-      formula
-        << assign(exec_var(), land(stmt_var(), thread_var()))
-        << eol;
+  iterate_programs([this] (const Program & program)
+    {
+      for (pc = 0; pc < program.size(); pc++)
+        formula
+          << assign(exec_var(), land(stmt_var(), thread_var()))
+          << eol;
 
-    formula << eol;
-  });
+      formula << eol;
+    });
 }
 
 // smtlib::Encoder::define_check -----------------------------------------------
@@ -1112,10 +1116,11 @@ void Encoder::define_scheduling_constraints ()
 
   variables.reserve(num_threads * 2 + 1);
 
-  iterate_threads([this, &variables] {
-    variables.push_back(thread_var());
-    variables.push_back(flush_var());
-  });
+  iterate_threads([this, &variables]
+    {
+      variables.push_back(thread_var());
+      variables.push_back(flush_var());
+    });
 
   if (!halts.empty() || !exits.empty())
     variables.push_back(exit_flag_var());
@@ -1134,39 +1139,39 @@ void Encoder::define_store_buffer_constraints ()
   if (verbose)
     formula << comment_subsection("store buffer constraints");
 
-  iterate_threads([this] {
-    if (flushes.find(thread) != flushes.end())
-      {
-        const auto & pcs = flushes[thread];
+  iterate_threads([this]
+    {
+      if (flushes.find(thread) != flushes.end())
+        {
+          const auto & pcs = flushes[thread];
 
-        std::vector<std::string> stmts;
+          std::vector<std::string> stmts;
+          stmts.reserve(pcs.size());
 
-        stmts.reserve(pcs.size());
+          for (const word_t p : pcs)
+            stmts.push_back(stmt_var(step, thread, p));
 
-        for (const word_t p : pcs)
-          stmts.push_back(stmt_var(step, thread, p));
-
-        formula <<
-          assertion(
-            ite(
-              sb_full_var(),
+          formula <<
+            assertion(
+              ite(
+                sb_full_var(),
+                implication(
+                  lor(stmts),
+                  lnot(thread_var())),
+                lnot(flush_var()))) <<
+            eol;
+        }
+      else
+        {
+          // TODO: (or sb-full (not flush)) directly?
+          formula <<
+            assertion(
               implication(
-                lor(stmts),
-                lnot(thread_var())),
-              lnot(flush_var()))) <<
-          eol;
-      }
-    else
-      {
-        // TODO: (or sb-full (not flush)) directly?
-        formula <<
-          assertion(
-            implication(
-              lnot(sb_full_var()),
-              lnot(flush_var()))) <<
-          eol;
-      }
-  });
+                lnot(sb_full_var()),
+                lnot(flush_var()))) <<
+            eol;
+        }
+    });
 
   formula << eol;
 }

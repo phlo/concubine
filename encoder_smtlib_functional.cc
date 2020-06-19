@@ -29,17 +29,18 @@ void Functional::encode ()
 #define DEFINE_STATE(_update, _type, _var) \
   do { \
     update = _update; \
-    iterate_programs([this] (const Program & program) { \
-      std::string expr = _var(prev, thread); \
-      pc = program.size() - 1; \
-      for (auto rit = program.rbegin(); rit != program.rend(); ++rit, pc--) \
-        { \
-          const Instruction & op = *rit; \
-          if (op.type() & _type) \
-            expr = ite(exec_var(prev, thread, pc), op.encode(*this), expr); \
-        } \
-      formula << assign(_var(step, thread), expr) << eol; \
-    }); \
+    iterate_programs([this] (const Program & program) \
+      { \
+        std::string expr = _var(prev, thread); \
+        pc = program.size() - 1; \
+        for (auto rit = program.rbegin(); rit != program.rend(); ++rit, pc--) \
+          { \
+            const Instruction & op = *rit; \
+            if (op.type() & _type) \
+              expr = ite(exec_var(prev, thread, pc), op.encode(*this), expr); \
+          } \
+        formula << assign(_var(step, thread), expr) << eol; \
+      }); \
     formula << eol; \
   } while (0)
 
@@ -90,25 +91,26 @@ void Functional::define_sb_full ()
   if (verbose)
     formula << sb_full_comment;
 
-  iterate_programs([this] (const Program & program) {
-    std::vector<std::string> args;
-    pc = program.size() - 1;
+  iterate_programs([this] (const Program & program)
+    {
+      std::vector<std::string> args;
+      pc = program.size() - 1;
 
-    for (auto rit = program.rbegin(); rit != program.rend(); ++rit, pc--)
-      if (rit->type() & Instruction::Type::write)
-        args.push_back(exec_var(prev, thread, pc));
+      for (auto rit = program.rbegin(); rit != program.rend(); ++rit, pc--)
+        if (rit->type() & Instruction::Type::write)
+          args.push_back(exec_var(prev, thread, pc));
 
-    args.push_back(sb_full_var(prev, thread));
+      args.push_back(sb_full_var(prev, thread));
 
-    formula <<
-      assign(
-        sb_full_var(),
-          ite(
-            flush_var(prev, thread),
-            FALSE,
-            lor(args))) <<
-      eol;
-  });
+      formula <<
+        assign(
+          sb_full_var(),
+            ite(
+              flush_var(prev, thread),
+              FALSE,
+              lor(args))) <<
+        eol;
+    });
 
   formula << eol;
 }
@@ -120,49 +122,50 @@ void Functional::define_stmt ()
   if (verbose)
     formula << stmt_comment;
 
-  iterate_programs([this] (const Program & program) {
-    for (pc = 0; pc < program.size(); pc++)
-      {
-        // statement reactivation
-        std::string expr =
-          land(
-            stmt_var(prev, thread, pc),
-            lnot(exec_var(prev, thread, pc)));
+  iterate_programs([this] (const Program & program)
+    {
+      for (pc = 0; pc < program.size(); pc++)
+        {
+          // statement reactivation
+          std::string expr =
+            land(
+              stmt_var(prev, thread, pc),
+              lnot(exec_var(prev, thread, pc)));
 
-        const auto & pred = predecessors[thread][pc];
+          const auto & pred = predecessors[thread][pc];
 
-        for (auto rit = pred.rbegin(); rit != pred.rend(); ++rit)
-          {
-            // predecessor's execution variable
-            std::string val = exec_var(prev, thread, *rit);
+          for (auto rit = pred.rbegin(); rit != pred.rend(); ++rit)
+            {
+              // predecessor's execution variable
+              std::string val = exec_var(prev, thread, *rit);
 
-            // build conjunction of execution variable and jump condition
-            const Instruction & pre = program[*rit];
+              // build conjunction of execution variable and jump condition
+              const Instruction & pre = program[*rit];
 
-            if (pre.is_jump())
-              {
-                const std::string cond = pre.encode(*this);
+              if (pre.is_jump())
+                {
+                  const std::string cond = pre.encode(*this);
 
-                // JMP has no condition and returns an empty std::string
-                if (!cond.empty())
-                  val =
-                    land(
-                      val,
-                      // only activate successor if jump condition failed
-                      *rit == pc - 1 && pre.arg() != pc
-                        ? lnot(cond)
-                        : cond);
-              }
+                  // JMP has no condition and returns an empty std::string
+                  if (!cond.empty())
+                    val =
+                      land(
+                        val,
+                        // only activate successor if jump condition failed
+                        *rit == pc - 1 && pre.arg() != pc
+                          ? lnot(cond)
+                          : cond);
+                }
 
-            // add predecessor to the activation
-            expr = ite(stmt_var(prev, thread, *rit), val, expr);
-          }
+              // add predecessor to the activation
+              expr = ite(stmt_var(prev, thread, *rit), val, expr);
+            }
 
-        formula << assign(stmt_var(), expr) << eol;
-      }
+          formula << assign(stmt_var(), expr) << eol;
+        }
 
-    formula << eol;
-  });
+      formula << eol;
+    });
 }
 
 // smtlib::Functional::define_block --------------------------------------------
@@ -249,26 +252,27 @@ void Functional::define_heap ()
   const std::string heap_prev = heap_var(prev);
   std::string expr = heap_prev;
 
-  iterate_programs_reverse([this, &heap_prev, &expr] (const Program & program) {
-    pc = program.size() - 1;
+  iterate_programs_reverse([this, &heap_prev, &expr] (const Program & program)
+    {
+      pc = program.size() - 1;
 
-    for (auto rit = program.rbegin(); rit != program.rend(); ++rit, pc--)
-      {
-        const Instruction & op = *rit;
+      for (auto rit = program.rbegin(); rit != program.rend(); ++rit, pc--)
+        {
+          const Instruction & op = *rit;
 
-        if (op.type() & Instruction::Type::atomic)
-          expr = ite(exec_var(prev, thread, pc), op.encode(*this), expr);
-      }
+          if (op.type() & Instruction::Type::atomic)
+            expr = ite(exec_var(prev, thread, pc), op.encode(*this), expr);
+        }
 
-    expr =
-      ite(
-        flush_var(prev, thread),
-        store(
-          heap_prev,
-          sb_adr_var(prev, thread),
-          sb_val_var(prev, thread)),
-        expr);
-  });
+      expr =
+        ite(
+          flush_var(prev, thread),
+          store(
+            heap_prev,
+            sb_adr_var(prev, thread),
+            sb_val_var(prev, thread)),
+          expr);
+    });
 
   formula << assign(heap_var(), expr) << eol << eol;
 }

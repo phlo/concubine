@@ -43,31 +43,32 @@ Encoder::Encoder (const std::shared_ptr<Program::List> & p,
 {
   predecessors.reserve(num_threads);
 
-  iterate_programs([this] (const Program & program) {
-    // collect predecessors
-    predecessors.push_back(program.predecessors());
+  iterate_programs([this] (const Program & program)
+    {
+      // collect predecessors
+      predecessors.push_back(program.predecessors());
 
-    for (pc = 0; pc < program.size(); pc++)
-      {
-        const Instruction & op = program[pc];
+      for (pc = 0; pc < program.size(); pc++)
+        {
+          const Instruction & op = program[pc];
 
-        // collect statements requiring an empty store buffer
-        if (op.requires_flush())
-          flushes[thread].push_back(pc);
+          // collect statements requiring an empty store buffer
+          if (op.requires_flush())
+            flushes[thread].push_back(pc);
 
-        // collect checkpoints
-        if (!op.type())
-          checkpoints[op.arg()][thread].push_back(pc);
+          // collect checkpoints
+          if (!op.type())
+            checkpoints[op.arg()][thread].push_back(pc);
 
-        // collect explicit halt statements
-        if (&op.symbol() == &Instruction::Halt::symbol)
-          halts[thread].push_back(pc);
+          // collect explicit halt statements
+          if (&op.symbol() == &Instruction::Halt::symbol)
+            halts[thread].push_back(pc);
 
-        // collect exit calls
-        if (&op.symbol() == &Instruction::Exit::symbol)
-          exits[thread].push_back(pc);
-      }
-  });
+          // collect exit calls
+          if (&op.symbol() == &Instruction::Exit::symbol)
+            exits[thread].push_back(pc);
+        }
+    });
 
   // remove single-threaded checkpoints
   for (auto it = checkpoints.begin(); it != checkpoints.end();)

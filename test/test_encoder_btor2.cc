@@ -433,13 +433,14 @@ TEST(btor2_Encoder, declare_accu)
     if (verbose)
       s << encoder.accu_comment;
 
-    encoder.iterate_threads([&encoder, &s] {
-      s <<
-        btor2::state(
-          encoder.nids_accu[encoder.thread],
-          encoder.sid_bv,
-          encoder.accu_var());
-    });
+    encoder.iterate_threads([&encoder, &s]
+      {
+        s <<
+          btor2::state(
+            encoder.nids_accu[encoder.thread],
+            encoder.sid_bv,
+            encoder.accu_var());
+      });
 
     s << eol;
 
@@ -474,13 +475,14 @@ TEST(btor2_Encoder, declare_mem)
     if (verbose)
       s << encoder.mem_comment;
 
-    encoder.iterate_threads([&encoder, &s] {
-      s <<
-        btor2::state(
-          encoder.nids_mem[encoder.thread],
-          encoder.sid_bv,
-          encoder.mem_var());
-    });
+    encoder.iterate_threads([&encoder, &s]
+      {
+        s <<
+          btor2::state(
+            encoder.nids_mem[encoder.thread],
+            encoder.sid_bv,
+            encoder.mem_var());
+      });
 
     s << eol;
 
@@ -515,13 +517,14 @@ TEST(btor2_Encoder, declare_sb_adr)
     if (verbose)
       s << encoder.sb_adr_comment;
 
-    encoder.iterate_threads([&encoder, &s] {
-      s <<
-        btor2::state(
-          encoder.nids_sb_adr[encoder.thread],
-          encoder.sid_bv,
-          encoder.sb_adr_var());
-    });
+    encoder.iterate_threads([&encoder, &s]
+      {
+        s <<
+          btor2::state(
+            encoder.nids_sb_adr[encoder.thread],
+            encoder.sid_bv,
+            encoder.sb_adr_var());
+      });
 
     s << eol;
 
@@ -556,13 +559,14 @@ TEST(btor2_Encoder, declare_sb_val)
     if (verbose)
       s << encoder.sb_val_comment;
 
-    encoder.iterate_threads([&encoder, &s] {
-      s <<
-        btor2::state(
-          encoder.nids_sb_val[encoder.thread],
-          encoder.sid_bv,
-          encoder.sb_val_var());
-    });
+    encoder.iterate_threads([&encoder, &s]
+      {
+        s <<
+          btor2::state(
+            encoder.nids_sb_val[encoder.thread],
+            encoder.sid_bv,
+            encoder.sb_val_var());
+      });
 
     s << eol;
 
@@ -597,13 +601,14 @@ TEST(btor2_Encoder, declare_sb_full)
     if (verbose)
       s << encoder.sb_full_comment;
 
-    encoder.iterate_threads([&encoder, &s] {
-      s <<
-        btor2::state(
-          encoder.nids_sb_full[encoder.thread],
-          encoder.sid_bool,
-          encoder.sb_full_var());
-    });
+    encoder.iterate_threads([&encoder, &s]
+      {
+        s <<
+          btor2::state(
+            encoder.nids_sb_full[encoder.thread],
+            encoder.sid_bool,
+            encoder.sb_full_var());
+      });
 
     s << eol;
 
@@ -638,19 +643,20 @@ TEST(btor2_Encoder, declare_stmt)
     if (verbose)
       s << encoder.stmt_comment;
 
-    encoder.iterate_programs([&encoder, &s] (const Program & program) {
-      word_t & thread = encoder.thread;
-      word_t & pc = encoder.pc;
+    encoder.iterate_programs([&encoder, &s] (const Program & program)
+      {
+        word_t & thread = encoder.thread;
+        word_t & pc = encoder.pc;
 
-      for (pc = 0; pc < program.size(); pc++)
-        s <<
-          btor2::state(
-            encoder.nids_stmt[thread][pc],
-            encoder.sid_bool,
-            encoder.stmt_var());
+        for (pc = 0; pc < program.size(); pc++)
+          s <<
+            btor2::state(
+              encoder.nids_stmt[thread][pc],
+              encoder.sid_bool,
+              encoder.stmt_var());
 
-      s << eol;
-    });
+        s << eol;
+      });
 
     return s.str();
   };
@@ -734,13 +740,14 @@ TEST(btor2_Encoder, declare_halt)
     if (verbose)
       s << encoder.halt_comment;
 
-    encoder.iterate_threads([&encoder, &s] {
-      s <<
-        btor2::state(
-          encoder.nids_halt[encoder.thread],
-          encoder.sid_bool,
-          encoder.halt_var());
-    });
+    encoder.iterate_threads([&encoder, &s]
+      {
+        s <<
+          btor2::state(
+            encoder.nids_halt[encoder.thread],
+            encoder.sid_bool,
+            encoder.halt_var());
+      });
 
     s << eol;
 
@@ -892,13 +899,14 @@ TEST(btor2_Encoder, declare_thread)
     if (verbose)
       s << encoder.thread_comment;
 
-    encoder.iterate_threads([&encoder, &s] {
-      s <<
-        btor2::input(
-          encoder.nids_thread[encoder.thread],
-          encoder.sid_bool,
-          encoder.thread_var());
-    });
+    encoder.iterate_threads([&encoder, &s]
+      {
+        s <<
+          btor2::input(
+            encoder.nids_thread[encoder.thread],
+            encoder.sid_bool,
+            encoder.thread_var());
+      });
 
     s << eol;
 
@@ -933,13 +941,14 @@ TEST(btor2_Encoder, declare_flush)
     if (verbose)
       s << encoder.flush_comment;
 
-    encoder.iterate_threads([&encoder, &s] {
-      s <<
-        btor2::input(
-          encoder.nids_flush[encoder.thread],
-          encoder.sid_bool,
-          encoder.flush_var());
-    });
+    encoder.iterate_threads([&encoder, &s]
+      {
+        s <<
+          btor2::input(
+            encoder.nids_flush[encoder.thread],
+            encoder.sid_bool,
+            encoder.flush_var());
+      });
 
     s << eol;
 
@@ -974,21 +983,22 @@ TEST(btor2_Encoder, define_exec)
     if (verbose)
       s << encoder.exec_comment;
 
-    encoder.iterate_programs([&encoder, &s] (const Program & program) {
-      word_t & thread = encoder.thread;
-      word_t & pc = encoder.pc;
+    encoder.iterate_programs([&encoder, &s] (const Program & program)
+      {
+        word_t & thread = encoder.thread;
+        word_t & pc = encoder.pc;
 
-      for (pc = 0; pc < program.size(); pc++)
-        s <<
-          btor2::land(
-            encoder.nids_exec[thread][pc],
-            encoder.sid_bool,
-            encoder.nids_stmt[thread][pc],
-            encoder.nids_thread[thread],
-            encoder.exec_var());
+        for (pc = 0; pc < program.size(); pc++)
+          s <<
+            btor2::land(
+              encoder.nids_exec[thread][pc],
+              encoder.sid_bool,
+              encoder.nids_stmt[thread][pc],
+              encoder.nids_thread[thread],
+              encoder.exec_var());
 
-      s << eol;
-    });
+        s << eol;
+      });
 
     return s.str();
   };
@@ -1075,257 +1085,258 @@ TEST(btor2_Encoder, define_accu)
     if (verbose)
       s << encoder.accu_comment;
 
-    encoder.iterate_threads([&encoder, &nid, &s] {
-      word_t & thread = encoder.thread;
-      word_t & pc = encoder.pc = 0;
-      word_t address = 1;
+    encoder.iterate_threads([&encoder, &nid, &s]
+      {
+        word_t & thread = encoder.thread;
+        word_t & pc = encoder.pc = 0;
+        word_t address = 1;
 
-      // init
-      s <<
-        btor2::init(
-          std::to_string(nid),
-          encoder.sid_bv,
-          encoder.nids_accu[thread],
-          encoder.nids_const[0]);
-      nid++;
+        // init
+        s <<
+          btor2::init(
+            std::to_string(nid),
+            encoder.sid_bv,
+            encoder.nids_accu[thread],
+            encoder.nids_const[0]);
+        nid++;
 
-      // LOAD
-      if (!thread)
-        {
-          s <<
-            btor2::read(
-              encoder.nids_read[address],
-              encoder.sid_bv,
-              encoder.nid_heap,
-              encoder.nids_const[address]);
-          nid++;
-        }
+        // LOAD
+        if (!thread)
+          {
+            s <<
+              btor2::read(
+                encoder.nids_read[address],
+                encoder.sid_bv,
+                encoder.nid_heap,
+                encoder.nids_const[address]);
+            nid++;
+          }
 
-      s <<
-        btor2::eq(
-          encoder.nids_eq_sb_adr_adr[thread][address],
-          encoder.sid_bool,
-          encoder.nids_sb_adr[thread],
-          encoder.nids_const[address]);
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_sb_full[thread],
-          encoder.nids_eq_sb_adr_adr[thread][address]);
-      nid++;
-      s <<
-        btor2::ite(
-          encoder.nids_load[thread][address],
-          encoder.sid_bv,
-          std::to_string(nid - 1),
-          encoder.nids_sb_val[thread],
-          encoder.nids_read[address]);
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bv,
-          encoder.nids_exec[thread][pc],
-          encoder.nids_load[thread][address],
-          encoder.nids_accu[thread],
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
+        s <<
+          btor2::eq(
+            encoder.nids_eq_sb_adr_adr[thread][address],
+            encoder.sid_bool,
+            encoder.nids_sb_adr[thread],
+            encoder.nids_const[address]);
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_sb_full[thread],
+            encoder.nids_eq_sb_adr_adr[thread][address]);
+        nid++;
+        s <<
+          btor2::ite(
+            encoder.nids_load[thread][address],
+            encoder.sid_bv,
+            std::to_string(nid - 1),
+            encoder.nids_sb_val[thread],
+            encoder.nids_read[address]);
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bv,
+            encoder.nids_exec[thread][pc],
+            encoder.nids_load[thread][address],
+            encoder.nids_accu[thread],
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
 
-      // ADD
-      pc = 2;
+        // ADD
+        pc = 2;
 
-      s <<
-        btor2::add(
-          std::to_string(nid),
-          encoder.sid_bv,
-          encoder.nids_accu[thread],
-          encoder.nids_load[thread][address]);
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bv,
-          encoder.nids_exec[thread][pc],
-          std::to_string(nid - 1),
-          std::to_string(nid - 2),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
+        s <<
+          btor2::add(
+            std::to_string(nid),
+            encoder.sid_bv,
+            encoder.nids_accu[thread],
+            encoder.nids_load[thread][address]);
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bv,
+            encoder.nids_exec[thread][pc],
+            std::to_string(nid - 1),
+            std::to_string(nid - 2),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
 
-      // ADDI
-      pc = 3;
+        // ADDI
+        pc = 3;
 
-      s <<
-        btor2::add(
-          std::to_string(nid),
-          encoder.sid_bv,
-          encoder.nids_accu[thread],
-          encoder.nids_const[1]);
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bv,
-          encoder.nids_exec[thread][pc],
-          std::to_string(nid - 1),
-          std::to_string(nid - 2),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
+        s <<
+          btor2::add(
+            std::to_string(nid),
+            encoder.sid_bv,
+            encoder.nids_accu[thread],
+            encoder.nids_const[1]);
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bv,
+            encoder.nids_exec[thread][pc],
+            std::to_string(nid - 1),
+            std::to_string(nid - 2),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
 
-      // SUB
-      pc = 4;
+        // SUB
+        pc = 4;
 
-      s <<
-        btor2::sub(
-          std::to_string(nid),
-          encoder.sid_bv,
-          encoder.nids_accu[thread],
-          encoder.nids_load[thread][address]);
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bv,
-          encoder.nids_exec[thread][pc],
-          std::to_string(nid - 1),
-          std::to_string(nid - 2),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
+        s <<
+          btor2::sub(
+            std::to_string(nid),
+            encoder.sid_bv,
+            encoder.nids_accu[thread],
+            encoder.nids_load[thread][address]);
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bv,
+            encoder.nids_exec[thread][pc],
+            std::to_string(nid - 1),
+            std::to_string(nid - 2),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
 
-      // SUBI
-      pc = 5;
+        // SUBI
+        pc = 5;
 
-      s <<
-        btor2::sub(
-          std::to_string(nid),
-          encoder.sid_bv,
-          encoder.nids_accu[thread],
-          encoder.nids_const[1]);
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bv,
-          encoder.nids_exec[thread][pc],
-          std::to_string(nid - 1),
-          std::to_string(nid - 2),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
+        s <<
+          btor2::sub(
+            std::to_string(nid),
+            encoder.sid_bv,
+            encoder.nids_accu[thread],
+            encoder.nids_const[1]);
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bv,
+            encoder.nids_exec[thread][pc],
+            std::to_string(nid - 1),
+            std::to_string(nid - 2),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
 
-      // MUL
-      pc = 6;
+        // MUL
+        pc = 6;
 
-      s <<
-        btor2::mul(
-          std::to_string(nid),
-          encoder.sid_bv,
-          encoder.nids_accu[thread],
-          encoder.nids_load[thread][address]);
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bv,
-          encoder.nids_exec[thread][pc],
-          std::to_string(nid - 1),
-          std::to_string(nid - 2),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
+        s <<
+          btor2::mul(
+            std::to_string(nid),
+            encoder.sid_bv,
+            encoder.nids_accu[thread],
+            encoder.nids_load[thread][address]);
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bv,
+            encoder.nids_exec[thread][pc],
+            std::to_string(nid - 1),
+            std::to_string(nid - 2),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
 
-      // MULI
-      pc = 7;
+        // MULI
+        pc = 7;
 
-      s <<
-        btor2::mul(
-          std::to_string(nid),
-          encoder.sid_bv,
-          encoder.nids_accu[thread],
-          encoder.nids_const[1]);
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bv,
-          encoder.nids_exec[thread][pc],
-          std::to_string(nid - 1),
-          std::to_string(nid - 2),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
+        s <<
+          btor2::mul(
+            std::to_string(nid),
+            encoder.sid_bv,
+            encoder.nids_accu[thread],
+            encoder.nids_const[1]);
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bv,
+            encoder.nids_exec[thread][pc],
+            std::to_string(nid - 1),
+            std::to_string(nid - 2),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
 
-      // CMP
-      pc = 8;
+        // CMP
+        pc = 8;
 
-      s <<
-        btor2::sub(
-          std::to_string(nid),
-          encoder.sid_bv,
-          encoder.nids_accu[thread],
-          encoder.nids_load[thread][address]);
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bv,
-          encoder.nids_exec[thread][pc],
-          std::to_string(nid - 1),
-          std::to_string(nid - 2),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
+        s <<
+          btor2::sub(
+            std::to_string(nid),
+            encoder.sid_bv,
+            encoder.nids_accu[thread],
+            encoder.nids_load[thread][address]);
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bv,
+            encoder.nids_exec[thread][pc],
+            std::to_string(nid - 1),
+            std::to_string(nid - 2),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
 
-      // MEM
-      pc = 15;
+        // MEM
+        pc = 15;
 
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bv,
-          encoder.nids_exec[thread][pc],
-          encoder.nids_load[thread][address],
-          std::to_string(nid - 1),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bv,
+            encoder.nids_exec[thread][pc],
+            encoder.nids_load[thread][address],
+            std::to_string(nid - 1),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
 
-      // CAS
-      pc = 16;
+        // CAS
+        pc = 16;
 
-      s <<
-        btor2::eq(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_mem[thread],
-          encoder.nids_load[thread][address]);
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bv,
-          std::to_string(nid - 1),
-          encoder.nids_const[1],
-          encoder.nids_const[0]);
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bv,
-          encoder.nids_exec[thread][pc],
-          std::to_string(nid - 1),
-          std::to_string(nid - 3),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
+        s <<
+          btor2::eq(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_mem[thread],
+            encoder.nids_load[thread][address]);
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bv,
+            std::to_string(nid - 1),
+            encoder.nids_const[1],
+            encoder.nids_const[0]);
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bv,
+            encoder.nids_exec[thread][pc],
+            std::to_string(nid - 1),
+            std::to_string(nid - 3),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
 
-      // next
-      s <<
-        btor2::next(
-          std::to_string(nid),
-          encoder.sid_bv,
-          encoder.nids_accu[thread],
-          std::to_string(nid - 1),
-          encoder.accu_var());
-      nid++;
+        // next
+        s <<
+          btor2::next(
+            std::to_string(nid),
+            encoder.sid_bv,
+            encoder.nids_accu[thread],
+            std::to_string(nid - 1),
+            encoder.accu_var());
+        nid++;
 
-      s << eol;
-    });
+        s << eol;
+      });
 
     return s.str();
   };
@@ -1361,37 +1372,38 @@ TEST(btor2_Encoder, define_sb_adr)
     if (verbose)
       s << encoder.sb_adr_comment;
 
-    encoder.iterate_threads([&encoder, &nid, &s] {
-      word_t & thread = encoder.thread;
-      word_t & pc = encoder.pc = 1; // STORE
+    encoder.iterate_threads([&encoder, &nid, &s]
+      {
+        word_t & thread = encoder.thread;
+        word_t & pc = encoder.pc = 1; // STORE
 
-      s <<
-        btor2::init(
-          std::to_string(nid),
-          encoder.sid_bv,
-          encoder.nids_sb_adr[thread],
-          encoder.nids_const[0]);
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bv,
-          encoder.nids_exec[thread][pc],
-          encoder.nids_const[1],
-          encoder.nids_sb_adr[thread],
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
-      s <<
-        btor2::next(
-          std::to_string(nid),
-          encoder.sid_bv,
-          encoder.nids_sb_adr[thread],
-          std::to_string(nid - 1),
-          encoder.sb_adr_var());
-      nid++;
+        s <<
+          btor2::init(
+            std::to_string(nid),
+            encoder.sid_bv,
+            encoder.nids_sb_adr[thread],
+            encoder.nids_const[0]);
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bv,
+            encoder.nids_exec[thread][pc],
+            encoder.nids_const[1],
+            encoder.nids_sb_adr[thread],
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
+        s <<
+          btor2::next(
+            std::to_string(nid),
+            encoder.sid_bv,
+            encoder.nids_sb_adr[thread],
+            std::to_string(nid - 1),
+            encoder.sb_adr_var());
+        nid++;
 
-      s << eol;
-    });
+        s << eol;
+      });
 
     return s.str();
   };
@@ -1427,37 +1439,38 @@ TEST(btor2_Encoder, define_sb_val)
     if (verbose)
       s << encoder.sb_val_comment;
 
-    encoder.iterate_threads([&encoder, &nid, &s] {
-      word_t & thread = encoder.thread;
-      word_t & pc = encoder.pc = 1; // STORE
+    encoder.iterate_threads([&encoder, &nid, &s]
+      {
+        word_t & thread = encoder.thread;
+        word_t & pc = encoder.pc = 1; // STORE
 
-      s <<
-        btor2::init(
-          std::to_string(nid),
-          encoder.sid_bv,
-          encoder.nids_sb_val[thread],
-          encoder.nids_const[0]);
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bv,
-          encoder.nids_exec[thread][pc],
-          encoder.nids_accu[thread],
-          encoder.nids_sb_val[thread],
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
-      s <<
-        btor2::next(
-          std::to_string(nid),
-          encoder.sid_bv,
-          encoder.nids_sb_val[thread],
-          std::to_string(nid - 1),
-          encoder.sb_val_var());
-      nid++;
+        s <<
+          btor2::init(
+            std::to_string(nid),
+            encoder.sid_bv,
+            encoder.nids_sb_val[thread],
+            encoder.nids_const[0]);
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bv,
+            encoder.nids_exec[thread][pc],
+            encoder.nids_accu[thread],
+            encoder.nids_sb_val[thread],
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
+        s <<
+          btor2::next(
+            std::to_string(nid),
+            encoder.sid_bv,
+            encoder.nids_sb_val[thread],
+            std::to_string(nid - 1),
+            encoder.sb_val_var());
+        nid++;
 
-      s << eol;
-    });
+        s << eol;
+      });
 
     return s.str();
   };
@@ -1493,43 +1506,44 @@ TEST(btor2_Encoder, define_sb_full)
     if (verbose)
       s << encoder.sb_full_comment;
 
-    encoder.iterate_threads([&encoder, &nid, &s] {
-      word_t & thread = encoder.thread;
-      word_t & pc = encoder.pc = 1; // STORE
+    encoder.iterate_threads([&encoder, &nid, &s]
+      {
+        word_t & thread = encoder.thread;
+        word_t & pc = encoder.pc = 1; // STORE
 
-      s <<
-        btor2::init(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_sb_full[thread],
-          encoder.nid_false);
-      nid++;
-      s <<
-        btor2::lor(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_exec[thread][pc],
-          encoder.nids_sb_full[thread]);
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_flush[thread],
-          encoder.nid_false,
-          std::to_string(nid - 1));
-      nid++;
-      s <<
-        btor2::next(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_sb_full[thread],
-          std::to_string(nid - 1),
-          encoder.sb_full_var());
-      nid++;
+        s <<
+          btor2::init(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_sb_full[thread],
+            encoder.nid_false);
+        nid++;
+        s <<
+          btor2::lor(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_exec[thread][pc],
+            encoder.nids_sb_full[thread]);
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_flush[thread],
+            encoder.nid_false,
+            std::to_string(nid - 1));
+        nid++;
+        s <<
+          btor2::next(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_sb_full[thread],
+            std::to_string(nid - 1),
+            encoder.sb_full_var());
+        nid++;
 
-      s << eol;
-    });
+        s << eol;
+      });
 
     return s.str();
   };
@@ -1565,113 +1579,114 @@ TEST(btor2_Encoder, define_stmt)
     if (verbose)
       s << encoder.stmt_comment;
 
-    encoder.iterate_threads([&encoder, &nid, &s] {
-      word_t & thread = encoder.thread;
-      word_t & pc = encoder.pc = 0;
+    encoder.iterate_threads([&encoder, &nid, &s]
+      {
+        word_t & thread = encoder.thread;
+        word_t & pc = encoder.pc = 0;
 
-      // ADDI 1
-      s <<
-        btor2::init(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          encoder.nid_true);
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          btor2::lnot(encoder.nids_exec[thread][pc]),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
-      s <<
-        btor2::next(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          std::to_string(nid - 1),
-          encoder.stmt_var());
-      nid++;
+        // ADDI 1
+        s <<
+          btor2::init(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            encoder.nid_true);
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            btor2::lnot(encoder.nids_exec[thread][pc]),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
+        s <<
+          btor2::next(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            std::to_string(nid - 1),
+            encoder.stmt_var());
+        nid++;
 
-      s << eol;
+        s << eol;
 
-      // ADDI 1
-      pc++;
+        // ADDI 1
+        pc++;
 
-      s <<
-        btor2::init(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          encoder.nid_false);
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          btor2::lnot(encoder.nids_exec[thread][pc]),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc - 1u],
-          encoder.nids_exec[thread][pc - 1u],
-          std::to_string(nid - 1),
-          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
-      nid++;
-      s <<
-        btor2::next(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          std::to_string(nid - 1),
-          encoder.stmt_var());
-      nid++;
+        s <<
+          btor2::init(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            encoder.nid_false);
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            btor2::lnot(encoder.nids_exec[thread][pc]),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc - 1u],
+            encoder.nids_exec[thread][pc - 1u],
+            std::to_string(nid - 1),
+            verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
+        nid++;
+        s <<
+          btor2::next(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            std::to_string(nid - 1),
+            encoder.stmt_var());
+        nid++;
 
-      s << eol;
+        s << eol;
 
-      // HALT
-      pc++;
+        // HALT
+        pc++;
 
-      s <<
-        btor2::init(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          encoder.nid_false);
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          btor2::lnot(encoder.nids_exec[thread][pc]),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc - 1u],
-          encoder.nids_exec[thread][pc - 1u],
-          std::to_string(nid - 1),
-          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
-      nid++;
-      s <<
-        btor2::next(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          std::to_string(nid - 1),
-          encoder.stmt_var());
-      nid++;
+        s <<
+          btor2::init(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            encoder.nid_false);
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            btor2::lnot(encoder.nids_exec[thread][pc]),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc - 1u],
+            encoder.nids_exec[thread][pc - 1u],
+            std::to_string(nid - 1),
+            verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
+        nid++;
+        s <<
+          btor2::next(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            std::to_string(nid - 1),
+            encoder.stmt_var());
+        nid++;
 
-      s << eol;
-    });
+        s << eol;
+      });
 
     return s.str();
   };
@@ -1710,122 +1725,123 @@ TEST(btor2_Encoder, define_stmt_jmp)
     if (verbose)
       s << encoder.stmt_comment;
 
-    encoder.iterate_threads([&encoder, &nid, &s] {
-      word_t & thread = encoder.thread;
-      word_t & pc = encoder.pc = 0;
+    encoder.iterate_threads([&encoder, &nid, &s]
+      {
+        word_t & thread = encoder.thread;
+        word_t & pc = encoder.pc = 0;
 
-      // ADDI 1
-      s <<
-        btor2::init(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          encoder.nid_true);
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          btor2::lnot(encoder.nids_exec[thread][pc]),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
-      s <<
-        btor2::next(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          std::to_string(nid - 1),
-          encoder.stmt_var());
-      nid++;
+        // ADDI 1
+        s <<
+          btor2::init(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            encoder.nid_true);
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            btor2::lnot(encoder.nids_exec[thread][pc]),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
+        s <<
+          btor2::next(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            std::to_string(nid - 1),
+            encoder.stmt_var());
+        nid++;
 
-      s << eol;
+        s << eol;
 
-      // STORE 1
-      pc++;
+        // STORE 1
+        pc++;
 
-      s <<
-        btor2::init(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          encoder.nid_false);
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          btor2::lnot(encoder.nids_exec[thread][pc]),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc - 1u],
-          encoder.nids_exec[thread][pc - 1u],
-          std::to_string(nid - 1),
-          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][2],
-          encoder.nids_exec[thread][2],
-          std::to_string(nid - 1),
-          verbose ? encoder.debug_symbol(thread, 2) : "");
-      nid++;
-      s <<
-        btor2::next(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          std::to_string(nid - 1),
-          encoder.stmt_var());
-      nid++;
+        s <<
+          btor2::init(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            encoder.nid_false);
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            btor2::lnot(encoder.nids_exec[thread][pc]),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc - 1u],
+            encoder.nids_exec[thread][pc - 1u],
+            std::to_string(nid - 1),
+            verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][2],
+            encoder.nids_exec[thread][2],
+            std::to_string(nid - 1),
+            verbose ? encoder.debug_symbol(thread, 2) : "");
+        nid++;
+        s <<
+          btor2::next(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            std::to_string(nid - 1),
+            encoder.stmt_var());
+        nid++;
 
-      s << eol;
+        s << eol;
 
-      // JMP 1
-      pc++;
+        // JMP 1
+        pc++;
 
-      s <<
-        btor2::init(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          encoder.nid_false);
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          btor2::lnot(encoder.nids_exec[thread][pc]),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc - 1u],
-          encoder.nids_exec[thread][pc - 1u],
-          std::to_string(nid - 1),
-          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
-      nid++;
-      s <<
-        btor2::next(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          std::to_string(nid - 1),
-          encoder.stmt_var());
-      nid++;
+        s <<
+          btor2::init(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            encoder.nid_false);
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            btor2::lnot(encoder.nids_exec[thread][pc]),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc - 1u],
+            encoder.nids_exec[thread][pc - 1u],
+            std::to_string(nid - 1),
+            verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
+        nid++;
+        s <<
+          btor2::next(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            std::to_string(nid - 1),
+            encoder.stmt_var());
+        nid++;
 
-      s << eol;
-    });
+        s << eol;
+      });
 
     return s.str();
   };
@@ -1865,181 +1881,182 @@ TEST(btor2_Encoder, define_stmt_jmp_conditional)
     if (verbose)
       s << encoder.stmt_comment;
 
-    encoder.iterate_threads([&encoder, &nid, &s] {
-      word_t & thread = encoder.thread;
-      word_t & pc = encoder.pc = 0;
+    encoder.iterate_threads([&encoder, &nid, &s]
+      {
+        word_t & thread = encoder.thread;
+        word_t & pc = encoder.pc = 0;
 
-      // ADDI 1
-      s <<
-        btor2::init(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          encoder.nid_true);
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          btor2::lnot(encoder.nids_exec[thread][pc]),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
-      s <<
-        btor2::next(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          std::to_string(nid - 1),
-          encoder.stmt_var());
-      nid++;
+        // ADDI 1
+        s <<
+          btor2::init(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            encoder.nid_true);
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            btor2::lnot(encoder.nids_exec[thread][pc]),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
+        s <<
+          btor2::next(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            std::to_string(nid - 1),
+            encoder.stmt_var());
+        nid++;
 
-      s << eol;
+        s << eol;
 
-      // STORE 1
-      pc++;
+        // STORE 1
+        pc++;
 
-      s <<
-        btor2::init(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          encoder.nid_false);
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          btor2::lnot(encoder.nids_exec[thread][pc]),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc - 1u],
-          encoder.nids_exec[thread][pc - 1u],
-          std::to_string(nid - 1),
-          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
-      nid++;
-      s <<
-        btor2::neq(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_accu[thread],
-          encoder.nids_const[0]);
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_exec[thread][2],
-          std::to_string(nid - 1));
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][2],
-          std::to_string(nid - 1),
-          std::to_string(nid - 3),
-          verbose ? encoder.debug_symbol(thread, 2) : "");
-      nid++;
-      s <<
-        btor2::next(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          std::to_string(nid - 1),
-          encoder.stmt_var());
-      nid++;
+        s <<
+          btor2::init(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            encoder.nid_false);
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            btor2::lnot(encoder.nids_exec[thread][pc]),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc - 1u],
+            encoder.nids_exec[thread][pc - 1u],
+            std::to_string(nid - 1),
+            verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
+        nid++;
+        s <<
+          btor2::neq(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_accu[thread],
+            encoder.nids_const[0]);
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_exec[thread][2],
+            std::to_string(nid - 1));
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][2],
+            std::to_string(nid - 1),
+            std::to_string(nid - 3),
+            verbose ? encoder.debug_symbol(thread, 2) : "");
+        nid++;
+        s <<
+          btor2::next(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            std::to_string(nid - 1),
+            encoder.stmt_var());
+        nid++;
 
-      s << eol;
+        s << eol;
 
-      // JNZ 1
-      pc++;
+        // JNZ 1
+        pc++;
 
-      s <<
-        btor2::init(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          encoder.nid_false);
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          btor2::lnot(encoder.nids_exec[thread][pc]),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc - 1u],
-          encoder.nids_exec[thread][pc - 1u],
-          std::to_string(nid - 1),
-          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
-      nid++;
-      s <<
-        btor2::next(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          std::to_string(nid - 1),
-          encoder.stmt_var());
-      nid++;
+        s <<
+          btor2::init(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            encoder.nid_false);
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            btor2::lnot(encoder.nids_exec[thread][pc]),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc - 1u],
+            encoder.nids_exec[thread][pc - 1u],
+            std::to_string(nid - 1),
+            verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
+        nid++;
+        s <<
+          btor2::next(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            std::to_string(nid - 1),
+            encoder.stmt_var());
+        nid++;
 
-      s << eol;
+        s << eol;
 
-      // EXIT 1
-      pc++;
+        // EXIT 1
+        pc++;
 
-      s <<
-        btor2::init(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          encoder.nid_false);
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          btor2::lnot(encoder.nids_exec[thread][pc]),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_exec[thread][2],
-          btor2::lnot(std::to_string(nid - 10)));
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc - 1u],
-          std::to_string(nid - 1),
-          std::to_string(nid - 2),
-          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
-      nid++;
-      s <<
-        btor2::next(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          std::to_string(nid - 1),
-          encoder.stmt_var());
-      nid++;
+        s <<
+          btor2::init(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            encoder.nid_false);
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            btor2::lnot(encoder.nids_exec[thread][pc]),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_exec[thread][2],
+            btor2::lnot(std::to_string(nid - 10)));
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc - 1u],
+            std::to_string(nid - 1),
+            std::to_string(nid - 2),
+            verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
+        nid++;
+        s <<
+          btor2::next(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            std::to_string(nid - 1),
+            encoder.stmt_var());
+        nid++;
 
-      s << eol;
-    });
+        s << eol;
+      });
 
     return s.str();
   };
@@ -2079,181 +2096,182 @@ TEST(btor2_Encoder, define_stmt_jmp_start)
     if (verbose)
       s << encoder.stmt_comment;
 
-    encoder.iterate_threads([&encoder, &nid, &s] {
-      word_t & thread = encoder.thread;
-      word_t & pc = encoder.pc = 0;
+    encoder.iterate_threads([&encoder, &nid, &s]
+      {
+        word_t & thread = encoder.thread;
+        word_t & pc = encoder.pc = 0;
 
-      // ADDI 1
-      s <<
-        btor2::init(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          encoder.nid_true);
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          btor2::lnot(encoder.nids_exec[thread][pc]),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
-      s <<
-        btor2::neq(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_accu[thread],
-          encoder.nids_const[0]);
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_exec[thread][2],
-          std::to_string(nid - 1));
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][2],
-          std::to_string(nid - 1),
-          std::to_string(nid - 3),
-          verbose ? encoder.debug_symbol(thread, 2) : "");
-      nid++;
-      s <<
-        btor2::next(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          std::to_string(nid - 1),
-          encoder.stmt_var());
-      nid++;
+        // ADDI 1
+        s <<
+          btor2::init(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            encoder.nid_true);
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            btor2::lnot(encoder.nids_exec[thread][pc]),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
+        s <<
+          btor2::neq(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_accu[thread],
+            encoder.nids_const[0]);
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_exec[thread][2],
+            std::to_string(nid - 1));
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][2],
+            std::to_string(nid - 1),
+            std::to_string(nid - 3),
+            verbose ? encoder.debug_symbol(thread, 2) : "");
+        nid++;
+        s <<
+          btor2::next(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            std::to_string(nid - 1),
+            encoder.stmt_var());
+        nid++;
 
-      s << eol;
+        s << eol;
 
-      // STORE 1
-      pc++;
+        // STORE 1
+        pc++;
 
-      s <<
-        btor2::init(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          encoder.nid_false);
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          btor2::lnot(encoder.nids_exec[thread][pc]),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc - 1u],
-          encoder.nids_exec[thread][pc - 1u],
-          std::to_string(nid - 1),
-          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
-      nid++;
-      s <<
-        btor2::next(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          std::to_string(nid - 1),
-          encoder.stmt_var());
-      nid++;
+        s <<
+          btor2::init(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            encoder.nid_false);
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            btor2::lnot(encoder.nids_exec[thread][pc]),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc - 1u],
+            encoder.nids_exec[thread][pc - 1u],
+            std::to_string(nid - 1),
+            verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
+        nid++;
+        s <<
+          btor2::next(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            std::to_string(nid - 1),
+            encoder.stmt_var());
+        nid++;
 
-      s << eol;
+        s << eol;
 
-      // JNZ 0
-      pc++;
+        // JNZ 0
+        pc++;
 
-      s <<
-        btor2::init(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          encoder.nid_false);
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          btor2::lnot(encoder.nids_exec[thread][pc]),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc - 1u],
-          encoder.nids_exec[thread][pc - 1u],
-          std::to_string(nid - 1),
-          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
-      nid++;
-      s <<
-        btor2::next(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          std::to_string(nid - 1),
-          encoder.stmt_var());
-      nid++;
+        s <<
+          btor2::init(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            encoder.nid_false);
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            btor2::lnot(encoder.nids_exec[thread][pc]),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc - 1u],
+            encoder.nids_exec[thread][pc - 1u],
+            std::to_string(nid - 1),
+            verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
+        nid++;
+        s <<
+          btor2::next(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            std::to_string(nid - 1),
+            encoder.stmt_var());
+        nid++;
 
-      s << eol;
+        s << eol;
 
-      // EXIT 1
-      pc++;
+        // EXIT 1
+        pc++;
 
-      s <<
-        btor2::init(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          encoder.nid_false);
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          btor2::lnot(encoder.nids_exec[thread][pc]),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_exec[thread][2],
-          btor2::lnot(std::to_string(nid - 14)));
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc - 1u],
-          std::to_string(nid - 1),
-          std::to_string(nid - 2),
-          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
-      nid++;
-      s <<
-        btor2::next(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          std::to_string(nid - 1),
-          encoder.stmt_var());
-      nid++;
+        s <<
+          btor2::init(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            encoder.nid_false);
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            btor2::lnot(encoder.nids_exec[thread][pc]),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_exec[thread][2],
+            btor2::lnot(std::to_string(nid - 14)));
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc - 1u],
+            std::to_string(nid - 1),
+            std::to_string(nid - 2),
+            verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
+        nid++;
+        s <<
+          btor2::next(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            std::to_string(nid - 1),
+            encoder.stmt_var());
+        nid++;
 
-      s << eol;
-    });
+        s << eol;
+      });
 
     return s.str();
   };
@@ -2294,249 +2312,250 @@ TEST(btor2_Encoder, define_stmt_jmp_twice)
     if (verbose)
       s << encoder.stmt_comment;
 
-    encoder.iterate_threads([&encoder, &nid, &s] {
-      word_t & thread = encoder.thread;
-      word_t & pc = encoder.pc = 0;
+    encoder.iterate_threads([&encoder, &nid, &s]
+      {
+        word_t & thread = encoder.thread;
+        word_t & pc = encoder.pc = 0;
 
-      // ADDI 1
-      s <<
-        btor2::init(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          encoder.nid_true);
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          btor2::lnot(encoder.nids_exec[thread][pc]),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
-      s <<
-        btor2::next(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          std::to_string(nid - 1),
-          encoder.stmt_var());
-      nid++;
+        // ADDI 1
+        s <<
+          btor2::init(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            encoder.nid_true);
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            btor2::lnot(encoder.nids_exec[thread][pc]),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
+        s <<
+          btor2::next(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            std::to_string(nid - 1),
+            encoder.stmt_var());
+        nid++;
 
-      s << eol;
+        s << eol;
 
-      // STORE 1
-      pc++;
+        // STORE 1
+        pc++;
 
-      s <<
-        btor2::init(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          encoder.nid_false);
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          btor2::lnot(encoder.nids_exec[thread][pc]),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc - 1u],
-          encoder.nids_exec[thread][pc - 1u],
-          std::to_string(nid - 1),
-          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
-      nid++;
-      s <<
-        btor2::eq(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_accu[thread],
-          encoder.nids_const[0]);
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_exec[thread][2],
-          std::to_string(nid - 1));
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][2],
-          std::to_string(nid - 1),
-          std::to_string(nid - 3),
-          verbose ? encoder.debug_symbol(thread, 2) : "");
-      nid++;
-      s <<
-        btor2::neq(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_accu[thread],
-          encoder.nids_const[0]);
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_exec[thread][3],
-          std::to_string(nid - 1));
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][3],
-          std::to_string(nid - 1),
-          std::to_string(nid - 3),
-          verbose ? encoder.debug_symbol(thread, 3) : "");
-      nid++;
-      s <<
-        btor2::next(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          std::to_string(nid - 1),
-          encoder.stmt_var());
-      nid++;
+        s <<
+          btor2::init(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            encoder.nid_false);
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            btor2::lnot(encoder.nids_exec[thread][pc]),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc - 1u],
+            encoder.nids_exec[thread][pc - 1u],
+            std::to_string(nid - 1),
+            verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
+        nid++;
+        s <<
+          btor2::eq(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_accu[thread],
+            encoder.nids_const[0]);
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_exec[thread][2],
+            std::to_string(nid - 1));
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][2],
+            std::to_string(nid - 1),
+            std::to_string(nid - 3),
+            verbose ? encoder.debug_symbol(thread, 2) : "");
+        nid++;
+        s <<
+          btor2::neq(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_accu[thread],
+            encoder.nids_const[0]);
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_exec[thread][3],
+            std::to_string(nid - 1));
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][3],
+            std::to_string(nid - 1),
+            std::to_string(nid - 3),
+            verbose ? encoder.debug_symbol(thread, 3) : "");
+        nid++;
+        s <<
+          btor2::next(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            std::to_string(nid - 1),
+            encoder.stmt_var());
+        nid++;
 
-      s << eol;
+        s << eol;
 
-      // JZ 1
-      pc++;
+        // JZ 1
+        pc++;
 
-      s <<
-        btor2::init(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          encoder.nid_false);
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          btor2::lnot(encoder.nids_exec[thread][pc]),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc - 1u],
-          encoder.nids_exec[thread][pc - 1u],
-          std::to_string(nid - 1),
-          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
-      nid++;
-      s <<
-        btor2::next(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          std::to_string(nid - 1),
-          encoder.stmt_var());
-      nid++;
+        s <<
+          btor2::init(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            encoder.nid_false);
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            btor2::lnot(encoder.nids_exec[thread][pc]),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc - 1u],
+            encoder.nids_exec[thread][pc - 1u],
+            std::to_string(nid - 1),
+            verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
+        nid++;
+        s <<
+          btor2::next(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            std::to_string(nid - 1),
+            encoder.stmt_var());
+        nid++;
 
-      s << eol;
+        s << eol;
 
-      // JNZ 1
-      pc++;
+        // JNZ 1
+        pc++;
 
-      s <<
-        btor2::init(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          encoder.nid_false);
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          btor2::lnot(encoder.nids_exec[thread][pc]),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_exec[thread][2],
-          btor2::lnot(std::to_string(nid - 13)));
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc - 1u],
-          std::to_string(nid - 1),
-          std::to_string(nid - 2),
-          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
-      nid++;
-      s <<
-        btor2::next(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          std::to_string(nid - 1),
-          encoder.stmt_var());
-      nid++;
+        s <<
+          btor2::init(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            encoder.nid_false);
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            btor2::lnot(encoder.nids_exec[thread][pc]),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_exec[thread][2],
+            btor2::lnot(std::to_string(nid - 13)));
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc - 1u],
+            std::to_string(nid - 1),
+            std::to_string(nid - 2),
+            verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
+        nid++;
+        s <<
+          btor2::next(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            std::to_string(nid - 1),
+            encoder.stmt_var());
+        nid++;
 
-      s << eol;
+        s << eol;
 
-      // EXIT 1
-      pc++;
+        // EXIT 1
+        pc++;
 
-      s <<
-        btor2::init(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          encoder.nid_false);
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          btor2::lnot(encoder.nids_exec[thread][pc]),
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_exec[thread][3],
-          btor2::lnot(std::to_string(nid - 15)));
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc - 1u],
-          std::to_string(nid - 1),
-          std::to_string(nid - 2),
-          verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
-      nid++;
-      s <<
-        btor2::next(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_stmt[thread][pc],
-          std::to_string(nid - 1),
-          encoder.stmt_var());
-      nid++;
+        s <<
+          btor2::init(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            encoder.nid_false);
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            btor2::lnot(encoder.nids_exec[thread][pc]),
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_exec[thread][3],
+            btor2::lnot(std::to_string(nid - 15)));
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc - 1u],
+            std::to_string(nid - 1),
+            std::to_string(nid - 2),
+            verbose ? encoder.debug_symbol(thread, pc - 1u) : "");
+        nid++;
+        s <<
+          btor2::next(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_stmt[thread][pc],
+            std::to_string(nid - 1),
+            encoder.stmt_var());
+        nid++;
 
-      s << eol;
-    });
+        s << eol;
+      });
 
     return s.str();
   };
@@ -2572,43 +2591,44 @@ TEST(btor2_Encoder, define_block)
     if (verbose)
       s << encoder.block_comment;
 
-    encoder.iterate_threads([&encoder, &nid, &s] {
-      word_t & thread = encoder.thread;
-      word_t & pc = encoder.pc = 17; // CHECK
+    encoder.iterate_threads([&encoder, &nid, &s]
+      {
+        word_t & thread = encoder.thread;
+        word_t & pc = encoder.pc = 17; // CHECK
 
-      s <<
-        btor2::init(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_block[1][thread],
-          encoder.nid_false);
-      nid++;
-      s <<
-        btor2::lor(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_exec[thread][pc],
-          encoder.nids_block[1][thread]);
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_check[1],
-          encoder.nid_false,
-          std::to_string(nid - 1));
-      nid++;
-      s <<
-        btor2::next(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_block[1][thread],
-          std::to_string(nid - 1),
-          encoder.block_var(1, thread));
-      nid++;
+        s <<
+          btor2::init(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_block[1][thread],
+            encoder.nid_false);
+        nid++;
+        s <<
+          btor2::lor(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_exec[thread][pc],
+            encoder.nids_block[1][thread]);
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_check[1],
+            encoder.nid_false,
+            std::to_string(nid - 1));
+        nid++;
+        s <<
+          btor2::next(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_block[1][thread],
+            std::to_string(nid - 1),
+            encoder.block_var(1, thread));
+        nid++;
 
-      s << eol;
-    });
+        s << eol;
+      });
 
     return s.str();
   };
@@ -2660,41 +2680,42 @@ TEST(btor2_Encoder, define_halt)
     if (verbose)
       s << encoder.halt_comment;
 
-    encoder.iterate_threads([&encoder, &nid, &s] {
-      const word_t & thread = encoder.thread;
+    encoder.iterate_threads([&encoder, &nid, &s]
+      {
+        const word_t & thread = encoder.thread;
 
-      s <<
-        btor2::init(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_halt[thread],
-          encoder.nid_false);
-      nid++;
-      s <<
-        btor2::lor(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_exec[thread][2],
-          encoder.nids_exec[thread][4]);
-      nid++;
-      s <<
-        btor2::lor(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_halt[thread],
-          std::to_string(nid - 1));
-      nid++;
-      s <<
-        btor2::next(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_halt[thread],
-          std::to_string(nid - 1),
-          encoder.halt_var());
-      nid++;
+        s <<
+          btor2::init(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_halt[thread],
+            encoder.nid_false);
+        nid++;
+        s <<
+          btor2::lor(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_exec[thread][2],
+            encoder.nids_exec[thread][4]);
+        nid++;
+        s <<
+          btor2::lor(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_halt[thread],
+            std::to_string(nid - 1));
+        nid++;
+        s <<
+          btor2::next(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_halt[thread],
+            std::to_string(nid - 1),
+            encoder.halt_var());
+        nid++;
 
-      s << eol;
-    });
+        s << eol;
+      });
 
     return s.str();
   };
@@ -2741,99 +2762,100 @@ TEST(btor2_Encoder, define_heap)
     if (verbose)
       s << encoder.heap_comment;
 
-    encoder.iterate_threads([&encoder, &nid, &s, &nid_next] {
-      word_t & thread = encoder.thread;
-      word_t & pc = encoder.pc = 16; // CAS
-      word_t address = 1;
+    encoder.iterate_threads([&encoder, &nid, &s, &nid_next]
+      {
+        word_t & thread = encoder.thread;
+        word_t & pc = encoder.pc = 16; // CAS
+        word_t address = 1;
 
-      s <<
-        btor2::write(
-          std::to_string(nid),
-          encoder.sid_heap,
-          encoder.nid_heap,
-          encoder.nids_sb_adr[thread],
-          encoder.nids_sb_val[thread]);
-      nid++;
-      std::string nid_prev = std::move(nid_next);
-      nid_next = std::to_string(nid);
-      s <<
-        btor2::ite(
-          nid_next,
-          encoder.sid_heap,
-          encoder.nids_flush[thread],
-          std::to_string(nid - 1),
-          nid_prev,
-          verbose ? encoder.flush_var() : "");
-      nid++;
+        s <<
+          btor2::write(
+            std::to_string(nid),
+            encoder.sid_heap,
+            encoder.nid_heap,
+            encoder.nids_sb_adr[thread],
+            encoder.nids_sb_val[thread]);
+        nid++;
+        std::string nid_prev = std::move(nid_next);
+        nid_next = std::to_string(nid);
+        s <<
+          btor2::ite(
+            nid_next,
+            encoder.sid_heap,
+            encoder.nids_flush[thread],
+            std::to_string(nid - 1),
+            nid_prev,
+            verbose ? encoder.flush_var() : "");
+        nid++;
 
-      if (!thread)
-        {
-          s <<
-            btor2::read(
-              encoder.nids_read[address],
-              encoder.sid_bv,
-              encoder.nid_heap,
-              encoder.nids_const[address]);
-          nid++;
-        }
+        if (!thread)
+          {
+            s <<
+              btor2::read(
+                encoder.nids_read[address],
+                encoder.sid_bv,
+                encoder.nid_heap,
+                encoder.nids_const[address]);
+            nid++;
+          }
 
-      s <<
-        btor2::eq(
-          encoder.nids_eq_sb_adr_adr[thread][address],
-          encoder.sid_bool,
-          encoder.nids_sb_adr[thread],
-          encoder.nids_const[address]);
-      nid++;
-      s <<
-        btor2::land(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_sb_full[thread],
-          encoder.nids_eq_sb_adr_adr[thread][address]);
-      nid++;
-      s <<
-        btor2::ite(
-          encoder.nids_load[thread][address],
-          encoder.sid_bv,
-          std::to_string(nid - 1),
-          encoder.nids_sb_val[thread],
-          encoder.nids_read[address]);
-      nid++;
-      s <<
-        btor2::eq(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_mem[thread],
-          encoder.nids_load[thread][address]);
-      nid++;
-      s <<
-        btor2::write(
-          std::to_string(nid),
-          encoder.sid_heap,
-          encoder.nid_heap,
-          encoder.nids_const[address],
-          encoder.nids_accu[thread]);
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_heap,
-          std::to_string(nid - 2),
-          std::to_string(nid - 1),
-          encoder.nid_heap);
-      nid++;
-      nid_prev = std::move(nid_next);
-      nid_next = std::to_string(nid);
-      s <<
-        btor2::ite(
-          nid_next,
-          encoder.sid_heap,
-          encoder.nids_exec[thread][pc],
-          std::to_string(nid - 1),
-          nid_prev,
-          verbose ? encoder.debug_symbol(thread, pc) : "");
-      nid++;
-    });
+        s <<
+          btor2::eq(
+            encoder.nids_eq_sb_adr_adr[thread][address],
+            encoder.sid_bool,
+            encoder.nids_sb_adr[thread],
+            encoder.nids_const[address]);
+        nid++;
+        s <<
+          btor2::land(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_sb_full[thread],
+            encoder.nids_eq_sb_adr_adr[thread][address]);
+        nid++;
+        s <<
+          btor2::ite(
+            encoder.nids_load[thread][address],
+            encoder.sid_bv,
+            std::to_string(nid - 1),
+            encoder.nids_sb_val[thread],
+            encoder.nids_read[address]);
+        nid++;
+        s <<
+          btor2::eq(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_mem[thread],
+            encoder.nids_load[thread][address]);
+        nid++;
+        s <<
+          btor2::write(
+            std::to_string(nid),
+            encoder.sid_heap,
+            encoder.nid_heap,
+            encoder.nids_const[address],
+            encoder.nids_accu[thread]);
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_heap,
+            std::to_string(nid - 2),
+            std::to_string(nid - 1),
+            encoder.nid_heap);
+        nid++;
+        nid_prev = std::move(nid_next);
+        nid_next = std::to_string(nid);
+        s <<
+          btor2::ite(
+            nid_next,
+            encoder.sid_heap,
+            encoder.nids_exec[thread][pc],
+            std::to_string(nid - 1),
+            nid_prev,
+            verbose ? encoder.debug_symbol(thread, pc) : "");
+        nid++;
+      });
 
     s <<
       btor2::next(
@@ -3263,27 +3285,28 @@ TEST(btor2_Encoder, define_store_buffer_constraints)
     if (verbose)
       s << btor2::comment_section("store buffer constraints");
 
-    encoder.iterate_threads([&encoder, &nid, &s] {
-      s <<
-        btor2::lor(nid, encoder.sid_bool, encoder.nids_stmt[encoder.thread]);
-      s <<
-        btor2::implies(
-          std::to_string(nid),
-          encoder.sid_bool,
-          std::to_string(nid - 1),
-          btor2::lnot(encoder.nids_thread[encoder.thread]));
-      nid++;
-      s <<
-        btor2::ite(
-          std::to_string(nid),
-          encoder.sid_bool,
-          encoder.nids_sb_full[encoder.thread],
-          std::to_string(nid - 1),
-          btor2::lnot(encoder.nids_flush[encoder.thread]));
-      nid++;
-      s << btor2::constraint(nid, encoder.flush_var());
-      s << eol;
-    });
+    encoder.iterate_threads([&encoder, &nid, &s]
+      {
+        s <<
+          btor2::lor(nid, encoder.sid_bool, encoder.nids_stmt[encoder.thread]);
+        s <<
+          btor2::implies(
+            std::to_string(nid),
+            encoder.sid_bool,
+            std::to_string(nid - 1),
+            btor2::lnot(encoder.nids_thread[encoder.thread]));
+        nid++;
+        s <<
+          btor2::ite(
+            std::to_string(nid),
+            encoder.sid_bool,
+            encoder.nids_sb_full[encoder.thread],
+            std::to_string(nid - 1),
+            btor2::lnot(encoder.nids_flush[encoder.thread]));
+        nid++;
+        s << btor2::constraint(nid, encoder.flush_var());
+        s << eol;
+      });
 
     return s.str();
   };
@@ -3317,17 +3340,18 @@ TEST(btor2_Encoder, define_store_buffer_constraints_no_barrier)
     if (verbose)
       s << btor2::comment_section("store buffer constraints");
 
-    encoder.iterate_threads([&encoder, &nid, &s] {
-      s <<
-        btor2::implies(
-          std::to_string(nid),
-          encoder.sid_bool,
-          btor2::lnot(encoder.nids_sb_full[encoder.thread]),
-          btor2::lnot(encoder.nids_flush[encoder.thread]));
-      nid++;
-      s << btor2::constraint(nid, encoder.flush_var());
-      s << eol;
-    });
+    encoder.iterate_threads([&encoder, &nid, &s]
+      {
+        s <<
+          btor2::implies(
+            std::to_string(nid),
+            encoder.sid_bool,
+            btor2::lnot(encoder.nids_sb_full[encoder.thread]),
+            btor2::lnot(encoder.nids_flush[encoder.thread]));
+        nid++;
+        s << btor2::constraint(nid, encoder.flush_var());
+        s << eol;
+      });
 
     return s.str();
   };
