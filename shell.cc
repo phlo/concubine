@@ -119,10 +119,16 @@ Output run (const std::vector<std::string> & command, const std::string & input)
       close(std_err[WRITE]);
       close(exec_err[WRITE]);
 
+      // ignore SIGPIPE raised by parser errors
+      signal(SIGPIPE, SIG_IGN);
+
       // write given input to stdin of child
       if (!input.empty())
         if (write(std_in[WRITE], input.c_str(), input.length()) < 0)
           throw std::runtime_error(errmsg("writing to stdin pipe"));
+
+      // restore default SIGPIPE handler
+      signal(SIGPIPE, SIG_DFL);
 
       // close stdin pipe file descriptor
       close(std_in[WRITE]);

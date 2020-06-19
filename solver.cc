@@ -31,11 +31,17 @@ std::string Solver::formula (Encoder & encoder) const
 
 bool External::sat (const std::string & input)
 {
+  shell::Output out;
   const auto & cmd = command();
 
-  time = runtime::measure([this, &input, &cmd] {
-    stdout = std::move(shell::run(cmd, input).stdout);
+  time = runtime::measure([&input, &cmd, &out] {
+    out = shell::run(cmd, input);
   });
+
+  if (out.stderr.rdbuf()->in_avail())
+    throw std::runtime_error(out.stderr.str());
+
+  stdout = std::move(out.stdout);
 
   std::string sat;
   return (stdout >> sat) && sat == "sat";

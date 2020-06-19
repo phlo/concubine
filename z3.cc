@@ -44,10 +44,14 @@ bool Z3::sat (const std::string & formula)
   z3::context c;
   z3::solver s = c;
 
-  time = runtime::measure([&formula, &sat, &s] {
-    s.from_string(formula.c_str());
-    sat = s.check() == z3::sat;
-  });
+  try
+    {
+      time = runtime::measure([&formula, &sat, &s] {
+        s.from_string(formula.c_str());
+        sat = s.check() == z3::sat;
+      });
+    }
+  catch (const z3::exception & e) { throw std::runtime_error(e.msg()); }
 
   return sat;
 }
