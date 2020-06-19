@@ -213,18 +213,26 @@ void Functional::define_halt ()
   if (verbose)
     formula << halt_comment;
 
-  for (const auto & [t, pcs] : halts)
+  iterate_threads([this]
     {
-      std::vector<std::string> args;
-      args.reserve(pcs.size() + 1);
+      if (halts.find(thread) != halts.end())
+        {
+          const auto & pcs = halts[thread];
+          std::vector<std::string> args;
+          args.reserve(pcs.size() + 1);
 
-      for (const word_t p : pcs)
-        args.push_back(exec_var(prev, t, p));
+          for (const word_t p : pcs)
+            args.push_back(exec_var(prev, thread, p));
 
-      args.push_back(halt_var(prev, t));
+          args.push_back(halt_var(prev, thread));
 
-      formula << assign(halt_var(step, t), lor(args)) << eol;
-    }
+          formula << assign(halt_var(), lor(args)) << eol;
+        }
+      else
+        {
+          formula << assign(halt_var(), FALSE) << eol;
+        }
+    });
 
   formula << eol;
 }
@@ -280,11 +288,8 @@ void Functional::define_exit_flag ()
   if (!halts.empty())
     {
       std::vector<std::string> halt;
-      halt.reserve(halts.size());
-
-      for (const auto & it : halts)
-        halt.push_back(halt_var(step, it.first));
-
+      halt.reserve(num_threads);
+      iterate_threads([this, &halt] { halt.push_back(halt_var()); });
       args.push_back(land(halt));
     }
 
@@ -306,15 +311,16 @@ void Functional::define_exit_code ()
   std::string expr = word2hex(0);
 
   if (!exits.empty())
-    for (size_t k = step = bound; k > 0; k--)
-      iterate_programs_reverse([this, &expr, k] (const Program & program) {
-        for (const word_t & exit_pc : exits[thread])
-          expr =
-            ite(
-              exec_var(k, thread, exit_pc),
-              program[exit_pc].encode(*this),
-              expr);
-      });
+    for (size_t k = 0; k <= bound; k++)
+      iterate_programs_reverse([this, &expr, k] (const Program & program)
+        {
+          for (const word_t & exit_pc : exits[thread])
+            expr =
+              ite(
+                exec_var(k, thread, exit_pc),
+                program[exit_pc].encode(*this),
+                expr);
+        });
 
   formula << assign(exit_code_var, expr) << eol << eol;
 }

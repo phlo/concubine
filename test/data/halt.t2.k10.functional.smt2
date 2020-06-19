@@ -1544,5 +1544,5 @@
 ; exit code
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (= exit-code (ite exec_1_0_2 #x0001 (ite exec_1_1_2 #x0001 (ite exec_2_0_2 #x0001 (ite exec_2_1_2 #x0001 (ite exec_3_0_2 #x0001 (ite exec_3_1_2 #x0001 (ite exec_4_0_2 #x0001 (ite exec_4_1_2 #x0001 (ite exec_5_0_2 #x0001 (ite exec_5_1_2 #x0001 (ite exec_6_0_2 #x0001 (ite exec_6_1_2 #x0001 (ite exec_7_0_2 #x0001 (ite exec_7_1_2 #x0001 (ite exec_8_0_2 #x0001 (ite exec_8_1_2 #x0001 (ite exec_9_0_2 #x0001 (ite exec_9_1_2 #x0001 (ite exec_10_0_2 #x0001 (ite exec_10_1_2 #x0001 #x0000))))))))))))))))))))))
+(assert (= exit-code (ite exec_10_0_2 #x0001 (ite exec_10_1_2 #x0001 (ite exec_9_0_2 #x0001 (ite exec_9_1_2 #x0001 (ite exec_8_0_2 #x0001 (ite exec_8_1_2 #x0001 (ite exec_7_0_2 #x0001 (ite exec_7_1_2 #x0001 (ite exec_6_0_2 #x0001 (ite exec_6_1_2 #x0001 (ite exec_5_0_2 #x0001 (ite exec_5_1_2 #x0001 (ite exec_4_0_2 #x0001 (ite exec_4_1_2 #x0001 (ite exec_3_0_2 #x0001 (ite exec_3_1_2 #x0001 (ite exec_2_0_2 #x0001 (ite exec_2_1_2 #x0001 (ite exec_1_0_2 #x0001 (ite exec_1_1_2 #x0001 (ite exec_0_0_2 #x0001 (ite exec_0_1_2 #x0001 #x0000))))))))))))))))))))))))
 

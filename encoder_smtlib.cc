@@ -736,8 +736,7 @@ void Encoder::declare_halt ()
   if (verbose)
     formula << halt_comment;
 
-  for (const auto & it : halts)
-    formula << declare_bool_var(halt_var(step, it.first)) << eol;
+  iterate_threads([this] { formula << declare_bool_var(halt_var()) << eol; });
 
   formula << eol;
 }
@@ -982,8 +981,7 @@ void Encoder::init_halt ()
   if (verbose)
     formula << halt_comment;
 
-  for (const auto & it : halts)
-    formula << assertion(lnot(halt_var(step, it.first))) << eol;
+  iterate_threads([this] { formula << assertion(lnot(halt_var())) << eol; });
 
   formula << eol;
 }

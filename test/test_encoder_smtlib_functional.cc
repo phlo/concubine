@@ -904,7 +904,13 @@ TEST(smtlib_Functional, define_exit_code)
           "#x0001 "
           "(ite exec_1_2_0 "
             "#x0002 "
-            "#x0000)))))\n"
+            "(ite exec_0_0_0 "
+              "#x0000 "
+              "(ite exec_0_1_0 "
+                "#x0001 "
+                "(ite exec_0_2_0 "
+                  "#x0002 "
+            "#x0000))))))))\n"
     "\n",
     encoder.formula.str());
 
@@ -923,7 +929,13 @@ TEST(smtlib_Functional, define_exit_code)
           "#x0001 "
           "(ite exec_1_2_0 "
             "#x0002 "
-            "#x0000)))))\n"
+            "(ite exec_0_0_0 "
+              "#x0000 "
+              "(ite exec_0_1_0 "
+                "#x0001 "
+                "(ite exec_0_2_0 "
+                  "#x0002 "
+                  "#x0000))))))))\n"
     "\n",
     encoder.formula.str());
 }

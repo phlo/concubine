@@ -163,12 +163,18 @@ struct Solver : public ::testing::Test
                  const std::shared_ptr<MMap> & mmap,
                  const size_t bound)
     {
+      using namespace fs;
+
       Encoder encoder(programs, mmap, bound);
 
       encoder.encode();
 
       if constexpr(std::is_base_of<btor2::Encoder, Encoder>::value)
         encoder.define_bound();
+
+      write(
+        mktmp(stem, ext<Encoder>(programs->size(), bound)),
+        encoder.formula.str());
 
       const auto trace = solver.solve(encoder);
 
@@ -178,9 +184,6 @@ struct Solver : public ::testing::Test
       const auto replay = Simulator().replay(*trace);
       const auto sext = '.' + solver.name();
 
-      using namespace fs;
-
-      write(mktmp(stem, ext<Encoder>(programs->size(), bound)), formula);
       write(mktmp(stem, ext<Encoder>(sext + ".trace")), trace->print());
       write(mktmp(stem, ext<Encoder>(sext + ".replay.trace")), replay->print());
 
@@ -285,6 +288,45 @@ struct Solver : public ::testing::Test
             encoder.sid_bool,
             encoder.nids_const[0],
             encoder.nids_accu[0]) <<
+          btor2::land(
+            encoder.nid(),
+            encoder.sid_bool,
+            encoder.nid_exit_flag,
+            std::to_string(encoder.node - 1)) <<
+          btor2::bad(encoder.node);
+
+      ASSERT_FALSE(solver.sat(solver.formula(encoder)));
+    }
+
+  // verify halting mechanism
+  //
+  template <class Encoder>
+  void verify_halt ()
+    {
+      Encoder encoder(
+        std::make_shared<Program::List>(
+          Program({Instruction::create("HALT")}),
+          Program({Instruction::create("HALT")}),
+          Program({Instruction::create("EXIT", 1)})),
+        nullptr,
+        3);
+
+      encoder.encode();
+
+      if constexpr(std::is_base_of<smtlib::Encoder, Encoder>::value)
+        encoder.formula <<
+          smtlib::assertion(
+            smtlib::equality(
+              smtlib::Encoder::exit_code_sym,
+              smtlib::word2hex(0))) <<
+          eol;
+      else
+        encoder.formula <<
+          btor2::eq(
+            encoder.nid(),
+            encoder.sid_bool,
+            encoder.nids_const[0],
+            encoder.nid_exit_code) <<
           btor2::land(
             encoder.nid(),
             encoder.sid_bool,

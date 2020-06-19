@@ -48,7 +48,11 @@ TEST_F(Boolector, simulate_halt_relational) { simulate_halt<R>(); }
 TEST_F(Boolector, verify_indirect_functional) { verify_indirect<F>(); }
 TEST_F(Boolector, verify_indirect_relational) { verify_indirect<R>(); }
 
+TEST_F(Boolector, verify_halt_functional) { verify_halt<F>(); }
+TEST_F(Boolector, verify_halt_relational) { verify_halt<R>(); }
+
 // demo example tests
+//
 TEST_F(Boolector, demo_functional) { demo<F>(); }
 TEST_F(Boolector, demo_relational) { demo<R>(); }
 

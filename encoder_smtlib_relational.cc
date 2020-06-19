@@ -281,9 +281,11 @@ std::shared_ptr<std::string> Relational::set_halt () const
 
       args.reserve(halts.size());
 
-      for (const auto & it : halts)
-        if (thread != it.first)
-          args.push_back(halt_var(step, it.first));
+      if (!halts.empty())
+        // do not alter thread variable
+        for (word_t t = 0; t < num_threads; t++)
+          if (t != thread)
+            args.push_back(halt_var(step, t));
 
       return
         std::make_shared<std::string>(
@@ -311,7 +313,7 @@ std::shared_ptr<std::string> Relational::set_halt () const
 
 std::shared_ptr<std::string> Relational::restore_halt () const
 {
-  if (halts.find(thread) != halts.end())
+  if (!halts.empty())
     return
       std::make_shared<std::string>(
         equality(halt_var(), halt_var(prev, thread)));

@@ -51,7 +51,10 @@ TEST_F(BtorMC, simulate_halt) { simulate_halt<E>(); }
 //
 TEST_F(BtorMC, verify_indirect) { verify_indirect<E>(); }
 
+TEST_F(BtorMC, verify_halt) { verify_halt<E>(); }
+
 // demo example test
+//
 TEST_F(BtorMC, demo) { demo<E>(); }
 
 // litmus tests

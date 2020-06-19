@@ -786,12 +786,14 @@ void Encoder::declare_halt ()
   if (verbose)
     formula << halt_comment;
 
-  for (const auto & it : halts)
-    formula <<
-      state(
-        nids_halt.emplace_hint(nids_halt.end(), it.first, nid())->second,
-        sid_bool,
-        halt_var(it.first));
+  iterate_threads([this]
+    {
+      formula <<
+        state(
+          nids_halt.emplace_hint(nids_halt.end(), thread, nid())->second,
+          sid_bool,
+          halt_var(thread));
+    });
 
   formula << eol;
 }
@@ -1223,27 +1225,46 @@ void Encoder::define_halt ()
   if (verbose)
     formula << halt_comment;
 
-  for (const auto & [t, pcs] : halts)
+  iterate_threads([this]
     {
-      std::vector<std::string> args;
-      args.reserve(pcs.size() + 1);
+      const auto & nid_halt = nids_halt[thread];
 
-      for (const word_t p : pcs)
-        args.push_back(nids_exec[t][p]);
+      formula << init(nid(), sid_bool, nid_halt, nid_false);
 
-      args.push_back(nids_halt[t]);
+      std::string nid_next;
+
+      if (halts.find(thread) != halts.end())
+        {
+          const auto & pcs = halts[thread];
+          std::vector<std::string> args;
+          args.reserve(pcs.size() + 1);
+
+          for (const word_t p : pcs)
+            args.push_back(nids_exec[thread][p]);
+
+          args.push_back(nid_halt);
+
+          formula << lor(node, sid_bool, args);
+
+          nid_next = nid(-1);
+        }
+      else
+        {
+          nid_next = nid_halt;
+        }
 
       formula <<
-        init(nid(), sid_bool, nids_halt[t], nid_false) <<
-        lor(node, sid_bool, args) <<
         next(
           nid(),
           sid_bool,
-          nids_halt[t],
-          nids_halt_next.emplace_hint(nids_halt_next.end(), t, nid(-1))->second,
-          halt_var(t)) <<
+          nid_halt,
+          nids_halt_next.emplace_hint(
+            nids_halt_next.end(),
+            thread,
+            nid_next)->second,
+          halt_var(thread)) <<
         eol;
-    }
+    });
 }
 
 // btor2::Encoder::define_heap -------------------------------------------------

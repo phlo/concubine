@@ -59,6 +59,7 @@
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_0_0 () Bool)
 (declare-fun halt_0_1 () Bool)
+(declare-fun halt_0_2 () Bool)
 
 ; heap variable - heap_<step>
 (declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))
@@ -184,6 +185,7 @@
 ; halt variables - halt_<step>_<thread>
 (assert (not halt_0_0))
 (assert (not halt_0_1))
+(assert (not halt_0_2))
 
 ; heap variable - heap_<step>
 (assert (= (select heap_0 #x0000) #x0000))
@@ -293,6 +295,7 @@
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_1_0 () Bool)
 (declare-fun halt_1_1 () Bool)
+(declare-fun halt_1_2 () Bool)
 
 ; heap variable - heap_<step>
 (declare-fun heap_1 () (Array (_ BitVec 16) (_ BitVec 16)))
@@ -415,12 +418,13 @@
 ; halt variables - halt_<step>_<thread>
 (assert (= halt_1_0 (or exec_0_0_4 halt_0_0)))
 (assert (= halt_1_1 (or exec_0_1_4 halt_0_1)))
+(assert (= halt_1_2 false))
 
 ; heap variable - heap_<step>
 (assert (= heap_1 (ite flush_0_0 (store heap_0 sb-adr_0_0 sb-val_0_0) (ite flush_0_1 (store heap_0 sb-adr_0_1 sb-val_0_1) (ite flush_0_2 (store heap_0 sb-adr_0_2 sb-val_0_2) heap_0)))))
 
 ; exit flag variable - exit_<step>
-(assert (= exit_1 (or exit_0 (and halt_1_0 halt_1_1) exec_0_2_4 exec_0_2_5)))
+(assert (= exit_1 (or exit_0 (and halt_1_0 halt_1_1 halt_1_2) exec_0_2_4 exec_0_2_5)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -523,6 +527,7 @@
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_2_0 () Bool)
 (declare-fun halt_2_1 () Bool)
+(declare-fun halt_2_2 () Bool)
 
 ; heap variable - heap_<step>
 (declare-fun heap_2 () (Array (_ BitVec 16) (_ BitVec 16)))
@@ -645,12 +650,13 @@
 ; halt variables - halt_<step>_<thread>
 (assert (= halt_2_0 (or exec_1_0_4 halt_1_0)))
 (assert (= halt_2_1 (or exec_1_1_4 halt_1_1)))
+(assert (= halt_2_2 false))
 
 ; heap variable - heap_<step>
 (assert (= heap_2 (ite flush_1_0 (store heap_1 sb-adr_1_0 sb-val_1_0) (ite flush_1_1 (store heap_1 sb-adr_1_1 sb-val_1_1) (ite flush_1_2 (store heap_1 sb-adr_1_2 sb-val_1_2) heap_1)))))
 
 ; exit flag variable - exit_<step>
-(assert (= exit_2 (or exit_1 (and halt_2_0 halt_2_1) exec_1_2_4 exec_1_2_5)))
+(assert (= exit_2 (or exit_1 (and halt_2_0 halt_2_1 halt_2_2) exec_1_2_4 exec_1_2_5)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -753,6 +759,7 @@
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_3_0 () Bool)
 (declare-fun halt_3_1 () Bool)
+(declare-fun halt_3_2 () Bool)
 
 ; heap variable - heap_<step>
 (declare-fun heap_3 () (Array (_ BitVec 16) (_ BitVec 16)))
@@ -875,12 +882,13 @@
 ; halt variables - halt_<step>_<thread>
 (assert (= halt_3_0 (or exec_2_0_4 halt_2_0)))
 (assert (= halt_3_1 (or exec_2_1_4 halt_2_1)))
+(assert (= halt_3_2 false))
 
 ; heap variable - heap_<step>
 (assert (= heap_3 (ite flush_2_0 (store heap_2 sb-adr_2_0 sb-val_2_0) (ite flush_2_1 (store heap_2 sb-adr_2_1 sb-val_2_1) (ite flush_2_2 (store heap_2 sb-adr_2_2 sb-val_2_2) heap_2)))))
 
 ; exit flag variable - exit_<step>
-(assert (= exit_3 (or exit_2 (and halt_3_0 halt_3_1) exec_2_2_4 exec_2_2_5)))
+(assert (= exit_3 (or exit_2 (and halt_3_0 halt_3_1 halt_3_2) exec_2_2_4 exec_2_2_5)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -983,6 +991,7 @@
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_4_0 () Bool)
 (declare-fun halt_4_1 () Bool)
+(declare-fun halt_4_2 () Bool)
 
 ; heap variable - heap_<step>
 (declare-fun heap_4 () (Array (_ BitVec 16) (_ BitVec 16)))
@@ -1105,12 +1114,13 @@
 ; halt variables - halt_<step>_<thread>
 (assert (= halt_4_0 (or exec_3_0_4 halt_3_0)))
 (assert (= halt_4_1 (or exec_3_1_4 halt_3_1)))
+(assert (= halt_4_2 false))
 
 ; heap variable - heap_<step>
 (assert (= heap_4 (ite flush_3_0 (store heap_3 sb-adr_3_0 sb-val_3_0) (ite flush_3_1 (store heap_3 sb-adr_3_1 sb-val_3_1) (ite flush_3_2 (store heap_3 sb-adr_3_2 sb-val_3_2) heap_3)))))
 
 ; exit flag variable - exit_<step>
-(assert (= exit_4 (or exit_3 (and halt_4_0 halt_4_1) exec_3_2_4 exec_3_2_5)))
+(assert (= exit_4 (or exit_3 (and halt_4_0 halt_4_1 halt_4_2) exec_3_2_4 exec_3_2_5)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1213,6 +1223,7 @@
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_5_0 () Bool)
 (declare-fun halt_5_1 () Bool)
+(declare-fun halt_5_2 () Bool)
 
 ; heap variable - heap_<step>
 (declare-fun heap_5 () (Array (_ BitVec 16) (_ BitVec 16)))
@@ -1335,12 +1346,13 @@
 ; halt variables - halt_<step>_<thread>
 (assert (= halt_5_0 (or exec_4_0_4 halt_4_0)))
 (assert (= halt_5_1 (or exec_4_1_4 halt_4_1)))
+(assert (= halt_5_2 false))
 
 ; heap variable - heap_<step>
 (assert (= heap_5 (ite flush_4_0 (store heap_4 sb-adr_4_0 sb-val_4_0) (ite flush_4_1 (store heap_4 sb-adr_4_1 sb-val_4_1) (ite flush_4_2 (store heap_4 sb-adr_4_2 sb-val_4_2) heap_4)))))
 
 ; exit flag variable - exit_<step>
-(assert (= exit_5 (or exit_4 (and halt_5_0 halt_5_1) exec_4_2_4 exec_4_2_5)))
+(assert (= exit_5 (or exit_4 (and halt_5_0 halt_5_1 halt_5_2) exec_4_2_4 exec_4_2_5)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1443,6 +1455,7 @@
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_6_0 () Bool)
 (declare-fun halt_6_1 () Bool)
+(declare-fun halt_6_2 () Bool)
 
 ; heap variable - heap_<step>
 (declare-fun heap_6 () (Array (_ BitVec 16) (_ BitVec 16)))
@@ -1565,12 +1578,13 @@
 ; halt variables - halt_<step>_<thread>
 (assert (= halt_6_0 (or exec_5_0_4 halt_5_0)))
 (assert (= halt_6_1 (or exec_5_1_4 halt_5_1)))
+(assert (= halt_6_2 false))
 
 ; heap variable - heap_<step>
 (assert (= heap_6 (ite flush_5_0 (store heap_5 sb-adr_5_0 sb-val_5_0) (ite flush_5_1 (store heap_5 sb-adr_5_1 sb-val_5_1) (ite flush_5_2 (store heap_5 sb-adr_5_2 sb-val_5_2) heap_5)))))
 
 ; exit flag variable - exit_<step>
-(assert (= exit_6 (or exit_5 (and halt_6_0 halt_6_1) exec_5_2_4 exec_5_2_5)))
+(assert (= exit_6 (or exit_5 (and halt_6_0 halt_6_1 halt_6_2) exec_5_2_4 exec_5_2_5)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1673,6 +1687,7 @@
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_7_0 () Bool)
 (declare-fun halt_7_1 () Bool)
+(declare-fun halt_7_2 () Bool)
 
 ; heap variable - heap_<step>
 (declare-fun heap_7 () (Array (_ BitVec 16) (_ BitVec 16)))
@@ -1795,12 +1810,13 @@
 ; halt variables - halt_<step>_<thread>
 (assert (= halt_7_0 (or exec_6_0_4 halt_6_0)))
 (assert (= halt_7_1 (or exec_6_1_4 halt_6_1)))
+(assert (= halt_7_2 false))
 
 ; heap variable - heap_<step>
 (assert (= heap_7 (ite flush_6_0 (store heap_6 sb-adr_6_0 sb-val_6_0) (ite flush_6_1 (store heap_6 sb-adr_6_1 sb-val_6_1) (ite flush_6_2 (store heap_6 sb-adr_6_2 sb-val_6_2) heap_6)))))
 
 ; exit flag variable - exit_<step>
-(assert (= exit_7 (or exit_6 (and halt_7_0 halt_7_1) exec_6_2_4 exec_6_2_5)))
+(assert (= exit_7 (or exit_6 (and halt_7_0 halt_7_1 halt_7_2) exec_6_2_4 exec_6_2_5)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1903,6 +1919,7 @@
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_8_0 () Bool)
 (declare-fun halt_8_1 () Bool)
+(declare-fun halt_8_2 () Bool)
 
 ; heap variable - heap_<step>
 (declare-fun heap_8 () (Array (_ BitVec 16) (_ BitVec 16)))
@@ -2025,12 +2042,13 @@
 ; halt variables - halt_<step>_<thread>
 (assert (= halt_8_0 (or exec_7_0_4 halt_7_0)))
 (assert (= halt_8_1 (or exec_7_1_4 halt_7_1)))
+(assert (= halt_8_2 false))
 
 ; heap variable - heap_<step>
 (assert (= heap_8 (ite flush_7_0 (store heap_7 sb-adr_7_0 sb-val_7_0) (ite flush_7_1 (store heap_7 sb-adr_7_1 sb-val_7_1) (ite flush_7_2 (store heap_7 sb-adr_7_2 sb-val_7_2) heap_7)))))
 
 ; exit flag variable - exit_<step>
-(assert (= exit_8 (or exit_7 (and halt_8_0 halt_8_1) exec_7_2_4 exec_7_2_5)))
+(assert (= exit_8 (or exit_7 (and halt_8_0 halt_8_1 halt_8_2) exec_7_2_4 exec_7_2_5)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -2133,6 +2151,7 @@
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_9_0 () Bool)
 (declare-fun halt_9_1 () Bool)
+(declare-fun halt_9_2 () Bool)
 
 ; heap variable - heap_<step>
 (declare-fun heap_9 () (Array (_ BitVec 16) (_ BitVec 16)))
@@ -2255,12 +2274,13 @@
 ; halt variables - halt_<step>_<thread>
 (assert (= halt_9_0 (or exec_8_0_4 halt_8_0)))
 (assert (= halt_9_1 (or exec_8_1_4 halt_8_1)))
+(assert (= halt_9_2 false))
 
 ; heap variable - heap_<step>
 (assert (= heap_9 (ite flush_8_0 (store heap_8 sb-adr_8_0 sb-val_8_0) (ite flush_8_1 (store heap_8 sb-adr_8_1 sb-val_8_1) (ite flush_8_2 (store heap_8 sb-adr_8_2 sb-val_8_2) heap_8)))))
 
 ; exit flag variable - exit_<step>
-(assert (= exit_9 (or exit_8 (and halt_9_0 halt_9_1) exec_8_2_4 exec_8_2_5)))
+(assert (= exit_9 (or exit_8 (and halt_9_0 halt_9_1 halt_9_2) exec_8_2_4 exec_8_2_5)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -2363,6 +2383,7 @@
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_10_0 () Bool)
 (declare-fun halt_10_1 () Bool)
+(declare-fun halt_10_2 () Bool)
 
 ; heap variable - heap_<step>
 (declare-fun heap_10 () (Array (_ BitVec 16) (_ BitVec 16)))
@@ -2485,12 +2506,13 @@
 ; halt variables - halt_<step>_<thread>
 (assert (= halt_10_0 (or exec_9_0_4 halt_9_0)))
 (assert (= halt_10_1 (or exec_9_1_4 halt_9_1)))
+(assert (= halt_10_2 false))
 
 ; heap variable - heap_<step>
 (assert (= heap_10 (ite flush_9_0 (store heap_9 sb-adr_9_0 sb-val_9_0) (ite flush_9_1 (store heap_9 sb-adr_9_1 sb-val_9_1) (ite flush_9_2 (store heap_9 sb-adr_9_2 sb-val_9_2) heap_9)))))
 
 ; exit flag variable - exit_<step>
-(assert (= exit_10 (or exit_9 (and halt_10_0 halt_10_1) exec_9_2_4 exec_9_2_5)))
+(assert (= exit_10 (or exit_9 (and halt_10_0 halt_10_1 halt_10_2) exec_9_2_4 exec_9_2_5)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -2593,6 +2615,7 @@
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_11_0 () Bool)
 (declare-fun halt_11_1 () Bool)
+(declare-fun halt_11_2 () Bool)
 
 ; heap variable - heap_<step>
 (declare-fun heap_11 () (Array (_ BitVec 16) (_ BitVec 16)))
@@ -2715,12 +2738,13 @@
 ; halt variables - halt_<step>_<thread>
 (assert (= halt_11_0 (or exec_10_0_4 halt_10_0)))
 (assert (= halt_11_1 (or exec_10_1_4 halt_10_1)))
+(assert (= halt_11_2 false))
 
 ; heap variable - heap_<step>
 (assert (= heap_11 (ite flush_10_0 (store heap_10 sb-adr_10_0 sb-val_10_0) (ite flush_10_1 (store heap_10 sb-adr_10_1 sb-val_10_1) (ite flush_10_2 (store heap_10 sb-adr_10_2 sb-val_10_2) heap_10)))))
 
 ; exit flag variable - exit_<step>
-(assert (= exit_11 (or exit_10 (and halt_11_0 halt_11_1) exec_10_2_4 exec_10_2_5)))
+(assert (= exit_11 (or exit_10 (and halt_11_0 halt_11_1 halt_11_2) exec_10_2_4 exec_10_2_5)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -2823,6 +2847,7 @@
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_12_0 () Bool)
 (declare-fun halt_12_1 () Bool)
+(declare-fun halt_12_2 () Bool)
 
 ; heap variable - heap_<step>
 (declare-fun heap_12 () (Array (_ BitVec 16) (_ BitVec 16)))
@@ -2945,12 +2970,13 @@
 ; halt variables - halt_<step>_<thread>
 (assert (= halt_12_0 (or exec_11_0_4 halt_11_0)))
 (assert (= halt_12_1 (or exec_11_1_4 halt_11_1)))
+(assert (= halt_12_2 false))
 
 ; heap variable - heap_<step>
 (assert (= heap_12 (ite flush_11_0 (store heap_11 sb-adr_11_0 sb-val_11_0) (ite flush_11_1 (store heap_11 sb-adr_11_1 sb-val_11_1) (ite flush_11_2 (store heap_11 sb-adr_11_2 sb-val_11_2) heap_11)))))
 
 ; exit flag variable - exit_<step>
-(assert (= exit_12 (or exit_11 (and halt_12_0 halt_12_1) exec_11_2_4 exec_11_2_5)))
+(assert (= exit_12 (or exit_11 (and halt_12_0 halt_12_1 halt_12_2) exec_11_2_4 exec_11_2_5)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -3053,6 +3079,7 @@
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_13_0 () Bool)
 (declare-fun halt_13_1 () Bool)
+(declare-fun halt_13_2 () Bool)
 
 ; heap variable - heap_<step>
 (declare-fun heap_13 () (Array (_ BitVec 16) (_ BitVec 16)))
@@ -3175,12 +3202,13 @@
 ; halt variables - halt_<step>_<thread>
 (assert (= halt_13_0 (or exec_12_0_4 halt_12_0)))
 (assert (= halt_13_1 (or exec_12_1_4 halt_12_1)))
+(assert (= halt_13_2 false))
 
 ; heap variable - heap_<step>
 (assert (= heap_13 (ite flush_12_0 (store heap_12 sb-adr_12_0 sb-val_12_0) (ite flush_12_1 (store heap_12 sb-adr_12_1 sb-val_12_1) (ite flush_12_2 (store heap_12 sb-adr_12_2 sb-val_12_2) heap_12)))))
 
 ; exit flag variable - exit_<step>
-(assert (= exit_13 (or exit_12 (and halt_13_0 halt_13_1) exec_12_2_4 exec_12_2_5)))
+(assert (= exit_13 (or exit_12 (and halt_13_0 halt_13_1 halt_13_2) exec_12_2_4 exec_12_2_5)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -3283,6 +3311,7 @@
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_14_0 () Bool)
 (declare-fun halt_14_1 () Bool)
+(declare-fun halt_14_2 () Bool)
 
 ; heap variable - heap_<step>
 (declare-fun heap_14 () (Array (_ BitVec 16) (_ BitVec 16)))
@@ -3405,12 +3434,13 @@
 ; halt variables - halt_<step>_<thread>
 (assert (= halt_14_0 (or exec_13_0_4 halt_13_0)))
 (assert (= halt_14_1 (or exec_13_1_4 halt_13_1)))
+(assert (= halt_14_2 false))
 
 ; heap variable - heap_<step>
 (assert (= heap_14 (ite flush_13_0 (store heap_13 sb-adr_13_0 sb-val_13_0) (ite flush_13_1 (store heap_13 sb-adr_13_1 sb-val_13_1) (ite flush_13_2 (store heap_13 sb-adr_13_2 sb-val_13_2) heap_13)))))
 
 ; exit flag variable - exit_<step>
-(assert (= exit_14 (or exit_13 (and halt_14_0 halt_14_1) exec_13_2_4 exec_13_2_5)))
+(assert (= exit_14 (or exit_13 (and halt_14_0 halt_14_1 halt_14_2) exec_13_2_4 exec_13_2_5)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -3513,6 +3543,7 @@
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_15_0 () Bool)
 (declare-fun halt_15_1 () Bool)
+(declare-fun halt_15_2 () Bool)
 
 ; heap variable - heap_<step>
 (declare-fun heap_15 () (Array (_ BitVec 16) (_ BitVec 16)))
@@ -3635,12 +3666,13 @@
 ; halt variables - halt_<step>_<thread>
 (assert (= halt_15_0 (or exec_14_0_4 halt_14_0)))
 (assert (= halt_15_1 (or exec_14_1_4 halt_14_1)))
+(assert (= halt_15_2 false))
 
 ; heap variable - heap_<step>
 (assert (= heap_15 (ite flush_14_0 (store heap_14 sb-adr_14_0 sb-val_14_0) (ite flush_14_1 (store heap_14 sb-adr_14_1 sb-val_14_1) (ite flush_14_2 (store heap_14 sb-adr_14_2 sb-val_14_2) heap_14)))))
 
 ; exit flag variable - exit_<step>
-(assert (= exit_15 (or exit_14 (and halt_15_0 halt_15_1) exec_14_2_4 exec_14_2_5)))
+(assert (= exit_15 (or exit_14 (and halt_15_0 halt_15_1 halt_15_2) exec_14_2_4 exec_14_2_5)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -3743,6 +3775,7 @@
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_16_0 () Bool)
 (declare-fun halt_16_1 () Bool)
+(declare-fun halt_16_2 () Bool)
 
 ; heap variable - heap_<step>
 (declare-fun heap_16 () (Array (_ BitVec 16) (_ BitVec 16)))
@@ -3865,12 +3898,13 @@
 ; halt variables - halt_<step>_<thread>
 (assert (= halt_16_0 (or exec_15_0_4 halt_15_0)))
 (assert (= halt_16_1 (or exec_15_1_4 halt_15_1)))
+(assert (= halt_16_2 false))
 
 ; heap variable - heap_<step>
 (assert (= heap_16 (ite flush_15_0 (store heap_15 sb-adr_15_0 sb-val_15_0) (ite flush_15_1 (store heap_15 sb-adr_15_1 sb-val_15_1) (ite flush_15_2 (store heap_15 sb-adr_15_2 sb-val_15_2) heap_15)))))
 
 ; exit flag variable - exit_<step>
-(assert (= exit_16 (or exit_15 (and halt_16_0 halt_16_1) exec_15_2_4 exec_15_2_5)))
+(assert (= exit_16 (or exit_15 (and halt_16_0 halt_16_1 halt_16_2) exec_15_2_4 exec_15_2_5)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -3973,6 +4007,7 @@
 ; halt variables - halt_<step>_<thread>
 (declare-fun halt_17_0 () Bool)
 (declare-fun halt_17_1 () Bool)
+(declare-fun halt_17_2 () Bool)
 
 ; heap variable - heap_<step>
 (declare-fun heap_17 () (Array (_ BitVec 16) (_ BitVec 16)))
@@ -4095,12 +4130,13 @@
 ; halt variables - halt_<step>_<thread>
 (assert (= halt_17_0 (or exec_16_0_4 halt_16_0)))
 (assert (= halt_17_1 (or exec_16_1_4 halt_16_1)))
+(assert (= halt_17_2 false))
 
 ; heap variable - heap_<step>
 (assert (= heap_17 (ite flush_16_0 (store heap_16 sb-adr_16_0 sb-val_16_0) (ite flush_16_1 (store heap_16 sb-adr_16_1 sb-val_16_1) (ite flush_16_2 (store heap_16 sb-adr_16_2 sb-val_16_2) heap_16)))))
 
 ; exit flag variable - exit_<step>
-(assert (= exit_17 (or exit_16 (and halt_17_0 halt_17_1) exec_16_2_4 exec_16_2_5)))
+(assert (= exit_17 (or exit_16 (and halt_17_0 halt_17_1 halt_17_2) exec_16_2_4 exec_16_2_5)))
 
 ; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -4148,5 +4184,5 @@
 ; exit code
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(assert (= exit-code (ite exec_1_2_5 #x0001 (ite exec_1_2_4 #x0000 (ite exec_2_2_5 #x0001 (ite exec_2_2_4 #x0000 (ite exec_3_2_5 #x0001 (ite exec_3_2_4 #x0000 (ite exec_4_2_5 #x0001 (ite exec_4_2_4 #x0000 (ite exec_5_2_5 #x0001 (ite exec_5_2_4 #x0000 (ite exec_6_2_5 #x0001 (ite exec_6_2_4 #x0000 (ite exec_7_2_5 #x0001 (ite exec_7_2_4 #x0000 (ite exec_8_2_5 #x0001 (ite exec_8_2_4 #x0000 (ite exec_9_2_5 #x0001 (ite exec_9_2_4 #x0000 (ite exec_10_2_5 #x0001 (ite exec_10_2_4 #x0000 (ite exec_11_2_5 #x0001 (ite exec_11_2_4 #x0000 (ite exec_12_2_5 #x0001 (ite exec_12_2_4 #x0000 (ite exec_13_2_5 #x0001 (ite exec_13_2_4 #x0000 (ite exec_14_2_5 #x0001 (ite exec_14_2_4 #x0000 (ite exec_15_2_5 #x0001 (ite exec_15_2_4 #x0000 (ite exec_16_2_5 #x0001 (ite exec_16_2_4 #x0000 (ite exec_17_2_5 #x0001 (ite exec_17_2_4 #x0000 #x0000))))))))))))))))))))))))))))))))))))
+(assert (= exit-code (ite exec_17_2_5 #x0001 (ite exec_17_2_4 #x0000 (ite exec_16_2_5 #x0001 (ite exec_16_2_4 #x0000 (ite exec_15_2_5 #x0001 (ite exec_15_2_4 #x0000 (ite exec_14_2_5 #x0001 (ite exec_14_2_4 #x0000 (ite exec_13_2_5 #x0001 (ite exec_13_2_4 #x0000 (ite exec_12_2_5 #x0001 (ite exec_12_2_4 #x0000 (ite exec_11_2_5 #x0001 (ite exec_11_2_4 #x0000 (ite exec_10_2_5 #x0001 (ite exec_10_2_4 #x0000 (ite exec_9_2_5 #x0001 (ite exec_9_2_4 #x0000 (ite exec_8_2_5 #x0001 (ite exec_8_2_4 #x0000 (ite exec_7_2_5 #x0001 (ite exec_7_2_4 #x0000 (ite exec_6_2_5 #x0001 (ite exec_6_2_4 #x0000 (ite exec_5_2_5 #x0001 (ite exec_5_2_4 #x0000 (ite exec_4_2_5 #x0001 (ite exec_4_2_4 #x0000 (ite exec_3_2_5 #x0001 (ite exec_3_2_4 #x0000 (ite exec_2_2_5 #x0001 (ite exec_2_2_4 #x0000 (ite exec_1_2_5 #x0001 (ite exec_1_2_4 #x0000 (ite exec_0_2_5 #x0001 (ite exec_0_2_4 #x0000 #x0000))))))))))))))))))))))))))))))))))))))
 

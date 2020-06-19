@@ -46,7 +46,11 @@ TEST_F(Z3, simulate_halt_relational) { simulate_halt<R>(); }
 TEST_F(Z3, verify_indirect_functional) { verify_indirect<F>(); }
 TEST_F(Z3, verify_indirect_relational) { verify_indirect<R>(); }
 
+TEST_F(Z3, verify_halt_functional) { verify_halt<F>(); }
+TEST_F(Z3, verify_halt_relational) { verify_halt<R>(); }
+
 // demo example tests
+//
 TEST_F(Z3, demo_functional) { demo<F>(); }
 TEST_F(Z3, demo_relational) { demo<R>(); }
 
