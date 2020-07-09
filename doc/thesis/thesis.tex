@@ -7,15 +7,15 @@
 % character encoding
 \usepackage[utf8]{inputenc}
 
+% font encoding (underscores)
+\usepackage[T1]{fontenc}
+
 % colors
 \usepackage{xcolor}
 
 % math
 \usepackage{amsmath}
 \usepackage{amssymb}
-\usepackage{amsthm}
-
-\newtheorem*{definition}{Definition}
 
 % hyperlinks
 \usepackage{hyperref}
@@ -39,29 +39,55 @@
   columns=fullflexible,
 }
 \lstdefinelanguage[concubine]{Assembler}{
-  morekeywords={[1]LOAD,STORE,FENCE,ADD,ADDI,SUB,SUBI},
+  morekeywords={[1]LOAD,STORE,FENCE,ADD,ADDI,SUB,SUBI,JZ,CHECK,HALT,EXIT},
   morecomment=[l]\#,
   basicstyle=\ttfamily,
+  keywordstyle=\color{blue},
   commentstyle=\color{gray},
   % columns=fullflexible,
   keepspaces,
   % tabsize=6,
   % xleftmargin=\parindent,
 }
-\lstdefinestyle{c}{
+\lstdefinestyle{c++}{
   belowcaptionskip=1\baselineskip,
   breaklines=true,
+  keepspaces=true,
+  columns=fullflexible,
   % frame=L,
   % xleftmargin=\parindent,
-  language=C,
+  language=C++,
   showstringspaces=false,
-  basicstyle=\footnotesize\ttfamily,
-  keywordstyle=\bfseries\color{green!40!black},
+  alsoletter={:},
+  morekeywords={
+    Instruction,
+    map,
+    ostringstream,
+    set,
+    string,
+    unordered_map,
+    vector,
+    word},
+  % basicstyle=\footnotesize\ttfamily,
+  basicstyle=\small\ttfamily,
+  keywordstyle=\sffamily\bfseries\color{blue},
   % commentstyle=\itshape\color{purple!40!black},
   commentstyle=\itshape\color{gray},
-  identifierstyle=\color{blue},
-  stringstyle=\color{orange},
-  % columns=fullflexible,
+  % identifierstyle=\color{blue},
+  stringstyle=\color{red!60!black},
+}
+\lstdefinelanguage{SMTLib}{
+  morekeywords={[1]declare-fun, assert, =, and},
+  morekeywords={[2]BitVec},
+  alsoletter={-, =},
+  morecomment=[l]\;,
+  sensitive=false,
+  basicstyle=\ttfamily,
+  commentstyle=\color{gray},
+  % keywordstyle=\bfseries
+  keywordstyle=[1]\bfseries\color{green!40!black},
+  keywordstyle=[2]\bfseries\color{red!40!black},
+  % identifierstyle=\color{blue},
 }
 
 % tikz
@@ -73,8 +99,8 @@
 \usepackage{syntax}
 \setlength{\grammarparsep}{0pt}
 
-% sideways
-\usepackage{rotating}
+% algorithms
+\usepackage{algorithm2e}
 
 % todos
 \setlength{\marginparwidth}{2cm}

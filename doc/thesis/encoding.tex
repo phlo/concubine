@@ -262,6 +262,7 @@ In case of indirect addressing, $\LOAD^k_t$ is redefined as a single expression 
   & \ITEindent \ITEindent \READ^k(\READ^k(adr)))), \label{def:load:8} \\
   & \READ^k(\READ^k(adr))) \label{def:load:9}
 \end{align}
+\todo[noline]{use tabbing evironment?}
 First, we check if the store buffer contains an entry and store forwarding might apply (\ref{def:load:1}).
 %, or the requested value can be directly retrieved from memory (\ref{def:load:9}).
 If it is empty, the requested value has to be directly retrieved from memory (\ref{def:load:9}).
@@ -270,11 +271,13 @@ Otherwise, if the store buffer contains an entry for the given address (\ref{def
 % Otherwise, if the store buffer contains an entry for the immediate address (\ref{def:load:2}), we check if it is equal to the effective address (\ref{def:load:3}) and either return the store buffer value (\ref{def:load:4}) or the element at
 % Otherwise, if the store buffer contains an entry for the immediate address (\ref{def:load:2}) and
 % Finally, in case the given address could not be forwarded, the store buffer might contain an entry
-Finally, in case the given address was not contained,
+% Finally, in case the given address was not contained,
+Finally, in case there is no entry for the given address,
 %we test if and either the effective address can be forwarded (\ref{def:load:7}), or nothing after all (\ref{def:load:8}).
 the effective address is fetched from memory and compared to the store buffer address (\ref{def:load:6}) to see if it
 % can be forwarded (\ref{def:load:7}), or nothing after all (\ref{def:load:8}).
-might be subject to store forwarding (\ref{def:load:7}), or nothing after all (\ref{def:load:8}).
+% might be subject to store forwarding (\ref{def:load:7}), or nothing after all (\ref{def:load:8}).
+might be contained (\ref{def:load:7}), or nothing can be forwarded after all (\ref{def:load:8}).
 % fetch the effective address from memory and
 % or nothing after all.
 % and nothing could be forwarded after all.
@@ -325,20 +328,24 @@ might be subject to store forwarding (\ref{def:load:7}), or nothing after all (\
 % \bigskip
 \subsubsection{Frame Axioms}
 
+\newcommand{\TRUE}{\textit{true}}
+\newcommand{\FALSE}{\textit{false}}
+
 \newcommand{\EFFECTIVE}{\texttt{effective}}
 \newcommand{\MSB}{\texttt{msb}}
 
-\todo[inline]{Successor State Axioms?}\noindent
+\todo[noline]{Successor State Axioms?}\noindent
 % The effect of a particular operation, determined by the transition variables $\FLUSH^k_t$ and $\EXEC^k_{t, pc}$
 % The effect of a thread $t$ flushing its store buffer or executing the instruction at $pc$ in step $k$
 Successor states of transitions for all possible types of operations, determined by $\FLUSH^k_t$ and $\EXEC^k_{t, pc}$, are defined by the frame axioms in the table below.
-All state variables, not explicitly altered are assumed to be unchanged in the next step, except the block
+% \todo[inline]{block}
+All state variables, not explicitly altered are assumed to be unchanged in the next step, except the block flags $\BLOCK^{k + 1}_{id, t}$, which are reset if all threads synchronized upon checkpoint $id$.
 \[
-  \BLOCK^{k + 1}_{id, t} = \ITE(\CHECK^k_{id}, false, \BLOCK^k_{id, t})
+  \BLOCK^{k + 1}_{id, t} = \ITE(\CHECK^k_{id}, \FALSE, \BLOCK^k_{id, t})
 \]
-
-To simplify the definition of axioms two  $\EFFECTIVE^k: \BVSORT \to \BVSORT$
-\todo[inline]{
+To further simplify the definition of axioms, two additional functions are introduced:
+% Let $\EFFECTIVE^k: \BVSORT \to \BVSORT$ be a function for transparently selecting the effective address during $\texttt{STORE}$ or $\texttt{CAS}$ instructions.
+$\MSB: \BVSORT \to \BVSORT[1]$ for retrieving the most significant bit of a given bitvector and $\EFFECTIVE^k: \BVSORT \to \BVSORT$ for transparently selecting the effective address during $\texttt{STORE}$ or $\texttt{CAS}$ instructions.
 \[
   \EFFECTIVE^k(adr) =
   \begin{cases}
@@ -346,11 +353,7 @@ To simplify the definition of axioms two  $\EFFECTIVE^k: \BVSORT \to \BVSORT$
     adr \text{ otherwise}
   \end{cases}
 \]
-}
-
-\todo[inline]{
-$\MSB: \BVSORT \to \BVSORT[1]$
-}
+% and $\MSB: \BVSORT \to \BVSORT[1]$ a function for retrieving the most significant bit of a given bitvector.
 
 % $\SLICE: \BVSORT \times \mathcal{N} \times \mathcal{N} \to \BVSORT[m]$
 
@@ -388,55 +391,55 @@ $\MSB: \BVSORT \to \BVSORT[1]$
 % \doublerulesep=1.5 pt
 % \everyrow{\hline\hline}
 
-\newcommand{\defaxiom}[2]{
-  \paragraph{#1} ~\\
-  \rule[0.5\baselineskip]{\textwidth}{0.1pt}\vspace{-1\baselineskip}\par\noindent
-  #2
-}
+% \newcommand{\defaxiom}[2]{
+  % \paragraph{#1} ~\\
+  % \rule[0.5\baselineskip]{\textwidth}{0.1pt}\vspace{-1\baselineskip}\par\noindent
+  % #2
+% }
 
-\newpage
-\defaxiom
-{\texttt{FLUSH}}
-{
-  \begin{itemize}
-    \item[] $\HEAP^{k + 1} = \WRITE^k(\SBADR^k_t, \SBVAL^k_t)$
-    \item[] $\SBFULL^{k + 1} = false$
-  \end{itemize}
-}
+% \newpage
+% \defaxiom
+% {\texttt{FLUSH}}
+% {
+  % \begin{itemize}
+    % \item[] $\HEAP^{k + 1} = \WRITE^k(\SBADR^k_t, \SBVAL^k_t)$
+    % \item[] $\SBFULL^{k + 1} = false$
+  % \end{itemize}
+% }
 
-\defaxiom
-{\texttt{LOAD arg}}
-{
-  \begin{itemize}
-    \item[] $\ACCU^{k + 1}_t = \LOAD^k_t(\texttt{adr})$
-    \item[] $\STMT^k_{t, pc} = false$
-    \item[] $\STMT^k_{t, pc + 1} = true$
-  \end{itemize}
-}
+% \defaxiom
+% {\texttt{LOAD arg}}
+% {
+  % \begin{itemize}
+    % \item[] $\ACCU^{k + 1}_t = \LOAD^k_t(\texttt{adr})$
+    % \item[] $\STMT^k_{t, pc} = false$
+    % \item[] $\STMT^k_{t, pc + 1} = true$
+  % \end{itemize}
+% }
 
-\defaxiom
-{\texttt{STORE arg}}
-{
-  \begin{itemize}
-    \item[] $\SBADR^{k + 1}_t =
-      \begin{cases}
-        \READ^k(adr) \text{ if indirect} \\
-        adr \text{ otherwise}
-      \end{cases}$
-    \item[] $\SBVAL^{k + 1}_t = \ACCU^k_t$
-    \item[] $\STMT^k_{t, pc} = false$
-    \item[] $\STMT^k_{t, pc + 1} = true$
-  \end{itemize}
-}
+% \defaxiom
+% {\texttt{STORE arg}}
+% {
+  % \begin{itemize}
+    % \item[] $\SBADR^{k + 1}_t =
+      % \begin{cases}
+        % \READ^k(adr) \text{ if indirect} \\
+        % adr \text{ otherwise}
+      % \end{cases}$
+    % \item[] $\SBVAL^{k + 1}_t = \ACCU^k_t$
+    % \item[] $\STMT^k_{t, pc} = false$
+    % \item[] $\STMT^k_{t, pc + 1} = true$
+  % \end{itemize}
+% }
 
-\newsavebox{\STORESBADRAXIOM}
-\savebox{\STORESBADRAXIOM}{
-  \hspace{-0.3cm}
-  $\begin{cases}
-    \READ^k(adr) \text{ if indirect} \\
-    adr \text{ otherwise}
-  \end{cases}$
-}
+% \newsavebox{\STORESBADRAXIOM}
+% \savebox{\STORESBADRAXIOM}{
+  % \hspace{-0.3cm}
+  % $\begin{cases}
+    % \READ^k(adr) \text{ if indirect} \\
+    % adr \text{ otherwise}
+  % \end{cases}$
+% }
 
 \newsavebox{\CASHEAPAXIOM}
 \savebox{\CASHEAPAXIOM}{
@@ -457,6 +460,7 @@ $\MSB: \BVSORT \to \BVSORT[1]$
     % \hspace{1.5cm}
     % \text{otherwise}
   % \end{cases}$
+
   $\begin{aligned}
     \ITE(& \MEM^k_t = \READ^k(\EFFECTIVE^k(\texttt{arg})), \\
     & \WRITE^k(\EFFECTIVE^k(\texttt{arg}), \ACCU^k_t), \\
@@ -486,13 +490,13 @@ $\MSB: \BVSORT \to \BVSORT[1]$
     % \text{otherwise}
   % \end{cases}$
 
-  % $\begin{aligned}
-    % \ITE(& \MEM^k_t = \READ^k(\EFFECTIVE^k(\texttt{arg})), \\
-    % & 1, \\
-    % & 0)
-  % \end{aligned}$
+  $\begin{aligned}
+    \ITE(& \MEM^k_t = \READ^k(\EFFECTIVE^k(\texttt{arg})), \\
+    & 1, \\
+    & 0)
+  \end{aligned}$
 
-  $\ITE(\MEM^k_t = \READ^k(\EFFECTIVE^k(\texttt{arg})), 1, 0)$
+  % $\ITE(\MEM^k_t = \READ^k(\EFFECTIVE^k(\texttt{arg})), 1, 0)$
 }
 
 % \begin{longtabu}{llX[m]}
@@ -537,15 +541,15 @@ $\MSB: \BVSORT \to \BVSORT[1]$
 \begin{longtabu}{llX[m]}
   \firsthline
   \multirow{2}{*}{\texttt{FLUSH}}
-    & $\HEAP^{k + 1}$       & $= \WRITE^k(\SBADR^k_t, \SBVAL^k_t)$ \\
-    & $\SBFULL^{k + 1}$     & $= false$ \\
+    & $\HEAP^{k + 1}$   & $= \WRITE^k(\SBADR^k_t, \SBVAL^k_t)$ \\
+    & $\SBFULL^{k + 1}$ & $= \FALSE$ \\
   \hline
   % \hhline{===}
   % \tabucline[2pt off 2pt]{-}
-  \multirow{3}{*}{\texttt{LOAD adr}}
-    & $\ACCU^{k + 1}_t$     & $= \LOAD^k_t(\texttt{adr})$ \\
-    & $\STMT^k_{t, pc}$     & $= false$ \\
-    & $\STMT^k_{t, pc + 1}$ & $= true$ \\
+  \multirow{3.05}{*}{\texttt{LOAD arg}}
+    & $\ACCU^{k + 1}_t$           & $= \LOAD^k_t(\texttt{arg})$ \\
+    & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
+    & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
   % \hhline{===}
   % \multirow{2.5}{*}{\texttt{STORE adr}}
@@ -553,144 +557,143 @@ $\MSB: \BVSORT \to \BVSORT[1]$
     % & $\SBVAL^{k + 1}_t$    & $= \ACCU^k_t$ \\
     % & $\STMT^k_{t, pc}$     & $= false$ \\
     % & $\STMT^k_{t, pc + 1}$ & $= true$ \\
-  \multirow{4}{*}{\texttt{STORE adr}}
-    & $\SBADR^{k + 1}_t$    & $= \EFFECTIVE^k(\texttt{arg})$ \\
-    & $\SBVAL^{k + 1}_t$    & $= \ACCU^k_t$ \\
-    & $\STMT^k_{t, pc}$     & $= false$ \\
-    & $\STMT^k_{t, pc + 1}$ & $= true$ \\
+  \multirow{4}{*}{\texttt{STORE arg}}
+    & $\SBADR^{k + 1}_t$          & $= \EFFECTIVE^k(\texttt{arg})$ \\
+    & $\SBVAL^{k + 1}_t$          & $= \ACCU^k_t$ \\
+    & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
+    & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
   % \hhline{===}
   \multirow{2}{*}{\texttt{FENCE}}
-    & $\STMT^k_{t, pc}$     & $= false$ \\
-    & $\STMT^k_{t, pc + 1}$ & $= true$ \\
+    & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
+    & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
-  \multirow{3}{*}{\texttt{ADD adr}}
-    & $\ACCU^{k + 1}_t$     & $= \ACCU^k_t + \LOAD^k_t(\texttt{adr})$ \\
-    & $\STMT^k_{t, pc}$     & $= false$ \\
-    & $\STMT^k_{t, pc + 1}$ & $= true$ \\
+  \multirow{3.05}{*}{\texttt{ADD arg}}
+    & $\ACCU^{k + 1}_t$           & $= \ACCU^k_t + \LOAD^k_t(\texttt{arg})$ \\
+    & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
+    & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
-  \multirow{3}{*}{\texttt{ADDI val}}
-    & $\ACCU^{k + 1}_t$     & $= \ACCU^k_t + \texttt{val}$ \\
-    & $\STMT^k_{t, pc}$     & $= false$ \\
-    & $\STMT^k_{t, pc + 1}$ & $= true$ \\
+  \multirow{3.05}{*}{\texttt{ADDI arg}}
+    & $\ACCU^{k + 1}_t$           & $= \ACCU^k_t + \texttt{arg}$ \\
+    & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
+    & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
-  \multirow{3}{*}{\texttt{SUB adr}}
-    & $\ACCU^{k + 1}_t$     & $= \ACCU^k_t - \LOAD^k_t(\texttt{adr})$ \\
-    & $\STMT^k_{t, pc}$     & $= false$ \\
-    & $\STMT^k_{t, pc + 1}$ & $= true$ \\
+  \multirow{3.05}{*}{\texttt{SUB arg}}
+    & $\ACCU^{k + 1}_t$           & $= \ACCU^k_t - \LOAD^k_t(\texttt{arg})$ \\
+    & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
+    & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
-  \multirow{3}{*}{\texttt{SUBI val}}
-    & $\ACCU^{k + 1}_t$     & $= \ACCU^k_t - \texttt{val}$ \\
-    & $\STMT^k_{t, pc}$     & $= false$ \\
-    & $\STMT^k_{t, pc + 1}$ & $= true$ \\
+  \multirow{3.05}{*}{\texttt{SUBI arg}}
+    & $\ACCU^{k + 1}_t$           & $= \ACCU^k_t - \texttt{arg}$ \\
+    & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
+    & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
-  \multirow{3}{*}{\texttt{MUL adr}}
-    & $\ACCU^{k + 1}_t$     & $= \ACCU^k_t * \LOAD^k_t(\texttt{adr})$ \\
-    & $\STMT^k_{t, pc}$     & $= false$ \\
-    & $\STMT^k_{t, pc + 1}$ & $= true$ \\
+  \multirow{3.05}{*}{\texttt{MUL arg}}
+    & $\ACCU^{k + 1}_t$           & $= \ACCU^k_t * \LOAD^k_t(\texttt{arg})$ \\
+    & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
+    & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
-  \multirow{3}{*}{\texttt{MULI val}}
-    & $\ACCU^{k + 1}_t$     & $= \ACCU^k_t * \texttt{val}$ \\
-    & $\STMT^k_{t, pc}$     & $= false$ \\
-    & $\STMT^k_{t, pc + 1}$ & $= true$ \\
+  \newpage
   \hline
-  \multirow{3}{*}{\texttt{CMP adr}}
-    & $\ACCU^{k + 1}_t$     & $= \ACCU^k_t - \LOAD^k_t(\texttt{adr})$ \\
-    & $\STMT^k_{t, pc}$     & $= false$ \\
-    & $\STMT^k_{t, pc + 1}$ & $= true$ \\
+  \multirow{3.05}{*}{\texttt{MULI arg}}
+    & $\ACCU^{k + 1}_t$           & $= \ACCU^k_t * \texttt{arg}$ \\
+    & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
+    & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
+  \hline
+  \multirow{3}{*}{\texttt{CMP arg}}
+    & $\ACCU^{k + 1}_t$           & $= \ACCU^k_t - \LOAD^k_t(\texttt{arg})$ \\
+    & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
+    & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
   \multirow{2}{*}{\texttt{JMP arg}}
-    & $\STMT^k_{t, pc}$     & $= false$ \\
-    & $\STMT^k_{t,\texttt{arg}}$ & $= true$ \\
+    & $\STMT^{k + 1}_{t, pc}$           & $= \FALSE$ \\
+    & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \TRUE$ \\
   \hline
   \multirow{3}{*}{\texttt{JZ arg}}
-    & $\STMT^k_{t, pc}$     & $= false$ \\
-    & $\STMT^k_{t, pc + 1}$ & $= \ACCU^k_t$ \\
-    & $\STMT^k_{t,\texttt{arg}}$ & $= \lnot \ACCU^k_t$ \\
+    & $\STMT^{k + 1}_{t, pc}$           & $= \FALSE$ \\
+    & $\STMT^{k + 1}_{t, pc + 1}$       & $= \ACCU^k_t$ \\
+    & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \lnot \ACCU^k_t$ \\
   \hline
   \multirow{3}{*}{\texttt{JNZ arg}}
-    & $\STMT^k_{t, pc}$     & $= false$ \\
-    & $\STMT^k_{t, pc + 1}$ & $= \lnot \ACCU^k_t$ \\
-    & $\STMT^k_{t,\texttt{arg}}$ & $= \ACCU^k_t$ \\
+    & $\STMT^{k + 1}_{t, pc}$           & $= \FALSE$ \\
+    & $\STMT^{k + 1}_{t, pc + 1}$       & $= \lnot \ACCU^k_t$ \\
+    & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \ACCU^k_t$ \\
   \hline
   \multirow{3}{*}{\texttt{JS arg}}
-    & $\STMT^k_{t, pc}$     & $= false$ \\
-    % & $\STMT^k_{t, pc + 1}$ & $= \lnot (\ACCU^k_t \mathbin{\&} (1 \ll 15))$ \todo[noline]{shift?} \\
-    & $\STMT^k_{t, pc + 1}$ & $= \lnot \MSB(\ACCU^k_t)$ \\
-    % & $\STMT^k_{t,\texttt{arg}}$ & $= \ACCU^k_t \mathbin{\&} (1 \ll 15)$ \\
-    & $\STMT^k_{t,\texttt{arg}}$ & $= \MSB(\ACCU^k_t)$ \\
+    & $\STMT^{k + 1}_{t, pc}$           & $= \FALSE$ \\
+    & $\STMT^{k + 1}_{t, pc + 1}$       & $= \lnot \MSB(\ACCU^k_t)$ \\
+    & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \MSB(\ACCU^k_t)$ \\
   \hline
   \multirow{3}{*}{\texttt{JNS arg}}
-    & $\STMT^k_{t, pc}$     & $= false$ \\
-    % & $\STMT^k_{t, pc + 1}$ & $= \ACCU^k_t \mathbin{\&} (1 \ll 15)$ \\
-    & $\STMT^k_{t, pc + 1}$ & $= \MSB(\ACCU^k_t)$ \\
-    % & $\STMT^k_{t,\texttt{arg}}$ & $= \lnot (\ACCU^k_t \mathbin{\&} (1 \ll 15))$ \\
-    & $\STMT^k_{t,\texttt{arg}}$ & $= \lnot \MSB(\ACCU^k_t)$ \\
+    & $\STMT^{k + 1}_{t, pc}$           & $= \FALSE$ \\
+    & $\STMT^{k + 1}_{t, pc + 1}$       & $= \MSB(\ACCU^k_t)$ \\
+    & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \lnot \MSB(\ACCU^k_t)$ \\
   \hline
   \multirow{3}{*}{\texttt{JNZNS arg}}
-    & $\STMT^{k + 1}_{t, pc}$     & $= false$ \\
-    % & $\STMT^k_{t, pc + 1}$ & $= \lnot \ACCU^k_t \lor (\ACCU^k_t \mathbin{\&} (1 \ll 15))$ \\
-    & $\STMT^{k + 1}_{t, pc + 1}$ & $= \lnot \ACCU^k_t \lor \MSB(\ACCU^k_t)$ \\
-    % & $\STMT^k_{t,\texttt{arg}}$ & $= \ACCU^k_t \land \lnot (\ACCU^k_t \mathbin{\&} (1 \ll 15))$ \\
-    & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \ACCU^k_t \land \lnot \MSB(\ACCU^k_t)$ \\
+    & $\STMT^{k + 1}_{t, pc}$           & $= \FALSE$ \\
+    & $\STMT^{k + 1}_{t, pc + 1}$       & $= \lnot \ACCU^{k + 1}_t \lor \MSB(\ACCU^k_t)$ \\
+    & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \ACCU^{k + 1}_t \land \lnot \MSB(\ACCU^k_t)$ \\
   \hline
   \multirow{4}{*}{\texttt{MEM arg}}
-    & $\ACCU^{k + 1}_t$     & $= \LOAD^k_t(\texttt{adr})$ \\
-    & $\MEM^{k + 1}_t$      & $= \LOAD^k_t(\texttt{adr})$ \\
-    & $\STMT^{k + 1}_{t, pc}$     & $= false$ \\
-    & $\STMT^{k + k}_{t, pc + 1}$ & $= true$ \\
+    & $\ACCU^{k + 1}_t$           & $= \LOAD^k_t(\texttt{arg})$ \\
+    & $\MEM^{k + 1}_t$            & $= \LOAD^k_t(\texttt{arg})$ \\
+    & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
+    & $\STMT^{k + k}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
-  \multirow{2.35}{*}{\texttt{CAS arg}}
+  % \multirow{2.35}{*}{\texttt{CAS arg}}
+  \multirow{2.97}{*}{\texttt{CAS arg}}
     & $\HEAP^{k + 1}$             & $=$ \usebox{\CASHEAPAXIOM} \\
     & $\ACCU^{k + 1}_t$           & $=$ \usebox{\CASACCUAXIOM} \\
-    & $\STMT^{k + 1}_{t, pc}$     & $= false$ \\
-    & $\STMT^{k + 1}_{t, pc + 1}$ & $= true$ \\
+    & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
+    & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
   \multirow{2}{*}{\texttt{HALT}}
     % & $\EXIT^{k + 1}_t$ & $= \HALT^{k + 1}_0 \land \ldots \land \HALT^{k + 1}_{n - 1}$ \\
-    & $\EXIT^{k + 1}_t$ & $= \displaystyle \bigwedge^{n - 1}_{i = 0} \HALT^{k + 1}_i$ \\
-    & $\HALT^{k + 1}_t$ & $= true$ \\
-    & $\STMT^{k + 1}_{t, pc}$ & $= false$ \\
+    & $\EXIT^{k + 1}_t$       & $= \displaystyle \bigwedge^{n - 1}_{i = 0} \HALT^{k + 1}_i$ \\
+    & $\HALT^{k + 1}_t$       & $= \TRUE$ \\
+    & $\STMT^{k + 1}_{t, pc}$ & $= \FALSE$ \\
   \hline
   \multirow{3}{*}{\texttt{EXIT arg}}
-    & $\EXIT^{k + 1}_t$ & $= true$ \\
-    & $\EXITCODE^{k + 1}$ & $= \texttt{arg}$ \\
-    & $\STMT^{k + 1}_{t, pc}$ & $= false$ \\
+    & $\EXIT^{k + 1}_t$       & $= \TRUE$ \\
+    & $\EXITCODE^{k + 1}$     & $= \texttt{arg}$ \\
+    & $\STMT^{k + 1}_{t, pc}$ & $= \FALSE$ \\
   \hline
   \multirow{3}{*}{\texttt{CHECK arg}}
-    & $\STMT^k_{t, pc}$ & $= false$ \\
-    & $\STMT^k_{t, pc + 1}$ & $= false$ \\
-    & $\BLOCK^{k + 1}_{arg, t}$ & $= true$ \\
+    & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
+    & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
+    & $\BLOCK^{k + 1}_{arg, t}$   & $= \TRUE$ \\
   \lasthline
+  \caption{Frame Axioms}
+  \label{tbl:axioms}
 \end{longtabu}
 
 % \vspace{0.2cm}
-% \hline
-% \vspace{0.1cm}
-% \noindent
-% \begin{tabu} to \textwidth {lX[m]}
-  % $\HEAP^{k + 1}$       & $= \WRITE^k(\SBADR^k_t, \SBVAL^k_t)$ \\
-  % $\SBFULL^{k + 1}$     & $= false$ \\
-% \end{tabu}
+% \hlinE
+% \VSPACE{0.1CM}
+% \NOINDENT
+% \BEGIN{TABU} TO \TEXTWIDTH {Lx[M]}
+  % $\heap^{K + 1}$       & $= \write^K(\sbadr^K_T, \sbval^K_T)$ \\
+  % $\sbfull^{K + 1}$     & $= FALSE$ \\
+% \END{TABU}
 
-% \paragraph{\texttt{FLUSH}}
+% \PARAGRAPH{\TEXTTT{flush}}
 
-% \vspace{0.2cm}
-% \hline
-% \vspace{0.1cm}
-% \noindent
-% \begin{tabu} to \textwidth {lX[m]}
-  % $\HEAP^{k + 1}$       & $= \WRITE^k(\SBADR^k_t, \SBVAL^k_t)$ \\
-  % $\SBFULL^{k + 1}$     & $= false$ \\
-% \end{tabu}
+% \VSPACE{0.2CM}
+% \HLINE
+% \VSPACE{0.1CM}
+% \NOINDENT
+% \BEGIN{TABU} TO \TEXTWIDTH {Lx[M]}
+  % $\heap^{K + 1}$       & $= \write^K(\sbadr^K_T, \sbval^K_T)$ \\
+  % $\sbfull^{K + 1}$     & $= FALSE$ \\
+% \END{TABU}
 
-\[
-\texttt{compare}^k_t(adr) =
-\begin{cases}
-  \MEM^k_t = \READ^k(\READ^k(adr)) \text{ if indirect} \\
-  \MEM^k_t = \READ^k(adr) \text{ otherwise}
-\end{cases}
-\]
+% \[
+% \texttt{compare}^k_t(adr) =
+% \begin{cases}
+  % \MEM^k_t = \READ^k(\READ^k(adr)) \text{ if indirect} \\
+  % \MEM^k_t = \READ^k(adr) \text{ otherwise}
+% \end{cases}
+% \]
 
 % $\HEAP^{k + 1} =
 % \begin{cases}
@@ -708,18 +711,502 @@ $\MSB: \BVSORT \to \BVSORT[1]$
   % \text{ otherwise}
 % \end{cases}$
 
-Let $\texttt{define-accu}(k, t, pc)$ be the predicate defining the accumulator register state $\ACCU^k_t$ of thread $t$ in step $k$ and $pc$ the set of program counters, altering that state.% \todonote{refine}
+% Let $\texttt{define-accu}(k, t, pc)$ be the predicate defining the accumulator register state $\ACCU^k_t$ of thread $t$ in step $k$ and $pc$ the set of program counters, altering that state.% \todonote{refine}
 
-\paragraph{\texttt{LOAD adr}}
+% \paragraph{\texttt{LOAD adr}}
 
-\todo[inline]{frame axioms}
-
-\subsubsection{Statement Activation}
+% \subsubsection{Statement Activation}
 
 % \setlength{\tabulinesep}{2\lineskip}
-\begin{tabu}{|XX[r]||XX[r]||lr|}
+
+\newpage
+\subsection{SMT-Lib}
+
+\todo[inline]{Pseudo\texttt{++}}
+
+% \DontPrintSemicolon
+\SetAlgoVlined
+% \SetAlgoNoLine
+
+% default style
+\SetKwProg{Fn}{function}{}{end}
+
+% C-style
+% \SetStartEndCondition{ (}{) }{)}\SetAlgoBlockMarkers{\{}{\}}%
+% \AlgoDisplayBlockMarkers\SetAlgoNoLine%
+% \SetKwProg{Fn}{}{}{}
+% \SetKwIF{If}{ElseIf}{Else}{if}{}{elif}{else}{}%
+
+% alternative C-Style
+% \SetStartEndCondition{ (}{)}{)}\SetAlgoBlockMarkers{}{\}}%
+% \SetKwProg{Fn}{}{ \{}{}\SetKwFunction{FRecurs}{void FnRecursive}%
+% \SetKwFor{For}{for}{ \{}{}%
+% \SetKwIF{If}{ElseIf}{Else}{if}{ \{}{else if}{else \{}{}%
+% \SetKwFor{While}{while}{ \{}{}%
+% \SetKwRepeat{Repeat}{repeat\{}{until}%
+% \AlgoDisplayBlockMarkers\SetAlgoNoLine%
+
+% standard library functions
+\SetKwFunction{ToString}{str}
+\SetKwFunction{Append}{<<}
+
+% global variables %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\SetKwData{Formula}{formula}
+\SetKwData{EOL}{eol}
+
+\SetKwFunction{DeclareStates}{declare_states}
+\SetKwFunction{DeclareTransitions}{declare_transitions}
+\SetKwFunction{DefineTransitions}{define_transitions}
+\SetKwFunction{InitStates}{init_states}
+\SetKwFunction{DefineConstraints}{define_constraints}
+\SetKwFunction{DefineStates}{define_states}
+
+% macros
+\newcommand{\IterateThreads}[1]{\ForEach{thread t}{#1}}
+\newcommand{\IteratePrograms}[1]{\ForEach{thread t}{\ForEach{statement at pc}{#1}}}
+\newcommand{\IterateCheckpoints}[1]{\ForEach{checkpoint id}{\ForEach{thread t containing a call to id}{#1}}}
+
+% programs
+\noindent
+\begin{minipage}{.3\textwidth}
+  \lstinputlisting[
+    language={[concubine]Assembler},
+    numbers=left,
+    firstnumber=0,
+    numberstyle=\footnotesize,
+    xleftmargin=0.39\textwidth
+  ]{../../examples/demo/processor.0.asm}
+\end{minipage}
+\begin{minipage}{.3\textwidth}
+  \lstinputlisting[
+    language={[concubine]Assembler},
+    numbers=left,
+    firstnumber=0,
+    numberstyle=\footnotesize,
+    xleftmargin=0.39\textwidth
+  ]{../../examples/demo/processor.1.asm}
+\end{minipage}
+\begin{minipage}{.3\textwidth}
+  \lstinputlisting[
+    language={[concubine]Assembler},
+    numbers=left,
+    firstnumber=0,
+    numberstyle=\footnotesize,
+    xleftmargin=0.39\textwidth
+  ]{../../examples/demo/checker.asm}
+\end{minipage}
+
+% \noindent
+% \begin{tabu}{|X|X|X|}
+  % \hline
+  % \textbf{Thread 0} & \textbf{Thread 1} & \textbf{Thread 2} \\
+  % \hline
+  % \texttt{ADDI 1}   & \texttt{ADDI 1}   & \\
+  % \texttt{STORE 0}  & \texttt{STORE 1}  & \\
+  % \texttt{LOAD 1}   & \texttt{LOAD 0}   & \\
+  % \texttt{CHECK 0}  & \texttt{CHECK 0}  & \texttt{CHECK 0} \\
+  % \texttt{HALT}     & \texttt{HALT}     & \texttt{ADD 0} \\
+  % && \texttt{ADD 1} \\
+  % && \texttt{JZ error} \\
+  % && \texttt{EXIT 0} \\
+  % && \texttt{error:} \texttt{EXIT 1} \\
+  % \hline
+% \end{tabu}
+
+\noindent
+\begin{tabu}{|X|X|X|}
+  \firsthline
+  \centering \textbf{Thread 0} & \centering \textbf{Thread 1} & \centering \textbf{Thread 2} \\
   \hline
-  \multicolumn{2}{|c||}{\textbf{Thread 0}} & \multicolumn{2}{c||}{\textbf{Thread 1}} & \multicolumn{2}{c|}{\textbf{Thread 2}} \\
+  \hline
+  \begin{tabu}{lX}
+    0 & \lstinline[language={[concubine]Assembler}]{ADDI 1} \\
+    1 & \lstinline[language={[concubine]Assembler}]{STORE 0} \\
+    2 & \lstinline[language={[concubine]Assembler}]{LOAD 1} \\
+    3 & \lstinline[language={[concubine]Assembler}]{CHECK 0} \\
+    4 & \lstinline[language={[concubine]Assembler}]{HALT} \\
+  \end{tabu}
+  &
+  \begin{tabu}{lX}
+    0 & \lstinline[language={[concubine]Assembler}]{ADDI 1} \\
+    1 & \lstinline[language={[concubine]Assembler}]{STORE 1} \\
+    2 & \lstinline[language={[concubine]Assembler}]{LOAD 0} \\
+    3 & \lstinline[language={[concubine]Assembler}]{CHECK 0} \\
+    4 & \lstinline[language={[concubine]Assembler}]{HALT} \\
+  \end{tabu}
+  &
+  \begin{tabu}{lX}
+    & \\
+    & \\
+    & \\
+    0 & \lstinline[language={[concubine]Assembler}]{CHECK 0} \\
+    1 & \lstinline[language={[concubine]Assembler}]{ADD 0} \\
+    2 & \lstinline[language={[concubine]Assembler}]{ADD 1} \\
+    3 & \lstinline[language={[concubine]Assembler}]{JZ error} \\
+    4 & \lstinline[language={[concubine]Assembler}]{EXIT 0} \\
+    5 & \lstinline[language={[concubine]Assembler}]{error: EXIT 1} \\
+  \end{tabu} \\
+  \lasthline
+\end{tabu}
+
+\todo[inline]{gobal variables} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+// SMT formula buffer
+//
+ostringstream formula;
+
+// initial memory layout
+//
+map<word, word> mmap;
+
+// bound
+//
+size_t bound;
+
+// list of programs being encoded (index == thread id)
+//
+vector<vector<Instruction>> programs = {};
+
+// list of predecessors for each thread
+//
+// thread -> pc -> set of predecessors
+//
+vector<unordered_map<word, set<word>>> predecessors = {
+  {{0, {}}, {1, {0}}, {2, {1}}, {3, {2}}, {4, {3}}},
+  {{0, {}}, {1, {0}}, {2, {1}}, {3, {2}}, {4, {3}}},
+  {{0, {}}, {1, {0}}, {2, {1}}, {3, {2}}, {4, {3}}, {5, {3}}}
+};
+
+// pcs of statements requiring an empty store buffer
+//
+// thread -> list of program counters
+//
+map<word, vector<word>> flushes = {{0, {1, 4}}, {1, {1, 4}}};
+
+// pcs of checkpoint statements
+//
+// checkpoint id -> thread -> list of program counters
+//
+map<word, map<word, vector<word>>> checkpoints = {
+  {0, {{0, {3}}, {1, {3}}, {2, {0}}}}
+};
+
+// pcs of halt statements
+//
+// thread -> list of program counters
+//
+map<word, vector<word>> halts = {{0, {4}}, {1, {4}}};
+
+// pcs of exit calls
+//
+// thread -> list of program counters
+//
+map<word, vector<word>> exits = {{2, {4, 5}}};
+\end{lstlisting}
+
+\todo[inline]{main encoding function} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\SetKwFunction{Encode}{encode}
+\begin{algorithm}[H]
+  \Fn{\Encode{}}{
+    \Formula \Append \texttt{"(set-logic QF_AUFBV)"} \Append \EOL \Append \EOL\;
+    ~\\
+    \For{$k = 0$ \KwTo $bound$}{
+      \DeclareStates{k}\;
+      \DeclareTransitions{}\;
+      \DefineTransitions{}\;
+      \DefineConstraints{}\;
+      ~\\
+      \If{$k > 0$}{
+        \DefineStates{}\;
+      } \Else {
+        \InitStates{}\;
+      }
+    }
+  }
+\end{algorithm}
+
+\begin{lstlisting}[style=c++]
+void encode ()
+{
+  formula << "(set-logic QF_AUFBV)" << eol << eol;
+
+  for (step = 0, prev = -1; step <= bound; step++, prev++)
+    {
+      declare_states();
+      declare_transitions();
+      define_transitions();
+      define_constraints ();
+
+      if (step)
+        define_states();
+      else
+        init_states();
+    }
+}
+\end{lstlisting}
+
+\todo[inline]{declare states} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\SetKwFunction{DeclareAccu}{declare_accu}
+\SetKwFunction{DeclareMem}{declare_mem}
+\SetKwFunction{DeclareSBAdr}{declare_sb_adr}
+\SetKwFunction{DeclareSBVal}{declare_sb_val}
+\SetKwFunction{DeclareSBFull}{declare_sb_full}
+\SetKwFunction{DeclareStmt}{declare_stmt}
+\SetKwFunction{DeclareBlock}{declare_block}
+\SetKwFunction{DeclareHalt}{declare_halt}
+\SetKwFunction{DeclareHeap}{declare_heap}
+\SetKwFunction{DeclareExitFlag}{declare_exit_flag}
+\SetKwFunction{DeclareExitCode}{declare_exit_code}
+
+\begin{algorithm}[H]
+  \Fn{\DeclareStates{k}}{
+    \tcc{declare thread state variables}
+    \DeclareAccu{k}\;
+    \DeclareMem{}\;
+    \DeclareSBAdr{}\;
+    \DeclareSBVal{}\;
+    \DeclareSBFull{}\;
+    \DeclareStmt{}\;
+    \DeclareBlock{}\;
+    \DeclareHalt{}\;
+    ~\\
+    \tcc{declare machine state variables}
+    \DeclareHeap{}\;
+    \DeclareExitFlag{}\;
+    ~\\
+    \If{$k = 0$}{
+      \DeclareExitCode{}\;
+    }
+  }
+\end{algorithm}
+
+\begin{lstlisting}[style=c++]
+void declare_states ()
+{
+  // thread states
+  declare_accu();
+  declare_mem();
+  declare_sb_adr();
+  declare_sb_val();
+  declare_sb_full();
+  declare_stmt();
+  declare_block();
+  declare_halt();
+
+  // machine states
+  declare_heap();
+  declare_exit_flag();
+
+  if (!step)
+    declare_exit_code();
+}
+\end{lstlisting}
+
+\todo[inline]{declare accu} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\SetKwFunction{DeclareBV}{declare_bv_var}
+\begin{algorithm}[H]
+  \Fn{\DeclareBV{name}}{
+    \Return \texttt{"(declare-fun "} + \ArgSty{name} + \texttt{" () (_ BitVec 16))"}\;
+  }
+\end{algorithm}
+
+\SetKwFunction{AccuVar}{accu_var}
+\begin{algorithm}[H]
+  \Fn{\AccuVar{k, t}}{
+    \Return \texttt{"accu_"} + \ToString{k} + \texttt{"_"} + \ToString{t}\;
+  }
+\end{algorithm}
+
+\begin{algorithm}[H]
+  \Fn{\DeclareAccu{k}}{
+    \IterateThreads{
+      \Formula \Append \DeclareBV{\AccuVar{k, t}} \Append \EOL\;
+    }
+    \Formula \Append \EOL\;
+  }
+\end{algorithm}
+
+\begin{lstlisting}[style=c++]
+string declare_bv_var (string name)
+{
+  return "(declare-fun " + name + " () (_BitVec 16))";
+}
+\end{lstlisting}
+
+\begin{lstlisting}[
+  style=c++,
+  morekeywords={std::string, std::to_string},
+]
+std::string accu_var (int k, int t)
+{
+  return "accu_" + std::to_string(k) + '_' + std::to_string(t);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+template <class Functor>
+void iterate_threads (const Functor & fun)
+{
+  for (thread = 0; thread < programs->size(); thread++)
+    fun();
+}
+
+void declare_accu (int k)
+{
+  iterate_threads([] {
+    formula << declare_bv_var(accu_var(k, t)) << eol;
+  });
+  formula << eol;
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+void declare_accu (int k)
+{
+  for (int t = 0; t < programs.size(); t++)
+    formula << declare_bv_var(accu_var(k, t)) << eol;
+  formula << eol;
+}
+\end{lstlisting}
+
+% \lstinputlisting[language=SMTLib, linerange={9-12}]{../../examples/demo/formula.functional.smt2}
+\begin{lstlisting}[language=SMTLib]
+; accu variables - accu_<step>_<thread>
+(declare-fun accu_0_0 () (_ BitVec 16))
+(declare-fun accu_0_1 () (_ BitVec 16))
+(declare-fun accu_0_2 () (_ BitVec 16))
+\end{lstlisting}
+
+\todo[inline]{declare mem} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Symbol generator for $\MEM^k_t$
+
+\SetKwFunction{MemVar}{mem_var}
+\begin{algorithm}[H]
+  \Fn{\MemVar{k, t}}{
+    \Return \texttt{"mem_"} + \ToString{k} + \texttt{"_"} + \ToString{t}\;
+  }
+\end{algorithm}
+
+\begin{algorithm}[H]
+  \Fn{\DeclareMem{k}}{
+    \IterateThreads{
+      \Formula \Append \DeclareBV{\MemVar{k, t}} \Append \EOL\;
+    }
+    \Formula \Append \EOL\;
+  }
+\end{algorithm}
+
+\begin{lstlisting}[language=SMTLib]
+; mem variables - mem_<step>_<thread>
+(declare-fun mem_0_0 () (_ BitVec 16))
+(declare-fun mem_0_1 () (_ BitVec 16))
+(declare-fun mem_0_2 () (_ BitVec 16))
+\end{lstlisting}
+
+\todo[inline]{declare sb-adr} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\SetKwFunction{SBAdrVar}{sb_adr_var}
+\begin{algorithm}[H]
+  \Fn{\SBAdrVar{k, t}}{\Return \texttt{"sb-adr_"} + \ToString{k} + \texttt{"_"} + \ToString{t}\;}
+\end{algorithm}
+
+\begin{algorithm}[H]
+  \Fn{\DeclareSBAdr{k}}{
+    \IterateThreads{
+      \Formula \Append \DeclareBV{\SBAdrVar{k, t}} \Append \EOL\;
+    }
+    \Formula \Append \EOL\;
+  }
+\end{algorithm}
+
+\begin{lstlisting}[language=SMTLib]
+; store buffer address variables - sb-adr_<step>_<thread>
+(declare-fun sb-adr_0_0 () (_ BitVec 16))
+(declare-fun sb-adr_0_1 () (_ BitVec 16))
+(declare-fun sb-adr_0_2 () (_ BitVec 16))
+\end{lstlisting}
+
+\todo[inline]{declare sb_val} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\SetKwFunction{SBValVar}{sb_val_var}
+\begin{algorithm}[H]
+  \Fn{\SBValVar{k, t}}{\Return \texttt{"sb-val_"} + \ToString{k} + \texttt{"_"} + \ToString{t}\;}
+\end{algorithm}
+
+\begin{algorithm}[H]
+  \Fn{\DeclareSBVal{k}}{
+    \IterateThreads{
+      \Formula \Append \DeclareBV{\SBValVar{k, t}} \Append \EOL\;
+    }
+    \Formula \Append \EOL\;
+  }
+\end{algorithm}
+
+\begin{lstlisting}[language=SMTLib]
+; store buffer value variables - sb-val_<step>_<thread>
+(declare-fun sb-val_0_0 () (_ BitVec 16))
+(declare-fun sb-val_0_1 () (_ BitVec 16))
+(declare-fun sb-val_0_2 () (_ BitVec 16))
+\end{lstlisting}
+
+\todo[inline]{declare sb_full} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\SetKwFunction{DeclareBool}{declare_bool_var}
+\begin{algorithm}[H]
+  \Fn{\DeclareBool{name}}{
+    \Return \texttt{"(declare-fun "} $+$ \ArgSty{name} $+$ \texttt{" () Bool)"}\;
+  }
+\end{algorithm}
+
+\SetKwFunction{SBFullVar}{sb_full_var}
+\begin{algorithm}[H]
+  \Fn{\SBFullVar{k, t}}{\Return \texttt{"sb-full_"} + \ToString{k} + \texttt{"_"} + \ToString{t}\;}
+\end{algorithm}
+
+\begin{algorithm}[H]
+  \Fn{\DeclareSBFull{k}}{
+    \IterateThreads{
+      \Formula \Append \DeclareBool{\SBFullVar{k, t}} \Append \EOL\;
+    }
+    \Formula \Append \EOL\;
+  }
+\end{algorithm}
+
+\begin{lstlisting}[language=SMTLib]
+; store buffer full variables - sb-full_<step>_<thread>
+(declare-fun sb-full_0_0 () Bool)
+(declare-fun sb-full_0_1 () Bool)
+(declare-fun sb-full_0_2 () Bool)
+\end{lstlisting}
+
+\todo[inline]{declare stmt} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\SetKwFunction{StmtVar}{stmt_var}
+\begin{algorithm}[H]
+  \Fn{\StmtVar{k, t, pc}}{\Return \texttt{"stmt_"} + \ToString{k} + \texttt{"_"} + \ToString{t} + \texttt{"_"} + \ToString{pc}\;}
+\end{algorithm}
+
+\begin{algorithm}[H]
+  \Fn{\DeclareStmt{k}}{
+    \IteratePrograms{
+      \Formula \Append \DeclareBool{\StmtVar{k, t, pc}} \Append \EOL\;
+      % \Formula \\
+      % \Indp \Append \DeclareBool{\StmtVar{k, t, pc}} \\
+      % \Append \EOL\;
+    }
+    \Formula \Append \EOL\;
+  }
+\end{algorithm}
+
+\noindent
+\begin{tabu}{|XX[r]|XX[r]|lr|}
+  \hline
+  \multicolumn{2}{|c|}{\textbf{Thread 0}} & \multicolumn{2}{c|}{\textbf{Thread 1}} & \multicolumn{2}{c|}{\textbf{Thread 2}} \\
   \hline
   \texttt{ADDI 1}   & $\STMT^k_{0, 0}$  & \texttt{ADDI 1}   & $\STMT^k_{1, 0}$  && \\
   \texttt{STORE 0}  & $\STMT^k_{0, 1}$  & \texttt{STORE 1}  & $\STMT^k_{1, 1}$  && \\
@@ -729,11 +1216,607 @@ Let $\texttt{define-accu}(k, t, pc)$ be the predicate defining the accumulator r
   &&&& \texttt{ADD 1}         & $\STMT^k_{2, 2}$ \\
   &&&& \texttt{JZ error}      & $\STMT^k_{2, 3}$ \\
   &&&& \texttt{EXIT 0}        & $\STMT^k_{2, 4}$ \\
-  &&&& \texttt{error: EXIT 1} & $\STMT^k_{2, 5}$ \\
+  &&&& \texttt{error:} \texttt{EXIT 1} & $\STMT^k_{2, 5}$ \\
   \hline
 \end{tabu}
 
-\subsection{SMT-Lib}
+\begin{lstlisting}[language=SMTLib]
+; statement activation variables - stmt_<step>_<thread>_<pc>
+(declare-fun stmt_0_0_0 () Bool)
+(declare-fun stmt_0_0_1 () Bool)
+(declare-fun stmt_0_0_2 () Bool)
+(declare-fun stmt_0_0_3 () Bool)
+(declare-fun stmt_0_0_4 () Bool)
+
+(declare-fun stmt_0_1_0 () Bool)
+(declare-fun stmt_0_1_1 () Bool)
+(declare-fun stmt_0_1_2 () Bool)
+(declare-fun stmt_0_1_3 () Bool)
+(declare-fun stmt_0_1_4 () Bool)
+
+(declare-fun stmt_0_2_0 () Bool)
+(declare-fun stmt_0_2_1 () Bool)
+(declare-fun stmt_0_2_2 () Bool)
+(declare-fun stmt_0_2_3 () Bool)
+(declare-fun stmt_0_2_4 () Bool)
+(declare-fun stmt_0_2_5 () Bool)
+\end{lstlisting}
+
+\todo[inline]{declare block} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\SetKwFunction{BlockVar}{block_var}
+\begin{algorithm}[H]
+  \Fn{\BlockVar{k, id, t}}{\Return \texttt{"block_"} + \ToString{k} + \texttt{"_"} + \ToString{id} + \texttt{"_"} + \ToString{t}\;}
+\end{algorithm}
+
+\begin{algorithm}[H]
+  \Fn{\DeclareBlock{k}}{
+    \IterateCheckpoints{
+      \Formula \Append \DeclareBool{\BlockVar{k, id, t}} \Append \EOL\;
+    }
+    \Formula \Append \EOL\;
+  }
+\end{algorithm}
+
+\begin{lstlisting}[language=SMTLib]
+; blocking variables - block_<step>_<id>_<thread>
+(declare-fun block_0_0_0 () Bool)
+(declare-fun block_0_0_1 () Bool)
+(declare-fun block_0_0_2 () Bool)
+\end{lstlisting}
+
+\todo[inline]{declare halt} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\SetKwFunction{HaltVar}{halt_var}
+\begin{algorithm}[H]
+  \Fn{\HaltVar{k, t}}{\Return \texttt{"halt_"} + \ToString{k} + \texttt{"_"} + \ToString{t}\;}
+\end{algorithm}
+
+\begin{algorithm}[H]
+  \Fn{\DeclareHalt{k}}{
+    \todo[noline]{skip if there are no halts?}
+    \IterateThreads{
+      \Formula \Append \DeclareBool{\HaltVar{k, t}} \Append \EOL\;
+    }
+    \Formula \Append \EOL\;
+  }
+\end{algorithm}
+
+\begin{lstlisting}[language=SMTLib]
+; halt variables - halt_<step>_<thread>
+(declare-fun halt_0_0 () Bool)
+(declare-fun halt_0_1 () Bool)
+(declare-fun halt_0_2 () Bool)
+\end{lstlisting}
+
+\todo[inline]{declare heap} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\SetKwFunction{DeclareArray}{declare_array_var}
+\begin{algorithm}[H]
+  \Fn{\DeclareArray{name}}{
+    % \Return \texttt{"(declare-fun "} $+$ \ArgSty{name} $+$ \texttt{" (Array (\_ BitVec 16) (\_ BitVec 16)))"}\;
+    \begin{tabbing}
+      \Return \=\texttt{"(declare-fun "} \\
+      \> $+$ \ArgSty{name} \\
+      \> $+$ \texttt{" (Array (\_ BitVec 16) (\_ BitVec 16)))"}\;
+    \end{tabbing}
+    \vspace{-1\baselineskip}
+  }
+\end{algorithm}
+
+\SetKwFunction{HeapVar}{heap_var}
+\begin{algorithm}[H]
+  \Fn{\HeapVar{k, t}}{\Return \texttt{"heap_"} + \ToString{k}\;}
+\end{algorithm}
+
+\begin{algorithm}[H]
+  \Fn{\DeclareHeap{k}}{
+    \Formula \Append \DeclareArray{\HeapVar{k}} \Append \EOL \Append \EOL\;
+  }
+\end{algorithm}
+
+\begin{lstlisting}[language=SMTLib]
+; heap variable - heap_<step>
+(declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))
+\end{lstlisting}
+
+\todo[inline]{declare exit-flag} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\SetKwFunction{ExitFlagVar}{exit_flag_var}
+\begin{algorithm}[H]
+  \Fn{\ExitFlagVar{k}}{\Return \texttt{"exit_"} + \ToString{k}\;}
+\end{algorithm}
+
+\begin{algorithm}[H]
+  \Fn{\DeclareExitFlag{k}}{
+    \Formula \Append \DeclareBool{\ExitFlagVar{k}} \Append \EOL \Append \EOL\;
+  }
+\end{algorithm}
+
+\begin{lstlisting}[language=SMTLib]
+; exit flag variable - exit_<step>
+(declare-fun exit_0 () Bool)
+\end{lstlisting}
+
+\todo[inline]{declare exit-code} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\SetKwFunction{ExitCodeVar}{exit_code_var}
+\begin{algorithm}[H]
+  \Fn{\ExitCodeVar{}}{\Return \texttt{"exit_code"}\;}
+\end{algorithm}
+
+\begin{algorithm}[H]
+  \Fn{\DeclareExitCode{}}{
+    \Formula \Append \DeclareBool{\ExitCodeVar{}} \Append \EOL \Append \EOL\;
+  }
+\end{algorithm}
+
+\begin{lstlisting}[language=SMTLib]
+; exit code variable
+(declare-fun exit-code () (_ BitVec 16))
+\end{lstlisting}
+
+\todo[inline]{declare transitions} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\SetKwFunction{DeclareThread}{declare_thread}
+\SetKwFunction{DeclareExec}{declare_exec}
+\SetKwFunction{DeclareFlush}{declare_flush}
+\SetKwFunction{DeclareCheck}{declare_check}
+
+\begin{algorithm}[H]
+  \Fn{\DeclareTransitions{k}}{
+    \DeclareThread{k}\;
+    \DeclareExec{}\;
+    \DeclareFlush{}\;
+    \DeclareCheck{}\;
+  }
+\end{algorithm}
+
+\todo[inline]{declare thread} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\SetKwFunction{ThreadVar}{thread_var}
+\begin{algorithm}[H]
+  \Fn{\ThreadVar{k, t}}{\Return \texttt{"thread_"} + \ToString{k} + \texttt{"_"} + \ToString{t}\;}
+\end{algorithm}
+
+\begin{algorithm}[H]
+  \Fn{\DeclareThread{k}}{
+    \IterateThreads{
+      \Formula \Append \DeclareBool{\ThreadVar{k, t}} \Append \EOL\;
+    }
+    \Formula \Append \EOL\;
+  }
+\end{algorithm}
+
+\begin{lstlisting}[language=SMTLib]
+; thread activation variables - thread_<step>_<thread>
+(declare-fun thread_0_0 () Bool)
+(declare-fun thread_0_1 () Bool)
+(declare-fun thread_0_2 () Bool)
+\end{lstlisting}
+
+\todo[inline]{declare exec} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\SetKwFunction{ExecVar}{exec_var}
+\begin{algorithm}[H]
+  \Fn{\ExecVar{k, t, pc}}{\Return \texttt{"exec_"} + \ToString{k} + \texttt{"_"} + \ToString{t} + \texttt{"_"} + \ToString{pc}\;}
+\end{algorithm}
+
+\begin{algorithm}[H]
+  \Fn{\DeclareExec{k}}{
+    \IteratePrograms{
+      \Formula \Append \DeclareBool{\ExecVar{k, t, pc}} \Append \EOL\;
+    }
+    \Formula \Append \EOL\;
+  }
+\end{algorithm}
+
+\begin{lstlisting}[language=SMTLib]
+; statement execution variables - exec_<step>_<thread>_<pc>
+(declare-fun exec_0_0_0 () Bool)
+(declare-fun exec_0_0_1 () Bool)
+(declare-fun exec_0_0_2 () Bool)
+(declare-fun exec_0_0_3 () Bool)
+(declare-fun exec_0_0_4 () Bool)
+
+(declare-fun exec_0_1_0 () Bool)
+(declare-fun exec_0_1_1 () Bool)
+(declare-fun exec_0_1_2 () Bool)
+(declare-fun exec_0_1_3 () Bool)
+(declare-fun exec_0_1_4 () Bool)
+
+(declare-fun exec_0_2_0 () Bool)
+(declare-fun exec_0_2_1 () Bool)
+(declare-fun exec_0_2_2 () Bool)
+(declare-fun exec_0_2_3 () Bool)
+(declare-fun exec_0_2_4 () Bool)
+(declare-fun exec_0_2_5 () Bool)
+\end{lstlisting}
+
+\todo[inline]{declare flush} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\SetKwFunction{FlushVar}{flush_var}
+\begin{algorithm}[H]
+  \Fn{\FlushVar{k, t}}{\Return \texttt{"flush_"} + \ToString{k} + \texttt{"_"} + \ToString{t}\;}
+\end{algorithm}
+
+\begin{algorithm}[H]
+  \Fn{\DeclareFlush{k}}{
+    \IterateThreads{
+      \Formula \Append \DeclareBool{\FlushVar{k, t}} \Append \EOL\;
+    }
+    \Formula \Append \EOL\;
+  }
+\end{algorithm}
+
+\begin{lstlisting}[language=SMTLib]
+; store buffer flush variables - flush_<step>_<thread>
+(declare-fun flush_0_0 () Bool)
+(declare-fun flush_0_1 () Bool)
+(declare-fun flush_0_2 () Bool)
+\end{lstlisting}
+
+\todo[inline]{declare check} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\SetKwFunction{CheckVar}{check_var}
+\begin{algorithm}[H]
+  \Fn{\CheckVar{k, id}}{\Return \texttt{"check_"} + \ToString{k} + \texttt{"_"} + \ToString{id}\;}
+\end{algorithm}
+
+\begin{algorithm}[H]
+  \Fn{\DeclareFlush{k}}{
+    \ForEach{checkoint id}{
+      \Formula \Append \DeclareBool{\FlushVar{k, t}} \Append \EOL\;
+    }
+    \Formula \Append \EOL\;
+  }
+\end{algorithm}
+
+\begin{lstlisting}[language=SMTLib]
+; checkpoint variables - check_<step>_<id>
+(declare-fun check_0_0 () Bool)
+\end{lstlisting}
+
+\todo[inline]{define transitions} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\SetKwFunction{DefineExec}{define_exec}
+\SetKwFunction{DefineCheck}{define_check}
+
+\begin{algorithm}[H]
+  \Fn{\DefineTransitions{k}}{
+    \DefineExec{}\;
+    \DefineCheck{}\;
+  }
+\end{algorithm}
+
+\todo[inline]{define exec} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\SetKwFunction{Assert}{assert}
+\begin{algorithm}[H]
+  \Fn{\Assert{expr}}{
+    \Return \texttt{"(assert "} + \ArgSty{expr} + \texttt{")"}\;
+  }
+\end{algorithm}
+
+\SetKwFunction{Equality}{equality}
+\begin{algorithm}[H]
+  \Fn{\Equality{var, expr}}{
+    \Return \texttt{"(= "} + \ArgSty{var} + \texttt{" "} + \ArgSty{expr} + \texttt{")"}\;
+  }
+\end{algorithm}
+
+\SetKwFunction{Assign}{assign}
+\begin{algorithm}[H]
+  \Fn{\Assign{var, expr}}{
+    \Return \Assert{\Equality{var, expr}}\;
+  }
+\end{algorithm}
+
+\SetKwFunction{And}{and}
+\begin{algorithm}[H]
+  \Fn{\And{args}}{
+    \Return \texttt{"(and "} + \ArgSty{var} + \texttt{" "} + \ArgSty{expr} + \texttt{")"}\;
+  }
+\end{algorithm}
+
+\begin{algorithm}[H]
+  \Fn{\DefineExec{k}}{
+    \IteratePrograms{
+      % \Formula \Append \\
+        % \Indp \Assign{ \\
+          % \Indp \ExecVar{k, t, pc}, \\
+          % \Indp \And{\StmtVar{k, t, pc}, \ThreadVar{k, t}}}\;
+      \begin{tabbing}
+        \Formula \Append \Assign{\=\ExecVar{k, t, pc}, \\
+        \> \And{\=\StmtVar{k, t, pc}, \\
+        \> \> \ThreadVar{k, t}}}\;
+      \end{tabbing}
+      \vspace{-1\baselineskip}
+    }
+    \Formula \Append \EOL\;
+  }
+\end{algorithm}
+
+\begin{lstlisting}[style=c++]
+template <class ... T>
+inline string expr (const char * op, const T & ... args)
+{
+  string e = '(' + op;
+  (((e += ' ') += args), ...);
+  return e += ')';
+}
+
+template <template <class, class...> class C>
+inline string expr (const char * op, const C<string> & args)
+{
+  string e = '(' + op;
+  for (const auto & a : args)
+    (e += ' ') += a;
+  return e += ')';
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+string assert (string expr)
+{
+  return expr("assert", expr);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+string assert (string expr)
+{
+  return "(assert " + expr + ')';
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+string equality (string var, string expr)
+{
+  return "(= " + var + ' ' + expr + ')';
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+string assign (string var, string expr)
+{
+  return assert(equality(var, expr));
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+void define_exec ()
+{
+  for (const Program & program : programs)
+    {
+      for (pc = 0; pc < program.size(); pc++)
+        formula << assign(exec(k, t, pc),
+                          land(stmt(k, t, pc),
+                               thread(k, t))) << eol;
+      formula << eol;
+    }
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=SMTLib]
+; statement execution variables - exec_<step>_<thread>_<pc>
+(assert (= exec_0_0_0 (and stmt_0_0_0 thread_0_0)))
+(assert (= exec_0_0_1 (and stmt_0_0_1 thread_0_0)))
+(assert (= exec_0_0_2 (and stmt_0_0_2 thread_0_0)))
+(assert (= exec_0_0_3 (and stmt_0_0_3 thread_0_0)))
+(assert (= exec_0_0_4 (and stmt_0_0_4 thread_0_0)))
+
+(assert (= exec_0_1_0 (and stmt_0_1_0 thread_0_1)))
+(assert (= exec_0_1_1 (and stmt_0_1_1 thread_0_1)))
+(assert (= exec_0_1_2 (and stmt_0_1_2 thread_0_1)))
+(assert (= exec_0_1_3 (and stmt_0_1_3 thread_0_1)))
+(assert (= exec_0_1_4 (and stmt_0_1_4 thread_0_1)))
+
+(assert (= exec_0_2_0 (and stmt_0_2_0 thread_0_2)))
+(assert (= exec_0_2_1 (and stmt_0_2_1 thread_0_2)))
+(assert (= exec_0_2_2 (and stmt_0_2_2 thread_0_2)))
+(assert (= exec_0_2_3 (and stmt_0_2_3 thread_0_2)))
+(assert (= exec_0_2_4 (and stmt_0_2_4 thread_0_2)))
+(assert (= exec_0_2_5 (and stmt_0_2_5 thread_0_2)))
+\end{lstlisting}
+
+\todo[inline]{define check} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\SetKwFunction{Not}{not}
+\begin{algorithm}[H]
+  \Fn{\Not{expr}}{
+    \Return \texttt{"(not "} + \ArgSty{expr} + \texttt{")"}\;
+  }
+\end{algorithm}
+
+\begin{algorithm}[H]
+  \Fn{\DefineCheck{k}}{
+    \ForEach{checkpoint id}{
+      \SetKwData{Args}{args}
+      \If{$k > 0$}{
+        \Args = \{\}\;
+        % list \Args\;
+        \ForEach{thread t containing a call to checkpoint id}{
+          % push to args bitvector
+          % \Args.append(\BlockVar{k, id, t})\;
+          \SetKwFunction{Push}{append}
+          \Push{\Args, \BlockVar{k, id, t}}\;
+        }
+
+        \Formula \Append \Assign{\CheckVar{k, id}, \And{\Args}}\;
+      }
+      \Else {
+        \Formula \Append \Assert{\Not{\CheckVar{k, id}}}\;
+      }
+    }
+    \Formula \Append \EOL\;
+  }
+\end{algorithm}
+
+\begin{algorithm}[H]
+  \Fn{\DefineCheck{k}}{
+    \SetKwData{Args}{args}
+    \For{every checkpoint id}{
+      \If{step > 0}{
+        \Args = list of all threads containing a call to checkpoint id\;
+        append assignment to the formula\;
+      }
+      \Else{
+        append an assertion of the negated check variable\;
+      }
+    }
+  }
+\end{algorithm}
+
+\begin{algorithm}[H]
+  \Fn{\DefineCheck{k}}{
+    \ForEach{id \KwSty{in} \DataSty{checkpoints}}{
+      \SetKwData{Args}{args}
+      \If{$k > 0$}{
+        % \Args\;
+        % list \Args\;
+        \ForEach{t \KwSty{in} \DataSty{checkpoints[\ArgSty{id}]}}{
+          % push to args bitvector
+          \SetKwFunction{Put}{push_back}
+          \Args.\Put{\BlockVar{k, id, t}}\;
+          % \Push{\Args, \BlockVar{k, id, t}}\;
+        }
+
+        \Formula \Append \Assign{\CheckVar{k, id}, \And{\Args}}\;
+      }
+      \Else {
+        \Formula \Append \Assert{\Not{\CheckVar{k, id}}}\;
+      }
+    }
+    \Formula \Append \EOL\;
+  }
+\end{algorithm}
+
+\begin{lstlisting}[style=c++]
+void define_check ()
+{
+  if (checkpoints.empty())
+    return;
+
+  for (const auto & [id, threads] : checkpoints)
+    {
+      if (step)
+        {
+          vector<string> args;
+
+          for (const auto & t : threads)
+            args.push_back(block_var(step, id, t.first));
+
+          formula << assign(check_var(step, id), land(args));
+        }
+      else
+        formula << assertion(lnot(check_var(step, id)));
+
+      formula << eol;
+    }
+
+  formula << eol;
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=SMTLib]
+; checkpoint variables - check_<step>_<id>
+(assert (not check_0_0))
+\end{lstlisting}
+
+% \begin{lstlisting}[language=SMTLib]
+% ; checkpoint variables - check_<step>_<id>
+% (assert (= check_1_0 (and block_1_0_0 block_1_0_1 block_1_0_2)))
+% \end{lstlisting}
+
+\todo[inline]{define constraints} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\SetKwFunction{DefineSchedulingConstraints}{define_scheduling_constraints}
+\SetKwFunction{DefineStoreBufferConstraints}{define_store_buffer_constraints}
+\SetKwFunction{DefineCheckpointConstraints}{define_checkpoint_constraints}
+\SetKwFunction{DefineHaltConstraints}{define_halt_constraints}
+
+\begin{algorithm}[H]
+  \Fn{\DefineConstraints{k}}{
+    \DefineSchedulingConstraints{k}\;
+    \DefineStoreBufferConstraints{k}\;
+    \DefineCheckpointConstraints{k}\;
+    \DefineHaltConstraints{k}\;
+  }
+\end{algorithm}
+
+\todo[inline]{define scheduling constraints} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\todo[inline]{define store buffer constraints} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\todo[inline]{define checkpoint constraints} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\todo[inline]{define halt constraints} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\todo[inline]{} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% \DataSty{bound}
+% \[\Programs{i}\KwSty{[}\ArgSty{j}\KwSty{]} = \Int\]
+% \Size{\Programs{i}}
+
+% \Word: 16 bit unsigned integer
+
+
+\SetKw{Int}{word}
+\SetKw{String}{string}
+\SetKwFunction{Size}{size}
+\SetKwArray{Programs}{programs}
+
+\begin{algorithm}[H]
+  \Fn{\AccuVar{k, t}}{\Return \texttt{"accu_"} + \ToString{k} + \texttt{"_"} + \ToString{t}\;}
+\end{algorithm}
+
+\begin{algorithm}[H]
+  \Fn{\AccuVar{k: \Int, t: \Int} : \String}{\Return \texttt{"accu_"} + \ToString{k} + \texttt{"_"} + \ToString{t}\;}
+  % \Fn{accu(k: int, t: int) : int}{\KwRet printf(\texttt{"accu_\%d_\%d"}, k, t)\;}
+\end{algorithm}
+
+\SetKwFunction{DeclareBool}{declare_bool_var}
+\begin{algorithm}[H]
+  \Fn{\DeclareBool{name}}{
+    \Return \texttt{"(declare-fun "} $+$ \ArgSty{name} $+$ \texttt{" () Bool)"}\;
+  }
+\end{algorithm}
+
+\SetKwFunction{DeclareBV}{declare_bv_var}
+\begin{algorithm}[H]
+  \Fn{\DeclareBV{name}}{
+    \Return \texttt{"(declare-fun "} $+$ \ArgSty{name} $+$ \texttt{" () (_ BitVec 16))"}\;
+  }
+\end{algorithm}
+
+\SetKwFunction{DeclareAccu}{declare_accu}
+\begin{algorithm}[H]
+  \Fn{\DeclareAccu{step}}{
+    \For{$i = 0$ \KwTo $\Size{\Programs} - 1$}{
+      \Formula \Append \DeclareBV{\AccuVar{step, i}} \Append \DataSty{eol}\;
+    }
+    \Formula \Append \DataSty{eol}\;
+  }
+\end{algorithm}
+
+% \begin{algorithm}[H]
+  % \Fn{\DeclareAccu{}}{
+    % \NumThreads\;
+    % \Formula \FuncSty{+=} \texttt{"(set-logic QF_AUFBV)"}\;
+    % \Formula \FuncSty{+=} \texttt{"(declare-fun "} $+$ \AccuVar{i, j} $+$ \texttt{" () Bool)"}\;
+    % \For{$i = 0$ \KwTo $\Size{\Programs{thread}} - 1$}{
+    % % \For{$(i = 0;\ i < \Size{\Programs{thread}};\ i\FuncSty{++})$}{
+      % bar\;
+    % }
+  % }
+% \end{algorithm}
+
+\begin{algorithm}[H]
+  \SetKwProg{Fn}{Function}{ is}{end}
+  \KwIn{foo bar}
+  \Fn{afunc(i: int) : int}{return 0\;}
+\end{algorithm}
 
 \subsection{BTOR2}
 
