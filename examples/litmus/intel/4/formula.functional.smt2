@@ -61,6 +61,21 @@
 (assert (= exec_0_0_2 (and stmt_0_0_2 thread_0_0)))
 (assert (= exec_0_0_3 (and stmt_0_0_3 thread_0_0)))
 
+; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (or thread_0_0 flush_0_0 exit_0))
+(assert (or (not thread_0_0) (not flush_0_0)))
+(assert (or (not thread_0_0) (not exit_0)))
+(assert (or (not flush_0_0) (not exit_0)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_0_0 (=> (or stmt_0_0_1 stmt_0_0_3) (not thread_0_0)) (not flush_0_0)))
+
+; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> halt_0_0 (not thread_0_0)))
+
 ; state variable initializations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; accu variables - accu_<step>_<thread>
@@ -92,21 +107,6 @@
 
 ; exit flag variable - exit_<step>
 (assert (not exit_0))
-
-; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (or thread_0_0 flush_0_0 exit_0))
-(assert (or (not thread_0_0) (not flush_0_0)))
-(assert (or (not thread_0_0) (not exit_0)))
-(assert (or (not flush_0_0) (not exit_0)))
-
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_0_0 (=> (or stmt_0_0_1 stmt_0_0_3) (not thread_0_0)) (not flush_0_0)))
-
-; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> halt_0_0 (not thread_0_0)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 1
@@ -166,6 +166,21 @@
 (assert (= exec_1_0_2 (and stmt_1_0_2 thread_1_0)))
 (assert (= exec_1_0_3 (and stmt_1_0_3 thread_1_0)))
 
+; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (or thread_1_0 flush_1_0 exit_1))
+(assert (or (not thread_1_0) (not flush_1_0)))
+(assert (or (not thread_1_0) (not exit_1)))
+(assert (or (not flush_1_0) (not exit_1)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_1_0 (=> (or stmt_1_0_1 stmt_1_0_3) (not thread_1_0)) (not flush_1_0)))
+
+; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> halt_1_0 (not thread_1_0)))
+
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; accu variables - accu_<step>_<thread>
@@ -197,21 +212,6 @@
 
 ; exit flag variable - exit_<step>
 (assert (= exit_1 (or exit_0 halt_1_0)))
-
-; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (or thread_1_0 flush_1_0 exit_1))
-(assert (or (not thread_1_0) (not flush_1_0)))
-(assert (or (not thread_1_0) (not exit_1)))
-(assert (or (not flush_1_0) (not exit_1)))
-
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_1_0 (=> (or stmt_1_0_1 stmt_1_0_3) (not thread_1_0)) (not flush_1_0)))
-
-; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> halt_1_0 (not thread_1_0)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 2
@@ -271,6 +271,21 @@
 (assert (= exec_2_0_2 (and stmt_2_0_2 thread_2_0)))
 (assert (= exec_2_0_3 (and stmt_2_0_3 thread_2_0)))
 
+; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (or thread_2_0 flush_2_0 exit_2))
+(assert (or (not thread_2_0) (not flush_2_0)))
+(assert (or (not thread_2_0) (not exit_2)))
+(assert (or (not flush_2_0) (not exit_2)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_2_0 (=> (or stmt_2_0_1 stmt_2_0_3) (not thread_2_0)) (not flush_2_0)))
+
+; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> halt_2_0 (not thread_2_0)))
+
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; accu variables - accu_<step>_<thread>
@@ -302,21 +317,6 @@
 
 ; exit flag variable - exit_<step>
 (assert (= exit_2 (or exit_1 halt_2_0)))
-
-; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (or thread_2_0 flush_2_0 exit_2))
-(assert (or (not thread_2_0) (not flush_2_0)))
-(assert (or (not thread_2_0) (not exit_2)))
-(assert (or (not flush_2_0) (not exit_2)))
-
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_2_0 (=> (or stmt_2_0_1 stmt_2_0_3) (not thread_2_0)) (not flush_2_0)))
-
-; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> halt_2_0 (not thread_2_0)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 3
@@ -376,6 +376,21 @@
 (assert (= exec_3_0_2 (and stmt_3_0_2 thread_3_0)))
 (assert (= exec_3_0_3 (and stmt_3_0_3 thread_3_0)))
 
+; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (or thread_3_0 flush_3_0 exit_3))
+(assert (or (not thread_3_0) (not flush_3_0)))
+(assert (or (not thread_3_0) (not exit_3)))
+(assert (or (not flush_3_0) (not exit_3)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_3_0 (=> (or stmt_3_0_1 stmt_3_0_3) (not thread_3_0)) (not flush_3_0)))
+
+; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> halt_3_0 (not thread_3_0)))
+
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; accu variables - accu_<step>_<thread>
@@ -407,21 +422,6 @@
 
 ; exit flag variable - exit_<step>
 (assert (= exit_3 (or exit_2 halt_3_0)))
-
-; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (or thread_3_0 flush_3_0 exit_3))
-(assert (or (not thread_3_0) (not flush_3_0)))
-(assert (or (not thread_3_0) (not exit_3)))
-(assert (or (not flush_3_0) (not exit_3)))
-
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_3_0 (=> (or stmt_3_0_1 stmt_3_0_3) (not thread_3_0)) (not flush_3_0)))
-
-; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> halt_3_0 (not thread_3_0)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 4
@@ -481,6 +481,21 @@
 (assert (= exec_4_0_2 (and stmt_4_0_2 thread_4_0)))
 (assert (= exec_4_0_3 (and stmt_4_0_3 thread_4_0)))
 
+; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (or thread_4_0 flush_4_0 exit_4))
+(assert (or (not thread_4_0) (not flush_4_0)))
+(assert (or (not thread_4_0) (not exit_4)))
+(assert (or (not flush_4_0) (not exit_4)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_4_0 (=> (or stmt_4_0_1 stmt_4_0_3) (not thread_4_0)) (not flush_4_0)))
+
+; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> halt_4_0 (not thread_4_0)))
+
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; accu variables - accu_<step>_<thread>
@@ -512,21 +527,6 @@
 
 ; exit flag variable - exit_<step>
 (assert (= exit_4 (or exit_3 halt_4_0)))
-
-; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (or thread_4_0 flush_4_0 exit_4))
-(assert (or (not thread_4_0) (not flush_4_0)))
-(assert (or (not thread_4_0) (not exit_4)))
-(assert (or (not flush_4_0) (not exit_4)))
-
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_4_0 (=> (or stmt_4_0_1 stmt_4_0_3) (not thread_4_0)) (not flush_4_0)))
-
-; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> halt_4_0 (not thread_4_0)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 5
@@ -586,6 +586,21 @@
 (assert (= exec_5_0_2 (and stmt_5_0_2 thread_5_0)))
 (assert (= exec_5_0_3 (and stmt_5_0_3 thread_5_0)))
 
+; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (or thread_5_0 flush_5_0 exit_5))
+(assert (or (not thread_5_0) (not flush_5_0)))
+(assert (or (not thread_5_0) (not exit_5)))
+(assert (or (not flush_5_0) (not exit_5)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_5_0 (=> (or stmt_5_0_1 stmt_5_0_3) (not thread_5_0)) (not flush_5_0)))
+
+; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> halt_5_0 (not thread_5_0)))
+
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; accu variables - accu_<step>_<thread>
@@ -617,21 +632,6 @@
 
 ; exit flag variable - exit_<step>
 (assert (= exit_5 (or exit_4 halt_5_0)))
-
-; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (or thread_5_0 flush_5_0 exit_5))
-(assert (or (not thread_5_0) (not flush_5_0)))
-(assert (or (not thread_5_0) (not exit_5)))
-(assert (or (not flush_5_0) (not exit_5)))
-
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_5_0 (=> (or stmt_5_0_1 stmt_5_0_3) (not thread_5_0)) (not flush_5_0)))
-
-; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> halt_5_0 (not thread_5_0)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; exit code

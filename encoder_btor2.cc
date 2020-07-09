@@ -176,8 +176,8 @@ void Encoder::encode ()
   declare_states();
   declare_inputs();
   define_transitions();
-  define_states();
   define_constraints();
+  define_states();
 }
 
 // btor2::Encoder::assert_exit -------------------------------------------------

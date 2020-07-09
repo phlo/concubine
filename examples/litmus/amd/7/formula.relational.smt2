@@ -104,6 +104,43 @@
 (assert (= exec_0_2_1 (and stmt_0_2_1 thread_0_2)))
 (assert (= exec_0_2_2 (and stmt_0_2_2 thread_0_2)))
 
+; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (or thread_0_0 flush_0_0 thread_0_1 flush_0_1 thread_0_2 flush_0_2 exit_0))
+(assert (or (not thread_0_0) (not flush_0_0)))
+(assert (or (not thread_0_0) (not thread_0_1)))
+(assert (or (not thread_0_0) (not flush_0_1)))
+(assert (or (not thread_0_0) (not thread_0_2)))
+(assert (or (not thread_0_0) (not flush_0_2)))
+(assert (or (not thread_0_0) (not exit_0)))
+(assert (or (not flush_0_0) (not thread_0_1)))
+(assert (or (not flush_0_0) (not flush_0_1)))
+(assert (or (not flush_0_0) (not thread_0_2)))
+(assert (or (not flush_0_0) (not flush_0_2)))
+(assert (or (not flush_0_0) (not exit_0)))
+(assert (or (not thread_0_1) (not flush_0_1)))
+(assert (or (not thread_0_1) (not thread_0_2)))
+(assert (or (not thread_0_1) (not flush_0_2)))
+(assert (or (not thread_0_1) (not exit_0)))
+(assert (or (not flush_0_1) (not thread_0_2)))
+(assert (or (not flush_0_1) (not flush_0_2)))
+(assert (or (not flush_0_1) (not exit_0)))
+(assert (or (not thread_0_2) (not flush_0_2)))
+(assert (or (not thread_0_2) (not exit_0)))
+(assert (or (not flush_0_2) (not exit_0)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_0_0 (=> (or stmt_0_0_1 stmt_0_0_2) (not thread_0_0)) (not flush_0_0)))
+(assert (ite sb-full_0_1 (=> (or stmt_0_1_3 stmt_0_1_4) (not thread_0_1)) (not flush_0_1)))
+(assert (ite sb-full_0_2 (=> stmt_0_2_2 (not thread_0_2)) (not flush_0_2)))
+
+; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> halt_0_0 (not thread_0_0)))
+(assert (=> halt_0_1 (not thread_0_1)))
+(assert (=> halt_0_2 (not thread_0_2)))
+
 ; state variable initializations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; accu variables - accu_<step>_<thread>
@@ -157,43 +194,6 @@
 
 ; exit flag variable - exit_<step>
 (assert (not exit_0))
-
-; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (or thread_0_0 flush_0_0 thread_0_1 flush_0_1 thread_0_2 flush_0_2 exit_0))
-(assert (or (not thread_0_0) (not flush_0_0)))
-(assert (or (not thread_0_0) (not thread_0_1)))
-(assert (or (not thread_0_0) (not flush_0_1)))
-(assert (or (not thread_0_0) (not thread_0_2)))
-(assert (or (not thread_0_0) (not flush_0_2)))
-(assert (or (not thread_0_0) (not exit_0)))
-(assert (or (not flush_0_0) (not thread_0_1)))
-(assert (or (not flush_0_0) (not flush_0_1)))
-(assert (or (not flush_0_0) (not thread_0_2)))
-(assert (or (not flush_0_0) (not flush_0_2)))
-(assert (or (not flush_0_0) (not exit_0)))
-(assert (or (not thread_0_1) (not flush_0_1)))
-(assert (or (not thread_0_1) (not thread_0_2)))
-(assert (or (not thread_0_1) (not flush_0_2)))
-(assert (or (not thread_0_1) (not exit_0)))
-(assert (or (not flush_0_1) (not thread_0_2)))
-(assert (or (not flush_0_1) (not flush_0_2)))
-(assert (or (not flush_0_1) (not exit_0)))
-(assert (or (not thread_0_2) (not flush_0_2)))
-(assert (or (not thread_0_2) (not exit_0)))
-(assert (or (not flush_0_2) (not exit_0)))
-
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_0_0 (=> (or stmt_0_0_1 stmt_0_0_2) (not thread_0_0)) (not flush_0_0)))
-(assert (ite sb-full_0_1 (=> (or stmt_0_1_3 stmt_0_1_4) (not thread_0_1)) (not flush_0_1)))
-(assert (ite sb-full_0_2 (=> stmt_0_2_2 (not thread_0_2)) (not flush_0_2)))
-
-; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> halt_0_0 (not thread_0_0)))
-(assert (=> halt_0_1 (not thread_0_1)))
-(assert (=> halt_0_2 (not thread_0_2)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 1
@@ -296,6 +296,43 @@
 (assert (= exec_1_2_1 (and stmt_1_2_1 thread_1_2)))
 (assert (= exec_1_2_2 (and stmt_1_2_2 thread_1_2)))
 
+; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (or thread_1_0 flush_1_0 thread_1_1 flush_1_1 thread_1_2 flush_1_2 exit_1))
+(assert (or (not thread_1_0) (not flush_1_0)))
+(assert (or (not thread_1_0) (not thread_1_1)))
+(assert (or (not thread_1_0) (not flush_1_1)))
+(assert (or (not thread_1_0) (not thread_1_2)))
+(assert (or (not thread_1_0) (not flush_1_2)))
+(assert (or (not thread_1_0) (not exit_1)))
+(assert (or (not flush_1_0) (not thread_1_1)))
+(assert (or (not flush_1_0) (not flush_1_1)))
+(assert (or (not flush_1_0) (not thread_1_2)))
+(assert (or (not flush_1_0) (not flush_1_2)))
+(assert (or (not flush_1_0) (not exit_1)))
+(assert (or (not thread_1_1) (not flush_1_1)))
+(assert (or (not thread_1_1) (not thread_1_2)))
+(assert (or (not thread_1_1) (not flush_1_2)))
+(assert (or (not thread_1_1) (not exit_1)))
+(assert (or (not flush_1_1) (not thread_1_2)))
+(assert (or (not flush_1_1) (not flush_1_2)))
+(assert (or (not flush_1_1) (not exit_1)))
+(assert (or (not thread_1_2) (not flush_1_2)))
+(assert (or (not thread_1_2) (not exit_1)))
+(assert (or (not flush_1_2) (not exit_1)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_1_0 (=> (or stmt_1_0_1 stmt_1_0_2) (not thread_1_0)) (not flush_1_0)))
+(assert (ite sb-full_1_1 (=> (or stmt_1_1_3 stmt_1_1_4) (not thread_1_1)) (not flush_1_1)))
+(assert (ite sb-full_1_2 (=> stmt_1_2_2 (not thread_1_2)) (not flush_1_2)))
+
+; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> halt_1_0 (not thread_1_0)))
+(assert (=> halt_1_1 (not thread_1_1)))
+(assert (=> halt_1_2 (not thread_1_2)))
+
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; thread 0
@@ -337,43 +374,6 @@
 
 ; exited
 (assert (=> exit_0 (and (= heap_1 heap_0) exit_1)))
-
-; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (or thread_1_0 flush_1_0 thread_1_1 flush_1_1 thread_1_2 flush_1_2 exit_1))
-(assert (or (not thread_1_0) (not flush_1_0)))
-(assert (or (not thread_1_0) (not thread_1_1)))
-(assert (or (not thread_1_0) (not flush_1_1)))
-(assert (or (not thread_1_0) (not thread_1_2)))
-(assert (or (not thread_1_0) (not flush_1_2)))
-(assert (or (not thread_1_0) (not exit_1)))
-(assert (or (not flush_1_0) (not thread_1_1)))
-(assert (or (not flush_1_0) (not flush_1_1)))
-(assert (or (not flush_1_0) (not thread_1_2)))
-(assert (or (not flush_1_0) (not flush_1_2)))
-(assert (or (not flush_1_0) (not exit_1)))
-(assert (or (not thread_1_1) (not flush_1_1)))
-(assert (or (not thread_1_1) (not thread_1_2)))
-(assert (or (not thread_1_1) (not flush_1_2)))
-(assert (or (not thread_1_1) (not exit_1)))
-(assert (or (not flush_1_1) (not thread_1_2)))
-(assert (or (not flush_1_1) (not flush_1_2)))
-(assert (or (not flush_1_1) (not exit_1)))
-(assert (or (not thread_1_2) (not flush_1_2)))
-(assert (or (not thread_1_2) (not exit_1)))
-(assert (or (not flush_1_2) (not exit_1)))
-
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_1_0 (=> (or stmt_1_0_1 stmt_1_0_2) (not thread_1_0)) (not flush_1_0)))
-(assert (ite sb-full_1_1 (=> (or stmt_1_1_3 stmt_1_1_4) (not thread_1_1)) (not flush_1_1)))
-(assert (ite sb-full_1_2 (=> stmt_1_2_2 (not thread_1_2)) (not flush_1_2)))
-
-; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> halt_1_0 (not thread_1_0)))
-(assert (=> halt_1_1 (not thread_1_1)))
-(assert (=> halt_1_2 (not thread_1_2)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 2
@@ -476,6 +476,43 @@
 (assert (= exec_2_2_1 (and stmt_2_2_1 thread_2_2)))
 (assert (= exec_2_2_2 (and stmt_2_2_2 thread_2_2)))
 
+; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (or thread_2_0 flush_2_0 thread_2_1 flush_2_1 thread_2_2 flush_2_2 exit_2))
+(assert (or (not thread_2_0) (not flush_2_0)))
+(assert (or (not thread_2_0) (not thread_2_1)))
+(assert (or (not thread_2_0) (not flush_2_1)))
+(assert (or (not thread_2_0) (not thread_2_2)))
+(assert (or (not thread_2_0) (not flush_2_2)))
+(assert (or (not thread_2_0) (not exit_2)))
+(assert (or (not flush_2_0) (not thread_2_1)))
+(assert (or (not flush_2_0) (not flush_2_1)))
+(assert (or (not flush_2_0) (not thread_2_2)))
+(assert (or (not flush_2_0) (not flush_2_2)))
+(assert (or (not flush_2_0) (not exit_2)))
+(assert (or (not thread_2_1) (not flush_2_1)))
+(assert (or (not thread_2_1) (not thread_2_2)))
+(assert (or (not thread_2_1) (not flush_2_2)))
+(assert (or (not thread_2_1) (not exit_2)))
+(assert (or (not flush_2_1) (not thread_2_2)))
+(assert (or (not flush_2_1) (not flush_2_2)))
+(assert (or (not flush_2_1) (not exit_2)))
+(assert (or (not thread_2_2) (not flush_2_2)))
+(assert (or (not thread_2_2) (not exit_2)))
+(assert (or (not flush_2_2) (not exit_2)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_2_0 (=> (or stmt_2_0_1 stmt_2_0_2) (not thread_2_0)) (not flush_2_0)))
+(assert (ite sb-full_2_1 (=> (or stmt_2_1_3 stmt_2_1_4) (not thread_2_1)) (not flush_2_1)))
+(assert (ite sb-full_2_2 (=> stmt_2_2_2 (not thread_2_2)) (not flush_2_2)))
+
+; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> halt_2_0 (not thread_2_0)))
+(assert (=> halt_2_1 (not thread_2_1)))
+(assert (=> halt_2_2 (not thread_2_2)))
+
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; thread 0
@@ -517,43 +554,6 @@
 
 ; exited
 (assert (=> exit_1 (and (= heap_2 heap_1) exit_2)))
-
-; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (or thread_2_0 flush_2_0 thread_2_1 flush_2_1 thread_2_2 flush_2_2 exit_2))
-(assert (or (not thread_2_0) (not flush_2_0)))
-(assert (or (not thread_2_0) (not thread_2_1)))
-(assert (or (not thread_2_0) (not flush_2_1)))
-(assert (or (not thread_2_0) (not thread_2_2)))
-(assert (or (not thread_2_0) (not flush_2_2)))
-(assert (or (not thread_2_0) (not exit_2)))
-(assert (or (not flush_2_0) (not thread_2_1)))
-(assert (or (not flush_2_0) (not flush_2_1)))
-(assert (or (not flush_2_0) (not thread_2_2)))
-(assert (or (not flush_2_0) (not flush_2_2)))
-(assert (or (not flush_2_0) (not exit_2)))
-(assert (or (not thread_2_1) (not flush_2_1)))
-(assert (or (not thread_2_1) (not thread_2_2)))
-(assert (or (not thread_2_1) (not flush_2_2)))
-(assert (or (not thread_2_1) (not exit_2)))
-(assert (or (not flush_2_1) (not thread_2_2)))
-(assert (or (not flush_2_1) (not flush_2_2)))
-(assert (or (not flush_2_1) (not exit_2)))
-(assert (or (not thread_2_2) (not flush_2_2)))
-(assert (or (not thread_2_2) (not exit_2)))
-(assert (or (not flush_2_2) (not exit_2)))
-
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_2_0 (=> (or stmt_2_0_1 stmt_2_0_2) (not thread_2_0)) (not flush_2_0)))
-(assert (ite sb-full_2_1 (=> (or stmt_2_1_3 stmt_2_1_4) (not thread_2_1)) (not flush_2_1)))
-(assert (ite sb-full_2_2 (=> stmt_2_2_2 (not thread_2_2)) (not flush_2_2)))
-
-; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> halt_2_0 (not thread_2_0)))
-(assert (=> halt_2_1 (not thread_2_1)))
-(assert (=> halt_2_2 (not thread_2_2)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 3
@@ -656,6 +656,43 @@
 (assert (= exec_3_2_1 (and stmt_3_2_1 thread_3_2)))
 (assert (= exec_3_2_2 (and stmt_3_2_2 thread_3_2)))
 
+; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (or thread_3_0 flush_3_0 thread_3_1 flush_3_1 thread_3_2 flush_3_2 exit_3))
+(assert (or (not thread_3_0) (not flush_3_0)))
+(assert (or (not thread_3_0) (not thread_3_1)))
+(assert (or (not thread_3_0) (not flush_3_1)))
+(assert (or (not thread_3_0) (not thread_3_2)))
+(assert (or (not thread_3_0) (not flush_3_2)))
+(assert (or (not thread_3_0) (not exit_3)))
+(assert (or (not flush_3_0) (not thread_3_1)))
+(assert (or (not flush_3_0) (not flush_3_1)))
+(assert (or (not flush_3_0) (not thread_3_2)))
+(assert (or (not flush_3_0) (not flush_3_2)))
+(assert (or (not flush_3_0) (not exit_3)))
+(assert (or (not thread_3_1) (not flush_3_1)))
+(assert (or (not thread_3_1) (not thread_3_2)))
+(assert (or (not thread_3_1) (not flush_3_2)))
+(assert (or (not thread_3_1) (not exit_3)))
+(assert (or (not flush_3_1) (not thread_3_2)))
+(assert (or (not flush_3_1) (not flush_3_2)))
+(assert (or (not flush_3_1) (not exit_3)))
+(assert (or (not thread_3_2) (not flush_3_2)))
+(assert (or (not thread_3_2) (not exit_3)))
+(assert (or (not flush_3_2) (not exit_3)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_3_0 (=> (or stmt_3_0_1 stmt_3_0_2) (not thread_3_0)) (not flush_3_0)))
+(assert (ite sb-full_3_1 (=> (or stmt_3_1_3 stmt_3_1_4) (not thread_3_1)) (not flush_3_1)))
+(assert (ite sb-full_3_2 (=> stmt_3_2_2 (not thread_3_2)) (not flush_3_2)))
+
+; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> halt_3_0 (not thread_3_0)))
+(assert (=> halt_3_1 (not thread_3_1)))
+(assert (=> halt_3_2 (not thread_3_2)))
+
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; thread 0
@@ -697,43 +734,6 @@
 
 ; exited
 (assert (=> exit_2 (and (= heap_3 heap_2) exit_3)))
-
-; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (or thread_3_0 flush_3_0 thread_3_1 flush_3_1 thread_3_2 flush_3_2 exit_3))
-(assert (or (not thread_3_0) (not flush_3_0)))
-(assert (or (not thread_3_0) (not thread_3_1)))
-(assert (or (not thread_3_0) (not flush_3_1)))
-(assert (or (not thread_3_0) (not thread_3_2)))
-(assert (or (not thread_3_0) (not flush_3_2)))
-(assert (or (not thread_3_0) (not exit_3)))
-(assert (or (not flush_3_0) (not thread_3_1)))
-(assert (or (not flush_3_0) (not flush_3_1)))
-(assert (or (not flush_3_0) (not thread_3_2)))
-(assert (or (not flush_3_0) (not flush_3_2)))
-(assert (or (not flush_3_0) (not exit_3)))
-(assert (or (not thread_3_1) (not flush_3_1)))
-(assert (or (not thread_3_1) (not thread_3_2)))
-(assert (or (not thread_3_1) (not flush_3_2)))
-(assert (or (not thread_3_1) (not exit_3)))
-(assert (or (not flush_3_1) (not thread_3_2)))
-(assert (or (not flush_3_1) (not flush_3_2)))
-(assert (or (not flush_3_1) (not exit_3)))
-(assert (or (not thread_3_2) (not flush_3_2)))
-(assert (or (not thread_3_2) (not exit_3)))
-(assert (or (not flush_3_2) (not exit_3)))
-
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_3_0 (=> (or stmt_3_0_1 stmt_3_0_2) (not thread_3_0)) (not flush_3_0)))
-(assert (ite sb-full_3_1 (=> (or stmt_3_1_3 stmt_3_1_4) (not thread_3_1)) (not flush_3_1)))
-(assert (ite sb-full_3_2 (=> stmt_3_2_2 (not thread_3_2)) (not flush_3_2)))
-
-; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> halt_3_0 (not thread_3_0)))
-(assert (=> halt_3_1 (not thread_3_1)))
-(assert (=> halt_3_2 (not thread_3_2)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 4
@@ -836,6 +836,43 @@
 (assert (= exec_4_2_1 (and stmt_4_2_1 thread_4_2)))
 (assert (= exec_4_2_2 (and stmt_4_2_2 thread_4_2)))
 
+; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (or thread_4_0 flush_4_0 thread_4_1 flush_4_1 thread_4_2 flush_4_2 exit_4))
+(assert (or (not thread_4_0) (not flush_4_0)))
+(assert (or (not thread_4_0) (not thread_4_1)))
+(assert (or (not thread_4_0) (not flush_4_1)))
+(assert (or (not thread_4_0) (not thread_4_2)))
+(assert (or (not thread_4_0) (not flush_4_2)))
+(assert (or (not thread_4_0) (not exit_4)))
+(assert (or (not flush_4_0) (not thread_4_1)))
+(assert (or (not flush_4_0) (not flush_4_1)))
+(assert (or (not flush_4_0) (not thread_4_2)))
+(assert (or (not flush_4_0) (not flush_4_2)))
+(assert (or (not flush_4_0) (not exit_4)))
+(assert (or (not thread_4_1) (not flush_4_1)))
+(assert (or (not thread_4_1) (not thread_4_2)))
+(assert (or (not thread_4_1) (not flush_4_2)))
+(assert (or (not thread_4_1) (not exit_4)))
+(assert (or (not flush_4_1) (not thread_4_2)))
+(assert (or (not flush_4_1) (not flush_4_2)))
+(assert (or (not flush_4_1) (not exit_4)))
+(assert (or (not thread_4_2) (not flush_4_2)))
+(assert (or (not thread_4_2) (not exit_4)))
+(assert (or (not flush_4_2) (not exit_4)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_4_0 (=> (or stmt_4_0_1 stmt_4_0_2) (not thread_4_0)) (not flush_4_0)))
+(assert (ite sb-full_4_1 (=> (or stmt_4_1_3 stmt_4_1_4) (not thread_4_1)) (not flush_4_1)))
+(assert (ite sb-full_4_2 (=> stmt_4_2_2 (not thread_4_2)) (not flush_4_2)))
+
+; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> halt_4_0 (not thread_4_0)))
+(assert (=> halt_4_1 (not thread_4_1)))
+(assert (=> halt_4_2 (not thread_4_2)))
+
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; thread 0
@@ -877,43 +914,6 @@
 
 ; exited
 (assert (=> exit_3 (and (= heap_4 heap_3) exit_4)))
-
-; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (or thread_4_0 flush_4_0 thread_4_1 flush_4_1 thread_4_2 flush_4_2 exit_4))
-(assert (or (not thread_4_0) (not flush_4_0)))
-(assert (or (not thread_4_0) (not thread_4_1)))
-(assert (or (not thread_4_0) (not flush_4_1)))
-(assert (or (not thread_4_0) (not thread_4_2)))
-(assert (or (not thread_4_0) (not flush_4_2)))
-(assert (or (not thread_4_0) (not exit_4)))
-(assert (or (not flush_4_0) (not thread_4_1)))
-(assert (or (not flush_4_0) (not flush_4_1)))
-(assert (or (not flush_4_0) (not thread_4_2)))
-(assert (or (not flush_4_0) (not flush_4_2)))
-(assert (or (not flush_4_0) (not exit_4)))
-(assert (or (not thread_4_1) (not flush_4_1)))
-(assert (or (not thread_4_1) (not thread_4_2)))
-(assert (or (not thread_4_1) (not flush_4_2)))
-(assert (or (not thread_4_1) (not exit_4)))
-(assert (or (not flush_4_1) (not thread_4_2)))
-(assert (or (not flush_4_1) (not flush_4_2)))
-(assert (or (not flush_4_1) (not exit_4)))
-(assert (or (not thread_4_2) (not flush_4_2)))
-(assert (or (not thread_4_2) (not exit_4)))
-(assert (or (not flush_4_2) (not exit_4)))
-
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_4_0 (=> (or stmt_4_0_1 stmt_4_0_2) (not thread_4_0)) (not flush_4_0)))
-(assert (ite sb-full_4_1 (=> (or stmt_4_1_3 stmt_4_1_4) (not thread_4_1)) (not flush_4_1)))
-(assert (ite sb-full_4_2 (=> stmt_4_2_2 (not thread_4_2)) (not flush_4_2)))
-
-; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> halt_4_0 (not thread_4_0)))
-(assert (=> halt_4_1 (not thread_4_1)))
-(assert (=> halt_4_2 (not thread_4_2)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 5
@@ -1016,6 +1016,43 @@
 (assert (= exec_5_2_1 (and stmt_5_2_1 thread_5_2)))
 (assert (= exec_5_2_2 (and stmt_5_2_2 thread_5_2)))
 
+; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (or thread_5_0 flush_5_0 thread_5_1 flush_5_1 thread_5_2 flush_5_2 exit_5))
+(assert (or (not thread_5_0) (not flush_5_0)))
+(assert (or (not thread_5_0) (not thread_5_1)))
+(assert (or (not thread_5_0) (not flush_5_1)))
+(assert (or (not thread_5_0) (not thread_5_2)))
+(assert (or (not thread_5_0) (not flush_5_2)))
+(assert (or (not thread_5_0) (not exit_5)))
+(assert (or (not flush_5_0) (not thread_5_1)))
+(assert (or (not flush_5_0) (not flush_5_1)))
+(assert (or (not flush_5_0) (not thread_5_2)))
+(assert (or (not flush_5_0) (not flush_5_2)))
+(assert (or (not flush_5_0) (not exit_5)))
+(assert (or (not thread_5_1) (not flush_5_1)))
+(assert (or (not thread_5_1) (not thread_5_2)))
+(assert (or (not thread_5_1) (not flush_5_2)))
+(assert (or (not thread_5_1) (not exit_5)))
+(assert (or (not flush_5_1) (not thread_5_2)))
+(assert (or (not flush_5_1) (not flush_5_2)))
+(assert (or (not flush_5_1) (not exit_5)))
+(assert (or (not thread_5_2) (not flush_5_2)))
+(assert (or (not thread_5_2) (not exit_5)))
+(assert (or (not flush_5_2) (not exit_5)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_5_0 (=> (or stmt_5_0_1 stmt_5_0_2) (not thread_5_0)) (not flush_5_0)))
+(assert (ite sb-full_5_1 (=> (or stmt_5_1_3 stmt_5_1_4) (not thread_5_1)) (not flush_5_1)))
+(assert (ite sb-full_5_2 (=> stmt_5_2_2 (not thread_5_2)) (not flush_5_2)))
+
+; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> halt_5_0 (not thread_5_0)))
+(assert (=> halt_5_1 (not thread_5_1)))
+(assert (=> halt_5_2 (not thread_5_2)))
+
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; thread 0
@@ -1057,43 +1094,6 @@
 
 ; exited
 (assert (=> exit_4 (and (= heap_5 heap_4) exit_5)))
-
-; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (or thread_5_0 flush_5_0 thread_5_1 flush_5_1 thread_5_2 flush_5_2 exit_5))
-(assert (or (not thread_5_0) (not flush_5_0)))
-(assert (or (not thread_5_0) (not thread_5_1)))
-(assert (or (not thread_5_0) (not flush_5_1)))
-(assert (or (not thread_5_0) (not thread_5_2)))
-(assert (or (not thread_5_0) (not flush_5_2)))
-(assert (or (not thread_5_0) (not exit_5)))
-(assert (or (not flush_5_0) (not thread_5_1)))
-(assert (or (not flush_5_0) (not flush_5_1)))
-(assert (or (not flush_5_0) (not thread_5_2)))
-(assert (or (not flush_5_0) (not flush_5_2)))
-(assert (or (not flush_5_0) (not exit_5)))
-(assert (or (not thread_5_1) (not flush_5_1)))
-(assert (or (not thread_5_1) (not thread_5_2)))
-(assert (or (not thread_5_1) (not flush_5_2)))
-(assert (or (not thread_5_1) (not exit_5)))
-(assert (or (not flush_5_1) (not thread_5_2)))
-(assert (or (not flush_5_1) (not flush_5_2)))
-(assert (or (not flush_5_1) (not exit_5)))
-(assert (or (not thread_5_2) (not flush_5_2)))
-(assert (or (not thread_5_2) (not exit_5)))
-(assert (or (not flush_5_2) (not exit_5)))
-
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_5_0 (=> (or stmt_5_0_1 stmt_5_0_2) (not thread_5_0)) (not flush_5_0)))
-(assert (ite sb-full_5_1 (=> (or stmt_5_1_3 stmt_5_1_4) (not thread_5_1)) (not flush_5_1)))
-(assert (ite sb-full_5_2 (=> stmt_5_2_2 (not thread_5_2)) (not flush_5_2)))
-
-; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> halt_5_0 (not thread_5_0)))
-(assert (=> halt_5_1 (not thread_5_1)))
-(assert (=> halt_5_2 (not thread_5_2)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 6
@@ -1196,6 +1196,43 @@
 (assert (= exec_6_2_1 (and stmt_6_2_1 thread_6_2)))
 (assert (= exec_6_2_2 (and stmt_6_2_2 thread_6_2)))
 
+; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (or thread_6_0 flush_6_0 thread_6_1 flush_6_1 thread_6_2 flush_6_2 exit_6))
+(assert (or (not thread_6_0) (not flush_6_0)))
+(assert (or (not thread_6_0) (not thread_6_1)))
+(assert (or (not thread_6_0) (not flush_6_1)))
+(assert (or (not thread_6_0) (not thread_6_2)))
+(assert (or (not thread_6_0) (not flush_6_2)))
+(assert (or (not thread_6_0) (not exit_6)))
+(assert (or (not flush_6_0) (not thread_6_1)))
+(assert (or (not flush_6_0) (not flush_6_1)))
+(assert (or (not flush_6_0) (not thread_6_2)))
+(assert (or (not flush_6_0) (not flush_6_2)))
+(assert (or (not flush_6_0) (not exit_6)))
+(assert (or (not thread_6_1) (not flush_6_1)))
+(assert (or (not thread_6_1) (not thread_6_2)))
+(assert (or (not thread_6_1) (not flush_6_2)))
+(assert (or (not thread_6_1) (not exit_6)))
+(assert (or (not flush_6_1) (not thread_6_2)))
+(assert (or (not flush_6_1) (not flush_6_2)))
+(assert (or (not flush_6_1) (not exit_6)))
+(assert (or (not thread_6_2) (not flush_6_2)))
+(assert (or (not thread_6_2) (not exit_6)))
+(assert (or (not flush_6_2) (not exit_6)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_6_0 (=> (or stmt_6_0_1 stmt_6_0_2) (not thread_6_0)) (not flush_6_0)))
+(assert (ite sb-full_6_1 (=> (or stmt_6_1_3 stmt_6_1_4) (not thread_6_1)) (not flush_6_1)))
+(assert (ite sb-full_6_2 (=> stmt_6_2_2 (not thread_6_2)) (not flush_6_2)))
+
+; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> halt_6_0 (not thread_6_0)))
+(assert (=> halt_6_1 (not thread_6_1)))
+(assert (=> halt_6_2 (not thread_6_2)))
+
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; thread 0
@@ -1237,43 +1274,6 @@
 
 ; exited
 (assert (=> exit_5 (and (= heap_6 heap_5) exit_6)))
-
-; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (or thread_6_0 flush_6_0 thread_6_1 flush_6_1 thread_6_2 flush_6_2 exit_6))
-(assert (or (not thread_6_0) (not flush_6_0)))
-(assert (or (not thread_6_0) (not thread_6_1)))
-(assert (or (not thread_6_0) (not flush_6_1)))
-(assert (or (not thread_6_0) (not thread_6_2)))
-(assert (or (not thread_6_0) (not flush_6_2)))
-(assert (or (not thread_6_0) (not exit_6)))
-(assert (or (not flush_6_0) (not thread_6_1)))
-(assert (or (not flush_6_0) (not flush_6_1)))
-(assert (or (not flush_6_0) (not thread_6_2)))
-(assert (or (not flush_6_0) (not flush_6_2)))
-(assert (or (not flush_6_0) (not exit_6)))
-(assert (or (not thread_6_1) (not flush_6_1)))
-(assert (or (not thread_6_1) (not thread_6_2)))
-(assert (or (not thread_6_1) (not flush_6_2)))
-(assert (or (not thread_6_1) (not exit_6)))
-(assert (or (not flush_6_1) (not thread_6_2)))
-(assert (or (not flush_6_1) (not flush_6_2)))
-(assert (or (not flush_6_1) (not exit_6)))
-(assert (or (not thread_6_2) (not flush_6_2)))
-(assert (or (not thread_6_2) (not exit_6)))
-(assert (or (not flush_6_2) (not exit_6)))
-
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_6_0 (=> (or stmt_6_0_1 stmt_6_0_2) (not thread_6_0)) (not flush_6_0)))
-(assert (ite sb-full_6_1 (=> (or stmt_6_1_3 stmt_6_1_4) (not thread_6_1)) (not flush_6_1)))
-(assert (ite sb-full_6_2 (=> stmt_6_2_2 (not thread_6_2)) (not flush_6_2)))
-
-; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> halt_6_0 (not thread_6_0)))
-(assert (=> halt_6_1 (not thread_6_1)))
-(assert (=> halt_6_2 (not thread_6_2)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 7
@@ -1376,6 +1376,43 @@
 (assert (= exec_7_2_1 (and stmt_7_2_1 thread_7_2)))
 (assert (= exec_7_2_2 (and stmt_7_2_2 thread_7_2)))
 
+; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (or thread_7_0 flush_7_0 thread_7_1 flush_7_1 thread_7_2 flush_7_2 exit_7))
+(assert (or (not thread_7_0) (not flush_7_0)))
+(assert (or (not thread_7_0) (not thread_7_1)))
+(assert (or (not thread_7_0) (not flush_7_1)))
+(assert (or (not thread_7_0) (not thread_7_2)))
+(assert (or (not thread_7_0) (not flush_7_2)))
+(assert (or (not thread_7_0) (not exit_7)))
+(assert (or (not flush_7_0) (not thread_7_1)))
+(assert (or (not flush_7_0) (not flush_7_1)))
+(assert (or (not flush_7_0) (not thread_7_2)))
+(assert (or (not flush_7_0) (not flush_7_2)))
+(assert (or (not flush_7_0) (not exit_7)))
+(assert (or (not thread_7_1) (not flush_7_1)))
+(assert (or (not thread_7_1) (not thread_7_2)))
+(assert (or (not thread_7_1) (not flush_7_2)))
+(assert (or (not thread_7_1) (not exit_7)))
+(assert (or (not flush_7_1) (not thread_7_2)))
+(assert (or (not flush_7_1) (not flush_7_2)))
+(assert (or (not flush_7_1) (not exit_7)))
+(assert (or (not thread_7_2) (not flush_7_2)))
+(assert (or (not thread_7_2) (not exit_7)))
+(assert (or (not flush_7_2) (not exit_7)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_7_0 (=> (or stmt_7_0_1 stmt_7_0_2) (not thread_7_0)) (not flush_7_0)))
+(assert (ite sb-full_7_1 (=> (or stmt_7_1_3 stmt_7_1_4) (not thread_7_1)) (not flush_7_1)))
+(assert (ite sb-full_7_2 (=> stmt_7_2_2 (not thread_7_2)) (not flush_7_2)))
+
+; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> halt_7_0 (not thread_7_0)))
+(assert (=> halt_7_1 (not thread_7_1)))
+(assert (=> halt_7_2 (not thread_7_2)))
+
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; thread 0
@@ -1417,43 +1454,6 @@
 
 ; exited
 (assert (=> exit_6 (and (= heap_7 heap_6) exit_7)))
-
-; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (or thread_7_0 flush_7_0 thread_7_1 flush_7_1 thread_7_2 flush_7_2 exit_7))
-(assert (or (not thread_7_0) (not flush_7_0)))
-(assert (or (not thread_7_0) (not thread_7_1)))
-(assert (or (not thread_7_0) (not flush_7_1)))
-(assert (or (not thread_7_0) (not thread_7_2)))
-(assert (or (not thread_7_0) (not flush_7_2)))
-(assert (or (not thread_7_0) (not exit_7)))
-(assert (or (not flush_7_0) (not thread_7_1)))
-(assert (or (not flush_7_0) (not flush_7_1)))
-(assert (or (not flush_7_0) (not thread_7_2)))
-(assert (or (not flush_7_0) (not flush_7_2)))
-(assert (or (not flush_7_0) (not exit_7)))
-(assert (or (not thread_7_1) (not flush_7_1)))
-(assert (or (not thread_7_1) (not thread_7_2)))
-(assert (or (not thread_7_1) (not flush_7_2)))
-(assert (or (not thread_7_1) (not exit_7)))
-(assert (or (not flush_7_1) (not thread_7_2)))
-(assert (or (not flush_7_1) (not flush_7_2)))
-(assert (or (not flush_7_1) (not exit_7)))
-(assert (or (not thread_7_2) (not flush_7_2)))
-(assert (or (not thread_7_2) (not exit_7)))
-(assert (or (not flush_7_2) (not exit_7)))
-
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_7_0 (=> (or stmt_7_0_1 stmt_7_0_2) (not thread_7_0)) (not flush_7_0)))
-(assert (ite sb-full_7_1 (=> (or stmt_7_1_3 stmt_7_1_4) (not thread_7_1)) (not flush_7_1)))
-(assert (ite sb-full_7_2 (=> stmt_7_2_2 (not thread_7_2)) (not flush_7_2)))
-
-; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> halt_7_0 (not thread_7_0)))
-(assert (=> halt_7_1 (not thread_7_1)))
-(assert (=> halt_7_2 (not thread_7_2)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 8
@@ -1556,6 +1556,43 @@
 (assert (= exec_8_2_1 (and stmt_8_2_1 thread_8_2)))
 (assert (= exec_8_2_2 (and stmt_8_2_2 thread_8_2)))
 
+; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (or thread_8_0 flush_8_0 thread_8_1 flush_8_1 thread_8_2 flush_8_2 exit_8))
+(assert (or (not thread_8_0) (not flush_8_0)))
+(assert (or (not thread_8_0) (not thread_8_1)))
+(assert (or (not thread_8_0) (not flush_8_1)))
+(assert (or (not thread_8_0) (not thread_8_2)))
+(assert (or (not thread_8_0) (not flush_8_2)))
+(assert (or (not thread_8_0) (not exit_8)))
+(assert (or (not flush_8_0) (not thread_8_1)))
+(assert (or (not flush_8_0) (not flush_8_1)))
+(assert (or (not flush_8_0) (not thread_8_2)))
+(assert (or (not flush_8_0) (not flush_8_2)))
+(assert (or (not flush_8_0) (not exit_8)))
+(assert (or (not thread_8_1) (not flush_8_1)))
+(assert (or (not thread_8_1) (not thread_8_2)))
+(assert (or (not thread_8_1) (not flush_8_2)))
+(assert (or (not thread_8_1) (not exit_8)))
+(assert (or (not flush_8_1) (not thread_8_2)))
+(assert (or (not flush_8_1) (not flush_8_2)))
+(assert (or (not flush_8_1) (not exit_8)))
+(assert (or (not thread_8_2) (not flush_8_2)))
+(assert (or (not thread_8_2) (not exit_8)))
+(assert (or (not flush_8_2) (not exit_8)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_8_0 (=> (or stmt_8_0_1 stmt_8_0_2) (not thread_8_0)) (not flush_8_0)))
+(assert (ite sb-full_8_1 (=> (or stmt_8_1_3 stmt_8_1_4) (not thread_8_1)) (not flush_8_1)))
+(assert (ite sb-full_8_2 (=> stmt_8_2_2 (not thread_8_2)) (not flush_8_2)))
+
+; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> halt_8_0 (not thread_8_0)))
+(assert (=> halt_8_1 (not thread_8_1)))
+(assert (=> halt_8_2 (not thread_8_2)))
+
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; thread 0
@@ -1597,43 +1634,6 @@
 
 ; exited
 (assert (=> exit_7 (and (= heap_8 heap_7) exit_8)))
-
-; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (or thread_8_0 flush_8_0 thread_8_1 flush_8_1 thread_8_2 flush_8_2 exit_8))
-(assert (or (not thread_8_0) (not flush_8_0)))
-(assert (or (not thread_8_0) (not thread_8_1)))
-(assert (or (not thread_8_0) (not flush_8_1)))
-(assert (or (not thread_8_0) (not thread_8_2)))
-(assert (or (not thread_8_0) (not flush_8_2)))
-(assert (or (not thread_8_0) (not exit_8)))
-(assert (or (not flush_8_0) (not thread_8_1)))
-(assert (or (not flush_8_0) (not flush_8_1)))
-(assert (or (not flush_8_0) (not thread_8_2)))
-(assert (or (not flush_8_0) (not flush_8_2)))
-(assert (or (not flush_8_0) (not exit_8)))
-(assert (or (not thread_8_1) (not flush_8_1)))
-(assert (or (not thread_8_1) (not thread_8_2)))
-(assert (or (not thread_8_1) (not flush_8_2)))
-(assert (or (not thread_8_1) (not exit_8)))
-(assert (or (not flush_8_1) (not thread_8_2)))
-(assert (or (not flush_8_1) (not flush_8_2)))
-(assert (or (not flush_8_1) (not exit_8)))
-(assert (or (not thread_8_2) (not flush_8_2)))
-(assert (or (not thread_8_2) (not exit_8)))
-(assert (or (not flush_8_2) (not exit_8)))
-
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_8_0 (=> (or stmt_8_0_1 stmt_8_0_2) (not thread_8_0)) (not flush_8_0)))
-(assert (ite sb-full_8_1 (=> (or stmt_8_1_3 stmt_8_1_4) (not thread_8_1)) (not flush_8_1)))
-(assert (ite sb-full_8_2 (=> stmt_8_2_2 (not thread_8_2)) (not flush_8_2)))
-
-; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> halt_8_0 (not thread_8_0)))
-(assert (=> halt_8_1 (not thread_8_1)))
-(assert (=> halt_8_2 (not thread_8_2)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 9
@@ -1736,6 +1736,43 @@
 (assert (= exec_9_2_1 (and stmt_9_2_1 thread_9_2)))
 (assert (= exec_9_2_2 (and stmt_9_2_2 thread_9_2)))
 
+; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (or thread_9_0 flush_9_0 thread_9_1 flush_9_1 thread_9_2 flush_9_2 exit_9))
+(assert (or (not thread_9_0) (not flush_9_0)))
+(assert (or (not thread_9_0) (not thread_9_1)))
+(assert (or (not thread_9_0) (not flush_9_1)))
+(assert (or (not thread_9_0) (not thread_9_2)))
+(assert (or (not thread_9_0) (not flush_9_2)))
+(assert (or (not thread_9_0) (not exit_9)))
+(assert (or (not flush_9_0) (not thread_9_1)))
+(assert (or (not flush_9_0) (not flush_9_1)))
+(assert (or (not flush_9_0) (not thread_9_2)))
+(assert (or (not flush_9_0) (not flush_9_2)))
+(assert (or (not flush_9_0) (not exit_9)))
+(assert (or (not thread_9_1) (not flush_9_1)))
+(assert (or (not thread_9_1) (not thread_9_2)))
+(assert (or (not thread_9_1) (not flush_9_2)))
+(assert (or (not thread_9_1) (not exit_9)))
+(assert (or (not flush_9_1) (not thread_9_2)))
+(assert (or (not flush_9_1) (not flush_9_2)))
+(assert (or (not flush_9_1) (not exit_9)))
+(assert (or (not thread_9_2) (not flush_9_2)))
+(assert (or (not thread_9_2) (not exit_9)))
+(assert (or (not flush_9_2) (not exit_9)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_9_0 (=> (or stmt_9_0_1 stmt_9_0_2) (not thread_9_0)) (not flush_9_0)))
+(assert (ite sb-full_9_1 (=> (or stmt_9_1_3 stmt_9_1_4) (not thread_9_1)) (not flush_9_1)))
+(assert (ite sb-full_9_2 (=> stmt_9_2_2 (not thread_9_2)) (not flush_9_2)))
+
+; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> halt_9_0 (not thread_9_0)))
+(assert (=> halt_9_1 (not thread_9_1)))
+(assert (=> halt_9_2 (not thread_9_2)))
+
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; thread 0
@@ -1777,43 +1814,6 @@
 
 ; exited
 (assert (=> exit_8 (and (= heap_9 heap_8) exit_9)))
-
-; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (or thread_9_0 flush_9_0 thread_9_1 flush_9_1 thread_9_2 flush_9_2 exit_9))
-(assert (or (not thread_9_0) (not flush_9_0)))
-(assert (or (not thread_9_0) (not thread_9_1)))
-(assert (or (not thread_9_0) (not flush_9_1)))
-(assert (or (not thread_9_0) (not thread_9_2)))
-(assert (or (not thread_9_0) (not flush_9_2)))
-(assert (or (not thread_9_0) (not exit_9)))
-(assert (or (not flush_9_0) (not thread_9_1)))
-(assert (or (not flush_9_0) (not flush_9_1)))
-(assert (or (not flush_9_0) (not thread_9_2)))
-(assert (or (not flush_9_0) (not flush_9_2)))
-(assert (or (not flush_9_0) (not exit_9)))
-(assert (or (not thread_9_1) (not flush_9_1)))
-(assert (or (not thread_9_1) (not thread_9_2)))
-(assert (or (not thread_9_1) (not flush_9_2)))
-(assert (or (not thread_9_1) (not exit_9)))
-(assert (or (not flush_9_1) (not thread_9_2)))
-(assert (or (not flush_9_1) (not flush_9_2)))
-(assert (or (not flush_9_1) (not exit_9)))
-(assert (or (not thread_9_2) (not flush_9_2)))
-(assert (or (not thread_9_2) (not exit_9)))
-(assert (or (not flush_9_2) (not exit_9)))
-
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_9_0 (=> (or stmt_9_0_1 stmt_9_0_2) (not thread_9_0)) (not flush_9_0)))
-(assert (ite sb-full_9_1 (=> (or stmt_9_1_3 stmt_9_1_4) (not thread_9_1)) (not flush_9_1)))
-(assert (ite sb-full_9_2 (=> stmt_9_2_2 (not thread_9_2)) (not flush_9_2)))
-
-; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> halt_9_0 (not thread_9_0)))
-(assert (=> halt_9_1 (not thread_9_1)))
-(assert (=> halt_9_2 (not thread_9_2)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 10
@@ -1916,6 +1916,43 @@
 (assert (= exec_10_2_1 (and stmt_10_2_1 thread_10_2)))
 (assert (= exec_10_2_2 (and stmt_10_2_2 thread_10_2)))
 
+; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (or thread_10_0 flush_10_0 thread_10_1 flush_10_1 thread_10_2 flush_10_2 exit_10))
+(assert (or (not thread_10_0) (not flush_10_0)))
+(assert (or (not thread_10_0) (not thread_10_1)))
+(assert (or (not thread_10_0) (not flush_10_1)))
+(assert (or (not thread_10_0) (not thread_10_2)))
+(assert (or (not thread_10_0) (not flush_10_2)))
+(assert (or (not thread_10_0) (not exit_10)))
+(assert (or (not flush_10_0) (not thread_10_1)))
+(assert (or (not flush_10_0) (not flush_10_1)))
+(assert (or (not flush_10_0) (not thread_10_2)))
+(assert (or (not flush_10_0) (not flush_10_2)))
+(assert (or (not flush_10_0) (not exit_10)))
+(assert (or (not thread_10_1) (not flush_10_1)))
+(assert (or (not thread_10_1) (not thread_10_2)))
+(assert (or (not thread_10_1) (not flush_10_2)))
+(assert (or (not thread_10_1) (not exit_10)))
+(assert (or (not flush_10_1) (not thread_10_2)))
+(assert (or (not flush_10_1) (not flush_10_2)))
+(assert (or (not flush_10_1) (not exit_10)))
+(assert (or (not thread_10_2) (not flush_10_2)))
+(assert (or (not thread_10_2) (not exit_10)))
+(assert (or (not flush_10_2) (not exit_10)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_10_0 (=> (or stmt_10_0_1 stmt_10_0_2) (not thread_10_0)) (not flush_10_0)))
+(assert (ite sb-full_10_1 (=> (or stmt_10_1_3 stmt_10_1_4) (not thread_10_1)) (not flush_10_1)))
+(assert (ite sb-full_10_2 (=> stmt_10_2_2 (not thread_10_2)) (not flush_10_2)))
+
+; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> halt_10_0 (not thread_10_0)))
+(assert (=> halt_10_1 (not thread_10_1)))
+(assert (=> halt_10_2 (not thread_10_2)))
+
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; thread 0
@@ -1957,43 +1994,6 @@
 
 ; exited
 (assert (=> exit_9 (and (= heap_10 heap_9) exit_10)))
-
-; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (or thread_10_0 flush_10_0 thread_10_1 flush_10_1 thread_10_2 flush_10_2 exit_10))
-(assert (or (not thread_10_0) (not flush_10_0)))
-(assert (or (not thread_10_0) (not thread_10_1)))
-(assert (or (not thread_10_0) (not flush_10_1)))
-(assert (or (not thread_10_0) (not thread_10_2)))
-(assert (or (not thread_10_0) (not flush_10_2)))
-(assert (or (not thread_10_0) (not exit_10)))
-(assert (or (not flush_10_0) (not thread_10_1)))
-(assert (or (not flush_10_0) (not flush_10_1)))
-(assert (or (not flush_10_0) (not thread_10_2)))
-(assert (or (not flush_10_0) (not flush_10_2)))
-(assert (or (not flush_10_0) (not exit_10)))
-(assert (or (not thread_10_1) (not flush_10_1)))
-(assert (or (not thread_10_1) (not thread_10_2)))
-(assert (or (not thread_10_1) (not flush_10_2)))
-(assert (or (not thread_10_1) (not exit_10)))
-(assert (or (not flush_10_1) (not thread_10_2)))
-(assert (or (not flush_10_1) (not flush_10_2)))
-(assert (or (not flush_10_1) (not exit_10)))
-(assert (or (not thread_10_2) (not flush_10_2)))
-(assert (or (not thread_10_2) (not exit_10)))
-(assert (or (not flush_10_2) (not exit_10)))
-
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_10_0 (=> (or stmt_10_0_1 stmt_10_0_2) (not thread_10_0)) (not flush_10_0)))
-(assert (ite sb-full_10_1 (=> (or stmt_10_1_3 stmt_10_1_4) (not thread_10_1)) (not flush_10_1)))
-(assert (ite sb-full_10_2 (=> stmt_10_2_2 (not thread_10_2)) (not flush_10_2)))
-
-; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> halt_10_0 (not thread_10_0)))
-(assert (=> halt_10_1 (not thread_10_1)))
-(assert (=> halt_10_2 (not thread_10_2)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 11
@@ -2096,6 +2096,43 @@
 (assert (= exec_11_2_1 (and stmt_11_2_1 thread_11_2)))
 (assert (= exec_11_2_2 (and stmt_11_2_2 thread_11_2)))
 
+; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (or thread_11_0 flush_11_0 thread_11_1 flush_11_1 thread_11_2 flush_11_2 exit_11))
+(assert (or (not thread_11_0) (not flush_11_0)))
+(assert (or (not thread_11_0) (not thread_11_1)))
+(assert (or (not thread_11_0) (not flush_11_1)))
+(assert (or (not thread_11_0) (not thread_11_2)))
+(assert (or (not thread_11_0) (not flush_11_2)))
+(assert (or (not thread_11_0) (not exit_11)))
+(assert (or (not flush_11_0) (not thread_11_1)))
+(assert (or (not flush_11_0) (not flush_11_1)))
+(assert (or (not flush_11_0) (not thread_11_2)))
+(assert (or (not flush_11_0) (not flush_11_2)))
+(assert (or (not flush_11_0) (not exit_11)))
+(assert (or (not thread_11_1) (not flush_11_1)))
+(assert (or (not thread_11_1) (not thread_11_2)))
+(assert (or (not thread_11_1) (not flush_11_2)))
+(assert (or (not thread_11_1) (not exit_11)))
+(assert (or (not flush_11_1) (not thread_11_2)))
+(assert (or (not flush_11_1) (not flush_11_2)))
+(assert (or (not flush_11_1) (not exit_11)))
+(assert (or (not thread_11_2) (not flush_11_2)))
+(assert (or (not thread_11_2) (not exit_11)))
+(assert (or (not flush_11_2) (not exit_11)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_11_0 (=> (or stmt_11_0_1 stmt_11_0_2) (not thread_11_0)) (not flush_11_0)))
+(assert (ite sb-full_11_1 (=> (or stmt_11_1_3 stmt_11_1_4) (not thread_11_1)) (not flush_11_1)))
+(assert (ite sb-full_11_2 (=> stmt_11_2_2 (not thread_11_2)) (not flush_11_2)))
+
+; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> halt_11_0 (not thread_11_0)))
+(assert (=> halt_11_1 (not thread_11_1)))
+(assert (=> halt_11_2 (not thread_11_2)))
+
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; thread 0
@@ -2137,43 +2174,6 @@
 
 ; exited
 (assert (=> exit_10 (and (= heap_11 heap_10) exit_11)))
-
-; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (or thread_11_0 flush_11_0 thread_11_1 flush_11_1 thread_11_2 flush_11_2 exit_11))
-(assert (or (not thread_11_0) (not flush_11_0)))
-(assert (or (not thread_11_0) (not thread_11_1)))
-(assert (or (not thread_11_0) (not flush_11_1)))
-(assert (or (not thread_11_0) (not thread_11_2)))
-(assert (or (not thread_11_0) (not flush_11_2)))
-(assert (or (not thread_11_0) (not exit_11)))
-(assert (or (not flush_11_0) (not thread_11_1)))
-(assert (or (not flush_11_0) (not flush_11_1)))
-(assert (or (not flush_11_0) (not thread_11_2)))
-(assert (or (not flush_11_0) (not flush_11_2)))
-(assert (or (not flush_11_0) (not exit_11)))
-(assert (or (not thread_11_1) (not flush_11_1)))
-(assert (or (not thread_11_1) (not thread_11_2)))
-(assert (or (not thread_11_1) (not flush_11_2)))
-(assert (or (not thread_11_1) (not exit_11)))
-(assert (or (not flush_11_1) (not thread_11_2)))
-(assert (or (not flush_11_1) (not flush_11_2)))
-(assert (or (not flush_11_1) (not exit_11)))
-(assert (or (not thread_11_2) (not flush_11_2)))
-(assert (or (not thread_11_2) (not exit_11)))
-(assert (or (not flush_11_2) (not exit_11)))
-
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_11_0 (=> (or stmt_11_0_1 stmt_11_0_2) (not thread_11_0)) (not flush_11_0)))
-(assert (ite sb-full_11_1 (=> (or stmt_11_1_3 stmt_11_1_4) (not thread_11_1)) (not flush_11_1)))
-(assert (ite sb-full_11_2 (=> stmt_11_2_2 (not thread_11_2)) (not flush_11_2)))
-
-; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> halt_11_0 (not thread_11_0)))
-(assert (=> halt_11_1 (not thread_11_1)))
-(assert (=> halt_11_2 (not thread_11_2)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 12
@@ -2276,6 +2276,43 @@
 (assert (= exec_12_2_1 (and stmt_12_2_1 thread_12_2)))
 (assert (= exec_12_2_2 (and stmt_12_2_2 thread_12_2)))
 
+; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (or thread_12_0 flush_12_0 thread_12_1 flush_12_1 thread_12_2 flush_12_2 exit_12))
+(assert (or (not thread_12_0) (not flush_12_0)))
+(assert (or (not thread_12_0) (not thread_12_1)))
+(assert (or (not thread_12_0) (not flush_12_1)))
+(assert (or (not thread_12_0) (not thread_12_2)))
+(assert (or (not thread_12_0) (not flush_12_2)))
+(assert (or (not thread_12_0) (not exit_12)))
+(assert (or (not flush_12_0) (not thread_12_1)))
+(assert (or (not flush_12_0) (not flush_12_1)))
+(assert (or (not flush_12_0) (not thread_12_2)))
+(assert (or (not flush_12_0) (not flush_12_2)))
+(assert (or (not flush_12_0) (not exit_12)))
+(assert (or (not thread_12_1) (not flush_12_1)))
+(assert (or (not thread_12_1) (not thread_12_2)))
+(assert (or (not thread_12_1) (not flush_12_2)))
+(assert (or (not thread_12_1) (not exit_12)))
+(assert (or (not flush_12_1) (not thread_12_2)))
+(assert (or (not flush_12_1) (not flush_12_2)))
+(assert (or (not flush_12_1) (not exit_12)))
+(assert (or (not thread_12_2) (not flush_12_2)))
+(assert (or (not thread_12_2) (not exit_12)))
+(assert (or (not flush_12_2) (not exit_12)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_12_0 (=> (or stmt_12_0_1 stmt_12_0_2) (not thread_12_0)) (not flush_12_0)))
+(assert (ite sb-full_12_1 (=> (or stmt_12_1_3 stmt_12_1_4) (not thread_12_1)) (not flush_12_1)))
+(assert (ite sb-full_12_2 (=> stmt_12_2_2 (not thread_12_2)) (not flush_12_2)))
+
+; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> halt_12_0 (not thread_12_0)))
+(assert (=> halt_12_1 (not thread_12_1)))
+(assert (=> halt_12_2 (not thread_12_2)))
+
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; thread 0
@@ -2317,43 +2354,6 @@
 
 ; exited
 (assert (=> exit_11 (and (= heap_12 heap_11) exit_12)))
-
-; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (or thread_12_0 flush_12_0 thread_12_1 flush_12_1 thread_12_2 flush_12_2 exit_12))
-(assert (or (not thread_12_0) (not flush_12_0)))
-(assert (or (not thread_12_0) (not thread_12_1)))
-(assert (or (not thread_12_0) (not flush_12_1)))
-(assert (or (not thread_12_0) (not thread_12_2)))
-(assert (or (not thread_12_0) (not flush_12_2)))
-(assert (or (not thread_12_0) (not exit_12)))
-(assert (or (not flush_12_0) (not thread_12_1)))
-(assert (or (not flush_12_0) (not flush_12_1)))
-(assert (or (not flush_12_0) (not thread_12_2)))
-(assert (or (not flush_12_0) (not flush_12_2)))
-(assert (or (not flush_12_0) (not exit_12)))
-(assert (or (not thread_12_1) (not flush_12_1)))
-(assert (or (not thread_12_1) (not thread_12_2)))
-(assert (or (not thread_12_1) (not flush_12_2)))
-(assert (or (not thread_12_1) (not exit_12)))
-(assert (or (not flush_12_1) (not thread_12_2)))
-(assert (or (not flush_12_1) (not flush_12_2)))
-(assert (or (not flush_12_1) (not exit_12)))
-(assert (or (not thread_12_2) (not flush_12_2)))
-(assert (or (not thread_12_2) (not exit_12)))
-(assert (or (not flush_12_2) (not exit_12)))
-
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_12_0 (=> (or stmt_12_0_1 stmt_12_0_2) (not thread_12_0)) (not flush_12_0)))
-(assert (ite sb-full_12_1 (=> (or stmt_12_1_3 stmt_12_1_4) (not thread_12_1)) (not flush_12_1)))
-(assert (ite sb-full_12_2 (=> stmt_12_2_2 (not thread_12_2)) (not flush_12_2)))
-
-; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> halt_12_0 (not thread_12_0)))
-(assert (=> halt_12_1 (not thread_12_1)))
-(assert (=> halt_12_2 (not thread_12_2)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; step 13
@@ -2456,6 +2456,43 @@
 (assert (= exec_13_2_1 (and stmt_13_2_1 thread_13_2)))
 (assert (= exec_13_2_2 (and stmt_13_2_2 thread_13_2)))
 
+; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (or thread_13_0 flush_13_0 thread_13_1 flush_13_1 thread_13_2 flush_13_2 exit_13))
+(assert (or (not thread_13_0) (not flush_13_0)))
+(assert (or (not thread_13_0) (not thread_13_1)))
+(assert (or (not thread_13_0) (not flush_13_1)))
+(assert (or (not thread_13_0) (not thread_13_2)))
+(assert (or (not thread_13_0) (not flush_13_2)))
+(assert (or (not thread_13_0) (not exit_13)))
+(assert (or (not flush_13_0) (not thread_13_1)))
+(assert (or (not flush_13_0) (not flush_13_1)))
+(assert (or (not flush_13_0) (not thread_13_2)))
+(assert (or (not flush_13_0) (not flush_13_2)))
+(assert (or (not flush_13_0) (not exit_13)))
+(assert (or (not thread_13_1) (not flush_13_1)))
+(assert (or (not thread_13_1) (not thread_13_2)))
+(assert (or (not thread_13_1) (not flush_13_2)))
+(assert (or (not thread_13_1) (not exit_13)))
+(assert (or (not flush_13_1) (not thread_13_2)))
+(assert (or (not flush_13_1) (not flush_13_2)))
+(assert (or (not flush_13_1) (not exit_13)))
+(assert (or (not thread_13_2) (not flush_13_2)))
+(assert (or (not thread_13_2) (not exit_13)))
+(assert (or (not flush_13_2) (not exit_13)))
+
+; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (ite sb-full_13_0 (=> (or stmt_13_0_1 stmt_13_0_2) (not thread_13_0)) (not flush_13_0)))
+(assert (ite sb-full_13_1 (=> (or stmt_13_1_3 stmt_13_1_4) (not thread_13_1)) (not flush_13_1)))
+(assert (ite sb-full_13_2 (=> stmt_13_2_2 (not thread_13_2)) (not flush_13_2)))
+
+; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (=> halt_13_0 (not thread_13_0)))
+(assert (=> halt_13_1 (not thread_13_1)))
+(assert (=> halt_13_2 (not thread_13_2)))
+
 ; state variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; thread 0
@@ -2499,41 +2536,4 @@
 (assert (=> exit_12 (and (= heap_13 heap_12) exit_13)))
 
 (assert (=> (not exit_13) (= exit-code #x0000)))
-
-; scheduling constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (or thread_13_0 flush_13_0 thread_13_1 flush_13_1 thread_13_2 flush_13_2 exit_13))
-(assert (or (not thread_13_0) (not flush_13_0)))
-(assert (or (not thread_13_0) (not thread_13_1)))
-(assert (or (not thread_13_0) (not flush_13_1)))
-(assert (or (not thread_13_0) (not thread_13_2)))
-(assert (or (not thread_13_0) (not flush_13_2)))
-(assert (or (not thread_13_0) (not exit_13)))
-(assert (or (not flush_13_0) (not thread_13_1)))
-(assert (or (not flush_13_0) (not flush_13_1)))
-(assert (or (not flush_13_0) (not thread_13_2)))
-(assert (or (not flush_13_0) (not flush_13_2)))
-(assert (or (not flush_13_0) (not exit_13)))
-(assert (or (not thread_13_1) (not flush_13_1)))
-(assert (or (not thread_13_1) (not thread_13_2)))
-(assert (or (not thread_13_1) (not flush_13_2)))
-(assert (or (not thread_13_1) (not exit_13)))
-(assert (or (not flush_13_1) (not thread_13_2)))
-(assert (or (not flush_13_1) (not flush_13_2)))
-(assert (or (not flush_13_1) (not exit_13)))
-(assert (or (not thread_13_2) (not flush_13_2)))
-(assert (or (not thread_13_2) (not exit_13)))
-(assert (or (not flush_13_2) (not exit_13)))
-
-; store buffer constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (ite sb-full_13_0 (=> (or stmt_13_0_1 stmt_13_0_2) (not thread_13_0)) (not flush_13_0)))
-(assert (ite sb-full_13_1 (=> (or stmt_13_1_3 stmt_13_1_4) (not thread_13_1)) (not flush_13_1)))
-(assert (ite sb-full_13_2 (=> stmt_13_2_2 (not thread_13_2)) (not flush_13_2)))
-
-; halt constraints ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(assert (=> halt_13_0 (not thread_13_0)))
-(assert (=> halt_13_1 (not thread_13_1)))
-(assert (=> halt_13_2 (not thread_13_2)))
 

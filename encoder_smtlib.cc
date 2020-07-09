@@ -162,13 +162,12 @@ void Encoder::encode ()
       declare_states();
       declare_transitions();
       define_transitions();
+      define_constraints ();
 
       if (step)
         define_states();
       else
         init_states();
-
-      define_constraints ();
     }
 }
 

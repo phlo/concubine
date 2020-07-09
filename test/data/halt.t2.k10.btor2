@@ -90,162 +90,162 @@
 40 and 1 25 32 exec_1_2
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; state variable definitions
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-; accu variables - accu_<thread>
-41 init 2 10 6
-42 next 2 10 10 accu_0
-
-43 init 2 11 6
-44 next 2 11 11 accu_1
-
-; mem variables - mem_<thread>
-45 init 2 12 6
-46 next 2 12 12 mem_0
-
-47 init 2 13 6
-48 next 2 13 13 mem_1
-
-; store buffer address variables - sb-adr_<thread>
-49 init 2 14 6
-50 next 2 14 14 sb-adr_0
-
-51 init 2 15 6
-52 next 2 15 15 sb-adr_1
-
-; store buffer value variables - sb-val_<thread>
-53 init 2 16 6
-54 next 2 16 16 sb-val_0
-
-55 init 2 17 6
-56 next 2 17 17 sb-val_1
-
-; store buffer full variables - sb-full_<thread>
-57 init 1 18 4
-58 ite 1 33 4 18
-59 next 1 18 58 sb-full_0
-
-60 init 1 19 4
-61 ite 1 34 4 19
-62 next 1 19 61 sb-full_1
-
-; statement activation variables - stmt_<thread>_<pc>
-63 init 1 20 5
-64 and 1 20 -35 0:0:JNZ:2
-65 next 1 20 64 stmt_0_0
-
-66 init 1 21 4
-67 and 1 21 -36 0:1:HALT
-68 neq 1 10 6
-69 and 1 35 -68
-70 ite 1 20 69 67 0:0:JNZ:2
-71 next 1 21 70 stmt_0_1
-
-72 init 1 22 4
-73 and 1 22 -37 0:2:EXIT:1
-74 and 1 35 68
-75 ite 1 20 74 73 0:0:JNZ:2
-76 next 1 22 75 stmt_0_2
-
-77 init 1 23 5
-78 and 1 23 -38 1:0:JNZ:2
-79 next 1 23 78 stmt_1_0
-
-80 init 1 24 4
-81 and 1 24 -39 1:1:HALT
-82 neq 1 11 6
-83 and 1 38 -82
-84 ite 1 23 83 81 1:0:JNZ:2
-85 next 1 24 84 stmt_1_1
-
-86 init 1 25 4
-87 and 1 25 -40 1:2:EXIT:1
-88 and 1 38 82
-89 ite 1 23 88 87 1:0:JNZ:2
-90 next 1 25 89 stmt_1_2
-
-; halt variables - halt_<thread>
-91 init 1 26 4
-92 or 1 36 26
-93 next 1 26 92 halt_0
-
-94 init 1 27 4
-95 or 1 39 27
-96 next 1 27 95 halt_1
-
-; heap variable
-97 write 3 28 14 16
-98 ite 3 33 97 28 flush_0
-99 write 3 28 15 17
-100 ite 3 34 99 98 flush_1
-101 next 3 28 100 heap
-
-; exit flag variable
-102 init 1 29 4
-103 and 1 92 95
-104 or 1 29 103
-105 or 1 37 104
-106 or 1 40 105
-107 next 1 29 106 exit
-
-; exit code variable
-108 init 2 30 6
-109 ite 2 37 7 30 0:2:EXIT:1
-110 ite 2 40 7 109 1:2:EXIT:1
-111 next 2 30 110 exit-code
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; scheduling constraints
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-112 or 1 31 32
-113 or 1 33 112
-114 or 1 34 113
-115 or 1 29 114
-116 constraint 115
-117 nand 1 31 32
-118 nand 1 31 33
-119 nand 1 31 34
-120 nand 1 31 29
-121 nand 1 32 33
-122 nand 1 32 34
-123 nand 1 32 29
-124 nand 1 33 34
-125 nand 1 33 29
-126 nand 1 34 29
-127 and 1 117 118
-128 and 1 119 127
-129 and 1 120 128
-130 and 1 121 129
-131 and 1 122 130
-132 and 1 123 131
-133 and 1 124 132
-134 and 1 125 133
-135 and 1 126 134
-136 constraint 135
+41 or 1 31 32
+42 or 1 33 41
+43 or 1 34 42
+44 or 1 29 43
+45 constraint 44
+46 nand 1 31 32
+47 nand 1 31 33
+48 nand 1 31 34
+49 nand 1 31 29
+50 nand 1 32 33
+51 nand 1 32 34
+52 nand 1 32 29
+53 nand 1 33 34
+54 nand 1 33 29
+55 nand 1 34 29
+56 and 1 46 47
+57 and 1 48 56
+58 and 1 49 57
+59 and 1 50 58
+60 and 1 51 59
+61 and 1 52 60
+62 and 1 53 61
+63 and 1 54 62
+64 and 1 55 63
+65 constraint 64
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; store buffer constraints
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-137 implies 1 21 -31
-138 ite 1 18 137 -33
-139 constraint 138 flush_0
+66 implies 1 21 -31
+67 ite 1 18 66 -33
+68 constraint 67 flush_0
 
-140 implies 1 24 -32
-141 ite 1 19 140 -34
-142 constraint 141 flush_1
+69 implies 1 24 -32
+70 ite 1 19 69 -34
+71 constraint 70 flush_1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; halt constraints
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-143 implies 1 26 -31
-144 constraint 143 halt_0
+72 implies 1 26 -31
+73 constraint 72 halt_0
 
-145 implies 1 27 -32
-146 constraint 145 halt_1
+74 implies 1 27 -32
+75 constraint 74 halt_1
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; state variable definitions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; accu variables - accu_<thread>
+76 init 2 10 6
+77 next 2 10 10 accu_0
+
+78 init 2 11 6
+79 next 2 11 11 accu_1
+
+; mem variables - mem_<thread>
+80 init 2 12 6
+81 next 2 12 12 mem_0
+
+82 init 2 13 6
+83 next 2 13 13 mem_1
+
+; store buffer address variables - sb-adr_<thread>
+84 init 2 14 6
+85 next 2 14 14 sb-adr_0
+
+86 init 2 15 6
+87 next 2 15 15 sb-adr_1
+
+; store buffer value variables - sb-val_<thread>
+88 init 2 16 6
+89 next 2 16 16 sb-val_0
+
+90 init 2 17 6
+91 next 2 17 17 sb-val_1
+
+; store buffer full variables - sb-full_<thread>
+92 init 1 18 4
+93 ite 1 33 4 18
+94 next 1 18 93 sb-full_0
+
+95 init 1 19 4
+96 ite 1 34 4 19
+97 next 1 19 96 sb-full_1
+
+; statement activation variables - stmt_<thread>_<pc>
+98 init 1 20 5
+99 and 1 20 -35 0:0:JNZ:2
+100 next 1 20 99 stmt_0_0
+
+101 init 1 21 4
+102 and 1 21 -36 0:1:HALT
+103 neq 1 10 6
+104 and 1 35 -103
+105 ite 1 20 104 102 0:0:JNZ:2
+106 next 1 21 105 stmt_0_1
+
+107 init 1 22 4
+108 and 1 22 -37 0:2:EXIT:1
+109 and 1 35 103
+110 ite 1 20 109 108 0:0:JNZ:2
+111 next 1 22 110 stmt_0_2
+
+112 init 1 23 5
+113 and 1 23 -38 1:0:JNZ:2
+114 next 1 23 113 stmt_1_0
+
+115 init 1 24 4
+116 and 1 24 -39 1:1:HALT
+117 neq 1 11 6
+118 and 1 38 -117
+119 ite 1 23 118 116 1:0:JNZ:2
+120 next 1 24 119 stmt_1_1
+
+121 init 1 25 4
+122 and 1 25 -40 1:2:EXIT:1
+123 and 1 38 117
+124 ite 1 23 123 122 1:0:JNZ:2
+125 next 1 25 124 stmt_1_2
+
+; halt variables - halt_<thread>
+126 init 1 26 4
+127 or 1 36 26
+128 next 1 26 127 halt_0
+
+129 init 1 27 4
+130 or 1 39 27
+131 next 1 27 130 halt_1
+
+; heap variable
+132 write 3 28 14 16
+133 ite 3 33 132 28 flush_0
+134 write 3 28 15 17
+135 ite 3 34 134 133 flush_1
+136 next 3 28 135 heap
+
+; exit flag variable
+137 init 1 29 4
+138 and 1 127 130
+139 or 1 29 138
+140 or 1 37 139
+141 or 1 40 140
+142 next 1 29 141 exit
+
+; exit code variable
+143 init 2 30 6
+144 ite 2 37 7 30 0:2:EXIT:1
+145 ite 2 40 7 144 1:2:EXIT:1
+146 next 2 30 145 exit-code
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; bound
