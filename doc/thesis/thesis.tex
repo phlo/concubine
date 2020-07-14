@@ -36,6 +36,7 @@
   abovecaptionskip=\bigskipamount,
   belowcaptionskip=\bigskipamount,
   escapeinside=@@,
+  keepspaces=true,
   columns=fullflexible,
 }
 \lstdefinelanguage[concubine]{Assembler}{
@@ -44,16 +45,16 @@
   basicstyle=\ttfamily,
   keywordstyle=\color{blue},
   commentstyle=\color{gray},
+  % keepspaces,
   % columns=fullflexible,
-  keepspaces,
   % tabsize=6,
   % xleftmargin=\parindent,
 }
 \lstdefinestyle{c++}{
   belowcaptionskip=1\baselineskip,
   breaklines=true,
-  keepspaces=true,
-  columns=fullflexible,
+  % keepspaces=true,
+  % columns=fullflexible,
   % frame=L,
   % xleftmargin=\parindent,
   language=C++,
@@ -62,12 +63,18 @@
   morekeywords={
     Instruction,
     map,
+    std::map,
     ostringstream,
     set,
     string,
+    std::string,
+    std::to_string,
     unordered_map,
     vector,
-    word},
+    std::vector,
+    word,
+    uint,
+  },
   % basicstyle=\footnotesize\ttfamily,
   basicstyle=\small\ttfamily,
   keywordstyle=\sffamily\bfseries\color{blue},
@@ -77,12 +84,12 @@
   stringstyle=\color{red!60!black},
 }
 \lstdefinelanguage{SMTLib}{
-  morekeywords={[1]declare-fun, assert, =, and},
+  morekeywords={[1]declare-fun, assert, =, =>, and, ite, not},
   morekeywords={[2]BitVec},
-  alsoletter={-, =},
+  alsoletter={-, =, >},
   morecomment=[l]\;,
   sensitive=false,
-  basicstyle=\ttfamily,
+  basicstyle=\small\ttfamily,
   commentstyle=\color{gray},
   % keywordstyle=\bfseries
   keywordstyle=[1]\bfseries\color{green!40!black},
