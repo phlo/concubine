@@ -40,7 +40,7 @@
   columns=fullflexible,
 }
 \lstdefinelanguage[concubine]{Assembler}{
-  morekeywords={[1]LOAD,STORE,FENCE,ADD,ADDI,SUB,SUBI,JZ,CHECK,HALT,EXIT},
+  morekeywords={[1]LOAD,STORE,FENCE,ADD,ADDI,SUB,SUBI,JZ,CHECK,HALT,EXIT,FLUSH},
   morecomment=[l]\#,
   basicstyle=\ttfamily,
   keywordstyle=\color{blue},
@@ -61,18 +61,18 @@
   showstringspaces=false,
   alsoletter={:},
   morekeywords={
-    Instruction,
-    map,
+    % Instruction,
+    % map,
     std::map,
-    ostringstream,
-    set,
-    string,
+    std::ostringstream,
+    std::set,
+    % string,
     std::string,
     std::to_string,
-    unordered_map,
-    vector,
+    % unordered_map,
+    % vector,
     std::vector,
-    word,
+    std::size_t,
     uint,
   },
   % basicstyle=\footnotesize\ttfamily,
@@ -84,6 +84,7 @@
   stringstyle=\color{red!60!black},
 }
 \lstdefinelanguage{SMTLib}{
+  breaklines=true,
   morekeywords={[1]declare-fun, assert, =, =>, and, ite, not},
   morekeywords={[2]BitVec},
   alsoletter={-, =, >},

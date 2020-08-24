@@ -722,79 +722,96 @@ $\MSB: \BVSORT \to \BVSORT[1]$ for retrieving the most significant bit of a give
 \newpage
 \subsection{SMT-Lib}
 
-\todo[inline]{Pseudo\texttt{++}}
+\newcommand{\Cpp}{C\texttt{++}17 }
 
-% \DontPrintSemicolon
-\SetAlgoVlined
-% \SetAlgoNoLine
+% We will now outline the actual encoding process for SMT-Lib.
+% We will now outline the process of generating SMT-Lib formulas for our model checking problems, following the previously defined encoding scheme.
+We will now outline a simplistic \Cpp implementation for generating SMT-Lib formulas of our model checking problems, following the previously defined encoding scheme.
+% We will now outline a simplistic \Cpp implementation for generating our model checking problems in the SMT-Lib format, following the previously defined encoding scheme.
 
-% default style
-\SetKwProg{Fn}{function}{}{end}
+\subsubsection{Types}
+% \todo[inline]{types} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% C-style
-% \SetStartEndCondition{ (}{) }{)}\SetAlgoBlockMarkers{\{}{\}}%
-% \AlgoDisplayBlockMarkers\SetAlgoNoLine%
-% \SetKwProg{Fn}{}{}{}
-% \SetKwIF{If}{ElseIf}{Else}{if}{}{elif}{else}{}%
+To differentiate among particular machine states, we start by introducing:% an \lstinline[style=c++]{enum} \texttt{State}.
+% A \lstinline[style=c++]{enum} \texttt{State} is used to differentiate among machine states
 
-% alternative C-Style
-% \SetStartEndCondition{ (}{)}{)}\SetAlgoBlockMarkers{}{\}}%
-% \SetKwProg{Fn}{}{ \{}{}\SetKwFunction{FRecurs}{void FnRecursive}%
-% \SetKwFor{For}{for}{ \{}{}%
-% \SetKwIF{If}{ElseIf}{Else}{if}{ \{}{else if}{else \{}{}%
-% \SetKwFor{While}{while}{ \{}{}%
-% \SetKwRepeat{Repeat}{repeat\{}{until}%
-% \AlgoDisplayBlockMarkers\SetAlgoNoLine%
+% \begin{lstlisting}[style=c++]
+% typedef uint16_t word_t;
+% \end{lstlisting}
 
-% standard library functions
-\SetKwFunction{ToString}{str}
-\SetKwFunction{Append}{<<}
+\begin{lstlisting}[style=c++]
+enum State
+{
+  heap,
+  accu,
+  mem,
+  sb_adr,
+  sb_val,
+  sb_full,
+  stmt,
+  block,
+  halt,
+  exit,
+  exit_code
+};
+\end{lstlisting}
+% All possible values contained in our machine's 16 bit registers are captured by the corresponding unsigned integer type \texttt{word_t}.
+% \begin{lstlisting}[style=c++]
+% using uint = unsigned;
+% \end{lstlisting}
+% Each available instruction is represented by it's own type, derived from an abstract class \texttt{Instruction}, capturing arguments and abolishing the need for lengthy case splits to determine the actual instruction at runtime by utilizing dynamic dispatch of member functions.
+Each available instruction is represented by it's own type, derived from an abstract class \texttt{Instruction}, capturing arguments and abolishing the need for lengthy case splits by utilizing dynamic dispatch of member functions to take the appropriate action at runtime.%determine the type of instruction at runtime.
+\begin{lstlisting}[style=c++]
+struct Instruction
+{
+  uint arg;
+  bool indirect;
 
-% global variables %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\SetKwData{Formula}{formula}
-\SetKwData{EOL}{eol}
+  Instruction (uint a, bool i = false) : arg(a), indirect(i) {};
 
-\SetKwFunction{DeclareStates}{declare_states}
-\SetKwFunction{DeclareTransitions}{declare_transitions}
-\SetKwFunction{DefineTransitions}{define_transitions}
-\SetKwFunction{InitStates}{init_states}
-\SetKwFunction{DefineConstraints}{define_constraints}
-\SetKwFunction{DefineStates}{define_states}
+  virtual std::string encode (uint k, uint t, State state) = 0;
+};
+\end{lstlisting}
+% virtual std::string encode (uint k, uint t, uint pc) = 0;
 
-% macros
-\newcommand{\IterateThreads}[1]{\ForEach{thread t}{#1}}
-\newcommand{\IteratePrograms}[1]{\ForEach{thread t}{\ForEach{statement at pc}{#1}}}
-\newcommand{\IterateCheckpoints}[1]{\ForEach{checkpoint id}{\ForEach{thread t containing a call to id}{#1}}}
+\subsubsection{Globals}
+
+\noindent
+Inputs and utility variables are given as globals to keep things simple and function signatures as small as possible.
+
+% \todo[inline]{gobal variables} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\todo[noline]{include halts, exits in alters?}
 
 % programs
-\noindent
-\begin{minipage}{.3\textwidth}
-  \lstinputlisting[
-    language={[concubine]Assembler},
-    numbers=left,
-    firstnumber=0,
-    numberstyle=\footnotesize,
-    xleftmargin=0.39\textwidth
-  ]{../../examples/demo/processor.0.asm}
-\end{minipage}
-\begin{minipage}{.3\textwidth}
-  \lstinputlisting[
-    language={[concubine]Assembler},
-    numbers=left,
-    firstnumber=0,
-    numberstyle=\footnotesize,
-    xleftmargin=0.39\textwidth
-  ]{../../examples/demo/processor.1.asm}
-\end{minipage}
-\begin{minipage}{.3\textwidth}
-  \lstinputlisting[
-    language={[concubine]Assembler},
-    numbers=left,
-    firstnumber=0,
-    numberstyle=\footnotesize,
-    xleftmargin=0.39\textwidth
-  ]{../../examples/demo/checker.asm}
-\end{minipage}
+% \noindent
+% \begin{minipage}{.3\textwidth}
+  % \lstinputlisting[
+    % language={[concubine]Assembler},
+    % numbers=left,
+    % firstnumber=0,
+    % numberstyle=\footnotesize,
+    % xleftmargin=0.39\textwidth
+  % ]{../../examples/demo/processor.0.asm}
+% \end{minipage}
+% \begin{minipage}{.3\textwidth}
+  % \lstinputlisting[
+    % language={[concubine]Assembler},
+    % numbers=left,
+    % firstnumber=0,
+    % numberstyle=\footnotesize,
+    % xleftmargin=0.39\textwidth
+  % ]{../../examples/demo/processor.1.asm}
+% \end{minipage}
+% \begin{minipage}{.3\textwidth}
+  % \lstinputlisting[
+    % language={[concubine]Assembler},
+    % numbers=left,
+    % firstnumber=0,
+    % numberstyle=\footnotesize,
+    % xleftmargin=0.39\textwidth
+  % ]{../../examples/demo/checker.asm}
+% \end{minipage}
 
 % \noindent
 % \begin{tabu}{|X|X|X|}
@@ -813,75 +830,107 @@ $\MSB: \BVSORT \to \BVSORT[1]$ for retrieving the most significant bit of a give
   % \hline
 % \end{tabu}
 
-\noindent
-\begin{tabu}{|X|X|X|}
+% \noindent
+% \begin{tabu}{|X|X|X|}
+  % \firsthline
+  % \centering \textbf{Thread 0} & \centering \textbf{Thread 1} & \centering \textbf{Thread 2} \\
+  % \hline
+  % \hline
+  % \begin{tabu}{lXX}
+    % 0 & \lstinline[language={[concubine]Assembler}]{ADDI 1} & $\STMT^k_{0, 0}$ \\
+    % 1 & \lstinline[language={[concubine]Assembler}]{STORE 0} & $\STMT^k_{0, 1}$ \\
+    % 2 & \lstinline[language={[concubine]Assembler}]{LOAD 1} & $\STMT^k_{0, 1}$ \\
+    % 3 & \lstinline[language={[concubine]Assembler}]{CHECK 0} & $\STMT^k_{0, 1}$ \\
+    % 4 & \lstinline[language={[concubine]Assembler}]{HALT} & $\STMT^k_{0, 1}$ \\
+  % \end{tabu}
+  % &
+  % \begin{tabu}{lXX}
+    % 0 & \lstinline[language={[concubine]Assembler}]{ADDI 1} & $\STMT^k_{0, 1}$ \\
+    % 1 & \lstinline[language={[concubine]Assembler}]{STORE 1} & $\STMT^k_{0, 1}$ \\
+    % 2 & \lstinline[language={[concubine]Assembler}]{LOAD 0} & $\STMT^k_{0, 1}$ \\
+    % 3 & \lstinline[language={[concubine]Assembler}]{CHECK 0} & $\STMT^k_{0, 1}$ \\
+    % 4 & \lstinline[language={[concubine]Assembler}]{HALT} & $\STMT^k_{0, 1}$ \\
+  % \end{tabu}
+  % &
+  % \begin{tabu}{lXX}
+    % & \\
+    % & \\
+    % & \\
+    % 0 & \lstinline[language={[concubine]Assembler}]{CHECK 0} & $\STMT^k_{0, 1}$ \\
+    % 1 & \lstinline[language={[concubine]Assembler}]{ADD 0} & $\STMT^k_{0, 1}$ \\
+    % 2 & \lstinline[language={[concubine]Assembler}]{ADD 1} & $\STMT^k_{0, 1}$ \\
+    % 3 & \lstinline[language={[concubine]Assembler}]{JZ error} & $\STMT^k_{0, 1}$ \\
+    % 4 & \lstinline[language={[concubine]Assembler}]{EXIT 0} & $\STMT^k_{0, 1}$ \\
+    % 5 & \lstinline[language={[concubine]Assembler}]{error: EXIT 1} & $\STMT^k_{0, 1}$ \\
+  % \end{tabu} \\
+  % \lasthline
+% \end{tabu}
+
+\begin{table}
+\begin{tabu}{|c|c|c|}
   \firsthline
-  \centering \textbf{Thread 0} & \centering \textbf{Thread 1} & \centering \textbf{Thread 2} \\
+  % \begin{tabu}{c} \textbf{Thread 0} \end{tabu} &
+  % \begin{tabu}{c} \textbf{Thread 1} \end{tabu} &
+  % \begin{tabu}{c} \textbf{Thread 2} \end{tabu} \\
+  \textbf{Thread 0} & \textbf{Thread 1} & \textbf{Thread 2} \\
   \hline
   \hline
-  \begin{tabu}{lX}
-    0 & \lstinline[language={[concubine]Assembler}]{ADDI 1} \\
-    1 & \lstinline[language={[concubine]Assembler}]{STORE 0} \\
-    2 & \lstinline[language={[concubine]Assembler}]{LOAD 1} \\
-    3 & \lstinline[language={[concubine]Assembler}]{CHECK 0} \\
-    4 & \lstinline[language={[concubine]Assembler}]{HALT} \\
+  \begin{tabu}{ll}
+    \lstinline[language={[concubine]Assembler}]{ADDI 1}   & $\STMT^k_{0, 0}$ \\
+    \lstinline[language={[concubine]Assembler}]{STORE 0}  & $\STMT^k_{0, 1}$ \\
+    \lstinline[language={[concubine]Assembler}]{LOAD 1}   & $\STMT^k_{0, 2}$ \\
+    \lstinline[language={[concubine]Assembler}]{CHECK 0}  & $\STMT^k_{0, 3}$ \\
+    \lstinline[language={[concubine]Assembler}]{HALT}     & $\STMT^k_{0, 4}$ \\
   \end{tabu}
   &
-  \begin{tabu}{lX}
-    0 & \lstinline[language={[concubine]Assembler}]{ADDI 1} \\
-    1 & \lstinline[language={[concubine]Assembler}]{STORE 1} \\
-    2 & \lstinline[language={[concubine]Assembler}]{LOAD 0} \\
-    3 & \lstinline[language={[concubine]Assembler}]{CHECK 0} \\
-    4 & \lstinline[language={[concubine]Assembler}]{HALT} \\
+  \begin{tabu}{ll}
+    \lstinline[language={[concubine]Assembler}]{ADDI 1}   & $\STMT^k_{1, 0}$ \\
+    \lstinline[language={[concubine]Assembler}]{STORE 1}  & $\STMT^k_{1, 1}$ \\
+    \lstinline[language={[concubine]Assembler}]{LOAD 0}   & $\STMT^k_{1, 2}$ \\
+    \lstinline[language={[concubine]Assembler}]{CHECK 0}  & $\STMT^k_{1, 3}$ \\
+    \lstinline[language={[concubine]Assembler}]{HALT}     & $\STMT^k_{1, 4}$ \\
   \end{tabu}
   &
-  \begin{tabu}{lX}
+  \begin{tabu}{ll}
     & \\
     & \\
     & \\
-    0 & \lstinline[language={[concubine]Assembler}]{CHECK 0} \\
-    1 & \lstinline[language={[concubine]Assembler}]{ADD 0} \\
-    2 & \lstinline[language={[concubine]Assembler}]{ADD 1} \\
-    3 & \lstinline[language={[concubine]Assembler}]{JZ error} \\
-    4 & \lstinline[language={[concubine]Assembler}]{EXIT 0} \\
-    5 & \lstinline[language={[concubine]Assembler}]{error: EXIT 1} \\
+    \lstinline[language={[concubine]Assembler}]{CHECK 0}        & $\STMT^k_{2, 0}$ \\
+    \lstinline[language={[concubine]Assembler}]{ADD 0}          & $\STMT^k_{2, 1}$ \\
+    \lstinline[language={[concubine]Assembler}]{ADD 1}          & $\STMT^k_{2, 2}$ \\
+    \lstinline[language={[concubine]Assembler}]{JZ error}       & $\STMT^k_{2, 3}$ \\
+    \lstinline[language={[concubine]Assembler}]{EXIT 0}         & $\STMT^k_{2, 4}$ \\
+    \lstinline[language={[concubine]Assembler}]{error: EXIT 1}  & $\STMT^k_{2, 5}$ \\
   \end{tabu} \\
   \lasthline
 \end{tabu}
+\caption{Store buffer litmus test programs and their activation variables.}
+\label{tbl:programs}
+\end{table}
 
-\subsubsection{types}
-\todo[inline]{types} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \noindent
+% \begin{tabu}{|XX[r]|XX[r]|lr|}
+  % \hline
+  % \multicolumn{2}{|c|}{\textbf{Thread 0}} & \multicolumn{2}{c|}{\textbf{Thread 1}} & \multicolumn{2}{c|}{\textbf{Thread 2}} \\
+  % \hline
+  % \texttt{ADDI 1}   & $\STMT^k_{0, 0}$  & \texttt{ADDI 1}   & $\STMT^k_{1, 0}$  && \\
+  % \texttt{STORE 0}  & $\STMT^k_{0, 1}$  & \texttt{STORE 1}  & $\STMT^k_{1, 1}$  && \\
+  % \texttt{LOAD 1}   & $\STMT^k_{0, 2}$  & \texttt{LOAD 0}   & $\STMT^k_{1, 2}$  && \\
+  % \texttt{CHECK 0}  & $\STMT^k_{0, 3}$  & \texttt{CHECK 0}  & $\STMT^k_{1, 3}$  & \texttt{CHECK 0} & $\STMT^k_{2, 0}$ \\
+  % \texttt{HALT}     & $\STMT^k_{0, 4}$  & \texttt{HALT}     & $\STMT^k_{1, 4}$  & \texttt{ADD 0}         & $\STMT^k_{2, 1}$ \\
+  % &&&& \texttt{ADD 1}         & $\STMT^k_{2, 2}$ \\
+  % &&&& \texttt{JZ error}      & $\STMT^k_{2, 3}$ \\
+  % &&&& \texttt{EXIT 0}        & $\STMT^k_{2, 4}$ \\
+  % &&&& \texttt{error:} \texttt{EXIT 1} & $\STMT^k_{2, 5}$ \\
+  % \hline
+% \end{tabu}
+
+Input programs are given as a list of instructions.
 
 \begin{lstlisting}[style=c++]
-enum State {
-  heap,
-  accu,
-  mem,
-  sb_adr,
-  sb_val,
-  sb_full
-}
-\end{lstlisting}
-
-\subsubsection{globals}
-\todo[inline]{gobal variables} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\begin{lstlisting}[style=c++]
-// SMT formula buffer
-//
-ostringstream formula;
-
-// initial memory layout
-//
-map<uint, uint> mmap = {{0, 0}, {1, 0}};
-
-// bound
-//
-size_t bound = 17;
-
 // list of programs being encoded (index == thread id)
 //
-vector<vector<Instruction *>> programs = {
+std::vector<std::vector<Instruction *>> programs = {
   {
     new Addi(1),
     new Store(0),
@@ -905,12 +954,32 @@ vector<vector<Instruction *>> programs = {
     new Exit(1)
   }
 };
+\end{lstlisting}
 
-// pcs of statements altering a specific state
+\begin{lstlisting}[style=c++]
+// bound
+//
+uint bound = 17;
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+// initial memory layout
+//
+std::map<uint, uint> mmap = {{0, 0}, {1, 0}};
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+// SMT formula buffer
+//
+std::ostringstream formula;
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+// pcs of statements updating a specific state
 //
 // State -> thread -> list of program counters
 //
-std::map<State, std::map<uint, std::vector<uint>>> alters = {
+std::map<State, std::map<uint, std::vector<uint>>> updates = {
   { State::accu, {
     {0, {0, 2}},
     {1, {0, 2}},
@@ -927,83 +996,277 @@ std::map<State, std::map<uint, std::vector<uint>>> alters = {
   { State::sb_full, {
     {0, {1}},
     {1, {1}}
+  }},
+  { State::halt, { // ?
+    {0, {4}},
+    {1, {4}}
+  }},
+  { State::exit, { // ?
+    {2, {4, 5}},
   }}
 };
+\end{lstlisting}
 
+\begin{lstlisting}[style=c++]
 // list of predecessors for each thread
 //
 // thread -> pc -> set of predecessors
 //
-vector<unordered_map<uint, set<uint>>> predecessors = {
+std::vector<std::map<uint, std::set<uint>>> predecessors = {
   {{0, {}}, {1, {0}}, {2, {1}}, {3, {2}}, {4, {3}}},
   {{0, {}}, {1, {0}}, {2, {1}}, {3, {2}}, {4, {3}}},
   {{0, {}}, {1, {0}}, {2, {1}}, {3, {2}}, {4, {3}}, {5, {3}}}
 };
+\end{lstlisting}
 
+\begin{lstlisting}[style=c++]
 // pcs of statements requiring an empty store buffer
 //
 // thread -> list of program counters
 //
-map<uint, vector<uint>> flushes = {{0, {1, 4}}, {1, {1, 4}}};
+std::map<uint, std::vector<uint>> barriers = {
+  {0, {1, 4}},
+  {1, {1, 4}}
+};
+\end{lstlisting}
 
+\begin{lstlisting}[style=c++]
 // pcs of checkpoint statements
 //
 // checkpoint id -> thread -> list of program counters
 //
-map<uint, map<uint, vector<uint>>> checkpoints = {
-  {0, {{0, {3}}, {1, {3}}, {2, {0}}}}
+std::map<uint, std::map<uint, std::vector<uint>>> checkpoints = {
+  {0, {{0, {3}},
+       {1, {3}},
+       {2, {0}}}}
 };
+\end{lstlisting}
 
-// pcs of halt statements
-//
-// thread -> list of program counters
-//
-map<uint, vector<uint>> halts = {{0, {4}}, {1, {4}}};
+% \begin{lstlisting}[style=c++]
+% // pcs of halt statements
+% //
+% // thread -> list of program counters
+% //
+% std::map<uint, std::vector<uint>> halts = {{0, {4}}, {1, {4}}};
+% \end{lstlisting}
 
-// pcs of exit calls
-//
-// thread -> list of program counters
-//
-map<uint, vector<uint>> exits = {{2, {4, 5}}};
+% \begin{lstlisting}[style=c++]
+% // pcs of exit calls
+% //
+% // thread -> list of program counters
+% //
+% std::map<uint, std::vector<uint>> exits = {{2, {4, 5}}};
+% \end{lstlisting}
+
+\subsubsection{smtlib generator functions}
+\todo[inline]{smtlib generator functions} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+template <class ... T>
+std::string expr (const char * op, const T & ... args)
+{
+  std::string e = '(' + op;
+  (((e += ' ') += args), ...);
+  return e += ')';
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+template <template <class, class...> class C>
+std::string expr (const char * op, const C<std::string> & args)
+{
+  std::string e = '(' + op;
+  for (const auto & a : args)
+    (e += ' ') += a;
+  return e += ')';
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+std::string assertion (std::string arg)
+{
+  return expr("assert", arg);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+std::string lnot (std::string arg)
+{
+  return expr("not", arg);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+std::string land (const std::string & arg) { return arg; }
+
+template <class ... T>
+std::string land (const std::string & arg, const T & ... args)
+{
+  return expr("and", arg, args...);
+}
+
+template <template<class, class...> class C>
+std::string land (const C<std::string> & args)
+{
+  return args.size() < 2 ? *args.begin() : expr("and", args);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+std::string lor (const std::string & arg) { return arg; }
+
+template <class ... T>
+std::string lor (const std::string & arg, const T & ... args)
+{
+  return expr("or", arg, args...);
+}
+
+template <template<class, class...> class C>
+std::string lor (const C<std::string> & args)
+{
+  return args.size() < 2 ? *args.begin() : expr("or", args);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+std::string lxor (const std::string & arg) { return arg; }
+
+template <class ... T>
+std::string lxor (const std::string & arg, const T & ... args)
+{
+  return expr("xor", arg, args...);
+}
+
+template <template<class, class...> class C>
+std::string lxor (const C<std::string> & args)
+{
+  return args.size() < 2 ? *args.begin() : expr("xor", args);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+std::string implication (std::string antecedent, std::string consequent)
+{
+  return expr("=>", antecedent, consequent);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+std::string equality (std::string var, std::string val)
+{
+  return expr("=", var, val);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+std::string ite (std::string condition, std::string t, std::string f)
+{
+  return expr("ite", condition, t, f);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+std::string bvadd (std::string a, std::string b)
+{
+  return expr("bvadd", a, b);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+std::string bvsub (std::string a, std::string b)
+{
+  return expr("bvsub", a, b);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+std::string bvmul (std::string a, std::string b)
+{
+  return expr("bvmul", a, b);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+std::string select (std::string var, std::string idx)
+{
+  return expr("select", var, idx);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+std::string to_hex (uint val)
+{
+  std::ostringstream s;
+  s << "#x" << std::setfill('0') << std::setw(4) << std::hex << val;
+  return s.str();
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+std::string store (std::string var, std::string idx, std::string val)
+{
+  return expr("store", var, idx, val);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+std::string extract (std::string msb, std::string lsb, std::string var)
+{
+  return expr(expr("_ extract", msb, lsb).c_str(), var);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+std::string declare_bool_var (std::string name)
+{
+  // return "(declare-fun " + name + " () Bool)";
+  return expr("declare-fun", {name, "()", "Bool"});
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+std::string declare_bv_var (std::string name)
+{
+  // return "(declare-fun " + name + " () (_ BitVec 16))";
+  return expr("declare-fun", {name, "()", "(_ BitVec 16)"});
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+std::string declare_array_var (std::string name)
+{
+  // return "(declare-fun "
+  //        + name
+  //        + " (Array (_ BitVec 16) (_ BitVec 16)))";
+  static const char * sort = "(_ BitVec 16)";
+  return expr("declare-fun", name, expr("Array", sort, sort));
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+std::string assign (std::string var, std::string val)
+{
+  return assertion(equality(var, val));
+}
 \end{lstlisting}
 
 \subsubsection{main encoding function}
-\todo[inline]{main encoding function} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\SetKwFunction{Encode}{encode}
-\begin{algorithm}[H]
-  \Fn{\Encode{}}{
-    \Formula \Append \texttt{"(set-logic QF_AUFBV)"} \Append \EOL \Append \EOL\;
-    ~\\
-    \For{$k = 0$ \KwTo $bound$}{
-      \DeclareStates{k}\;
-      \DeclareTransitions{}\;
-      \DefineTransitions{}\;
-      \DefineConstraints{}\;
-      ~\\
-      \If{$k > 0$}{
-        \DefineStates{}\;
-      } \Else {
-        \InitStates{}\;
-      }
-    }
-  }
-\end{algorithm}
+\todo[inline]{main encoding function (smtlib)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{lstlisting}[style=c++]
 void encode ()
 {
   formula << "(set-logic QF_AUFBV)" << eol << eol;
 
-  for (step = 0, prev = -1; step <= bound; step++, prev++)
+  for (uint k = 0; k <= bound; k++)
     {
-      declare_states();
-      declare_transitions();
-      define_transitions();
-      define_constraints ();
+      declare_states(k);
+      declare_transitions(k);
+      define_transitions(k);
+      define_constraints (k);
 
-      if (step)
-        define_states();
+      if (k)
+        define_states(k);
       else
         init_states();
     }
@@ -1013,134 +1276,61 @@ void encode ()
 \subsubsection{declare states}
 \todo[inline]{declare states} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\SetKwFunction{DeclareAccu}{declare_accu}
-\SetKwFunction{DeclareMem}{declare_mem}
-\SetKwFunction{DeclareSBAdr}{declare_sb_adr}
-\SetKwFunction{DeclareSBVal}{declare_sb_val}
-\SetKwFunction{DeclareSBFull}{declare_sb_full}
-\SetKwFunction{DeclareStmt}{declare_stmt}
-\SetKwFunction{DeclareBlock}{declare_block}
-\SetKwFunction{DeclareHalt}{declare_halt}
-\SetKwFunction{DeclareHeap}{declare_heap}
-\SetKwFunction{DeclareExitFlag}{declare_exit_flag}
-\SetKwFunction{DeclareExitCode}{declare_exit_code}
-
-\begin{algorithm}[H]
-  \Fn{\DeclareStates{k}}{
-    \tcc{declare thread state variables}
-    \DeclareAccu{k}\;
-    \DeclareMem{}\;
-    \DeclareSBAdr{}\;
-    \DeclareSBVal{}\;
-    \DeclareSBFull{}\;
-    \DeclareStmt{}\;
-    \DeclareBlock{}\;
-    \DeclareHalt{}\;
-    ~\\
-    \tcc{declare machine state variables}
-    \DeclareHeap{}\;
-    \DeclareExitFlag{}\;
-    ~\\
-    \If{$k = 0$}{
-      \DeclareExitCode{}\;
-    }
-  }
-\end{algorithm}
-
 \begin{lstlisting}[style=c++]
-void declare_states ()
+void declare_states (uint k)
 {
   // thread states
-  declare_accu();
-  declare_mem();
-  declare_sb_adr();
-  declare_sb_val();
-  declare_sb_full();
-  declare_stmt();
-  declare_block();
-  declare_halt();
+  declare_accu(k);
+  declare_mem(k);
+  declare_sb_adr(k);
+  declare_sb_val(k);
+  declare_sb_full(k);
+  declare_stmt(k);
+  declare_block(k);
+  declare_halt(k);
 
   // machine states
-  declare_heap();
-  declare_exit_flag();
+  declare_heap(k);
+  declare_exit_flag(k);
 
-  if (!step)
-    declare_exit_code();
+  if (!k) declare_exit_code();
 }
 \end{lstlisting}
 
 \subsubsection{declare accu}
 \todo[inline]{declare accu} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\SetKwFunction{DeclareBV}{declare_bv_var}
-\begin{algorithm}[H]
-  \Fn{\DeclareBV{name}}{
-    \Return \texttt{"(declare-fun "} + \ArgSty{name} + \texttt{" () (_ BitVec 16))"}\;
-  }
-\end{algorithm}
-
-\SetKwFunction{AccuVar}{accu_var}
-\begin{algorithm}[H]
-  \Fn{\AccuVar{k, t}}{
-    \Return \texttt{"accu_"} + \ToString{k} + \texttt{"_"} + \ToString{t}\;
-  }
-\end{algorithm}
-
-\begin{algorithm}[H]
-  \Fn{\DeclareAccu{k}}{
-    \IterateThreads{
-      \Formula \Append \DeclareBV{\AccuVar{k, t}} \Append \EOL\;
-    }
-    \Formula \Append \EOL\;
-  }
-\end{algorithm}
+% \begin{lstlisting}[style=c++]
+% template <template<class, class...> class C>
+% std::string var (std::string name, C<uint> attributes)
+% {
+  % for (const auto & attr : attributes)
+    % (name += '_') += std::to_string(attr);
+%
+  % return name;
+% }
+% \end{lstlisting}
 
 \begin{lstlisting}[style=c++]
-string declare_bv_var (string name)
+template <class ... T>
+std::string var (std::string name, const T & ... attributes)
 {
-  return "(declare-fun " + name + " () (_BitVec 16))";
-}
-\end{lstlisting}
-
-\begin{lstlisting}[style=c++]
-std::string var (std::string name, std::vector<uint> attributes)
-{
-  for (const auto & attr : attributes)
-    (name += '_') += std::to_string(attr);
-
-  return name;
+  return (((name += '_') += std::to_string(attributes)), ...);
 }
 \end{lstlisting}
 
 % return "accu_" + std::to_string(k) + '_' + std::to_string(t);
-\begin{lstlisting}[
-  style=c++,
-  morekeywords={std::string, std::to_string},
-]
-std::string accu_var (int k, int t) { return var("accu", {k, t}); }
-\end{lstlisting}
-
 \begin{lstlisting}[style=c++]
-template <class Functor>
-void iterate_threads (const Functor & fun)
+std::string accu_var (uint k, uint t)
 {
-  for (thread = 0; thread < programs->size(); thread++)
-    fun();
-}
-
-void declare_accu (int k)
-{
-  iterate_threads([] {
-    formula << declare_bv_var(accu_var(k, t)) << eol;
-  });
-  formula << eol;
+  return var("accu", k, t);
 }
 \end{lstlisting}
 
 \begin{lstlisting}[style=c++]
-void declare_accu (int k)
+void declare_accu (uint k)
 {
-  for (int t = 0; t < programs.size(); t++)
+  for (uint t = 0; t < programs.size(); t++)
     formula << declare_bv_var(accu_var(k, t)) << eol;
   formula << eol;
 }
@@ -1157,32 +1347,17 @@ void declare_accu (int k)
 \subsubsection{declare mem}
 \todo[inline]{declare mem} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Symbol generator for $\MEM^k_t$
-
-\SetKwFunction{MemVar}{mem_var}
-\begin{algorithm}[H]
-  \Fn{\MemVar{k, t}}{
-    \Return \texttt{"mem_"} + \ToString{k} + \texttt{"_"} + \ToString{t}\;
-  }
-\end{algorithm}
-
-\begin{algorithm}[H]
-  \Fn{\DeclareMem{k}}{
-    \IterateThreads{
-      \Formula \Append \DeclareBV{\MemVar{k, t}} \Append \EOL\;
-    }
-    \Formula \Append \EOL\;
-  }
-\end{algorithm}
-
 \begin{lstlisting}[style=c++]
-std::string mem_var (uint k, uint t) { return var("mem", {k, t}); }
+std::string mem_var (uint k, uint t)
+{
+  return var("mem", k, t);
+}
 \end{lstlisting}
 
 \begin{lstlisting}[style=c++]
 void declare_mem (uint k)
 {
-  for (word t = 0; t < programs.size(); t++)
+  for (uint t = 0; t < programs.size(); t++)
     formula << declare_bv_var(mem_var(k, t)) << eol;
   formula << eol;
 }
@@ -1198,19 +1373,21 @@ void declare_mem (uint k)
 \subsubsection{declare sb-adr}
 \todo[inline]{declare sb-adr} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\SetKwFunction{SBAdrVar}{sb_adr_var}
-\begin{algorithm}[H]
-  \Fn{\SBAdrVar{k, t}}{\Return \texttt{"sb-adr_"} + \ToString{k} + \texttt{"_"} + \ToString{t}\;}
-\end{algorithm}
+\begin{lstlisting}[style=c++]
+std::string sb_adr_var (uint k, uint t)
+{
+  return var("sb-adr", k, t);
+}
+\end{lstlisting}
 
-\begin{algorithm}[H]
-  \Fn{\DeclareSBAdr{k}}{
-    \IterateThreads{
-      \Formula \Append \DeclareBV{\SBAdrVar{k, t}} \Append \EOL\;
-    }
-    \Formula \Append \EOL\;
-  }
-\end{algorithm}
+\begin{lstlisting}[style=c++]
+void declare_sb_adr (uint k)
+{
+  for (uint t = 0; t < programs.size(); t++)
+    formula << declare_bv_var(sb_adr_var(k, t)) << eol;
+  formula << eol;
+}
+\end{lstlisting}
 
 \begin{lstlisting}[language=SMTLib]
 ; store buffer address variables - sb-adr_<step>_<thread>
@@ -1222,19 +1399,21 @@ void declare_mem (uint k)
 \subsubsection{declare sb-val}
 \todo[inline]{declare sb_val} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\SetKwFunction{SBValVar}{sb_val_var}
-\begin{algorithm}[H]
-  \Fn{\SBValVar{k, t}}{\Return \texttt{"sb-val_"} + \ToString{k} + \texttt{"_"} + \ToString{t}\;}
-\end{algorithm}
+\begin{lstlisting}[style=c++]
+std::string sb_val_var (uint k, uint t)
+{
+  return var("sb-val", k, t);
+}
+\end{lstlisting}
 
-\begin{algorithm}[H]
-  \Fn{\DeclareSBVal{k}}{
-    \IterateThreads{
-      \Formula \Append \DeclareBV{\SBValVar{k, t}} \Append \EOL\;
-    }
-    \Formula \Append \EOL\;
-  }
-\end{algorithm}
+\begin{lstlisting}[style=c++]
+void declare_sb_val (uint k)
+{
+  for (uint t = 0; t < programs.size(); t++)
+    formula << declare_bv_var(sb_val_var(k, t)) << eol;
+  formula << eol;
+}
+\end{lstlisting}
 
 \begin{lstlisting}[language=SMTLib]
 ; store buffer value variables - sb-val_<step>_<thread>
@@ -1246,26 +1425,21 @@ void declare_mem (uint k)
 \subsubsection{declare sb-full}
 \todo[inline]{declare sb_full} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\SetKwFunction{DeclareBool}{declare_bool_var}
-\begin{algorithm}[H]
-  \Fn{\DeclareBool{name}}{
-    \Return \texttt{"(declare-fun "} $+$ \ArgSty{name} $+$ \texttt{" () Bool)"}\;
-  }
-\end{algorithm}
+\begin{lstlisting}[style=c++]
+std::string sb_full_var (uint k, uint t)
+{
+  return var("sb-full", k, t);
+}
+\end{lstlisting}
 
-\SetKwFunction{SBFullVar}{sb_full_var}
-\begin{algorithm}[H]
-  \Fn{\SBFullVar{k, t}}{\Return \texttt{"sb-full_"} + \ToString{k} + \texttt{"_"} + \ToString{t}\;}
-\end{algorithm}
-
-\begin{algorithm}[H]
-  \Fn{\DeclareSBFull{k}}{
-    \IterateThreads{
-      \Formula \Append \DeclareBool{\SBFullVar{k, t}} \Append \EOL\;
-    }
-    \Formula \Append \EOL\;
-  }
-\end{algorithm}
+\begin{lstlisting}[style=c++]
+void declare_sb_full (uint k)
+{
+  for (uint t = 0; t < programs.size(); t++)
+    formula << declare_bool_var(sb_full_var(k, t)) << eol;
+  formula << eol;
+}
+\end{lstlisting}
 
 \begin{lstlisting}[language=SMTLib]
 ; store buffer full variables - sb-full_<step>_<thread>
@@ -1277,44 +1451,10 @@ void declare_mem (uint k)
 \subsubsection{declare stmt}
 \todo[inline]{declare stmt} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\SetKwFunction{StmtVar}{stmt_var}
-\begin{algorithm}[H]
-  \Fn{\StmtVar{k, t, pc}}{\Return \texttt{"stmt_"} + \ToString{k} + \texttt{"_"} + \ToString{t} + \texttt{"_"} + \ToString{pc}\;}
-\end{algorithm}
-
-\begin{algorithm}[H]
-  \Fn{\DeclareStmt{k}}{
-    \IteratePrograms{
-      \Formula \Append \DeclareBool{\StmtVar{k, t, pc}} \Append \EOL\;
-      % \Formula \\
-      % \Indp \Append \DeclareBool{\StmtVar{k, t, pc}} \\
-      % \Append \EOL\;
-    }
-    \Formula \Append \EOL\;
-  }
-\end{algorithm}
-
-\noindent
-\begin{tabu}{|XX[r]|XX[r]|lr|}
-  \hline
-  \multicolumn{2}{|c|}{\textbf{Thread 0}} & \multicolumn{2}{c|}{\textbf{Thread 1}} & \multicolumn{2}{c|}{\textbf{Thread 2}} \\
-  \hline
-  \texttt{ADDI 1}   & $\STMT^k_{0, 0}$  & \texttt{ADDI 1}   & $\STMT^k_{1, 0}$  && \\
-  \texttt{STORE 0}  & $\STMT^k_{0, 1}$  & \texttt{STORE 1}  & $\STMT^k_{1, 1}$  && \\
-  \texttt{LOAD 1}   & $\STMT^k_{0, 2}$  & \texttt{LOAD 0}   & $\STMT^k_{1, 2}$  && \\
-  \texttt{CHECK 0}  & $\STMT^k_{0, 3}$  & \texttt{CHECK 0}  & $\STMT^k_{1, 3}$  & \texttt{CHECK 0} & $\STMT^k_{2, 0}$ \\
-  \texttt{HALT}     & $\STMT^k_{0, 4}$  & \texttt{HALT}     & $\STMT^k_{1, 4}$  & \texttt{ADD 0}         & $\STMT^k_{2, 1}$ \\
-  &&&& \texttt{ADD 1}         & $\STMT^k_{2, 2}$ \\
-  &&&& \texttt{JZ error}      & $\STMT^k_{2, 3}$ \\
-  &&&& \texttt{EXIT 0}        & $\STMT^k_{2, 4}$ \\
-  &&&& \texttt{error:} \texttt{EXIT 1} & $\STMT^k_{2, 5}$ \\
-  \hline
-\end{tabu}
-
 \begin{lstlisting}[style=c++]
 std::string stmt_var (uint k, uint t, uint pc)
 {
-  return var("stmt", {k, t, pc});
+  return var("stmt", k, t, pc);
 }
 \end{lstlisting}
 
@@ -1323,7 +1463,7 @@ void declare_stmt (uint k)
 {
   for (uint t = 0; t < programs.size(); t++)
     for (uint pc = 0; pc < programs[t].size(); pc++)
-      formula << declare_bv_var(stmt_var(k, t, pc)) << eol;
+      formula << declare_bool_var(stmt_var(k, t, pc)) << eol;
   formula << eol;
 }
 \end{lstlisting}
@@ -1353,46 +1493,20 @@ void declare_stmt (uint k)
 \subsubsection{declare block}
 \todo[inline]{declare block} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\SetKwFunction{BlockVar}{block_var}
-\begin{algorithm}[H]
-  \Fn{\BlockVar{k, id, t}}{\Return \texttt{"block_"} + \ToString{k} + \texttt{"_"} + \ToString{id} + \texttt{"_"} + \ToString{t}\;}
-\end{algorithm}
-
-\begin{algorithm}[H]
-  \Fn{\DeclareBlock{k}}{
-    \IterateCheckpoints{
-      \Formula \Append \DeclareBool{\BlockVar{k, id, t}} \Append \EOL\;
-    }
-    \Formula \Append \EOL\;
-  }
-\end{algorithm}
-
 \begin{lstlisting}[style=c++]
 std::string block_var (uint k, uint id, uint t)
 {
-  return
-    "block_" +
-    std::to_string(k) + '_' +
-    std::to_string(id) + '_' +
-    std::to_string(tid);
+  return var("block", k, id, t);
 }
 \end{lstlisting}
 
 \begin{lstlisting}[style=c++]
-std::string block_var (uint k, uint id, uint t)
-{
-  return var("block", {k, id, t});
-}
-\end{lstlisting}
-
-\begin{lstlisting}[style=c++]
-void declare_block (int k)
+void declare_block (uint k)
 {
   for (const auto & [id, threads] : checkpoints)
     {
       for (const auto & [t, _] : threads)
         formula << declare_bool_var(block_var(k, id, t)) << eol;
-
       formula << eol;
     }
 }
@@ -1408,31 +1522,18 @@ void declare_block (int k)
 \subsubsection{declare halt}
 \todo[inline]{declare halt} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\SetKwFunction{HaltVar}{halt_var}
-\begin{algorithm}[H]
-  \Fn{\HaltVar{k, t}}{\Return \texttt{"halt_"} + \ToString{k} + \texttt{"_"} + \ToString{t}\;}
-\end{algorithm}
-
-\begin{algorithm}[H]
-  \Fn{\DeclareHalt{k}}{
-    \todo[noline]{skip if there are no halts?}
-    \IterateThreads{
-      \Formula \Append \DeclareBool{\HaltVar{k, t}} \Append \EOL\;
-    }
-    \Formula \Append \EOL\;
-  }
-\end{algorithm}
-
 \begin{lstlisting}[style=c++]
-std::string halt_var (uint k, uint t) { return var("halt", {k, t}); }
+std::string halt_var (uint k, uint t)
+{
+  return var("halt", k, t);
+}
 \end{lstlisting}
 
 \begin{lstlisting}[style=c++]
-void declare_halt (int k)
+void declare_halt (uint k)
 {
   for (const auto & [t, _] : halts)
     formula << declare_bool_var(halt_var(k, t)) << eol;
-
   formula << eol;
 }
 \end{lstlisting}
@@ -1447,29 +1548,19 @@ void declare_halt (int k)
 \subsubsection{declare heap}
 \todo[inline]{declare heap} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\SetKwFunction{DeclareArray}{declare_array_var}
-\begin{algorithm}[H]
-  \Fn{\DeclareArray{name}}{
-    % \Return \texttt{"(declare-fun "} $+$ \ArgSty{name} $+$ \texttt{" (Array (\_ BitVec 16) (\_ BitVec 16)))"}\;
-    \begin{tabbing}
-      \Return \=\texttt{"(declare-fun "} \\
-      \> $+$ \ArgSty{name} \\
-      \> $+$ \texttt{" (Array (\_ BitVec 16) (\_ BitVec 16)))"}\;
-    \end{tabbing}
-    \vspace{-1\baselineskip}
-  }
-\end{algorithm}
+\begin{lstlisting}[style=c++]
+std::string heap_var (uint k)
+{
+  return var("heap", k);
+}
+\end{lstlisting}
 
-\SetKwFunction{HeapVar}{heap_var}
-\begin{algorithm}[H]
-  \Fn{\HeapVar{k, t}}{\Return \texttt{"heap_"} + \ToString{k}\;}
-\end{algorithm}
-
-\begin{algorithm}[H]
-  \Fn{\DeclareHeap{k}}{
-    \Formula \Append \DeclareArray{\HeapVar{k}} \Append \EOL \Append \EOL\;
-  }
-\end{algorithm}
+\begin{lstlisting}[style=c++]
+void declare_heap (uint k)
+{
+  formula << declare_array_var(heap_var(k, t)) << eol << eol;
+}
+\end{lstlisting}
 
 \begin{lstlisting}[language=SMTLib]
 ; heap variable - heap_<step>
@@ -1479,16 +1570,22 @@ void declare_halt (int k)
 \subsubsection{declare exit-flag}
 \todo[inline]{declare exit-flag} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\SetKwFunction{ExitFlagVar}{exit_flag_var}
-\begin{algorithm}[H]
-  \Fn{\ExitFlagVar{k}}{\Return \texttt{"exit_"} + \ToString{k}\;}
-\end{algorithm}
+\begin{lstlisting}[style=c++]
+std::string exit_flag_var (uint k)
+{
+  return var("exit", k);
+}
+\end{lstlisting}
 
-\begin{algorithm}[H]
-  \Fn{\DeclareExitFlag{k}}{
-    \Formula \Append \DeclareBool{\ExitFlagVar{k}} \Append \EOL \Append \EOL\;
-  }
-\end{algorithm}
+\begin{lstlisting}[style=c++]
+void declare_exit_flag (uint k)
+{
+  if (halts.empty() && exits.empty())
+    return;
+
+  formula << declare_bool_var(exit_flag_var(k)) << eol << eol;
+}
+\end{lstlisting}
 
 \begin{lstlisting}[language=SMTLib]
 ; exit flag variable - exit_<step>
@@ -1498,16 +1595,16 @@ void declare_halt (int k)
 \subsubsection{declare exit-code}
 \todo[inline]{declare exit-code} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\SetKwFunction{ExitCodeVar}{exit_code_var}
-\begin{algorithm}[H]
-  \Fn{\ExitCodeVar{}}{\Return \texttt{"exit_code"}\;}
-\end{algorithm}
+\begin{lstlisting}[style=c++]
+std::string exit_code_var = "exit-code";
+\end{lstlisting}
 
-\begin{algorithm}[H]
-  \Fn{\DeclareExitCode{}}{
-    \Formula \Append \DeclareBool{\ExitCodeVar{}} \Append \EOL \Append \EOL\;
-  }
-\end{algorithm}
+\begin{lstlisting}[style=c++]
+void declare_exit_code (uint k)
+{
+  formula << declare_bv_var(exit_code_var) << eol << eol;
+}
+\end{lstlisting}
 
 \begin{lstlisting}[language=SMTLib]
 ; exit code variable
@@ -1517,22 +1614,8 @@ void declare_halt (int k)
 \subsubsection{declare transitions}
 \todo[inline]{declare transitions} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\SetKwFunction{DeclareThread}{declare_thread}
-\SetKwFunction{DeclareExec}{declare_exec}
-\SetKwFunction{DeclareFlush}{declare_flush}
-\SetKwFunction{DeclareCheck}{declare_check}
-
-\begin{algorithm}[H]
-  \Fn{\DeclareTransitions{k}}{
-    \DeclareThread{k}\;
-    \DeclareExec{}\;
-    \DeclareFlush{}\;
-    \DeclareCheck{}\;
-  }
-\end{algorithm}
-
 \begin{lstlisting}[style=c++]
-void declare_transitions (int k)
+void declare_transitions (uint k)
 {
   declare_thread(k);
   declare_exec(k);
@@ -1544,19 +1627,21 @@ void declare_transitions (int k)
 \subsubsection{declare thread}
 \todo[inline]{declare thread} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\SetKwFunction{ThreadVar}{thread_var}
-\begin{algorithm}[H]
-  \Fn{\ThreadVar{k, t}}{\Return \texttt{"thread_"} + \ToString{k} + \texttt{"_"} + \ToString{t}\;}
-\end{algorithm}
+\begin{lstlisting}[style=c++]
+std::string thread_var (uint k, uint t)
+{
+  return var("thread", k, t);
+}
+\end{lstlisting}
 
-\begin{algorithm}[H]
-  \Fn{\DeclareThread{k}}{
-    \IterateThreads{
-      \Formula \Append \DeclareBool{\ThreadVar{k, t}} \Append \EOL\;
-    }
-    \Formula \Append \EOL\;
-  }
-\end{algorithm}
+\begin{lstlisting}[style=c++]
+void declare_thread (uint k)
+{
+  for (uint t = 0; t < programs.size(); t++)
+    formula << declare_bool_var(thread_var(k, t)) << eol;
+  formula << eol;
+}
+\end{lstlisting}
 
 \begin{lstlisting}[language=SMTLib]
 ; thread activation variables - thread_<step>_<thread>
@@ -1568,19 +1653,22 @@ void declare_transitions (int k)
 \subsubsection{declare exec}
 \todo[inline]{declare exec} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\SetKwFunction{ExecVar}{exec_var}
-\begin{algorithm}[H]
-  \Fn{\ExecVar{k, t, pc}}{\Return \texttt{"exec_"} + \ToString{k} + \texttt{"_"} + \ToString{t} + \texttt{"_"} + \ToString{pc}\;}
-\end{algorithm}
+\begin{lstlisting}[style=c++]
+std::string exec_var (uint k, uint t, uint pc)
+{
+  return var("exec", k, t, pc);
+}
+\end{lstlisting}
 
-\begin{algorithm}[H]
-  \Fn{\DeclareExec{k}}{
-    \IteratePrograms{
-      \Formula \Append \DeclareBool{\ExecVar{k, t, pc}} \Append \EOL\;
-    }
-    \Formula \Append \EOL\;
-  }
-\end{algorithm}
+\begin{lstlisting}[style=c++]
+void declare_exec (uint k)
+{
+  for (uint t = 0; t < programs.size(); t++)
+    for (uint pc = 0; pc < programs[t].size(); pc++)
+      formula << declare_bool_var(exec_var(k, t, pc)) << eol;
+  formula << eol;
+}
+\end{lstlisting}
 
 \begin{lstlisting}[language=SMTLib]
 ; statement execution variables - exec_<step>_<thread>_<pc>
@@ -1607,19 +1695,21 @@ void declare_transitions (int k)
 \subsubsection{declare flush}
 \todo[inline]{declare flush} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\SetKwFunction{FlushVar}{flush_var}
-\begin{algorithm}[H]
-  \Fn{\FlushVar{k, t}}{\Return \texttt{"flush_"} + \ToString{k} + \texttt{"_"} + \ToString{t}\;}
-\end{algorithm}
+\begin{lstlisting}[style=c++]
+std::string flush_var (uint k, uint t)
+{
+  return var("flush", k, t);
+}
+\end{lstlisting}
 
-\begin{algorithm}[H]
-  \Fn{\DeclareFlush{k}}{
-    \IterateThreads{
-      \Formula \Append \DeclareBool{\FlushVar{k, t}} \Append \EOL\;
-    }
-    \Formula \Append \EOL\;
-  }
-\end{algorithm}
+\begin{lstlisting}[style=c++]
+void declare_flush (uint k)
+{
+  for (uint t = 0; t < programs.size(); t++)
+    formula << declare_bool_var(flush_var(k, t)) << eol;
+  formula << eol;
+}
+\end{lstlisting}
 
 \begin{lstlisting}[language=SMTLib]
 ; store buffer flush variables - flush_<step>_<thread>
@@ -1631,24 +1721,10 @@ void declare_transitions (int k)
 \subsubsection{declare check}
 \todo[inline]{declare check} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\SetKwFunction{CheckVar}{check_var}
-\begin{algorithm}[H]
-  \Fn{\CheckVar{k, id}}{\Return \texttt{"check_"} + \ToString{k} + \texttt{"_"} + \ToString{id}\;}
-\end{algorithm}
-
-\begin{algorithm}[H]
-  \Fn{\DeclareFlush{k}}{
-    \ForEach{checkoint id}{
-      \Formula \Append \DeclareBool{\FlushVar{k, t}} \Append \EOL\;
-    }
-    \Formula \Append \EOL\;
-  }
-\end{algorithm}
-
 \begin{lstlisting}[style=c++]
 std::string check_var (uint k, uint id)
 {
-  return var("check", {k, id});
+  return var("check", k, id);
 }
 \end{lstlisting}
 
@@ -1673,16 +1749,6 @@ void declare_check (uint k)
 \subsubsection{define transitions}
 \todo[inline]{define transitions} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\SetKwFunction{DefineExec}{define_exec}
-\SetKwFunction{DefineCheck}{define_check}
-
-\begin{algorithm}[H]
-  \Fn{\DefineTransitions{k}}{
-    \DefineExec{}\;
-    \DefineCheck{}\;
-  }
-\end{algorithm}
-
 \begin{lstlisting}[style=c++]
 void define_transitions (uint k)
 {
@@ -1693,106 +1759,6 @@ void define_transitions (uint k)
 
 \subsubsection{define exec}
 \todo[inline]{define exec} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\SetKwFunction{Assert}{assert}
-\begin{algorithm}[H]
-  \Fn{\Assert{expr}}{
-    \Return \texttt{"(assert "} + \ArgSty{expr} + \texttt{")"}\;
-  }
-\end{algorithm}
-
-\SetKwFunction{Equality}{equality}
-\begin{algorithm}[H]
-  \Fn{\Equality{var, expr}}{
-    \Return \texttt{"(= "} + \ArgSty{var} + \texttt{" "} + \ArgSty{expr} + \texttt{")"}\;
-  }
-\end{algorithm}
-
-\SetKwFunction{Assign}{assign}
-\begin{algorithm}[H]
-  \Fn{\Assign{var, expr}}{
-    \Return \Assert{\Equality{var, expr}}\;
-  }
-\end{algorithm}
-
-\SetKwFunction{And}{and}
-\begin{algorithm}[H]
-  \Fn{\And{args}}{
-    \Return \texttt{"(and "} + \ArgSty{var} + \texttt{" "} + \ArgSty{expr} + \texttt{")"}\;
-  }
-\end{algorithm}
-
-\begin{algorithm}[H]
-  \Fn{\DefineExec{k}}{
-    \IteratePrograms{
-      % \Formula \Append \\
-        % \Indp \Assign{ \\
-          % \Indp \ExecVar{k, t, pc}, \\
-          % \Indp \And{\StmtVar{k, t, pc}, \ThreadVar{k, t}}}\;
-      \begin{tabbing}
-        \Formula \Append \Assign{\=\ExecVar{k, t, pc}, \\
-        \> \And{\=\StmtVar{k, t, pc}, \\
-        \> \> \ThreadVar{k, t}}}\;
-      \end{tabbing}
-      \vspace{-1\baselineskip}
-    }
-    \Formula \Append \EOL\;
-  }
-\end{algorithm}
-
-\begin{lstlisting}[style=c++]
-template <class ... T>
-inline string expr (const char * op, const T & ... args)
-{
-  string e = '(' + op;
-  (((e += ' ') += args), ...);
-  return e += ')';
-}
-
-template <template <class, class...> class C>
-inline string expr (const char * op, const C<string> & args)
-{
-  string e = '(' + op;
-  for (const auto & a : args)
-    (e += ' ') += a;
-  return e += ')';
-}
-\end{lstlisting}
-
-\begin{lstlisting}[style=c++]
-string assertion (string expr)
-{
-  return expr("assert", expr);
-}
-\end{lstlisting}
-
-\begin{lstlisting}[style=c++]
-string assertion (string expr)
-{
-  return "(assert " + expr + ')';
-}
-\end{lstlisting}
-
-\begin{lstlisting}[style=c++]
-string equality (string var, string expr)
-{
-  return "(= " + var + ' ' + expr + ')';
-}
-\end{lstlisting}
-
-\begin{lstlisting}[style=c++]
-string assign (string var, string expr)
-{
-  return assertion(equality(var, expr));
-}
-\end{lstlisting}
-
-\begin{lstlisting}[style=c++]
-string land (string var, string expr)
-{
-  return assertion(equality(var, expr));
-}
-\end{lstlisting}
 
 \begin{lstlisting}[style=c++]
 void define_exec (uint k)
@@ -1833,76 +1799,6 @@ void define_exec (uint k)
 \subsubsection{define check}
 \todo[inline]{define check} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\SetKwFunction{Not}{not}
-\begin{algorithm}[H]
-  \Fn{\Not{expr}}{
-    \Return \texttt{"(not "} + \ArgSty{expr} + \texttt{")"}\;
-  }
-\end{algorithm}
-
-\begin{algorithm}[H]
-  \Fn{\DefineCheck{k}}{
-    \ForEach{checkpoint id}{
-      \SetKwData{Args}{args}
-      \If{$k > 0$}{
-        \Args = \{\}\;
-        % list \Args\;
-        \ForEach{thread t containing a call to checkpoint id}{
-          % push to args bitvector
-          % \Args.append(\BlockVar{k, id, t})\;
-          \SetKwFunction{Push}{append}
-          \Push{\Args, \BlockVar{k, id, t}}\;
-        }
-
-        \Formula \Append \Assign{\CheckVar{k, id}, \And{\Args}}\;
-      }
-      \Else {
-        \Formula \Append \Assert{\Not{\CheckVar{k, id}}}\;
-      }
-    }
-    \Formula \Append \EOL\;
-  }
-\end{algorithm}
-
-\begin{algorithm}[H]
-  \Fn{\DefineCheck{k}}{
-    \SetKwData{Args}{args}
-    \For{every checkpoint id}{
-      \If{step > 0}{
-        \Args = list of all threads containing a call to checkpoint id\;
-        append assignment to the formula\;
-      }
-      \Else{
-        append an assertion of the negated check variable\;
-      }
-    }
-  }
-\end{algorithm}
-
-\begin{algorithm}[H]
-  \Fn{\DefineCheck{k}}{
-    \ForEach{id \KwSty{in} \DataSty{checkpoints}}{
-      \SetKwData{Args}{args}
-      \If{$k > 0$}{
-        % \Args\;
-        % list \Args\;
-        \ForEach{t \KwSty{in} \DataSty{checkpoints[\ArgSty{id}]}}{
-          % push to args bitvector
-          \SetKwFunction{Put}{push_back}
-          \Args.\Put{\BlockVar{k, id, t}}\;
-          % \Push{\Args, \BlockVar{k, id, t}}\;
-        }
-
-        \Formula \Append \Assign{\CheckVar{k, id}, \And{\Args}}\;
-      }
-      \Else {
-        \Formula \Append \Assert{\Not{\CheckVar{k, id}}}\;
-      }
-    }
-    \Formula \Append \EOL\;
-  }
-\end{algorithm}
-
 \begin{lstlisting}[style=c++]
 void define_check (uint k)
 {
@@ -1910,21 +1806,17 @@ void define_check (uint k)
     return;
 
   for (const auto & [id, threads] : checkpoints)
-    {
-      if (k)
-        {
-          vector<string> args;
-
-          for (const auto & t : threads)
-            args.push_back(block_var(step, id, t.first));
-
-          formula << assign(check_var(step, id), land(args));
-        }
-      else
-        formula << assertion(lnot(check_var(step, id)));
-
-      formula << eol;
-    }
+    if (k)
+      {
+        std::vector<std::string> args;
+        for (const auto & [t, _] : threads)
+          args.push_back(block_var(k, id, t));
+        formula << assign(check_var(k, id), land(args)) << eol;
+      }
+    else
+      {
+        formula << assertion(lnot(check_var(k, id))) << eol;
+      }
 
   formula << eol;
 }
@@ -1943,22 +1835,8 @@ void define_check (uint k)
 \subsubsection{define constraints}
 \todo[inline]{define constraints} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\SetKwFunction{DefineSchedulingConstraints}{define_scheduling_constraints}
-\SetKwFunction{DefineStoreBufferConstraints}{define_store_buffer_constraints}
-\SetKwFunction{DefineCheckpointConstraints}{define_checkpoint_constraints}
-\SetKwFunction{DefineHaltConstraints}{define_halt_constraints}
-
-\begin{algorithm}[H]
-  \Fn{\DefineConstraints{k}}{
-    \DefineSchedulingConstraints{k}\;
-    \DefineStoreBufferConstraints{k}\;
-    \DefineCheckpointConstraints{k}\;
-    \DefineHaltConstraints{k}\;
-  }
-\end{algorithm}
-
 \begin{lstlisting}[style=c++]
-void define_constraints (unsigned k)
+void define_constraints (uint k)
 {
   define_scheduling_constraints(k);
   define_store_buffer_constraints(k);
@@ -1995,11 +1873,7 @@ std::string card_constraint_naive (std::vector<std::string> vars)
 \begin{lstlisting}[style=c++]
 std::string card_constraint_sinz (std::vector<std::string> vars)
 {
-  const size_t n = vars.size();
-
-  assert(n);
-
-  switch (n)
+  switch (vars.size())
     {
     case 1: return assertion(vars.front()) + eol;
     case 2: return assertion(lxor(vars)) + eol;
@@ -2010,20 +1884,15 @@ std::string card_constraint_sinz (std::vector<std::string> vars)
 
   // n-1 auxiliary variables
   std::vector<std::string> auxs;
-  auxs.reserve(n - 1);
 
   const auto end = --vars.end();
 
   for (auto it = vars.begin(); it != end; ++it)
-    {
-      constraint += declare_bool_var(auxs.emplace_back(*it + "_aux"));
-      constraint += eol;
-    }
+    constraint += declare_bool_var(auxs.emplace_back(*it + "_aux"))
+                  + eol;
 
   // >= 1 constraint
-  constraint += eol;
-  constraint += assertion(lor(vars));
-  constraint += eol;
+  constraint += eol + assertion(lor(vars)) + eol;
 
   // <= 1 constraint
   auto var = vars.begin();
@@ -2054,24 +1923,52 @@ std::string card_constraint_sinz (std::vector<std::string> vars)
 \begin{lstlisting}[style=c++]
 void define_scheduling_constraints (uint k)
 {
-  std::vector<std::string> variables;
+  std::vector<std::string> vars;
 
-  iterate_threads([this, &variables]
-  for (unsigned t = 0; t < programs.size(); t++)
+  for (uint t = 0; t < programs.size(); t++)
     {
-      variables.push_back(thread_var());
-      variables.push_back(flush_var());
-    });
+      vars.push_back(thread_var(k, t));
+      vars.push_back(flush_var(k, t));
+    }
 
   if (!halts.empty() || !exits.empty())
-    variables.push_back(exit_flag_var());
+    vars.push_back(exit_flag_var(k));
 
-  formula
-    << (use_sinz_constraint
-      ? card_constraint_sinz(variables)
-      : card_constraint_naive(variables))
-    << eol;
+  formula << (use_sinz_constraint ? card_constraint_sinz(vars)
+                                  : card_constraint_naive(vars))
+          << eol;
 }
+\end{lstlisting}
+
+\begin{lstlisting}[language=SMTLib]
+(declare-fun thread_0_0_aux () Bool)
+(declare-fun flush_0_0_aux () Bool)
+(declare-fun thread_0_1_aux () Bool)
+(declare-fun flush_0_1_aux () Bool)
+(declare-fun thread_0_2_aux () Bool)
+(declare-fun flush_0_2_aux () Bool)
+
+(assert (or thread_0_0 flush_0_0
+            thread_0_1 flush_0_1
+            thread_0_2 flush_0_2
+            exit_0))
+(assert (or (not thread_0_0) thread_0_0_aux))
+(assert (or (not flush_0_0) flush_0_0_aux))
+(assert (or (not thread_0_0_aux) flush_0_0_aux))
+(assert (or (not flush_0_0) (not thread_0_0_aux)))
+(assert (or (not thread_0_1) thread_0_1_aux))
+(assert (or (not flush_0_0_aux) thread_0_1_aux))
+(assert (or (not thread_0_1) (not flush_0_0_aux)))
+(assert (or (not flush_0_1) flush_0_1_aux))
+(assert (or (not thread_0_1_aux) flush_0_1_aux))
+(assert (or (not flush_0_1) (not thread_0_1_aux)))
+(assert (or (not thread_0_2) thread_0_2_aux))
+(assert (or (not flush_0_1_aux) thread_0_2_aux))
+(assert (or (not thread_0_2) (not flush_0_1_aux)))
+(assert (or (not flush_0_2) flush_0_2_aux))
+(assert (or (not thread_0_2_aux) flush_0_2_aux))
+(assert (or (not flush_0_2) (not thread_0_2_aux)))
+(assert (or (not exit_0) (not flush_0_2_aux)))
 \end{lstlisting}
 
 \subsubsection{define store buffer constraints}
@@ -2080,33 +1977,23 @@ void define_scheduling_constraints (uint k)
 \begin{lstlisting}[style=c++]
 void define_store_buffer_constraints (uint k)
 {
-  for (unsigned t = 0; t < programs.size(); t++)
-    if (flushes.find(thread) != flushes.end())
+  for (uint t = 0; t < programs.size(); t++)
+    if (barriers.find(thread) != barriers.end())
       {
         std::vector<std::string> stmts;
-
-        for (const auto & pc : flushes[t])
+        for (const auto & pc : barriers[t])
           stmts.push_back(stmt_var(k, t, pc));
-
-        formula <<
-          assertion(
-            ite(
-              sb_full_var(),
-              implication(
-                lor(stmts),
-                lnot(thread_var(k, t))),
-              lnot(flush_var(k, t)))) <<
-          eol;
+        formula
+          << assertion(ite(sb_full_var(),
+                           implication(lor(stmts),
+                                       lnot(thread_var(k, t))),
+                           lnot(flush_var(k, t))))
+          << eol;
       }
     else
-      {
-        formula <<
-          assertion(
-            implication(
-              lnot(sb_full_var(k, t)),
-          lnot(flush_var(k, t)))) <<
-          eol;
-      }
+      formula << assertion(implication(lnot(sb_full_var(k, t)),
+                                       lnot(flush_var(k, t))))
+              << eol;
 
   formula << eol;
 }
@@ -2126,23 +2013,18 @@ void define_store_buffer_constraints (uint k)
 \todo[inline]{define checkpoint constraints} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{lstlisting}[style=c++]
-void define_checkpoint_constraints (unsigned k)
+void define_checkpoint_constraints (uint k)
 {
   for (const auto & [id, threads] : checkpoints)
     {
       for (const auto & [t, _] : threads)
         {
-          formula <<
-            assertion(
-              implication(
-                land(
-                  block_var(k, id, t),
-                  lnot(check_var(k, id))),
-                lnot(thread_var(k, t))));
-
-          formula << eol;
+          formula
+            << assertion(implication(land(block_var(k, id, t),
+                                          lnot(check_var(k, id))),
+                                     lnot(thread_var(k, t))))
+            << eol;
         }
-
       formula << eol;
     }
 }
@@ -2164,10 +2046,9 @@ void define_halt_constraints (uint k)
     return;
 
   for (const auto & [t, _] : halts)
-    formula << assertion(
-                 implication(
-                   halt_var(k, t),
-                   lnot(thread_var(k, t)))) << eol;
+    formula << assertion(implication(halt_var(k, t),
+                                     lnot(thread_var(k, t))))
+            << eol;
 
   formula << eol;
 }
@@ -2207,8 +2088,8 @@ void init_states ()
 \begin{lstlisting}[style=c++]
 void init_accu ()
 {
-  for (unsigned t = 0; t < programs.size(); t++)
-    formula << assign(accu_var(k, t), word2hex(0)) << eol;
+  for (uint t = 0; t < programs.size(); t++)
+    formula << assign(accu_var(k, t), to_hex(0)) << eol;
   formula << eol;
 }
 \end{lstlisting}
@@ -2227,7 +2108,7 @@ void init_accu ()
 void init_mem ()
 {
   for (uint t = 0; t < programs.size(); t++)
-    formula << assign(mem_var(k, t), word2hex(0)) << eol;
+    formula << assign(mem_var(k, t), to_hex(0)) << eol;
   formula << eol;
 }
 \end{lstlisting}
@@ -2246,7 +2127,7 @@ void init_mem ()
 void init_sb_adr ()
 {
   for (uint t = 0; t < programs.size(); t++)
-    formula << assign(sb_adr_var(k, t), word2hex(0)) << eol;
+    formula << assign(sb_adr_var(k, t), to_hex(0)) << eol;
   formula << eol;
 }
 \end{lstlisting}
@@ -2265,7 +2146,7 @@ void init_sb_adr ()
 void init_sb_val ()
 {
   for (uint t = 0; t < programs.size(); t++)
-    formula << assign(sb_val_var(k, t), word2hex(0)) << eol;
+    formula << assign(sb_val_var(k, t), to_hex(0)) << eol;
   formula << eol;
 }
 \end{lstlisting}
@@ -2385,10 +2266,8 @@ void init_heap ()
     return;
 
   for (const auto & [adr, val] : mmap)
-    formula
-      << assign(select(heap_var(0), word2hex(adr)), word2hex(val))
-      << eol;
-
+    formula << assign(select(heap_var(0), to_hex(adr)), to_hex(val))
+            << eol;
   formula << eol;
 }
 \end{lstlisting}
@@ -2418,57 +2297,8 @@ void init_exit_flag ()
 (assert (not exit_0))
 \end{lstlisting}
 
-\subsubsection{init exit-flag}
-\todo[inline]{init exit-flag} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\begin{lstlisting}[style=c++]
-void init_exit_flag ()
-{
-  // TODO: remove - exits.empty() => !halts.empty()
-  if (halts.empty() && exits.empty())
-    return;
-
-  formula << assertion(lnot(exit_flag_var(0))) << eol << eol;
-}
-\end{lstlisting}
-
-\begin{lstlisting}[language=SMTLib]
-; exit flag variable - exit_<step>
-(assert (not exit_0))
-\end{lstlisting}
-
-\subsubsection{define states}
-\todo[inline]{define states} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\begin{lstlisting}[style=c++]
-void define_states (uint k)
-{
-  define_accu(k);
-  define_mem(k);
-  define_sb_adr(k);
-  define_sb_val(k);
-  define_sb_full(k);
-  define_stmt(k);
-  define_block(k);
-  define_halt(k);
-
-  define_heap(k);
-  define_exit_flag(k);
-}
-\end{lstlisting}
-
 \subsubsection{encoding instructions}
 \todo[inline]{encoding instructions} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\begin{lstlisting}[style=c++]
-struct Instruction
-{
-  uint arg;
-  bool indirect;
-
-  virtual std::string encode (uint k, uint t, State state) = 0;
-}
-\end{lstlisting}
 
 \subsubsection{encode LOAD}
 \todo[inline]{encode LOAD} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2476,7 +2306,7 @@ struct Instruction
 \begin{lstlisting}[style=c++]
 std::string load (uint k, uint t, uint adr, bool indirect = false)
 {
-  std::string address = word2hex(adr);
+  std::string address = to_hex(adr);
 
   std::string sb_adr = sb_adr_var(k - 1, t);
   std::string sb_val = sb_val_var(k - 1, t);
@@ -2516,9 +2346,7 @@ std::string Store::encode (uint k, uint t, State state)
 {
   switch (state)
     {
-    case State::sb_adr:
-      return indirect ? load(arg) : word2hex(arg);
-
+    case State::sb_adr: return indirect ? load(arg) : to_hex(arg);
     case State::sb_val: return accu_var(k - 1, t);
     }
 }
@@ -2540,7 +2368,7 @@ std::string Add::encode (uint k, uint t, State state)
 \begin{lstlisting}[style=c++]
 std::string Addi::encode (uint k, uint t, State state)
 {
-  return bvadd(accu_var(k - 1, t), word2hex(arg));
+  return bvadd(accu_var(k - 1, t), to_hex(arg));
 }
 \end{lstlisting}
 
@@ -2560,7 +2388,7 @@ std::string Sub::encode (uint k, uint t, State state)
 \begin{lstlisting}[style=c++]
 std::string Subi::encode (uint k, uint t, State state)
 {
-  return bvsub(accu_var(k - 1, t), word2hex(arg));
+  return bvsub(accu_var(k - 1, t), to_hex(arg));
 }
 \end{lstlisting}
 
@@ -2580,7 +2408,7 @@ std::string Mul::encode (uint k, uint t, State state)
 \begin{lstlisting}[style=c++]
 std::string Muli::encode (uint k, uint t, State state)
 {
-  return bvmul(accu_var(k - 1, t), word2hex(arg));
+  return bvmul(accu_var(k - 1, t), to_hex(arg));
 }
 \end{lstlisting}
 
@@ -2607,7 +2435,7 @@ std::string Jmp::encode (uint k, uint t, State state) { return ""; }
 \begin{lstlisting}[style=c++]
 std::string Jz::encode (uint k, uint t, State state)
 {
-  return equality(accu_var(k - 1, t), word2hex(0));
+  return equality(accu_var(k - 1, t), to_hex(0));
 }
 \end{lstlisting}
 
@@ -2617,7 +2445,7 @@ std::string Jz::encode (uint k, uint t, State state)
 \begin{lstlisting}[style=c++]
 std::string Jnz::encode (uint k, uint t, State state)
 {
-  return lnot(equality(accu_var(k - 1, t), word2hex(0)));
+  return lnot(equality(accu_var(k - 1, t), to_hex(0)));
 }
 \end{lstlisting}
 
@@ -2628,10 +2456,7 @@ std::string Jnz::encode (uint k, uint t, State state)
 \begin{lstlisting}[style=c++]
 std::string Js::encode (uint k, uint t, State state)
 {
-  // TODO: introduce global?
-  static const std::string msb = std::to_string(word_size - 1);
-
-  return equality("#b1", extract(msb, msb, accu_var(k - 1, t)));
+  return equality("#b1", extract("15", "15", accu_var(k - 1, t)));
 }
 \end{lstlisting}
 
@@ -2641,7 +2466,7 @@ std::string Js::encode (uint k, uint t, State state)
 \begin{lstlisting}[style=c++]
 std::string Jns::encode (uint k, uint t, State state)
 {
-  return equality("#b0", extract(msb, msb, accu_var(k - 1, t)));
+  return equality("#b0", extract("15", "15", accu_var(k - 1, t)));
 }
 \end{lstlisting}
 
@@ -2652,9 +2477,8 @@ std::string Jns::encode (uint k, uint t, State state)
 std::string Jnzns::encode (uint k, uint t, State state)
 {
   std::string accu = accu_var(k - 1, t);
-  return
-    land(lnot(equality(accu, word2hex(0))),
-         equality("#b0", extract(msb, msb, accu)));
+  return land(lnot(equality(accu, to_hex(0))),
+              equality("#b0", extract("15", "15", accu)));
 }
 \end{lstlisting}
 
@@ -2676,14 +2500,14 @@ std::string Cas::encode (uint k, uint t, State state)
 {
   std::string heap = heap_var(k - 1);
   std::string address =
-    indirect ? select(heap, word2hex(arg)) : word2hex(arg);
+    indirect ? select(heap, to_hex(arg)) : to_hex(arg);
   std::string condition =
     equality(mem_var(k - 1, t), select(heap, address));
 
   switch (state)
     {
     case State::accu:
-      return ite(condition, word2hex(1), word2hex(0));
+      return ite(condition, to_hex(1), to_hex(0));
 
     case State::heap:
       return
@@ -2700,7 +2524,32 @@ std::string Cas::encode (uint k, uint t, State state)
 \begin{lstlisting}[style=c++]
 std::string Exit::encode (uint k, uint t, State state)
 {
-  return word2hex(arg);
+  return to_hex(arg);
+}
+\end{lstlisting}
+
+\subsubsection{Functional State Updates}
+
+\subsubsection{define states (functional)}
+\todo[inline]{define states (functional)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+void define_states (uint k)
+{
+  define_accu(k);
+  define_mem(k);
+  define_sb_adr(k);
+  define_sb_val(k);
+  define_sb_full(k);
+  define_stmt(k);
+  define_block(k);
+  define_halt(k);
+
+  define_heap(k);
+  define_exit_flag(k);
+
+  if (step == bound)
+    define_exit_code();
 }
 \end{lstlisting}
 
@@ -2708,16 +2557,16 @@ std::string Exit::encode (uint k, uint t, State state)
 \todo[inline]{define accu} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{lstlisting}[style=c++]
-void define_accu (unsigned k)
+void define_accu (uint k)
 {
   for (const auto & [t, stmts] : alters[State::accu])
     {
-      std::string expr = accu_var(k - 1, t);
+      std::string val = accu_var(k - 1, t);
       for (auto pc = stmts.rbegin(); pc != stmts.rend(); ++pc)
-        expr = ite(exec_var(k - 1, t, *pc),
-                   program[t][*pc].encode(k, t, State::accu),
-                   expr);
-      formula << assign(accu_var(k, t), expr) << eol;
+        val = ite(exec_var(k - 1, t, *pc),
+                  program[t][*pc].encode(k, t, State::accu),
+                  val);
+      formula << assign(accu_var(k, t), val) << eol;
     }
   formula << eol;
 }
@@ -2749,7 +2598,8 @@ void define_accu (unsigned k)
                             (select heap_0 #x0000)))
                 (ite exec_0_2_2
                      (bvadd accu_0_2
-                            (ite (and sb-full_0_2 (= sb-adr_0_2 #x0001))
+                            (ite (and sb-full_0_2
+                                      (= sb-adr_0_2 #x0001))
                                  sb-val_0_2
                                  (select heap_0 #x0001)))
                      accu_0_2))))
@@ -2759,16 +2609,16 @@ void define_accu (unsigned k)
 \todo[inline]{define mem} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{lstlisting}[style=c++]
-void define_mem (unsigned k)
+void define_mem (uint k)
 {
   for (const auto & [t, stmts] : alters[State::mem])
     {
-      std::string expr = mem_var(k - 1, t);
+      std::string val = mem_var(k - 1, t);
       for (auto pc = stmts.rbegin(); pc != stmts.rend(); ++pc)
-        expr = ite(exec_var(k - 1, t, *pc),
-                   program[t][*pc].encode(k, t, State::mem),
-                   expr);
-      formula << assign(mem_var(k, t), expr) << eol;
+        val = ite(exec_var(k - 1, t, *pc),
+                  program[t][*pc].encode(k, t, State::mem),
+                  val);
+      formula << assign(mem_var(k, t), val) << eol;
     }
   formula << eol;
 }
@@ -2785,16 +2635,16 @@ void define_mem (unsigned k)
 \todo[inline]{define sb-adr} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{lstlisting}[style=c++]
-void define_sb_adr (unsigned k)
+void define_sb_adr (uint k)
 {
   for (const auto & [t, stmts] : alters[State::sb_adr])
     {
-      std::string expr = sb_adr_var(k - 1, t);
+      std::string val = sb_adr_var(k - 1, t);
       for (auto pc = stmts.rbegin(); pc != stmts.rend(); ++pc)
-        expr = ite(exec_var(k - 1, t, *pc),
-                   program[t][*pc].encode(k, t, State::sb_adr),
-                   expr);
-      formula << assign(sb_adr_var(k, t), expr) << eol;
+        val = ite(exec_var(k - 1, t, *pc),
+                  program[t][*pc].encode(k, t, State::sb_adr),
+                  val);
+      formula << assign(sb_adr_var(k, t), val) << eol;
     }
   formula << eol;
 }
@@ -2811,16 +2661,16 @@ void define_sb_adr (unsigned k)
 \todo[inline]{define sb-val} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{lstlisting}[style=c++]
-void define_sb_val (unsigned k)
+void define_sb_val (uint k)
 {
   for (const auto & [t, stmts] : alters[State::sb_val])
     {
-      std::string expr = sb_val_var(k - 1, t);
+      std::string val = sb_val_var(k - 1, t);
       for (auto pc = stmts.rbegin(); pc != stmts.rend(); ++pc)
-        expr = ite(exec_var(k - 1, t, *pc),
-                   program[t][*pc].encode(k, t, State::sb_val),
-                   expr);
-      formula << assign(sb_val_var(k, t), expr) << eol;
+        val = ite(exec_var(k - 1, t, *pc),
+                  program[t][*pc].encode(k, t, State::sb_val),
+                  val);
+      formula << assign(sb_val_var(k, t), val) << eol;
     }
   formula << eol;
 }
@@ -2837,7 +2687,7 @@ void define_sb_val (unsigned k)
 \todo[inline]{define sb-full} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{lstlisting}[style=c++]
-void define_sb_full (unsigned k)
+void define_sb_full (uint k)
 {
   for (const auto & [t, stmts] : alters[State::sb_full])
     {
@@ -2869,53 +2719,42 @@ void define_sb_full (unsigned k)
 \subsubsection{define stmt}
 \todo[inline]{define stmt} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\todo[noline]{introduce anonymous is_jump function}
+
 \begin{lstlisting}[style=c++]
 void define_stmt (uint k)
 {
   for (uint t = 0; t < programs.size(); t++)
     {
-      for (uint pc = 0; pc < program[t].size(); pc++)
+      for (uint pc = 0; pc < programs[t].size(); pc++)
         {
           // statement reactivation
-          std::string expr =
+          std::string val =
             land(stmt_var(k - 1, t, pc),
                  lnot(exec_var(k - 1, t, pc)));
-
-          const auto & pred = predecessors[thread][pc];
-
-          for (auto rit = pred.rbegin(); rit != pred.rend(); ++rit)
+          // activation by predecessor
+          const auto & stmts = predecessors[t][pc];
+          for (auto pre = stmts.rbegin(); pre != stmts.rend(); ++pre)
             {
-              // predecessor's execution variable
-              std::string val = exec_var(k - 1, t, *rit);
-
-              // build conjunction of execution variable and jump condition
-              const Instruction & pre = program[*rit];
-
-              if (pre.is_jump())
+              std::string exec = exec_var(k - 1, t, *pre);
+              Instruction * op = programs[t][*pre];
+              // add condition if predecessor is a jump
+              if (is_jump(op))
                 {
-                  const std::string cond = pre.encode(*this);
-
-                  // JMP has no condition and returns an empty std::string
+                  std::string cond = op->encode(k, t, State::stmt);
                   if (!cond.empty())
-                    val =
-                      land(
-                        val,
-                        // only activate successor if jump condition failed
-                        *rit == pc - 1 && pre.arg() != pc
-                          ? lnot(cond)
-                          : cond);
+                    exec = land(exec,
+                                // negate condition if jump failed
+                                *pre == pc - 1 && op.arg != pc
+                                  ? lnot(cond)
+                                  : cond);
                 }
-
-              // add predecessor to the activation
-              expr = ite(stmt_var(k - 1, t, *rit), val, expr);
+              val = ite(stmt_var(k - 1, t, *pre), exec, val);
             }
-
-          formula << assign(stmt_var(k, t, pc), expr) << eol;
+          formula << assign(stmt_var(k, t, pc), val) << eol;
         }
-
       formula << eol;
     }
- formula << eol;
 }
 \end{lstlisting}
 
@@ -2960,79 +2799,807 @@ void define_stmt (uint k)
                            exec_0_2_2
                            (and stmt_0_2_3 (not exec_0_2_3)))))
 (assert (= stmt_1_2_4 (ite stmt_0_2_3
-                           (and exec_0_2_3 (not (= accu_0_2 #x0000)))
+                           (and exec_0_2_3 (not (= accu_0_2
+                                                   #x0000)))
                            (and stmt_0_2_4 (not exec_0_2_4)))))
 (assert (= stmt_1_2_5 (ite stmt_0_2_3
                            (and exec_0_2_3 (= accu_0_2 #x0000))
                            (and stmt_0_2_5 (not exec_0_2_5)))))
 \end{lstlisting}
 
-\todo[inline]{} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{define block}
+\todo[inline]{define block} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% \DataSty{bound}
-% \[\Programs{i}\KwSty{[}\ArgSty{j}\KwSty{]} = \Int\]
-% \Size{\Programs{i}}
+\begin{lstlisting}[style=c++]
+void define_block (uint k)
+{
+  if (checkpoints.empty())
+    return;
 
-% \Word: 16 bit unsigned integer
-
-
-\SetKw{Int}{word}
-\SetKw{String}{string}
-\SetKwFunction{Size}{size}
-\SetKwArray{Programs}{programs}
-
-\begin{algorithm}[H]
-  \Fn{\AccuVar{k, t}}{\Return \texttt{"accu_"} + \ToString{k} + \texttt{"_"} + \ToString{t}\;}
-\end{algorithm}
-
-\begin{algorithm}[H]
-  \Fn{\AccuVar{k: \Int, t: \Int} : \String}{\Return \texttt{"accu_"} + \ToString{k} + \texttt{"_"} + \ToString{t}\;}
-  % \Fn{accu(k: int, t: int) : int}{\KwRet printf(\texttt{"accu_\%d_\%d"}, k, t)\;}
-\end{algorithm}
-
-\SetKwFunction{DeclareBool}{declare_bool_var}
-\begin{algorithm}[H]
-  \Fn{\DeclareBool{name}}{
-    \Return \texttt{"(declare-fun "} $+$ \ArgSty{name} $+$ \texttt{" () Bool)"}\;
-  }
-\end{algorithm}
-
-\SetKwFunction{DeclareBV}{declare_bv_var}
-\begin{algorithm}[H]
-  \Fn{\DeclareBV{name}}{
-    \Return \texttt{"(declare-fun "} $+$ \ArgSty{name} $+$ \texttt{" () (_ BitVec 16))"}\;
-  }
-\end{algorithm}
-
-\SetKwFunction{DeclareAccu}{declare_accu}
-\begin{algorithm}[H]
-  \Fn{\DeclareAccu{step}}{
-    \For{$i = 0$ \KwTo $\Size{\Programs} - 1$}{
-      \Formula \Append \DeclareBV{\AccuVar{step, i}} \Append \DataSty{eol}\;
+  for (const auto & [id, threads] : checkpoints)
+    {
+      for (const auto & [t, stmts] : threads)
+        {
+          std::vector<std::string> args;
+          for (const auto pc : stmts)
+            args.push_back(exec_var(k - 1, t, pc));
+          args.push_back(block_var(k - 1, id, t));
+          formula << assign(block_var(k, id, t),
+                            ite(check_var(k - 1, id),
+                                "false",
+                                lor(args))) << eol;
+        }
+      formula << eol;
     }
-    \Formula \Append \DataSty{eol}\;
-  }
-\end{algorithm}
+}
+\end{lstlisting}
 
-% \begin{algorithm}[H]
-  % \Fn{\DeclareAccu{}}{
-    % \NumThreads\;
-    % \Formula \FuncSty{+=} \texttt{"(set-logic QF_AUFBV)"}\;
-    % \Formula \FuncSty{+=} \texttt{"(declare-fun "} $+$ \AccuVar{i, j} $+$ \texttt{" () Bool)"}\;
-    % \For{$i = 0$ \KwTo $\Size{\Programs{thread}} - 1$}{
-    % % \For{$(i = 0;\ i < \Size{\Programs{thread}};\ i\FuncSty{++})$}{
-      % bar\;
-    % }
-  % }
-% \end{algorithm}
+\begin{lstlisting}[language=SMTLib]
+(assert (= block_1_0_0
+           (ite check_0_0
+                false
+                (or exec_0_0_3 block_0_0_0))))
+(assert (= block_1_0_1
+           (ite check_0_0
+                false
+                (or exec_0_1_3 block_0_0_1))))
+(assert (= block_1_0_2
+           (ite check_0_0
+                false
+                (or exec_0_2_0 block_0_0_2))))
+\end{lstlisting}
 
-\begin{algorithm}[H]
-  \SetKwProg{Fn}{Function}{ is}{end}
-  \KwIn{foo bar}
-  \Fn{afunc(i: int) : int}{return 0\;}
-\end{algorithm}
+\subsubsection{define halt}
+\todo[inline]{define halt} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+void define_halt (uint k)
+{
+  if (halts.empty())
+    return;
+
+  for (uint t = 0; t < programs.size(); t++)
+    {
+      if (halts.find(thread) != halts.end())
+        {
+          std::vector<std::string> args;
+          for (const auto pc : halts[t])
+            args.push_back(exec_var(k - 1, t, pc));
+          args.push_back(halt_var(k - 1, t));
+          formula << assign(halt_var(k, t), lor(args)) << eol;
+        }
+      else
+        formula << assign(halt_var(k, t), "false") << eol;
+    }
+  formula << eol;
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=SMTLib]
+(assert (= halt_1_0 (or exec_0_0_4 halt_0_0)))
+(assert (= halt_1_1 (or exec_0_1_4 halt_0_1)))
+(assert (= halt_1_2 false))
+\end{lstlisting}
+
+\subsubsection{define heap}
+\todo[inline]{define heap} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+void define_heap (uint k)
+{
+  std::string val = heap_var(k - 1);
+  for (int t = programs.size() - 1; t >= 0; t--)
+    {
+      const auto & stmts = alters[State::heap];
+      for (auto pc = stmts.rbegin(); pc != stmts.rend(); ++pc)
+        val = ite(exec_var(k - 1, t, *pc),
+                  programs[t][*pc].encode(k, t, State::heap),
+                  val);
+
+      val = ite(flush_var(k - 1, t),
+                store(heap_var(k - 1),
+                      sb_adr_var(k - 1, t),
+                      sb_val_var(k - 1, t)),
+                val);
+    }
+  formula << assign(heap_var(k, t), val) << eol << eol;
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=SMTLib]
+(assert (= heap_1
+           (ite flush_0_0
+                (store heap_0 sb-adr_0_0 sb-val_0_0)
+                (ite flush_0_1
+                     (store heap_0 sb-adr_0_1 sb-val_0_1)
+                     (ite flush_0_2
+                          (store heap_0 sb-adr_0_2 sb-val_0_2)
+                          heap_0)))))
+\end{lstlisting}
+
+\subsubsection{define exit-flag}
+\todo[inline]{define exit-flag} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+void define_exit_flag (uint k)
+{
+  if (halts.empty() && exits.empty())
+    return;
+
+  std::vector<std::string> args {exit_flag_var(k - 1)};
+
+  if (!halts.empty())
+    {
+      std::vector<std::string> halt;
+      for (uint t = 0; t < programs.size(); t++)
+        halt.push_back(halt_var(k, t));
+      args.push_back(land(halt));
+    }
+
+  if (!exits.empty())
+    for (const auto & [t, stmts] : exits)
+      for (const auto pc : stmts)
+        args.push_back(exec_var(k - 1, t, pc));
+
+  formula << assign(exit_flag_var(k), lor(args)) << eol << eol;
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=SMTLib]
+(assert (= exit_1
+           (or exit_0
+               (and halt_1_0 halt_1_1 halt_1_2)
+               exec_0_2_4
+               exec_0_2_5)))
+\end{lstlisting}
+
+\subsubsection{define exit-code}
+\todo[inline]{define exit-code} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+void define_exit_code ()
+{
+  std::string val = to_hex(0);
+  if (!exits.empty())
+    for (uint k = 0; k <= bound; k++)
+      for (int t = programs.size() - 1; t >= 0; t--)
+          for (const auto & pc : exits[t])
+            val = ite(exec_var(k, t, pc),
+                      programs[t][pc].encode(k, t, State::exit_code),
+                      val);
+  formula << assign(exit_code_var, val) << eol << eol;
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=SMTLib]
+(assert (= exit-code
+           (ite exec_17_2_5
+                #x0001
+                (ite exec_17_2_4
+                     #x0000
+                     ...
+                     (ite exec_0_2_5
+                          #x0001
+                          (ite exec_0_2_4
+                               #x0000
+                               #x0000))))))
+\end{lstlisting}
+
+\subsubsection{Relational State Updates}
+
+\begin{lstlisting}[style=c++]
+template <class R, class ... T>
+R restore (R (*var) (uint k, T ... args), uint k, T ... args)
+{
+  return equality(var(k, args...), var(k - 1, args...));
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+template <class R, class ... T>
+R reset (R (*var) (int k, int x, T ... args),
+         R (*cond) (int k, int x),
+         int k, int x, T ... args)
+{
+  return
+    equality(var(k, x, args...),
+             ite(cond(k - 1, x),
+                 "false",
+                 var(k - 1, x, args...)));
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+struct Next : std::map<State, std::string>
+{
+  Next (k, t)
+    {
+      (*this)[State::accu] = restore(&accu_var, k, t);
+      (*this)[State::mem] = restore(&mem_var, k, t);
+      (*this)[State::sb_adr] = restore(&sb_adr_var, k, t);
+      (*this)[State::sb_val] = restore(&sb_val_var, k, t);
+      (*this)[State::sb_full] = restore(&sb_full_var, k, t);
+      (*this)[State::halt] = restore(&halt_var, k, t);
+      (*this)[State::heap] = restore(&heap_var, k);
+      (*this)[State::exit] = lnot(exit_var(k, t));
+
+      // restore block
+      if (!checkpoints.empty())
+        {
+          std::vector<std::string> block_vars;
+          for (const auto & [id, threads] : checkpoints)
+            if (threads.find(t) != t.end())
+              block_vars.push_back(reset(&block_var,
+                                         &check_var,
+                                         k, id, t));
+          (*this)[State::block] = land(block_vars);
+        }
+    }
+
+  operator std::string () const
+    {
+      std::vector<std::string> args;
+      for (const auto & [_, value])
+        if (!value.empty())
+          args.push_back(value);
+      return land(args);
+    }
+};
+\end{lstlisting}
+
+\subsubsection{define states (relational)}
+\todo[inline]{define states (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+void define_states (uint k)
+{
+  for (uint t = 0; t < programs.size(); t++)
+    {
+      imply_thread_executed(k, t);
+      imply_thread_not_executed(k, t);
+      imply_thread_flushed(k, t);
+    }
+
+  imply_machine_exited(k);
+}
+\end{lstlisting}
+
+\subsubsection{imply thread executed}
+\todo[inline]{imply thread executed} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+std::string imply (std::string var, std::string state)
+{
+  return assertion(implication(var, state));
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+// smtlib::Relational::imply_thread_executed -----------------------------------
+//
+// thread t executed an instruction (exec_k_t_pc):
+// * update thread state accordingly
+// * restore heap (or update upon a successful CAS)
+// * unset exit flag iff neither an EXIT, nor a HALT
+// * set exit code iff the instruction was an EXIT
+
+void imply_thread_executed (uint k, uint t)
+{
+  for (uint pc = 0; pc < programs[t].size(); pc++)
+    formula << imply(exec_var(k - 1, t, pc),
+                     programs[t][pc].encode(k, t, pc)) << eol;
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=SMTLib]
+(assert (=> exec_0_0_0
+            (and (= accu_1_0 (bvadd accu_0_0 #x0001))
+                 (= mem_1_0 mem_0_0)
+                 (= sb-adr_1_0 sb-adr_0_0)
+                 (= sb-val_1_0 sb-val_0_0)
+                 (= sb-full_1_0 sb-full_0_0)
+                 (and (not stmt_1_0_0)
+                           stmt_1_0_1
+                      (not stmt_1_0_2)
+                      (not stmt_1_0_3)
+                      (not stmt_1_0_4))
+                 (= block_1_0_0 (ite check_0_0 false block_0_0_0))
+                 (= halt_1_0 halt_0_0)
+                 (= heap_1 heap_0)
+                 (not exit_1))))
+\end{lstlisting}
+
+\subsubsection{encode LOAD (relational)}
+\todo[inline]{encode LOAD (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+std::string activate (uint k, uint t, uint pc)
+{
+  std::vector<std::string> stmts;
+  for (uint i = 0; i < programs[t].size(); i++)
+    stmts.push_back(i == pc
+                      ? stmt_var(k, t, pc)
+                      : lnot(stmt_var(k, t, i)));
+  return land(stmts);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+std::string Load::encode (uint t, uint k, uint pc)
+{
+  Next next(k, t);
+  next[State::accu] = equality(accu_var(k, t),
+                               encode(k, t, State::accu));
+  next[State::stmt] = activate(k, t, pc + 1);
+  return next;
+}
+\end{lstlisting}
+
+\subsubsection{encode STORE (relational)}
+\todo[inline]{encode STORE (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+std::string Store::encode (uint t, uint k, uint pc)
+{
+  Next next(k, t);
+  next[State::sb_adr] = equality(sb_adr_var(k, t),
+                                 encode(k, t, State::sb_adr));
+  next[State::sb_val] = equality(sb_val_var(k, t),
+                                 encode(k, t, State::sb_val));
+  next[State::sb_full] = sb_full_var(k, t);
+  next[State::stmt] = activate(k, t, pc + 1);
+  return next;
+}
+\end{lstlisting}
+
+\subsubsection{encode FENCE (relational)}
+\todo[inline]{encode FENCE (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+std::string Fence::encode (uint t, uint k, uint pc)
+{
+  Next next(k, t);
+  next[State::stmt] = activate(k, t, pc + 1);
+  return next;
+}
+\end{lstlisting}
+
+\subsubsection{encode ADD (relational)}
+\todo[inline]{encode ADD (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+std::string Add::encode (uint t, uint k, uint pc)
+{
+  Next next(k, t);
+  next[State::accu] = equality(accu_var(k, t),
+                               encode(k, t, State::accu));
+  next[State::stmt] = activate(k, t, pc + 1);
+  return next;
+}
+\end{lstlisting}
+
+\subsubsection{encode ADDI (relational)}
+\todo[inline]{encode ADDI (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+std::string Addi::encode (uint t, uint k, uint pc)
+{
+  Next next(k, t);
+  next[State::accu] = equality(accu_var(k, t),
+                               encode(k, t, State::accu));
+  next[State::stmt] = activate(k, t, pc + 1);
+  return next;
+}
+\end{lstlisting}
+
+\subsubsection{encode SUB (relational)}
+\todo[inline]{encode SUB (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+std::string Sub::encode (uint t, uint k, uint pc)
+{
+  Next next(k, t);
+  next[State::accu] = equality(accu_var(k, t),
+                               encode(k, t, State::accu));
+  next[State::stmt] = activate(k, t, pc + 1);
+  return next;
+}
+\end{lstlisting}
+
+\subsubsection{encode SUBI (relational)}
+\todo[inline]{encode SUBI (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+std::string Subi::encode (uint t, uint k, uint pc)
+{
+  Next next(k, t);
+  next[State::accu] = equality(accu_var(k, t),
+                               encode(k, t, State::accu));
+  next[State::stmt] = activate(k, t, pc + 1);
+  return next;
+}
+\end{lstlisting}
+
+\subsubsection{encode MUL (relational)}
+\todo[inline]{encode MUL (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+std::string Mul::encode (uint t, uint k, uint pc)
+{
+  Next next(k, t);
+  next[State::accu] = equality(accu_var(k, t),
+                               encode(k, t, State::accu));
+  next[State::stmt] = activate(k, t, pc + 1);
+  return next;
+}
+\end{lstlisting}
+
+\subsubsection{encode MULI (relational)}
+\todo[inline]{encode MULI (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+std::string Muli::encode (uint t, uint k, uint pc)
+{
+  Next next(k, t);
+  next[State::accu] = equality(accu_var(k, t),
+                               encode(k, t, State::accu));
+  next[State::stmt] = activate(k, t, pc + 1);
+  return next;
+}
+\end{lstlisting}
+
+\subsubsection{encode CMP (relational)}
+\todo[inline]{encode CMP (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+std::string Cmp::encode (uint t, uint k, uint pc)
+{
+  Next next(k, t);
+  next[State::accu] = equality(accu_var(k, t),
+                               encode(k, t, State::accu));
+  next[State::stmt] = activate(k, t, pc + 1);
+  return next;
+}
+\end{lstlisting}
+
+\subsubsection{encode JMP (relational)}
+\todo[inline]{encode JMP (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+std::string Jmp::encode (uint t, uint k, uint pc)
+{
+  Next next(k, t);
+  next[State::stmt] = activate(k, t, arg);
+  return next;
+}
+\end{lstlisting}
+
+\subsubsection{encode JZ (relational)}
+\todo[inline]{encode JZ (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+std::string activate (uint k, uint t, uint pc, Instruction * jmp)
+{
+  std::vector<std::string> stmts;
+  std::string condition = jmp->encode(k, t, State::stmt);
+  for (uint i = 0; i < programs[t].size(); i++)
+    {
+      std::string stmt = stmt_var(k, t, i);
+      if (i == jmp->arg)
+        stmts.push_back(ite(condition, stmt, lnot(stmt)));
+      else if (i == pc + 1)
+        stmts.push_back(ite(condition, lnot(stmt), stmt));
+      else
+        stmts.push_back(lnot(stmt));
+    }
+  return land(stmts);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=c++]
+std::string Jz::encode (uint t, uint k, uint pc)
+{
+  Next next(k, t);
+  next[State::stmt] = activate(k, t, pc, this);
+  return next;
+}
+\end{lstlisting}
+
+\subsubsection{encode JNZ (relational)}
+\todo[inline]{encode JNZ (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+std::string Jnz::encode (uint t, uint k, uint pc)
+{
+  Next next(k, t);
+  next[State::stmt] = activate(k, t, pc, this);
+  return next;
+}
+\end{lstlisting}
+
+\subsubsection{encode JS (relational)}
+\todo[inline]{encode JS (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+std::string Js::encode (uint t, uint k, uint pc)
+{
+  Next next(k, t);
+  next[State::stmt] = activate(k, t, pc, this);
+  return next;
+}
+\end{lstlisting}
+
+\subsubsection{encode JNS (relational)}
+\todo[inline]{encode JNS (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+std::string Jns::encode (uint t, uint k, uint pc)
+{
+  Next next(k, t);
+  next[State::stmt] = activate(k, t, pc, this);
+  return next;
+}
+\end{lstlisting}
+
+\subsubsection{encode JNZNS (relational)}
+\todo[inline]{encode JNZNS (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+std::string Jnzns::encode (uint t, uint k, uint pc)
+{
+  Next next(k, t);
+  next[State::stmt] = activate(k, t, pc, this);
+  return next;
+}
+\end{lstlisting}
+
+\subsubsection{encode MEM (relational)}
+\todo[inline]{encode MEM (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+std::string Mem::encode (uint t, uint k, uint pc)
+{
+  Next next(k, t);
+  next[State::accu] = equality(accu_var(k, t),
+                               encode(k, t, State::accu));
+  next[State::mem] = equality(mem_var(k, t),
+                              encode(k, t, State::mem));
+  next[State::stmt] = activate(k, t, pc + 1);
+  return next;
+}
+\end{lstlisting}
+
+\subsubsection{encode CAS (relational)}
+\todo[inline]{encode CAS (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+std::string Cas::encode (uint t, uint k, uint pc)
+{
+  Next next(k, t);
+  next[State::accu] = equality(accu_var(k, t),
+                               encode(k, t, State::accu));
+  next[State::stmt] = activate(k, t, pc + 1);
+  next[State::heap] = equality(heap_var(k),
+                               encode(k, t, State::heap));
+  return next;
+}
+\end{lstlisting}
+
+\subsubsection{encode CHECK (relational)}
+\todo[inline]{encode CHECK (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+std::string Check::encode (uint t, uint k, uint pc)
+{
+  Next next(k, t);
+  next[State::stmt] = activate(k, t, pc + 1);
+  std::vector<std::string> block_vars;
+  for (const auto & [id, threads] : checkpoints)
+    if (threads.find(t) != threads.end())
+      block_vars.push_back(
+        id == op.arg
+          ? block_var(k, id, t)
+          : reset(&block_var, &check_var, k, id, t));
+  next[State::block] = land(block_vars);
+  return state;
+}
+\end{lstlisting}
+
+\subsubsection{encode HALT (relational)}
+\todo[inline]{encode HALT (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+std::string Halt::encode (uint t, uint k, uint pc)
+{
+  Next next(k, t);
+  next[State::stmt] = activate(k, t, -1);
+  if (programs.size() > 1)
+    {
+      std::vector<std::string> args;
+      for (uint thread = 0; thread < programs.size(); thread++)
+        if (thread != t)
+          args.push_back(halt_var(k, thread));
+      next[State::halt] =
+        land(halt_var(k, t),
+             ite(land(args),
+                 land(exit_flag_var(k),
+                      equality(exit_code_var, to_hex(0))),
+                 lnot(exit_flag_var(k))));
+    }
+  else
+    next[State::halt] = land(halt_var(k, t),
+                             exit_flag_var(k),
+                             equality(exit_code_var, to_hex(0))));
+  state.erase(state.find(State::exit));
+  return state;
+}
+\end{lstlisting}
+
+\subsubsection{encode EXIT (relational)}
+\todo[inline]{encode EXIT (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+std::string Exit::encode (uint t, uint k, uint pc)
+{
+  Next next(k, t);
+  next[State::stmt] = activate(k, t, pc + 1);
+  next[State::exit] = exit_var(k);
+  next[State::exit_code] = equality(exit_code_var,
+                                    encode(t, k, State::exit_code));
+  return state;
+}
+\end{lstlisting}
+
+\subsubsection{imply thread not executed}
+\todo[inline]{imply thread not executed} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+// imply_thread_not_executed
+//
+// thread t didn't execute an instruction (not thread_k_t):
+// * preserve thread state
+// * reset sb-full iff the thread's store buffer has been flushed
+
+void imply_thread_not_executed (uint k, uint t)
+{
+  Next next(k, t);
+  next[State::sb_full] = reset(&sb_full_var, &flush_var, k, t);
+  std::vector<std::string> stmts;
+  for (uint pc = 0; pc < programs.size(); pc++)
+    stmts.push_back(restore(&stmt_var, k, t, pc));
+  next[State::stmt] = land(stmts);
+  next.erase(next.find(State::heap));
+  next.erase(next.find(State::exit));
+
+  formula << imply(lnot(thread_var(k - 1, t)), next) << eol;
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=SMTLib]
+(assert (=> (not thread_0_0)
+            (and (= accu_1_0 accu_0_0)
+                 (= mem_1_0 mem_0_0)
+                 (= sb-adr_1_0 sb-adr_0_0)
+                 (= sb-val_1_0 sb-val_0_0)
+                 (= sb-full_1_0 (ite flush_0_0 false sb-full_0_0))
+                 (and (= stmt_1_0_0 stmt_0_0_0)
+                      (= stmt_1_0_1 stmt_0_0_1)
+                      (= stmt_1_0_2 stmt_0_0_2)
+                      (= stmt_1_0_3 stmt_0_0_3)
+                      (= stmt_1_0_4 stmt_0_0_4))
+                 (= block_1_0_0 (ite check_0_0 false block_0_0_0))
+                 (= halt_1_0 halt_0_0))))
+\end{lstlisting}
+
+\subsubsection{imply thread flushed}
+\todo[inline]{imply thread flushed} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+// imply_thread_flushed
+//
+// thread t flushed its store buffer (flush_k_t):
+// * update heap
+// * unset exit flag
+
+void imply_thread_flushed (uint k, uint t)
+{
+  formula << imply(flush_var(k - 1, t),
+                   land(equality(heap_var(k),
+                                 store(heap_var(k - 1),
+                                       sb_adr_var(k - 1, t),
+                                       sb_val_var(k - 1, t)))
+                        lnot(exit_flag_var(k)))) << eol;
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=SMTLib]
+(assert (=> flush_0_0
+            (and (= heap_1 (store heap_0 sb-adr_0_0 sb-val_0_0))
+                 (not exit_1))))
+\end{lstlisting}
+
+\subsubsection{imply machine exited}
+\todo[inline]{imply machine exited} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+// imply_machine_exited
+//
+// machine exited (exit_k):
+// * preserve exit flag
+// * preserve heap
+// * set exit code to zero iff machine never exited (step == bound)
+
+void imply_machine_exited (uint k)
+{
+  formula << imply(exit_flag_var(k - 1),
+                   land(restore(&heap_var, k),
+                        exit_flag_var(k))) << eol;
+  // set exit if machine didn't exit within bound
+  if (k == bound)
+    formula << imply(lnot(exit_flag_var(k)),
+                     equality(exit_code_var, to_hex(0))) << eol;
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=SMTLib]
+(assert (=> exit_0 (and (= heap_1 heap_0) exit_1)))
+\end{lstlisting}
+
+\begin{lstlisting}[language=SMTLib]
+(assert (=> exit_16 (and (= heap_17 heap_16) exit_17)))
+(assert (=> (not exit_17) (= exit-code #x0000)))
+\end{lstlisting}
 
 \subsection{BTOR2}
+
+\subsubsection{BTOR2 generator functions}
+\todo[inline]{BTOR2 generator functions} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+template <class ... T>
+std::string expr (const std::string & nid, const T & ... args)
+{
+  std::string e = nid;
+  (((e += ' ') += args), ...);
+  auto & end = e.back();
+  if (end == ' ')
+    end = eol;
+  else
+    e += eol;
+  return e;
+}
+\end{lstlisting}
+
+\subsubsection{main encoding function}
+\todo[inline]{main encoding function (smtlib)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+void encode ()
+{
+  declare_sorts();
+  declare_constants();
+  define_mmap();
+  declare_states();
+  declare_inputs();
+  define_transitions();
+  define_constraints();
+  define_states();
+}
+\end{lstlisting}
+
+\subsubsection{declare sorts}
+\todo[inline]{declare sorts} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{lstlisting}[style=c++]
+void declare_sorts ()
+{
+  formula <<
+    sort_bitvec(sid_bool = nid(), "1") <<
+    sort_bitvec(sid_bv = nid(), std::to_string(word_size)) <<
+    sort_array(sid_heap = nid(), "2", "2") <<
+    eol;
+}
+\end{lstlisting}
 
 \subsection{Replay}
 
