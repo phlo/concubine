@@ -85,8 +85,26 @@
 }
 \lstdefinelanguage{SMTLib}{
   breaklines=true,
-  morekeywords={[1]declare-fun, assert, =, =>, and, ite, not},
-  morekeywords={[2]BitVec},
+  morekeywords={[1]
+    declare-fun,
+    assert,
+    not,
+    and,
+    or,
+    xor,
+    =,
+    =>,
+    ite,
+    bvadd,
+    bvsub,
+    bvmul,
+    store,
+    select,
+    extract
+  },
+  morekeywords={[2]
+    BitVec
+  },
   alsoletter={-, =, >},
   morecomment=[l]\;,
   sensitive=false,
