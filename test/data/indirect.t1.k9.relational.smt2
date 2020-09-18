@@ -218,7 +218,7 @@
 
 (assert (=> (not thread_0_0) (and (= accu_1_0 accu_0_0) (= mem_1_0 mem_0_0) (= sb-adr_1_0 sb-adr_0_0) (= sb-val_1_0 sb-val_0_0) (= sb-full_1_0 (ite flush_0_0 false sb-full_0_0)) (and (= stmt_1_0_0 stmt_0_0_0) (= stmt_1_0_1 stmt_0_0_1) (= stmt_1_0_2 stmt_0_0_2) (= stmt_1_0_3 stmt_0_0_3) (= stmt_1_0_4 stmt_0_0_4) (= stmt_1_0_5 stmt_0_0_5) (= stmt_1_0_6 stmt_0_0_6)) (= halt_1_0 halt_0_0))))
 
-(assert (=> flush_0_0 (and (not sb-full_1_0) (= heap_1 (store heap_0 sb-adr_0_0 sb-val_0_0)) (not exit_1))))
+(assert (=> flush_0_0 (and (= heap_1 (store heap_0 sb-adr_0_0 sb-val_0_0)) (not exit_1))))
 
 ; exited
 (assert (=> exit_0 (and (= heap_1 heap_0) exit_1)))
@@ -324,7 +324,7 @@
 
 (assert (=> (not thread_1_0) (and (= accu_2_0 accu_1_0) (= mem_2_0 mem_1_0) (= sb-adr_2_0 sb-adr_1_0) (= sb-val_2_0 sb-val_1_0) (= sb-full_2_0 (ite flush_1_0 false sb-full_1_0)) (and (= stmt_2_0_0 stmt_1_0_0) (= stmt_2_0_1 stmt_1_0_1) (= stmt_2_0_2 stmt_1_0_2) (= stmt_2_0_3 stmt_1_0_3) (= stmt_2_0_4 stmt_1_0_4) (= stmt_2_0_5 stmt_1_0_5) (= stmt_2_0_6 stmt_1_0_6)) (= halt_2_0 halt_1_0))))
 
-(assert (=> flush_1_0 (and (not sb-full_2_0) (= heap_2 (store heap_1 sb-adr_1_0 sb-val_1_0)) (not exit_2))))
+(assert (=> flush_1_0 (and (= heap_2 (store heap_1 sb-adr_1_0 sb-val_1_0)) (not exit_2))))
 
 ; exited
 (assert (=> exit_1 (and (= heap_2 heap_1) exit_2)))
@@ -430,7 +430,7 @@
 
 (assert (=> (not thread_2_0) (and (= accu_3_0 accu_2_0) (= mem_3_0 mem_2_0) (= sb-adr_3_0 sb-adr_2_0) (= sb-val_3_0 sb-val_2_0) (= sb-full_3_0 (ite flush_2_0 false sb-full_2_0)) (and (= stmt_3_0_0 stmt_2_0_0) (= stmt_3_0_1 stmt_2_0_1) (= stmt_3_0_2 stmt_2_0_2) (= stmt_3_0_3 stmt_2_0_3) (= stmt_3_0_4 stmt_2_0_4) (= stmt_3_0_5 stmt_2_0_5) (= stmt_3_0_6 stmt_2_0_6)) (= halt_3_0 halt_2_0))))
 
-(assert (=> flush_2_0 (and (not sb-full_3_0) (= heap_3 (store heap_2 sb-adr_2_0 sb-val_2_0)) (not exit_3))))
+(assert (=> flush_2_0 (and (= heap_3 (store heap_2 sb-adr_2_0 sb-val_2_0)) (not exit_3))))
 
 ; exited
 (assert (=> exit_2 (and (= heap_3 heap_2) exit_3)))
@@ -536,7 +536,7 @@
 
 (assert (=> (not thread_3_0) (and (= accu_4_0 accu_3_0) (= mem_4_0 mem_3_0) (= sb-adr_4_0 sb-adr_3_0) (= sb-val_4_0 sb-val_3_0) (= sb-full_4_0 (ite flush_3_0 false sb-full_3_0)) (and (= stmt_4_0_0 stmt_3_0_0) (= stmt_4_0_1 stmt_3_0_1) (= stmt_4_0_2 stmt_3_0_2) (= stmt_4_0_3 stmt_3_0_3) (= stmt_4_0_4 stmt_3_0_4) (= stmt_4_0_5 stmt_3_0_5) (= stmt_4_0_6 stmt_3_0_6)) (= halt_4_0 halt_3_0))))
 
-(assert (=> flush_3_0 (and (not sb-full_4_0) (= heap_4 (store heap_3 sb-adr_3_0 sb-val_3_0)) (not exit_4))))
+(assert (=> flush_3_0 (and (= heap_4 (store heap_3 sb-adr_3_0 sb-val_3_0)) (not exit_4))))
 
 ; exited
 (assert (=> exit_3 (and (= heap_4 heap_3) exit_4)))
@@ -642,7 +642,7 @@
 
 (assert (=> (not thread_4_0) (and (= accu_5_0 accu_4_0) (= mem_5_0 mem_4_0) (= sb-adr_5_0 sb-adr_4_0) (= sb-val_5_0 sb-val_4_0) (= sb-full_5_0 (ite flush_4_0 false sb-full_4_0)) (and (= stmt_5_0_0 stmt_4_0_0) (= stmt_5_0_1 stmt_4_0_1) (= stmt_5_0_2 stmt_4_0_2) (= stmt_5_0_3 stmt_4_0_3) (= stmt_5_0_4 stmt_4_0_4) (= stmt_5_0_5 stmt_4_0_5) (= stmt_5_0_6 stmt_4_0_6)) (= halt_5_0 halt_4_0))))
 
-(assert (=> flush_4_0 (and (not sb-full_5_0) (= heap_5 (store heap_4 sb-adr_4_0 sb-val_4_0)) (not exit_5))))
+(assert (=> flush_4_0 (and (= heap_5 (store heap_4 sb-adr_4_0 sb-val_4_0)) (not exit_5))))
 
 ; exited
 (assert (=> exit_4 (and (= heap_5 heap_4) exit_5)))
@@ -748,7 +748,7 @@
 
 (assert (=> (not thread_5_0) (and (= accu_6_0 accu_5_0) (= mem_6_0 mem_5_0) (= sb-adr_6_0 sb-adr_5_0) (= sb-val_6_0 sb-val_5_0) (= sb-full_6_0 (ite flush_5_0 false sb-full_5_0)) (and (= stmt_6_0_0 stmt_5_0_0) (= stmt_6_0_1 stmt_5_0_1) (= stmt_6_0_2 stmt_5_0_2) (= stmt_6_0_3 stmt_5_0_3) (= stmt_6_0_4 stmt_5_0_4) (= stmt_6_0_5 stmt_5_0_5) (= stmt_6_0_6 stmt_5_0_6)) (= halt_6_0 halt_5_0))))
 
-(assert (=> flush_5_0 (and (not sb-full_6_0) (= heap_6 (store heap_5 sb-adr_5_0 sb-val_5_0)) (not exit_6))))
+(assert (=> flush_5_0 (and (= heap_6 (store heap_5 sb-adr_5_0 sb-val_5_0)) (not exit_6))))
 
 ; exited
 (assert (=> exit_5 (and (= heap_6 heap_5) exit_6)))
@@ -854,7 +854,7 @@
 
 (assert (=> (not thread_6_0) (and (= accu_7_0 accu_6_0) (= mem_7_0 mem_6_0) (= sb-adr_7_0 sb-adr_6_0) (= sb-val_7_0 sb-val_6_0) (= sb-full_7_0 (ite flush_6_0 false sb-full_6_0)) (and (= stmt_7_0_0 stmt_6_0_0) (= stmt_7_0_1 stmt_6_0_1) (= stmt_7_0_2 stmt_6_0_2) (= stmt_7_0_3 stmt_6_0_3) (= stmt_7_0_4 stmt_6_0_4) (= stmt_7_0_5 stmt_6_0_5) (= stmt_7_0_6 stmt_6_0_6)) (= halt_7_0 halt_6_0))))
 
-(assert (=> flush_6_0 (and (not sb-full_7_0) (= heap_7 (store heap_6 sb-adr_6_0 sb-val_6_0)) (not exit_7))))
+(assert (=> flush_6_0 (and (= heap_7 (store heap_6 sb-adr_6_0 sb-val_6_0)) (not exit_7))))
 
 ; exited
 (assert (=> exit_6 (and (= heap_7 heap_6) exit_7)))
@@ -960,7 +960,7 @@
 
 (assert (=> (not thread_7_0) (and (= accu_8_0 accu_7_0) (= mem_8_0 mem_7_0) (= sb-adr_8_0 sb-adr_7_0) (= sb-val_8_0 sb-val_7_0) (= sb-full_8_0 (ite flush_7_0 false sb-full_7_0)) (and (= stmt_8_0_0 stmt_7_0_0) (= stmt_8_0_1 stmt_7_0_1) (= stmt_8_0_2 stmt_7_0_2) (= stmt_8_0_3 stmt_7_0_3) (= stmt_8_0_4 stmt_7_0_4) (= stmt_8_0_5 stmt_7_0_5) (= stmt_8_0_6 stmt_7_0_6)) (= halt_8_0 halt_7_0))))
 
-(assert (=> flush_7_0 (and (not sb-full_8_0) (= heap_8 (store heap_7 sb-adr_7_0 sb-val_7_0)) (not exit_8))))
+(assert (=> flush_7_0 (and (= heap_8 (store heap_7 sb-adr_7_0 sb-val_7_0)) (not exit_8))))
 
 ; exited
 (assert (=> exit_7 (and (= heap_8 heap_7) exit_8)))
@@ -1066,7 +1066,7 @@
 
 (assert (=> (not thread_8_0) (and (= accu_9_0 accu_8_0) (= mem_9_0 mem_8_0) (= sb-adr_9_0 sb-adr_8_0) (= sb-val_9_0 sb-val_8_0) (= sb-full_9_0 (ite flush_8_0 false sb-full_8_0)) (and (= stmt_9_0_0 stmt_8_0_0) (= stmt_9_0_1 stmt_8_0_1) (= stmt_9_0_2 stmt_8_0_2) (= stmt_9_0_3 stmt_8_0_3) (= stmt_9_0_4 stmt_8_0_4) (= stmt_9_0_5 stmt_8_0_5) (= stmt_9_0_6 stmt_8_0_6)) (= halt_9_0 halt_8_0))))
 
-(assert (=> flush_8_0 (and (not sb-full_9_0) (= heap_9 (store heap_8 sb-adr_8_0 sb-val_8_0)) (not exit_9))))
+(assert (=> flush_8_0 (and (= heap_9 (store heap_8 sb-adr_8_0 sb-val_8_0)) (not exit_9))))
 
 ; exited
 (assert (=> exit_8 (and (= heap_9 heap_8) exit_9)))

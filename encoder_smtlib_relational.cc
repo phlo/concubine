@@ -127,7 +127,7 @@ std::shared_ptr<std::string> Relational::reset_sb_full () const
           sb_full_var(prev, thread))));
 }
 
-// smtlib::Relational::restor_sb_full ------------------------------------------
+// smtlib::Relational::restore_sb_full -----------------------------------------
 
 std::shared_ptr<std::string> Relational::restore_sb_full () const
 {
@@ -272,20 +272,16 @@ std::shared_ptr<std::string> Relational::restore_block () const
 
 std::shared_ptr<std::string> Relational::set_halt () const
 {
-  if (halts.empty())
-    return {};
-
   if (num_threads > 1)
     {
       std::vector<std::string> args;
 
       args.reserve(halts.size());
 
-      if (!halts.empty())
-        // do not alter thread variable
-        for (word_t t = 0; t < num_threads; t++)
-          if (t != thread)
-            args.push_back(halt_var(step, t));
+      // do not alter thread variable
+      for (word_t t = 0; t < num_threads; t++)
+        if (t != thread)
+          args.push_back(halt_var(step, t));
 
       return
         std::make_shared<std::string>(
@@ -411,7 +407,6 @@ void Relational::imply_thread_not_executed ()
 void Relational::imply_thread_flushed ()
 {
   std::vector<std::string> args({
-    lnot(sb_full_var()),
     equality(
       heap_var(),
       store(

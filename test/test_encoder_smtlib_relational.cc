@@ -136,7 +136,6 @@ TEST(smtlib_Relational, imply_thread_flushed)
   ASSERT_EQ(
     "(assert (=> flush_0_0 "
       "(and "
-        "(not sb-full_1_0) "
         "(= heap_1 (store heap_0 sb-adr_0_0 sb-val_0_0)) "
         "(not exit_1))))\n"
     "\n",
@@ -191,10 +190,7 @@ TEST(smtlib_Relational, define_states)
         "(= sb-full_1_0 (ite flush_0_0 false sb-full_0_0)) "
         "(= stmt_1_0_0 stmt_0_0_0))))\n"
     "\n"
-    "(assert (=> flush_0_0 "
-      "(and "
-        "(not sb-full_1_0) "
-        "(= heap_1 (store heap_0 sb-adr_0_0 sb-val_0_0)))))\n"
+    "(assert (=> flush_0_0 (= heap_1 (store heap_0 sb-adr_0_0 sb-val_0_0))))\n"
     "\n"
     "; exit code\n"
     "(assert (= exit-code #x0000))\n"
@@ -228,10 +224,7 @@ TEST(smtlib_Relational, define_states)
         "(= sb-full_1_0 (ite flush_0_0 false sb-full_0_0)) "
         "(= stmt_1_0_0 stmt_0_0_0))))\n"
     "\n"
-    "(assert (=> flush_0_0 "
-      "(and "
-        "(not sb-full_1_0) "
-        "(= heap_1 (store heap_0 sb-adr_0_0 sb-val_0_0)))))\n"
+    "(assert (=> flush_0_0 (= heap_1 (store heap_0 sb-adr_0_0 sb-val_0_0))))\n"
     "\n"
     "(assert (= exit-code #x0000))\n"
     "\n",
@@ -291,7 +284,6 @@ TEST(smtlib_Relational, define_states_check_exit)
       "\n"
       "(assert (=> flush_0_" + t + " "
         "(and "
-          "(not sb-full_1_" + t + ") "
           "(= heap_1 (store heap_0 sb-adr_0_" + t + " sb-val_0_" + t + ")) "
           "(not exit_1))))\n";
   };

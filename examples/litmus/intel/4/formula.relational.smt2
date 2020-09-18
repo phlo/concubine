@@ -194,7 +194,7 @@
 
 (assert (=> (not thread_0_0) (and (= accu_1_0 accu_0_0) (= mem_1_0 mem_0_0) (= sb-adr_1_0 sb-adr_0_0) (= sb-val_1_0 sb-val_0_0) (= sb-full_1_0 (ite flush_0_0 false sb-full_0_0)) (and (= stmt_1_0_0 stmt_0_0_0) (= stmt_1_0_1 stmt_0_0_1) (= stmt_1_0_2 stmt_0_0_2) (= stmt_1_0_3 stmt_0_0_3)) (= halt_1_0 halt_0_0))))
 
-(assert (=> flush_0_0 (and (not sb-full_1_0) (= heap_1 (store heap_0 sb-adr_0_0 sb-val_0_0)) (not exit_1))))
+(assert (=> flush_0_0 (and (= heap_1 (store heap_0 sb-adr_0_0 sb-val_0_0)) (not exit_1))))
 
 ; exited
 (assert (=> exit_0 (and (= heap_1 heap_0) exit_1)))
@@ -285,7 +285,7 @@
 
 (assert (=> (not thread_1_0) (and (= accu_2_0 accu_1_0) (= mem_2_0 mem_1_0) (= sb-adr_2_0 sb-adr_1_0) (= sb-val_2_0 sb-val_1_0) (= sb-full_2_0 (ite flush_1_0 false sb-full_1_0)) (and (= stmt_2_0_0 stmt_1_0_0) (= stmt_2_0_1 stmt_1_0_1) (= stmt_2_0_2 stmt_1_0_2) (= stmt_2_0_3 stmt_1_0_3)) (= halt_2_0 halt_1_0))))
 
-(assert (=> flush_1_0 (and (not sb-full_2_0) (= heap_2 (store heap_1 sb-adr_1_0 sb-val_1_0)) (not exit_2))))
+(assert (=> flush_1_0 (and (= heap_2 (store heap_1 sb-adr_1_0 sb-val_1_0)) (not exit_2))))
 
 ; exited
 (assert (=> exit_1 (and (= heap_2 heap_1) exit_2)))
@@ -376,7 +376,7 @@
 
 (assert (=> (not thread_2_0) (and (= accu_3_0 accu_2_0) (= mem_3_0 mem_2_0) (= sb-adr_3_0 sb-adr_2_0) (= sb-val_3_0 sb-val_2_0) (= sb-full_3_0 (ite flush_2_0 false sb-full_2_0)) (and (= stmt_3_0_0 stmt_2_0_0) (= stmt_3_0_1 stmt_2_0_1) (= stmt_3_0_2 stmt_2_0_2) (= stmt_3_0_3 stmt_2_0_3)) (= halt_3_0 halt_2_0))))
 
-(assert (=> flush_2_0 (and (not sb-full_3_0) (= heap_3 (store heap_2 sb-adr_2_0 sb-val_2_0)) (not exit_3))))
+(assert (=> flush_2_0 (and (= heap_3 (store heap_2 sb-adr_2_0 sb-val_2_0)) (not exit_3))))
 
 ; exited
 (assert (=> exit_2 (and (= heap_3 heap_2) exit_3)))
@@ -467,7 +467,7 @@
 
 (assert (=> (not thread_3_0) (and (= accu_4_0 accu_3_0) (= mem_4_0 mem_3_0) (= sb-adr_4_0 sb-adr_3_0) (= sb-val_4_0 sb-val_3_0) (= sb-full_4_0 (ite flush_3_0 false sb-full_3_0)) (and (= stmt_4_0_0 stmt_3_0_0) (= stmt_4_0_1 stmt_3_0_1) (= stmt_4_0_2 stmt_3_0_2) (= stmt_4_0_3 stmt_3_0_3)) (= halt_4_0 halt_3_0))))
 
-(assert (=> flush_3_0 (and (not sb-full_4_0) (= heap_4 (store heap_3 sb-adr_3_0 sb-val_3_0)) (not exit_4))))
+(assert (=> flush_3_0 (and (= heap_4 (store heap_3 sb-adr_3_0 sb-val_3_0)) (not exit_4))))
 
 ; exited
 (assert (=> exit_3 (and (= heap_4 heap_3) exit_4)))
@@ -558,7 +558,7 @@
 
 (assert (=> (not thread_4_0) (and (= accu_5_0 accu_4_0) (= mem_5_0 mem_4_0) (= sb-adr_5_0 sb-adr_4_0) (= sb-val_5_0 sb-val_4_0) (= sb-full_5_0 (ite flush_4_0 false sb-full_4_0)) (and (= stmt_5_0_0 stmt_4_0_0) (= stmt_5_0_1 stmt_4_0_1) (= stmt_5_0_2 stmt_4_0_2) (= stmt_5_0_3 stmt_4_0_3)) (= halt_5_0 halt_4_0))))
 
-(assert (=> flush_4_0 (and (not sb-full_5_0) (= heap_5 (store heap_4 sb-adr_4_0 sb-val_4_0)) (not exit_5))))
+(assert (=> flush_4_0 (and (= heap_5 (store heap_4 sb-adr_4_0 sb-val_4_0)) (not exit_5))))
 
 ; exited
 (assert (=> exit_4 (and (= heap_5 heap_4) exit_5)))
