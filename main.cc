@@ -68,7 +68,7 @@ void print_usage_solve (const char * name)
   "  -c file    read constraints from file" << eol <<
   "  -e encoder use a specific encoding, options are:" << eol <<
   "             * btor2 (default)" << eol <<
-  "             * smtlib-functional" << eol <<
+  "             * smtlib" << eol <<
   "             * smtlib-relational" << eol <<
   "  -m mmap    read initial heap contents from file" << eol <<
   "  -o name    output file name (default: smt.{trace,mmap})" << eol <<
@@ -307,7 +307,7 @@ int solve (const char * name, const int argc, const char ** argv)
 
       const char * encoder_names[] = {
         "btor2",
-        "smtlib-functional",
+        "smtlib",
         "smtlib-relational"
       };
 

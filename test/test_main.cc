@@ -526,7 +526,7 @@ TEST_F(Main, solve_encoder_smtlib_functional)
       bin,
       solve,
       "-c", "/dev/null",
-      "-e", "smtlib-functional",
+      "-e", "smtlib",
       "-p",
       "-s", "boolector",
       "-v",
@@ -629,14 +629,14 @@ TEST_F(Main, solve_encoder_illegal_smtlib_functional_btormc)
     shell::run({
       bin,
       solve,
-      "-e", "smtlib-functional",
+      "-e", "smtlib",
       "-s", "btormc",
       "1",
       program_nop()});
 
   ASSERT_EQ(255, out.exit);
   ASSERT_EQ(
-    "error: [btormc] cannot be used with encoder [smtlib-functional]\n",
+    "error: [btormc] cannot be used with encoder [smtlib]\n",
     out.stderr.str());
 }
 
@@ -781,7 +781,7 @@ TEST_F(Main, solve_solver_boolector)
       bin,
       solve,
       "-c", "/dev/null",
-      "-e", "smtlib-functional",
+      "-e", "smtlib",
       "-s", "boolector",
       "3",
       program_load("0"),
@@ -807,7 +807,7 @@ TEST_F(Main, solve_solver_cvc4)
       bin,
       solve,
       "-c", "/dev/null",
-      "-e", "smtlib-functional",
+      "-e", "smtlib",
       "-s", "cvc4",
       "3",
       program_load("0"),
@@ -833,7 +833,7 @@ TEST_F(Main, solve_solver_z3)
       bin,
       solve,
       "-c", "/dev/null",
-      "-e", "smtlib-functional",
+      "-e", "smtlib",
       "-s", "z3",
       "3",
       program_load("0"),
