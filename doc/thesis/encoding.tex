@@ -904,30 +904,12 @@ To simplify the encoding process, following utility variables are generated duri
 \item Program counters of instructions modifying a particular state.
 \begin{lstlisting}[style=c++]
 std::map<State, std::map<uint, std::vector<uint>>> updates = {
-  { State::accu, {
-    {0, {0, 2}},
-    {1, {0, 2}},
-    {2, {1, 2}}
-  }},
-  { State::sb_adr, {
-    {0, {1}},
-    {1, {1}}
-  }},
-  { State::sb_val, {
-    {0, {1}},
-    {1, {1}}
-  }},
-  { State::sb_full, {
-    {0, {1}},
-    {1, {1}}
-  }},
-  { State::halt, {
-    {0, {4}},
-    {1, {4}}
-  }},
-  { State::exit, {
-    {2, {4, 5}},
-  }}
+  {State::accu,    {{0, {0, 2}}, {1, {0, 2}}, {2, {1, 2}}}},
+  {State::sb_adr,  {{0, {1}},    {1, {1}},    {2, {}}}},
+  {State::sb_val,  {{0, {1}},    {1, {1}},    {2, {}}}},
+  {State::sb_full, {{0, {1}},    {1, {1}},    {2, {}}}},
+  {State::halt,    {{0, {4}},    {1, {4}},    {2, {}}}},
+  {State::exit,    {{2, {4, 5}}}}
 };
 \end{lstlisting}
 
@@ -978,7 +960,7 @@ std::map<uint, std::map<uint, std::vector<uint>>> checkpoints = {
 % std::map<uint, std::vector<uint>> exits = {{2, {4, 5}}};
 % \end{lstlisting}
 
-\newpage
+% \newpage
 \subsubsection{SMT-LIB Generator Functions}
 % \todo[inline]{smtlib generator functions} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1005,6 +987,36 @@ std::string expr (const std::string & op, const T & ... args)
 {
   std::string e = '(' + op;
   (((e += ' ') += args), ...);
+  return e += ')';
+}
+\end{lstlisting}
+
+\noindent
+% \SMTLIB commands supporting a variable number of arguments by being defined as either \lstinline[language=SMTLib]{:left-assoc} or \lstinline[language=SMTLib]{:right-assoc} (like \lstinline[language=SMTLib]{and}, \lstinline[language=SMTLib]{or}, etc.), also include two additional overloads.
+Generator functions for \SMTLIB commands supporting a variable number of arguments by being defined as either \lstinline[language=SMTLib]{:left-assoc}, \lstinline[language=SMTLib]{:right-assoc} or \lstinline[language=SMTLib]{:chainable} %(like conjunction, disjunction, etc.),
+also include two additional overloads:
+% A variadic version to support an arbitrary but fixed number of arguments, defined as a template identically to the previous expression generatore \lstinline[style=c++]{expr}.
+a variadic version for an arbitrary but fixed number of arguments, using the same template definition as the basic expression generator \lstinline[style=c++]{expr}
+% and another version, accepting arguments contained in an arbitrary STL container for handling a variable number of arguments at runtime, based on the following template.
+% and another for handling a varying number of arguments at runtime by accepting an arbitrary STL container, based on the following template.
+and another for handling a varying number of arguments at runtime, based on the following template accepting an arbitrary STL container.
+
+% A variadic version as a wrapper to the identically defined \lstinline[style=c++]{expr} generator function for
+% They also expose a variadic version, defined identically to the basic expression generator \lstinline[style=c++]{expr} for an arbitrary but fixed number of arguments.
+% One for generating commands with an arbitrary but fixed number of arguments,
+% In order to generate commands with an arbitrary but fixed number of arguments, the according generator functions
+
+% \todo[inline]{variable number of arguments}
+
+\newpage
+
+\begin{lstlisting}[style=c++]
+template <template <class, class ...> class C>
+std::string expr (const std::string & op, const C<std::string> & args)
+{
+  std::string e = '(' + op;
+  for (const auto & a : args)
+    (e += ' ') += a;
   return e += ')';
 }
 \end{lstlisting}
@@ -1061,34 +1073,6 @@ Table \ref{tbl:encoding:generators} shows all generator function names and the c
 % Functions for fixed number of arguments like \lstinline[language=SMTLib]{or} use the following variadic function template, based on
 % make use of \emph{parameter packs} to create a variadic function template
 % \todo[inline]{arbitrary but fixed number of arguments}
-
-\noindent
-% \SMTLIB commands supporting a variable number of arguments by being defined as either \lstinline[language=SMTLib]{:left-assoc} or \lstinline[language=SMTLib]{:right-assoc} (like \lstinline[language=SMTLib]{and}, \lstinline[language=SMTLib]{or}, etc.), also include two additional overloads.
-Generator functions for \SMTLIB commands supporting a variable number of arguments by being defined as either \lstinline[language=SMTLib]{:left-assoc}, \lstinline[language=SMTLib]{:right-assoc} or \lstinline[language=SMTLib]{:chainable} %(like conjunction, disjunction, etc.),
-also include two additional overloads:
-% A variadic version to support an arbitrary but fixed number of arguments, defined as a template identically to the previous expression generatore \lstinline[style=c++]{expr}.
-a variadic version for an arbitrary but fixed number of arguments, using the same template definition as the basic expression generator \lstinline[style=c++]{expr}
-% and another version, accepting arguments contained in an arbitrary STL container for handling a variable number of arguments at runtime, based on the following template.
-% and another for handling a varying number of arguments at runtime by accepting an arbitrary STL container, based on the following template.
-and another for handling a varying number of arguments at runtime, based on the following template accepting an arbitrary STL container.
-
-% A variadic version as a wrapper to the identically defined \lstinline[style=c++]{expr} generator function for
-% They also expose a variadic version, defined identically to the basic expression generator \lstinline[style=c++]{expr} for an arbitrary but fixed number of arguments.
-% One for generating commands with an arbitrary but fixed number of arguments,
-% In order to generate commands with an arbitrary but fixed number of arguments, the according generator functions
-
-% \todo[inline]{variable number of arguments}
-
-\begin{lstlisting}[style=c++]
-template <template <class, class ...> class C>
-std::string expr (const std::string & op, const C<std::string> & args)
-{
-  std::string e = '(' + op;
-  for (const auto & a : args)
-    (e += ' ') += a;
-  return e += ')';
-}
-\end{lstlisting}
 
 % \begin{lstlisting}[style=c++]
 % std::string assertion (std::string arg)
@@ -1267,7 +1251,8 @@ std::string assign (std::string var, std::string val)
 }
 \end{lstlisting}
 
-\newpage
+% \newpage
+
 \subsubsection{Common Encoding Functions}
 % \todo[inline]{main encoding function (smtlib)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -2674,19 +2659,42 @@ Common encoding functions are concluded by introducing implementations for \lsti
 
 \newpage
 
+% \newcommand{\defencode}[1]{
+  % \par\noindent
+  % #1
+  % \par\noindent
+  % \rule[0.5\baselineskip]{\textwidth}{0.1pt}\vspace{-1.3\baselineskip}%\par%\noindent
+  % % #2
+% }
+
 \newcommand{\defencode}[1]{
   \par\noindent
+  % {\small #1}
   #1
   \par\noindent
-  \rule[0.5\baselineskip]{\textwidth}{0.1pt}\vspace{-1.2\baselineskip}%\par%\noindent
+  \rule[0.5\baselineskip]{\textwidth}{0.1pt}%\par%\noindent
   % #2
 }
 
+\newlength{\encodeskip}
+\setlength{\encodeskip}{.5\baselineskip}
+
+% \newcommand{\defencode}[1]{
+  % \par\noindent
+  % #1
+  % \par\noindent\makebox[\textwidth]{\rule[.5\baselineskip]{\textwidth}{0.1pt}}\par\noindent
+  % \vspace{-2.4\baselineskip}
+  % % \rule[0.5\baselineskip]{\textwidth}{0.1pt}\vspace{-1.3\baselineskip}%\par%\noindent
+  % % #2
+% }
+
+% \lstset{belowskip=\baselineskip}
+
 \defencode{\texttt{LOAD adr}}
-\begin{lstlisting}[style=c++]
+\begin{lstlisting}[style=c++,aboveskip=-\encodeskip,belowskip=\encodeskip]
 std::string Load::encode (uint k, uint t, State state)
 {
-  return load(k - 1, t, arg, indirect);
+  return load(k, t, arg, indirect);
 }
 \end{lstlisting}
 
@@ -2694,16 +2702,14 @@ std::string Load::encode (uint k, uint t, State state)
 % \todo[inline]{encode STORE} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \defencode{\texttt{STORE adr}}
-\begin{lstlisting}[style=c++]
+% \begin{lstlisting}[style=c++]
+\begin{lstlisting}[style=c++,aboveskip=-\encodeskip,belowskip=\encodeskip]
 std::string Store::encode (uint k, uint t, State state)
 {
   switch (state)
     {
-    case State::sb_adr:
-      return indirect ? load(k - 1, arg) : consth(arg);
-
-    case State::sb_val:
-      return accu_var(k - 1, t);
+    case State::sb_adr: return indirect ? load(k, arg) : consth(arg);
+    case State::sb_val: return accu_var(k, t);
     }
 }
 \end{lstlisting}
@@ -2712,10 +2718,11 @@ std::string Store::encode (uint k, uint t, State state)
 % \todo[inline]{encode ADD} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \defencode{\texttt{ADD adr}}
-\begin{lstlisting}[style=c++]
+% \begin{lstlisting}[style=c++]
+\begin{lstlisting}[style=c++,aboveskip=-\encodeskip,belowskip=\encodeskip]
 std::string Add::encode (uint k, uint t, State state)
 {
-  return bvadd(accu_var(k - 1, t), load(k - 1, arg, indirect));
+  return bvadd(accu_var(k, t), load(k, arg, indirect));
 }
 \end{lstlisting}
 
@@ -2723,10 +2730,11 @@ std::string Add::encode (uint k, uint t, State state)
 % \todo[inline]{encode ADDI} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \defencode{\texttt{ADDI val}}
-\begin{lstlisting}[style=c++]
+% \begin{lstlisting}[style=c++]
+\begin{lstlisting}[style=c++,aboveskip=-\encodeskip,belowskip=\encodeskip]
 std::string Addi::encode (uint k, uint t, State state)
 {
-  return bvadd(accu_var(k - 1, t), consth(arg));
+  return bvadd(accu_var(k, t), consth(arg));
 }
 \end{lstlisting}
 
@@ -2734,10 +2742,11 @@ std::string Addi::encode (uint k, uint t, State state)
 % \todo[inline]{encode SUB} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \defencode{\texttt{SUB adr}}
-\begin{lstlisting}[style=c++]
+% \begin{lstlisting}[style=c++]
+\begin{lstlisting}[style=c++,aboveskip=-\encodeskip,belowskip=\encodeskip]
 std::string Sub::encode (uint k, uint t, State state)
 {
-  return bvsub(accu_var(k - 1, t), load(k - 1, arg, indirect));
+  return bvsub(accu_var(k, t), load(k, arg, indirect));
 }
 \end{lstlisting}
 
@@ -2745,21 +2754,25 @@ std::string Sub::encode (uint k, uint t, State state)
 % \todo[inline]{encode SUBI} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \defencode{\texttt{SUBI val}}
-\begin{lstlisting}[style=c++]
+% \begin{lstlisting}[style=c++]
+\begin{lstlisting}[style=c++,aboveskip=-\encodeskip,belowskip=\encodeskip]
 std::string Subi::encode (uint k, uint t, State state)
 {
-  return bvsub(accu_var(k - 1, t), consth(arg));
+  return bvsub(accu_var(k, t), consth(arg));
 }
 \end{lstlisting}
 
 % \subsubsection{encode MUL}
 % \todo[inline]{encode MUL} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\newpage
+
 \defencode{\texttt{MUL adr}}
-\begin{lstlisting}[style=c++]
+% \begin{lstlisting}[style=c++]
+\begin{lstlisting}[style=c++,aboveskip=-\encodeskip,belowskip=\encodeskip]
 std::string Mul::encode (uint k, uint t, State state)
 {
-  return bvmul(accu_var(k - 1, t), load(k - 1, arg, indirect));
+  return bvmul(accu_var(k, t), load(k, arg, indirect));
 }
 \end{lstlisting}
 
@@ -2767,10 +2780,11 @@ std::string Mul::encode (uint k, uint t, State state)
 % \todo[inline]{encode MULI} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \defencode{\texttt{MULI val}}
-\begin{lstlisting}[style=c++]
+% \begin{lstlisting}[style=c++]
+\begin{lstlisting}[style=c++,aboveskip=-\encodeskip,belowskip=\encodeskip]
 std::string Muli::encode (uint k, uint t, State state)
 {
-  return bvmul(accu_var(k - 1, t), consth(arg));
+  return bvmul(accu_var(k, t), consth(arg));
 }
 \end{lstlisting}
 
@@ -2778,10 +2792,11 @@ std::string Muli::encode (uint k, uint t, State state)
 % \todo[inline]{encode CMP} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \defencode{\texttt{CMP adr}}
-\begin{lstlisting}[style=c++]
+% \begin{lstlisting}[style=c++]
+\begin{lstlisting}[style=c++,aboveskip=-\encodeskip,belowskip=\encodeskip]
 std::string Cmp::encode (uint k, uint t, State state)
 {
-  return bvsub(accu_var(k - 1, t), load(k - 1, arg, indirect));
+  return bvsub(accu_var(k, t), load(k, arg, indirect));
 }
 \end{lstlisting}
 
@@ -2789,7 +2804,8 @@ std::string Cmp::encode (uint k, uint t, State state)
 % \todo[inline]{encode JMP} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \defencode{\texttt{CMP adr}}
-\begin{lstlisting}[style=c++]
+% \begin{lstlisting}[style=c++]
+\begin{lstlisting}[style=c++,aboveskip=-\encodeskip,belowskip=\encodeskip]
 std::string Jmp::encode (uint k, uint t, State state) { return ""; }
 \end{lstlisting}
 
@@ -2797,10 +2813,11 @@ std::string Jmp::encode (uint k, uint t, State state) { return ""; }
 % \todo[inline]{encode JZ} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \defencode{\texttt{JZ pc}}
-\begin{lstlisting}[style=c++]
+% \begin{lstlisting}[style=c++]
+\begin{lstlisting}[style=c++,aboveskip=-\encodeskip,belowskip=\encodeskip]
 std::string Jz::encode (uint k, uint t, State state)
 {
-  return equal(accu_var(k - 1, t), consth(0));
+  return equal(accu_var(k, t), consth(0));
 }
 \end{lstlisting}
 
@@ -2808,10 +2825,11 @@ std::string Jz::encode (uint k, uint t, State state)
 % \todo[inline]{encode JNZ} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \defencode{\texttt{JNZ pc}}
-\begin{lstlisting}[style=c++]
+% \begin{lstlisting}[style=c++]
+\begin{lstlisting}[style=c++,aboveskip=-\encodeskip,belowskip=\encodeskip]
 std::string Jnz::encode (uint k, uint t, State state)
 {
-  return lnot(equal(accu_var(k - 1, t), consth(0)));
+  return lnot(equal(accu_var(k, t), consth(0)));
 }
 \end{lstlisting}
 
@@ -2820,10 +2838,11 @@ std::string Jnz::encode (uint k, uint t, State state)
 
 % \todo[noline]{instroduce global std::string msb = "15"?}
 \defencode{\texttt{JS pc}}
-\begin{lstlisting}[style=c++]
+% \begin{lstlisting}[style=c++]
+\begin{lstlisting}[style=c++,aboveskip=-\encodeskip,belowskip=\encodeskip]
 std::string Js::encode (uint k, uint t, State state)
 {
-  return equal("#b1", extract("15", "15", accu_var(k - 1, t)));
+  return equal("#b1", extract("15", "15", accu_var(k, t)));
 }
 \end{lstlisting}
 
@@ -2833,10 +2852,11 @@ std::string Js::encode (uint k, uint t, State state)
 \newpage
 
 \defencode{\texttt{JNS pc}}
-\begin{lstlisting}[style=c++]
+% \begin{lstlisting}[style=c++]
+\begin{lstlisting}[style=c++,aboveskip=-\encodeskip,belowskip=\encodeskip]
 std::string Jns::encode (uint k, uint t, State state)
 {
-  return equal("#b0", extract("15", "15", accu_var(k - 1, t)));
+  return equal("#b0", extract("15", "15", accu_var(k, t)));
 }
 \end{lstlisting}
 
@@ -2844,12 +2864,13 @@ std::string Jns::encode (uint k, uint t, State state)
 % \todo[inline]{encode JNZNS} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \defencode{\texttt{JNZNS pc}}
-\begin{lstlisting}[style=c++]
+% \begin{lstlisting}[style=c++]
+\begin{lstlisting}[style=c++,aboveskip=-\encodeskip,belowskip=\encodeskip]
 std::string Jnzns::encode (uint k, uint t, State state)
 {
-  std::string accu = accu_var(k - 1, t);
+  std::string accu = accu_var(k, t);
   return land(lnot(equal(accu, consth(0))),
-              equal("#b0", extract("15", "15", accu)));
+             equal("#b0", extract("15", "15", accu)));
 }
 \end{lstlisting}
 
@@ -2857,10 +2878,11 @@ std::string Jnzns::encode (uint k, uint t, State state)
 % \todo[inline]{encode MEM} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \defencode{\texttt{MEM adr}}
-\begin{lstlisting}[style=c++]
+% \begin{lstlisting}[style=c++]
+\begin{lstlisting}[style=c++,aboveskip=-\encodeskip,belowskip=\encodeskip]
 std::string Mem::encode (uint k, uint t, State state)
 {
-  return load(k - 1, arg, indirect);
+  return load(k, arg, indirect);
 }
 \end{lstlisting}
 
@@ -2868,25 +2890,21 @@ std::string Mem::encode (uint k, uint t, State state)
 % \todo[inline]{encode CAS} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \defencode{\texttt{CAS adr}}
-\begin{lstlisting}[style=c++]
+% \begin{lstlisting}[style=c++]
+\begin{lstlisting}[style=c++,aboveskip=-\encodeskip,belowskip=\encodeskip]
 std::string Cas::encode (uint k, uint t, State state)
 {
-  std::string heap = heap_var(k - 1);
-  std::string address =
-    indirect ? select(heap, consth(arg)) : consth(arg);
-  std::string condition =
-    equal(mem_var(k - 1, t), select(heap, address));
-
+  auto heap = heap_var(k);
+  auto address = indirect ? select(heap, consth(arg)) : consth(arg);
+  auto condition = equal(mem_var(k, t), select(heap, address));
   switch (state)
     {
-    case State::accu:
-      return ite(condition, consth(1), consth(0));
-
-    case State::heap:
-      return
-        ite(condition,
-            store(heap, address, accu_var(k - 1, t)),
-            heap);
+    case State::accu: return ite(condition, consth(1), consth(0));
+    case State::heap: return ite(condition,
+                                store(heap,
+                                      address,
+                                      accu_var(k, t)),
+                                heap);
     }
 }
 \end{lstlisting}
@@ -2894,14 +2912,18 @@ std::string Cas::encode (uint k, uint t, State state)
 % \subsubsection{encode EXIT}
 % \todo[inline]{encode EXIT} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% \newpage
+
 \defencode{\texttt{EXIT val}}
-\begin{lstlisting}[style=c++]
+% \begin{lstlisting}[style=c++]
+\begin{lstlisting}[style=c++,aboveskip=-\encodeskip,belowskip=\encodeskip]
 std::string Exit::encode (uint k, uint t, State state)
 {
   return consth(arg);
 }
 \end{lstlisting}
 
+% \newpage
 \subsubsection{Functional State Updates}
 
 % \subsubsection{define states (functional)}
@@ -2910,8 +2932,10 @@ std::string Exit::encode (uint k, uint t, State state)
 % deterministically
 % functional encoding scheme, static single assignment to determine the successor of each state individually
 % functional encoding scheme, based on static single assignments for determining the successor of each state individually.
-A state update scheme according to our model's frame axioms, generated using the \texttt{-e smtlib} command line parameter.
-This functional encoding relies on \texttt{ite} cascades to perform \emph{static single assignments} for determining the successor of each state individually and aid the solver by simplifying the deduction process.
+% We will now introduce the main state update scheme according to our model's frame axioms, generated using the \texttt{-e smtlib} command line parameter.
+We will now introduce our primary state update scheme, generated by using the \texttt{-e smtlib} command line parameter,
+% This functional encoding relies on \texttt{ite} cascades to perform \emph{static single assignments} for determining the successor of each state individually and aids the solver by simplifying the deduction process.
+relying on \texttt{ite} cascades to perform \emph{static single assignments} for determining the successor of each state in a functional manner.% and aids the solver by simplifying the deduction process.
 
 \begin{lstlisting}[style=c++]
 void define_states (uint k)
@@ -2924,7 +2948,6 @@ void define_states (uint k)
   define_stmt(k);
   define_block(k);
   define_halt(k);
-
   define_heap(k);
   define_exit_flag(k);
 
@@ -2937,30 +2960,111 @@ void define_states (uint k)
 % \todo[inline]{define accu} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \noindent
-foo\\
-foo\\
-foo\\
-foo\\
-foo\\
-foo\\
-foo\\
-foo\\
-foo\\
-foo\\
-foo\\
-foo
+% \begin{itemize}
+  % \item recursively
+  % \item starts with base case of preserving its value
+  % \item for each statement altering $\ACCU^k_t$
+% \end{itemize}
+% starting with the preservation of it's previous state $\ACCU^{k - 1}_t$, the
+% starting with the base case of preserving it's previous state $\ACCU^{k - 1}_t$, the
+% State update expressions for every thread's accumulator register $\ACCU^k_t$ are initialized with the predecessor $\ACCU^{k - 1}_t$
+% Starting with the accumulator registers $\ACCU^k_t$, each update expression is generated by adding an \texttt{ite} for every program statement altering the accumulator
+% Starting with the accumulator registers $\ACCU^k_t$, each thread's update expression is initialized with it's predecessor $\ACCU^{k - 1}_t$, forming the base case of preserving the previous state.
+% Each program statement altering the accumulator then adds an \texttt{ite}, returning the successor generated by the \lstinline[style=c++, basicstyle=\normalsize\ttfamily]{Instruction::encode(uint, uint, State)} function
+% Starting with the accumulator registers $\ACCU^k_t$, each thread's update expression is built by introducing an \texttt{ite} for every program statement altering the accumulator, returning the corresponding successor according to the previously defined implementations of \lstinline[style=c++, basicstyle=\normalsize\ttfamily]{Instruction::encode(uint, uint, State)}.
+% Starting with the base case of preserving the previous value, each accumulator register's state update expression is initialized with it's predecessor $\ACCU^{k - 1}_t$.
+% Every program statement altering the accumulator then adds an \texttt{ite}, returning the according successor state depending on it's execution given by the corresponding execution variable $\EXEC^{k - 1}_{t, pc}$ and...
+% >>>
+% Starting with the accumulator registers $\ACCU^k_t$, each update expression is initialized with it's predecessor $\ACCU^{k - 1}_t$, forming the base case of preserving the previous state.
+% >>>
+% Every program statement altering the accumulator then adds an \texttt{ite} for choosing the successor given by the instruction's \lstinline[style=c++, basicstyle=\normalsize\ttfamily]{Instruction::encode(uint, uint, State)} depending on the corresponding execution variable $\EXEC^{k - 1}_{t, pc}$,   , embedding the current update expression in the \emph{else} branch.
+% >>>
+% We then add an \texttt{ite} for every program statement altering the accumulator to choose the successor state depending on the corresponding execution variable $\EXEC^{k - 1}_{t, pc}$ %, given by the instruction's \lstinline[style=c++, basicstyle=\normalsize\ttfamily]{Instruction::encode(uint, uint, State)}
+% , utilizing the \texttt{Instruction} class's dynamic dispatch mechanism
+% and embedding the current update expression in the \emph{else} branch as a fall back in case the statement has not been executed.
+% >>>
+% ~\\
+% ~\\
+% $\ACCU^{k - 1}_t$
+Starting with the accumulator registers $\ACCU^k_t$, each update expression is initialized with it's predecessor $\ACCU^{k - 1}_t$, forming the base case of preserving the previous state.
+% The final expression assigned to $\ACCU^k_t$ is then built by adding an $\ITE$ for every program statement altering the accumulator, choosing the successor state depending on the corresponding execution variable $\EXEC^{k - 1}_{t, pc}$.
+% >>>
+% Starting with the accumulator registers $\ACCU^k_t$, each update expression is initialized with it's predecessor to preserve the previous state.
+% Any program statement altering the accumulator then embeds the expression's current value in the \emph{else} branch of an $\ITE$ setting the successor state by encoding the corresponding instruction, depending on the execution variable $\EXEC^{k - 1}_{t, pc}$.
+% Any program statement altering the accumulator then extends the update expression by embedding it's current value in the \emph{else} branch of an $\ITE$, setting the successor state according to the encoded instruction, depending on the corresponding execution variable $\EXEC^{k - 1}_{t, pc}$.
+% Any program statement altering the accumulator then extends the expression by embedding it's current value in the \emph{else} branch of an $\ITE$, using the \texttt{encode} implementation of the corresponding instruction to set the successor state depending on the execution variable $\EXEC^{k - 1}_{t, pc}$.
+Any program statement altering the accumulator then extends the expression by embedding it's current value in the \emph{else} branch of an $\ITE$, using the corresponding instruction's \texttt{encode} implementation to set the successor state
+depending on the
+% according to it's
+execution variable $\EXEC^{k - 1}_{t, pc}$.
+% execution signalled by $\EXEC^{k - 1}_{t, pc}$.
+% in case it has been executed signalled by $\EXEC^{k - 1}_{t, pc}$.
+% in case of it's execution signalled by $\EXEC^{k - 1}_{t, pc}$.
+% >>>
+% To increase readability of the generated \SMTLIB expressions, we use a reverse iterator to create the $\ite$ cascade in program order.
+
+% \begin{lstlisting}[style=c++]
+% void define_accu (uint k)
+% {
+  % for (uint t = 0; t < programs.size(); t++)
+    % {
+      % std::string expr = accu_var(k - 1, t);
+      % const auto & stmts = updates[State::accu][t];
+      % for (auto pc = stmts.rbegin(); pc != stmts.rend(); ++pc)
+        % expr = ite(exec_var(k - 1, t, *pc),
+                   % program[t][*pc]->encode(k - 1, t, State::accu),
+                   % expr);
+      % formula << assign(accu_var(k, t), expr) << '\n';
+    % }
+% }
+% \end{lstlisting}
+%
+% \noindent
+% \emph{Example:} \lstinline[style=c++]{define_accu(1)}
+%
+% \begin{lstlisting}[language=SMTLib]
+% (assert (= accu_1_0
+           % (ite exec_0_0_0
+                % (bvadd accu_0_0 #x0001)
+                % (ite exec_0_0_2
+                     % (ite (and sb-full_0_0 (= sb-adr_0_0 #x0001))
+                          % sb-val_0_0
+                          % (select heap_0 #x0001))
+                     % accu_0_0))))
+% (assert (= accu_1_1
+           % (ite exec_0_1_0
+                % (bvadd accu_0_1 #x0001)
+                % (ite exec_0_1_2
+                     % (ite (and sb-full_0_1 (= sb-adr_0_1 #x0000))
+                          % sb-val_0_1
+                          % (select heap_0 #x0000))
+                     % accu_0_1))))
+% (assert (= accu_1_2
+           % (ite exec_0_2_1
+                % (bvadd accu_0_2
+                       % (ite (and sb-full_0_2 (= sb-adr_0_2 #x0000))
+                            % sb-val_0_2
+                            % (select heap_0 #x0000)))
+                % (ite exec_0_2_2
+                     % (bvadd accu_0_2
+                            % (ite (and sb-full_0_2
+                                      % (= sb-adr_0_2 #x0001))
+                                 % sb-val_0_2
+                                 % (select heap_0 #x0001)))
+                     % accu_0_2))))
+% \end{lstlisting}
 
 \begin{lstlisting}[style=c++]
 void define_accu (uint k)
 {
-  for (const auto & [t, stmts] : alters[State::accu])
+  for (const auto & [t, stmts] : updates[State::accu])
     {
-      std::string val = accu_var(k - 1, t);
+      std::string expr = accu_var(k - 1, t);
       for (auto pc = stmts.rbegin(); pc != stmts.rend(); ++pc)
-        val = ite(exec_var(k - 1, t, *pc),
-                  program[t][*pc].encode(k, t, State::accu),
-                  val);
-      formula << assign(accu_var(k, t), val) << '\n';
+        expr = ite(exec_var(k - 1, t, *pc),
+                   program[t][*pc]->encode(k - 1, t, State::accu),
+                   expr);
+      formula << assign(accu_var(k, t), expr) << '\n';
     }
 }
 \end{lstlisting}
@@ -3004,78 +3108,88 @@ void define_accu (uint k)
 % \todo[inline]{define mem} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \noindent
-foo
+% State update functions of the remaining register states $\MEM^k_t$, $\SBADR^k_t$ and $\SBVAL^k_t$ are again defined almost identically and only differ by using the appropriate \texttt{State} entries and variable generators.
+We omit the implementation of state update functions for the remaining register states $\MEM^k_t$, $\SBADR^k_t$ and $\SBVAL^k_t$, as they only differ by using the appropriate \texttt{State} entries and variable generators, but include their output in order to visualize the state updates generated for our demo example.
 
-\begin{lstlisting}[style=c++]
-void define_mem (uint k)
-{
-  for (const auto & [t, stmts] : alters[State::mem])
-    {
-      std::string val = mem_var(k - 1, t);
-      for (auto pc = stmts.rbegin(); pc != stmts.rend(); ++pc)
-        val = ite(exec_var(k - 1, t, *pc),
-                  program[t][*pc].encode(k, t, State::mem),
-                  val);
-      formula << assign(mem_var(k, t), val) << eol;
-    }
-  formula << eol;
-}
-\end{lstlisting}
+% \begin{lstlisting}[style=c++]
+% void define_mem (uint k)
+% {
+  % for (uint t = 0; t < programs.size(); t++)
+    % {
+      % std::string val = mem_var(k - 1, t);
+      % const auto & stmts = updates[State::mem][t];
+      % for (auto pc = stmts.rbegin(); pc != stmts.rend(); ++pc)
+        % val = ite(exec_var(k - 1, t, *pc),
+                  % program[t][*pc].encode(k - 1, t, State::mem),
+                  % val);
+      % formula << assign(mem_var(k, t), val) << '\n';
+    % }
+% }
+% \end{lstlisting}
+
+~\\
+\noindent
+\emph{Example:} \lstinline[style=c++]{define_mem(1)}
 
 \begin{lstlisting}[language=SMTLib]
-; mem variables - mem_<step>_<thread>
 (assert (= mem_1_0 mem_0_0))
 (assert (= mem_1_1 mem_0_1))
 (assert (= mem_1_2 mem_0_2))
 \end{lstlisting}
 
-\subsubsection{define sb-adr}
-\todo[inline]{define sb-adr} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \subsubsection{define sb-adr}
+% \todo[inline]{define sb-adr} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{lstlisting}[style=c++]
-void define_sb_adr (uint k)
-{
-  for (const auto & [t, stmts] : alters[State::sb_adr])
-    {
-      std::string val = sb_adr_var(k - 1, t);
-      for (auto pc = stmts.rbegin(); pc != stmts.rend(); ++pc)
-        val = ite(exec_var(k - 1, t, *pc),
-                  program[t][*pc].encode(k, t, State::sb_adr),
-                  val);
-      formula << assign(sb_adr_var(k, t), val) << eol;
-    }
-  formula << eol;
-}
-\end{lstlisting}
+% \begin{lstlisting}[style=c++]
+% void define_sb_adr (uint k)
+% {
+  % for (const auto & [t, stmts] : alters[State::sb_adr])
+    % {
+      % std::string val = sb_adr_var(k - 1, t);
+      % for (auto pc = stmts.rbegin(); pc != stmts.rend(); ++pc)
+        % val = ite(exec_var(k - 1, t, *pc),
+                  % program[t][*pc].encode(k, t, State::sb_adr),
+                  % val);
+      % formula << assign(sb_adr_var(k, t), val) << eol;
+    % }
+  % formula << eol;
+% }
+% \end{lstlisting}
+
+\newpage
+
+\noindent
+\emph{Example:} \lstinline[style=c++]{define_sb_adr(1)}
 
 \begin{lstlisting}[language=SMTLib]
-; store buffer address variables - sb-adr_<step>_<thread>
 (assert (= sb-adr_1_0 (ite exec_0_0_1 #x0000 sb-adr_0_0)))
 (assert (= sb-adr_1_1 (ite exec_0_1_1 #x0001 sb-adr_0_1)))
 (assert (= sb-adr_1_2 sb-adr_0_2))
 \end{lstlisting}
 
-\subsubsection{define sb-val}
-\todo[inline]{define sb-val} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \subsubsection{define sb-val}
+% \todo[inline]{define sb-val} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{lstlisting}[style=c++]
-void define_sb_val (uint k)
-{
-  for (const auto & [t, stmts] : alters[State::sb_val])
-    {
-      std::string val = sb_val_var(k - 1, t);
-      for (auto pc = stmts.rbegin(); pc != stmts.rend(); ++pc)
-        val = ite(exec_var(k - 1, t, *pc),
-                  program[t][*pc].encode(k, t, State::sb_val),
-                  val);
-      formula << assign(sb_val_var(k, t), val) << eol;
-    }
-  formula << eol;
-}
-\end{lstlisting}
+% \begin{lstlisting}[style=c++]
+% void define_sb_val (uint k)
+% {
+  % for (const auto & [t, stmts] : alters[State::sb_val])
+    % {
+      % std::string val = sb_val_var(k - 1, t);
+      % for (auto pc = stmts.rbegin(); pc != stmts.rend(); ++pc)
+        % val = ite(exec_var(k - 1, t, *pc),
+                  % program[t][*pc].encode(k, t, State::sb_val),
+                  % val);
+      % formula << assign(sb_val_var(k, t), val) << eol;
+    % }
+  % formula << eol;
+% }
+% \end{lstlisting}
+
+\noindent
+\emph{Example:} \lstinline[style=c++]{define_sb_val(1)}
 
 \begin{lstlisting}[language=SMTLib]
-; store buffer value variables - sb-val_<step>_<thread>
 (assert (= sb-val_1_0 (ite exec_0_0_1 accu_0_0 sb-val_0_0)))
 (assert (= sb-val_1_1 (ite exec_0_1_1 accu_0_1 sb-val_0_1)))
 (assert (= sb-val_1_2 sb-val_0_2))
@@ -3096,10 +3210,8 @@ void define_sb_full (uint k)
       formula << assign(sb_full_var(k, t),
                         ite(flush_var(k - 1, t),
                             "false",
-                            lor(args)))
-              << eol;
+                            lor(args))) << '\n';
     }
-  formula << eol;
 }
 \end{lstlisting}
 
