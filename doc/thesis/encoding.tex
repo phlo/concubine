@@ -1346,10 +1346,7 @@ like the one of our accumulator register variables $\ACCU^k_t$ given below.
 
 % return "accu_" + std::to_string(k) + '_' + std::to_string(t);
 \begin{lstlisting}[style=c++]
-std::string accu_var (uint k, uint t)
-{
-  return var("accu", k, t);
-}
+std::string accu (uint k, uint t) { return var("accu", k, t); }
 \end{lstlisting}
 
 \noindent
@@ -1363,7 +1360,7 @@ The declaration of accumulator register states for each thread $t$ in step $k$ i
 void declare_accu (uint k)
 {
   for (uint t = 0; t < programs.size(); t++)
-    formula << declare_bv(accu_var(k, t)) << '\n';
+    formula << declare_bv(accu(k, t)) << '\n';
 }
 \end{lstlisting}
 
@@ -1524,9 +1521,11 @@ void declare_stmt (uint k)
 {
   for (uint t = 0; t < programs.size(); t++)
     for (uint pc = 0; pc < programs[t].size(); pc++)
-      formula << declare_bool(stmt_var(k, t, pc)) << '\n';
+      formula << declare_bool(stmt(k, t, pc)) << '\n';
 }
 \end{lstlisting}
+
+\newpage
 
 \noindent
 % According to our demo example programs, given in Table \ref{tbl:encoding:programs}, calling \lstinline[style=c++]{declare_stmt} for the initial step $k = 0$ would lead to the following statement activation variables being declared.
@@ -1584,7 +1583,7 @@ void declare_block (uint k)
 {
   for (const auto & [id, threads] : checkpoints)
     for (const auto & [t, _] : threads)
-      formula << declare_bool(block_var(k, id, t)) << '\n';
+      formula << declare_bool(block(k, id, t)) << '\n';
 }
 \end{lstlisting}
 
@@ -1616,7 +1615,7 @@ Halt flags $\HALT^k_t$ are declared in a similar manner, based on the threads co
 void declare_halt (uint k)
 {
   for (const auto & [t, _] : updates[State::halt])
-    formula << declare_bool(halt_var(k, t)) << '\n';
+    formula << declare_bool(halt(k, t)) << '\n';
 }
 \end{lstlisting}
 
@@ -1895,7 +1894,7 @@ We skip further details about their declarator functions, as they are based on t
 void declare_check (uint k)
 {
   for (const auto & [id, _] : checkpoints)
-    formula << declare_bool_var(check_var(k, id)) << '\n';
+    formula << declare_bool(check(k, id)) << '\n';
 }
 \end{lstlisting}
 
@@ -1998,8 +1997,8 @@ void define_check (uint k)
     {
       std::vector<std::string> args;
       for (const auto & [t, _] : threads)
-        args.push_back(block_var(k, id, t));
-      formula << assign(check_var(k, id), land(args)) << '\n';
+        args.push_back(block(k, id, t));
+      formula << assign(check(k, id), land(args)) << '\n';
     }
 }
 \end{lstlisting}
@@ -2112,10 +2111,10 @@ void define_cardinality_constraints (uint k)
   std::vector<std::string> vars;
   for (uint t = 0; t < programs.size(); t++)
     {
-      vars.push_back(thread_var(k, t));
-      vars.push_back(flush_var(k, t));
+      vars.push_back(thread(k, t));
+      vars.push_back(flush(k, t));
     }
-  vars.push_back(exit_flag_var(k));
+  vars.push_back(exit(k));
   // >= 1 constraint
   formula << assertion(lor(vars)) << '\n';
   // <= 1 constraint
@@ -2203,15 +2202,15 @@ void define_store_buffer_constraints (uint k)
       {
         std::vector<std::string> stmts;
         for (uint pc : barriers[t])
-          stmts.push_back(stmt_var(k, t, pc));
-        formula << assertion(ite(sb_full_var(),
+          stmts.push_back(stmt(k, t, pc));
+        formula << assertion(ite(sb_full(k, t),
                                  imply(lor(stmts),
-                                       lnot(thread_var(k, t))),
-                                 lnot(flush_var(k, t)))) << '\n';
+                                       lnot(thread(k, t))),
+                                 lnot(flush(k, t)))) << '\n';
       }
     else
-      formula << assertion(imply(lnot(sb_full_var(k, t)),
-                                 lnot(flush_var(k, t)))) << '\n';
+      formula << assertion(imply(lnot(sb_full(k, t)),
+                                 lnot(flush(k, t)))) << '\n';
 }
 \end{lstlisting}
 
@@ -2268,9 +2267,9 @@ void define_checkpoint_constraints (uint k)
 {
   for (const auto & [id, threads] : checkpoints)
     for (const auto & [t, _] : threads)
-      formula << assertion(imply(land(block_var(k, id, t),
-                                      lnot(check_var(k, id))),
-                                 lnot(thread_var(k, t)))) << '\n';
+      formula << assertion(imply(land(block(k, id, t),
+                                      lnot(check(k, id))),
+                                 lnot(thread(k, t)))) << '\n';
 }
 \end{lstlisting}
 
@@ -2316,8 +2315,8 @@ The definition of scheduling constraints is concluded by stopping halted threads
 void define_halt_constraints (uint k)
 {
   for (const auto & [t, _] : updates[State::halt])
-    formula << assertion(imply(halt_var(k, t),
-                               lnot(thread_var(k, t)))) << '\n';
+    formula << assertion(imply(halt(k, t),
+                               lnot(thread(k, t)))) << '\n';
 }
 \end{lstlisting}
 
@@ -2355,7 +2354,7 @@ void init_states ()
   init_halt();
 
   init_heap();
-  init_exit_flag();
+  init_exit();
 }
 \end{lstlisting}
 
@@ -2373,7 +2372,7 @@ We begin by setting each thread's initial accumulator register state to zero.
 void init_accu ()
 {
   for (uint t = 0; t < programs.size(); t++)
-    formula << assign(accu_var(0, t), consth(0)) << '\n';
+    formula << assign(accu(0, t), consth(0)) << '\n';
 }
 \end{lstlisting}
 
@@ -2480,8 +2479,8 @@ void init_stmt ()
 {
   for (uint t = 0; t < programs.size(); t++)
     for (uint pc = 0; t < programs[t].size(); t++)
-      formula << assertion(pc ? lnot(stmt_var(0, t, pc))
-                              : stmt_var(0, t, pc)) << '\n';
+      formula << assertion(pc ? lnot(stmt(0, t, pc))
+                              : stmt(0, t, pc)) << '\n';
 }
 \end{lstlisting}
 
@@ -2531,7 +2530,7 @@ void init_block ()
 {
   for (const auto & [id, threads] : checkpoints)
     for (const auto & [t, _] : threads)
-      formula << assertion(lnot(block_var(0, id, t))) << '\n';
+      formula << assertion(lnot(block(0, id, t))) << '\n';
 }
 \end{lstlisting}
 
@@ -2555,7 +2554,7 @@ Halt flags $\HALT^0_t$ are initialized in a similar manner, using the relevant e
 void init_halt ()
 {
   for (const auto & [t, _] : updates[State::halt])
-    formula << assertion(lnot(halt_var(0, t))) << '\n';
+    formula << assertion(lnot(halt(0, t))) << '\n';
 }
 \end{lstlisting}
 
@@ -2578,7 +2577,7 @@ Although the machine's memory is considered to be uninitialized in general, inpu
 void init_heap ()
 {
   for (const auto & [adr, val] : mmap)
-    formula << assign(select(heap_var(0), consth(adr)),
+    formula << assign(select(heap(0), consth(adr)),
                       consth(val)) << '\n';
 }
 \end{lstlisting}
@@ -2599,14 +2598,14 @@ Finally, the initial exit flag $\EXIT_0$ is disabled in order to enforce executi
 % Finally, execution of is enforced by disabling the initial exit flag $\EXIT_0$.
 
 \begin{lstlisting}[style=c++]
-void init_exit_flag ()
+void init_exit()
 {
-  formula << assertion(lnot(exit_flag_var(0))) << '\n';
+  formula << assertion(lnot(exit(0))) << '\n';
 }
 \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{init_exit_flag()}
+\emph{Example:} \lstinline[style=c++]{init_exit()}
 
 \begin{lstlisting}[language=SMTLib]
 (assert (not exit_0))
@@ -2626,27 +2625,27 @@ Memory access, according to the previously defined $\LOAD^k_t$, is implemented b
 std::string load (uint k, uint t, uint adr, bool indirect = false)
 {
   std::string address = consth(adr);
-  std::string sb_adr = sb_adr_var(k, t);
-  std::string sb_val = sb_val_var(k, t);
-  std::string sb_full = sb_full_var(k, t);
-  std::string heap = heap_var(k);
+  std::string sb_adr_var = sb_adr(k, t);
+  std::string sb_val_var = sb_val(k, t);
+  std::string sb_full_var = sb_full(k, t);
+  std::string heap_var = heap(k);
 
   if (indirect)
     return
-      ite(sb_full,
-          ite(equal(sb_adr, address),
-              ite(equal(sb_val, address),
-                  sb_val,
-                  select(heap, sb_val)),
-              ite(equal(sb_adr, select(heap, address)),
-                  sb_val,
-                  select(heap, select(heap, address)))),
-          select(heap, select(heap, address)));
+      ite(sb_full_var,
+          ite(equal(sb_adr_var, address),
+              ite(equal(sb_val_var, address),
+                  sb_val_var,
+                  select(heap_var, sb_val_var)),
+              ite(equal(sb_adr_var, select(heap_var, address)),
+                  sb_val_var,
+                  select(heap_var, select(heap_var, address)))),
+          select(heap_var, select(heap_var, address)));
   else
     return
-      ite(land(sb_full, equal(sb_adr, address)),
-          sb_val,
-          select(heap, address));
+      ite(land(sb_full_var, equal(sb_adr_var, address)),
+          sb_val_var,
+          select(heap_var, address));
 }
 \end{lstlisting}
 
@@ -2712,7 +2711,7 @@ std::string Store::encode (uint k, uint t, State state)
   switch (state)
     {
     case State::sb_adr: return indirect ? load(k, arg) : consth(arg);
-    case State::sb_val: return accu_var(k, t);
+    case State::sb_val: return accu(k, t);
     }
 }
 \end{lstlisting}
@@ -2724,7 +2723,7 @@ std::string Store::encode (uint k, uint t, State state)
 \begin{lstlisting}[style=c++, style=encode]
 std::string Add::encode (uint k, uint t, State state)
 {
-  return bvadd(accu_var(k, t), load(k, arg, indirect));
+  return bvadd(accu(k, t), load(k, arg, indirect));
 }
 \end{lstlisting}
 
@@ -2735,7 +2734,7 @@ std::string Add::encode (uint k, uint t, State state)
 \begin{lstlisting}[style=c++, style=encode]
 std::string Addi::encode (uint k, uint t, State state)
 {
-  return bvadd(accu_var(k, t), consth(arg));
+  return bvadd(accu(k, t), consth(arg));
 }
 \end{lstlisting}
 
@@ -2746,7 +2745,7 @@ std::string Addi::encode (uint k, uint t, State state)
 \begin{lstlisting}[style=c++, style=encode]
 std::string Sub::encode (uint k, uint t, State state)
 {
-  return bvsub(accu_var(k, t), load(k, arg, indirect));
+  return bvsub(accu(k, t), load(k, arg, indirect));
 }
 \end{lstlisting}
 
@@ -2757,7 +2756,7 @@ std::string Sub::encode (uint k, uint t, State state)
 \begin{lstlisting}[style=c++, style=encode]
 std::string Subi::encode (uint k, uint t, State state)
 {
-  return bvsub(accu_var(k, t), consth(arg));
+  return bvsub(accu(k, t), consth(arg));
 }
 \end{lstlisting}
 
@@ -2770,7 +2769,7 @@ std::string Subi::encode (uint k, uint t, State state)
 \begin{lstlisting}[style=c++, style=encode]
 std::string Mul::encode (uint k, uint t, State state)
 {
-  return bvmul(accu_var(k, t), load(k, arg, indirect));
+  return bvmul(accu(k, t), load(k, arg, indirect));
 }
 \end{lstlisting}
 
@@ -2781,7 +2780,7 @@ std::string Mul::encode (uint k, uint t, State state)
 \begin{lstlisting}[style=c++, style=encode]
 std::string Muli::encode (uint k, uint t, State state)
 {
-  return bvmul(accu_var(k, t), consth(arg));
+  return bvmul(accu(k, t), consth(arg));
 }
 \end{lstlisting}
 
@@ -2792,7 +2791,7 @@ std::string Muli::encode (uint k, uint t, State state)
 \begin{lstlisting}[style=c++, style=encode]
 std::string Cmp::encode (uint k, uint t, State state)
 {
-  return bvsub(accu_var(k, t), load(k, arg, indirect));
+  return bvsub(accu(k, t), load(k, arg, indirect));
 }
 \end{lstlisting}
 
@@ -2811,7 +2810,7 @@ std::string Jmp::encode (uint k, uint t, State state) { return ""; }
 \begin{lstlisting}[style=c++, style=encode]
 std::string Jz::encode (uint k, uint t, State state)
 {
-  return equal(accu_var(k, t), consth(0));
+  return equal(accu(k, t), consth(0));
 }
 \end{lstlisting}
 
@@ -2822,7 +2821,7 @@ std::string Jz::encode (uint k, uint t, State state)
 \begin{lstlisting}[style=c++, style=encode]
 std::string Jnz::encode (uint k, uint t, State state)
 {
-  return lnot(equal(accu_var(k, t), consth(0)));
+  return lnot(equal(accu(k, t), consth(0)));
 }
 \end{lstlisting}
 
@@ -2834,7 +2833,7 @@ std::string Jnz::encode (uint k, uint t, State state)
 \begin{lstlisting}[style=c++, style=encode]
 std::string Js::encode (uint k, uint t, State state)
 {
-  return equal("#b1", extract("15", "15", accu_var(k, t)));
+  return equal("#b1", extract("15", "15", accu(k, t)));
 }
 \end{lstlisting}
 
@@ -2847,7 +2846,7 @@ std::string Js::encode (uint k, uint t, State state)
 \begin{lstlisting}[style=c++, style=encode]
 std::string Jns::encode (uint k, uint t, State state)
 {
-  return equal("#b0", extract("15", "15", accu_var(k, t)));
+  return equal("#b0", extract("15", "15", accu(k, t)));
 }
 \end{lstlisting}
 
@@ -2858,9 +2857,8 @@ std::string Jns::encode (uint k, uint t, State state)
 \begin{lstlisting}[style=c++, style=encode]
 std::string Jnzns::encode (uint k, uint t, State state)
 {
-  std::string accu = accu_var(k, t);
-  return land(lnot(equal(accu, consth(0))),
-             equal("#b0", extract("15", "15", accu)));
+  return land(lnot(equal(accu(k, t), consth(0))),
+              equal("#b0", extract("15", "15", accu(k, t))));
 }
 \end{lstlisting}
 
@@ -2882,17 +2880,18 @@ std::string Mem::encode (uint k, uint t, State state)
 \begin{lstlisting}[style=c++, style=encode]
 std::string Cas::encode (uint k, uint t, State state)
 {
-  auto heap = heap_var(k);
-  auto address = indirect ? select(heap, consth(arg)) : consth(arg);
-  auto condition = equal(mem_var(k, t), select(heap, address));
+  auto heap_var = heap(k);
+  auto address = indirect ? select(heap_var, consth(arg))
+                          : consth(arg);
+  auto condition = equal(mem(k, t), select(heap_var, address));
   switch (state)
     {
     case State::accu: return ite(condition, consth(1), consth(0));
     case State::heap: return ite(condition,
-                                store(heap,
+                                store(heap_var,
                                       address,
-                                      accu_var(k, t)),
-                                heap);
+                                      accu(k, t)),
+                                heap_var);
     }
 }
 \end{lstlisting}
@@ -2938,7 +2937,7 @@ void define_states (uint k)
   define_block(k);
   define_halt(k);
   define_heap(k);
-  define_exit_flag(k);
+  define_exit(k);
 
   if (k == bound)
     define_exit_code();
@@ -3048,12 +3047,12 @@ void define_accu (uint k)
 {
   for (const auto & [t, stmts] : updates[State::accu])
     {
-      std::string expr = accu_var(k - 1, t);
+      std::string next = accu(k - 1, t);
       for (auto pc = stmts.rbegin(); pc != stmts.rend(); ++pc)
-        expr = ite(exec_var(k - 1, t, *pc),
+        next = ite(exec(k - 1, t, *pc),
                    program[t][*pc]->encode(k - 1, t, State::accu),
-                   expr);
-      formula << assign(accu_var(k, t), expr) << '\n';
+                   next);
+      formula << assign(accu(k, t), next) << '\n';
     }
 }
 \end{lstlisting}
@@ -3202,11 +3201,11 @@ void define_sb_full (uint k)
 {
   for (const auto & [t, stmts] : updates[State::sb_full])
     {
-      std::vector<std::string> args {sb_full_var(k - 1, t)};
+      std::vector<std::string> args {sb_full(k - 1, t)};
       for (uint pc : stmts)
-        args.push_back(exec_var(k - 1, t, pc));
-      formula << assign(sb_full_var(k, t),
-                        ite(flush_var(k - 1, t),
+        args.push_back(exec(k - 1, t, pc));
+      formula << assign(sb_full(k, t),
+                        ite(flush(k - 1, t),
                             "false",
                             lor(args))) << '\n';
     }
@@ -3332,13 +3331,13 @@ void define_stmt (uint k)
     for (uint pc = 0; pc < programs[t].size(); pc++)
       {
         // statement reactivation
-        std::string expr = land(stmt_var(k - 1, t, pc),
-                              lnot(exec_var(k - 1, t, pc)));
+        std::string next = land(stmt(k - 1, t, pc),
+                              lnot(exec(k - 1, t, pc)));
         // activation by predecessor
         const auto & stmts = predecessors[t][pc];
         for (auto pre = stmts.rbegin(); pre != stmts.rend(); ++pre)
           {
-            std::string val = exec_var(k - 1, t, *pre);
+            std::string val = exec(k - 1, t, *pre);
             Instruction * op = programs[t][*pre];
             // add condition if predecessor is a jump
             if (is_jump(op))
@@ -3346,9 +3345,9 @@ void define_stmt (uint k)
                 std::string cond = op->encode(k - 1, t, State::stmt);
                 val = land(val, op->arg == pc ? cond : lnot(cond));
               }
-            expr = ite(stmt_var(k - 1, t, *pre), val, expr);
+            next = ite(stmt(k - 1, t, *pre), val, next);
           }
-        formula << assign(stmt_var(k, t, pc), expr) << '\n';
+        formula << assign(stmt(k, t, pc), next) << '\n';
       }
 }
 \end{lstlisting}
@@ -3443,7 +3442,7 @@ void define_stmt (uint k)
 
 \noindent
 % Block flags $\BLOCK^k_{id, t}$ are defined by a single $\ITE$, either unblocking the thread by resetting the state if all threads synchronized upon the corresponding checkpoint $id$ in the previous step, or assigning a conjunction including all execution variables $\EXEC^{k - 1}_{t, pc}$ of related \lstinline[language={[concubine]Assembler}]{CHECK id} instructions to enable it, as well as the predecessor $\BLOCK^{k - 1}_{id, t}$ for preserving it's state.
-Block flags $\BLOCK^k_{id, t}$ are defined by a single $\ITE$, unblocking the thread by resetting the state if all threads synchronized upon the corresponding checkpoint $id$ in the previous step $k - 1$.
+Block flags $\BLOCK^k_{id, t}$ are defined by a single $\ITE$, unblocking the thread by resetting the state if all threads synchronized upon the corresponding checkpoint $id$ in the previous step. %$k - 1$.
 Otherwise, it assigns a disjunction including all execution variables $\EXEC^{k - 1}_{t, pc}$ of related \lstinline[language={[concubine]Assembler}]{CHECK id} instructions enabling the state, as well as the predecessor $\BLOCK^{k - 1}_{id, t}$ to presere it's value.
 %signalled by $\CHECK^{k - 1}_{id}$
 
@@ -3453,11 +3452,11 @@ void define_block (uint k)
   for (const auto & [id, threads] : checkpoints)
     for (const auto & [t, stmts] : threads)
       {
-        std::vector<std::string> args {block_var(k - 1, id, t)};
+        std::vector<std::string> args {block(k - 1, id, t)};
         for (uint pc : stmts)
-          args.push_back(exec_var(k - 1, t, pc));
-        formula << assign(block_var(k, id, t),
-                          ite(check_var(k - 1, id),
+          args.push_back(exec(k - 1, t, pc));
+        formula << assign(block(k, id, t),
+                          ite(check(k - 1, id),
                               "false",
                               lor(args))) << '\n';
       }
@@ -3513,10 +3512,10 @@ void define_halt (uint k)
 {
   for (const auto & [t, stmts] : updates[State::halt])
     {
-      std::vector<std::string> args {halt_var(k - 1, t)};
+      std::vector<std::string> args {halt(k - 1, t)};
       for (uint pc : stmts)
-        args.push_back(exec_var(k - 1, t, pc));
-      formula << assign(halt_var(k, t), lor(args)) << '\n';
+        args.push_back(exec(k - 1, t, pc));
+      formula << assign(halt(k, t), lor(args)) << '\n';
     }
 }
 \end{lstlisting}
@@ -3550,21 +3549,21 @@ Each thread then extends the expression by embedding it in an $\ITE$ for every a
 \begin{lstlisting}[style=c++]
 void define_heap (uint k)
 {
-  std::string expr = heap_var(k - 1);
+  std::string next = heap(k - 1);
   for (int t = programs.size() - 1; t >= 0; t--)
     {
       const auto & stmts = updates[State::heap];
       for (auto pc = stmts.rbegin(); pc != stmts.rend(); ++pc)
-        expr = ite(exec_var(k - 1, t, *pc),
+        next = ite(exec(k - 1, t, *pc),
                    programs[t][*pc].encode(k - 1, t, State::heap),
-                   expr);
-      expr = ite(flush_var(k - 1, t),
-                 store(heap_var(k - 1),
-                       sb_adr_var(k - 1, t),
-                       sb_expr_var(k - 1, t)),
-                 expr);
+                   next);
+      next = ite(flush(k - 1, t),
+                 store(heap(k - 1),
+                       sb_adr(k - 1, t),
+                       sb_expr(k - 1, t)),
+                 next);
     }
-  formula << assign(heap_var(k, t), expr) << '\n';
+  formula << assign(heap(k, t), next) << '\n';
 }
 \end{lstlisting}
 
@@ -3615,21 +3614,21 @@ void define_heap (uint k)
 In order to enable the exit flag $\EXIT^k$ according to our termination criteria, we define it as a disjunction containing the execution variables $\EXEC^{k - 1}_{t, pc}$ of every \lstinline[language={[concubine]Assembler}]{EXIT} statement, a conjunction over all halt variables $\HALT^k_t$ stopping the machine if no more thread is running and the previous state $\EXIT^{k - 1}$ to preserve it's value.
 
 \begin{lstlisting}[style=c++]
-void define_exit_flag (uint k)
+void define_exit(uint k)
 {
   std::vector<std::string> halts;
   for (const auto & [t, _] : updates[State::halt])
-    halts.push_back(halt_var(k, t));
-  std::vector<std::string> args {exit_flag_var(k - 1), land(halts)};
+    halts.push_back(halt(k, t));
+  std::vector<std::string> args {exit(k - 1), land(halts)};
   for (const auto & [t, stmts] : updates[State::exit])
     for (uint pc : stmts)
-      args.push_back(exec_var(k - 1, t, pc));
-  formula << assign(exit_flag_var(k), lor(args)) << '\n';
+      args.push_back(exec(k - 1, t, pc));
+  formula << assign(exit(k), lor(args)) << '\n';
 }
 \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{define_exit_flag(1)}
+\emph{Example:} \lstinline[style=c++]{define_exit(1)}
 
 \begin{lstlisting}[language=SMTLib]
 (assert (= exit_1
@@ -3682,14 +3681,14 @@ for each step $k \in [0, bound]$ and \lstinline[language={[concubine]Assembler}]
 \begin{lstlisting}[style=c++]
 void define_exit_code ()
 {
-  std::string expr = consth(0);
+  std::string next = consth(0);
   for (uint k = 0; k <= bound; k++)
     for (const auto & [t, stmts] : updates[State::exit])
       for (uint pc : stmts)
-        expr = ite(exec_var(k, t, pc),
+        next = ite(exec(k, t, pc),
                    programs[t][pc].encode(k, t, State::exit),
-                   expr);
-  formula << assign(exit_code_var, expr) << '\n';
+                   next);
+  formula << assign(exit_code, next) << '\n';
 }
 \end{lstlisting}
 
@@ -3763,7 +3762,7 @@ We begin by defining variadic template functions for simplifying the generation 
 template <class R, class ... T>
 R restore (R (*var) (uint k, T ... args), uint k, T ... args)
 {
-  return equality(var(k, args...), var(k - 1, args...));
+  return equal(var(k, args...), var(k - 1, args...));
 }
 \end{lstlisting}
 
@@ -3773,10 +3772,10 @@ R reset (R (*var) (uint k, uint x, T ... args),
          R (*cond) (uint k, uint x),
          uint k, uint x, T ... args)
 {
-  return equality(var(k, x, args...),
-                  ite(cond(k - 1, x),
-                      "false",
-                      var(k - 1, x, args...)));
+  return equal(var(k, x, args...),
+               ite(cond(k - 1, x),
+                   "false",
+                   var(k - 1, x, args...)));
 }
 \end{lstlisting}
 
@@ -3849,19 +3848,19 @@ struct Next : std::map<State, std::string>
 {
   Next (k, t)
     {
-      (*this)[State::accu] = restore(&accu_var, k, t);
-      (*this)[State::mem] = restore(&mem_var, k, t);
-      (*this)[State::sb_adr] = restore(&sb_adr_var, k, t);
-      (*this)[State::sb_val] = restore(&sb_val_var, k, t);
-      (*this)[State::sb_full] = restore(&sb_full_var, k, t);
-      (*this)[State::halt] = restore(&halt_var, k, t);
-      (*this)[State::heap] = restore(&heap_var, k);
-      (*this)[State::exit] = lnot(exit_var(k, t));
+      (*this)[State::accu] = restore(&accu, k, t);
+      (*this)[State::mem] = restore(&mem, k, t);
+      (*this)[State::sb_adr] = restore(&sb_adr, k, t);
+      (*this)[State::sb_val] = restore(&sb_val, k, t);
+      (*this)[State::sb_full] = restore(&sb_full, k, t);
+      (*this)[State::halt] = restore(&halt, k, t);
+      (*this)[State::heap] = restore(&heap, k);
+      (*this)[State::exit] = lnot(exit(k, t));
       std::vector<std::string> block_vars;
       for (const auto & [id, threads] : checkpoints)
         if (threads.find(t) != threads.end())
-          block_vars.push_back(reset(&block_var,
-                                     &check_var,
+          block_vars.push_back(reset(&block,
+                                     &check,
                                      k, id, t));
       if (!block_vars.empty())
         (*this)[State::block] = land(block_vars);
@@ -3870,9 +3869,9 @@ struct Next : std::map<State, std::string>
   operator std::string () const
     {
       std::vector<std::string> args;
-      for (const auto & [_, value] : *this)
-        if (!value.empty())
-          args.push_back(value);
+      for (const auto & [_, expr] : *this)
+        if (!expr.empty())
+          args.push_back(expr);
       return land(args);
     }
 };
@@ -3891,9 +3890,8 @@ std::string activate (uint k, uint t, uint pc)
 {
   std::vector<std::string> stmts;
   for (uint i = 0; i < programs[t].size(); i++)
-    stmts.push_back(i == pc
-                      ? stmt_var(k, t, pc)
-                      : lnot(stmt_var(k, t, i)));
+    stmts.push_back(i == pc ? stmt(k, t, pc)
+                            : lnot(stmt(k, t, i)));
   return land(stmts);
 }
 \end{lstlisting}
@@ -3912,13 +3910,13 @@ std::string activate (uint k, uint t, uint pc, Instruction * jmp)
   std::string condition = jmp->encode(k - 1, t, State::stmt);
   for (uint i = 0; i < programs[t].size(); i++)
     {
-      std::string stmt = stmt_var(k, t, i);
+      std::string stmt_var = stmt(k, t, i);
       if (i == jmp->arg)
-        stmts.push_back(ite(condition, stmt, lnot(stmt)));
+        stmts.push_back(ite(condition, stmt_var, lnot(stmt_var)));
       else if (i == pc + 1)
-        stmts.push_back(ite(condition, lnot(stmt), stmt));
+        stmts.push_back(ite(condition, lnot(stmt_var), stmt_var));
       else
-        stmts.push_back(lnot(stmt));
+        stmts.push_back(lnot(stmt_var));
     }
   return land(stmts);
 }
@@ -3939,7 +3937,7 @@ Generating a common set of successor states for every possible instruction %acco
 % according to our relational logic
 % again relies on
 is again based on
-dynamically dispatched member functions of concrete \texttt{Instruction} class instantiations.
+dynamically dispatched virtual member functions of concrete \texttt{Instruction} class instantiations.
 % dispatched member functions achieved by adding the following virtual member function to the \texttt{Instruction} class
 % We therefore introduce
 Therefore, we introduce the following overload including the current program counter for activating the next statement. % and their actual implementations given below.
@@ -3967,8 +3965,8 @@ By using the previously defined helper constructs, the actual implementations ca
 std::string Load::encode (uint t, uint k, uint pc)
 {
   Next next(k, t);
-  next[State::accu] = equality(accu(k, t),
-                               encode(k - 1, t, State::accu));
+  next[State::accu] = equal(accu(k, t),
+                            encode(k - 1, t, State::accu));
   next[State::stmt] = activate(k, t, pc + 1);
   return next;
 }
@@ -3982,11 +3980,11 @@ std::string Load::encode (uint t, uint k, uint pc)
 std::string Store::encode (uint t, uint k, uint pc)
 {
   Next next(k, t);
-  next[State::sb_adr] = equality(sb_adr_var(k, t),
-                                 encode(k - 1, t, State::sb_adr));
-  next[State::sb_val] = equality(sb_val_var(k, t),
-                                 encode(k - 1, t, State::sb_val));
-  next[State::sb_full] = sb_full_var(k, t);
+  next[State::sb_adr] = equal(sb_adr(k, t),
+                              encode(k - 1, t, State::sb_adr));
+  next[State::sb_val] = equal(sb_val(k, t),
+                              encode(k - 1, t, State::sb_val));
+  next[State::sb_full] = sb_full(k, t);
   next[State::stmt] = activate(k, t, pc + 1);
   return next;
 }
@@ -4013,8 +4011,8 @@ std::string Fence::encode (uint t, uint k, uint pc)
 std::string Add::encode (uint t, uint k, uint pc)
 {
   Next next(k, t);
-  next[State::accu] = equality(accu_var(k, t),
-                               encode(k - 1, t, State::accu));
+  next[State::accu] = equal(accu(k, t),
+                            encode(k - 1, t, State::accu));
   next[State::stmt] = activate(k, t, pc + 1);
   return next;
 }
@@ -4030,8 +4028,8 @@ std::string Add::encode (uint t, uint k, uint pc)
 std::string Addi::encode (uint t, uint k, uint pc)
 {
   Next next(k, t);
-  next[State::accu] = equality(accu_var(k, t),
-                               encode(k - 1, t, State::accu));
+  next[State::accu] = equal(accu(k, t),
+                            encode(k - 1, t, State::accu));
   next[State::stmt] = activate(k, t, pc + 1);
   return next;
 }
@@ -4045,8 +4043,8 @@ std::string Addi::encode (uint t, uint k, uint pc)
 std::string Sub::encode (uint t, uint k, uint pc)
 {
   Next next(k, t);
-  next[State::accu] = equality(accu_var(k, t),
-                               encode(k - 1, t, State::accu));
+  next[State::accu] = equal(accu(k, t),
+                            encode(k - 1, t, State::accu));
   next[State::stmt] = activate(k, t, pc + 1);
   return next;
 }
@@ -4060,8 +4058,8 @@ std::string Sub::encode (uint t, uint k, uint pc)
 std::string Subi::encode (uint t, uint k, uint pc)
 {
   Next next(k, t);
-  next[State::accu] = equality(accu_var(k, t),
-                               encode(k - 1, t, State::accu));
+  next[State::accu] = equal(accu(k, t),
+                            encode(k - 1, t, State::accu));
   next[State::stmt] = activate(k, t, pc + 1);
   return next;
 }
@@ -4075,8 +4073,8 @@ std::string Subi::encode (uint t, uint k, uint pc)
 std::string Mul::encode (uint t, uint k, uint pc)
 {
   Next next(k, t);
-  next[State::accu] = equality(accu_var(k, t),
-                               encode(k - 1, t, State::accu));
+  next[State::accu] = equal(accu(k, t),
+                            encode(k - 1, t, State::accu));
   next[State::stmt] = activate(k, t, pc + 1);
   return next;
 }
@@ -4092,8 +4090,8 @@ std::string Mul::encode (uint t, uint k, uint pc)
 std::string Muli::encode (uint t, uint k, uint pc)
 {
   Next next(k, t);
-  next[State::accu] = equality(accu_var(k, t),
-                               encode(k - 1, t, State::accu));
+  next[State::accu] = equal(accu(k, t),
+                            encode(k - 1, t, State::accu));
   next[State::stmt] = activate(k, t, pc + 1);
   return next;
 }
@@ -4107,8 +4105,8 @@ std::string Muli::encode (uint t, uint k, uint pc)
 std::string Cmp::encode (uint t, uint k, uint pc)
 {
   Next next(k, t);
-  next[State::accu] = equality(accu_var(k, t),
-                               encode(k - 1, t, State::accu));
+  next[State::accu] = equal(accu(k, t),
+                            encode(k - 1, t, State::accu));
   next[State::stmt] = activate(k, t, pc + 1);
   return next;
 }
@@ -4204,10 +4202,9 @@ std::string Jnzns::encode (uint t, uint k, uint pc)
 std::string Mem::encode (uint t, uint k, uint pc)
 {
   Next next(k, t);
-  next[State::accu] = equality(accu_var(k, t),
-                               encode(k - 1, t, State::accu));
-  next[State::mem] = equality(mem_var(k, t),
-                              encode(k - 1, t, State::mem));
+  next[State::accu] = equal(accu(k, t),
+                            encode(k - 1, t, State::accu));
+  next[State::mem] = equal(mem(k, t), encode(k - 1, t, State::mem));
   next[State::stmt] = activate(k, t, pc + 1);
   return next;
 }
@@ -4221,11 +4218,11 @@ std::string Mem::encode (uint t, uint k, uint pc)
 std::string Cas::encode (uint t, uint k, uint pc)
 {
   Next next(k, t);
-  next[State::accu] = equality(accu_var(k, t),
-                               encode(k - 1, t, State::accu));
+  next[State::accu] = equal(accu(k, t),
+                            encode(k - 1, t, State::accu));
   next[State::stmt] = activate(k, t, pc + 1);
-  next[State::heap] = equality(heap_var(k),
-                               encode(k - 1, t, State::heap));
+  next[State::heap] = equal(heap(k),
+                            encode(k - 1, t, State::heap));
   return next;
 }
 \end{lstlisting}
@@ -4251,7 +4248,8 @@ std::string Check::encode (uint t, uint k, uint pc)
 \end{lstlisting}
 
 \noindent
-Enable the corresponding blocking flag $\BLOCK^k_{id, t}$, while preserving or resetting any other.
+Since the might be multiple checkpoints per thread, the encode function
+has to enable the corresponding blocking flag $\BLOCK^k_{id, t}$, while preserving or resetting any other.
 
 % \subsubsection{encode HALT (relational)}
 % \todo[inline]{encode HALT (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4269,22 +4267,29 @@ std::string Halt::encode (uint t, uint k, uint pc)
       std::vector<std::string> args;
       for (uint thread = 0; thread < programs.size(); thread++)
         if (thread != t)
-          args.push_back(halt_var(k, thread));
+          args.push_back(halt(k, thread));
       next[State::halt] =
-        land(halt_var(k, t),
+        land(halt(k, t),
              ite(land(args),
-                 land(exit_flag_var(k),
-                      equality(exit_code_var, to_hex(0))),
-                 lnot(exit_flag_var(k))));
+                 land(exit(k), equal(exit_code, consth(0))),
+                 lnot(exit(k))));
     }
   else
-    next[State::halt] = land(halt_var(k, t),
-                             exit_flag_var(k),
-                             equality(exit_code_var, to_hex(0))));
+    next[State::halt] = land(halt(k, t),
+                             exit(k),
+                             equal(exit_code, consth(0))));
   state.erase(state.find(State::exit));
   return state;
 }
 \end{lstlisting}
+
+\noindent
+% Setting a thread's halt flag $\HALT^k_t$
+% Stopping the machine if all halt flags $\HALT^k_t$ are set, we have to distinguish between single and multi threaded programs.
+Stopping the machine if all threads halted is achieved by an $\ITE$, enabling the exit flag $\EXIT^k$ and assigning the default exit code if all halt flags $\HALT^k_t$ are set.
+Otherwise, the exit flag is disabled to continue execution.
+% In case only a single thread is running, the exit variables can be
+Since the exit flag is now already contained in the \texttt{State::halt} entry, we have to erase \texttt{State::exit} to prevent conflicts due to its falsification. %, leading to a conflict.
 
 % \subsubsection{encode EXIT (relational)}
 % \todo[inline]{encode EXIT (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4295,39 +4300,50 @@ std::string Exit::encode (uint t, uint k, uint pc)
 {
   Next next(k, t);
   next[State::stmt] = activate(k, t, -1);
-  next[State::exit] = exit_var(k);
-  next[State::exit_code] = equality(exit_code_var,
-                                    encode(t, k, State::exit_code));
+  next[State::exit] = exit(k);
+  next[State::exit_code] = equal(exit_code,
+                                 encode(t, k, State::exit_code));
   return state;
 }
 \end{lstlisting}
 
 \newpage
 
-\subsubsection{imply thread executed}
-\todo[inline]{imply thread executed} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \subsubsection{imply thread executed}
+% \todo[inline]{imply thread executed} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% \noindent
+% Before we continue with the main functions, implying the next states for each transition,
+% wrapper used to generate the assertions for implying the next states of a given transition.
+
+% \begin{lstlisting}[style=c++]
+% std::string imply_next (std::string var, std::string state)
+% {
+  % return assertion(imply(var, state));
+% }
+% \end{lstlisting}
+
+\noindent
+% With all utility constructs and instruction related encoding functions being defined, we are now able to generate the actual implications, starting with the successor states after executing any given statement.
+With all utility constructs and instruction related encoding functions defined, we are now able to imply the next states for all transitions, starting with the execution of any given statement.
+% Execution of a certain statement, signalled by $\EXEC^{k - 1}_{t, pc}$,
+% Starting with the implication of successor states of
+% using the previously defined enconding functions.
+
+% // smtlib::Relational::imply_thread_executed -----------------------------------
+% //
+% // thread t executed an instruction (exec_k_t_pc):
+% // * update thread state accordingly
+% // * restore heap (or update upon a successful CAS)
+% // * unset exit flag iff neither an EXIT, nor a HALT
+% // * set exit code iff the instruction was an EXIT
 \begin{lstlisting}[style=c++]
-std::string imply_next (std::string var, std::string state)
-{
-  return assertion(imply(var, state));
-}
-\end{lstlisting}
-
-\begin{lstlisting}[style=c++]
-// smtlib::Relational::imply_thread_executed -----------------------------------
-//
-// thread t executed an instruction (exec_k_t_pc):
-// * update thread state accordingly
-// * restore heap (or update upon a successful CAS)
-// * unset exit flag iff neither an EXIT, nor a HALT
-// * set exit code iff the instruction was an EXIT
-
 void imply_thread_executed (uint k, uint t)
 {
   for (uint pc = 0; pc < programs[t].size(); pc++)
-    formula << imply_next(exec_var(k - 1, t, pc),
-                          programs[t][pc].encode(k, t, pc)) << '\n';
+    formula << assertion(imply(exec(k - 1, t, pc),
+                               programs[t][pc]->encode(k, t, pc)))
+            << '\n';
 }
 \end{lstlisting}
 
@@ -4350,33 +4366,59 @@ void imply_thread_executed (uint k, uint t)
                  (= halt_1_0 halt_0_0)
                  (= heap_1 heap_0)
                  (not exit_1))))
-...
+(assert (=> exec_0_0_1 ; STORE 0
+            (and (= accu_1_0 accu_0_0)
+                 (= mem_1_0 mem_0_0)
+                 (= sb-adr_1_0 #x0000)
+                 (= sb-val_1_0 accu_0_0)
+                 sb-full_1_0
+                 (and (not stmt_1_0_0)
+                      (not stmt_1_0_1)
+                      stmt_1_0_2
+                      (not stmt_1_0_3)
+                      (not stmt_1_0_4))
+                 (= block_1_0_0 (ite check_0_0 false block_0_0_0))
+                 (= halt_1_0 halt_0_0)
+                 (= heap_1 heap_0)
+                 (not exit_1)))) ...
 \end{lstlisting}
 
-\subsubsection{imply thread not executed}
-\todo[inline]{imply thread not executed} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \subsubsection{imply thread not executed}
+% \todo[inline]{imply thread not executed} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\noindent
+% In case a thread was not executed, all local states must be preserved, except the store
+% In case a thread is not executed, it still might flush it's store buffer, % or have a block flag reset by another thread executing the corresponding checkpoint's final \lstinline[language={[concubine]Assembler}]{CHECK} instruction.
+% or is released from a checkpoint if another thread just executed the corresponding \lstinline[language={[concubine]Assembler}]{CHECK} instruction.
+% All local thread states are therefore preserved, while the store buffer full flag $\SBFULL^k_t$ and any block flag $\BLOCK^k_{id, t}$ might be reset.
+% while preserving all local states.
+% >>>
+% In case a thread was not executed in the previous step, all local states must be preserved, while the store buffer full flag $\SBFULL^k_t$ and block flags $\BLOCK^k_{id, t}$ might be reset by a store buffer flush or due to being released from a checkpoint if another thread executed the corresponds \lstinline[language={[concubine]Assembler}]{CHECK} instruction.
+In case a thread was not executed in the previous step, all local states must be preserved except the store buffer full flag $\SBFULL^k_t$ and block flags $\BLOCK^k_{id, t}$, as they might be reset by a store buffer flush, or due to being released from a checkpoint if another thread executed the corresponds \lstinline[language={[concubine]Assembler}]{CHECK} instruction.
+
+% // imply_thread_not_executed
+% //
+% // thread t didn't execute an instruction (not thread_k_t):
+% // * preserve thread state
+% // * reset sb-full iff the thread's store buffer has been flushed
 \begin{lstlisting}[style=c++]
-// imply_thread_not_executed
-//
-// thread t didn't execute an instruction (not thread_k_t):
-// * preserve thread state
-// * reset sb-full iff the thread's store buffer has been flushed
-
 void imply_thread_not_executed (uint k, uint t)
 {
   Next next(k, t);
-  next[State::sb_full] = reset(&sb_full_var, &flush_var, k, t);
+  next[State::sb_full] = reset(&sb_full, &flush, k, t);
   std::vector<std::string> stmts;
   for (uint pc = 0; pc < programs.size(); pc++)
-    stmts.push_back(restore(&stmt_var, k, t, pc));
+    stmts.push_back(restore(&stmt, k, t, pc));
   next[State::stmt] = land(stmts);
   next.erase(next.find(State::heap));
   next.erase(next.find(State::exit));
 
-  formula << imply_next(lnot(thread_var(k - 1, t)), next) << '\n';
+  formula << assertion(imply(lnot(thread(k - 1, t)), next)) << '\n';
 }
 \end{lstlisting}
+
+\noindent
+\emph{Example:} \lstinline[style=c++]{imply_thread_not_executed(1, 0)}
 
 \begin{lstlisting}[language=SMTLib]
 (assert (=> (not thread_0_0)
@@ -4394,26 +4436,42 @@ void imply_thread_not_executed (uint k, uint t)
                  (= halt_1_0 halt_0_0))))
 \end{lstlisting}
 
-\subsubsection{imply thread flushed}
-\todo[inline]{imply thread flushed} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \subsubsection{imply thread flushed}
+% \todo[inline]{imply thread flushed} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\newpage
+
+\noindent
+% Since all thread states are already handeled,
+With all local thread states already being set,
+% Since resetting the store buffer full flag $\SBFULL^k_t$ is already handeled by the previous function,
+% a thread flushing it's store buffer only needs to set the relevant global machine states, namely writing the heap array $\HEAP^k$ and disabling the exit flag $\EXIT^k$ to continue execution.
+% a thread flushing it's store buffer
+a store buffer flush
+% only needs to write the heap array $\HEAP^k$ and disable the exit flag $\EXIT^k$ to continue executing.
+% just writes the heap array $\HEAP^k$ and disables the exit flag $\EXIT^k$ to continue execution.
+just needs to write the heap array $\HEAP^k$ and disable the exit flag $\EXIT^k$ to continue execution.
+% continue execution by disabling the exit flag $\EXIT^k$.
+
+% // imply_thread_flushed
+% //
+% // thread t flushed its store buffer (flush_k_t):
+% // * update heap
+% // * unset exit flag
 \begin{lstlisting}[style=c++]
-// imply_thread_flushed
-//
-// thread t flushed its store buffer (flush_k_t):
-// * update heap
-// * unset exit flag
-
 void imply_thread_flushed (uint k, uint t)
 {
-  formula << imply_next(flush_var(k - 1, t),
-                        land(equality(heap_var(k),
-                                      store(heap_var(k - 1),
-                                            sb_adr_var(k - 1, t),
-                                            sb_val_var(k - 1, t)))
-                             lnot(exit_flag_var(k)))) << eol;
+  formula << assertion(imply(flush(k - 1, t),
+                             land(equal(heap(k),
+                                        store(heap(k - 1),
+                                              sb_adr(k - 1, t),
+                                              sb_val(k - 1, t)))
+                                  lnot(exit(k))))) << '\n';
 }
 \end{lstlisting}
+
+\noindent
+\emph{Example:} \lstinline[style=c++]{imply_thread_flushed(1, 0)}
 
 \begin{lstlisting}[language=SMTLib]
 (assert (=> flush_0_0
@@ -4421,32 +4479,44 @@ void imply_thread_flushed (uint k, uint t)
                  (not exit_1))))
 \end{lstlisting}
 
-\subsubsection{imply machine exited}
-\todo[inline]{imply machine exited} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \subsubsection{imply machine exited}
+% \todo[inline]{imply machine exited} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\noindent
+Finally, to keep the model consistent if the machine terminated in a step $k < bound$, the heap array $\HEAP^{k - 1}$ must be preserved.
+% On the other hand, if the machine still has not exited in the final step, the exit code needs to be set since it would remain undefined.
+On the other hand, if the machine is still running in the final step,
+% the exit code needs to be set since it would remain undefined.
+we need to set the default exit code as it would otherwise remain undefined.
+
+% // imply_machine_exited
+% //
+% // machine exited (exit_k):
+% // * preserve exit flag
+% // * preserve heap
+% // * set exit code to zero iff machine never exited (step == bound)
 \begin{lstlisting}[style=c++]
-// imply_machine_exited
-//
-// machine exited (exit_k):
-// * preserve exit flag
-// * preserve heap
-// * set exit code to zero iff machine never exited (step == bound)
-
 void imply_machine_exited (uint k)
 {
-  formula << imply_next(exit_flag_var(k - 1),
-                        land(restore(&heap_var, k),
-                             exit_flag_var(k))) << '\n';
-  // set exit if machine didn't exit within bound
+  formula << assertion(imply(exit(k - 1),
+                             land(restore(&heap, k),
+                                  exit(k)))) << '\n';
   if (k == bound)
-    formula << imply_next(lnot(exit_flag_var(k)),
-                          equality(exit_code_var, consth(0))) << '\n';
+    formula << assertion(imply(lnot(exit(k)),
+                               equal(exit_code, consth(0))))
+            << '\n';
 }
 \end{lstlisting}
+
+\noindent
+\emph{Example:} \lstinline[style=c++]{imply_machine_exited(1, 0)}
 
 \begin{lstlisting}[language=SMTLib]
 (assert (=> exit_0 (and (= heap_1 heap_0) exit_1)))
 \end{lstlisting}
+
+\noindent
+\emph{Example:} \lstinline[style=c++]{imply_machine_exited(17, 0)}
 
 \begin{lstlisting}[language=SMTLib]
 (assert (=> exit_16 (and (= heap_17 heap_16) exit_17)))
