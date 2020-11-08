@@ -45,7 +45,7 @@ The following variables are used to encode the machine state at a particular ste
   % \textbf{Threads} &&\\
   % \hline
   $\ACCU^k_t$ & $\in \BVSORT$ & accumulator register of thread $t$ \\
-  $\MEM^k_t$ & $\in \BVSORT$ & CAS memory register of thread $t$ \\
+  $\MEM^k_t$ & $\in \BVSORT$ & \lstinline[language={[concubine]Assembler}]{CAS} memory register of thread $t$ \\
   $\SBADR^k_t$ & $\in \BVSORT$ & store buffer address register of thread $t$ \\
   $\SBVAL^k_t$ & $\in \BVSORT$ & store buffer value register of thread $t$ \\
   $\SBFULL^k_t$ & $\in \BVSORT[1]$ & store buffer full flag of thread $t$ \\
@@ -71,7 +71,7 @@ Instead, an activation flag $\STMT^k_{t, pc}$ is added for every statement in th
 %To model the program flow without an explicit program counter, an activation flag $\STMT^k_{t, pc}$ is added for every statement in the program of thread $t$, expressing that it is about to execute the statement at $pc$.
 Blocking a thread $t$ while it is waiting for all other threads to reach a checkpoint $id$ is achieved by a flag $\BLOCK^k_t$.
 % Blocking a thread $t$ while waiting for all other threads to synchronize on a checkpoint $id$ is achieved by the $\BLOCK^k_{id, t}$ state flag.
-Similarly, the flag $\HALT^k_t$ indicates that thread $t$ executed a \texttt{HALT} instruction and is therefore also prevented from being scheduled.
+Similarly, the flag $\HALT^k_t$ indicates that thread $t$ executed a \lstinline[language={[concubine]Assembler}]{HALT} instruction and is therefore also prevented from being scheduled.
 % Termination due to an call to \texttt{EXIT}, or because all threads finished executing their programs, or \texttt{EXIT}  is captured by
 Termination is captured by the flag $\EXIT^k$ and bitvector variable $\EXITCODE^k$.
 
@@ -348,7 +348,7 @@ All state variables, not explicitly altered are assumed to be unchanged in the n
 \]
 To further simplify the definition of axioms, two additional functions are introduced:
 % Let $\EFFECTIVE^k: \BVSORT \to \BVSORT$ be a function for transparently selecting the effective address during $\texttt{STORE}$ or $\texttt{CAS}$ instructions.
-$\MSB: \BVSORT \to \BVSORT[1]$ for retrieving the most significant bit of a given bitvector and $\EFFECTIVE^k: \BVSORT \to \BVSORT$ for transparently selecting the effective address during $\texttt{STORE}$ or $\texttt{CAS}$ instructions.
+$\MSB: \BVSORT \to \BVSORT[1]$ for retrieving the most significant bit of a given bitvector and $\EFFECTIVE^k: \BVSORT \to \BVSORT$ for transparently selecting the effective address during \lstinline[language={[concubine]Assembler}]{STORE} or \lstinline[language={[concubine]Assembler}]{CAS} instructions.
 \[
   \EFFECTIVE^k(adr) =
   \begin{cases}
@@ -543,13 +543,13 @@ $\MSB: \BVSORT \to \BVSORT[1]$ for retrieving the most significant bit of a give
 % \setlength{\doublerulesep}{4pt}
 \begin{longtabu}{llX[m]}
   \firsthline
-  \multirow{2}{*}{\texttt{FLUSH}}
+  \multirow{2}{*}{\lstinline[language={[concubine]Assembler}]{FLUSH}}
     & $\HEAP^{k + 1}$   & $= \WRITE^k(\SBADR^k_t, \SBVAL^k_t)$ \\
     & $\SBFULL^{k + 1}$ & $= \FALSE$ \\
   \hline
   % \hhline{===}
   % \tabucline[2pt off 2pt]{-}
-  \multirow{3.05}{*}{\texttt{LOAD arg}}
+  \multirow{3.05}{*}{\lstinline[language={[concubine]Assembler}]{LOAD arg}}
     & $\ACCU^{k + 1}_t$           & $= \LOAD^k_t(\texttt{arg})$ \\
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
@@ -560,108 +560,108 @@ $\MSB: \BVSORT \to \BVSORT[1]$ for retrieving the most significant bit of a give
     % & $\SBVAL^{k + 1}_t$    & $= \ACCU^k_t$ \\
     % & $\STMT^k_{t, pc}$     & $= false$ \\
     % & $\STMT^k_{t, pc + 1}$ & $= true$ \\
-  \multirow{4}{*}{\texttt{STORE arg}}
+  \multirow{4}{*}{\lstinline[language={[concubine]Assembler}]{STORE arg}}
     & $\SBADR^{k + 1}_t$          & $= \EFFECTIVE^k(\texttt{arg})$ \\
     & $\SBVAL^{k + 1}_t$          & $= \ACCU^k_t$ \\
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
   % \hhline{===}
-  \multirow{2}{*}{\texttt{FENCE}}
+  \multirow{2}{*}{\lstinline[language={[concubine]Assembler}]{FENCE}}
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
-  \multirow{3.05}{*}{\texttt{ADD arg}}
+  \multirow{3.05}{*}{\lstinline[language={[concubine]Assembler}]{ADD arg}}
     & $\ACCU^{k + 1}_t$           & $= \ACCU^k_t + \LOAD^k_t(\texttt{arg})$ \\
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
-  \multirow{3.05}{*}{\texttt{ADDI arg}}
+  \multirow{3.05}{*}{\lstinline[language={[concubine]Assembler}]{ADDI arg}}
     & $\ACCU^{k + 1}_t$           & $= \ACCU^k_t + \texttt{arg}$ \\
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
-  \multirow{3.05}{*}{\texttt{SUB arg}}
+  \multirow{3.05}{*}{\lstinline[language={[concubine]Assembler}]{SUB arg}}
     & $\ACCU^{k + 1}_t$           & $= \ACCU^k_t - \LOAD^k_t(\texttt{arg})$ \\
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
-  \multirow{3.05}{*}{\texttt{SUBI arg}}
+  \multirow{3.05}{*}{\lstinline[language={[concubine]Assembler}]{SUBI arg}}
     & $\ACCU^{k + 1}_t$           & $= \ACCU^k_t - \texttt{arg}$ \\
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
-  \multirow{3.05}{*}{\texttt{MUL arg}}
+  \multirow{3.05}{*}{\lstinline[language={[concubine]Assembler}]{MUL arg}}
     & $\ACCU^{k + 1}_t$           & $= \ACCU^k_t * \LOAD^k_t(\texttt{arg})$ \\
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
   \newpage
   \hline
-  \multirow{3.05}{*}{\texttt{MULI arg}}
+  \multirow{3.05}{*}{\lstinline[language={[concubine]Assembler}]{MULI arg}}
     & $\ACCU^{k + 1}_t$           & $= \ACCU^k_t * \texttt{arg}$ \\
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
-  \multirow{3}{*}{\texttt{CMP arg}}
+  \multirow{3}{*}{\lstinline[language={[concubine]Assembler}]{CMP arg}}
     & $\ACCU^{k + 1}_t$           & $= \ACCU^k_t - \LOAD^k_t(\texttt{arg})$ \\
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
-  \multirow{2}{*}{\texttt{JMP arg}}
+  \multirow{2}{*}{\lstinline[language={[concubine]Assembler}]{JMP arg}}
     & $\STMT^{k + 1}_{t, pc}$           & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \TRUE$ \\
   \hline
-  \multirow{3}{*}{\texttt{JZ arg}}
+  \multirow{3}{*}{\lstinline[language={[concubine]Assembler}]{JZ arg}}
     & $\STMT^{k + 1}_{t, pc}$           & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$       & $= \ACCU^k_t$ \\
     & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \lnot \ACCU^k_t$ \\
   \hline
-  \multirow{3}{*}{\texttt{JNZ arg}}
+  \multirow{3}{*}{\lstinline[language={[concubine]Assembler}]{JNZ arg}}
     & $\STMT^{k + 1}_{t, pc}$           & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$       & $= \lnot \ACCU^k_t$ \\
     & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \ACCU^k_t$ \\
   \hline
-  \multirow{3}{*}{\texttt{JS arg}}
+  \multirow{3}{*}{\lstinline[language={[concubine]Assembler}]{JS arg}}
     & $\STMT^{k + 1}_{t, pc}$           & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$       & $= \lnot \MSB(\ACCU^k_t)$ \\
     & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \MSB(\ACCU^k_t)$ \\
   \hline
-  \multirow{3}{*}{\texttt{JNS arg}}
+  \multirow{3}{*}{\lstinline[language={[concubine]Assembler}]{JNS arg}}
     & $\STMT^{k + 1}_{t, pc}$           & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$       & $= \MSB(\ACCU^k_t)$ \\
     & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \lnot \MSB(\ACCU^k_t)$ \\
   \hline
-  \multirow{3}{*}{\texttt{JNZNS arg}}
+  \multirow{3}{*}{\lstinline[language={[concubine]Assembler}]{JNZNS arg}}
     & $\STMT^{k + 1}_{t, pc}$           & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$       & $= \lnot \ACCU^{k + 1}_t \lor \MSB(\ACCU^k_t)$ \\
     & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \ACCU^{k + 1}_t \land \lnot \MSB(\ACCU^k_t)$ \\
   \hline
-  \multirow{4}{*}{\texttt{MEM arg}}
+  \multirow{4}{*}{\lstinline[language={[concubine]Assembler}]{MEM arg}}
     & $\ACCU^{k + 1}_t$           & $= \LOAD^k_t(\texttt{arg})$ \\
     & $\MEM^{k + 1}_t$            & $= \LOAD^k_t(\texttt{arg})$ \\
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + k}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
   % \multirow{2.35}{*}{\texttt{CAS arg}}
-  \multirow{2.97}{*}{\texttt{CAS arg}}
+  \multirow{2.97}{*}{\lstinline[language={[concubine]Assembler}]{CAS arg}}
     & $\HEAP^{k + 1}$             & $=$ \usebox{\CASHEAPAXIOM} \\
     & $\ACCU^{k + 1}_t$           & $=$ \usebox{\CASACCUAXIOM} \\
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
-  \multirow{2}{*}{\texttt{HALT}}
+  \multirow{2}{*}{\lstinline[language={[concubine]Assembler}]{HALT}}
     % & $\EXIT^{k + 1}_t$ & $= \HALT^{k + 1}_0 \land \ldots \land \HALT^{k + 1}_{n - 1}$ \\
     & $\EXIT^{k + 1}_t$       & $= \displaystyle \bigwedge^{n - 1}_{i = 0} \HALT^{k + 1}_i$ \\
     & $\HALT^{k + 1}_t$       & $= \TRUE$ \\
     & $\STMT^{k + 1}_{t, pc}$ & $= \FALSE$ \\
   \hline
-  \multirow{3}{*}{\texttt{EXIT arg}}
+  \multirow{3}{*}{\lstinline[language={[concubine]Assembler}]{EXIT arg}}
     & $\EXIT^{k + 1}_t$       & $= \TRUE$ \\
     & $\EXITCODE^k$           & \vspace{.15cm} $= \texttt{arg}$ \\
     & $\STMT^{k + 1}_{t, pc}$ & $= \FALSE$ \\
   \hline
-  \multirow{3}{*}{\texttt{CHECK arg}}
+  \multirow{3}{*}{\lstinline[language={[concubine]Assembler}]{CHECK arg}}
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
     & $\BLOCK^{k + 1}_{arg, t}$   & $= \TRUE$ \\
@@ -787,7 +787,8 @@ Commonly used variables are given as globals to keep things simple and function 
 
 \begin{table}[!h]
 \small
-\begin{center}
+\centering
+% \begin{center}
 \begin{tabu}{|c|c|c|}
   \firsthline
   % \begin{tabu}{c} \textbf{Thread 0} \end{tabu} &
@@ -828,7 +829,7 @@ Commonly used variables are given as globals to keep things simple and function 
 \end{tabu}
 \caption{Store buffer litmus test programs and their activation variables.}
 \label{tbl:encoding:programs}
-\end{center}
+% \end{center}
 \end{table}
 % \vspace{-\baselineskip}
 \noindent
@@ -870,6 +871,9 @@ std::vector<std::vector<Instruction *>> programs = {
     new Check(0),
     new Halt()
   },
+
+
+
   {
     new Check(0),
     new Add(0),
@@ -2658,6 +2662,7 @@ std::string load (uint k, uint t, uint adr, bool indirect = false)
 % Common encoding functions are concluded by implementing the virtual member function \lstinline[style=c++, basicstyle=\normalsize\ttfamily]{Instruction::encode(uint, uint, State)} of all descendants, returning the successor of a given state after executing the specific instruction, expect for the statement activation variables $\STMT^k_{t, pc}$, which are handeled seperately.
 Common encoding functions are concluded by introducing implementations for \lstinline[style=c++, basicstyle=\normalsize\ttfamily]{Instruction::encode(uint, uint, State)}, returning the successor of a given state after executing the specific instruction expect for the statement activation variables $\STMT^k_{t, pc}$, which are handeled seperately and only jump conditions being generated this way.
 % Statement activation variables $\STMT^k_{t, pc}$ are handeled seperately and only the positive
+Implementations for \lstinline[language={[concubine]Assembler}]{FENCE}, \lstinline[language={[concubine]Assembler}]{JMP} and \lstinline[language={[concubine]Assembler}]{HALT} instructions are omitted, as they just return an empty \lstinline[style=c++]{std::string}.
 
 \newpage
 
@@ -2695,7 +2700,7 @@ Common encoding functions are concluded by introducing implementations for \lsti
 
 % \lstset{belowskip=\baselineskip}
 
-\defencode{\texttt{LOAD adr}}
+\defencode{\lstinline[language={[concubine]Assembler}]{LOAD arg}}
 % \begin{lstlisting}[style=c++,aboveskip=-\encodeskip,belowskip=\encodeskip]
 \begin{lstlisting}[style=c++, style=encode]
 std::string Load::encode (uint k, uint t, State state)
@@ -2707,7 +2712,7 @@ std::string Load::encode (uint k, uint t, State state)
 % \subsubsection{encode STORE}
 % \todo[inline]{encode STORE} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{STORE adr}}
+\defencode{\lstinline[language={[concubine]Assembler}]{STORE arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Store::encode (uint k, uint t, State state)
 {
@@ -2722,7 +2727,7 @@ std::string Store::encode (uint k, uint t, State state)
 % \subsubsection{encode ADD}
 % \todo[inline]{encode ADD} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{ADD adr}}
+\defencode{\lstinline[language={[concubine]Assembler}]{ADD arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Add::encode (uint k, uint t, State state)
 {
@@ -2733,7 +2738,7 @@ std::string Add::encode (uint k, uint t, State state)
 % \subsubsection{encode ADDI}
 % \todo[inline]{encode ADDI} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{ADDI val}}
+\defencode{\lstinline[language={[concubine]Assembler}]{ADDI arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Addi::encode (uint k, uint t, State state)
 {
@@ -2744,7 +2749,7 @@ std::string Addi::encode (uint k, uint t, State state)
 % \subsubsection{encode SUB}
 % \todo[inline]{encode SUB} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{SUB adr}}
+\defencode{\lstinline[language={[concubine]Assembler}]{SUB arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Sub::encode (uint k, uint t, State state)
 {
@@ -2755,7 +2760,7 @@ std::string Sub::encode (uint k, uint t, State state)
 % \subsubsection{encode SUBI}
 % \todo[inline]{encode SUBI} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{SUBI val}}
+\defencode{\lstinline[language={[concubine]Assembler}]{SUBI arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Subi::encode (uint k, uint t, State state)
 {
@@ -2768,7 +2773,7 @@ std::string Subi::encode (uint k, uint t, State state)
 
 \newpage
 
-\defencode{\texttt{MUL adr}}
+\defencode{\lstinline[language={[concubine]Assembler}]{MUL arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Mul::encode (uint k, uint t, State state)
 {
@@ -2779,7 +2784,7 @@ std::string Mul::encode (uint k, uint t, State state)
 % \subsubsection{encode MULI}
 % \todo[inline]{encode MULI} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{MULI val}}
+\defencode{\lstinline[language={[concubine]Assembler}]{MULI arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Muli::encode (uint k, uint t, State state)
 {
@@ -2790,7 +2795,7 @@ std::string Muli::encode (uint k, uint t, State state)
 % \subsubsection{encode CMP}
 % \todo[inline]{encode CMP} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{CMP adr}}
+\defencode{\lstinline[language={[concubine]Assembler}]{CMP arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Cmp::encode (uint k, uint t, State state)
 {
@@ -2801,15 +2806,15 @@ std::string Cmp::encode (uint k, uint t, State state)
 % \subsubsection{encode JMP}
 % \todo[inline]{encode JMP} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{CMP adr}}
-\begin{lstlisting}[style=c++, style=encode]
-std::string Jmp::encode (uint k, uint t, State state) { return ""; }
-\end{lstlisting}
+% \defencode{\lstinline[language={[concubine]Assembler}]{JMP arg}}
+% \begin{lstlisting}[style=c++, style=encode]
+% std::string Jmp::encode (uint k, uint t, State state) { return ""; }
+% \end{lstlisting}
 
 % \subsubsection{encode JZ}
 % \todo[inline]{encode JZ} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{JZ pc}}
+\defencode{\lstinline[language={[concubine]Assembler}]{JZ arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Jz::encode (uint k, uint t, State state)
 {
@@ -2820,7 +2825,7 @@ std::string Jz::encode (uint k, uint t, State state)
 % \subsubsection{encode JNZ}
 % \todo[inline]{encode JNZ} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{JNZ pc}}
+\defencode{\lstinline[language={[concubine]Assembler}]{JNZ arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Jnz::encode (uint k, uint t, State state)
 {
@@ -2832,7 +2837,7 @@ std::string Jnz::encode (uint k, uint t, State state)
 % \todo[inline]{encode JS} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \todo[noline]{instroduce global std::string msb = "15"?}
-\defencode{\texttt{JS pc}}
+\defencode{\lstinline[language={[concubine]Assembler}]{JS arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Js::encode (uint k, uint t, State state)
 {
@@ -2845,7 +2850,7 @@ std::string Js::encode (uint k, uint t, State state)
 
 \newpage
 
-\defencode{\texttt{JNS pc}}
+\defencode{\lstinline[language={[concubine]Assembler}]{JNS arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Jns::encode (uint k, uint t, State state)
 {
@@ -2856,7 +2861,7 @@ std::string Jns::encode (uint k, uint t, State state)
 % \subsubsection{encode JNZNS}
 % \todo[inline]{encode JNZNS} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{JNZNS pc}}
+\defencode{\lstinline[language={[concubine]Assembler}]{JNZNS arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Jnzns::encode (uint k, uint t, State state)
 {
@@ -2868,7 +2873,7 @@ std::string Jnzns::encode (uint k, uint t, State state)
 % \subsubsection{encode MEM}
 % \todo[inline]{encode MEM} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{MEM adr}}
+\defencode{\lstinline[language={[concubine]Assembler}]{MEM arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Mem::encode (uint k, uint t, State state)
 {
@@ -2879,7 +2884,7 @@ std::string Mem::encode (uint k, uint t, State state)
 % \subsubsection{encode CAS}
 % \todo[inline]{encode CAS} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{CAS adr}}
+\defencode{\lstinline[language={[concubine]Assembler}]{CAS arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Cas::encode (uint k, uint t, State state)
 {
@@ -2899,10 +2904,18 @@ std::string Cas::encode (uint k, uint t, State state)
 }
 \end{lstlisting}
 
+% \subsubsection{encode HALT}
+% \todo[inline]{encode HALT} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% \defencode{\lstinline[language={[concubine]Assembler}]{HALT}}
+% \begin{lstlisting}[style=c++, style=encode]
+% std::string Halt::encode (uint k, uint t, State state) { return ""; }
+% \end{lstlisting}
+
 % \subsubsection{encode EXIT}
 % \todo[inline]{encode EXIT} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{EXIT val}}
+\defencode{\lstinline[language={[concubine]Assembler}]{EXIT arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Exit::encode (uint k, uint t, State state)
 {
@@ -3963,7 +3976,7 @@ By using the previously defined helper constructs, the actual implementations ca
 
 \newpage
 
-\defencode{\texttt{LOAD adr}}
+\defencode{\lstinline[language={[concubine]Assembler}]{LOAD arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Load::encode (uint t, uint k, uint pc)
 {
@@ -3978,7 +3991,7 @@ std::string Load::encode (uint t, uint k, uint pc)
 % \subsubsection{encode STORE (relational)}
 % \todo[inline]{encode STORE (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{STORE adr}}
+\defencode{\lstinline[language={[concubine]Assembler}]{STORE arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Store::encode (uint t, uint k, uint pc)
 {
@@ -3996,7 +4009,7 @@ std::string Store::encode (uint t, uint k, uint pc)
 % \subsubsection{encode FENCE (relational)}
 % \todo[inline]{encode FENCE (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{FENCE}}
+\defencode{\lstinline[language={[concubine]Assembler}]{FENCE}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Fence::encode (uint t, uint k, uint pc)
 {
@@ -4009,7 +4022,7 @@ std::string Fence::encode (uint t, uint k, uint pc)
 % \subsubsection{encode ADD (relational)}
 % \todo[inline]{encode ADD (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{ADD adr}}
+\defencode{\lstinline[language={[concubine]Assembler}]{ADD arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Add::encode (uint t, uint k, uint pc)
 {
@@ -4026,7 +4039,7 @@ std::string Add::encode (uint t, uint k, uint pc)
 
 \newpage
 
-\defencode{\texttt{ADDI val}}
+\defencode{\lstinline[language={[concubine]Assembler}]{ADDI arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Addi::encode (uint t, uint k, uint pc)
 {
@@ -4041,7 +4054,7 @@ std::string Addi::encode (uint t, uint k, uint pc)
 % \subsubsection{encode SUB (relational)}
 % \todo[inline]{encode SUB (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{SUB adr}}
+\defencode{\lstinline[language={[concubine]Assembler}]{SUB arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Sub::encode (uint t, uint k, uint pc)
 {
@@ -4056,7 +4069,7 @@ std::string Sub::encode (uint t, uint k, uint pc)
 % \subsubsection{encode SUBI (relational)}
 % \todo[inline]{encode SUBI (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{SUBI val}}
+\defencode{\lstinline[language={[concubine]Assembler}]{SUBI arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Subi::encode (uint t, uint k, uint pc)
 {
@@ -4071,7 +4084,7 @@ std::string Subi::encode (uint t, uint k, uint pc)
 % \subsubsection{encode MUL (relational)}
 % \todo[inline]{encode MUL (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{MUL adr}}
+\defencode{\lstinline[language={[concubine]Assembler}]{MUL arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Mul::encode (uint t, uint k, uint pc)
 {
@@ -4088,7 +4101,7 @@ std::string Mul::encode (uint t, uint k, uint pc)
 
 \newpage
 
-\defencode{\texttt{MULI val}}
+\defencode{\lstinline[language={[concubine]Assembler}]{MULI arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Muli::encode (uint t, uint k, uint pc)
 {
@@ -4103,7 +4116,7 @@ std::string Muli::encode (uint t, uint k, uint pc)
 % \subsubsection{encode CMP (relational)}
 % \todo[inline]{encode CMP (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{CMP adr}}
+\defencode{\lstinline[language={[concubine]Assembler}]{CMP arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Cmp::encode (uint t, uint k, uint pc)
 {
@@ -4118,7 +4131,7 @@ std::string Cmp::encode (uint t, uint k, uint pc)
 % \subsubsection{encode JMP (relational)}
 % \todo[inline]{encode JMP (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{JMP arg}}
+\defencode{\lstinline[language={[concubine]Assembler}]{JMP arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Jmp::encode (uint t, uint k, uint pc)
 {
@@ -4131,7 +4144,7 @@ std::string Jmp::encode (uint t, uint k, uint pc)
 % \subsubsection{encode JZ (relational)}
 % \todo[inline]{encode JZ (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{JZ arg}}
+\defencode{\lstinline[language={[concubine]Assembler}]{JZ arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Jz::encode (uint t, uint k, uint pc)
 {
@@ -4146,7 +4159,7 @@ std::string Jz::encode (uint t, uint k, uint pc)
 
 \newpage
 
-\defencode{\texttt{JNZ arg}}
+\defencode{\lstinline[language={[concubine]Assembler}]{JNZ arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Jnz::encode (uint t, uint k, uint pc)
 {
@@ -4159,7 +4172,7 @@ std::string Jnz::encode (uint t, uint k, uint pc)
 % \subsubsection{encode JS (relational)}
 % \todo[inline]{encode JS (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{JS arg}}
+\defencode{\lstinline[language={[concubine]Assembler}]{JS arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Js::encode (uint t, uint k, uint pc)
 {
@@ -4172,7 +4185,7 @@ std::string Js::encode (uint t, uint k, uint pc)
 % \subsubsection{encode JNS (relational)}
 % \todo[inline]{encode JNS (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{JNS arg}}
+\defencode{\lstinline[language={[concubine]Assembler}]{JNS arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Jns::encode (uint t, uint k, uint pc)
 {
@@ -4185,7 +4198,7 @@ std::string Jns::encode (uint t, uint k, uint pc)
 % \subsubsection{encode JNZNS (relational)}
 % \todo[inline]{encode JNZNS (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{JNZNS arg}}
+\defencode{\lstinline[language={[concubine]Assembler}]{JNZNS arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Jnzns::encode (uint t, uint k, uint pc)
 {
@@ -4200,7 +4213,7 @@ std::string Jnzns::encode (uint t, uint k, uint pc)
 
 \newpage
 
-\defencode{\texttt{MEM arg}}
+\defencode{\lstinline[language={[concubine]Assembler}]{MEM arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Mem::encode (uint t, uint k, uint pc)
 {
@@ -4216,7 +4229,7 @@ std::string Mem::encode (uint t, uint k, uint pc)
 % \subsubsection{encode CAS (relational)}
 % \todo[inline]{encode CAS (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{CAS arg}}
+\defencode{\lstinline[language={[concubine]Assembler}]{CAS arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Cas::encode (uint t, uint k, uint pc)
 {
@@ -4233,7 +4246,7 @@ std::string Cas::encode (uint t, uint k, uint pc)
 % \subsubsection{encode CHECK (relational)}
 % \todo[inline]{encode CHECK (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{CHECK arg}}
+\defencode{\lstinline[language={[concubine]Assembler}]{CHECK arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Check::encode (uint t, uint k, uint pc)
 {
@@ -4259,7 +4272,7 @@ has to enable the corresponding blocking flag $\BLOCK^k_{id, t}$, while preservi
 
 \newpage
 
-\defencode{\texttt{HALT arg}}
+\defencode{\lstinline[language={[concubine]Assembler}]{HALT}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Halt::encode (uint t, uint k, uint pc)
 {
@@ -4297,7 +4310,7 @@ Since the exit flag is now already contained in the \texttt{State::halt} entry, 
 % \subsubsection{encode EXIT (relational)}
 % \todo[inline]{encode EXIT (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\texttt{EXIT arg}}
+\defencode{\lstinline[language={[concubine]Assembler}]{EXIT arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Exit::encode (uint t, uint k, uint pc)
 {

@@ -16,7 +16,6 @@
 
 % * abstract machine model to investigate the interaction of parallel programs through shared memory.
 
-\todo[inline]{use thread instead of processor}\noindent
 We will start by defining an abstract machine model of a multiprocessor system as observed by assembly programs.
 To keep the state space of the resulting model checking problems as small as possible, it is based on a 16 bit architecture, using only a minimal set of registers and a radically reduced instruction set.
 
@@ -28,7 +27,7 @@ To keep the state space of the resulting model checking problems as small as pos
 \end{figure}
 
 A schematic overview is illustrated in Figure \ref{fig:machine:overview}.
-At the top of the figure are an arbitrary number of processors, each containing:
+At the top of the figure are an arbitrary number of processors, each running a single thread and containing:
 
 \begin{itemize}
   \item \ACCU: a single 16 bit accumulator register
@@ -48,7 +47,7 @@ In terms of memory ordering, the addition of a \emph{store buffer} allows stores
 \subsection{Instructions}
 
 Our machine uses a radically reduced instruction set that contains only the most substantial operations.
-Instructions are stored separately for each processor and are therefore not contained in memory.
+Instructions are stored separately for each thread and are therefore not contained in memory.
 This abstraction allows the program counter to address instructions by their index, starting from zero.
 To simplify the definition of operational semantics, instructions are labelled using the following attributes:
 
@@ -56,13 +55,13 @@ To simplify the definition of operational semantics, instructions are labelled u
   \item \textbf{modify} -- Modifies a register's content.
   \item \textbf{read} -- Reads from memory using \emph{store forwarding}: if \SBFULL{} is set and \SBADR{} equals the given target address, the value contained in \SBVAL{} is read instead of the corresponding shared memory location.
   \item \textbf{write} -- Writes to the store buffer by setting \SBFULL{} to true, \SBADR{} to the given target address and \SBVAL{} to the value contained in \ACCU{}.
-  \item \textbf{barrier} -- Blocks execution if the store buffer is full (\SBADR{} is set). %memory barrier% - requires the store buffer to be flushed
+  \item \textbf{barrier} -- Blocks execution if the store buffer is full (\SBFULL{} is set). %memory barrier% - requires the store buffer to be flushed
   \item \textbf{atomic} -- Multiple micro operations performed as a single, uninterruptible instruction.% (implies barrier)
   \item \textbf{control} -- Modifies the order in which instructions are executed.
 \end{itemize}
 
 Due to the single register architecture, all instructions have at most one operand.
-Two addressing modes are supported, direct and indirect, denoted by square brackets (e.g. \texttt{LOAD [adr]}).
+Two addressing modes are supported, direct and indirect, denoted by square brackets (e.g. \lstinline[language={[concubine]Assembler}]{LOAD [adr]}).
 
 \newcommand{\defop}[3]{
   \paragraph{#1} \hfill #2
@@ -79,98 +78,98 @@ Two addressing modes are supported, direct and indirect, denoted by square brack
 \subsubsection{Memory}
 
 \defop
-{\texttt{LOAD adr}}
+{\lstinline[language={[concubine]Assembler}]{LOAD adr}}
 {accu, read}
 {Loads the value found at address \texttt{adr} into \ACCU.}
 
 \defop
-{\texttt{STORE adr}}
+{\lstinline[language={[concubine]Assembler}]{STORE adr}}
 {write}
 {Stores the value found in \ACCU{} at address \texttt{adr}.}
 
 \defop
-{\texttt{FENCE}}
+{\lstinline[language={[concubine]Assembler}]{FENCE}}
 {barrier}
 {Memory barrier.}
 
 \subsubsection{Arithmetic}
 
 \defop
-{\texttt{ADD adr}}
+{\lstinline[language={[concubine]Assembler}]{ADD adr}}
 {accu, read}
 {Adds the value found at address \texttt{adr} to \ACCU.}
 
 \defop
-{\texttt{ADDI val}}
+{\lstinline[language={[concubine]Assembler}]{ADDI val}}
 {accu}
 {Adds the immediate value \texttt{val} to \ACCU.}
 
 \defop
-{\texttt{SUB adr}}
+{\lstinline[language={[concubine]Assembler}]{SUB adr}}
 {accu, read}
 {Subtracts the value found at address \texttt{adr} from \ACCU.}
 
 \defop
-{\texttt{SUBI val}}
+{\lstinline[language={[concubine]Assembler}]{SUBI val}}
 {accu}
 {Subtracts the immediate value \texttt{val} from \ACCU.}
 
 \defop
-{\texttt{MUL adr}}
+{\lstinline[language={[concubine]Assembler}]{MUL adr}}
 {accu, read}
 {Multiplies \ACCU{} with the value found at address \texttt{adr}.}
 
 \defop
-{\texttt{MULI val}}
+{\lstinline[language={[concubine]Assembler}]{MULI val}}
 {accu}
 {Multiplies \ACCU{} with the immediate value \texttt{val}.}
 
 \subsubsection{Control Flow}
 
 \defop
-{\texttt{CMP adr}}
+{\lstinline[language={[concubine]Assembler}]{CMP adr}}
 {accu, read}
 {Compares \ACCU{} to the value found at address \texttt{adr} by performing an unsigned subtraction.}
 
 \defop
-{\texttt{JMP pc}}
+{\lstinline[language={[concubine]Assembler}]{JMP pc}}
 {control}
 {Jumps to the statement at \texttt{pc} unconditionally.}
 
 \defop
-{\texttt{JZ pc}}
+{\lstinline[language={[concubine]Assembler}]{JZ pc}}
 {control}
 {Jumps to the statement at \texttt{pc} if \ACCU{} is zero.}
 
 \defop
-{\texttt{JNZ pc}}
+{\lstinline[language={[concubine]Assembler}]{JNZ pc}}
 {control}
 {Jumps to the statement at \texttt{pc} if \ACCU{} is non-zero.}
 
 \defop
-{\texttt{JS pc}}
+{\lstinline[language={[concubine]Assembler}]{JS pc}}
 {control}
 {Jumps to the statement at \texttt{pc} if \ACCU{} is negative (least significant bit is set).}
 
 \defop
-{\texttt{JNS pc}}
+{\lstinline[language={[concubine]Assembler}]{JNS pc}}
 {control}
 {Jumps to the statement at \texttt{pc} if \ACCU{} is zero or positive (least significant bit is unset).}
 
 \defop
-{\texttt{JNZNS pc}}
+{\lstinline[language={[concubine]Assembler}]{JNZNS pc}}
 {control}
 {Jumps to the statement at \texttt{pc} if \ACCU{} is positive (non-zero and least significant bit is unset).}
 
 \subsubsection{Atomic}
 
 \defop
-{\texttt{MEM adr}}
+{\lstinline[language={[concubine]Assembler}]{MEM adr}}
 {accu, mem, read}
 {Loads the value found at address \texttt{adr} into \ACCU{} and \MEM{} as the expectation during a latter \emph{compare and swap} operation.}
 
 \defop
-{\texttt{CAS adr}}
+{\lstinline[language={[concubine]Assembler}]{CAS adr}}
 {accu, read, atomic, barrier}
 {Atomically compares the expected value in \MEM{} to the actual value found at address \texttt{adr} and only writes the value found in \ACCU{} back to address \texttt{adr} if they are equal.
 Acts like a memory barrier.}
@@ -178,27 +177,27 @@ Acts like a memory barrier.}
 \subsubsection{Termination}
 
 \defop
-{\texttt{HALT}}
+{\lstinline[language={[concubine]Assembler}]{HALT}}
 {barrier, control}
 {Stops the current thread.}
 
 \defop
-{\texttt{EXIT val}}
+{\lstinline[language={[concubine]Assembler}]{EXIT val}}
 {control}
 {Stops the machine with exit code \texttt{val}.}
 
 \subsubsection{Meta}
 
 \defop
-{\texttt{CHECK id}}
+{\lstinline[language={[concubine]Assembler}]{CHECK id}}
 {control}
 {Synchronize on checkpoint \texttt{id}.
-Suspends execution until all threads, containing a call to checkpoint \texttt{id}, reached the corresponding \texttt{CHECK} statement.
+Suspends execution until all threads, containing a call to checkpoint \texttt{id}, reached the corresponding \lstinline[language={[concubine]Assembler}]{CHECK} statement.
 This high-level meta instruction shall simplify the implementation of so called \emph{checker threads} used to validate machine states at runtime.}
 
 \subsection{Programs}
 
-Each processor is programmed using an assembly style language, defined by the following syntax.
+Each thread is programmed using an assembly style language, defined by the following syntax.
 
 \begin{figure}[h]
 \begin{grammar}
@@ -235,7 +234,8 @@ Each processor is programmed using an assembly style language, defined by the fo
 \label{fig:syntax:program}
 \end{figure}
 
-If the final statement in a given program is no control instruction, a final \texttt{HALT} is inserted implicitly.
+% If the final statement in a given program is no control instruction, a final \texttt{HALT} is inserted implicitly.
+If the final statement in a given program is not an \lstinline[language={[concubine]Assembler}]{EXIT} instruction or unconditional \lstinline[language={[concubine]Assembler}]{JMP}, a final \lstinline[language={[concubine]Assembler}]{HALT} is inserted implicitly.
 
 \subsection{Scheduling}
 
@@ -248,5 +248,5 @@ Scheduling is generally performed non-deterministically under the following cons
   \item A processor can execute a write or barrier operation only if it's store buffer is empty.
 \end{enumerate}
 
-\todo[inline]{block while waiting for checkpoints?}
-\todo[inline]{prevent scheduling of halted threads?}
+\todo[inline]{checkpoints?}
+\todo[inline]{halted threads?}

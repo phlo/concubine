@@ -40,7 +40,13 @@
   columns=fullflexible,
 }
 \lstdefinelanguage[concubine]{Assembler}{
-  morekeywords={[1]LOAD,STORE,FENCE,ADD,ADDI,SUB,SUBI,JZ,CHECK,HALT,EXIT,FLUSH},
+  morekeywords={[1]
+    LOAD,STORE,FENCE,FLUSH,
+    ADD,ADDI,SUB,SUBI,MUL,MULI,
+    CMP,JMP,JZ,JNZ,JS,JNS,JNZNS,
+    MEM,CAS,
+    CHECK,HALT,EXIT
+  },
   morecomment=[l]\#,
   basicstyle=\ttfamily,
   keywordstyle=\color{blue},
