@@ -1,6 +1,6 @@
 # Stores Can Be Arbitrarily Delayed
 
-> [P.219](https://www.amd.com/system/files/TechDocs/24593.pdf#page=219)
+> [P.234](https://www.amd.com/system/files/TechDocs/24593.pdf#page=234)
 
 Stores from a processor appear to be committed to the memory system in program order; however, stores can be delayed arbitrarily by store buffering while the processor continues operation.
 Therefore, stores from a processor may not appear to be sequentially consistent.

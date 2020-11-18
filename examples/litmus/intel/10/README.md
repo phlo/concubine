@@ -1,6 +1,6 @@
 # Stores Are Not Reordered with Locked Instructions
 
-> Example 8-10, [P.268](https://software.intel.com/sites/default/files/managed/7c/f1/253668-sdm-vol-3a.pdf#page=268)
+> Example 8-10, [P.278](https://software.intel.com/sites/default/files/managed/7c/f1/253668-sdm-vol-3a.pdf#page=278)
 
 The memory-ordering model prevents loads and stores from being reordered with locked instructions that execute earlier or later.
 The examples in this section illustrate only cases in which a locked instruction is executed before a load or a store.

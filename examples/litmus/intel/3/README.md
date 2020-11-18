@@ -1,6 +1,6 @@
 # Loads May Be Reordered with Earlier Stores to Different Locations
 
-> Example 8-3, [P.265](https://software.intel.com/sites/default/files/managed/7c/f1/253668-sdm-vol-3a.pdf#page=265)
+> Example 8-3, [P.275](https://software.intel.com/sites/default/files/managed/7c/f1/253668-sdm-vol-3a.pdf#page=275)
 
 The Intel-64 memory-ordering model allows a load to be reordered with an earlier store to a different location.
 However, loads are not reordered with stores to the same location.

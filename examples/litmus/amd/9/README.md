@@ -1,6 +1,6 @@
 # Global Visibility
 
-> [P.220](https://www.amd.com/system/files/TechDocs/24593.pdf#page=220)
+> [P.235](https://www.amd.com/system/files/TechDocs/24593.pdf#page=235)
 
 If a very strong memory ordering model is required that does not allow local store-load bypasses, an `FENCE` instruction or an atomic instruction such as `CAS` should be used between the store and the subsequent load.
 This enforces a memory ordering stronger than total store ordering.

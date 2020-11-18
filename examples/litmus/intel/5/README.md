@@ -1,6 +1,6 @@
 # Intra-Processor Forwarding Is Allowed
 
-> Example 8-5, [P.266](https://software.intel.com/sites/default/files/managed/7c/f1/253668-sdm-vol-3a.pdf#page=266)
+> Example 8-5, [P.276](https://software.intel.com/sites/default/files/managed/7c/f1/253668-sdm-vol-3a.pdf#page=276)
 
 The memory-ordering model allows concurrent stores by two processors to be seen in different orders by those two processors; specifically, each processor may perceive its own store occurring before that of the other.
 This is illustrated by the following example:

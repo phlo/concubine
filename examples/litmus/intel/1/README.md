@@ -1,6 +1,6 @@
 # Neither Loads Nor Stores Are Reordered with Like Operations
 
-> Example 8-1, [P.265](https://software.intel.com/sites/default/files/managed/7c/f1/253668-sdm-vol-3a.pdf#page=265)
+> Example 8-1, [P.275](https://software.intel.com/sites/default/files/managed/7c/f1/253668-sdm-vol-3a.pdf#page=275)
 
 The Intel-64 memory-ordering model allows neither loads nor stores to be reordered with the same kind of operation.
 That is, it ensures that loads are seen in program order and that stores are seen in program order.

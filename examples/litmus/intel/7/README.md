@@ -1,6 +1,6 @@
 # Stores Are Seen in a Consistent Order by Other Processors
 
-> Example 8-7, [P.267](https://software.intel.com/sites/default/files/managed/7c/f1/253668-sdm-vol-3a.pdf#page=267)
+> Example 8-7, [P.277](https://software.intel.com/sites/default/files/managed/7c/f1/253668-sdm-vol-3a.pdf#page=277)
 
 As noted in Section 8.2.3.5, the memory-ordering model allows stores by two processors to be seen in different orders by those two processors.
 However, any two stores must appear to execute in the same order to all processors other than those performing the stores.

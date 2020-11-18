@@ -1,6 +1,6 @@
 # Stores Are Seen In A Consistent Order By Other Processors[^1]
 
-> [P.219](https://www.amd.com/system/files/TechDocs/24593.pdf#page=219)
+> [P.234](https://www.amd.com/system/files/TechDocs/24593.pdf#page=234)
 
 Stores to different locations in memory observed from two (or more) other processors will appear in the same order to all observers.
 Behavior such as that is shown in this code example:

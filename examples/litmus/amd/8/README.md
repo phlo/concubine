@@ -1,6 +1,6 @@
 # Local Visibility[^1]
 
-> [P.220](https://www.amd.com/system/files/TechDocs/24593.pdf#page=220)
+> [P.235](https://www.amd.com/system/files/TechDocs/24593.pdf#page=235)
 
 The local visibility (within a processor) for a memory operation may differ from the global visibility (from another processor).
 Using a data bypass, a local load can read the result of a local store in a store buffer, before the store becomes globally visible.

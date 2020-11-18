@@ -1,6 +1,6 @@
 # Stores Are Transitively Visible
 
-> Example 8-6, [P.266](https://software.intel.com/sites/default/files/managed/7c/f1/253668-sdm-vol-3a.pdf#page=266)
+> Example 8-6, [P.276](https://software.intel.com/sites/default/files/managed/7c/f1/253668-sdm-vol-3a.pdf#page=276)
 
 The memory-ordering model ensures transitive visibility of stores; stores that are causally related appear to all processors to occur in an order consistent with the causality relation.
 This is illustrated by the following example:

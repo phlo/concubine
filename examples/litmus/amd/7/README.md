@@ -1,6 +1,6 @@
 # Dependent Stores Appear In Program Order[^1]
 
-> [P.220](https://www.amd.com/system/files/TechDocs/24593.pdf#page=220)
+> [P.235](https://www.amd.com/system/files/TechDocs/24593.pdf#page=235)
 
 Dependent stores between different processors appear to occur in program order, as shown in the code example below.
 

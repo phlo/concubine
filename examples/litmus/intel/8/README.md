@@ -1,6 +1,6 @@
 # Locked Instructions Have a Total Order
 
-> Example 8-8, [P.267](https://software.intel.com/sites/default/files/managed/7c/f1/253668-sdm-vol-3a.pdf#page=267)
+> Example 8-8, [P.277](https://software.intel.com/sites/default/files/managed/7c/f1/253668-sdm-vol-3a.pdf#page=277)
 
 The memory-ordering model ensures that all processors agree on a single execution order of all locked instructions, including those that are larger than 8 bytes or are not naturally aligned.
 This is illustrated by the following example:

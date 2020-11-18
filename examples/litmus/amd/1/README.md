@@ -1,6 +1,6 @@
 # Loads Do Not Pass Previous Loads, Stores Do Not Pass Previous Stores[^1]
 
-> [P.218](https://www.amd.com/system/files/TechDocs/24593.pdf#page=218)
+> [P.233](https://www.amd.com/system/files/TechDocs/24593.pdf#page=233)
 
 Successive stores from a single processor are committed to system memory and visible to other processors in program order.
 A store by a processor cannot be committed to memory before a read appearing earlier in the program has captured its targeted data from memory.

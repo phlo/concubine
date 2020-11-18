@@ -1,6 +1,6 @@
 # Non-Overlapping Loads May Pass Stores[^1][^2]
 
-> [P.219](https://www.amd.com/system/files/TechDocs/24593.pdf#page=219)
+> [P.234](https://www.amd.com/system/files/TechDocs/24593.pdf#page=234)
 
 | Processor 0 | Processor 1 |
 | ----------- | ----------- |
