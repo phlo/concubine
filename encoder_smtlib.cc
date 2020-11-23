@@ -722,9 +722,9 @@ void Encoder::declare_block ()
     {
       assert(threads.size() > 1);
 
-      for (const auto & t : threads)
+      for (const auto & [t, _] : threads)
         formula
-          << declare_bool_var(block_var(step, s, t.first))
+          << declare_bool_var(block_var(step, s, t))
           << eol;
 
       formula << eol;
