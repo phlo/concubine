@@ -14,14 +14,18 @@ using Boolector = Solver<Boolector>;
 
 TEST_F(Boolector, sat)
 {
+  verbose = false;
   ASSERT_TRUE(solver.sat("(assert true)(check-sat)"));
   ASSERT_EQ("sat\n", solver.stdout.str());
+  verbose = true;
 }
 
 TEST_F(Boolector, unsat)
 {
+  verbose = false;
   ASSERT_FALSE(solver.sat("(assert false)(check-sat)"));
   ASSERT_EQ("unsat\n", solver.stdout.str());
+  verbose = true;
 }
 
 // Boolector::solve ============================================================

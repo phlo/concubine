@@ -530,6 +530,9 @@ int solve (const char * name, const int argc, const char ** argv)
         {
           auto trace = solver->solve(*encoder);
 
+          if (verbose)
+            std::cout << solver->stdout.str();
+
           if (!trace->empty())
             {
               write(*trace, outfile);

@@ -55,6 +55,10 @@ struct Solver
   // runtime in milliseconds
   //
   long time;
+
+  // the solver's output
+  //
+  std::stringstream stdout;
 };
 
 //==============================================================================
@@ -73,7 +77,7 @@ public: //======================================================================
 
   // get command line
   //
-  virtual const std::vector<std::string> & command () const = 0;
+  virtual std::vector<std::string> command () const = 0;
 
   //----------------------------------------------------------------------------
   // public member functions inherited from Solver
@@ -166,14 +170,6 @@ private: //=====================================================================
   // build trace based on the solver's output
   //
   std::unique_ptr<Trace> trace (const Encoder & encoder);
-
-  //----------------------------------------------------------------------------
-  // private data members
-  //----------------------------------------------------------------------------
-
-  // the solver's stdout
-  //
-  std::stringstream stdout;
 };
 
 } // namespace ConcuBinE

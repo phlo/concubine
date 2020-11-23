@@ -14,19 +14,23 @@ using BtorMC = Solver<BtorMC>;
 
 TEST_F(BtorMC, sat)
 {
+  verbose = false;
   ASSERT_TRUE(solver.sat(
     "1 sort bitvec 1\n"
     "2 state 1 x\n"
     "3 bad 2\n"));
   ASSERT_EQ("sat", solver.stdout.str().substr(0, 3));
+  verbose = true;
 }
 
 TEST_F(BtorMC, unsat)
 {
+  verbose = false;
   ASSERT_FALSE(solver.sat(
     "1 sort bitvec 1\n"
     "2 state 1 x\n"));
   ASSERT_EQ("", solver.stdout.str());
+  verbose = true;
 }
 
 // BtorMC::solve ===============================================================

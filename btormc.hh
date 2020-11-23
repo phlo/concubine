@@ -41,7 +41,7 @@ public: //======================================================================
 
   // get command line
   //
-  virtual const std::vector<std::string> & command () const;
+  virtual std::vector<std::string> command () const;
 
 private: //=====================================================================
 

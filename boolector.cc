@@ -43,12 +43,16 @@ std::string Boolector::formula (Encoder & encoder) const
 
 // Boolector::command ----------------------------------------------------------
 
-const std::vector<std::string> & Boolector::command () const
+std::vector<std::string> Boolector::command () const
 {
-  static const std::vector<std::string> cmd({
+  std::vector<std::string> cmd({
     name(),
     "--model-gen",
-    "--output-format=btor"});
+    "--output-format=btor"
+  });
+
+  if (verbose)
+    cmd.push_back("-v");
 
   return cmd;
 }
@@ -61,6 +65,10 @@ const std::vector<std::string> & Boolector::command () const
 
 Boolector::Symbol Boolector::parse (std::istringstream & line)
 {
+  // skip statistics
+  if (line.peek() == '[')
+    return Symbol::ignore;
+
   std::string token;
 
   // parse node id

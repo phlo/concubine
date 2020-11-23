@@ -44,11 +44,20 @@ bool Z3::sat (const std::string & formula)
   z3::context c;
   z3::solver s = c;
 
+  stdout.str("");
+  stdout.clear();
+
   try
     {
-      time = runtime::measure([&formula, &sat, &s] {
+      time = runtime::measure([this, &formula, &sat, &s] {
         s.from_string(formula.c_str());
         sat = s.check() == z3::sat;
+        if (verbose)
+          stdout << s.statistics() << eol;
+        if (sat)
+          stdout << "sat\n" << s.get_model() << eol;
+        else
+          stdout << "unsat\n";
       });
     }
   catch (const z3::exception & e) { throw std::runtime_error(e.msg()); }
@@ -104,8 +113,20 @@ std::unique_ptr<Trace> Z3::solve (Encoder & encoder)
   const auto & programs = encoder.programs;
   auto trace = std::make_unique<Trace>(programs, encoder.mmap);
 
+  stdout.str("");
+  stdout.clear();
+
+  if (verbose)
+    stdout << s.statistics() << eol;
+
   if (!m.size())
-    return trace;
+    {
+      stdout << "unsat\n";
+      return trace;
+    }
+
+  stdout << "sat\n";
+  stdout << m << eol;
 
   for (size_t step = 0; step <= encoder.bound; step++)
     {

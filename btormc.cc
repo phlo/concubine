@@ -46,17 +46,17 @@ std::unique_ptr<Trace> BtorMC::solve (Encoder & encoder)
 
 // BtorMC::command -------------------------------------------------------------
 
-const std::vector<std::string> & BtorMC::command () const
+std::vector<std::string> BtorMC::command () const
 {
-  static std::vector<std::string> cmd({
+  std::vector<std::string> cmd({
     name(),
     "--trace-gen-full",
     "-kmin", kmax,
     "-kmax", kmax
   });
 
-  if (cmd.back() != kmax)
-    cmd[3] = cmd[5] = kmax;
+  if (verbose)
+    cmd.push_back("-v");
 
   return cmd;
 }
@@ -165,14 +165,13 @@ BtorMC::Symbol BtorMC::parse (std::istringstream & line)
 {
   switch (line.peek())
     {
+    case '[':
     case 'b':
     case 'j':
     case '#':
     case '@':
-    case '.':
-      return {};
-    default:
-      return Boolector::parse(line);
+    case '.': return {};
+    default:  return Boolector::parse(line);
     }
 }
 

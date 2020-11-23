@@ -14,14 +14,18 @@ using CVC4 = Solver<CVC4>;
 
 TEST_F(CVC4, sat)
 {
+  verbose = false;
   ASSERT_TRUE(solver.sat("(set-logic QF_AUFBV)(assert true)(check-sat)"));
   ASSERT_EQ("sat\n", solver.stdout.str());
+  verbose = true;
 }
 
 TEST_F(CVC4, unsat)
 {
+  verbose = false;
   ASSERT_FALSE(solver.sat("(set-logic QF_AUFBV)(assert false)(check-sat)"));
   ASSERT_EQ("unsat\n", solver.stdout.str());
+  verbose = true;
 }
 
 // CVC4::solve =================================================================

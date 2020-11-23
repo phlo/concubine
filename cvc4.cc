@@ -52,13 +52,17 @@ std::string CVC4::formula (Encoder & encoder) const
 
 // CVC4::command ---------------------------------------------------------------
 
-const std::vector<std::string> & CVC4::command () const
+std::vector<std::string> CVC4::command () const
 {
-  static std::vector<std::string> cmd({
+  std::vector<std::string> cmd({
     name(),
     "-L", "smt2",
     "-m",
-    "--output-lang=cvc4"});
+    "--output-lang=cvc4"
+  });
+
+  if (verbose)
+    cmd.push_back("-v");
 
   return cmd;
 }

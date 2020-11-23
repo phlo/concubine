@@ -43,8 +43,11 @@ bool External::sat (const std::string & input)
 
   stdout = std::move(out.stdout);
 
-  std::string sat;
-  return (stdout >> sat) && sat == "sat";
+  for (std::string line_buf; getline(stdout, line_buf);)
+    if (line_buf == "sat")
+      return true;
+
+  return false;
 }
 
 // External::solve -------------------------------------------------------------
