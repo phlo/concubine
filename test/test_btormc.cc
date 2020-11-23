@@ -18,14 +18,7 @@ TEST_F(BtorMC, sat)
     "1 sort bitvec 1\n"
     "2 state 1 x\n"
     "3 bad 2\n"));
-  ASSERT_EQ(
-    "sat\n"
-    "b0\n"
-    "#0\n"
-    "0 1 x#0\n"
-    "@0\n"
-    ".\n",
-    solver.stdout.str());
+  ASSERT_EQ("sat", solver.stdout.str().substr(0, 3));
 }
 
 TEST_F(BtorMC, unsat)

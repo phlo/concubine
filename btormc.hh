@@ -61,7 +61,7 @@ private: //=====================================================================
   // private data members
   //----------------------------------------------------------------------------
 
-  // bound for setting -kmax
+  // default bound for setting -kmax
   //
   std::string kmax = "20";
 };

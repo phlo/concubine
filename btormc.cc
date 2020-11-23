@@ -51,11 +51,12 @@ const std::vector<std::string> & BtorMC::command () const
   static std::vector<std::string> cmd({
     name(),
     "--trace-gen-full",
-    "-kmax",
-    kmax});
+    "-kmin", kmax,
+    "-kmax", kmax
+  });
 
   if (cmd.back() != kmax)
-    cmd.back() = kmax;
+    cmd[3] = cmd[5] = kmax;
 
   return cmd;
 }
