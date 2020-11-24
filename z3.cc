@@ -1,9 +1,10 @@
 #include "z3.hh"
 
-#include <z3++.h>
+#include "z3++.h"
 
 #include "encoder_smtlib.hh"
 #include "runtime.hh"
+#include "smtlib.hh"
 #include "trace.hh"
 
 namespace ConcuBinE {
@@ -34,6 +35,13 @@ std::string Z3::version () const
     std::to_string(minor) +
     '.' +
     std::to_string(build);
+}
+
+// Z3::formula -----------------------------------------------------------------
+
+std::string Z3::formula (Encoder & encoder) const
+{
+  return Solver::formula(encoder) + eol + eol + smtlib::check_sat() + eol;
 }
 
 // Z3::sat ---------------------------------------------------------------------

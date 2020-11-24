@@ -40,6 +40,7 @@ std::string CVC4::formula (Encoder & encoder) const
 {
   return
     Solver::formula(encoder) +
+    eol + eol +
     smtlib::check_sat() +
     eol +
     smtlib::get_model() +

@@ -23,6 +23,10 @@ struct Z3 : public Solver
   //
   virtual std::string version () const;
 
+  // build formula from given encoding (include check-sat for completeness)
+  //
+  virtual std::string formula (Encoder & encoder) const;
+
   // evaluate arbitrary formula
   //
   virtual bool sat (const std::string & formula);

@@ -34,7 +34,7 @@ std::string Boolector::version () const
 
 std::string Boolector::formula (Encoder & encoder) const
 {
-  return Solver::formula(encoder) + smtlib::check_sat() + eol;
+  return Solver::formula(encoder) + eol + eol + smtlib::check_sat() + eol;
 }
 
 //------------------------------------------------------------------------------
