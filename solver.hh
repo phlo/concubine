@@ -52,9 +52,9 @@ struct Solver
   // public data members
   //----------------------------------------------------------------------------
 
-  // runtime in milliseconds
+  // runtime in seconds
   //
-  long time;
+  double time;
 
   // the solver's output
   //

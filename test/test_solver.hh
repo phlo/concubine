@@ -38,9 +38,9 @@ struct Env : public ::testing::Environment
 
   // benchmarks
   //
-  struct Record : public std::pair<std::string, long>
+  struct Record : public std::pair<std::string, double>
     {
-      using std::pair<std::string, long>::pair;
+      using std::pair<std::string, double>::pair;
 
       friend bool operator < (const Record & a, const Record & b)
         {

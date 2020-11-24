@@ -1,7 +1,8 @@
 #ifndef RUNTIME_HH_
 #define RUNTIME_HH_
 
-#include <chrono>
+#include <sys/time.h>
+#include <sys/resource.h>
 
 namespace ConcuBinE::runtime {
 
@@ -9,15 +10,29 @@ namespace ConcuBinE::runtime {
 // functions
 //==============================================================================
 
-// measure runtime of a given function
+// measure runtime of a given function in seconds using getrusage (user time)
 //
-template <class Functor, class Duration = std::chrono::milliseconds>
-inline long measure (const Functor & fun)
+template <class Functor>
+inline double measure (const Functor & fun)
 {
-  const auto begin = std::chrono::high_resolution_clock::now();
+  rusage self, children;
+  timeval start, end, elapsed;
+
+  getrusage(RUSAGE_SELF, &self);
+  getrusage(RUSAGE_CHILDREN, &children);
+
+  timeradd(&self.ru_utime, &children.ru_utime, &start);
+
   fun();
-  const auto end = std::chrono::high_resolution_clock::now();
-  return std::chrono::duration_cast<Duration>(end - begin).count();
+
+  getrusage(RUSAGE_SELF, &self);
+  getrusage(RUSAGE_CHILDREN, &children);
+
+  timeradd(&self.ru_utime, &children.ru_utime, &end);
+
+  timersub(&end, &start, &elapsed);
+
+  return elapsed.tv_sec + static_cast<double>(elapsed.tv_usec) / 1000000;
 }
 
 } // namespace ConcuBinE::runtime
