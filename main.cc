@@ -15,6 +15,8 @@
 #include "z3.hh"
 #include "cvc4.hh"
 
+#include "runtime.hh"
+
 namespace ConcuBinE {
 
 //==============================================================================
@@ -478,7 +480,15 @@ int solve (const char * name, const int argc, const char ** argv)
       else if (encoder_type == smtlib_relational)
         encoder = std::make_unique<smtlib::Relational>(programs, mmap, bound);
 
-      encoder->encode();
+      double encoder_time = runtime::measure([&encoder] {
+        encoder->encode();
+      });
+
+      if (verbose)
+        std::cout << "[concubine>main] encoding took "
+                  << encoder_time
+                  << " seconds"
+                  << eol;
 
       // append constraints
       if (constraints.empty())
@@ -531,7 +541,11 @@ int solve (const char * name, const int argc, const char ** argv)
           auto trace = solver->solve(*encoder);
 
           if (verbose)
-            std::cout << solver->stdout.str();
+            std::cout << solver->stdout.str()
+                      << "[concubine>main] solving took "
+                      << solver->time
+                      << " seconds"
+                      << eol;
 
           if (!trace->empty())
             {
