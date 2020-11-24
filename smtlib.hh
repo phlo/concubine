@@ -15,6 +15,10 @@ namespace ConcuBinE::smtlib {
 // SMT-Lib v2.5 std::string generators for commonly used expressions
 //==============================================================================
 
+// number of generated expressions
+//
+extern long expressions;
+
 // constants
 //
 const std::string TRUE = "true";
@@ -83,6 +87,7 @@ inline std::string comment_subsection (const std::string & comment)
 template <class ... T>
 inline std::string expr (const char * op, const T & ... args)
 {
+  expressions++;
   std::string e;
   (e += '(') += op;
   (((e += ' ') += args), ...);
@@ -92,6 +97,7 @@ inline std::string expr (const char * op, const T & ... args)
 template <template <class, class...> class C>
 inline std::string expr (const char * op, const C<std::string> & args)
 {
+  expressions++;
   std::string e;
   (e += '(') += op;
   for (const auto & a : args)

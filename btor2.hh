@@ -13,6 +13,10 @@ namespace ConcuBinE::btor2 {
 // BTOR2 std::string generators for commonly used expressions
 //==============================================================================
 
+// number of generated expressions
+//
+extern long expressions;
+
 using nid_t = uint64_t;
 
 inline std::string comment (const std::string & comment)
@@ -41,6 +45,7 @@ inline std::string comment_subsection (const std::string & comment)
 template <class ... T>
 inline std::string expr (const std::string & nid, const T & ... args)
 {
+  expressions++;
   std::string e = nid;
   (((e += ' ') += args), ...);
   auto & end = e.back();

@@ -25,6 +25,8 @@ namespace ConcuBinE {
 
 bool verbose = false;
 uint64_t seed = static_cast<uint64_t>(time(NULL));
+namespace btor2 { long expressions = 0; }
+namespace smtlib { long expressions = 0; }
 
 //==============================================================================
 // usage
@@ -484,10 +486,14 @@ int solve (const char * name, const int argc, const char ** argv)
         encoder->encode();
       });
 
-      if (verbose)
+      if (verbose && !pretend)
         std::cout << "[concubine>main] encoding took "
                   << encoder_time
                   << " seconds"
+                  << eol
+                  << "[concubine>main] generated "
+                  << (btor2::expressions + smtlib::expressions)
+                  << " expressions"
                   << eol;
 
       // append constraints

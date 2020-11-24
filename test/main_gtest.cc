@@ -8,6 +8,8 @@ namespace ConcuBinE {
 
 bool verbose = true;
 uint64_t seed = 0;
+namespace btor2 { long expressions = 0; }
+namespace smtlib { long expressions = 0; }
 
 } // namespace ConcuBinE
 
