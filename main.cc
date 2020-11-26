@@ -493,7 +493,7 @@ int solve (const char * name, const int argc, const char ** argv)
                   << eol
                   << "[concubine>main] generated "
                   << (btor2::expressions + smtlib::expressions)
-                  << " expressions"
+                  << " commands"
                   << eol;
 
       // append constraints
