@@ -10,7 +10,7 @@ The first example illustrates that loads may not be reordered with earlier locke
 
 ## Example 8-9. Loads Are not Reordered with Locks
 
-| Processor 0 | Processor 1 |
+| Thread 0    | Thread 1    |
 | ----------- | ----------- |
 | ADDI 1      | ADDI 1      |
 | CAS 0       | CAS 1       |
@@ -20,16 +20,16 @@ The first example illustrates that loads may not be reordered with earlier locke
 * `accu_0 = accu_1 = 0` is not allowed
 
 As explained in Section 8.2.3.8, there is a total order of the executions of locked instructions.
-Without loss of generality, suppose that processor 0’s `CAS` occurs first.
+Without loss of generality, suppose that thread 0’s `CAS` occurs first.
 
-Because the Intel-64 memory-ordering model prevents processor 1’s load from being reordered with its earlier `CAS`, processor 0’s `CAS` occurs before processor 1’s load.
+Because the Intel-64 memory-ordering model prevents thread 1’s load from being reordered with its earlier `CAS`, thread 0’s `CAS` occurs before thread 1’s load.
 This implies `accu_1 = 1`.
 
-A similar argument (referring instead to processor 2’s accesses) applies if processor 1’s `CAS` occurs before processor 0’s `CAS`.
+A similar argument (referring instead to thread 2’s accesses) applies if thread 1’s `CAS` occurs before thread 0’s `CAS`.
 
 ## Bound = 8
 
-| Processor | Instructions[^1]  | Flushes | Total |
+| Thread    | Instructions[^1]  | Flushes | Total |
 | --------- | ----------------  | ------- | ----- |
 | 0         | 4                 | 0       | 4     |
 | 1         | 4                 | 0       | 4     |

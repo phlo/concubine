@@ -164,8 +164,8 @@ TEST_F(Main, simulate_demo)
       "-c",
       "-s", "0",
       "-m", cwd / demo / "init.mmap",
-      cwd / demo / "processor.0.asm",
-      cwd / demo / "processor.1.asm",
+      cwd / demo / "thread.0.asm",
+      cwd / demo / "thread.1.asm",
       cwd / demo / "checker.asm"});
 
   ASSERT_EQ(1, out.exit);
@@ -404,8 +404,8 @@ TEST_F(Main, solve_demo)
       solve,
       "-m", cwd / demo / "init.mmap",
       "17",
-      cwd / demo / "processor.0.asm",
-      cwd / demo / "processor.1.asm",
+      cwd / demo / "thread.0.asm",
+      cwd / demo / "thread.1.asm",
       cwd / demo / "checker.asm"});
 
   ASSERT_EQ(1, out.exit);

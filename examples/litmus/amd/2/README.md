@@ -2,11 +2,11 @@
 
 > [P.234](https://www.amd.com/system/files/TechDocs/24593.pdf#page=234)
 
-Successive stores from a single processor are committed to system memory and visible to other processors in program order.
-A store by a processor cannot be committed to memory before a read appearing earlier in the program has captured its targeted data from memory.
-In other words, stores from a processor cannot be reordered to occur prior to a load preceding it in program order.
+Successive stores from a single thread are committed to system memory and visible to other threads in program order.
+A store by a thread cannot be committed to memory before a read appearing earlier in the program has captured its targeted data from memory.
+In other words, stores from a thread cannot be reordered to occur prior to a load preceding it in program order.
 
-| Processor 0 | Processor 1 |
+| Thread 0    | Thread 1    |
 | ----------- | ----------- |
 | MEM 0[^2]   | MEM 1[^2]   |
 | ADDI 1      | ADDI 1      |
@@ -19,7 +19,7 @@ In other words, stores from a processor cannot be reordered to occur prior to a 
 
 ## Bound = 10
 
-| Processor | Instructions[^3]  | Flushes | Total |
+| Thread    | Instructions[^3]  | Flushes | Total |
 | --------- | ----------------  | ------- | ----- |
 | 0         | 4                 | 1       | 5     |
 | 1         | 4                 | 1       | 5     |

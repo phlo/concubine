@@ -2,7 +2,7 @@
 
 > [P.234](https://www.amd.com/system/files/TechDocs/24593.pdf#page=234)
 
-| Processor 0 | Processor 1 |
+| Thread 0    | Thread 1    |
 | ----------- | ----------- |
 | ADDI 1      | ADDI 1      |
 | STORE 0     | STORE 1     |
@@ -11,11 +11,11 @@
 * initially `[0] = [1] = 0`
 * `accu_0 = accu_1 = 0` is allowed
 
-All combinations of values (`00`, `01`, `10`, and `11`) may be observed by Processors 0 and 1.
+All combinations of values (`00`, `01`, `10`, and `11`) may be observed by threads 0 and 1.
 
 ## Bound = 10
 
-| Processor | Instructions[^3]  | Flushes | Total |
+| Thread    | Instructions[^3]  | Flushes | Total |
 | --------- | ----------------  | ------- | ----- |
 | 0         | 4                 | 1       | 5     |
 | 1         | 4                 | 1       | 5     |

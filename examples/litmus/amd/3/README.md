@@ -2,10 +2,10 @@
 
 > [P.234](https://www.amd.com/system/files/TechDocs/24593.pdf#page=234)
 
-Stores from a processor appear to be committed to the memory system in program order; however, stores can be delayed arbitrarily by store buffering while the processor continues operation.
-Therefore, stores from a processor may not appear to be sequentially consistent.
+Stores from a thread appear to be committed to the memory system in program order; however, stores can be delayed arbitrarily by store buffering while the thread continues operation.
+Therefore, stores from a thread may not appear to be sequentially consistent.
 
-| Processor 0 | Processor 1 |
+| Thread 0    | Thread 1    |
 | ----------- | ----------- |
 | ADDI 1      | ADDI 1      |
 | STORE 0     | STORE 1     |
@@ -19,7 +19,7 @@ Both `LOAD 0` and `LOAD 1` may read `1`.
 
 ## Bound = 16
 
-| Processor | Instructions[^1]  | Flushes | Total |
+| Thread    | Instructions[^1]  | Flushes | Total |
 | --------- | ----------------  | ------- | ----- |
 | 0         | 6                 | 2       | 8     |
 | 1         | 6                 | 2       | 8     |

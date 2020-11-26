@@ -348,8 +348,8 @@ struct Solver : public ::testing::Test
 
     Encoder encoder(
       std::make_shared<Program::List>(
-        create_from_file<Program>(dir / "processor.0.asm"),
-        create_from_file<Program>(dir / "processor.1.asm"),
+        create_from_file<Program>(dir / "thread.0.asm"),
+        create_from_file<Program>(dir / "thread.1.asm"),
         create_from_file<Program>(dir / "checker.asm")),
       std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
       17);
@@ -483,8 +483,8 @@ struct Solver : public ::testing::Test
       litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
-          create_from_file<Program>(dir / "processor.0.asm"),
-          create_from_file<Program>(dir / "processor.1.asm")),
+          create_from_file<Program>(dir / "thread.0.asm"),
+          create_from_file<Program>(dir / "thread.1.asm")),
         std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
         bound,
         [] (std::ostringstream & ss) {
@@ -532,8 +532,8 @@ struct Solver : public ::testing::Test
       litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
-          create_from_file<Program>(dir / "processor.0.asm"),
-          create_from_file<Program>(dir / "processor.1.asm")),
+          create_from_file<Program>(dir / "thread.0.asm"),
+          create_from_file<Program>(dir / "thread.1.asm")),
         std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
         bound,
         [] (std::ostringstream & ss) {
@@ -581,8 +581,8 @@ struct Solver : public ::testing::Test
       litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
-          create_from_file<Program>(dir / "processor.0.asm"),
-          create_from_file<Program>(dir / "processor.1.asm")),
+          create_from_file<Program>(dir / "thread.0.asm"),
+          create_from_file<Program>(dir / "thread.1.asm")),
         std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
         bound,
         [] (std::ostringstream & ss) {
@@ -630,7 +630,7 @@ struct Solver : public ::testing::Test
       litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
-          create_from_file<Program>(dir / "processor.0.asm")),
+          create_from_file<Program>(dir / "thread.0.asm")),
         std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
         bound,
         [] (std::ostringstream & ss) {
@@ -668,8 +668,8 @@ struct Solver : public ::testing::Test
       litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
-          create_from_file<Program>(dir / "processor.0.asm"),
-          create_from_file<Program>(dir / "processor.1.asm")),
+          create_from_file<Program>(dir / "thread.0.asm"),
+          create_from_file<Program>(dir / "thread.1.asm")),
         std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
         bound,
         [] (std::ostringstream & ss) {
@@ -717,9 +717,9 @@ struct Solver : public ::testing::Test
       litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
-          create_from_file<Program>(dir / "processor.0.asm"),
-          create_from_file<Program>(dir / "processor.1.asm"),
-          create_from_file<Program>(dir / "processor.2.asm")),
+          create_from_file<Program>(dir / "thread.0.asm"),
+          create_from_file<Program>(dir / "thread.1.asm"),
+          create_from_file<Program>(dir / "thread.2.asm")),
         std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
         bound,
         [] (std::ostringstream & ss) {
@@ -764,7 +764,7 @@ struct Solver : public ::testing::Test
         litmus_unsat<Encoder>());
     }
 
-  // Intel 7: stores are seen in a consistent order by other processors
+  // Intel 7: stores are seen in a consistent order by other threads
   //
   template <class Encoder>
   void litmus_intel_7 ()
@@ -776,10 +776,10 @@ struct Solver : public ::testing::Test
       litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
-          create_from_file<Program>(dir / "processor.0.asm"),
-          create_from_file<Program>(dir / "processor.1.asm"),
-          create_from_file<Program>(dir / "processor.2.asm"),
-          create_from_file<Program>(dir / "processor.3.asm")),
+          create_from_file<Program>(dir / "thread.0.asm"),
+          create_from_file<Program>(dir / "thread.1.asm"),
+          create_from_file<Program>(dir / "thread.2.asm"),
+          create_from_file<Program>(dir / "thread.3.asm")),
         std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
         bound,
         [] (std::ostringstream & ss) {
@@ -845,10 +845,10 @@ struct Solver : public ::testing::Test
       litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
-          create_from_file<Program>(dir / "processor.0.asm"),
-          create_from_file<Program>(dir / "processor.1.asm"),
-          create_from_file<Program>(dir / "processor.2.asm"),
-          create_from_file<Program>(dir / "processor.3.asm")),
+          create_from_file<Program>(dir / "thread.0.asm"),
+          create_from_file<Program>(dir / "thread.1.asm"),
+          create_from_file<Program>(dir / "thread.2.asm"),
+          create_from_file<Program>(dir / "thread.3.asm")),
         std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
         bound,
         [] (std::ostringstream & ss) {
@@ -914,8 +914,8 @@ struct Solver : public ::testing::Test
       litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
-          create_from_file<Program>(dir / "processor.0.asm"),
-          create_from_file<Program>(dir / "processor.1.asm")),
+          create_from_file<Program>(dir / "thread.0.asm"),
+          create_from_file<Program>(dir / "thread.1.asm")),
         std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
         bound,
         [] (std::ostringstream & ss) {
@@ -963,8 +963,8 @@ struct Solver : public ::testing::Test
       litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
-          create_from_file<Program>(dir / "processor.0.asm"),
-          create_from_file<Program>(dir / "processor.1.asm")),
+          create_from_file<Program>(dir / "thread.0.asm"),
+          create_from_file<Program>(dir / "thread.1.asm")),
         std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
         bound,
         [] (std::ostringstream & ss) {
@@ -1012,8 +1012,8 @@ struct Solver : public ::testing::Test
       litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
-          create_from_file<Program>(dir / "processor.0.asm"),
-          create_from_file<Program>(dir / "processor.1.asm")),
+          create_from_file<Program>(dir / "thread.0.asm"),
+          create_from_file<Program>(dir / "thread.1.asm")),
         std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
         bound,
         [] (std::ostringstream & ss) {
@@ -1061,8 +1061,8 @@ struct Solver : public ::testing::Test
       litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
-          create_from_file<Program>(dir / "processor.0.asm"),
-          create_from_file<Program>(dir / "processor.1.asm")),
+          create_from_file<Program>(dir / "thread.0.asm"),
+          create_from_file<Program>(dir / "thread.1.asm")),
         std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
         bound,
         [] (std::ostringstream & ss) {
@@ -1110,8 +1110,8 @@ struct Solver : public ::testing::Test
       litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
-          create_from_file<Program>(dir / "processor.0.asm"),
-          create_from_file<Program>(dir / "processor.1.asm")),
+          create_from_file<Program>(dir / "thread.0.asm"),
+          create_from_file<Program>(dir / "thread.1.asm")),
         nullptr,
         bound,
         [] (std::ostringstream & ss) {
@@ -1159,8 +1159,8 @@ struct Solver : public ::testing::Test
       litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
-          create_from_file<Program>(dir / "processor.0.asm"),
-          create_from_file<Program>(dir / "processor.1.asm")),
+          create_from_file<Program>(dir / "thread.0.asm"),
+          create_from_file<Program>(dir / "thread.1.asm")),
         std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
         bound,
         [] (std::ostringstream & ss) {
@@ -1222,8 +1222,8 @@ struct Solver : public ::testing::Test
       litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
-          create_from_file<Program>(dir / "processor.0.asm"),
-          create_from_file<Program>(dir / "processor.1.asm")),
+          create_from_file<Program>(dir / "thread.0.asm"),
+          create_from_file<Program>(dir / "thread.1.asm")),
         std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
         bound,
         [] (std::ostringstream & ss) {
@@ -1259,7 +1259,7 @@ struct Solver : public ::testing::Test
         litmus_unsat<Encoder>());
     }
 
-  // AMD 6: stores are seen in a consistent order by other processors
+  // AMD 6: stores are seen in a consistent order by other threads
   //
   template <class Encoder>
   void litmus_amd_6 ()
@@ -1271,10 +1271,10 @@ struct Solver : public ::testing::Test
       litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
-          create_from_file<Program>(dir / "processor.0.asm"),
-          create_from_file<Program>(dir / "processor.1.asm"),
-          create_from_file<Program>(dir / "processor.2.asm"),
-          create_from_file<Program>(dir / "processor.3.asm")),
+          create_from_file<Program>(dir / "thread.0.asm"),
+          create_from_file<Program>(dir / "thread.1.asm"),
+          create_from_file<Program>(dir / "thread.2.asm"),
+          create_from_file<Program>(dir / "thread.3.asm")),
         std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
         bound,
         [] (std::ostringstream & ss) {
@@ -1340,9 +1340,9 @@ struct Solver : public ::testing::Test
       litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
-          create_from_file<Program>(dir / "processor.0.asm"),
-          create_from_file<Program>(dir / "processor.1.asm"),
-          create_from_file<Program>(dir / "processor.2.asm")),
+          create_from_file<Program>(dir / "thread.0.asm"),
+          create_from_file<Program>(dir / "thread.1.asm"),
+          create_from_file<Program>(dir / "thread.2.asm")),
         std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
         bound,
         [] (std::ostringstream & ss) {
@@ -1399,8 +1399,8 @@ struct Solver : public ::testing::Test
       litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
-          create_from_file<Program>(dir / "processor.0.asm"),
-          create_from_file<Program>(dir / "processor.1.asm")),
+          create_from_file<Program>(dir / "thread.0.asm"),
+          create_from_file<Program>(dir / "thread.1.asm")),
         std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
         bound,
         [] (std::ostringstream & ss) {
@@ -1463,8 +1463,8 @@ struct Solver : public ::testing::Test
       litmus<Encoder>(
         dir,
         std::make_shared<Program::List>(
-          create_from_file<Program>(dir / "processor.0.asm"),
-          create_from_file<Program>(dir / "processor.1.asm")),
+          create_from_file<Program>(dir / "thread.0.asm"),
+          create_from_file<Program>(dir / "thread.1.asm")),
         std::make_shared<MMap>(create_from_file<MMap>(dir / "init.mmap")),
         bound,
         [] (std::ostringstream & ss) {

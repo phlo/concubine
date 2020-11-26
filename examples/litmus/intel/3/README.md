@@ -9,7 +9,7 @@ The fact that a load may be reordered with an earlier store to a different locat
 
 ## Example 8-3. Loads May be Reordered with Older Stores
 
-| Processor 0 | Processor 1 |
+| Thread 0    | Thread 1    |
 | ----------- | ----------- |
 | ADDI 1      | ADDI 1      |
 | STORE 0     | STORE 1     |
@@ -18,14 +18,14 @@ The fact that a load may be reordered with an earlier store to a different locat
 * initially `[0] = [1] = 0`
 * `accu_0 = accu_1 = 0` is allowed
 
-At each processor, the load and the store are to different locations and hence may be reordered.
+At each thread, the load and the store are to different locations and hence may be reordered.
 Any interleaving of the operations is thus allowed.
 One such interleaving has the two loads occurring before the two stores.
 This would result in each load returning value 0.
 
 ## Bound = 10
 
-| Processor | Instructions[^1]  | Flushes | Total |
+| Thread    | Instructions[^1]  | Flushes | Total |
 | --------- | ----------------  | ------- | ----- |
 | 0         | 4                 | 1       | 5     |
 | 1         | 4                 | 1       | 5     |

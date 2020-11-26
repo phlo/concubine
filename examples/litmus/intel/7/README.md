@@ -1,14 +1,14 @@
-# Stores Are Seen in a Consistent Order by Other Processors
+# Stores Are Seen in a Consistent Order by Other Threads
 
 > Example 8-7, [P.277](https://software.intel.com/sites/default/files/managed/7c/f1/253668-sdm-vol-3a.pdf#page=277)
 
-As noted in Section 8.2.3.5, the memory-ordering model allows stores by two processors to be seen in different orders by those two processors.
-However, any two stores must appear to execute in the same order to all processors other than those performing the stores.
+As noted in Section 8.2.3.5, the memory-ordering model allows stores by two threads to be seen in different orders by those two threads.
+However, any two stores must appear to execute in the same order to all threads other than those performing the stores.
 This is illustrated by the following example:
 
-## Example 8-7. Stores Are Seen in a Consistent Order by Other Processors
+## Example 8-7. Stores Are Seen in a Consistent Order by Other Threads
 
-| Processor 0 | Processor 1 | Processor 2 | Processor 3 |
+| Thread 0    | Thread 1    | Thread 2    | Thread 3    |
 | ----------- | ----------- | ----------- | ----------- |
 | ADDI 1      | ADDI 1      |             |             |
 | STORE 0     | STORE 1     |             |             |
@@ -20,16 +20,16 @@ This is illustrated by the following example:
 
 By the principles discussed in Section 8.2.3.2,
 
-* processor 2’s first and second load cannot be reordered,
-* processor 3’s first and second load cannot be reordered.
-* If `mem_2 = 1` and `accu_2 = 0`, processor 0’s store appears to precede processor 1’s store with respect to processor 2.
-* Similarly, `mem_3 = 1` and `accu_3 = 0` imply that processor 1’s store appears to precede processor 0’s store with respect to processor 1.
+* thread 2’s first and second load cannot be reordered,
+* thread 3’s first and second load cannot be reordered.
+* If `mem_2 = 1` and `accu_2 = 0`, thread 0’s store appears to precede thread 1’s store with respect to thread 2.
+* Similarly, `mem_3 = 1` and `accu_3 = 0` imply that thread 1’s store appears to precede thread 0’s store with respect to thread 1.
 
-Because the memory-ordering model ensures that any two stores appear to execute in the same order to all processors (other than those performing the stores), this set of return values is not allowed.
+Because the memory-ordering model ensures that any two stores appear to execute in the same order to all threads (other than those performing the stores), this set of return values is not allowed.
 
 ## Bound = 14
 
-| Processor | Instructions[^1]  | Flushes | Total |
+| Thread    | Instructions[^1]  | Flushes | Total |
 | --------- | ----------------  | ------- | ----- |
 | 0         | 3                 | 1       | 4     |
 | 1         | 3                 | 1       | 4     |

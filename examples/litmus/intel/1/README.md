@@ -8,7 +8,7 @@ This is illustrated by the following example:
 
 ## Example 8-1. Stores Are Not Reordered with Other Stores
 
-| Processor 0 | Processor 1 |
+| Thread 0    | Thread 1    |
 | ----------- | ----------- |
 | ADDI 1      |             |
 | STORE 0     | MEM 1       |
@@ -17,7 +17,7 @@ This is illustrated by the following example:
 * initially `[0] = [1] = 0`
 * `mem_1 = 1` and `accu_1 = 0` is not allowed
 
-The disallowed return values could be exhibited only if processor 0’s two stores are reordered (with the two loads occurring between them) or if processor 1’s two loads are reordered (with the two stores occurring between them).
+The disallowed return values could be exhibited only if thread 0’s two stores are reordered (with the two loads occurring between them) or if thread 1’s two loads are reordered (with the two stores occurring between them).
 
 If `mem_1 = 1`, the store to `[1]` occurs before the load from `[1]`.
 Because the Intel-64 memory-ordering model does not allow stores to be reordered, the earlier store to `[0]` occurs before the load from `[1]`.
@@ -26,7 +26,7 @@ Thus `accu_1 = 1`.
 
 ## Bound = 9
 
-| Processor | Instructions[^1]  | Flushes | Total |
+| Thread    | Instructions[^1]  | Flushes | Total |
 | --------- | ----------------  | ------- | ----- |
 | 0         | 4                 | 2       | 6     |
 | 1         | 3                 | 0       | 3     |

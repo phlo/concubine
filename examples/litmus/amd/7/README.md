@@ -2,9 +2,9 @@
 
 > [P.235](https://www.amd.com/system/files/TechDocs/24593.pdf#page=235)
 
-Dependent stores between different processors appear to occur in program order, as shown in the code example below.
+Dependent stores between different threads appear to occur in program order, as shown in the code example below.
 
-| Processor 0 | Processor 1 | Processor 2 |
+| Thread 0    | Thread 1    | Thread 2    |
 | ----------- | ----------- | ----------- |
 | ADDI 1      | MEM 0[^2]   |             |
 | STORE 0     | JNZ 3       |             |
@@ -15,11 +15,11 @@ Dependent stores between different processors appear to occur in program order, 
 * initially `[0] = [1] = 0`
 * `mem_1 = mem_2 = 1` and `accu_2 = 0` is not allowed
 
-If processor 1 reads a value from `[0]` (written by processor 0) before carrying out a store to `[1]`, and if processor 2 reads the updated value from `[1]`, a subsequent read of `[0]` must also be the updated value.
+If thread 1 reads a value from `[0]` (written by thread 0) before carrying out a store to `[1]`, and if thread 2 reads the updated value from `[1]`, a subsequent read of `[0]` must also be the updated value.
 
 ## Bound = 13
 
-| Processor | Instructions[^3]  | Flushes | Total |
+| Thread    | Instructions[^3]  | Flushes | Total |
 | --------- | ----------------  | ------- | ----- |
 | 0         | 3                 | 1       | 4     |
 | 1         | 5                 | 1       | 6     |

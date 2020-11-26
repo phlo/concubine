@@ -10,7 +10,7 @@ example:
 
 ## Example 8-4. Loads Are not Reordered with Older Stores to the Same Location
 
-| Processor 0 |
+| Thread 0    |
 | ----------- |
 | ADDI 1      |
 | STORE 0     |
@@ -24,7 +24,7 @@ Therefore, `accu_0 = 1` must hold.
 
 ## Bound = 5
 
-| Processor | Instructions[^1]  | Flushes | Total |
+| Thread    | Instructions[^1]  | Flushes | Total |
 | --------- | ----------------  | ------- | ----- |
 | 0         | 4                 | 1       | 5     |
 

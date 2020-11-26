@@ -1,11 +1,11 @@
-# Stores Are Seen In A Consistent Order By Other Processors[^1]
+# Stores Are Seen In A Consistent Order By Other Threads[^1]
 
 > [P.234](https://www.amd.com/system/files/TechDocs/24593.pdf#page=234)
 
-Stores to different locations in memory observed from two (or more) other processors will appear in the same order to all observers.
+Stores to different locations in memory observed from two (or more) other threads will appear in the same order to all observers.
 Behavior such as that is shown in this code example:
 
-| Processor 0 | Processor 1 | Processor 2 | Processor 3 |
+| Thread 0    | Thread 1    | Thread 2    | Thread 3    |
 | ----------- | ----------- | ----------- | ----------- |
 | ADDI 1      | ADDI 1      |             |             |
 | STORE 0     | STORE 1     |             |             |
@@ -15,11 +15,11 @@ Behavior such as that is shown in this code example:
 * initially `[0] = [1] = 0`
 * `mem_2 = 1`, `accu_2 = 0`, `mem_3 = 1` and `accu_3 = 0` is not allowed
 
-Processor 2 seeing `STORE 0` from processor 0 before `STORE 1` from processor 1, while processor 3 sees `STORE 1` from processor 1 before `STORE 0` from processor 0, is not allowed.
+Thread 2 seeing `STORE 0` from thread 0 before `STORE 1` from thread 1, while thread 3 sees `STORE 1` from thread 1 before `STORE 0` from thread 0, is not allowed.
 
 ## Bound = 14
 
-| Processor | Instructions[^2]  | Flushes | Total |
+| Thread    | Instructions[^2]  | Flushes | Total |
 | --------- | ----------------  | ------- | ----- |
 | 0         | 3                 | 1       | 4     |
 | 1         | 3                 | 1       | 4     |

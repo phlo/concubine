@@ -226,8 +226,8 @@ inline void encode_demo ()
   encode<Encoder>(
     dir / "formula",
     lst(
-      create_from_file<Program>(dir / "processor.0.asm"),
-      create_from_file<Program>(dir / "processor.1.asm"),
+      create_from_file<Program>(dir / "thread.0.asm"),
+      create_from_file<Program>(dir / "thread.1.asm"),
       create_from_file<Program>(dir / "checker.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
     17);
@@ -247,8 +247,8 @@ inline void encode_litmus_intel_1 ()
   encode<Encoder>(
     dir / "formula",
     lst(
-      create_from_file<Program>(dir / "processor.0.asm"),
-      create_from_file<Program>(dir / "processor.1.asm")),
+      create_from_file<Program>(dir / "thread.0.asm"),
+      create_from_file<Program>(dir / "thread.1.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
     9);
 }
@@ -263,8 +263,8 @@ inline void encode_litmus_intel_2 ()
   encode<Encoder>(
     dir / "formula",
     lst(
-      create_from_file<Program>(dir / "processor.0.asm"),
-      create_from_file<Program>(dir / "processor.1.asm")),
+      create_from_file<Program>(dir / "thread.0.asm"),
+      create_from_file<Program>(dir / "thread.1.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
     10);
 }
@@ -279,8 +279,8 @@ inline void encode_litmus_intel_3 ()
   encode<Encoder>(
     dir / "formula",
     lst(
-      create_from_file<Program>(dir / "processor.0.asm"),
-      create_from_file<Program>(dir / "processor.1.asm")),
+      create_from_file<Program>(dir / "thread.0.asm"),
+      create_from_file<Program>(dir / "thread.1.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
     10);
 }
@@ -294,7 +294,7 @@ inline void encode_litmus_intel_4 ()
 
   encode<Encoder>(
     dir / "formula",
-    lst(create_from_file<Program>(dir / "processor.0.asm")),
+    lst(create_from_file<Program>(dir / "thread.0.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
     5);
 }
@@ -309,8 +309,8 @@ inline void encode_litmus_intel_5 ()
   encode<Encoder>(
     dir / "formula",
     lst(
-      create_from_file<Program>(dir / "processor.0.asm"),
-      create_from_file<Program>(dir / "processor.1.asm")),
+      create_from_file<Program>(dir / "thread.0.asm"),
+      create_from_file<Program>(dir / "thread.1.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
     12);
 }
@@ -325,14 +325,14 @@ inline void encode_litmus_intel_6 ()
   encode<Encoder>(
     dir / "formula",
     lst(
-      create_from_file<Program>(dir / "processor.0.asm"),
-      create_from_file<Program>(dir / "processor.1.asm"),
-      create_from_file<Program>(dir / "processor.2.asm")),
+      create_from_file<Program>(dir / "thread.0.asm"),
+      create_from_file<Program>(dir / "thread.1.asm"),
+      create_from_file<Program>(dir / "thread.2.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
     13);
 }
 
-// Intel 7: stores are seen in a consistent order by other processors
+// Intel 7: stores are seen in a consistent order by other threads
 //
 template <class Encoder>
 inline void encode_litmus_intel_7 ()
@@ -342,10 +342,10 @@ inline void encode_litmus_intel_7 ()
   encode<Encoder>(
     dir / "formula",
     lst(
-      create_from_file<Program>(dir / "processor.0.asm"),
-      create_from_file<Program>(dir / "processor.1.asm"),
-      create_from_file<Program>(dir / "processor.2.asm"),
-      create_from_file<Program>(dir / "processor.3.asm")),
+      create_from_file<Program>(dir / "thread.0.asm"),
+      create_from_file<Program>(dir / "thread.1.asm"),
+      create_from_file<Program>(dir / "thread.2.asm"),
+      create_from_file<Program>(dir / "thread.3.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
     14);
 }
@@ -360,10 +360,10 @@ inline void encode_litmus_intel_8 ()
   encode<Encoder>(
     dir / "formula",
     lst(
-      create_from_file<Program>(dir / "processor.0.asm"),
-      create_from_file<Program>(dir / "processor.1.asm"),
-      create_from_file<Program>(dir / "processor.2.asm"),
-      create_from_file<Program>(dir / "processor.3.asm")),
+      create_from_file<Program>(dir / "thread.0.asm"),
+      create_from_file<Program>(dir / "thread.1.asm"),
+      create_from_file<Program>(dir / "thread.2.asm"),
+      create_from_file<Program>(dir / "thread.3.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
     12);
 }
@@ -378,8 +378,8 @@ inline void encode_litmus_intel_9 ()
   encode<Encoder>(
     dir / "formula",
     lst(
-      create_from_file<Program>(dir / "processor.0.asm"),
-      create_from_file<Program>(dir / "processor.1.asm")),
+      create_from_file<Program>(dir / "thread.0.asm"),
+      create_from_file<Program>(dir / "thread.1.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
     8);
 }
@@ -394,8 +394,8 @@ inline void encode_litmus_intel_10 ()
   encode<Encoder>(
     dir / "formula",
     lst(
-      create_from_file<Program>(dir / "processor.0.asm"),
-      create_from_file<Program>(dir / "processor.1.asm")),
+      create_from_file<Program>(dir / "thread.0.asm"),
+      create_from_file<Program>(dir / "thread.1.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
     8);
 }
@@ -410,8 +410,8 @@ inline void encode_litmus_amd_1 ()
   encode<Encoder>(
     dir / "formula",
     lst(
-      create_from_file<Program>(dir / "processor.0.asm"),
-      create_from_file<Program>(dir / "processor.1.asm")),
+      create_from_file<Program>(dir / "thread.0.asm"),
+      create_from_file<Program>(dir / "thread.1.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
     9);
 }
@@ -426,8 +426,8 @@ inline void encode_litmus_amd_2 ()
   encode<Encoder>(
     dir / "formula",
     lst(
-      create_from_file<Program>(dir / "processor.0.asm"),
-      create_from_file<Program>(dir / "processor.1.asm")),
+      create_from_file<Program>(dir / "thread.0.asm"),
+      create_from_file<Program>(dir / "thread.1.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
     10);
 }
@@ -442,8 +442,8 @@ inline void encode_litmus_amd_3 ()
   encode<Encoder>(
     dir / "formula",
     lst(
-      create_from_file<Program>(dir / "processor.0.asm"),
-      create_from_file<Program>(dir / "processor.1.asm")),
+      create_from_file<Program>(dir / "thread.0.asm"),
+      create_from_file<Program>(dir / "thread.1.asm")),
     nullptr,
     16);
 }
@@ -458,8 +458,8 @@ inline void encode_litmus_amd_4 ()
   encode<Encoder>(
     dir / "formula",
     lst(
-      create_from_file<Program>(dir / "processor.0.asm"),
-      create_from_file<Program>(dir / "processor.1.asm")),
+      create_from_file<Program>(dir / "thread.0.asm"),
+      create_from_file<Program>(dir / "thread.1.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
     10);
 }
@@ -474,13 +474,13 @@ inline void encode_litmus_amd_5 ()
   encode<Encoder>(
     dir / "formula",
     lst(
-      create_from_file<Program>(dir / "processor.0.asm"),
-      create_from_file<Program>(dir / "processor.1.asm")),
+      create_from_file<Program>(dir / "thread.0.asm"),
+      create_from_file<Program>(dir / "thread.1.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
     12);
 }
 
-// AMD 6: stores are seen in a consistent order by other processors
+// AMD 6: stores are seen in a consistent order by other threads
 //
 template <class Encoder>
 inline void encode_litmus_amd_6 ()
@@ -490,10 +490,10 @@ inline void encode_litmus_amd_6 ()
   encode<Encoder>(
     dir / "formula",
     lst(
-      create_from_file<Program>(dir / "processor.0.asm"),
-      create_from_file<Program>(dir / "processor.1.asm"),
-      create_from_file<Program>(dir / "processor.2.asm"),
-      create_from_file<Program>(dir / "processor.3.asm")),
+      create_from_file<Program>(dir / "thread.0.asm"),
+      create_from_file<Program>(dir / "thread.1.asm"),
+      create_from_file<Program>(dir / "thread.2.asm"),
+      create_from_file<Program>(dir / "thread.3.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
     14);
 }
@@ -508,9 +508,9 @@ inline void encode_litmus_amd_7 ()
   encode<Encoder>(
     dir / "formula",
     lst(
-      create_from_file<Program>(dir / "processor.0.asm"),
-      create_from_file<Program>(dir / "processor.1.asm"),
-      create_from_file<Program>(dir / "processor.2.asm")),
+      create_from_file<Program>(dir / "thread.0.asm"),
+      create_from_file<Program>(dir / "thread.1.asm"),
+      create_from_file<Program>(dir / "thread.2.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
     13);
 }
@@ -525,8 +525,8 @@ inline void encode_litmus_amd_8 ()
   encode<Encoder>(
     dir / "formula",
     lst(
-      create_from_file<Program>(dir / "processor.0.asm"),
-      create_from_file<Program>(dir / "processor.1.asm")),
+      create_from_file<Program>(dir / "thread.0.asm"),
+      create_from_file<Program>(dir / "thread.1.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
     12);
 }
@@ -541,8 +541,8 @@ inline void encode_litmus_amd_9 ()
   encode<Encoder>(
     dir / "formula",
     lst(
-      create_from_file<Program>(dir / "processor.0.asm"),
-      create_from_file<Program>(dir / "processor.1.asm")),
+      create_from_file<Program>(dir / "thread.0.asm"),
+      create_from_file<Program>(dir / "thread.1.asm")),
     mmap(create_from_file<MMap>(dir / "init.mmap")),
     14);
 }

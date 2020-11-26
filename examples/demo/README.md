@@ -6,7 +6,7 @@ Loads may be reordered with an earlier store to a different location.
 
 ## Programs
 
-| Processor 0 | Processor 1 | Checker       |
+| Thread 0    | Thread 1    | Checker       |
 | ----------- | ----------- | ------------- |
 | ADDI 1      | ADDI 1      |               |
 | STORE 0     | STORE 1     |               |

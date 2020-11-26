@@ -5,7 +5,7 @@
 If a very strong memory ordering model is required that does not allow local store-load bypasses, an `FENCE` instruction or an atomic instruction such as `CAS` should be used between the store and the subsequent load.
 This enforces a memory ordering stronger than total store ordering.
 
-| Processor 0 | Processor 1 |
+| Thread 0    | Thread 1    |
 | ----------- | ----------- |
 | ADDI 1      | ADDI 1      |
 | STORE 0     | STORE 1     |
@@ -20,7 +20,7 @@ In this example, the `FENCE` instruction ensures that any buffered stores are gl
 
 ## Bound = 14
 
-| Processor | Instructions[^1]  | Flushes | Total |
+| Thread    | Instructions[^1]  | Flushes | Total |
 | --------- | ----------------  | ------- | ----- |
 | 0         | 6                 | 1       | 7     |
 | 1         | 6                 | 1       | 7     |
