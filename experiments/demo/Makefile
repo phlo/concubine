@@ -1,9 +1,9 @@
 CFLAGS=-Wall -O3
 
 .PHONY: run
-run: litmus
+run: store-buffer.litmus
 	while ./$<; do continue; done
 
-litmus: C-SB+o-mb-o+o-mb-o.litmus.c
+store-buffer.litmus: store-buffer.litmus.c
 	gcc $(CFLAGS) -S -o $@.s $< -pthread
 	gcc $(CFLAGS) -o $@ $< -pthread

@@ -5,7 +5,7 @@
 # Note: requires PATH to contain concubine and solver executables.
 
 # make sure we'r in the experiments directory
-if ! pwd | grep -q "examples$"
+if ! pwd | grep -q "experiments$"
 then
   echo "error: please execute me in the experiments directory" >&2
   exit 1
