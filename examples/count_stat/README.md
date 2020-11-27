@@ -1,17 +1,19 @@
 # Statistical Counter (PerfBook 5.2)
 
-* `count_stat` - increment a global variable `n` times.
+A parametrizable version of Paul McKenney's statistical counter example, including a consistent version using `CAS`.
+
+* `count_stat.buggy` - increment a global variable `n` times.
 * `count_stat.cas` - increment a global variable `n` times using `CAS`.
 
 ## Usage
 
-`run-count_stat*.sh <increments> <threads> <encoder> <solver> <output directory>`
+`run (buggy | cas) <increments> <threads> <solver> <encoder>`
 
 ## Runtime
 
 > Intel(R) Core(TM) i7-3770K CPU @ 3.50GHz
 
-### `count_stat`
+### `count_stat.buggy`
 
 | Increments `n` | Threads `m` | Bound | BtorMC           | Boolector (functional) | Boolector (relational) |
 | -------------- | ----------- | ----- | ---------------- | ---------------------- | ---------------------- |

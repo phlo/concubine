@@ -1,0 +1,100 @@
+#!/bin/bash
+#
+# usage: $0 <variant> <n> <m> <encoder> <solver>
+#
+# Generate input files and run count_stat experiment.
+
+# inputs
+variant=$1 # buggy or cas
+n=$2
+m=$3
+solver=$4
+encoder=$5
+
+[ -z $variant ] && echo "missing test variant" >&2 && exit 1
+[ -z $n ] && echo "missing local count" >&2 && exit 1
+[ -z $m ] && echo "missing number of threads" >&2 && exit 1
+[ -z $solver ] && echo "missing solver" >&2 && exit 1
+[ -z $encoder ] && echo "missing encoder" >&2 && exit 1
+
+# create test directory
+dir=$variant.$n.$m
+mkdir -p $dir
+cwd=$(pwd)
+cd $dir
+
+# base command
+cmd="concubine solve -v -s $solver"
+
+# append encoder
+[ "$encoder" = "functional" ] && cmd="$cmd -e smtlib"
+[ "$encoder" = "relational" ] && cmd="$cmd -e smtlib-relational"
+
+# create and append mmap
+mmap=init.mmap
+echo "0 0" > $mmap
+cmd="$cmd -m $mmap"
+
+# append output file naming
+output=$solver-$encoder
+cmd="$cmd -o $output $bound"
+
+# select template
+checker_template=$cwd/count_stat.checker.template
+case $variant in
+  buggy) thread_template=$cwd/count_stat.buggy.template ;;
+  cas) thread_template=$cwd/count_stat.cas.template ;;
+  *)
+    echo "error: unknown variant [$variant]" >& 2
+    exit 1
+    ;;
+esac
+
+# compute and append bound
+formula=$(grep "formula" $thread_template | cut -d'=' -f2)
+cas=$(grep "cas =" $thread_template | grep -o "[[:digit:]]\+")
+loop=$(grep "loop =" $thread_template | grep -o "[[:digit:]]\+")
+total=$(grep "total =" $thread_template | grep -o "[[:digit:]]\+")
+checker=$(grep "total =" $checker_template | grep -o "[[:digit:]]\+")
+bound=$((formula * m + checker))
+cmd="$cmd $bound"
+
+# create threads
+for t in $(seq 0 $((m - 1)))
+do
+  adr=$((t + 10))
+  prog=$(basename ${thread_template%.*}.$t.asm)
+
+  # generate program
+  sed -e "s/<adr>/$adr/g" \
+      -e "s/\<n\>/$n/g" \
+      $thread_template > $prog
+
+  # append local counter to mmap
+  echo "$adr $n" >> $mmap
+
+  # append program
+  cmd="$cmd $prog"
+done
+
+# generate and append checker
+sed -e "s/<sum>/$((n * m))/g" \
+    -e "s/\<n\>/$n/g" \
+    -e "s/\<m\>/$m/g" \
+    $checker_template > count_stat.checker.asm
+cmd="$cmd count_stat.checker.asm"
+
+# run experiment
+$cmd > $output.log
+
+# be paranoid and check result ...
+[ ! -f $output.log ] && echo "error: missing log file" >&2 && exit 1
+if [[ $variant == buggy && ! -f $output.trace ]]
+then
+  echo "error: expected test to be sat" >&2
+  exit 1
+elif [[ $variant == cas && -f $output.trace ]]
+then
+  echo "error: expected test to be unsat" >&2
+  exit 1
+fi

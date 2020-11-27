@@ -1,0 +1,48 @@
+#!/bin/bash
+#
+# usage: $0 <encoder> <solver>
+
+# inputs
+solver=$1
+encoder=$2
+
+[ -z "$solver" ] && echo "missing solver" >&2 && exit 1
+[ -z "$encoder" ] && echo "missing encoder" >&2 && exit 1
+
+# base command
+cmd="concubine solve -v -s $solver"
+
+# append encoder and constraints
+[ "$encoder" = "functional" ] && cmd="$cmd -e smtlib"
+[ "$encoder" = "relational" ] && cmd="$cmd -e smtlib-relational"
+[ "$encoder" = "btor2" ] \
+  && cmd="$cmd -c constraints.btor2" \
+  || cmd="$cmd -c constraints.smt2"
+
+# append mmap
+[ -f init.mmap ] && cmd="$cmd -m init.mmap"
+
+# append output file naming
+output=$solver-$encoder
+cmd="$cmd -o $output $bound"
+
+# append bound
+cmd="$cmd $(grep 'Bound =' README.md | awk '{print $4}')"
+
+# append programs
+cmd="$cmd thread.*.asm"
+
+# run litmus test
+$cmd > $output.log
+
+# be paranoid and check result ...
+[ ! -f $output.log ] && echo "error: missing log file" >&2 && exit 1
+if grep -q "is allowed$" README.md && [ ! -f $output.trace ]
+then
+  echo "error: expected test to be sat" >&2
+  exit 1
+elif grep -q "is not allowed$" README.md && [ -f $output.trace ]
+then
+  echo "error: expected test to be unsat" >&2
+  exit 1
+fi
