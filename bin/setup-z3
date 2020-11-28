@@ -1,0 +1,32 @@
+#!/bin/bash
+
+tag="z3-4.8.9"
+
+if ! grep -q "# Concubine" README.md
+then
+  echo "error: please execute me in the base directory" >&2
+  exit 1
+fi
+
+function cleanup {
+  rm -rf $tmp
+}
+trap cleanup EXIT
+
+tmp=$(mktemp -d --tmpdir "concubine-XXXX")
+cwd=$(pwd)
+cd $tmp
+
+git clone --depth 1 --branch $tag https://github.com/Z3Prover/z3.git
+
+cd z3
+
+./configure --staticlib --staticbin --single-threaded
+
+cd build
+
+make || exit 1
+
+cp ../src/api/c++/z3++.h libz3.a $cwd/bin/lib
+
+echo "please rebuild concubine"

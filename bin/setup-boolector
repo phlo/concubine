@@ -1,0 +1,33 @@
+#!/bin/bash
+
+tag="3.2.1" # cloning master since 3.2.1 doesn't support --output-format=btor
+
+if ! grep -q "# Concubine" README.md
+then
+  echo "error: please execute me in the base directory" >&2
+  exit 1
+fi
+
+function cleanup {
+  rm -rf $tmp
+}
+trap cleanup EXIT
+
+tmp=$(mktemp -d --tmpdir "concubine-XXXX")
+cwd=$(pwd)
+cd $tmp
+
+git clone --depth 1 https://github.com/Boolector/boolector.git
+
+cd boolector
+
+./contrib/setup-btor2tools.sh
+./contrib/setup-cadical.sh
+
+./configure.sh
+
+cd build
+
+make || exit 1
+
+cp bin/{boolector,btormc} $cwd/bin

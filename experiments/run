@@ -11,13 +11,26 @@ then
   exit 1
 fi
 
+# use static executables in ../bin if solvers are not contained in PATH
+if ! which boolector &> /dev/null || \
+   ! which btormc &> /dev/null || \
+   ! which cvc4 &> /dev/null
+then
+  PATH="$(realpath ../bin):$PATH"
+fi
+
+# add concubine executable to PATH if solvers were found
+if ! which concubine &> /dev/null && [ -f ../concubine ]
+then
+  PATH="$(realpath ..):$PATH"
+else
+  PATH="$(realpath ../bin):$PATH"
+fi
+
 # set experiments
 [ -z "$*" ] \
   && experiments=$(grep -o "^| \w\+\s\+|" README.md | awk '{print $2}') \
   || experiments=$*
-
-# DEBUG: expect concubine in parent directory
-[ ! -z "$TEST" ] && command concubine &> /dev/null || PATH="$(realpath ..):$PATH"
 
 for i in $experiments
 do

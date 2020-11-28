@@ -75,13 +75,18 @@ experiments:
 .PHONY: build
 build: $(MAIN)
 
+# build static executable for Armin
+.PHONY: static
+static: $(OBJ) main.cc
+	$(CXX) $(CXXFLAGS) -static -Ibin/lib $(OBJ) main.cc -Lbin/lib $(LDFLAGS) -lpthread -o bin/$(MAIN)
+
 # rebuild executable
 .PHONY: rebuild
 rebuild: clean build
 
 # build main and link executable
 $(MAIN): $(OBJ) main.cc
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJ) main.cc -o $(MAIN)
+	$(CXX) $(CXXFLAGS) $(OBJ) main.cc $(LDFLAGS) -o $(MAIN)
 
 # delete generated files
 .PHONY: clean
