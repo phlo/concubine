@@ -1,3 +1,11 @@
+/*  ConcuBinE
+ *
+ *  Copyright (C) 2020 Florian Schrögendorfer.
+ *
+ *  This file is part of ConcuBinE.
+ *  See LICENSE for more information on using this software.
+ */
+
 #ifndef BTOR2_HH_
 #define BTOR2_HH_
 

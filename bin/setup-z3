@@ -2,7 +2,7 @@
 
 tag="z3-4.8.9"
 
-if ! grep -q "# Concubine" README.md
+if ! grep -q "# ConcuBinE" README.md 2> /dev/null
 then
   echo "error: please execute me in the base directory" >&2
   exit 1
@@ -28,5 +28,6 @@ cd build
 make || exit 1
 
 cp ../src/api/c++/z3++.h libz3.a $cwd/bin/lib
+cp ../LICENSE.txt $cwd/bin/licenses/z3
 
 echo "please rebuild concubine"

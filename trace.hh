@@ -1,3 +1,11 @@
+/*  ConcuBinE
+ *
+ *  Copyright (C) 2020 Florian Schrögendorfer.
+ *
+ *  This file is part of ConcuBinE.
+ *  See LICENSE for more information on using this software.
+ */
+
 #ifndef TRACE_HH_
 #define TRACE_HH_
 

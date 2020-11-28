@@ -2,7 +2,7 @@
 
 tag="1.8"
 
-if ! grep -q "# Concubine" README.md
+if ! grep -q "# ConcuBinE" README.md 2> /dev/null
 then
   echo "error: please execute me in the base directory" >&2
   exit 1
@@ -34,3 +34,4 @@ cd build
 make || exit 1
 
 cp bin/cvc4 $cwd/bin
+cp ../COPYING $cwd/bin/licenses/cvc4

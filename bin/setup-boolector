@@ -2,7 +2,7 @@
 
 tag="3.2.1" # cloning master since 3.2.1 doesn't support --output-format=btor
 
-if ! grep -q "# Concubine" README.md
+if ! grep -q "# ConcuBinE" README.md 2> /dev/null
 then
   echo "error: please execute me in the base directory" >&2
   exit 1
@@ -31,3 +31,4 @@ cd build
 make || exit 1
 
 cp bin/{boolector,btormc} $cwd/bin
+cp ../COPYING $cwd/bin/licenses/boolector
