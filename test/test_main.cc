@@ -161,7 +161,7 @@ TEST_F(Main, simulate_uninitialized)
 
 TEST_F(Main, simulate_demo)
 {
-  const std::filesystem::path demo = "examples/demo/";
+  const std::filesystem::path demo = "experiments/demo/";
 
   fs::cd(fs::mktmp(demo));
 
@@ -402,7 +402,7 @@ TEST_F(Main, solve_uninitialized)
 
 TEST_F(Main, solve_demo)
 {
-  const std::filesystem::path demo = "examples/demo/";
+  const std::filesystem::path demo = "experiments/demo/";
 
   fs::cd(fs::mktmp(demo));
 

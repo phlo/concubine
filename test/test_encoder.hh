@@ -229,7 +229,7 @@ inline void encode_halt ()
 template <class Encoder>
 inline void encode_demo ()
 {
-  const std::filesystem::path dir("examples/demo");
+  const std::filesystem::path dir("experiments/demo");
 
   encode<Encoder>(
     dir / "formula",
@@ -250,7 +250,7 @@ inline void encode_demo ()
 template <class Encoder>
 inline void encode_litmus_intel_1 ()
 {
-  const std::filesystem::path dir("examples/litmus/intel/1");
+  const std::filesystem::path dir("experiments/litmus/intel/1");
 
   encode<Encoder>(
     dir / "formula",
@@ -266,7 +266,7 @@ inline void encode_litmus_intel_1 ()
 template <class Encoder>
 inline void encode_litmus_intel_2 ()
 {
-  const std::filesystem::path dir("examples/litmus/intel/2");
+  const std::filesystem::path dir("experiments/litmus/intel/2");
 
   encode<Encoder>(
     dir / "formula",
@@ -282,7 +282,7 @@ inline void encode_litmus_intel_2 ()
 template <class Encoder>
 inline void encode_litmus_intel_3 ()
 {
-  const std::filesystem::path dir("examples/litmus/intel/3");
+  const std::filesystem::path dir("experiments/litmus/intel/3");
 
   encode<Encoder>(
     dir / "formula",
@@ -298,7 +298,7 @@ inline void encode_litmus_intel_3 ()
 template <class Encoder>
 inline void encode_litmus_intel_4 ()
 {
-  const std::filesystem::path dir("examples/litmus/intel/4");
+  const std::filesystem::path dir("experiments/litmus/intel/4");
 
   encode<Encoder>(
     dir / "formula",
@@ -312,7 +312,7 @@ inline void encode_litmus_intel_4 ()
 template <class Encoder>
 inline void encode_litmus_intel_5 ()
 {
-  const std::filesystem::path dir("examples/litmus/intel/5");
+  const std::filesystem::path dir("experiments/litmus/intel/5");
 
   encode<Encoder>(
     dir / "formula",
@@ -328,7 +328,7 @@ inline void encode_litmus_intel_5 ()
 template <class Encoder>
 inline void encode_litmus_intel_6 ()
 {
-  const std::filesystem::path dir("examples/litmus/intel/6");
+  const std::filesystem::path dir("experiments/litmus/intel/6");
 
   encode<Encoder>(
     dir / "formula",
@@ -345,7 +345,7 @@ inline void encode_litmus_intel_6 ()
 template <class Encoder>
 inline void encode_litmus_intel_7 ()
 {
-  const std::filesystem::path dir("examples/litmus/intel/7");
+  const std::filesystem::path dir("experiments/litmus/intel/7");
 
   encode<Encoder>(
     dir / "formula",
@@ -363,7 +363,7 @@ inline void encode_litmus_intel_7 ()
 template <class Encoder>
 inline void encode_litmus_intel_8 ()
 {
-  const std::filesystem::path dir("examples/litmus/intel/8");
+  const std::filesystem::path dir("experiments/litmus/intel/8");
 
   encode<Encoder>(
     dir / "formula",
@@ -381,7 +381,7 @@ inline void encode_litmus_intel_8 ()
 template <class Encoder>
 inline void encode_litmus_intel_9 ()
 {
-  const std::filesystem::path dir("examples/litmus/intel/9");
+  const std::filesystem::path dir("experiments/litmus/intel/9");
 
   encode<Encoder>(
     dir / "formula",
@@ -397,7 +397,7 @@ inline void encode_litmus_intel_9 ()
 template <class Encoder>
 inline void encode_litmus_intel_10 ()
 {
-  const std::filesystem::path dir("examples/litmus/intel/10");
+  const std::filesystem::path dir("experiments/litmus/intel/10");
 
   encode<Encoder>(
     dir / "formula",
@@ -413,7 +413,7 @@ inline void encode_litmus_intel_10 ()
 template <class Encoder>
 inline void encode_litmus_amd_1 ()
 {
-  const std::filesystem::path dir("examples/litmus/amd/1");
+  const std::filesystem::path dir("experiments/litmus/amd/1");
 
   encode<Encoder>(
     dir / "formula",
@@ -429,7 +429,7 @@ inline void encode_litmus_amd_1 ()
 template <class Encoder>
 inline void encode_litmus_amd_2 ()
 {
-  const std::filesystem::path dir("examples/litmus/amd/2");
+  const std::filesystem::path dir("experiments/litmus/amd/2");
 
   encode<Encoder>(
     dir / "formula",
@@ -445,7 +445,7 @@ inline void encode_litmus_amd_2 ()
 template <class Encoder>
 inline void encode_litmus_amd_3 ()
 {
-  const std::filesystem::path dir("examples/litmus/amd/3");
+  const std::filesystem::path dir("experiments/litmus/amd/3");
 
   encode<Encoder>(
     dir / "formula",
@@ -461,7 +461,7 @@ inline void encode_litmus_amd_3 ()
 template <class Encoder>
 inline void encode_litmus_amd_4 ()
 {
-  const std::filesystem::path dir("examples/litmus/amd/4");
+  const std::filesystem::path dir("experiments/litmus/amd/4");
 
   encode<Encoder>(
     dir / "formula",
@@ -477,7 +477,7 @@ inline void encode_litmus_amd_4 ()
 template <class Encoder>
 inline void encode_litmus_amd_5 ()
 {
-  const std::filesystem::path dir("examples/litmus/amd/5");
+  const std::filesystem::path dir("experiments/litmus/amd/5");
 
   encode<Encoder>(
     dir / "formula",
@@ -493,7 +493,7 @@ inline void encode_litmus_amd_5 ()
 template <class Encoder>
 inline void encode_litmus_amd_6 ()
 {
-  const std::filesystem::path dir("examples/litmus/amd/6");
+  const std::filesystem::path dir("experiments/litmus/amd/6");
 
   encode<Encoder>(
     dir / "formula",
@@ -511,7 +511,7 @@ inline void encode_litmus_amd_6 ()
 template <class Encoder>
 inline void encode_litmus_amd_7 ()
 {
-  const std::filesystem::path dir("examples/litmus/amd/7");
+  const std::filesystem::path dir("experiments/litmus/amd/7");
 
   encode<Encoder>(
     dir / "formula",
@@ -528,7 +528,7 @@ inline void encode_litmus_amd_7 ()
 template <class Encoder>
 inline void encode_litmus_amd_8 ()
 {
-  const std::filesystem::path dir("examples/litmus/amd/8");
+  const std::filesystem::path dir("experiments/litmus/amd/8");
 
   encode<Encoder>(
     dir / "formula",
@@ -544,7 +544,7 @@ inline void encode_litmus_amd_8 ()
 template <class Encoder>
 inline void encode_litmus_amd_9 ()
 {
-  const std::filesystem::path dir("examples/litmus/amd/9");
+  const std::filesystem::path dir("experiments/litmus/amd/9");
 
   encode<Encoder>(
     dir / "formula",
