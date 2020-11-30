@@ -2,7 +2,21 @@
 #
 # usage: $0 [<id> ...]
 #
-# Note: requires PATH to contain concubine and solver executables.
+# Note: requires PATH to contain runlim.
+
+# check if runlim is available
+! which runlim &> /dev/null && echo "error: missing runlim" && exit 1
+
+# export runlim commands
+RUNLIM='
+  exec 1>"$output".log 2>"$output".err;
+  runlim
+    --single
+    --time-limit=86400
+    --real-time-limit=86400
+    --space-limit=8000
+'
+export RUNLIM
 
 # make sure we'r in the experiments directory
 if ! pwd | grep -q "experiments$"

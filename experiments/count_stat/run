@@ -84,8 +84,8 @@ sed -e "s/<sum>/$((n * m))/g" \
     $checker_template > count_stat.checker.asm
 cmd="$cmd count_stat.checker.asm"
 
-# run experiment
-$cmd > $output.log
+# run statistical counter experiment using runlim
+eval $RUNLIM $cmd
 
 # be paranoid and check result ...
 [ ! -f $output.log ] && echo "error: missing log file" >&2 && exit 1

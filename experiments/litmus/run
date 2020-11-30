@@ -32,8 +32,8 @@ cmd="$cmd $(grep 'Bound =' README.md | awk '{print $4}')"
 # append programs
 cmd="$cmd thread.*.asm"
 
-# run litmus test
-$cmd > $output.log
+# run litmus test using runlim
+eval $RUNLIM $cmd
 
 # be paranoid and check result ...
 [ ! -f $output.log ] && echo "error: missing log file" >&2 && exit 1
