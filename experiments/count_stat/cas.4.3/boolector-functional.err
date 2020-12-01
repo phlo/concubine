@@ -45,3 +45,29 @@
 [runlim] sample:		0.29 time, 220.01 real, 16 MB
 [runlim] sample:		0.29 time, 230.01 real, 16 MB
 [runlim] sample:		0.29 time, 240.01 real, 16 MB
+[runlim] sample:		0.29 time, 250.01 real, 16 MB
+[runlim] sample:		0.29 time, 260.01 real, 16 MB
+[runlim] sample:		0.29 time, 270.01 real, 16 MB
+[runlim] sample:		0.29 time, 280.01 real, 16 MB
+[runlim] sample:		0.29 time, 290.01 real, 16 MB
+[runlim] sample:		0.29 time, 300.01 real, 16 MB
+[runlim] sample:		0.29 time, 310.01 real, 16 MB
+[runlim] sample:		0.29 time, 320.01 real, 16 MB
+[runlim] sample:		0.29 time, 330.01 real, 16 MB
+[runlim] sample:		0.29 time, 340.01 real, 16 MB
+[runlim] sample:		0.29 time, 350.01 real, 16 MB
+[runlim] sample:		0.29 time, 360.01 real, 16 MB
+[runlim] sample:		0.29 time, 370.01 real, 16 MB
+[runlim] sample:		0.29 time, 380.01 real, 16 MB
+[runlim] sample:		0.29 time, 390.01 real, 16 MB
+[runlim] sample:		0.29 time, 400.01 real, 16 MB
+[runlim] sample:		0.29 time, 410.01 real, 16 MB
+[runlim] end:			Tue Dec  1 16:45:18 2020
+[runlim] status:		ok
+[runlim] result:		0
+[runlim] children:		1
+[runlim] real:			417.92 seconds
+[runlim] time:			0.40 seconds
+[runlim] space:			20 MB
+[runlim] samples:		4179
+error: expected test to be unsat
