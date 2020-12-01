@@ -1,0 +1,37 @@
+[runlim] version:		1.21
+[runlim] host:			c3n14
+[runlim] time limit:		86400 seconds
+[runlim] real time limit:	86400 seconds
+[runlim] space limit:		8000 MB
+[runlim] argv[0]:		concubine
+[runlim] argv[1]:		solve
+[runlim] argv[2]:		-v
+[runlim] argv[3]:		-s
+[runlim] argv[4]:		z3
+[runlim] argv[5]:		-e
+[runlim] argv[6]:		smtlib-relational
+[runlim] argv[7]:		-m
+[runlim] argv[8]:		init.mmap
+[runlim] argv[9]:		-o
+[runlim] argv[10]:		z3-relational
+[runlim] argv[11]:		77
+[runlim] argv[12]:		count_stat.cas.0.asm
+[runlim] argv[13]:		count_stat.cas.1.asm
+[runlim] argv[14]:		count_stat.checker.asm
+[runlim] start:			Tue Dec  1 16:38:18 2020
+[runlim] child:			6920
+[runlim] sample:		9.62 time, 10.01 real, 30 MB
+[runlim] sample:		19.62 time, 20.01 real, 30 MB
+[runlim] sample:		29.63 time, 30.01 real, 32 MB
+[runlim] sample:		39.63 time, 40.01 real, 32 MB
+[runlim] sample:		49.63 time, 50.01 real, 32 MB
+[runlim] sample:		59.62 time, 60.01 real, 77 MB
+[runlim] end:			Tue Dec  1 16:39:18 2020
+[runlim] status:		ok
+[runlim] result:		0
+[runlim] children:		1
+[runlim] real:			60.45 seconds
+[runlim] time:			60.02 seconds
+[runlim] space:			80 MB
+[runlim] samples:		604
+error: expected test to be unsat

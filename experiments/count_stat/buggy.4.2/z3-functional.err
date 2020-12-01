@@ -1,0 +1,37 @@
+[runlim] version:		1.21
+[runlim] host:			c3n13
+[runlim] time limit:		86400 seconds
+[runlim] real time limit:	86400 seconds
+[runlim] space limit:		8000 MB
+[runlim] argv[0]:		concubine
+[runlim] argv[1]:		solve
+[runlim] argv[2]:		-v
+[runlim] argv[3]:		-s
+[runlim] argv[4]:		z3
+[runlim] argv[5]:		-e
+[runlim] argv[6]:		smtlib
+[runlim] argv[7]:		-m
+[runlim] argv[8]:		init.mmap
+[runlim] argv[9]:		-o
+[runlim] argv[10]:		z3-functional
+[runlim] argv[11]:		81
+[runlim] argv[12]:		count_stat.buggy.0.asm
+[runlim] argv[13]:		count_stat.buggy.1.asm
+[runlim] argv[14]:		count_stat.checker.asm
+[runlim] start:			Tue Dec  1 16:38:26 2020
+[runlim] child:			7006
+[runlim] sample:		9.22 time, 10.01 real, 245 MB
+[runlim] sample:		19.22 time, 20.01 real, 249 MB
+[runlim] sample:		29.21 time, 30.01 real, 271 MB
+[runlim] sample:		39.21 time, 40.01 real, 271 MB
+[runlim] sample:		49.21 time, 50.01 real, 272 MB
+[runlim] sample:		59.21 time, 60.01 real, 273 MB
+[runlim] sample:		69.21 time, 70.01 real, 275 MB
+[runlim] sample:		79.22 time, 80.01 real, 276 MB
+[runlim] sample:		89.22 time, 90.01 real, 276 MB
+[runlim] sample:		99.22 time, 100.01 real, 277 MB
+[runlim] sample:		109.22 time, 110.01 real, 277 MB
+[runlim] sample:		119.22 time, 120.01 real, 277 MB
+[runlim] sample:		129.22 time, 130.01 real, 278 MB
+[runlim] sample:		139.22 time, 140.01 real, 278 MB
+[runlim] sample:		149.21 time, 150.01 real, 278 MB
