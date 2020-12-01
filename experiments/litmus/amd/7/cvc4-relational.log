@@ -1,0 +1,15 @@
+[concubine>main] encoding took 0.00516 seconds
+[concubine>main] generated 5723 commands
+minisat: Incremental solving is forced on (to avoid variable elimination) unless using internal decision strategy.
+============================[ Search Statistics ]==============================
+| Conflicts |          ORIGINAL         |          LEARNT          | Progress |
+|           |    Vars  Clauses Literals |    Limit  Clauses Lit/Cl |          |
+===============================================================================
+|       100 |    1794     5589    14738 |     8373      158      6 |  1.319 % |
+|       250 |    1827     5595    14750 |    12559      298     10 |  3.939 % |
+|       475 |    2018     5643    14846 |    18839      534     12 |  4.038 % |
+|       812 |    2036     5660    14880 |    28258      872     13 |  5.298 % |
+===============================================================================
+unsat
+Cannot get model unless immediately preceded by SAT/NOT_ENTAILED or UNKNOWN response.
+[concubine>main] solving took 2.73395 seconds

@@ -1,0 +1,28 @@
+[concubine>main] encoding took 0.000599 seconds
+[concubine>main] generated 3108 commands
+(:added-eqs           24770
+ :array-ax1           17
+ :array-ax2           301
+ :array-ext-ax        1
+ :binary-propagations 55153
+ :bv-bit2core         55975
+ :bv-diseqs           13
+ :bv-dynamic-diseqs   20
+ :bv->core-eq         679
+ :conflicts           501
+ :decisions           1036
+ :del-clause          670
+ :eliminated-vars     446
+ :max-memory          5.46
+ :memory              3.51
+ :minimized-lits      5508
+ :mk-bool-var         13358
+ :mk-clause           3416
+ :num-allocs          165902
+ :num-checks          1
+ :propagations        108588
+ :restarts            4
+ :rlimit-count        317377
+ :time                0.18)
+unsat
+[concubine>main] solving took 0.183443 seconds

@@ -1,0 +1,6 @@
+[concubine>main] encoding took 0.002502 seconds
+[concubine>main] generated 2051 commands
+minisat: Incremental solving is forced on (to avoid variable elimination) unless using internal decision strategy.
+unsat
+Cannot get model unless immediately preceded by SAT/NOT_ENTAILED or UNKNOWN response.
+[concubine>main] solving took 0.054689 seconds

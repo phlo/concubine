@@ -1,0 +1,10 @@
+[concubine>main] encoding took 0 seconds
+[concubine>main] generated 627 commands
+(:max-memory   2.56
+ :memory       2.52
+ :mk-bool-var  1
+ :num-allocs   30947
+ :rlimit-count 6809
+ :time         0.04)
+unsat
+[concubine>main] solving took 0.041553 seconds
