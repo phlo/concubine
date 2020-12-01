@@ -37,3 +37,21 @@
 [runlim] sample:		127.64 time, 130.01 real, 4455 MB
 [runlim] sample:		137.64 time, 140.01 real, 4720 MB
 [runlim] sample:		147.64 time, 150.01 real, 4981 MB
+[runlim] sample:		157.64 time, 160.01 real, 7710 MB
+[runlim] sample:		167.64 time, 170.01 real, 6475 MB
+[runlim] sample:		177.64 time, 180.01 real, 6737 MB
+[runlim] sample:		187.64 time, 190.01 real, 6944 MB
+[runlim] sample:		197.63 time, 200.01 real, 6686 MB
+[runlim] sample:		207.64 time, 210.01 real, 7374 MB
+[runlim] sample:		217.64 time, 220.01 real, 6514 MB
+[runlim] sample:		227.64 time, 230.01 real, 6737 MB
+[runlim] sample:		237.64 time, 240.01 real, 7196 MB
+[runlim] sample:		247.64 time, 250.01 real, 7592 MB
+[runlim] end:			Tue Dec  1 16:42:35 2020
+[runlim] status:		out of memory
+[runlim] result:		3
+[runlim] children:		1
+[runlim] real:			256.54 seconds
+[runlim] time:			253.83 seconds
+[runlim] space:			8006 MB
+[runlim] samples:		2562
