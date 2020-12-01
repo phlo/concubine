@@ -741,3 +741,27 @@
 [runlim] sample:		7169.56 time, 7170.01 real, 7158 MB
 [runlim] sample:		7179.56 time, 7180.01 real, 7160 MB
 [runlim] sample:		7189.56 time, 7190.01 real, 7162 MB
+[runlim] sample:		7199.56 time, 7200.01 real, 7164 MB
+[runlim] sample:		7209.56 time, 7210.01 real, 7167 MB
+[runlim] sample:		7219.56 time, 7220.01 real, 7169 MB
+[runlim] sample:		7229.56 time, 7230.01 real, 7171 MB
+[runlim] sample:		7239.56 time, 7240.01 real, 7375 MB
+[runlim] sample:		7249.56 time, 7250.01 real, 7307 MB
+[runlim] sample:		7259.56 time, 7260.01 real, 7311 MB
+[runlim] sample:		7269.56 time, 7270.01 real, 7316 MB
+[runlim] sample:		7279.56 time, 7280.01 real, 7322 MB
+[runlim] sample:		7289.56 time, 7290.01 real, 7327 MB
+[runlim] sample:		7299.56 time, 7300.01 real, 7333 MB
+[runlim] sample:		7309.56 time, 7310.01 real, 7378 MB
+[runlim] sample:		7319.56 time, 7320.01 real, 7966 MB
+[runlim] sample:		7329.56 time, 7330.01 real, 6968 MB
+[runlim] sample:		7339.56 time, 7340.01 real, 7463 MB
+[runlim] sample:		7349.56 time, 7350.01 real, 7866 MB
+[runlim] end:			Tue Dec  1 18:40:54 2020
+[runlim] status:		out of memory
+[runlim] result:		3
+[runlim] children:		1
+[runlim] real:			7351.22 seconds
+[runlim] time:			7350.45 seconds
+[runlim] space:			8034 MB
+[runlim] samples:		73509

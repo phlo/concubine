@@ -1,0 +1,16 @@
+thread.0.asm
+thread.1.asm
+. z3-functional.mmap
+# tid	pc	cmd	arg	accu	mem	adr	val	full	heap
+1	0	ADDI	1	0	0	0	0	0	{}	# 0
+1	1	STORE	1	1	0	0	0	0	{}	# 1
+0	0	ADDI	1	0	0	0	0	0	{}	# 2
+0	1	STORE	0	1	0	0	0	0	{}	# 3
+0	2	MEM	0	1	0	0	1	1	{}	# 4
+0	3	LOAD	1	1	1	0	1	1	{}	# 5
+1	2	MEM	1	1	0	1	1	1	{}	# 6
+1	3	FLUSH	-	1	1	1	1	1	{}	# 7
+1	3	LOAD	0	1	1	1	1	0	{(1,1)}	# 8
+0	4	FLUSH	-	0	1	0	1	1	{}	# 9
+1	4	HALT	-	0	1	1	1	0	{(0,1)}	# 10
+0	4	HALT	-	0	1	0	1	0	{}	# 11
