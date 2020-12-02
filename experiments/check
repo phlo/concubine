@@ -1,0 +1,27 @@
+#!/bin/bash
+
+dir="${0%/*}/"
+runlime_err="segmentation fault\|out of memory"
+experiment_err="^error: expected .*$"
+
+failed="$( \
+  ( \
+    grep -r -l "\($runlime_err\|$experiment_err\)" "$dir"*; \
+    find "$dir"* -size 0
+  ) \
+  | bash -c 'while read f; do echo ${f%\.*}; done' \
+  | sort \
+  | uniq \
+)"
+
+for i in $failed
+do
+  echo ${i#\./}
+  runlim_status=$(grep -o "\($runlime_err\)" $i.err)
+  [ ! -z "$runlim_status" ] && echo "  $runlim_status"
+  grep -q "^\[runlim\] status:" $i.err || echo "  missing runlim status"
+  experiment_status=$(grep -o "$experiment_err" $i.err | sed 's/error: //g')
+  [ ! -z "$experiment_status" ] && echo "  $experiment_status"
+  [ -z "$(cat $i.log)" ] && echo "  log empty"
+  echo
+done
