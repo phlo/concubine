@@ -1,13 +1,22 @@
-import subprocess
+import os
+import sys
+import inspect
+
+# base directory
+root = os.path.realpath(os.path.dirname(inspect.getsourcefile(lambda:0)))
 
 # CXXFLAGS
-flags = subprocess.run(['make', 'flags'], stdout=subprocess.PIPE).stdout.decode('utf-8').split()
+with open(root + "/build/Makefile") as f:
+    for line in f:
+        if line.startswith("CXXFLAGS"):
+            flags = line.split(' = ')[1].strip().replace('..', root).split()
+            break
 
 # googletest flags
 flags.append('-I')
 flags.append('.')
 flags.append('-isystem')
-flags.append('test/lib/googletest/googletest/include')
+flags.append(root + '/test/lib/googletest/googletest/include')
 flags.append('-pthread')
 flags.append('-D__TEST__')
 

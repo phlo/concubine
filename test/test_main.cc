@@ -32,7 +32,7 @@ const std::filesystem::path cwd = std::filesystem::current_path();
 const std::filesystem::path tmpdir = fs::mktmp("test/data/");
 
 // binary path
-const std::string bin = cwd / "concubine";
+const std::string bin = cwd / "build/bin/concubine";
 
 // module names
 const std::string simulate = "simulate";

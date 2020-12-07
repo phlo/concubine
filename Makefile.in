@@ -1,0 +1,38 @@
+CXX = @CXX@
+CXXFLAGS = @CXXFLAGS@
+LDFLAGS = @LDFLAGS@
+WFLAGS = @WFLAGS@
+MAKEFLAGS = @MAKEFLAGS@
+BUILDDIR = $(shell pwd)
+
+#------------------------------------------------------------------------------#
+
+APP = bin/concubine
+SRC = $(subst ../src/,,$(sort $(wildcard ../src/*.cc)))
+OBJ = $(subst .cc,.o,$(filter-out main.cc,$(SRC)))
+
+VPATH = ../src
+
+$(APP): main.cc $(OBJ) Makefile
+	mkdir -p bin
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(WFLAGS) $(OBJ) $< -o $@
+
+#------------------------------------------------------------------------------#
+
+# auto-dependency generation
+# see http://make.mad-scientist.net/papers/advanced-auto-dependency-generation
+
+DEPFLAGS = -MT $@ -MMD -MP -MF $*.d
+
+%.o: %.cc
+%.o: %.cc %.d
+	$(CXX) $(CXXFLAGS) $(DEPFLAGS) $(WFLAGS) -c $<
+
+%.d: ;
+.PRECIOUS: %.d
+
+include $(wildcard *.d)
+
+#------------------------------------------------------------------------------#
+
+include ../test/gtest.mk
