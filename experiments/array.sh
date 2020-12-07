@@ -13,5 +13,5 @@ echo "c array.sh: start:    `date`"
 echo "c array.sh: noturbo:  `show-turbo-mode-disabled.sh`"
 echo "c array.sh: governor: `show-scaling-governors.sh |awk '{print $NF}'|sort|uniq -c|sed -e 's,^ *,,'`"
 echo "c array.sh: tmp:      `df -m /tmp/|tail -1|awk '{print $(NF-1)}'`"
-./run $SLURM_ARRAY_TASK_ID
+./run.sh $SLURM_ARRAY_TASK_ID
 echo "c array.sh: end:      `date`"

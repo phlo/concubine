@@ -1,2 +1,2 @@
 #!/bin/sh
-exec sbatch ./array
+exec sbatch ./array.sh
