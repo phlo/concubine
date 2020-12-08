@@ -1,0 +1,11 @@
+[litmus/run.sh] running 6: litmus/intel/1/run.sh z3 functional
+[concubine>main] encoding took 0.005865 seconds
+[concubine>main] generated 2051 commands
+(:max-memory   3.18
+ :memory       3.18
+ :mk-bool-var  1
+ :num-allocs   231326
+ :rlimit-count 8917
+ :time         0.01)
+unsat
+[concubine>main] solving took 0.013001 seconds

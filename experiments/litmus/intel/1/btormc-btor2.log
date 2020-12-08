@@ -1,5 +1,5 @@
 [litmus/run.sh] running 1: litmus/intel/1/run.sh btormc btor2
-[concubine>main] encoding took 0.000534 seconds
+[concubine>main] encoding took 0 seconds
 [concubine>main] generated 166 commands
 [btormc] parsing input file...
 [btormc] finished parsing
@@ -34,4 +34,4 @@
 [btor>mc] bad state property 0 at bound k = 9 UNSATISFIABLE
 [btor>mc] found 0 reachable and 0 unreachable bad state properties at bound k = 9
 [btor>mc] deleting model checker: 4 inputs, 23 states, 1 bad, 6 constraints
-[concubine>main] solving took 0.000472 seconds
+[concubine>main] solving took 0.005235 seconds

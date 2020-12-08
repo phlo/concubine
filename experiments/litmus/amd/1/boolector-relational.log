@@ -1,0 +1,81 @@
+[litmus/run.sh] running 73: litmus/amd/1/run.sh boolector relational
+[concubine>main] encoding took 0.007387 seconds
+[concubine>main] generated 2404 commands
+[btor>main] Boolector Version 3.2.1 master-6500a7be548fd22d8de08ec2621caec6aa97697b
+[btor>main]  -std=gnu99 -W -Wall -Wextra -Wredundant-decls -O3
+[btor>main] released 2020-12-08T13:56:40
+[btor>main] compiled 2020-12-08T13:56:40
+[btor>main] GNU 7.5.0
+[btor>main] setting signal handlers
+[btor>main] no time limit given
+[btor>parse] assuming SMT-LIB v2 input,  parsing '<stdin>'
+[btor>smt2] parsed 674 commands in 0.00 seconds
+[btor>core] calling SAT
+[btor>core] found UFs, disable slice elimination
+[btor>varsubst] 94 variables substituted in 0.0 seconds
+[btor>embed] replaced 36 embedded constraints in 0 seconds
+[btor>extract] set: 1 (2), set_inc: 0 (0), set_itoi: 0 (0), set_itoip1: 0 (0), cpy: 0 (0)
+[btor>extract] extracted 1 lambdas in 0.000 seconds
+[btor>merge] merged 0 lambdas in 0.00 seconds
+[btor>preprocess] 1 rewriting rounds in 0.0 seconds
+[btor>preprocess] simplification returned 0
+[btor>slvfun] enabled core engine
+[btor>sat] CaDiCaL allows both incremental and non-incremental mode
+[btor>sat] initialized CaDiCaL
+[btor>slvfun] 2763 AIG vars, 10394 AIG ands, 8693 CNF vars, 20022 CNF clauses
+[btor>core] SAT call 2 returned 20 in 0.000 seconds
+unsat
+[btor>smt2] WARNING no 'exit' command at end of '<stdin>'
+[btor>smt2] parsed 675 commands in 0.00 seconds
+[btor>parse] logic QF_AUFBV
+[btor>parse] status unknown
+[btor>sat] 1 SAT calls in 0.0 seconds
+[btor>core] 94/57/466/281 constraints 0/0/0/281 1.1 MB
+[btor>core] 0 assumptions
+[btor>core] 
+[btor>core] 0.30 MB allocated for nodes
+[btor>core] 
+[btor>core]     0 variable substitutions
+[btor>core]     0 uninterpreted function substitutions
+[btor>core]     0 embedded constraint substitutions
+[btor>core]     0 synthesized nodes rewritten
+[btor>core]     0 linear constraint equations
+[btor>core]     0 gaussian eliminations in linear equations
+[btor>core]     0 eliminated sliced variables
+[btor>core]     0 extracted skeleton constraints
+[btor>core]   126 and normalizations
+[btor>core]     0 add normalizations
+[btor>core]     0 mul normalizations
+[btor>core]     0 lambdas merged
+[btor>core]     0 static apply propagations over lambdas
+[btor>core]     0 static apply propagations over updates
+[btor>core]     0 beta reductions
+[btor>core]     0 clone calls
+[btor>core] 
+[btor>core] rewrite rule cache
+[btor>core]   208 cached (add) 
+[btor>core]   40 cached (get)
+[btor>core]   0 updated
+[btor>core]   0 removed (gc)
+[btor>core]   0.02 MB cache
+[btor>core] 
+[btor>core] bit blasting statistics:
+[btor>core]      1795 AIG vectors (1795 max)
+[btor>core]     10394 AIG ANDs (10394 max)
+[btor>core]      2763 AIG variables
+[btor>core]      8693 CNF variables
+[btor>core]     20022 CNF clauses
+[btor>core]     52670 CNF literals
+[btor>slvfun] 
+[btor>slvfun] lemmas on demand statistics:
+[btor>slvfun]    0 refinement iterations
+[btor>slvfun]    0 LOD refinements
+[btor>slvfun] 
+[btor>slvfun]       0 expression evaluations
+[btor>slvfun]       0 partial beta reductions
+[btor>slvfun]       0 propagations
+[btor>slvfun]       0 propagations down
+[btor>core] 
+[btor>core] 1.1 MB
+[btor>main] unsat
+[concubine>main] solving took 0.033562 seconds

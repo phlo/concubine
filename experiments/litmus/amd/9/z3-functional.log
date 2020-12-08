@@ -1,0 +1,29 @@
+[litmus/run.sh] running 132: litmus/amd/9/run.sh z3 functional
+[concubine>main] encoding took 0.010265 seconds
+[concubine>main] generated 4168 commands
+(:added-eqs           89776
+ :array-ax1           21
+ :array-ax2           1298
+ :array-ext-ax        1
+ :binary-propagations 201091
+ :bv-bit2core         186051
+ :bv-diseqs           17
+ :bv-dynamic-diseqs   91
+ :bv->core-eq         865
+ :conflicts           1370
+ :decisions           2457
+ :del-clause          2968
+ :eliminated-vars     574
+ :max-memory          7.44
+ :memory              4.73
+ :minimized-lits      21787
+ :mk-bool-var         47773
+ :mk-clause           7208
+ :num-allocs          12795351
+ :num-checks          1
+ :propagations        476535
+ :restarts            12
+ :rlimit-count        1016221
+ :time                0.45)
+unsat
+[concubine>main] solving took 0.451282 seconds

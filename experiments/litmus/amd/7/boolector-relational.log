@@ -1,0 +1,128 @@
+[litmus/run.sh] running 115: litmus/amd/7/run.sh boolector relational
+[concubine>main] encoding took 0.015979 seconds
+[concubine>main] generated 5723 commands
+[btor>main] Boolector Version 3.2.1 master-6500a7be548fd22d8de08ec2621caec6aa97697b
+[btor>main]  -std=gnu99 -W -Wall -Wextra -Wredundant-decls -O3
+[btor>main] released 2020-12-08T13:56:40
+[btor>main] compiled 2020-12-08T13:56:40
+[btor>main] GNU 7.5.0
+[btor>main] setting signal handlers
+[btor>main] no time limit given
+[btor>parse] assuming SMT-LIB v2 input,  parsing '<stdin>'
+[btor>smt2] parsed 1488 commands in 0.00 seconds
+[btor>core] calling SAT
+[btor>core] found UFs, disable slice elimination
+[btor>varsubst] 190 variables substituted in 0.0 seconds
+[btor>embed] replaced 78 embedded constraints in 0 seconds
+[btor>extract] set: 1 (2), set_inc: 0 (0), set_itoi: 0 (0), set_itoip1: 0 (0), cpy: 0 (0)
+[btor>extract] extracted 1 lambdas in 0.000 seconds
+[btor>merge] merged 0 lambdas in 0.00 seconds
+[btor>preprocess] 1 rewriting rounds in 0.0 seconds
+[btor>preprocess] simplification returned 0
+[btor>slvfun] enabled core engine
+[btor>sat] CaDiCaL allows both incremental and non-incremental mode
+[btor>sat] initialized CaDiCaL
+[btor>slvfun] 5564 AIG vars, 25773 AIG ands, 20273 CNF vars, 49659 CNF clauses
+[btorcore] 1 iterations, 3 lemmas, 0 ext. lemmas, vars 518, applies 123
+[btor>slvfun] 5564 AIG vars, 26154 AIG ands, 20462 CNF vars, 50322 CNF clauses
+[btorcore] 2 iterations, 25 lemmas, 0 ext. lemmas, vars 518, applies 123
+[btor>slvfun] 5564 AIG vars, 29530 AIG ands, 22142 CNF vars, 56210 CNF clauses
+[btorcore] 3 iterations, 73 lemmas, 0 ext. lemmas, vars 518, applies 123
+[btor>slvfun] 5564 AIG vars, 33417 AIG ands, 24269 CNF vars, 63471 CNF clauses
+[btorcore] 4 iterations, 101 lemmas, 0 ext. lemmas, vars 518, applies 123
+[btor>slvfun] 5564 AIG vars, 37623 AIG ands, 26363 CNF vars, 70809 CNF clauses
+[btorcore] 5 iterations, 147 lemmas, 0 ext. lemmas, vars 518, applies 123
+[btor>slvfun] 5564 AIG vars, 41098 AIG ands, 28270 CNF vars, 77314 CNF clauses
+[btorcore] 6 iterations, 150 lemmas, 0 ext. lemmas, vars 518, applies 123
+[btor>slvfun] 5564 AIG vars, 41479 AIG ands, 28459 CNF vars, 77977 CNF clauses
+[btorcore] 7 iterations, 207 lemmas, 57 ext. lemmas, vars 518, applies 168
+[btor>slvfun] 6284 AIG vars, 44953 AIG ands, 30925 CNF vars, 84079 CNF clauses
+[btorcore] 8 iterations, 225 lemmas, 57 ext. lemmas, vars 518, applies 168
+[btor>slvfun] 6284 AIG vars, 46299 AIG ands, 31599 CNF vars, 86437 CNF clauses
+[btorcore] 9 iterations, 263 lemmas, 57 ext. lemmas, vars 518, applies 168
+[btor>slvfun] 6284 AIG vars, 49039 AIG ands, 32995 CNF vars, 91297 CNF clauses
+[btorcore] 10 iterations, 277 lemmas, 57 ext. lemmas, vars 518, applies 168
+[btor>slvfun] 6284 AIG vars, 50067 AIG ands, 33511 CNF vars, 93101 CNF clauses
+[btorcore] 11 iterations, 290 lemmas, 57 ext. lemmas, vars 518, applies 168
+[btor>slvfun] 6284 AIG vars, 51169 AIG ands, 34069 CNF vars, 95047 CNF clauses
+[btorcore] 12 iterations, 301 lemmas, 57 ext. lemmas, vars 518, applies 168
+[btor>slvfun] 6284 AIG vars, 52002 AIG ands, 34486 CNF vars, 96506 CNF clauses
+[btorcore] 13 iterations, 316 lemmas, 57 ext. lemmas, vars 518, applies 168
+[btor>slvfun] 6284 AIG vars, 53029 AIG ands, 35001 CNF vars, 98307 CNF clauses
+[btorcore] 14 iterations, 329 lemmas, 57 ext. lemmas, vars 518, applies 168
+[btor>slvfun] 6284 AIG vars, 54059 AIG ands, 35519 CNF vars, 100117 CNF clauses
+[btorcore] 15 iterations, 330 lemmas, 57 ext. lemmas, vars 518, applies 168
+[btor>slvfun] 6284 AIG vars, 54186 AIG ands, 35582 CNF vars, 100338 CNF clauses
+[btorcore] 16 iterations, 402 lemmas, 129 ext. lemmas, vars 518, applies 237
+[btor>slvfun] 7388 AIG vars, 58746 AIG ands, 38974 CNF vars, 108338 CNF clauses
+[btorcore] 17 iterations, 435 lemmas, 129 ext. lemmas, vars 518, applies 237
+[btor>slvfun] 7388 AIG vars, 61755 AIG ands, 40479 CNF vars, 113605 CNF clauses
+[btorcore] 18 iterations, 479 lemmas, 129 ext. lemmas, vars 518, applies 237
+[btor>slvfun] 7388 AIG vars, 65483 AIG ands, 42351 CNF vars, 120149 CNF clauses
+[btorcore] 19 iterations, 509 lemmas, 129 ext. lemmas, vars 518, applies 237
+[btor>slvfun] 7388 AIG vars, 67793 AIG ands, 43509 CNF vars, 124199 CNF clauses
+[btorcore] 20 iterations, 535 lemmas, 129 ext. lemmas, vars 518, applies 237
+[btor>slvfun] 7388 AIG vars, 69840 AIG ands, 44532 CNF vars, 127780 CNF clauses
+[btor>core] SAT call 2 returned 20 in 0.000 seconds
+unsat
+[btor>smt2] WARNING no 'exit' command at end of '<stdin>'
+[btor>smt2] parsed 1489 commands in 0.00 seconds
+[btor>parse] logic QF_AUFBV
+[btor>parse] status unknown
+[btor>sat] 21 SAT calls in 0.0 seconds
+[btor>core] 190/109/1592/1214 constraints 0/0/0/1214 5.5 MB
+[btor>core] 0 assumptions
+[btor>core] 
+[btor>core] 0.89 MB allocated for nodes
+[btor>core] 
+[btor>core]     0 variable substitutions
+[btor>core]     0 uninterpreted function substitutions
+[btor>core]     0 embedded constraint substitutions
+[btor>core]     0 synthesized nodes rewritten
+[btor>core]     0 linear constraint equations
+[btor>core]     0 gaussian eliminations in linear equations
+[btor>core]     0 eliminated sliced variables
+[btor>core]     0 extracted skeleton constraints
+[btor>core]   286 and normalizations
+[btor>core]     0 add normalizations
+[btor>core]     0 mul normalizations
+[btor>core]     0 lambdas merged
+[btor>core]     2 static apply propagations over lambdas
+[btor>core]     3 static apply propagations over updates
+[btor>core]     2 beta reductions
+[btor>core]     0 clone calls
+[btor>core] 
+[btor>core] rewrite rule cache
+[btor>core]   594 cached (add) 
+[btor>core]   102 cached (get)
+[btor>core]   0 updated
+[btor>core]   0 removed (gc)
+[btor>core]   0.05 MB cache
+[btor>core] 
+[btor>core] bit blasting statistics:
+[btor>core]      5683 AIG vectors (5683 max)
+[btor>core]     69840 AIG ANDs (69840 max)
+[btor>core]      7388 AIG variables
+[btor>core]     44532 CNF variables
+[btor>core]    127780 CNF clauses
+[btor>core]    341748 CNF literals
+[btor>slvfun] 
+[btor>slvfun] lemmas on demand statistics:
+[btor>slvfun]   20 refinement iterations
+[btor>slvfun]  535 LOD refinements
+[btor>slvfun]    355 function congruence conflicts
+[btor>slvfun]     51 beta reduction conflicts
+[btor>slvfun]    129 extensionality lemmas
+[btor>slvfun]   1.1 average lemma size
+[btor>slvfun]      220 lemmas of size 1
+[btor>slvfun]      164 lemmas of size 2
+[btor>slvfun]       22 lemmas of size 3
+[btor>slvfun] 
+[btor>slvfun]      22 expression evaluations
+[btor>slvfun]      22 partial beta reductions
+[btor>slvfun]    4134 propagations
+[btor>slvfun]     833 propagations down
+[btor>core] 
+[btor>core] 5.6 MB
+[btor>main] unsat
+[concubine>main] solving took 0.710315 seconds

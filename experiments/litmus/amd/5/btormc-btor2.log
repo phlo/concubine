@@ -1,0 +1,70 @@
+[litmus/run.sh] running 99: litmus/amd/5/run.sh btormc btor2
+[concubine>main] encoding took 0.000614 seconds
+[concubine>main] generated 188 commands
+[btormc] parsing input file...
+[btormc] finished parsing
+[btor>mc] calling BMC on 1 properties from bound 12 up-to maximum bound k = 12
+[btor>mc] trace generation enabled
+[btor>mc] new forward manager
+[btor>mc] initialized forward frame at bound k = 0
+[btor>mc] initialized forward frame at bound k = 1
+[btor>mc] initialized forward frame at bound k = 2
+[btor>mc] initialized forward frame at bound k = 3
+[btor>mc] initialized forward frame at bound k = 4
+[btor>mc] initialized forward frame at bound k = 5
+[btor>mc] initialized forward frame at bound k = 6
+[btor>mc] initialized forward frame at bound k = 7
+[btor>mc] initialized forward frame at bound k = 8
+[btor>mc] initialized forward frame at bound k = 9
+[btor>mc] initialized forward frame at bound k = 10
+[btor>mc] initialized forward frame at bound k = 11
+[btor>mc] initialized forward frame at bound k = 12
+[btor>mc] checking forward frame at bound k = 12
+[btor>mc] checking forward frame bad state property 0 at bound k = 12
+[btor>core] calling SAT
+[btor>core] found UFs, disable slice elimination
+[btor>varsubst] 4 variables substituted in 0.0 seconds
+[btor>embed] replaced 100 embedded constraints in 0 seconds
+[btor>extract] set: 0 (0), set_inc: 0 (0), set_itoi: 0 (0), set_itoip1: 0 (0), cpy: 0 (0)
+[btor>extract] extracted 0 lambdas in 0.000 seconds
+[btor>preprocess] 1 rewriting rounds in 0.0 seconds
+[btor>preprocess] simplification returned 0
+[btor>slvfun] enabled core engine
+[btor>sat] CaDiCaL allows both incremental and non-incremental mode
+[btor>sat] initialized CaDiCaL
+[btor>slvfun] 336 AIG vars, 3202 AIG ands, 2400 CNF vars, 6761 CNF clauses
+[btorcore] 1 iterations, 10 lemmas, 0 ext. lemmas, vars 48, applies 20
+[btor>slvfun] 336 AIG vars, 3708 AIG ands, 2680 CNF vars, 7714 CNF clauses
+[btorcore] 2 iterations, 14 lemmas, 0 ext. lemmas, vars 48, applies 20
+[btor>slvfun] 336 AIG vars, 3965 AIG ands, 2809 CNF vars, 8165 CNF clauses
+[btorcore] 3 iterations, 16 lemmas, 0 ext. lemmas, vars 48, applies 20
+[btor>slvfun] 336 AIG vars, 4036 AIG ands, 2846 CNF vars, 8293 CNF clauses
+[btorcore] 4 iterations, 18 lemmas, 0 ext. lemmas, vars 48, applies 20
+[btor>slvfun] 336 AIG vars, 4165 AIG ands, 2911 CNF vars, 8520 CNF clauses
+[btorcore] 5 iterations, 21 lemmas, 0 ext. lemmas, vars 48, applies 20
+[btor>slvfun] 336 AIG vars, 4358 AIG ands, 3008 CNF vars, 8859 CNF clauses
+[btorcore] 6 iterations, 23 lemmas, 0 ext. lemmas, vars 48, applies 20
+[btor>slvfun] 336 AIG vars, 4424 AIG ands, 3042 CNF vars, 8977 CNF clauses
+[btorcore] 7 iterations, 24 lemmas, 0 ext. lemmas, vars 48, applies 20
+[btor>slvfun] 336 AIG vars, 4425 AIG ands, 3043 CNF vars, 8980 CNF clauses
+[btorcore] 8 iterations, 25 lemmas, 0 ext. lemmas, vars 48, applies 20
+[btor>slvfun] 336 AIG vars, 4445 AIG ands, 3061 CNF vars, 9035 CNF clauses
+[btorcore] 9 iterations, 27 lemmas, 0 ext. lemmas, vars 48, applies 20
+[btor>slvfun] 336 AIG vars, 4511 AIG ands, 3095 CNF vars, 9153 CNF clauses
+[btorcore] 10 iterations, 29 lemmas, 0 ext. lemmas, vars 48, applies 20
+[btor>slvfun] 336 AIG vars, 4577 AIG ands, 3129 CNF vars, 9271 CNF clauses
+[btorcore] 11 iterations, 32 lemmas, 0 ext. lemmas, vars 48, applies 20
+[btor>slvfun] 336 AIG vars, 4663 AIG ands, 3181 CNF vars, 9444 CNF clauses
+[btorcore] 12 iterations, 37 lemmas, 0 ext. lemmas, vars 48, applies 20
+[btor>slvfun] 336 AIG vars, 4751 AIG ands, 3235 CNF vars, 9623 CNF clauses
+[btorcore] 13 iterations, 39 lemmas, 0 ext. lemmas, vars 48, applies 20
+[btor>slvfun] 336 AIG vars, 4817 AIG ands, 3269 CNF vars, 9741 CNF clauses
+[btorcore] 14 iterations, 40 lemmas, 0 ext. lemmas, vars 48, applies 20
+[btor>slvfun] 336 AIG vars, 4826 AIG ands, 3276 CNF vars, 9763 CNF clauses
+[btorcore] 15 iterations, 42 lemmas, 0 ext. lemmas, vars 48, applies 20
+[btor>slvfun] 336 AIG vars, 4892 AIG ands, 3310 CNF vars, 9881 CNF clauses
+[btor>core] SAT call 2 returned 20 in 0.000 seconds
+[btor>mc] bad state property 0 at bound k = 12 UNSATISFIABLE
+[btor>mc] found 0 reachable and 0 unreachable bad state properties at bound k = 12
+[btor>mc] deleting model checker: 4 inputs, 26 states, 1 bad, 6 constraints
+[concubine>main] solving took 0.040377 seconds

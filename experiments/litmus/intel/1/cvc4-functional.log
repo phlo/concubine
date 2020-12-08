@@ -1,0 +1,7 @@
+[litmus/run.sh] running 4: litmus/intel/1/run.sh cvc4 functional
+[concubine>main] encoding took 0.003159 seconds
+[concubine>main] generated 2051 commands
+minisat: Incremental solving is forced on (to avoid variable elimination) unless using internal decision strategy.
+unsat
+Cannot get model unless immediately preceded by SAT/NOT_ENTAILED or UNKNOWN response.
+[concubine>main] solving took 0.057903 seconds
