@@ -175,3 +175,15 @@
 [runlim] sample:		1508.39 time, 1510.01 real, 172 MB
 [runlim] sample:		1518.39 time, 1520.01 real, 172 MB
 [runlim] sample:		1528.39 time, 1530.01 real, 172 MB
+[runlim] sample:		1538.39 time, 1540.01 real, 172 MB
+[runlim] sample:		1548.39 time, 1550.01 real, 172 MB
+[runlim] sample:		1558.39 time, 1560.01 real, 173 MB
+[runlim] sample:		1568.39 time, 1570.01 real, 173 MB
+[runlim] end:			Tue Dec  8 14:24:31 2020
+[runlim] status:		ok
+[runlim] result:		0
+[runlim] children:		1
+[runlim] real:			1575.11 seconds
+[runlim] time:			1573.39 seconds
+[runlim] space:			178 MB
+[runlim] samples:		15750

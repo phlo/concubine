@@ -171,3 +171,51 @@
 [runlim] sample:		0.01 time, 1510.01 real, 5 MB
 [runlim] sample:		0.01 time, 1520.01 real, 5 MB
 [runlim] sample:		0.01 time, 1530.01 real, 5 MB
+[runlim] sample:		0.01 time, 1540.01 real, 5 MB
+[runlim] sample:		0.01 time, 1550.01 real, 5 MB
+[runlim] sample:		0.01 time, 1560.01 real, 5 MB
+[runlim] sample:		0.01 time, 1570.01 real, 5 MB
+[runlim] sample:		0.01 time, 1580.01 real, 5 MB
+[runlim] sample:		0.01 time, 1590.01 real, 5 MB
+[runlim] sample:		0.01 time, 1600.01 real, 5 MB
+[runlim] sample:		0.01 time, 1610.01 real, 5 MB
+[runlim] sample:		0.01 time, 1620.01 real, 5 MB
+[runlim] sample:		0.01 time, 1630.01 real, 5 MB
+[runlim] sample:		0.01 time, 1640.01 real, 5 MB
+[runlim] sample:		0.01 time, 1650.01 real, 5 MB
+[runlim] sample:		0.01 time, 1660.01 real, 5 MB
+[runlim] sample:		0.01 time, 1670.01 real, 5 MB
+[runlim] sample:		0.01 time, 1680.01 real, 5 MB
+[runlim] sample:		0.01 time, 1690.01 real, 5 MB
+[runlim] sample:		0.01 time, 1700.01 real, 5 MB
+[runlim] sample:		0.01 time, 1710.01 real, 5 MB
+[runlim] sample:		0.01 time, 1720.01 real, 5 MB
+[runlim] sample:		0.01 time, 1730.01 real, 5 MB
+[runlim] sample:		0.01 time, 1740.01 real, 5 MB
+[runlim] sample:		0.01 time, 1750.01 real, 5 MB
+[runlim] sample:		0.01 time, 1760.01 real, 5 MB
+[runlim] sample:		0.01 time, 1770.01 real, 5 MB
+[runlim] sample:		0.01 time, 1780.01 real, 5 MB
+[runlim] sample:		0.01 time, 1790.01 real, 5 MB
+[runlim] sample:		0.01 time, 1800.01 real, 5 MB
+[runlim] sample:		0.01 time, 1810.01 real, 5 MB
+[runlim] sample:		0.01 time, 1820.01 real, 5 MB
+[runlim] sample:		0.01 time, 1830.01 real, 5 MB
+[runlim] sample:		0.01 time, 1840.01 real, 5 MB
+[runlim] sample:		0.01 time, 1850.01 real, 5 MB
+[runlim] sample:		0.01 time, 1860.01 real, 5 MB
+[runlim] sample:		0.01 time, 1870.01 real, 5 MB
+[runlim] sample:		0.01 time, 1880.01 real, 5 MB
+[runlim] sample:		0.01 time, 1890.01 real, 5 MB
+[runlim] sample:		0.01 time, 1900.01 real, 5 MB
+[runlim] sample:		0.01 time, 1910.01 real, 5 MB
+[runlim] sample:		0.01 time, 1920.01 real, 5 MB
+[runlim] end:			Tue Dec  8 14:30:28 2020
+[runlim] status:		ok
+[runlim] result:		0
+[runlim] children:		1
+[runlim] real:			1929.61 seconds
+[runlim] time:			0.01 seconds
+[runlim] space:			5 MB
+[runlim] samples:		19296
+[count_stat/run.sh] error: expected test to be unsat

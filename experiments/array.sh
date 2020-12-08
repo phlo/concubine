@@ -1,5 +1,5 @@
 #!/bin/sh
-#SBATCH -J pimsimt
+#SBATCH -J psimsimt
 #SBATCH -c 2
 #SBATCH -a 1-259
 #SBATCH -o /dev/null
