@@ -14,7 +14,7 @@ cd "$dir"
 ./contrib/setup-btor2tools.sh
 ./contrib/setup-cadical.sh
 
-./configure.sh
+./configure.sh --no-minisat --no-cms --no-picosat
 
 cd build
 
