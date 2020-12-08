@@ -23,7 +23,7 @@ GTEST_FILTER += "*"
 
 GTEST_FILTER := $(shell echo ${GTEST_FILTER} | sed -e 's/ /:/g')
 
-GTEST_CMD = $(BUILDDIR)/$(GTEST_APP) $(GTEST_FILTER)
+GTEST_CMD = $(shell pwd)/$(GTEST_APP) $(GTEST_FILTER)
 GTEST_DIR = ../test/lib/googletest/googletest
 GTEST_LIB = $(GTEST_DIR)/make/gtest-all.o
 
@@ -42,7 +42,7 @@ VPATH += :../test
 $(GTEST_APP): CXXFLAGS += -isystem $(GTEST_DIR)/include -I../src -D__TEST__
 $(GTEST_APP): LDFLAGS += -lpthread
 $(GTEST_APP): $(OBJ) $(GTEST_OBJ) main_gtest.cc
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(WFLAGS) $(GTEST_LIB) $^ -o $@
+	$(CXX) $(CXXFLAGS) $(WFLAGS) $(GTEST_LIB) $^ $(LDFLAGS) -o $@
 
 $(GTEST_OBJ): $(GTEST_LIB)
 

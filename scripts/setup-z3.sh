@@ -11,11 +11,11 @@ download_github "Z3Prover/z3" "$version" "$dir"
 
 cd "$dir"
 
-./configure
+./configure --prefix=${DEPS_DIR}/install
 
 cd build
 
 make -j${NPROC}
+make install
 
-install_include ../src/api/c++/z3++.h
-install_lib libz3.so
+rm "${INSTALL_BIN_DIR}/z3"

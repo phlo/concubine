@@ -3,7 +3,6 @@ CXXFLAGS = @CXXFLAGS@
 LDFLAGS = @LDFLAGS@
 WFLAGS = @WFLAGS@
 MAKEFLAGS = @MAKEFLAGS@
-BUILDDIR = $(shell pwd)
 
 #------------------------------------------------------------------------------#
 
@@ -15,7 +14,7 @@ VPATH = ../src
 
 $(APP): main.cc $(OBJ) Makefile
 	mkdir -p bin
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(WFLAGS) $(OBJ) $< -o $@
+	$(CXX) $(CXXFLAGS) $(WFLAGS) $(OBJ) $< $(LDFLAGS) -o $@
 
 #------------------------------------------------------------------------------#
 

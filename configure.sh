@@ -1,5 +1,6 @@
 #!/bin/bash
 
+DEPSDIR=deps/install
 BUILDDIR=build
 
 #------------------------------------------------------------------------------#
@@ -145,18 +146,18 @@ $WFLAGS \
 "
 
 LDFLAGS="-lz3"
-[ $static = yes ] && LDFLAGS="$LDFLAGS -static"
+[ $static = yes ] && die "static linking not yet supported"
 
 #------------------------------------------------------------------------------#
 
 echo '#include "z3++.h"' \
-  | g++ -H -fsyntax-only -x c++ -Ideps/install/include - > /dev/null 2>&1 \
+  | g++ -H -fsyntax-only -x c++ -I${DEPSDIR}/include - > /dev/null 2>&1 \
     || die "missing z3 (either install system wide or use 'scripts/setup-z3')"
 
-if [ -f deps/install/lib/libz3.so ]
+if [ -f ${DEPSDIR}/lib/libz3.so ]
 then
-  CXXFLAGS="$CXXFLAGS -I../deps/install/include"
-  LDFLAGS="-L../deps/install/lib $LDFLAGS"
+  CXXFLAGS="$CXXFLAGS -I../${DEPSDIR}/include"
+  LDFLAGS="-L../${DEPSDIR}/lib -Wl,-rpath,$(realpath ${DEPSDIR}/lib) $LDFLAGS"
   WFLAGS=${WFLAGS/ -Wold-style-cast/}
   WFLAGS=${WFLAGS/ -Wsign-conversion/}
   WFLAGS=${WFLAGS/ -Wshadow/}
