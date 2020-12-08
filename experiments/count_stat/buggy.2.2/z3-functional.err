@@ -23,3 +23,16 @@
 [runlim] sample:		9.34 time, 10.01 real, 103 MB
 [runlim] sample:		19.34 time, 20.01 real, 104 MB
 [runlim] sample:		29.34 time, 30.01 real, 106 MB
+[runlim] sample:		39.34 time, 40.01 real, 107 MB
+[runlim] sample:		49.34 time, 50.01 real, 108 MB
+[runlim] sample:		59.34 time, 60.01 real, 114 MB
+[runlim] sample:		69.34 time, 70.01 real, 118 MB
+[runlim] sample:		79.35 time, 80.01 real, 118 MB
+[runlim] end:			Tue Dec  8 13:59:41 2020
+[runlim] status:		ok
+[runlim] result:		0
+[runlim] children:		1
+[runlim] real:			81.99 seconds
+[runlim] time:			81.24 seconds
+[runlim] space:			119 MB
+[runlim] samples:		819

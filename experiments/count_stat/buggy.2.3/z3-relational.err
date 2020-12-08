@@ -24,3 +24,36 @@
 [runlim] sample:		7.01 time, 10.01 real, 32 MB
 [runlim] sample:		17.01 time, 20.01 real, 32 MB
 [runlim] sample:		27.01 time, 30.01 real, 32 MB
+[runlim] sample:		37.01 time, 40.01 real, 32 MB
+[runlim] sample:		47.01 time, 50.01 real, 34 MB
+[runlim] sample:		57.01 time, 60.01 real, 34 MB
+[runlim] sample:		67.01 time, 70.01 real, 34 MB
+[runlim] sample:		77.01 time, 80.01 real, 34 MB
+[runlim] sample:		87.01 time, 90.01 real, 76 MB
+[runlim] sample:		97.00 time, 100.01 real, 78 MB
+[runlim] sample:		107.01 time, 110.01 real, 83 MB
+[runlim] sample:		117.01 time, 120.01 real, 84 MB
+[runlim] sample:		127.01 time, 130.01 real, 87 MB
+[runlim] sample:		137.01 time, 140.01 real, 87 MB
+[runlim] sample:		147.01 time, 150.01 real, 89 MB
+[runlim] sample:		157.00 time, 160.01 real, 90 MB
+[runlim] sample:		167.00 time, 170.01 real, 91 MB
+[runlim] sample:		177.00 time, 180.01 real, 91 MB
+[runlim] sample:		187.00 time, 190.01 real, 92 MB
+[runlim] sample:		197.00 time, 200.01 real, 92 MB
+[runlim] sample:		207.01 time, 210.01 real, 93 MB
+[runlim] sample:		217.01 time, 220.01 real, 94 MB
+[runlim] sample:		227.01 time, 230.01 real, 95 MB
+[runlim] sample:		237.01 time, 240.01 real, 96 MB
+[runlim] sample:		247.01 time, 250.01 real, 96 MB
+[runlim] sample:		257.01 time, 260.01 real, 97 MB
+[runlim] sample:		267.01 time, 270.01 real, 97 MB
+[runlim] sample:		277.01 time, 280.01 real, 97 MB
+[runlim] end:			Tue Dec  8 14:02:55 2020
+[runlim] status:		ok
+[runlim] result:		0
+[runlim] children:		1
+[runlim] real:			280.89 seconds
+[runlim] time:			277.80 seconds
+[runlim] space:			99 MB
+[runlim] samples:		2808

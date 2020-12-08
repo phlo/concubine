@@ -22,3 +22,25 @@
 [runlim] sample:		0.00 time, 10.01 real, 5 MB
 [runlim] sample:		0.00 time, 20.01 real, 5 MB
 [runlim] sample:		0.00 time, 30.01 real, 5 MB
+[runlim] sample:		0.00 time, 40.01 real, 5 MB
+[runlim] sample:		0.00 time, 50.01 real, 5 MB
+[runlim] sample:		0.00 time, 60.01 real, 5 MB
+[runlim] sample:		0.00 time, 70.01 real, 5 MB
+[runlim] sample:		0.00 time, 80.01 real, 5 MB
+[runlim] sample:		0.00 time, 90.01 real, 5 MB
+[runlim] sample:		0.00 time, 100.01 real, 5 MB
+[runlim] sample:		0.00 time, 110.01 real, 5 MB
+[runlim] sample:		0.00 time, 120.01 real, 5 MB
+[runlim] sample:		0.00 time, 130.01 real, 5 MB
+[runlim] sample:		0.00 time, 140.01 real, 5 MB
+[runlim] sample:		0.00 time, 150.01 real, 5 MB
+[runlim] sample:		0.00 time, 160.01 real, 5 MB
+[runlim] sample:		0.00 time, 170.01 real, 5 MB
+[runlim] end:			Tue Dec  8 14:01:15 2020
+[runlim] status:		ok
+[runlim] result:		0
+[runlim] children:		1
+[runlim] real:			173.57 seconds
+[runlim] time:			0.00 seconds
+[runlim] space:			6 MB
+[runlim] samples:		1735

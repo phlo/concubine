@@ -1,1 +1,21 @@
 [litmus/run.sh] running 103: litmus/amd/5/run.sh cvc4 relational
+[concubine>main] encoding took 0.014348 seconds
+[concubine>main] generated 3830 commands
+minisat: Incremental solving is forced on (to avoid variable elimination) unless using internal decision strategy.
+============================[ Search Statistics ]==============================
+| Conflicts |          ORIGINAL         |          LEARNT          | Progress |
+|           |    Vars  Clauses Literals |    Limit  Clauses Lit/Cl |          |
+===============================================================================
+|       100 |    1239     4170    11098 |     6249      146      4 |  1.431 % |
+|       250 |    1370     4228    11214 |     9373      406      7 |  1.791 % |
+|       475 |    1655     4367    11492 |    14060      811     12 |  2.012 % |
+|       812 |    1857     4689    12136 |    21090     1202     16 |  6.957 % |
+|      1318 |    1899     4991    12740 |    31635     1956     18 |  6.860 % |
+|      2077 |    1901     5310    13378 |    47453     2468     19 |  8.817 % |
+|      3216 |    1946     5711    14180 |    71180     3826     20 |  8.631 % |
+|      4924 |    1882     6631    16020 |   106770     4286     20 | 12.377 % |
+|      7486 |    1862     7490    17738 |   160155     7038     20 | 13.303 % |
+===============================================================================
+unsat
+Cannot get model unless immediately preceded by SAT/NOT_ENTAILED or UNKNOWN response.
+[concubine>main] solving took 127.24 seconds
