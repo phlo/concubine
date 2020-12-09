@@ -12,10 +12,10 @@ download_github "CVC4/CVC4" "$version" "$dir"
 cd "$dir"
 
 ./contrib/get-antlr-3.4
-./contrib/get-kissat
+./contrib/get-cadical
 # ldconfig -p | grep -q "libgmp" || ./contrib/get-gmp-dev
 
-./configure.sh --kissat
+./configure.sh --cadical
 
 cd build
 

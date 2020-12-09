@@ -1,5 +1,7 @@
 #!/bin/bash
 #
+# Run litmus test.
+#
 # usage: $0 <encoder> <solver>
 
 function msg () {
@@ -32,7 +34,7 @@ cmd="concubine solve -v -s $solver"
 [ -f init.mmap ] && cmd="$cmd -m init.mmap"
 
 # append output file naming
-output=$solver-$encoder
+output="$solver-$encoder"
 cmd="$cmd -o $output $bound"
 
 # append bound

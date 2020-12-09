@@ -1,8 +1,8 @@
 #!/bin/bash
 #
-# usage: $0 <variant> <n> <m> <encoder> <solver>
+# Run count_stat experiment.
 #
-# Generate input files and run count_stat experiment.
+# usage: $0 <variant> <n> <m> <encoder> <solver>
 
 function msg () {
   echo "[count_stat/run.sh] $*"
@@ -27,10 +27,11 @@ encoder=$5
 [ -z $encoder ] && die "missing encoder"
 
 # create test directory
-dir=$variant.$n.$m
-mkdir -p $dir
+dir="$variant.$n.$m"
 cwd=$(pwd)
-cd $dir
+cd $dir 2> /dev/null || die "missing count_stat/$dir - run './init.sh $( \
+  awk '{ print $2 }' <<< "$MSG" | tr -d ':' \
+)'"
 
 # base command
 cmd="concubine solve -v -s $solver"
@@ -39,20 +40,18 @@ cmd="concubine solve -v -s $solver"
 [ $encoder = functional ] && cmd="$cmd -e smtlib"
 [ $encoder = relational ] && cmd="$cmd -e smtlib-relational"
 
-# create and append mmap
-mmap=init.mmap
-echo "0 0" > $mmap
-cmd="$cmd -m $mmap"
+# append mmap
+cmd="$cmd -m init.mmap"
 
 # append output file naming
-output=$solver-$encoder
-cmd="$cmd -o $output $bound"
+output="$solver-$encoder"
+cmd="$cmd -o $output"
 
 # select template
-checker_template=$cwd/count_stat.checker.template
+checker_template="$cwd/count_stat.checker.template"
 case $variant in
-  buggy) thread_template=$cwd/count_stat.buggy.template ;;
-  cas) thread_template=$cwd/count_stat.cas.template ;;
+  buggy) thread_template="$cwd/count_stat.buggy.template" ;;
+  cas) thread_template="$cwd/count_stat.cas.template" ;;
   *) die "unknown variant [$variant]" ;;
 esac
 
@@ -65,29 +64,10 @@ checker=$(grep "total =" $checker_template | grep -o "[[:digit:]]\+")
 bound=$((formula * m + checker))
 cmd="$cmd $bound"
 
-# create threads
-for t in $(seq 0 $((m - 1)))
-do
-  adr=$((t + 10))
-  prog=$(basename ${thread_template%.*}.$t.asm)
+# append threads
+cmd="$cmd $(basename ${thread_template%.*}).*.asm"
 
-  # generate program
-  sed -e "s/<adr>/$adr/g" \
-      -e "s/\<n\>/$n/g" \
-      $thread_template > $prog
-
-  # append local counter to mmap
-  echo "$adr $n" >> $mmap
-
-  # append program
-  cmd="$cmd $prog"
-done
-
-# generate and append checker
-sed -e "s/<sum>/$((n * m))/g" \
-    -e "s/\<n\>/$n/g" \
-    -e "s/\<m\>/$m/g" \
-    $checker_template > count_stat.checker.asm
+# append checker
 cmd="$cmd count_stat.checker.asm"
 
 # run statistical counter experiment using runlim

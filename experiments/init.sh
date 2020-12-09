@@ -1,41 +1,27 @@
 #!/bin/bash
 #
-# Run experiments from our benchmark array (see README.md).
+# Initialize experiments from our benchmark array (see README.md).
 #
 # usage: $0 [<id> ...]
 
 function die () {
-  echo "[run.sh] error: $*" 1>&2
+  echo "[init.sh] error: $*" 1>&2
   exit 1
 }
 
 # make sure we'r in the experiments directory
 [ -d count_stat ] || die "$(basename $0) not called from experiments directory"
 
-. ../scripts/set-search-path.sh -f || die 'unable to set $PATH'
-
-# check if runlim is available
-! which runlim &> /dev/null && die "missing runlim"
-
-# export runlim commands
-RUNLIM='
-  msg $MSG;
-  exec 1>"$output".log 2>"$output".err;
-  msg $MSG;
-  runlim
-    --single
-    --time-limit=86400
-    --real-time-limit=86400
-    --space-limit=8000
-'
-export RUNLIM
+# create temporary log file
+export INITIALIZED=$(mktemp --tmpdir init-XXX.log)
+trap "rm -rf $INITIALIZED" EXIT
 
 # parse benchmark array
 [ -z "$*" ] \
   && experiments=$(grep -o "^| \w\+\s\+|" README.md | awk '{print $2}') \
   || experiments=$*
 
-# run experiments
+# init experiments
 for i in $experiments
 do
   # split experiment into bash array {id, dir, cmd}
@@ -49,9 +35,11 @@ do
   exp=("${exp[@]/#+([[:blank:]])/}") # remove leading
   exp=("${exp[@]/%+([[:blank:]])/}") # remove trailing
 
-  # run
-  export MSG="running ${exp[0]}: ${exp[1]}/${exp[2]}"
+  # init
+  [ ! -f ${exp[1]}/init.sh ] && continue
+  exp[2]=${exp[2]/run\.sh/init.sh}
+  export MSG="initialized ${exp[0]}: ${exp[1]}/${exp[2]}"
   pushd ${exp[1]} > /dev/null
-  ./${exp[2]} # || exit 1 # TODO: kill whole run?
+  ./${exp[2]}
   popd > /dev/null
 done
