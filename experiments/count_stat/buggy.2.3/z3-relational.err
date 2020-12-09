@@ -1,0 +1,60 @@
+[runlim] version:		1.21
+[runlim] host:			c3n32
+[runlim] time limit:		86400 seconds
+[runlim] real time limit:	86400 seconds
+[runlim] space limit:		8000 MB
+[runlim] argv[0]:		concubine
+[runlim] argv[1]:		solve
+[runlim] argv[2]:		-v
+[runlim] argv[3]:		-s
+[runlim] argv[4]:		z3
+[runlim] argv[5]:		-e
+[runlim] argv[6]:		smtlib-relational
+[runlim] argv[7]:		-m
+[runlim] argv[8]:		init.mmap
+[runlim] argv[9]:		-o
+[runlim] argv[10]:		z3-relational
+[runlim] argv[11]:		65
+[runlim] argv[12]:		count_stat.buggy.0.asm
+[runlim] argv[13]:		count_stat.buggy.1.asm
+[runlim] argv[14]:		count_stat.buggy.2.asm
+[runlim] argv[15]:		count_stat.checker.asm
+[runlim] start:			Tue Dec  8 20:17:53 2020
+[runlim] child:			19517
+[runlim] sample:		6.10 time, 10.01 real, 32 MB
+[runlim] sample:		16.10 time, 20.01 real, 32 MB
+[runlim] sample:		26.10 time, 30.01 real, 32 MB
+[runlim] sample:		36.10 time, 40.01 real, 32 MB
+[runlim] sample:		46.10 time, 50.01 real, 34 MB
+[runlim] sample:		56.10 time, 60.01 real, 34 MB
+[runlim] sample:		66.10 time, 70.01 real, 34 MB
+[runlim] sample:		76.10 time, 80.01 real, 34 MB
+[runlim] sample:		86.10 time, 90.01 real, 73 MB
+[runlim] sample:		96.10 time, 100.01 real, 77 MB
+[runlim] sample:		106.10 time, 110.01 real, 78 MB
+[runlim] sample:		116.10 time, 120.01 real, 83 MB
+[runlim] sample:		126.11 time, 130.01 real, 84 MB
+[runlim] sample:		136.11 time, 140.01 real, 87 MB
+[runlim] sample:		146.11 time, 150.01 real, 87 MB
+[runlim] sample:		156.10 time, 160.01 real, 89 MB
+[runlim] sample:		166.10 time, 170.01 real, 90 MB
+[runlim] sample:		176.10 time, 180.01 real, 91 MB
+[runlim] sample:		186.10 time, 190.01 real, 91 MB
+[runlim] sample:		196.10 time, 200.01 real, 92 MB
+[runlim] sample:		206.10 time, 210.01 real, 92 MB
+[runlim] sample:		216.10 time, 220.01 real, 93 MB
+[runlim] sample:		226.10 time, 230.01 real, 94 MB
+[runlim] sample:		236.10 time, 240.01 real, 95 MB
+[runlim] sample:		246.10 time, 250.01 real, 95 MB
+[runlim] sample:		256.10 time, 260.01 real, 95 MB
+[runlim] sample:		266.11 time, 270.01 real, 96 MB
+[runlim] sample:		276.11 time, 280.01 real, 97 MB
+[runlim] sample:		286.11 time, 290.01 real, 97 MB
+[runlim] end:			Tue Dec  8 20:22:49 2020
+[runlim] status:		ok
+[runlim] result:		0
+[runlim] children:		1
+[runlim] real:			295.84 seconds
+[runlim] time:			291.90 seconds
+[runlim] space:			99 MB
+[runlim] samples:		2958

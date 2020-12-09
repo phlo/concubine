@@ -1,0 +1,31 @@
+[runlim] version:		1.21
+[runlim] host:			c3n22
+[runlim] time limit:		86400 seconds
+[runlim] real time limit:	86400 seconds
+[runlim] space limit:		8000 MB
+[runlim] argv[0]:		concubine
+[runlim] argv[1]:		solve
+[runlim] argv[2]:		-v
+[runlim] argv[3]:		-s
+[runlim] argv[4]:		btormc
+[runlim] argv[5]:		-m
+[runlim] argv[6]:		init.mmap
+[runlim] argv[7]:		-o
+[runlim] argv[8]:		btormc-btor2
+[runlim] argv[9]:		111
+[runlim] argv[10]:		count_stat.cas.0.asm
+[runlim] argv[11]:		count_stat.cas.1.asm
+[runlim] argv[12]:		count_stat.checker.asm
+[runlim] start:			Tue Dec  8 20:17:57 2020
+[runlim] child:			20866
+[runlim] sample:		0.00 time, 10.01 real, 5 MB
+[runlim] sample:		0.00 time, 20.01 real, 5 MB
+[runlim] end:			Tue Dec  8 20:18:23 2020
+[runlim] status:		ok
+[runlim] result:		0
+[runlim] children:		1
+[runlim] real:			25.70 seconds
+[runlim] time:			0.00 seconds
+[runlim] space:			5 MB
+[runlim] samples:		256
+[count_stat/run.sh] error: expected test to be unsat

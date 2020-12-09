@@ -1,0 +1,12 @@
+[litmus/run.sh] running 68: litmus/intel/10/run.sh cvc4 relational
+[concubine>main] encoding took 0.007312 seconds
+[concubine>main] generated 2252 commands
+minisat: Incremental solving is forced on (to avoid variable elimination) unless using internal decision strategy.
+============================[ Search Statistics ]==============================
+| Conflicts |          ORIGINAL         |          LEARNT          | Progress |
+|           |    Vars  Clauses Literals |    Limit  Clauses Lit/Cl |          |
+===============================================================================
+===============================================================================
+unsat
+Cannot get model unless immediately preceded by SAT/NOT_ENTAILED or UNKNOWN response.
+[concubine>main] solving took 0.22613 seconds

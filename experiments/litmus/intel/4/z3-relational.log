@@ -1,0 +1,25 @@
+[litmus/run.sh] running 28: litmus/intel/4/run.sh z3 relational
+[concubine>main] encoding took 0.00238 seconds
+[concubine>main] generated 724 commands
+(:added-eqs               70
+ :array-ax1               3
+ :binary-propagations     308
+ :bv-bit2core             130
+ :bv-diseqs               1
+ :bv->core-eq             13
+ :conflicts               12
+ :decisions               73
+ :eliminated-applications 8
+ :eliminated-vars         64
+ :max-memory              3.72
+ :memory                  3.18
+ :minimized-lits          2
+ :mk-bool-var             358
+ :mk-clause               177
+ :num-allocs              501568
+ :num-checks              1
+ :propagations            444
+ :rlimit-count            19914
+ :time                    0.03)
+unsat
+[concubine>main] solving took 0.049722 seconds

@@ -1,0 +1,793 @@
+[litmus/run.sh] running 97: litmus/amd/4/run.sh z3 functional
+[concubine>main] encoding took 0.006977 seconds
+[concubine>main] generated 2408 commands
+(:added-eqs           1598
+ :arith-make-feasible 1
+ :arith-max-columns   4
+ :array-ax1           13
+ :array-ax2           1
+ :array-def-store     6
+ :array-exp-ax2       12
+ :array-splits        1
+ :binary-propagations 7104
+ :bv-bit2core         3648
+ :bv-diseqs           9
+ :bv->core-eq         22
+ :conflicts           70
+ :decisions           446
+ :eliminated-vars     334
+ :final-checks        4
+ :max-memory          5.57
+ :memory              3.86
+ :minimized-lits      208
+ :mk-bool-var         2600
+ :mk-clause           2085
+ :num-allocs          1667354
+ :num-checks          1
+ :propagations        11451
+ :rlimit-count        83077
+ :time                0.03)
+sat
+(define-fun thread_10_0 () Bool
+  false)
+(define-fun thread_6_0 () Bool
+  true)
+(define-fun thread_5_0 () Bool
+  true)
+(define-fun flush_9_1 () Bool
+  false)
+(define-fun thread_6_1 () Bool
+  false)
+(define-fun thread_1_0 () Bool
+  false)
+(define-fun flush_3_1 () Bool
+  false)
+(define-fun thread_3_0 () Bool
+  false)
+(define-fun flush_7_0 () Bool
+  true)
+(define-fun thread_0_0 () Bool
+  false)
+(define-fun flush_5_1 () Bool
+  false)
+(define-fun thread_8_0 () Bool
+  true)
+(define-fun thread_9_0 () Bool
+  true)
+(define-fun thread_10_1 () Bool
+  false)
+(define-fun thread_2_1 () Bool
+  false)
+(define-fun flush_6_1 () Bool
+  false)
+(define-fun flush_8_0 () Bool
+  false)
+(define-fun thread_9_1 () Bool
+  false)
+(define-fun flush_4_0 () Bool
+  false)
+(define-fun thread_1_1 () Bool
+  true)
+(define-fun thread_4_1 () Bool
+  true)
+(define-fun flush_2_1 () Bool
+  true)
+(define-fun thread_4_0 () Bool
+  false)
+(define-fun flush_10_0 () Bool
+  false)
+(define-fun flush_4_1 () Bool
+  false)
+(define-fun flush_5_0 () Bool
+  false)
+(define-fun thread_7_1 () Bool
+  false)
+(define-fun flush_8_1 () Bool
+  false)
+(define-fun flush_2_0 () Bool
+  false)
+(define-fun thread_0_1 () Bool
+  true)
+(define-fun thread_8_1 () Bool
+  false)
+(define-fun thread_5_1 () Bool
+  false)
+(define-fun thread_3_1 () Bool
+  true)
+(define-fun thread_7_0 () Bool
+  false)
+(define-fun flush_7_1 () Bool
+  false)
+(define-fun thread_2_0 () Bool
+  false)
+(define-fun flush_9_0 () Bool
+  false)
+(define-fun flush_6_0 () Bool
+  false)
+(define-fun flush_3_0 () Bool
+  false)
+(define-fun flush_10_1 () Bool
+  false)
+(define-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16))
+  ((as const (Array (_ BitVec 16) (_ BitVec 16))) #x0000))
+(define-fun exit-code () (_ BitVec 16)
+  #x0000)
+(define-fun exit_10 () Bool
+  true)
+(define-fun heap_10 () (Array (_ BitVec 16) (_ BitVec 16))
+  (store (store ((as const (Array (_ BitVec 16) (_ BitVec 16))) #x0000)
+              #x0001
+              #x0001)
+       #x0000
+       #x0001))
+(define-fun halt_10_1 () Bool
+  true)
+(define-fun halt_10_0 () Bool
+  true)
+(define-fun sb-full_10_1 () Bool
+  false)
+(define-fun sb-full_10_0 () Bool
+  false)
+(define-fun sb-val_10_1 () (_ BitVec 16)
+  #x0001)
+(define-fun sb-val_10_0 () (_ BitVec 16)
+  #x0001)
+(define-fun sb-adr_10_1 () (_ BitVec 16)
+  #x0001)
+(define-fun sb-adr_10_0 () (_ BitVec 16)
+  #x0000)
+(define-fun mem_10_1 () (_ BitVec 16)
+  #x0000)
+(define-fun mem_10_0 () (_ BitVec 16)
+  #x0000)
+(define-fun accu_10_1 () (_ BitVec 16)
+  #x0000)
+(define-fun accu_10_0 () (_ BitVec 16)
+  #x0001)
+(define-fun exec_10_1_3 () Bool
+  false)
+(define-fun stmt_10_1_3 () Bool
+  false)
+(define-fun exec_10_1_2 () Bool
+  false)
+(define-fun stmt_10_1_2 () Bool
+  false)
+(define-fun exec_10_1_1 () Bool
+  false)
+(define-fun stmt_10_1_1 () Bool
+  false)
+(define-fun exec_10_1_0 () Bool
+  false)
+(define-fun stmt_10_1_0 () Bool
+  false)
+(define-fun exec_10_0_3 () Bool
+  false)
+(define-fun stmt_10_0_3 () Bool
+  false)
+(define-fun exec_10_0_2 () Bool
+  false)
+(define-fun stmt_10_0_2 () Bool
+  false)
+(define-fun exec_10_0_1 () Bool
+  false)
+(define-fun stmt_10_0_1 () Bool
+  false)
+(define-fun exec_10_0_0 () Bool
+  false)
+(define-fun stmt_10_0_0 () Bool
+  false)
+(define-fun exit_9 () Bool
+  false)
+(define-fun heap_9 () (Array (_ BitVec 16) (_ BitVec 16))
+  (store (store ((as const (Array (_ BitVec 16) (_ BitVec 16))) #x0000)
+              #x0001
+              #x0001)
+       #x0000
+       #x0001))
+(define-fun halt_9_1 () Bool
+  true)
+(define-fun halt_9_0 () Bool
+  false)
+(define-fun sb-full_9_1 () Bool
+  false)
+(define-fun sb-full_9_0 () Bool
+  false)
+(define-fun sb-val_9_1 () (_ BitVec 16)
+  #x0001)
+(define-fun sb-val_9_0 () (_ BitVec 16)
+  #x0001)
+(define-fun sb-adr_9_1 () (_ BitVec 16)
+  #x0001)
+(define-fun sb-adr_9_0 () (_ BitVec 16)
+  #x0000)
+(define-fun mem_9_1 () (_ BitVec 16)
+  #x0000)
+(define-fun mem_9_0 () (_ BitVec 16)
+  #x0000)
+(define-fun accu_9_1 () (_ BitVec 16)
+  #x0000)
+(define-fun accu_9_0 () (_ BitVec 16)
+  #x0001)
+(define-fun exec_9_1_3 () Bool
+  false)
+(define-fun stmt_9_1_3 () Bool
+  false)
+(define-fun exec_9_1_2 () Bool
+  false)
+(define-fun stmt_9_1_2 () Bool
+  false)
+(define-fun exec_9_1_1 () Bool
+  false)
+(define-fun stmt_9_1_1 () Bool
+  false)
+(define-fun exec_9_1_0 () Bool
+  false)
+(define-fun stmt_9_1_0 () Bool
+  false)
+(define-fun exec_9_0_3 () Bool
+  true)
+(define-fun stmt_9_0_3 () Bool
+  true)
+(define-fun exec_9_0_2 () Bool
+  false)
+(define-fun stmt_9_0_2 () Bool
+  false)
+(define-fun exec_9_0_1 () Bool
+  false)
+(define-fun stmt_9_0_1 () Bool
+  false)
+(define-fun exec_9_0_0 () Bool
+  false)
+(define-fun stmt_9_0_0 () Bool
+  false)
+(define-fun exit_8 () Bool
+  false)
+(define-fun heap_8 () (Array (_ BitVec 16) (_ BitVec 16))
+  (store (store ((as const (Array (_ BitVec 16) (_ BitVec 16))) #x0000)
+              #x0001
+              #x0001)
+       #x0000
+       #x0001))
+(define-fun halt_8_1 () Bool
+  true)
+(define-fun halt_8_0 () Bool
+  false)
+(define-fun sb-full_8_1 () Bool
+  false)
+(define-fun sb-full_8_0 () Bool
+  false)
+(define-fun sb-val_8_1 () (_ BitVec 16)
+  #x0001)
+(define-fun sb-val_8_0 () (_ BitVec 16)
+  #x0001)
+(define-fun sb-adr_8_1 () (_ BitVec 16)
+  #x0001)
+(define-fun sb-adr_8_0 () (_ BitVec 16)
+  #x0000)
+(define-fun mem_8_1 () (_ BitVec 16)
+  #x0000)
+(define-fun mem_8_0 () (_ BitVec 16)
+  #x0000)
+(define-fun accu_8_1 () (_ BitVec 16)
+  #x0000)
+(define-fun accu_8_0 () (_ BitVec 16)
+  #x0001)
+(define-fun exec_8_1_3 () Bool
+  false)
+(define-fun stmt_8_1_3 () Bool
+  false)
+(define-fun exec_8_1_2 () Bool
+  false)
+(define-fun stmt_8_1_2 () Bool
+  false)
+(define-fun exec_8_1_1 () Bool
+  false)
+(define-fun stmt_8_1_1 () Bool
+  false)
+(define-fun exec_8_1_0 () Bool
+  false)
+(define-fun stmt_8_1_0 () Bool
+  false)
+(define-fun exec_8_0_3 () Bool
+  false)
+(define-fun stmt_8_0_3 () Bool
+  false)
+(define-fun exec_8_0_2 () Bool
+  true)
+(define-fun stmt_8_0_2 () Bool
+  true)
+(define-fun exec_8_0_1 () Bool
+  false)
+(define-fun stmt_8_0_1 () Bool
+  false)
+(define-fun exec_8_0_0 () Bool
+  false)
+(define-fun stmt_8_0_0 () Bool
+  false)
+(define-fun exit_7 () Bool
+  false)
+(define-fun heap_7 () (Array (_ BitVec 16) (_ BitVec 16))
+  (store ((as const (Array (_ BitVec 16) (_ BitVec 16))) #x0000) #x0001 #x0001))
+(define-fun halt_7_1 () Bool
+  true)
+(define-fun halt_7_0 () Bool
+  false)
+(define-fun sb-full_7_1 () Bool
+  false)
+(define-fun sb-full_7_0 () Bool
+  true)
+(define-fun sb-val_7_1 () (_ BitVec 16)
+  #x0001)
+(define-fun sb-val_7_0 () (_ BitVec 16)
+  #x0001)
+(define-fun sb-adr_7_1 () (_ BitVec 16)
+  #x0001)
+(define-fun sb-adr_7_0 () (_ BitVec 16)
+  #x0000)
+(define-fun mem_7_1 () (_ BitVec 16)
+  #x0000)
+(define-fun mem_7_0 () (_ BitVec 16)
+  #x0000)
+(define-fun accu_7_1 () (_ BitVec 16)
+  #x0000)
+(define-fun accu_7_0 () (_ BitVec 16)
+  #x0001)
+(define-fun exec_7_1_3 () Bool
+  false)
+(define-fun stmt_7_1_3 () Bool
+  false)
+(define-fun exec_7_1_2 () Bool
+  false)
+(define-fun stmt_7_1_2 () Bool
+  false)
+(define-fun exec_7_1_1 () Bool
+  false)
+(define-fun stmt_7_1_1 () Bool
+  false)
+(define-fun exec_7_1_0 () Bool
+  false)
+(define-fun stmt_7_1_0 () Bool
+  false)
+(define-fun exec_7_0_3 () Bool
+  false)
+(define-fun stmt_7_0_3 () Bool
+  false)
+(define-fun exec_7_0_2 () Bool
+  false)
+(define-fun stmt_7_0_2 () Bool
+  true)
+(define-fun exec_7_0_1 () Bool
+  false)
+(define-fun stmt_7_0_1 () Bool
+  false)
+(define-fun exec_7_0_0 () Bool
+  false)
+(define-fun stmt_7_0_0 () Bool
+  false)
+(define-fun exit_6 () Bool
+  false)
+(define-fun heap_6 () (Array (_ BitVec 16) (_ BitVec 16))
+  (store ((as const (Array (_ BitVec 16) (_ BitVec 16))) #x0000) #x0001 #x0001))
+(define-fun halt_6_1 () Bool
+  true)
+(define-fun halt_6_0 () Bool
+  false)
+(define-fun sb-full_6_1 () Bool
+  false)
+(define-fun sb-full_6_0 () Bool
+  false)
+(define-fun sb-val_6_1 () (_ BitVec 16)
+  #x0001)
+(define-fun sb-val_6_0 () (_ BitVec 16)
+  #x0000)
+(define-fun sb-adr_6_1 () (_ BitVec 16)
+  #x0001)
+(define-fun sb-adr_6_0 () (_ BitVec 16)
+  #x0000)
+(define-fun mem_6_1 () (_ BitVec 16)
+  #x0000)
+(define-fun mem_6_0 () (_ BitVec 16)
+  #x0000)
+(define-fun accu_6_1 () (_ BitVec 16)
+  #x0000)
+(define-fun accu_6_0 () (_ BitVec 16)
+  #x0001)
+(define-fun exec_6_1_3 () Bool
+  false)
+(define-fun stmt_6_1_3 () Bool
+  false)
+(define-fun exec_6_1_2 () Bool
+  false)
+(define-fun stmt_6_1_2 () Bool
+  false)
+(define-fun exec_6_1_1 () Bool
+  false)
+(define-fun stmt_6_1_1 () Bool
+  false)
+(define-fun exec_6_1_0 () Bool
+  false)
+(define-fun stmt_6_1_0 () Bool
+  false)
+(define-fun exec_6_0_3 () Bool
+  false)
+(define-fun stmt_6_0_3 () Bool
+  false)
+(define-fun exec_6_0_2 () Bool
+  false)
+(define-fun stmt_6_0_2 () Bool
+  false)
+(define-fun exec_6_0_1 () Bool
+  true)
+(define-fun stmt_6_0_1 () Bool
+  true)
+(define-fun exec_6_0_0 () Bool
+  false)
+(define-fun stmt_6_0_0 () Bool
+  false)
+(define-fun exit_5 () Bool
+  false)
+(define-fun heap_5 () (Array (_ BitVec 16) (_ BitVec 16))
+  (store ((as const (Array (_ BitVec 16) (_ BitVec 16))) #x0000) #x0001 #x0001))
+(define-fun halt_5_1 () Bool
+  true)
+(define-fun halt_5_0 () Bool
+  false)
+(define-fun sb-full_5_1 () Bool
+  false)
+(define-fun sb-full_5_0 () Bool
+  false)
+(define-fun sb-val_5_1 () (_ BitVec 16)
+  #x0001)
+(define-fun sb-val_5_0 () (_ BitVec 16)
+  #x0000)
+(define-fun sb-adr_5_1 () (_ BitVec 16)
+  #x0001)
+(define-fun sb-adr_5_0 () (_ BitVec 16)
+  #x0000)
+(define-fun mem_5_1 () (_ BitVec 16)
+  #x0000)
+(define-fun mem_5_0 () (_ BitVec 16)
+  #x0000)
+(define-fun accu_5_1 () (_ BitVec 16)
+  #x0000)
+(define-fun accu_5_0 () (_ BitVec 16)
+  #x0000)
+(define-fun exec_5_1_3 () Bool
+  false)
+(define-fun stmt_5_1_3 () Bool
+  false)
+(define-fun exec_5_1_2 () Bool
+  false)
+(define-fun stmt_5_1_2 () Bool
+  false)
+(define-fun exec_5_1_1 () Bool
+  false)
+(define-fun stmt_5_1_1 () Bool
+  false)
+(define-fun exec_5_1_0 () Bool
+  false)
+(define-fun stmt_5_1_0 () Bool
+  false)
+(define-fun exec_5_0_3 () Bool
+  false)
+(define-fun stmt_5_0_3 () Bool
+  false)
+(define-fun exec_5_0_2 () Bool
+  false)
+(define-fun stmt_5_0_2 () Bool
+  false)
+(define-fun exec_5_0_1 () Bool
+  false)
+(define-fun stmt_5_0_1 () Bool
+  false)
+(define-fun exec_5_0_0 () Bool
+  true)
+(define-fun stmt_5_0_0 () Bool
+  true)
+(define-fun exit_4 () Bool
+  false)
+(define-fun heap_4 () (Array (_ BitVec 16) (_ BitVec 16))
+  (store ((as const (Array (_ BitVec 16) (_ BitVec 16))) #x0000) #x0001 #x0001))
+(define-fun halt_4_1 () Bool
+  false)
+(define-fun halt_4_0 () Bool
+  false)
+(define-fun sb-full_4_1 () Bool
+  false)
+(define-fun sb-full_4_0 () Bool
+  false)
+(define-fun sb-val_4_1 () (_ BitVec 16)
+  #x0001)
+(define-fun sb-val_4_0 () (_ BitVec 16)
+  #x0000)
+(define-fun sb-adr_4_1 () (_ BitVec 16)
+  #x0001)
+(define-fun sb-adr_4_0 () (_ BitVec 16)
+  #x0000)
+(define-fun mem_4_1 () (_ BitVec 16)
+  #x0000)
+(define-fun mem_4_0 () (_ BitVec 16)
+  #x0000)
+(define-fun accu_4_1 () (_ BitVec 16)
+  #x0000)
+(define-fun accu_4_0 () (_ BitVec 16)
+  #x0000)
+(define-fun exec_4_1_3 () Bool
+  true)
+(define-fun stmt_4_1_3 () Bool
+  true)
+(define-fun exec_4_1_2 () Bool
+  false)
+(define-fun stmt_4_1_2 () Bool
+  false)
+(define-fun exec_4_1_1 () Bool
+  false)
+(define-fun stmt_4_1_1 () Bool
+  false)
+(define-fun exec_4_1_0 () Bool
+  false)
+(define-fun stmt_4_1_0 () Bool
+  false)
+(define-fun exec_4_0_3 () Bool
+  false)
+(define-fun stmt_4_0_3 () Bool
+  false)
+(define-fun exec_4_0_2 () Bool
+  false)
+(define-fun stmt_4_0_2 () Bool
+  false)
+(define-fun exec_4_0_1 () Bool
+  false)
+(define-fun stmt_4_0_1 () Bool
+  false)
+(define-fun exec_4_0_0 () Bool
+  false)
+(define-fun stmt_4_0_0 () Bool
+  true)
+(define-fun exit_3 () Bool
+  false)
+(define-fun heap_3 () (Array (_ BitVec 16) (_ BitVec 16))
+  (store ((as const (Array (_ BitVec 16) (_ BitVec 16))) #x0000) #x0001 #x0001))
+(define-fun halt_3_1 () Bool
+  false)
+(define-fun halt_3_0 () Bool
+  false)
+(define-fun sb-full_3_1 () Bool
+  false)
+(define-fun sb-full_3_0 () Bool
+  false)
+(define-fun sb-val_3_1 () (_ BitVec 16)
+  #x0001)
+(define-fun sb-val_3_0 () (_ BitVec 16)
+  #x0000)
+(define-fun sb-adr_3_1 () (_ BitVec 16)
+  #x0001)
+(define-fun sb-adr_3_0 () (_ BitVec 16)
+  #x0000)
+(define-fun mem_3_1 () (_ BitVec 16)
+  #x0000)
+(define-fun mem_3_0 () (_ BitVec 16)
+  #x0000)
+(define-fun accu_3_1 () (_ BitVec 16)
+  #x0001)
+(define-fun accu_3_0 () (_ BitVec 16)
+  #x0000)
+(define-fun exec_3_1_3 () Bool
+  false)
+(define-fun stmt_3_1_3 () Bool
+  false)
+(define-fun exec_3_1_2 () Bool
+  true)
+(define-fun stmt_3_1_2 () Bool
+  true)
+(define-fun exec_3_1_1 () Bool
+  false)
+(define-fun stmt_3_1_1 () Bool
+  false)
+(define-fun exec_3_1_0 () Bool
+  false)
+(define-fun stmt_3_1_0 () Bool
+  false)
+(define-fun exec_3_0_3 () Bool
+  false)
+(define-fun stmt_3_0_3 () Bool
+  false)
+(define-fun exec_3_0_2 () Bool
+  false)
+(define-fun stmt_3_0_2 () Bool
+  false)
+(define-fun exec_3_0_1 () Bool
+  false)
+(define-fun stmt_3_0_1 () Bool
+  false)
+(define-fun exec_3_0_0 () Bool
+  false)
+(define-fun stmt_3_0_0 () Bool
+  true)
+(define-fun exit_2 () Bool
+  false)
+(define-fun heap_2 () (Array (_ BitVec 16) (_ BitVec 16))
+  ((as const (Array (_ BitVec 16) (_ BitVec 16))) #x0000))
+(define-fun halt_2_1 () Bool
+  false)
+(define-fun halt_2_0 () Bool
+  false)
+(define-fun stmt_2_1_3 () Bool
+  false)
+(define-fun stmt_2_0_3 () Bool
+  false)
+(define-fun sb-full_2_1 () Bool
+  true)
+(define-fun sb-full_2_0 () Bool
+  false)
+(define-fun sb-val_2_1 () (_ BitVec 16)
+  #x0001)
+(define-fun sb-val_2_0 () (_ BitVec 16)
+  #x0000)
+(define-fun sb-adr_2_1 () (_ BitVec 16)
+  #x0001)
+(define-fun sb-adr_2_0 () (_ BitVec 16)
+  #x0000)
+(define-fun mem_2_1 () (_ BitVec 16)
+  #x0000)
+(define-fun mem_2_0 () (_ BitVec 16)
+  #x0000)
+(define-fun accu_2_1 () (_ BitVec 16)
+  #x0001)
+(define-fun accu_2_0 () (_ BitVec 16)
+  #x0000)
+(define-fun exec_2_1_3 () Bool
+  false)
+(define-fun exec_2_1_2 () Bool
+  false)
+(define-fun stmt_2_1_2 () Bool
+  true)
+(define-fun exec_2_1_1 () Bool
+  false)
+(define-fun stmt_2_1_1 () Bool
+  false)
+(define-fun exec_2_1_0 () Bool
+  false)
+(define-fun stmt_2_1_0 () Bool
+  false)
+(define-fun exec_2_0_3 () Bool
+  false)
+(define-fun exec_2_0_2 () Bool
+  false)
+(define-fun stmt_2_0_2 () Bool
+  false)
+(define-fun exec_2_0_1 () Bool
+  false)
+(define-fun stmt_2_0_1 () Bool
+  false)
+(define-fun exec_2_0_0 () Bool
+  false)
+(define-fun stmt_2_0_0 () Bool
+  true)
+(define-fun exit_1 () Bool
+  false)
+(define-fun heap_1 () (Array (_ BitVec 16) (_ BitVec 16))
+  ((as const (Array (_ BitVec 16) (_ BitVec 16))) #x0000))
+(define-fun halt_1_1 () Bool
+  false)
+(define-fun halt_1_0 () Bool
+  false)
+(define-fun stmt_1_1_3 () Bool
+  false)
+(define-fun stmt_1_1_2 () Bool
+  false)
+(define-fun stmt_1_0_3 () Bool
+  false)
+(define-fun stmt_1_0_2 () Bool
+  false)
+(define-fun sb-full_1_1 () Bool
+  false)
+(define-fun sb-full_1_0 () Bool
+  false)
+(define-fun sb-val_1_1 () (_ BitVec 16)
+  #x0000)
+(define-fun sb-val_1_0 () (_ BitVec 16)
+  #x0000)
+(define-fun sb-adr_1_1 () (_ BitVec 16)
+  #x0000)
+(define-fun sb-adr_1_0 () (_ BitVec 16)
+  #x0000)
+(define-fun mem_1_1 () (_ BitVec 16)
+  #x0000)
+(define-fun mem_1_0 () (_ BitVec 16)
+  #x0000)
+(define-fun accu_1_1 () (_ BitVec 16)
+  #x0001)
+(define-fun accu_1_0 () (_ BitVec 16)
+  #x0000)
+(define-fun flush_1_1 () Bool
+  false)
+(define-fun flush_1_0 () Bool
+  false)
+(define-fun exec_1_1_3 () Bool
+  false)
+(define-fun exec_1_1_2 () Bool
+  false)
+(define-fun exec_1_1_1 () Bool
+  true)
+(define-fun stmt_1_1_1 () Bool
+  true)
+(define-fun exec_1_1_0 () Bool
+  false)
+(define-fun stmt_1_1_0 () Bool
+  false)
+(define-fun exec_1_0_3 () Bool
+  false)
+(define-fun exec_1_0_2 () Bool
+  false)
+(define-fun exec_1_0_1 () Bool
+  false)
+(define-fun stmt_1_0_1 () Bool
+  false)
+(define-fun exec_1_0_0 () Bool
+  false)
+(define-fun stmt_1_0_0 () Bool
+  true)
+(define-fun exit_0 () Bool
+  false)
+(define-fun halt_0_1 () Bool
+  false)
+(define-fun halt_0_0 () Bool
+  false)
+(define-fun stmt_0_1_3 () Bool
+  false)
+(define-fun stmt_0_1_2 () Bool
+  false)
+(define-fun stmt_0_1_1 () Bool
+  false)
+(define-fun stmt_0_1_0 () Bool
+  true)
+(define-fun stmt_0_0_3 () Bool
+  false)
+(define-fun stmt_0_0_2 () Bool
+  false)
+(define-fun stmt_0_0_1 () Bool
+  false)
+(define-fun stmt_0_0_0 () Bool
+  true)
+(define-fun sb-full_0_1 () Bool
+  false)
+(define-fun sb-full_0_0 () Bool
+  false)
+(define-fun sb-val_0_1 () (_ BitVec 16)
+  #x0000)
+(define-fun sb-val_0_0 () (_ BitVec 16)
+  #x0000)
+(define-fun sb-adr_0_1 () (_ BitVec 16)
+  #x0000)
+(define-fun sb-adr_0_0 () (_ BitVec 16)
+  #x0000)
+(define-fun mem_0_1 () (_ BitVec 16)
+  #x0000)
+(define-fun mem_0_0 () (_ BitVec 16)
+  #x0000)
+(define-fun accu_0_1 () (_ BitVec 16)
+  #x0000)
+(define-fun accu_0_0 () (_ BitVec 16)
+  #x0000)
+(define-fun flush_0_1 () Bool
+  false)
+(define-fun flush_0_0 () Bool
+  false)
+(define-fun exec_0_1_3 () Bool
+  false)
+(define-fun exec_0_1_2 () Bool
+  false)
+(define-fun exec_0_1_1 () Bool
+  false)
+(define-fun exec_0_1_0 () Bool
+  true)
+(define-fun exec_0_0_3 () Bool
+  false)
+(define-fun exec_0_0_2 () Bool
+  false)
+(define-fun exec_0_0_1 () Bool
+  false)
+(define-fun exec_0_0_0 () Bool
+  false)
+[concubine>main] solving took 0.046977 seconds

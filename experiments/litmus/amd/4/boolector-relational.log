@@ -1,0 +1,695 @@
+[litmus/run.sh] running 94: litmus/amd/4/run.sh boolector relational
+[concubine>main] encoding took 0.009237 seconds
+[concubine>main] generated 2850 commands
+[btor>main] Boolector Version 3.2.1 master-6500a7be548fd22d8de08ec2621caec6aa97697b
+[btor>main]  -std=gnu99 -W -Wall -Wextra -Wredundant-decls -O3
+[btor>main] released 2020-12-08T13:56:40
+[btor>main] compiled 2020-12-08T13:56:40
+[btor>main] GNU 7.5.0
+[btor>main] setting signal handlers
+[btor>main] no time limit given
+[btor>parse] assuming SMT-LIB v2 input,  parsing '<stdin>'
+[btor>smt2] parsed 784 commands in 0.00 seconds
+[btor>core] calling SAT
+[btor>core] found UFs, disable slice elimination
+[btor>varsubst] 111 variables substituted in 0.0 seconds
+[btor>embed] replaced 42 embedded constraints in 0 seconds
+[btor>extract] set: 1 (2), set_inc: 0 (0), set_itoi: 0 (0), set_itoip1: 0 (0), cpy: 0 (0)
+[btor>extract] extracted 1 lambdas in 0.000 seconds
+[btor>merge] merged 0 lambdas in 0.00 seconds
+[btor>preprocess] 1 rewriting rounds in 0.0 seconds
+[btor>preprocess] simplification returned 0
+[btor>slvfun] enabled core engine
+[btor>sat] CaDiCaL allows both incremental and non-incremental mode
+[btor>sat] initialized CaDiCaL
+[btor>slvfun] 3128 AIG vars, 13614 AIG ands, 10986 CNF vars, 26452 CNF clauses
+[btorcore] 1 iterations, 31 lemmas, 31 ext. lemmas, vars 281, applies 100
+[btor>slvfun] 3528 AIG vars, 15502 AIG ands, 12346 CNF vars, 29796 CNF clauses
+[btorcore] 2 iterations, 46 lemmas, 31 ext. lemmas, vars 281, applies 100
+[btor>slvfun] 3528 AIG vars, 16462 AIG ands, 12826 CNF vars, 31476 CNF clauses
+[btorcore] 3 iterations, 53 lemmas, 38 ext. lemmas, vars 281, applies 104
+[btor>slvfun] 3592 AIG vars, 16910 AIG ands, 13114 CNF vars, 32260 CNF clauses
+[btorcore] 4 iterations, 55 lemmas, 38 ext. lemmas, vars 281, applies 104
+[btor>slvfun] 3592 AIG vars, 17165 AIG ands, 13241 CNF vars, 32705 CNF clauses
+[btorcore] 5 iterations, 85 lemmas, 38 ext. lemmas, vars 281, applies 104
+[btor>slvfun] 3592 AIG vars, 19975 AIG ands, 14739 CNF vars, 37855 CNF clauses
+[btorcore] 6 iterations, 101 lemmas, 38 ext. lemmas, vars 281, applies 104
+[btor>slvfun] 3592 AIG vars, 21438 AIG ands, 15498 CNF vars, 40484 CNF clauses
+[btorcore] 7 iterations, 115 lemmas, 38 ext. lemmas, vars 281, applies 104
+[btor>slvfun] 3592 AIG vars, 22782 AIG ands, 16170 CNF vars, 42836 CNF clauses
+[btorcore] 8 iterations, 140 lemmas, 38 ext. lemmas, vars 281, applies 104
+[btor>slvfun] 3592 AIG vars, 24528 AIG ands, 17084 CNF vars, 45994 CNF clauses
+[btorcore] 9 iterations, 148 lemmas, 38 ext. lemmas, vars 281, applies 104
+[btor>slvfun] 3592 AIG vars, 25170 AIG ands, 17406 CNF vars, 47120 CNF clauses
+[btorcore] 10 iterations, 152 lemmas, 38 ext. lemmas, vars 281, applies 104
+[btor>slvfun] 3592 AIG vars, 25428 AIG ands, 17536 CNF vars, 47574 CNF clauses
+[btorcore] 11 iterations, 157 lemmas, 38 ext. lemmas, vars 281, applies 104
+[btor>slvfun] 3592 AIG vars, 25811 AIG ands, 17727 CNF vars, 48243 CNF clauses
+[btorcore] 12 iterations, 162 lemmas, 38 ext. lemmas, vars 281, applies 104
+[btor>slvfun] 3592 AIG vars, 26324 AIG ands, 17984 CNF vars, 49142 CNF clauses
+[btorcore] 13 iterations, 187 lemmas, 63 ext. lemmas, vars 281, applies 125
+[btor>slvfun] 3928 AIG vars, 27861 AIG ands, 19089 CNF vars, 51833 CNF clauses
+[btorcore] 14 iterations, 198 lemmas, 63 ext. lemmas, vars 281, applies 125
+[btor>slvfun] 3928 AIG vars, 28822 AIG ands, 19570 CNF vars, 53516 CNF clauses
+[btorcore] 15 iterations, 218 lemmas, 63 ext. lemmas, vars 281, applies 125
+[btor>slvfun] 3928 AIG vars, 30208 AIG ands, 20316 CNF vars, 56074 CNF clauses
+[btorcore] 16 iterations, 239 lemmas, 63 ext. lemmas, vars 281, applies 125
+[btor>slvfun] 3928 AIG vars, 31947 AIG ands, 21191 CNF vars, 59131 CNF clauses
+[btorcore] 17 iterations, 247 lemmas, 63 ext. lemmas, vars 281, applies 125
+[btor>slvfun] 3928 AIG vars, 32590 AIG ands, 21514 CNF vars, 60260 CNF clauses
+[btorcore] 18 iterations, 252 lemmas, 63 ext. lemmas, vars 281, applies 125
+[btor>slvfun] 3928 AIG vars, 32976 AIG ands, 21708 CNF vars, 60938 CNF clauses
+[btorcore] 19 iterations, 264 lemmas, 63 ext. lemmas, vars 281, applies 125
+[btor>slvfun] 3928 AIG vars, 34003 AIG ands, 22223 CNF vars, 62739 CNF clauses
+[btorcore] 20 iterations, 268 lemmas, 63 ext. lemmas, vars 281, applies 125
+[btor>slvfun] 3928 AIG vars, 34449 AIG ands, 22445 CNF vars, 63517 CNF clauses
+[btorcore] 21 iterations, 304 lemmas, 99 ext. lemmas, vars 281, applies 162
+[btor>slvfun] 4520 AIG vars, 36690 AIG ands, 24158 CNF vars, 67440 CNF clauses
+[btorcore] 22 iterations, 322 lemmas, 99 ext. lemmas, vars 281, applies 162
+[btor>slvfun] 4520 AIG vars, 38227 AIG ands, 24927 CNF vars, 70131 CNF clauses
+[btorcore] 23 iterations, 344 lemmas, 99 ext. lemmas, vars 281, applies 162
+[btor>slvfun] 4520 AIG vars, 39896 AIG ands, 25764 CNF vars, 73058 CNF clauses
+[btorcore] 24 iterations, 345 lemmas, 99 ext. lemmas, vars 281, applies 162
+[btor>slvfun] 4520 AIG vars, 40023 AIG ands, 25827 CNF vars, 73279 CNF clauses
+[btorcore] 25 iterations, 347 lemmas, 99 ext. lemmas, vars 281, applies 162
+[btor>slvfun] 4520 AIG vars, 40151 AIG ands, 25891 CNF vars, 73503 CNF clauses
+[btorcore] 26 iterations, 357 lemmas, 99 ext. lemmas, vars 281, applies 162
+[btor>slvfun] 4520 AIG vars, 41112 AIG ands, 26372 CNF vars, 75186 CNF clauses
+[btorcore] 27 iterations, 401 lemmas, 143 ext. lemmas, vars 281, applies 204
+[btor>slvfun] 5192 AIG vars, 43802 AIG ands, 28390 CNF vars, 79896 CNF clauses
+[btorcore] 28 iterations, 438 lemmas, 143 ext. lemmas, vars 281, applies 204
+[btor>slvfun] 5192 AIG vars, 46939 AIG ands, 29959 CNF vars, 85387 CNF clauses
+[btorcore] 29 iterations, 457 lemmas, 143 ext. lemmas, vars 281, applies 204
+[btor>slvfun] 5192 AIG vars, 48352 AIG ands, 30668 CNF vars, 87866 CNF clauses
+[btorcore] 30 iterations, 458 lemmas, 143 ext. lemmas, vars 281, applies 204
+[btor>slvfun] 5192 AIG vars, 48479 AIG ands, 30731 CNF vars, 88087 CNF clauses
+[btorcore] 31 iterations, 459 lemmas, 143 ext. lemmas, vars 281, applies 204
+[btor>slvfun] 5192 AIG vars, 48543 AIG ands, 30763 CNF vars, 88199 CNF clauses
+[btorcore] 32 iterations, 501 lemmas, 185 ext. lemmas, vars 281, applies 247
+[btor>slvfun] 5880 AIG vars, 51105 AIG ands, 32733 CNF vars, 92685 CNF clauses
+[btorcore] 33 iterations, 521 lemmas, 185 ext. lemmas, vars 281, applies 247
+[btor>slvfun] 5880 AIG vars, 53022 AIG ands, 33690 CNF vars, 96036 CNF clauses
+[btorcore] 34 iterations, 552 lemmas, 185 ext. lemmas, vars 281, applies 247
+[btor>slvfun] 5880 AIG vars, 55448 AIG ands, 34900 CNF vars, 100274 CNF clauses
+[btorcore] 35 iterations, 581 lemmas, 185 ext. lemmas, vars 281, applies 247
+[btor>slvfun] 5880 AIG vars, 58005 AIG ands, 36177 CNF vars, 104745 CNF clauses
+[btorcore] 36 iterations, 602 lemmas, 185 ext. lemmas, vars 281, applies 247
+[btor>slvfun] 5880 AIG vars, 59922 AIG ands, 37134 CNF vars, 108096 CNF clauses
+[btorcore] 37 iterations, 633 lemmas, 185 ext. lemmas, vars 281, applies 247
+[btor>slvfun] 5880 AIG vars, 62539 AIG ands, 38439 CNF vars, 112667 CNF clauses
+[btorcore] 38 iterations, 666 lemmas, 185 ext. lemmas, vars 281, applies 247
+[btor>slvfun] 5880 AIG vars, 65236 AIG ands, 39792 CNF vars, 117398 CNF clauses
+[btorcore] 39 iterations, 673 lemmas, 185 ext. lemmas, vars 281, applies 247
+[btor>slvfun] 5880 AIG vars, 65937 AIG ands, 40141 CNF vars, 118621 CNF clauses
+[btorcore] 40 iterations, 678 lemmas, 185 ext. lemmas, vars 281, applies 247
+[btor>slvfun] 5880 AIG vars, 66321 AIG ands, 40333 CNF vars, 119293 CNF clauses
+[btorcore] 41 iterations, 689 lemmas, 185 ext. lemmas, vars 281, applies 247
+[btor>slvfun] 5880 AIG vars, 67343 AIG ands, 40843 CNF vars, 121079 CNF clauses
+[btorcore] 42 iterations, 700 lemmas, 185 ext. lemmas, vars 281, applies 247
+[btor>slvfun] 5880 AIG vars, 68177 AIG ands, 41261 CNF vars, 122541 CNF clauses
+[btorcore] 43 iterations, 703 lemmas, 185 ext. lemmas, vars 281, applies 247
+[btor>slvfun] 5880 AIG vars, 68495 AIG ands, 41419 CNF vars, 123095 CNF clauses
+[btorcore] 44 iterations, 718 lemmas, 185 ext. lemmas, vars 281, applies 247
+[btor>slvfun] 5880 AIG vars, 69521 AIG ands, 41933 CNF vars, 124893 CNF clauses
+[btorcore] 45 iterations, 721 lemmas, 185 ext. lemmas, vars 281, applies 247
+[btor>slvfun] 5880 AIG vars, 69778 AIG ands, 42062 CNF vars, 125344 CNF clauses
+[btorcore] 46 iterations, 725 lemmas, 185 ext. lemmas, vars 281, applies 247
+[btor>slvfun] 5880 AIG vars, 70097 AIG ands, 42221 CNF vars, 125901 CNF clauses
+[btorcore] 47 iterations, 726 lemmas, 185 ext. lemmas, vars 281, applies 247
+[btor>slvfun] 5880 AIG vars, 70161 AIG ands, 42253 CNF vars, 126013 CNF clauses
+[btorcore] 48 iterations, 769 lemmas, 228 ext. lemmas, vars 281, applies 284
+[btor>slvfun] 6472 AIG vars, 72787 AIG ands, 44159 CNF vars, 130611 CNF clauses
+[btorcore] 49 iterations, 796 lemmas, 228 ext. lemmas, vars 281, applies 284
+[btor>slvfun] 6472 AIG vars, 74963 AIG ands, 45247 CNF vars, 134419 CNF clauses
+[btorcore] 50 iterations, 798 lemmas, 228 ext. lemmas, vars 281, applies 284
+[btor>slvfun] 6472 AIG vars, 75154 AIG ands, 45342 CNF vars, 134752 CNF clauses
+[btorcore] 51 iterations, 799 lemmas, 228 ext. lemmas, vars 281, applies 284
+[btor>slvfun] 6472 AIG vars, 75281 AIG ands, 45405 CNF vars, 134973 CNF clauses
+[btorcore] 52 iterations, 811 lemmas, 228 ext. lemmas, vars 281, applies 284
+[btor>slvfun] 6472 AIG vars, 76243 AIG ands, 45887 CNF vars, 136659 CNF clauses
+[btorcore] 53 iterations, 821 lemmas, 228 ext. lemmas, vars 281, applies 284
+[btor>slvfun] 6472 AIG vars, 77072 AIG ands, 46300 CNF vars, 138106 CNF clauses
+[btorcore] 54 iterations, 835 lemmas, 228 ext. lemmas, vars 281, applies 284
+[btor>slvfun] 6472 AIG vars, 78163 AIG ands, 46847 CNF vars, 140019 CNF clauses
+[btorcore] 55 iterations, 837 lemmas, 228 ext. lemmas, vars 281, applies 284
+[btor>slvfun] 6472 AIG vars, 78418 AIG ands, 46974 CNF vars, 140464 CNF clauses
+[btorcore] 56 iterations, 838 lemmas, 228 ext. lemmas, vars 281, applies 284
+[btor>slvfun] 6472 AIG vars, 78482 AIG ands, 47006 CNF vars, 140576 CNF clauses
+[btorcore] 57 iterations, 865 lemmas, 255 ext. lemmas, vars 281, applies 314
+[btor>slvfun] 6952 AIG vars, 80210 AIG ands, 48350 CNF vars, 143600 CNF clauses
+[btorcore] 58 iterations, 877 lemmas, 255 ext. lemmas, vars 281, applies 314
+[btor>slvfun] 6952 AIG vars, 81295 AIG ands, 48891 CNF vars, 145495 CNF clauses
+[btorcore] 59 iterations, 914 lemmas, 292 ext. lemmas, vars 281, applies 350
+[btor>slvfun] 7528 AIG vars, 83537 AIG ands, 50589 CNF vars, 149421 CNF clauses
+[btorcore] 60 iterations, 927 lemmas, 292 ext. lemmas, vars 281, applies 350
+[btor>slvfun] 7528 AIG vars, 84690 AIG ands, 51166 CNF vars, 151440 CNF clauses
+[btorcore] 61 iterations, 946 lemmas, 292 ext. lemmas, vars 281, applies 350
+[btor>slvfun] 7528 AIG vars, 86477 AIG ands, 52057 CNF vars, 154561 CNF clauses
+[btorcore] 62 iterations, 953 lemmas, 292 ext. lemmas, vars 281, applies 350
+[btor>slvfun] 7528 AIG vars, 87051 AIG ands, 52343 CNF vars, 155563 CNF clauses
+[btorcore] 63 iterations, 967 lemmas, 292 ext. lemmas, vars 281, applies 350
+[btor>slvfun] 7528 AIG vars, 88200 AIG ands, 52916 CNF vars, 157570 CNF clauses
+[btorcore] 64 iterations, 993 lemmas, 292 ext. lemmas, vars 281, applies 350
+[btor>slvfun] 7528 AIG vars, 90244 AIG ands, 53936 CNF vars, 161142 CNF clauses
+[btorcore] 65 iterations, 1004 lemmas, 292 ext. lemmas, vars 281, applies 350
+[btor>slvfun] 7528 AIG vars, 91016 AIG ands, 54324 CNF vars, 162498 CNF clauses
+[btorcore] 66 iterations, 1019 lemmas, 292 ext. lemmas, vars 281, applies 350
+[btor>slvfun] 7528 AIG vars, 92293 AIG ands, 54961 CNF vars, 164729 CNF clauses
+[btorcore] 67 iterations, 1045 lemmas, 292 ext. lemmas, vars 281, applies 350
+[btor>slvfun] 7528 AIG vars, 94656 AIG ands, 56140 CNF vars, 168858 CNF clauses
+[btorcore] 68 iterations, 1061 lemmas, 292 ext. lemmas, vars 281, applies 350
+[btor>slvfun] 7528 AIG vars, 96000 AIG ands, 56812 CNF vars, 171210 CNF clauses
+[btorcore] 69 iterations, 1067 lemmas, 292 ext. lemmas, vars 281, applies 350
+[btor>slvfun] 7528 AIG vars, 96512 AIG ands, 57068 CNF vars, 172106 CNF clauses
+[btorcore] 70 iterations, 1071 lemmas, 292 ext. lemmas, vars 281, applies 350
+[btor>slvfun] 7528 AIG vars, 96895 AIG ands, 57259 CNF vars, 172775 CNF clauses
+[btorcore] 71 iterations, 1072 lemmas, 292 ext. lemmas, vars 281, applies 350
+[btor>slvfun] 7528 AIG vars, 96959 AIG ands, 57291 CNF vars, 172887 CNF clauses
+[btorcore] 72 iterations, 1117 lemmas, 337 ext. lemmas, vars 281, applies 394
+[btor>slvfun] 8232 AIG vars, 99713 AIG ands, 59373 CNF vars, 177709 CNF clauses
+[btorcore] 73 iterations, 1129 lemmas, 337 ext. lemmas, vars 281, applies 394
+[btor>slvfun] 8232 AIG vars, 100735 AIG ands, 59883 CNF vars, 179495 CNF clauses
+[btorcore] 74 iterations, 1140 lemmas, 337 ext. lemmas, vars 281, applies 394
+[btor>slvfun] 8232 AIG vars, 101691 AIG ands, 60359 CNF vars, 181163 CNF clauses
+[btorcore] 75 iterations, 1142 lemmas, 337 ext. lemmas, vars 281, applies 394
+[btor>slvfun] 8232 AIG vars, 101882 AIG ands, 60454 CNF vars, 181496 CNF clauses
+[btorcore] 76 iterations, 1159 lemmas, 354 ext. lemmas, vars 281, applies 414
+[btor>slvfun] 8552 AIG vars, 102970 AIG ands, 61318 CNF vars, 183400 CNF clauses
+[btorcore] 77 iterations, 1164 lemmas, 354 ext. lemmas, vars 281, applies 414
+[btor>slvfun] 8552 AIG vars, 103480 AIG ands, 61572 CNF vars, 184290 CNF clauses
+[btorcore] 78 iterations, 1179 lemmas, 354 ext. lemmas, vars 281, applies 414
+[btor>slvfun] 8552 AIG vars, 104881 AIG ands, 62269 CNF vars, 186733 CNF clauses
+[btorcore] 79 iterations, 1183 lemmas, 354 ext. lemmas, vars 281, applies 414
+[btor>slvfun] 8552 AIG vars, 105201 AIG ands, 62429 CNF vars, 187293 CNF clauses
+[btorcore] 80 iterations, 1197 lemmas, 354 ext. lemmas, vars 281, applies 414
+[btor>slvfun] 8552 AIG vars, 106288 AIG ands, 62972 CNF vars, 189194 CNF clauses
+[btorcore] 81 iterations, 1220 lemmas, 377 ext. lemmas, vars 281, applies 440
+[btor>slvfun] 8968 AIG vars, 107760 AIG ands, 64124 CNF vars, 191770 CNF clauses
+[btorcore] 82 iterations, 1225 lemmas, 377 ext. lemmas, vars 281, applies 440
+[btor>slvfun] 8968 AIG vars, 108270 AIG ands, 64378 CNF vars, 192660 CNF clauses
+[btorcore] 83 iterations, 1243 lemmas, 377 ext. lemmas, vars 281, applies 440
+[btor>slvfun] 8968 AIG vars, 109994 AIG ands, 65238 CNF vars, 195672 CNF clauses
+[btorcore] 84 iterations, 1260 lemmas, 377 ext. lemmas, vars 281, applies 440
+[btor>slvfun] 8968 AIG vars, 111212 AIG ands, 65848 CNF vars, 197806 CNF clauses
+[btorcore] 85 iterations, 1263 lemmas, 377 ext. lemmas, vars 281, applies 440
+[btor>slvfun] 8968 AIG vars, 111467 AIG ands, 65975 CNF vars, 198251 CNF clauses
+[btorcore] 86 iterations, 1270 lemmas, 384 ext. lemmas, vars 281, applies 448
+[btor>slvfun] 9096 AIG vars, 111915 AIG ands, 66327 CNF vars, 199035 CNF clauses
+[btorcore] 87 iterations, 1271 lemmas, 384 ext. lemmas, vars 281, applies 448
+[btor>slvfun] 9096 AIG vars, 112042 AIG ands, 66390 CNF vars, 199256 CNF clauses
+[btorcore] 88 iterations, 1273 lemmas, 384 ext. lemmas, vars 281, applies 448
+[btor>slvfun] 9096 AIG vars, 112170 AIG ands, 66454 CNF vars, 199480 CNF clauses
+[btorcore] 89 iterations, 1274 lemmas, 384 ext. lemmas, vars 281, applies 448
+[btor>slvfun] 9096 AIG vars, 112234 AIG ands, 66486 CNF vars, 199592 CNF clauses
+[btorcore] 90 iterations, 1280 lemmas, 390 ext. lemmas, vars 281, applies 455
+[btor>slvfun] 9208 AIG vars, 112618 AIG ands, 66790 CNF vars, 200264 CNF clauses
+[btorcore] 91 iterations, 1288 lemmas, 398 ext. lemmas, vars 281, applies 464
+[btor>slvfun] 9352 AIG vars, 113130 AIG ands, 67190 CNF vars, 201160 CNF clauses
+[btorcore] 92 iterations, 1290 lemmas, 400 ext. lemmas, vars 281, applies 467
+[btor>slvfun] 9400 AIG vars, 113258 AIG ands, 67302 CNF vars, 201384 CNF clauses
+[btorcore] 93 iterations, 1293 lemmas, 403 ext. lemmas, vars 281, applies 470
+[btor>slvfun] 9448 AIG vars, 113450 AIG ands, 67446 CNF vars, 201720 CNF clauses
+[btorcore] 94 iterations, 1296 lemmas, 406 ext. lemmas, vars 281, applies 473
+[btor>slvfun] 9496 AIG vars, 113642 AIG ands, 67590 CNF vars, 202056 CNF clauses
+[btor>core] SAT call 2 returned 10 in 0.000 seconds
+sat
+[btor>smt2] WARNING no 'exit' command at end of '<stdin>'
+[btor>smt2] parsed 785 commands in 0.00 seconds
+[btor>parse] logic QF_AUFBV
+[btor>parse] status unknown
+[btor>sat] 95 SAT calls in 0.0 seconds
+[btor>core] 111/62/1838/1620 constraints 0/0/0/1620 7.3 MB
+[btor>core] 0 assumptions
+[btor>core] 
+[btor>core] 0.92 MB allocated for nodes
+[btor>core] 
+[btor>core]     0 variable substitutions
+[btor>core]     0 uninterpreted function substitutions
+[btor>core]     0 embedded constraint substitutions
+[btor>core]     0 synthesized nodes rewritten
+[btor>core]     0 linear constraint equations
+[btor>core]     0 gaussian eliminations in linear equations
+[btor>core]     0 eliminated sliced variables
+[btor>core]     0 extracted skeleton constraints
+[btor>core]   160 and normalizations
+[btor>core]     0 add normalizations
+[btor>core]     0 mul normalizations
+[btor>core]     0 lambdas merged
+[btor>core]     2 static apply propagations over lambdas
+[btor>core]     2 static apply propagations over updates
+[btor>core]    12 beta reductions
+[btor>core]     0 clone calls
+[btor>core] 
+[btor>core] rewrite rule cache
+[btor>core]   653 cached (add) 
+[btor>core]   154 cached (get)
+[btor>core]   0 updated
+[btor>core]   0 removed (gc)
+[btor>core]   0.05 MB cache
+[btor>core] 
+[btor>core] bit blasting statistics:
+[btor>core]      5718 AIG vectors (5718 max)
+[btor>core]    113642 AIG ANDs (113642 max)
+[btor>core]      9496 AIG variables
+[btor>core]     67590 CNF variables
+[btor>core]    202056 CNF clauses
+[btor>core]    545528 CNF literals
+[btor>slvfun] 
+[btor>slvfun] lemmas on demand statistics:
+[btor>slvfun]   94 refinement iterations
+[btor>slvfun] 1296 LOD refinements
+[btor>slvfun]    843 function congruence conflicts
+[btor>slvfun]     47 beta reduction conflicts
+[btor>slvfun]    406 extensionality lemmas
+[btor>slvfun]   1.0 average lemma size
+[btor>slvfun]      558 lemmas of size 1
+[btor>slvfun]      285 lemmas of size 2
+[btor>slvfun]       47 lemmas of size 3
+[btor>slvfun] 
+[btor>slvfun]     298 expression evaluations
+[btor>slvfun]     298 partial beta reductions
+[btor>slvfun]   30755 propagations
+[btor>slvfun]    4890 propagations down
+[btor>core] 
+[btor>core] 7.5 MB
+[btor>main] sat
+2 0000000000000000 accu_0_0
+3 0000000000000000 accu_0_1
+4 0000000000000000 mem_0_0
+5 0000000000000000 mem_0_1
+6 0000000000000000 sb-adr_0_0
+7 0000000000000000 sb-adr_0_1
+8 0000000000000000 sb-val_0_0
+9 0000000000000000 sb-val_0_1
+10 0 sb-full_0_0
+11 0 sb-full_0_1
+12 1 stmt_0_0_0
+13 0 stmt_0_0_1
+14 0 stmt_0_0_2
+15 0 stmt_0_0_3
+16 1 stmt_0_1_0
+17 0 stmt_0_1_1
+18 0 stmt_0_1_2
+19 0 stmt_0_1_3
+20 0 halt_0_0
+21 0 halt_0_1
+22[0000000000000111] 1111111111111111 heap_0
+22[0100000000000000] 1111111111111111 heap_0
+22[0000000000000000] 0000000000000000 heap_0
+22[0000000000000001] 0000000000000000 heap_0
+22[0000000000100001] 1111111111111111 heap_0
+23 0 exit_0
+24 0000000000000000 exit-code
+25 1 thread_0_0
+26 0 thread_0_1
+27 1 exec_0_0_0
+28 0 exec_0_0_1
+29 0 exec_0_0_2
+30 0 exec_0_0_3
+31 0 exec_0_1_0
+32 0 exec_0_1_1
+33 0 exec_0_1_2
+34 0 exec_0_1_3
+35 0 flush_0_0
+36 0 flush_0_1
+95 0000000000000001 accu_1_0
+96 0000000000000000 accu_1_1
+97 0000000000000000 mem_1_0
+98 0000000000000000 mem_1_1
+99 0000000000000000 sb-adr_1_0
+100 0000000000000000 sb-adr_1_1
+101 0000000000000000 sb-val_1_0
+102 0000000000000000 sb-val_1_1
+103 0 sb-full_1_0
+104 0 sb-full_1_1
+105 0 stmt_1_0_0
+106 1 stmt_1_0_1
+107 0 stmt_1_0_2
+108 0 stmt_1_0_3
+109 1 stmt_1_1_0
+110 0 stmt_1_1_1
+111 0 stmt_1_1_2
+112 0 stmt_1_1_3
+113 0 halt_1_0
+114 0 halt_1_1
+115[0000000000000001] 0000000000000000 heap_1
+115[0000000000000000] 0000000000000000 heap_1
+115[0100000000000000] 1111111111111111 heap_1
+115[0000000000000111] 1111111111111111 heap_1
+115[0000000000100001] 1111111111111111 heap_1
+116 0 exit_1
+117 1 thread_1_0
+118 0 thread_1_1
+119 0 exec_1_0_0
+120 1 exec_1_0_1
+121 0 exec_1_0_2
+122 0 exec_1_0_3
+123 0 exec_1_1_0
+124 0 exec_1_1_1
+125 0 exec_1_1_2
+126 0 exec_1_1_3
+127 0 flush_1_0
+128 0 flush_1_1
+310 0000000000000001 accu_2_0
+311 0000000000000000 accu_2_1
+312 0000000000000000 mem_2_0
+313 0000000000000000 mem_2_1
+314 0000000000000000 sb-adr_2_0
+315 0000000000000000 sb-adr_2_1
+316 0000000000000001 sb-val_2_0
+317 0000000000000000 sb-val_2_1
+318 1 sb-full_2_0
+319 0 sb-full_2_1
+320 0 stmt_2_0_0
+321 0 stmt_2_0_1
+322 1 stmt_2_0_2
+323 0 stmt_2_0_3
+324 1 stmt_2_1_0
+325 0 stmt_2_1_1
+326 0 stmt_2_1_2
+327 0 stmt_2_1_3
+328 0 halt_2_0
+329 0 halt_2_1
+330[0000000000000001] 0000000000000000 heap_2
+330[0000000000000000] 0000000000000000 heap_2
+330[0100000000000000] 1111111111111111 heap_2
+330[0000000000000111] 1111111111111111 heap_2
+330[0000000000100001] 1111111111111111 heap_2
+331 0 exit_2
+332 0 thread_2_0
+333 0 thread_2_1
+334 0 exec_2_0_0
+335 0 exec_2_0_1
+336 0 exec_2_0_2
+337 0 exec_2_0_3
+338 0 exec_2_1_0
+339 0 exec_2_1_1
+340 0 exec_2_1_2
+341 0 exec_2_1_3
+342 1 flush_2_0
+343 0 flush_2_1
+552 0000000000000001 accu_3_0
+553 0000000000000000 accu_3_1
+554 0000000000000000 mem_3_0
+555 0000000000000000 mem_3_1
+556 0000000000000000 sb-adr_3_0
+557 0000000000000000 sb-adr_3_1
+558 0000000000000001 sb-val_3_0
+559 0000000000000000 sb-val_3_1
+560 0 sb-full_3_0
+561 0 sb-full_3_1
+562 0 stmt_3_0_0
+563 0 stmt_3_0_1
+564 1 stmt_3_0_2
+565 0 stmt_3_0_3
+566 1 stmt_3_1_0
+567 0 stmt_3_1_1
+568 0 stmt_3_1_2
+569 0 stmt_3_1_3
+570 0 halt_3_0
+571 0 halt_3_1
+572[0000000000000001] 0000000000000000 heap_3
+572[0000000000000000] 0000000000000001 heap_3
+572[0100000000000000] 1111111111111111 heap_3
+572[0000000000000111] 1111111111111111 heap_3
+572[0000000000100001] 1111111111111111 heap_3
+573 0 exit_3
+574 0 thread_3_0
+575 1 thread_3_1
+576 0 exec_3_0_0
+577 0 exec_3_0_1
+578 0 exec_3_0_2
+579 0 exec_3_0_3
+580 1 exec_3_1_0
+581 0 exec_3_1_1
+582 0 exec_3_1_2
+583 0 exec_3_1_3
+584 0 flush_3_0
+585 0 flush_3_1
+794 0000000000000001 accu_4_0
+795 0000000000000001 accu_4_1
+796 0000000000000000 mem_4_0
+797 0000000000000000 mem_4_1
+798 0000000000000000 sb-adr_4_0
+799 0000000000000000 sb-adr_4_1
+800 0000000000000001 sb-val_4_0
+801 0000000000000000 sb-val_4_1
+802 0 sb-full_4_0
+803 0 sb-full_4_1
+804 0 stmt_4_0_0
+805 0 stmt_4_0_1
+806 1 stmt_4_0_2
+807 0 stmt_4_0_3
+808 0 stmt_4_1_0
+809 1 stmt_4_1_1
+810 0 stmt_4_1_2
+811 0 stmt_4_1_3
+812 0 halt_4_0
+813 0 halt_4_1
+814[0000000000000001] 0000000000000000 heap_4
+814[0000000000000000] 0000000000000001 heap_4
+814[0100000000000000] 1111111111111111 heap_4
+814[0000000000100001] 1111111111111111 heap_4
+814[0000000000000111] 1111111111111111 heap_4
+815 0 exit_4
+816 1 thread_4_0
+817 0 thread_4_1
+818 0 exec_4_0_0
+819 0 exec_4_0_1
+820 1 exec_4_0_2
+821 0 exec_4_0_3
+822 0 exec_4_1_0
+823 0 exec_4_1_1
+824 0 exec_4_1_2
+825 0 exec_4_1_3
+826 0 flush_4_0
+827 0 flush_4_1
+1036 0000000000000000 accu_5_0
+1037 0000000000000001 accu_5_1
+1038 0000000000000000 mem_5_0
+1039 0000000000000000 mem_5_1
+1040 0000000000000000 sb-adr_5_0
+1041 0000000000000000 sb-adr_5_1
+1042 0000000000000001 sb-val_5_0
+1043 0000000000000000 sb-val_5_1
+1044 0 sb-full_5_0
+1045 0 sb-full_5_1
+1046 0 stmt_5_0_0
+1047 0 stmt_5_0_1
+1048 0 stmt_5_0_2
+1049 1 stmt_5_0_3
+1050 0 stmt_5_1_0
+1051 1 stmt_5_1_1
+1052 0 stmt_5_1_2
+1053 0 stmt_5_1_3
+1054 0 halt_5_0
+1055 0 halt_5_1
+1056[0000000000000001] 0000000000000000 heap_5
+1056[0000000000000000] 0000000000000001 heap_5
+1056[0100000000000000] 1111111111111111 heap_5
+1056[0000000000100001] 1111111111111111 heap_5
+1056[0000000000000111] 1111111111111111 heap_5
+1057 0 exit_5
+1058 1 thread_5_0
+1059 0 thread_5_1
+1060 0 exec_5_0_0
+1061 0 exec_5_0_1
+1062 0 exec_5_0_2
+1063 1 exec_5_0_3
+1064 0 exec_5_1_0
+1065 0 exec_5_1_1
+1066 0 exec_5_1_2
+1067 0 exec_5_1_3
+1068 0 flush_5_0
+1069 0 flush_5_1
+1278 0000000000000000 accu_6_0
+1279 0000000000000001 accu_6_1
+1280 0000000000000000 mem_6_0
+1281 0000000000000000 mem_6_1
+1282 0000000000000000 sb-adr_6_0
+1283 0000000000000000 sb-adr_6_1
+1284 0000000000000001 sb-val_6_0
+1285 0000000000000000 sb-val_6_1
+1286 0 sb-full_6_0
+1287 0 sb-full_6_1
+1288 0 stmt_6_0_0
+1289 0 stmt_6_0_1
+1290 0 stmt_6_0_2
+1291 0 stmt_6_0_3
+1292 0 stmt_6_1_0
+1293 1 stmt_6_1_1
+1294 0 stmt_6_1_2
+1295 0 stmt_6_1_3
+1296 1 halt_6_0
+1297 0 halt_6_1
+1298[0000000000000001] 0000000000000000 heap_6
+1298[0000000000000000] 0000000000000001 heap_6
+1298[0000000000100001] 1111111111111111 heap_6
+1298[0100000000000000] 1111111111111111 heap_6
+1298[0000000000000111] 1111111111111111 heap_6
+1299 0 exit_6
+1300 0 thread_6_0
+1301 1 thread_6_1
+1302 0 exec_6_0_0
+1303 0 exec_6_0_1
+1304 0 exec_6_0_2
+1305 0 exec_6_0_3
+1306 0 exec_6_1_0
+1307 1 exec_6_1_1
+1308 0 exec_6_1_2
+1309 0 exec_6_1_3
+1310 0 flush_6_0
+1311 0 flush_6_1
+1520 0000000000000000 accu_7_0
+1521 0000000000000001 accu_7_1
+1522 0000000000000000 mem_7_0
+1523 0000000000000000 mem_7_1
+1524 0000000000000000 sb-adr_7_0
+1525 0000000000000001 sb-adr_7_1
+1526 0000000000000001 sb-val_7_0
+1527 0000000000000001 sb-val_7_1
+1528 0 sb-full_7_0
+1529 1 sb-full_7_1
+1530 0 stmt_7_0_0
+1531 0 stmt_7_0_1
+1532 0 stmt_7_0_2
+1533 0 stmt_7_0_3
+1534 0 stmt_7_1_0
+1535 0 stmt_7_1_1
+1536 1 stmt_7_1_2
+1537 0 stmt_7_1_3
+1538 1 halt_7_0
+1539 0 halt_7_1
+1540[0000000000000001] 0000000000000000 heap_7
+1540[0000000000000000] 0000000000000001 heap_7
+1540[0000000000100001] 1111111111111111 heap_7
+1540[0100000000000000] 1111111111111111 heap_7
+1540[0000000000000111] 1111111111111111 heap_7
+1541 0 exit_7
+1542 0 thread_7_0
+1543 0 thread_7_1
+1544 0 exec_7_0_0
+1545 0 exec_7_0_1
+1546 0 exec_7_0_2
+1547 0 exec_7_0_3
+1548 0 exec_7_1_0
+1549 0 exec_7_1_1
+1550 0 exec_7_1_2
+1551 0 exec_7_1_3
+1552 0 flush_7_0
+1553 1 flush_7_1
+1762 0000000000000000 accu_8_0
+1763 0000000000000001 accu_8_1
+1764 0000000000000000 mem_8_0
+1765 0000000000000000 mem_8_1
+1766 0000000000000000 sb-adr_8_0
+1767 0000000000000001 sb-adr_8_1
+1768 0000000000000001 sb-val_8_0
+1769 0000000000000001 sb-val_8_1
+1770 0 sb-full_8_0
+1771 0 sb-full_8_1
+1772 0 stmt_8_0_0
+1773 0 stmt_8_0_1
+1774 0 stmt_8_0_2
+1775 0 stmt_8_0_3
+1776 0 stmt_8_1_0
+1777 0 stmt_8_1_1
+1778 1 stmt_8_1_2
+1779 0 stmt_8_1_3
+1780 1 halt_8_0
+1781 0 halt_8_1
+1782[0000000000000001] 0000000000000001 heap_8
+1782[0000000000000000] 0000000000000001 heap_8
+1782[0000000000100001] 1111111111111111 heap_8
+1782[0100000000000000] 1111111111111111 heap_8
+1782[0000000000000111] 1111111111111111 heap_8
+1783 0 exit_8
+1784 0 thread_8_0
+1785 1 thread_8_1
+1786 0 exec_8_0_0
+1787 0 exec_8_0_1
+1788 0 exec_8_0_2
+1789 0 exec_8_0_3
+1790 0 exec_8_1_0
+1791 0 exec_8_1_1
+1792 1 exec_8_1_2
+1793 0 exec_8_1_3
+1794 0 flush_8_0
+1795 0 flush_8_1
+2004 0000000000000000 accu_9_0
+2005 0000000000000001 accu_9_1
+2006 0000000000000000 mem_9_0
+2007 0000000000000000 mem_9_1
+2008 0000000000000000 sb-adr_9_0
+2009 0000000000000001 sb-adr_9_1
+2010 0000000000000001 sb-val_9_0
+2011 0000000000000001 sb-val_9_1
+2012 0 sb-full_9_0
+2013 0 sb-full_9_1
+2014 0 stmt_9_0_0
+2015 0 stmt_9_0_1
+2016 0 stmt_9_0_2
+2017 0 stmt_9_0_3
+2018 0 stmt_9_1_0
+2019 0 stmt_9_1_1
+2020 0 stmt_9_1_2
+2021 1 stmt_9_1_3
+2022 1 halt_9_0
+2023 0 halt_9_1
+2024[0000000000000001] 0000000000000001 heap_9
+2024[0000000000000000] 0000000000000001 heap_9
+2024[0000000000100001] 1111111111111111 heap_9
+2024[0100000000000000] 1111111111111111 heap_9
+2024[0000000000000111] 1111111111111111 heap_9
+2025 0 exit_9
+2026 0 thread_9_0
+2027 1 thread_9_1
+2028 0 exec_9_0_0
+2029 0 exec_9_0_1
+2030 0 exec_9_0_2
+2031 0 exec_9_0_3
+2032 0 exec_9_1_0
+2033 0 exec_9_1_1
+2034 0 exec_9_1_2
+2035 1 exec_9_1_3
+2036 0 flush_9_0
+2037 0 flush_9_1
+2246 0000000000000000 accu_10_0
+2247 0000000000000001 accu_10_1
+2248 0000000000000000 mem_10_0
+2249 0000000000000000 mem_10_1
+2250 0000000000000000 sb-adr_10_0
+2251 0000000000000001 sb-adr_10_1
+2252 0000000000000001 sb-val_10_0
+2253 0000000000000001 sb-val_10_1
+2254 0 sb-full_10_0
+2255 0 sb-full_10_1
+2256 0 stmt_10_0_0
+2257 0 stmt_10_0_1
+2258 0 stmt_10_0_2
+2259 0 stmt_10_0_3
+2260 0 stmt_10_1_0
+2261 0 stmt_10_1_1
+2262 0 stmt_10_1_2
+2263 0 stmt_10_1_3
+2264 1 halt_10_0
+2265 1 halt_10_1
+2266[0000000000000000] 0000000000000001 heap_10
+2266[0000000000000001] 0000000000000001 heap_10
+2266[0000000000100001] 1111111111111111 heap_10
+2266[0100000000000000] 1111111111111111 heap_10
+2266[0000000000000111] 1111111111111111 heap_10
+2267 1 exit_10
+2268 0 thread_10_0
+2269 0 thread_10_1
+2270 0 exec_10_0_0
+2271 0 exec_10_0_1
+2272 0 exec_10_0_2
+2273 0 exec_10_0_3
+2274 0 exec_10_1_0
+2275 0 exec_10_1_1
+2276 0 exec_10_1_2
+2277 0 exec_10_1_3
+2278 0 flush_10_0
+2279 0 flush_10_1
+[concubine>main] solving took 3.22719 seconds

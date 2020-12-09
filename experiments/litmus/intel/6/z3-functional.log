@@ -1,0 +1,28 @@
+[litmus/run.sh] running 41: litmus/intel/6/run.sh z3 functional
+[concubine>main] encoding took 0.020724 seconds
+[concubine>main] generated 4889 commands
+(:added-eqs           4008
+ :array-ax1           17
+ :array-ax2           39
+ :array-ext-ax        4
+ :binary-propagations 16443
+ :bv-bit2core         7760
+ :bv-diseqs           14
+ :bv-dynamic-diseqs   19
+ :conflicts           190
+ :decisions           341
+ :del-clause          680
+ :eliminated-vars     608
+ :max-memory          5.88
+ :memory              4.11
+ :minimized-lits      541
+ :mk-bool-var         4038
+ :mk-clause           3261
+ :num-allocs          2227493
+ :num-checks          1
+ :propagations        27070
+ :restarts            1
+ :rlimit-count        159844
+ :time                0.10)
+unsat
+[concubine>main] solving took 0.126296 seconds

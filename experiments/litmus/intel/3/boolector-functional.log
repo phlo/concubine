@@ -1,0 +1,507 @@
+[litmus/run.sh] running 16: litmus/intel/3/run.sh boolector functional
+[concubine>main] encoding took 0.006545 seconds
+[concubine>main] generated 2408 commands
+[btor>main] Boolector Version 3.2.1 master-6500a7be548fd22d8de08ec2621caec6aa97697b
+[btor>main]  -std=gnu99 -W -Wall -Wextra -Wredundant-decls -O3
+[btor>main] released 2020-12-08T13:56:40
+[btor>main] compiled 2020-12-08T13:56:40
+[btor>main] GNU 7.5.0
+[btor>main] setting signal handlers
+[btor>main] no time limit given
+[btor>parse] assuming SMT-LIB v2 input,  parsing '<stdin>'
+[btor>smt2] parsed 874 commands in 0.00 seconds
+[btor>core] calling SAT
+[btor>core] found UFs, disable slice elimination
+[btor>varsubst] 334 variables substituted in 0.0 seconds
+[btor>embed] replaced 2 embedded constraints in 0 seconds
+[btor>extract] set: 1 (2), set_inc: 0 (0), set_itoi: 0 (0), set_itoip1: 0 (0), cpy: 0 (0)
+[btor>extract] extracted 1 lambdas in 0.000 seconds
+[btor>merge] merged 0 lambdas in 0.00 seconds
+[btor>preprocess] 1 rewriting rounds in 0.0 seconds
+[btor>preprocess] simplification returned 0
+[btor>slvfun] enabled core engine
+[btor>sat] CaDiCaL allows both incremental and non-incremental mode
+[btor>sat] initialized CaDiCaL
+[btor>slvfun] 264 AIG vars, 2933 AIG ands, 1995 CNF vars, 5794 CNF clauses
+[btorcore] 1 iterations, 2 lemmas, 0 ext. lemmas, vars 40, applies 15
+[btor>slvfun] 264 AIG vars, 3018 AIG ands, 2046 CNF vars, 5964 CNF clauses
+[btorcore] 2 iterations, 4 lemmas, 0 ext. lemmas, vars 40, applies 15
+[btor>slvfun] 264 AIG vars, 3148 AIG ands, 2112 CNF vars, 6194 CNF clauses
+[btorcore] 3 iterations, 5 lemmas, 0 ext. lemmas, vars 40, applies 15
+[btor>slvfun] 264 AIG vars, 3213 AIG ands, 2145 CNF vars, 6309 CNF clauses
+[btorcore] 4 iterations, 6 lemmas, 0 ext. lemmas, vars 40, applies 15
+[btor>slvfun] 264 AIG vars, 3278 AIG ands, 2178 CNF vars, 6424 CNF clauses
+[btorcore] 5 iterations, 7 lemmas, 0 ext. lemmas, vars 40, applies 15
+[btor>slvfun] 264 AIG vars, 3343 AIG ands, 2211 CNF vars, 6539 CNF clauses
+[btorcore] 6 iterations, 8 lemmas, 0 ext. lemmas, vars 40, applies 15
+[btor>slvfun] 264 AIG vars, 3407 AIG ands, 2243 CNF vars, 6651 CNF clauses
+[btorcore] 7 iterations, 10 lemmas, 0 ext. lemmas, vars 40, applies 15
+[btor>slvfun] 264 AIG vars, 3492 AIG ands, 2294 CNF vars, 6821 CNF clauses
+[btorcore] 8 iterations, 12 lemmas, 0 ext. lemmas, vars 40, applies 15
+[btor>slvfun] 264 AIG vars, 3620 AIG ands, 2358 CNF vars, 7045 CNF clauses
+[btorcore] 9 iterations, 13 lemmas, 0 ext. lemmas, vars 40, applies 15
+[btor>slvfun] 264 AIG vars, 3684 AIG ands, 2390 CNF vars, 7157 CNF clauses
+[btorcore] 10 iterations, 14 lemmas, 0 ext. lemmas, vars 40, applies 15
+[btor>slvfun] 264 AIG vars, 3748 AIG ands, 2422 CNF vars, 7269 CNF clauses
+[btorcore] 11 iterations, 15 lemmas, 0 ext. lemmas, vars 40, applies 15
+[btor>slvfun] 264 AIG vars, 3812 AIG ands, 2454 CNF vars, 7381 CNF clauses
+[btorcore] 12 iterations, 16 lemmas, 0 ext. lemmas, vars 40, applies 15
+[btor>slvfun] 264 AIG vars, 3876 AIG ands, 2486 CNF vars, 7493 CNF clauses
+[btorcore] 13 iterations, 17 lemmas, 0 ext. lemmas, vars 40, applies 15
+[btor>slvfun] 264 AIG vars, 3940 AIG ands, 2518 CNF vars, 7605 CNF clauses
+[btorcore] 14 iterations, 19 lemmas, 0 ext. lemmas, vars 40, applies 15
+[btor>slvfun] 264 AIG vars, 4025 AIG ands, 2569 CNF vars, 7775 CNF clauses
+[btorcore] 15 iterations, 24 lemmas, 0 ext. lemmas, vars 40, applies 15
+[btor>slvfun] 264 AIG vars, 4096 AIG ands, 2608 CNF vars, 7908 CNF clauses
+[btorcore] 16 iterations, 25 lemmas, 0 ext. lemmas, vars 40, applies 15
+[btor>slvfun] 264 AIG vars, 4162 AIG ands, 2642 CNF vars, 8026 CNF clauses
+[btorcore] 17 iterations, 26 lemmas, 0 ext. lemmas, vars 40, applies 15
+[btor>slvfun] 264 AIG vars, 4163 AIG ands, 2643 CNF vars, 8029 CNF clauses
+[btor>core] SAT call 2 returned 10 in 0.000 seconds
+sat
+[btor>smt2] WARNING no 'exit' command at end of '<stdin>'
+[btor>smt2] parsed 875 commands in 0.00 seconds
+[btor>parse] logic QF_AUFBV
+[btor>parse] status unknown
+[btor>sat] 18 SAT calls in 0.0 seconds
+[btor>core] 334/76/736/171 constraints 0/0/0/171 0.7 MB
+[btor>core] 0 assumptions
+[btor>core] 
+[btor>core] 0.42 MB allocated for nodes
+[btor>core] 
+[btor>core]     0 variable substitutions
+[btor>core]     0 uninterpreted function substitutions
+[btor>core]     0 embedded constraint substitutions
+[btor>core]     0 synthesized nodes rewritten
+[btor>core]     0 linear constraint equations
+[btor>core]     0 gaussian eliminations in linear equations
+[btor>core]     0 eliminated sliced variables
+[btor>core]     0 extracted skeleton constraints
+[btor>core]   366 and normalizations
+[btor>core]     0 add normalizations
+[btor>core]     0 mul normalizations
+[btor>core]     0 lambdas merged
+[btor>core]     0 static apply propagations over lambdas
+[btor>core]     0 static apply propagations over updates
+[btor>core]     0 beta reductions
+[btor>core]     0 clone calls
+[btor>core] 
+[btor>core] rewrite rule cache
+[btor>core]   659 cached (add) 
+[btor>core]   215 cached (get)
+[btor>core]   0 updated
+[btor>core]   0 removed (gc)
+[btor>core]   0.05 MB cache
+[btor>core] 
+[btor>core] bit blasting statistics:
+[btor>core]       692 AIG vectors (692 max)
+[btor>core]      4163 AIG ANDs (4163 max)
+[btor>core]       264 AIG variables
+[btor>core]      2643 CNF variables
+[btor>core]      8029 CNF clauses
+[btor>core]     21113 CNF literals
+[btor>slvfun] 
+[btor>slvfun] lemmas on demand statistics:
+[btor>slvfun]   17 refinement iterations
+[btor>slvfun]   26 LOD refinements
+[btor>slvfun]     16 function congruence conflicts
+[btor>slvfun]     10 beta reduction conflicts
+[btor>slvfun]      0 extensionality lemmas
+[btor>slvfun]   3.3 average lemma size
+[btor>slvfun]       19 lemmas of size 3
+[btor>slvfun]        7 lemmas of size 4
+[btor>slvfun] 
+[btor>slvfun]      26 expression evaluations
+[btor>slvfun]      26 partial beta reductions
+[btor>slvfun]     756 propagations
+[btor>slvfun]      36 propagations down
+[btor>core] 
+[btor>core] 0.7 MB
+[btor>main] sat
+2 0000000000000000 accu_0_0
+3 0000000000000000 accu_0_1
+4 0000000000000000 mem_0_0
+5 0000000000000000 mem_0_1
+6 0000000000000000 sb-adr_0_0
+7 0000000000000000 sb-adr_0_1
+8 0000000000000000 sb-val_0_0
+9 0000000000000000 sb-val_0_1
+10 0 sb-full_0_0
+11 0 sb-full_0_1
+12 1 stmt_0_0_0
+13 0 stmt_0_0_1
+14 0 stmt_0_0_2
+15 0 stmt_0_0_3
+16 1 stmt_0_1_0
+17 0 stmt_0_1_1
+18 0 stmt_0_1_2
+19 0 stmt_0_1_3
+20 0 halt_0_0
+21 0 halt_0_1
+22[0000000000000000] 0000000000000000 heap_0
+22[0000000000000001] 0000000000000000 heap_0
+23 0 exit_0
+24 0000000000000000 exit-code
+25 0 thread_0_0
+26 1 thread_0_1
+27 0 exec_0_0_0
+28 0 exec_0_0_1
+29 0 exec_0_0_2
+30 0 exec_0_0_3
+31 1 exec_0_1_0
+32 0 exec_0_1_1
+33 0 exec_0_1_2
+34 0 exec_0_1_3
+35 0 flush_0_0
+36 0 flush_0_1
+95 0000000000000000 accu_1_0
+96 0000000000000001 accu_1_1
+97 0000000000000000 mem_1_0
+98 0000000000000000 mem_1_1
+99 0000000000000000 sb-adr_1_0
+100 0000000000000000 sb-adr_1_1
+101 0000000000000000 sb-val_1_0
+102 0000000000000000 sb-val_1_1
+103 0 sb-full_1_0
+104 0 sb-full_1_1
+105 1 stmt_1_0_0
+106 0 stmt_1_0_1
+107 0 stmt_1_0_2
+108 0 stmt_1_0_3
+109 0 stmt_1_1_0
+110 1 stmt_1_1_1
+111 0 stmt_1_1_2
+112 0 stmt_1_1_3
+113 0 halt_1_0
+114 0 halt_1_1
+115[0000000000000000] 0000000000000000 heap_1
+115[0000000000000001] 0000000000000000 heap_1
+116 0 exit_1
+117 0 thread_1_0
+118 1 thread_1_1
+119 0 exec_1_0_0
+120 0 exec_1_0_1
+121 0 exec_1_0_2
+122 0 exec_1_0_3
+123 0 exec_1_1_0
+124 1 exec_1_1_1
+125 0 exec_1_1_2
+126 0 exec_1_1_3
+127 0 flush_1_0
+128 0 flush_1_1
+211 0000000000000000 accu_2_0
+212 0000000000000001 accu_2_1
+213 0000000000000000 mem_2_0
+214 0000000000000000 mem_2_1
+215 0000000000000000 sb-adr_2_0
+216 0000000000000001 sb-adr_2_1
+217 0000000000000000 sb-val_2_0
+218 0000000000000001 sb-val_2_1
+219 0 sb-full_2_0
+220 1 sb-full_2_1
+221 1 stmt_2_0_0
+222 0 stmt_2_0_1
+223 0 stmt_2_0_2
+224 0 stmt_2_0_3
+225 0 stmt_2_1_0
+226 0 stmt_2_1_1
+227 1 stmt_2_1_2
+228 0 stmt_2_1_3
+229 0 halt_2_0
+230 0 halt_2_1
+231[0000000000000000] 0000000000000000 heap_2
+231[0000000000000001] 0000000000000000 heap_2
+232 0 exit_2
+233 1 thread_2_0
+234 0 thread_2_1
+235 1 exec_2_0_0
+236 0 exec_2_0_1
+237 0 exec_2_0_2
+238 0 exec_2_0_3
+239 0 exec_2_1_0
+240 0 exec_2_1_1
+241 0 exec_2_1_2
+242 0 exec_2_1_3
+243 0 flush_2_0
+244 0 flush_2_1
+351 0000000000000001 accu_3_0
+352 0000000000000001 accu_3_1
+353 0000000000000000 mem_3_0
+354 0000000000000000 mem_3_1
+355 0000000000000000 sb-adr_3_0
+356 0000000000000001 sb-adr_3_1
+357 0000000000000000 sb-val_3_0
+358 0000000000000001 sb-val_3_1
+359 0 sb-full_3_0
+360 1 sb-full_3_1
+361 0 stmt_3_0_0
+362 1 stmt_3_0_1
+363 0 stmt_3_0_2
+364 0 stmt_3_0_3
+365 0 stmt_3_1_0
+366 0 stmt_3_1_1
+367 1 stmt_3_1_2
+368 0 stmt_3_1_3
+369 0 halt_3_0
+370 0 halt_3_1
+371[0000000000000000] 0000000000000000 heap_3
+371[0000000000000001] 0000000000000000 heap_3
+372 0 exit_3
+373 1 thread_3_0
+374 0 thread_3_1
+375 0 exec_3_0_0
+376 1 exec_3_0_1
+377 0 exec_3_0_2
+378 0 exec_3_0_3
+379 0 exec_3_1_0
+380 0 exec_3_1_1
+381 0 exec_3_1_2
+382 0 exec_3_1_3
+383 0 flush_3_0
+384 0 flush_3_1
+499 0000000000000001 accu_4_0
+500 0000000000000001 accu_4_1
+501 0000000000000000 mem_4_0
+502 0000000000000000 mem_4_1
+503 0000000000000000 sb-adr_4_0
+504 0000000000000001 sb-adr_4_1
+505 0000000000000001 sb-val_4_0
+506 0000000000000001 sb-val_4_1
+507 1 sb-full_4_0
+508 1 sb-full_4_1
+509 0 stmt_4_0_0
+510 0 stmt_4_0_1
+511 1 stmt_4_0_2
+512 0 stmt_4_0_3
+513 0 stmt_4_1_0
+514 0 stmt_4_1_1
+515 1 stmt_4_1_2
+516 0 stmt_4_1_3
+517 0 halt_4_0
+518 0 halt_4_1
+519[0000000000000000] 0000000000000000 heap_4
+519[0000000000000001] 0000000000000000 heap_4
+520 0 exit_4
+521 0 thread_4_0
+522 1 thread_4_1
+523 0 exec_4_0_0
+524 0 exec_4_0_1
+525 0 exec_4_0_2
+526 0 exec_4_0_3
+527 0 exec_4_1_0
+528 0 exec_4_1_1
+529 1 exec_4_1_2
+530 0 exec_4_1_3
+531 0 flush_4_0
+532 0 flush_4_1
+651 0000000000000001 accu_5_0
+652 0000000000000000 accu_5_1
+653 0000000000000000 mem_5_0
+654 0000000000000000 mem_5_1
+655 0000000000000000 sb-adr_5_0
+656 0000000000000001 sb-adr_5_1
+657 0000000000000001 sb-val_5_0
+658 0000000000000001 sb-val_5_1
+659 1 sb-full_5_0
+660 1 sb-full_5_1
+661 0 stmt_5_0_0
+662 0 stmt_5_0_1
+663 1 stmt_5_0_2
+664 0 stmt_5_0_3
+665 0 stmt_5_1_0
+666 0 stmt_5_1_1
+667 0 stmt_5_1_2
+668 1 stmt_5_1_3
+669 0 halt_5_0
+670 0 halt_5_1
+671[0000000000000000] 0000000000000000 heap_5
+671[0000000000000001] 0000000000000000 heap_5
+672 0 exit_5
+673 1 thread_5_0
+674 0 thread_5_1
+675 0 exec_5_0_0
+676 0 exec_5_0_1
+677 1 exec_5_0_2
+678 0 exec_5_0_3
+679 0 exec_5_1_0
+680 0 exec_5_1_1
+681 0 exec_5_1_2
+682 0 exec_5_1_3
+683 0 flush_5_0
+684 0 flush_5_1
+803 0000000000000000 accu_6_0
+804 0000000000000000 accu_6_1
+805 0000000000000000 mem_6_0
+806 0000000000000000 mem_6_1
+807 0000000000000000 sb-adr_6_0
+808 0000000000000001 sb-adr_6_1
+809 0000000000000001 sb-val_6_0
+810 0000000000000001 sb-val_6_1
+811 1 sb-full_6_0
+812 1 sb-full_6_1
+813 0 stmt_6_0_0
+814 0 stmt_6_0_1
+815 0 stmt_6_0_2
+816 1 stmt_6_0_3
+817 0 stmt_6_1_0
+818 0 stmt_6_1_1
+819 0 stmt_6_1_2
+820 1 stmt_6_1_3
+821 0 halt_6_0
+822 0 halt_6_1
+823[0000000000000000] 0000000000000000 heap_6
+823[0000000000000001] 0000000000000000 heap_6
+824 0 exit_6
+825 0 thread_6_0
+826 0 thread_6_1
+827 0 exec_6_0_0
+828 0 exec_6_0_1
+829 0 exec_6_0_2
+830 0 exec_6_0_3
+831 0 exec_6_1_0
+832 0 exec_6_1_1
+833 0 exec_6_1_2
+834 0 exec_6_1_3
+835 0 flush_6_0
+836 1 flush_6_1
+955 0000000000000000 accu_7_0
+956 0000000000000000 accu_7_1
+957 0000000000000000 mem_7_0
+958 0000000000000000 mem_7_1
+959 0000000000000000 sb-adr_7_0
+960 0000000000000001 sb-adr_7_1
+961 0000000000000001 sb-val_7_0
+962 0000000000000001 sb-val_7_1
+963 1 sb-full_7_0
+964 0 sb-full_7_1
+965 0 stmt_7_0_0
+966 0 stmt_7_0_1
+967 0 stmt_7_0_2
+968 1 stmt_7_0_3
+969 0 stmt_7_1_0
+970 0 stmt_7_1_1
+971 0 stmt_7_1_2
+972 1 stmt_7_1_3
+973 0 halt_7_0
+974 0 halt_7_1
+975[0000000000000000] 0000000000000000 heap_7
+975[0000000000000001] 0000000000000001 heap_7
+976 0 exit_7
+977 0 thread_7_0
+978 1 thread_7_1
+979 0 exec_7_0_0
+980 0 exec_7_0_1
+981 0 exec_7_0_2
+982 0 exec_7_0_3
+983 0 exec_7_1_0
+984 0 exec_7_1_1
+985 0 exec_7_1_2
+986 1 exec_7_1_3
+987 0 flush_7_0
+988 0 flush_7_1
+1107 0000000000000000 accu_8_0
+1108 0000000000000000 accu_8_1
+1109 0000000000000000 mem_8_0
+1110 0000000000000000 mem_8_1
+1111 0000000000000000 sb-adr_8_0
+1112 0000000000000001 sb-adr_8_1
+1113 0000000000000001 sb-val_8_0
+1114 0000000000000001 sb-val_8_1
+1115 1 sb-full_8_0
+1116 0 sb-full_8_1
+1117 0 stmt_8_0_0
+1118 0 stmt_8_0_1
+1119 0 stmt_8_0_2
+1120 1 stmt_8_0_3
+1121 0 stmt_8_1_0
+1122 0 stmt_8_1_1
+1123 0 stmt_8_1_2
+1124 0 stmt_8_1_3
+1125 0 halt_8_0
+1126 1 halt_8_1
+1127[0000000000000000] 0000000000000000 heap_8
+1127[0000000000000001] 0000000000000001 heap_8
+1128 0 exit_8
+1129 0 thread_8_0
+1130 0 thread_8_1
+1131 0 exec_8_0_0
+1132 0 exec_8_0_1
+1133 0 exec_8_0_2
+1134 0 exec_8_0_3
+1135 0 exec_8_1_0
+1136 0 exec_8_1_1
+1137 0 exec_8_1_2
+1138 0 exec_8_1_3
+1139 1 flush_8_0
+1140 0 flush_8_1
+1259 0000000000000000 accu_9_0
+1260 0000000000000000 accu_9_1
+1261 0000000000000000 mem_9_0
+1262 0000000000000000 mem_9_1
+1263 0000000000000000 sb-adr_9_0
+1264 0000000000000001 sb-adr_9_1
+1265 0000000000000001 sb-val_9_0
+1266 0000000000000001 sb-val_9_1
+1267 0 sb-full_9_0
+1268 0 sb-full_9_1
+1269 0 stmt_9_0_0
+1270 0 stmt_9_0_1
+1271 0 stmt_9_0_2
+1272 1 stmt_9_0_3
+1273 0 stmt_9_1_0
+1274 0 stmt_9_1_1
+1275 0 stmt_9_1_2
+1276 0 stmt_9_1_3
+1277 0 halt_9_0
+1278 1 halt_9_1
+1279[0000000000000000] 0000000000000001 heap_9
+1279[0000000000000001] 0000000000000001 heap_9
+1280 0 exit_9
+1281 1 thread_9_0
+1282 0 thread_9_1
+1283 0 exec_9_0_0
+1284 0 exec_9_0_1
+1285 0 exec_9_0_2
+1286 1 exec_9_0_3
+1287 0 exec_9_1_0
+1288 0 exec_9_1_1
+1289 0 exec_9_1_2
+1290 0 exec_9_1_3
+1291 0 flush_9_0
+1292 0 flush_9_1
+1411 0000000000000000 accu_10_0
+1412 0000000000000000 accu_10_1
+1413 0000000000000000 mem_10_0
+1414 0000000000000000 mem_10_1
+1415 0000000000000000 sb-adr_10_0
+1416 0000000000000001 sb-adr_10_1
+1417 0000000000000001 sb-val_10_0
+1418 0000000000000001 sb-val_10_1
+1419 0 sb-full_10_0
+1420 0 sb-full_10_1
+1421 0 stmt_10_0_0
+1422 0 stmt_10_0_1
+1423 0 stmt_10_0_2
+1424 0 stmt_10_0_3
+1425 0 stmt_10_1_0
+1426 0 stmt_10_1_1
+1427 0 stmt_10_1_2
+1428 0 stmt_10_1_3
+1429 1 halt_10_0
+1430 1 halt_10_1
+1431[0000000000000000] 0000000000000001 heap_10
+1431[0000000000000001] 0000000000000001 heap_10
+1432 1 exit_10
+1433 0 thread_10_0
+1434 0 thread_10_1
+1435 0 exec_10_0_0
+1436 0 exec_10_0_1
+1437 0 exec_10_0_2
+1438 0 exec_10_0_3
+1439 0 exec_10_1_0
+1440 0 exec_10_1_1
+1441 0 exec_10_1_2
+1442 0 exec_10_1_3
+1443 0 flush_10_0
+1444 0 flush_10_1
+[concubine>main] solving took 0.065634 seconds
