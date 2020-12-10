@@ -22,3 +22,6 @@
 [runlim] argv[16]:		count_stat.checker.asm
 [runlim] start:			Thu Dec 10 16:20:26 2020
 [runlim] child:			31176
+[runlim] sample:		1.81 time, 10.01 real, 34 MB
+[runlim] sample:		1.83 time, 20.01 real, 34 MB
+[runlim] sample:		1.83 time, 30.01 real, 34 MB

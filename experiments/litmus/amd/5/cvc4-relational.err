@@ -21,3 +21,6 @@
 [runlim] argv[15]:		thread.1.asm
 [runlim] start:			Thu Dec 10 16:20:23 2020
 [runlim] child:			32083
+[runlim] sample:		0.04 time, 10.01 real, 5 MB
+[runlim] sample:		0.04 time, 20.01 real, 5 MB
+[runlim] sample:		0.04 time, 30.01 real, 5 MB

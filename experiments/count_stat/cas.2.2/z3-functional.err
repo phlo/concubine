@@ -1,0 +1,25 @@
+[runlim] version:		1.21
+[runlim] host:			c3n13
+[runlim] time limit:		86400 seconds
+[runlim] real time limit:	86400 seconds
+[runlim] space limit:		8000 MB
+[runlim] argv[0]:		concubine
+[runlim] argv[1]:		solve
+[runlim] argv[2]:		-v
+[runlim] argv[3]:		-s
+[runlim] argv[4]:		z3
+[runlim] argv[5]:		-e
+[runlim] argv[6]:		smtlib
+[runlim] argv[7]:		-m
+[runlim] argv[8]:		init.mmap
+[runlim] argv[9]:		-o
+[runlim] argv[10]:		z3-functional
+[runlim] argv[11]:		77
+[runlim] argv[12]:		count_stat.cas.0.asm
+[runlim] argv[13]:		count_stat.cas.1.asm
+[runlim] argv[14]:		count_stat.checker.asm
+[runlim] start:			Thu Dec 10 16:20:28 2020
+[runlim] child:			30829
+[runlim] sample:		8.84 time, 10.01 real, 125 MB
+[runlim] sample:		18.84 time, 20.01 real, 125 MB
+[runlim] sample:		28.84 time, 30.01 real, 125 MB
