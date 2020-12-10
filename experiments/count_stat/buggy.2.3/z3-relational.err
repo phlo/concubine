@@ -30,3 +30,29 @@
 [runlim] sample:		69.77 time, 70.01 real, 34 MB
 [runlim] sample:		79.77 time, 80.01 real, 34 MB
 [runlim] sample:		89.78 time, 90.01 real, 77 MB
+[runlim] sample:		99.78 time, 100.01 real, 78 MB
+[runlim] sample:		109.78 time, 110.01 real, 83 MB
+[runlim] sample:		119.78 time, 120.01 real, 84 MB
+[runlim] sample:		129.77 time, 130.01 real, 87 MB
+[runlim] sample:		139.77 time, 140.01 real, 88 MB
+[runlim] sample:		149.77 time, 150.01 real, 89 MB
+[runlim] sample:		159.77 time, 160.01 real, 90 MB
+[runlim] sample:		169.78 time, 170.01 real, 91 MB
+[runlim] sample:		179.78 time, 180.01 real, 91 MB
+[runlim] sample:		189.78 time, 190.01 real, 92 MB
+[runlim] sample:		199.78 time, 200.01 real, 92 MB
+[runlim] sample:		209.78 time, 210.01 real, 94 MB
+[runlim] sample:		219.78 time, 220.01 real, 94 MB
+[runlim] sample:		229.78 time, 230.01 real, 95 MB
+[runlim] sample:		239.78 time, 240.01 real, 95 MB
+[runlim] sample:		249.78 time, 250.01 real, 95 MB
+[runlim] sample:		259.78 time, 260.01 real, 97 MB
+[runlim] sample:		269.78 time, 270.01 real, 97 MB
+[runlim] end:			Thu Dec 10 16:25:00 2020
+[runlim] status:		ok
+[runlim] result:		0
+[runlim] children:		1
+[runlim] real:			278.22 seconds
+[runlim] time:			277.98 seconds
+[runlim] space:			99 MB
+[runlim] samples:		2782

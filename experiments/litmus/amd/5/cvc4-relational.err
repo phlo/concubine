@@ -30,3 +30,15 @@
 [runlim] sample:		0.04 time, 70.01 real, 5 MB
 [runlim] sample:		0.04 time, 80.01 real, 5 MB
 [runlim] sample:		0.04 time, 90.01 real, 5 MB
+[runlim] sample:		0.04 time, 100.01 real, 5 MB
+[runlim] sample:		0.04 time, 110.01 real, 5 MB
+[runlim] sample:		0.04 time, 120.01 real, 5 MB
+[runlim] sample:		0.04 time, 130.01 real, 5 MB
+[runlim] end:			Thu Dec 10 16:22:35 2020
+[runlim] status:		ok
+[runlim] result:		0
+[runlim] children:		1
+[runlim] real:			132.36 seconds
+[runlim] time:			0.04 seconds
+[runlim] space:			5 MB
+[runlim] samples:		1323
