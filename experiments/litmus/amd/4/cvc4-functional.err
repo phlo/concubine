@@ -1,0 +1,31 @@
+[runlim] version:		1.21
+[runlim] host:			c3n06
+[runlim] time limit:		86400 seconds
+[runlim] real time limit:	86400 seconds
+[runlim] space limit:		8000 MB
+[runlim] argv[0]:		concubine
+[runlim] argv[1]:		solve
+[runlim] argv[2]:		-v
+[runlim] argv[3]:		-s
+[runlim] argv[4]:		cvc4
+[runlim] argv[5]:		-e
+[runlim] argv[6]:		smtlib
+[runlim] argv[7]:		-c
+[runlim] argv[8]:		constraints.smt2
+[runlim] argv[9]:		-m
+[runlim] argv[10]:		init.mmap
+[runlim] argv[11]:		-o
+[runlim] argv[12]:		cvc4-functional
+[runlim] argv[13]:		10
+[runlim] argv[14]:		thread.0.asm
+[runlim] argv[15]:		thread.1.asm
+[runlim] start:			Thu Dec 10 16:20:24 2020
+[runlim] child:			30816
+[runlim] end:			Thu Dec 10 16:20:26 2020
+[runlim] status:		ok
+[runlim] result:		0
+[runlim] children:		1
+[runlim] real:			2.04 seconds
+[runlim] time:			0.01 seconds
+[runlim] space:			5 MB
+[runlim] samples:		20

@@ -1,0 +1,389 @@
+[litmus/run.sh] running 15: litmus/intel/3/run.sh btormc btor2
+[concubine>main] encoding took 0.000753 seconds
+[concubine>main] generated 174 commands
+[btormc] parsing input file...
+[btormc] finished parsing
+[btor>mc] calling BMC on 1 properties from bound 10 up-to maximum bound k = 10
+[btor>mc] trace generation enabled
+[btor>mc] new forward manager
+[btor>mc] initialized forward frame at bound k = 0
+[btor>mc] initialized forward frame at bound k = 1
+[btor>mc] initialized forward frame at bound k = 2
+[btor>mc] initialized forward frame at bound k = 3
+[btor>mc] initialized forward frame at bound k = 4
+[btor>mc] initialized forward frame at bound k = 5
+[btor>mc] initialized forward frame at bound k = 6
+[btor>mc] initialized forward frame at bound k = 7
+[btor>mc] initialized forward frame at bound k = 8
+[btor>mc] initialized forward frame at bound k = 9
+[btor>mc] initialized forward frame at bound k = 10
+[btor>mc] checking forward frame at bound k = 10
+[btor>mc] checking forward frame bad state property 0 at bound k = 10
+[btor>core] calling SAT
+[btor>core] found UFs, disable slice elimination
+[btor>varsubst] 4 variables substituted in 0.0 seconds
+[btor>embed] replaced 84 embedded constraints in 0 seconds
+[btor>extract] set: 0 (0), set_inc: 0 (0), set_itoi: 0 (0), set_itoip1: 0 (0), cpy: 0 (0)
+[btor>extract] extracted 0 lambdas in 0.000 seconds
+[btor>preprocess] 1 rewriting rounds in 0.0 seconds
+[btor>preprocess] simplification returned 0
+[btor>slvfun] enabled core engine
+[btor>sat] CaDiCaL allows both incremental and non-incremental mode
+[btor>sat] initialized CaDiCaL
+[btor>slvfun] 264 AIG vars, 2357 AIG ands, 1807 CNF vars, 5036 CNF clauses
+[btorcore] 1 iterations, 4 lemmas, 0 ext. lemmas, vars 40, applies 16
+[btor>slvfun] 264 AIG vars, 2524 AIG ands, 1908 CNF vars, 5372 CNF clauses
+[btorcore] 2 iterations, 6 lemmas, 0 ext. lemmas, vars 40, applies 16
+[btor>slvfun] 264 AIG vars, 2654 AIG ands, 1974 CNF vars, 5602 CNF clauses
+[btorcore] 3 iterations, 8 lemmas, 0 ext. lemmas, vars 40, applies 16
+[btor>slvfun] 264 AIG vars, 2783 AIG ands, 2039 CNF vars, 5829 CNF clauses
+[btorcore] 4 iterations, 9 lemmas, 0 ext. lemmas, vars 40, applies 16
+[btor>slvfun] 264 AIG vars, 2847 AIG ands, 2071 CNF vars, 5941 CNF clauses
+[btorcore] 5 iterations, 11 lemmas, 0 ext. lemmas, vars 40, applies 16
+[btor>slvfun] 264 AIG vars, 2932 AIG ands, 2122 CNF vars, 6111 CNF clauses
+[btorcore] 6 iterations, 13 lemmas, 0 ext. lemmas, vars 40, applies 16
+[btor>slvfun] 264 AIG vars, 3060 AIG ands, 2186 CNF vars, 6335 CNF clauses
+[btorcore] 7 iterations, 14 lemmas, 0 ext. lemmas, vars 40, applies 16
+[btor>slvfun] 264 AIG vars, 3124 AIG ands, 2218 CNF vars, 6447 CNF clauses
+[btorcore] 8 iterations, 15 lemmas, 0 ext. lemmas, vars 40, applies 16
+[btor>slvfun] 264 AIG vars, 3188 AIG ands, 2250 CNF vars, 6559 CNF clauses
+[btorcore] 9 iterations, 17 lemmas, 0 ext. lemmas, vars 40, applies 16
+[btor>slvfun] 264 AIG vars, 3318 AIG ands, 2316 CNF vars, 6789 CNF clauses
+[btor>core] SAT call 2 returned 10 in 0.000 seconds
+[btor>mc] bad state property 0 reachable at bound k = 10 SATISFIABLE
+sat
+b0
+#0
+1 0000000000000000 accu_0#0
+2 0000000000000000 accu_1#0
+3 0000000000000000 mem_0#0
+4 0000000000000000 mem_1#0
+5 0000000000000000 sb-adr_0#0
+6 0000000000000000 sb-adr_1#0
+7 0000000000000000 sb-val_0#0
+8 0000000000000000 sb-val_1#0
+9 0 sb-full_0#0
+10 0 sb-full_1#0
+11 1 stmt_0_0#0
+12 0 stmt_0_1#0
+13 0 stmt_0_2#0
+14 0 stmt_0_3#0
+15 1 stmt_1_0#0
+16 0 stmt_1_1#0
+17 0 stmt_1_2#0
+18 0 stmt_1_3#0
+19 0 halt_0#0
+20 0 halt_1#0
+21 [0000000000000001] 0000000000000000 heap@0
+21 [0000000000000000] 0000000000000000 heap@0
+22 0 exit#0
+23 0000000000000000 exit-code#0
+@0
+0 0 thread_0@0
+1 1 thread_1@0
+2 0 flush_0@0
+3 0 flush_1@0
+#1
+1 0000000000000000 accu_0#1
+2 0000000000000001 accu_1#1
+3 0000000000000000 mem_0#1
+4 0000000000000000 mem_1#1
+5 0000000000000000 sb-adr_0#1
+6 0000000000000000 sb-adr_1#1
+7 0000000000000000 sb-val_0#1
+8 0000000000000000 sb-val_1#1
+9 0 sb-full_0#1
+10 0 sb-full_1#1
+11 1 stmt_0_0#1
+12 0 stmt_0_1#1
+13 0 stmt_0_2#1
+14 0 stmt_0_3#1
+15 0 stmt_1_0#1
+16 1 stmt_1_1#1
+17 0 stmt_1_2#1
+18 0 stmt_1_3#1
+19 0 halt_0#1
+20 0 halt_1#1
+21 [0000000000000001] 0000000000000000 heap@1
+21 [0000000000000000] 0000000000000000 heap@1
+22 0 exit#1
+23 0000000000000000 exit-code#1
+@1
+0 1 thread_0@1
+1 0 thread_1@1
+2 0 flush_0@1
+3 0 flush_1@1
+#2
+1 0000000000000001 accu_0#2
+2 0000000000000001 accu_1#2
+3 0000000000000000 mem_0#2
+4 0000000000000000 mem_1#2
+5 0000000000000000 sb-adr_0#2
+6 0000000000000000 sb-adr_1#2
+7 0000000000000000 sb-val_0#2
+8 0000000000000000 sb-val_1#2
+9 0 sb-full_0#2
+10 0 sb-full_1#2
+11 0 stmt_0_0#2
+12 1 stmt_0_1#2
+13 0 stmt_0_2#2
+14 0 stmt_0_3#2
+15 0 stmt_1_0#2
+16 1 stmt_1_1#2
+17 0 stmt_1_2#2
+18 0 stmt_1_3#2
+19 0 halt_0#2
+20 0 halt_1#2
+21 [0000000000000001] 0000000000000000 heap@2
+21 [0000000000000000] 0000000000000000 heap@2
+22 0 exit#2
+23 0000000000000000 exit-code#2
+@2
+0 1 thread_0@2
+1 0 thread_1@2
+2 0 flush_0@2
+3 0 flush_1@2
+#3
+1 0000000000000001 accu_0#3
+2 0000000000000001 accu_1#3
+3 0000000000000000 mem_0#3
+4 0000000000000000 mem_1#3
+5 0000000000000000 sb-adr_0#3
+6 0000000000000000 sb-adr_1#3
+7 0000000000000001 sb-val_0#3
+8 0000000000000000 sb-val_1#3
+9 1 sb-full_0#3
+10 0 sb-full_1#3
+11 0 stmt_0_0#3
+12 0 stmt_0_1#3
+13 1 stmt_0_2#3
+14 0 stmt_0_3#3
+15 0 stmt_1_0#3
+16 1 stmt_1_1#3
+17 0 stmt_1_2#3
+18 0 stmt_1_3#3
+19 0 halt_0#3
+20 0 halt_1#3
+21 [0000000000000001] 0000000000000000 heap@3
+21 [0000000000000000] 0000000000000000 heap@3
+22 0 exit#3
+23 0000000000000000 exit-code#3
+@3
+0 1 thread_0@3
+1 0 thread_1@3
+2 0 flush_0@3
+3 0 flush_1@3
+#4
+1 0000000000000000 accu_0#4
+2 0000000000000001 accu_1#4
+3 0000000000000000 mem_0#4
+4 0000000000000000 mem_1#4
+5 0000000000000000 sb-adr_0#4
+6 0000000000000000 sb-adr_1#4
+7 0000000000000001 sb-val_0#4
+8 0000000000000000 sb-val_1#4
+9 1 sb-full_0#4
+10 0 sb-full_1#4
+11 0 stmt_0_0#4
+12 0 stmt_0_1#4
+13 0 stmt_0_2#4
+14 1 stmt_0_3#4
+15 0 stmt_1_0#4
+16 1 stmt_1_1#4
+17 0 stmt_1_2#4
+18 0 stmt_1_3#4
+19 0 halt_0#4
+20 0 halt_1#4
+21 [0000000000000001] 0000000000000000 heap@4
+21 [0000000000000000] 0000000000000000 heap@4
+22 0 exit#4
+23 0000000000000000 exit-code#4
+@4
+0 0 thread_0@4
+1 1 thread_1@4
+2 0 flush_0@4
+3 0 flush_1@4
+#5
+1 0000000000000000 accu_0#5
+2 0000000000000001 accu_1#5
+3 0000000000000000 mem_0#5
+4 0000000000000000 mem_1#5
+5 0000000000000000 sb-adr_0#5
+6 0000000000000001 sb-adr_1#5
+7 0000000000000001 sb-val_0#5
+8 0000000000000001 sb-val_1#5
+9 1 sb-full_0#5
+10 1 sb-full_1#5
+11 0 stmt_0_0#5
+12 0 stmt_0_1#5
+13 0 stmt_0_2#5
+14 1 stmt_0_3#5
+15 0 stmt_1_0#5
+16 0 stmt_1_1#5
+17 1 stmt_1_2#5
+18 0 stmt_1_3#5
+19 0 halt_0#5
+20 0 halt_1#5
+21 [0000000000000001] 0000000000000000 heap@5
+21 [0000000000000000] 0000000000000000 heap@5
+22 0 exit#5
+23 0000000000000000 exit-code#5
+@5
+0 0 thread_0@5
+1 1 thread_1@5
+2 0 flush_0@5
+3 0 flush_1@5
+#6
+1 0000000000000000 accu_0#6
+2 0000000000000000 accu_1#6
+3 0000000000000000 mem_0#6
+4 0000000000000000 mem_1#6
+5 0000000000000000 sb-adr_0#6
+6 0000000000000001 sb-adr_1#6
+7 0000000000000001 sb-val_0#6
+8 0000000000000001 sb-val_1#6
+9 1 sb-full_0#6
+10 1 sb-full_1#6
+11 0 stmt_0_0#6
+12 0 stmt_0_1#6
+13 0 stmt_0_2#6
+14 1 stmt_0_3#6
+15 0 stmt_1_0#6
+16 0 stmt_1_1#6
+17 0 stmt_1_2#6
+18 1 stmt_1_3#6
+19 0 halt_0#6
+20 0 halt_1#6
+21 [0000000000000001] 0000000000000000 heap@6
+21 [0000000000000000] 0000000000000000 heap@6
+22 0 exit#6
+23 0000000000000000 exit-code#6
+@6
+0 0 thread_0@6
+1 0 thread_1@6
+2 1 flush_0@6
+3 0 flush_1@6
+#7
+1 0000000000000000 accu_0#7
+2 0000000000000000 accu_1#7
+3 0000000000000000 mem_0#7
+4 0000000000000000 mem_1#7
+5 0000000000000000 sb-adr_0#7
+6 0000000000000001 sb-adr_1#7
+7 0000000000000001 sb-val_0#7
+8 0000000000000001 sb-val_1#7
+9 0 sb-full_0#7
+10 1 sb-full_1#7
+11 0 stmt_0_0#7
+12 0 stmt_0_1#7
+13 0 stmt_0_2#7
+14 1 stmt_0_3#7
+15 0 stmt_1_0#7
+16 0 stmt_1_1#7
+17 0 stmt_1_2#7
+18 1 stmt_1_3#7
+19 0 halt_0#7
+20 0 halt_1#7
+21 [0000000000000001] 0000000000000000 heap@7
+21 [0000000000000000] 0000000000000001 heap@7
+22 0 exit#7
+23 0000000000000000 exit-code#7
+@7
+0 0 thread_0@7
+1 0 thread_1@7
+2 0 flush_0@7
+3 1 flush_1@7
+#8
+1 0000000000000000 accu_0#8
+2 0000000000000000 accu_1#8
+3 0000000000000000 mem_0#8
+4 0000000000000000 mem_1#8
+5 0000000000000000 sb-adr_0#8
+6 0000000000000001 sb-adr_1#8
+7 0000000000000001 sb-val_0#8
+8 0000000000000001 sb-val_1#8
+9 0 sb-full_0#8
+10 0 sb-full_1#8
+11 0 stmt_0_0#8
+12 0 stmt_0_1#8
+13 0 stmt_0_2#8
+14 1 stmt_0_3#8
+15 0 stmt_1_0#8
+16 0 stmt_1_1#8
+17 0 stmt_1_2#8
+18 1 stmt_1_3#8
+19 0 halt_0#8
+20 0 halt_1#8
+21 [0000000000000001] 0000000000000001 heap@8
+21 [0000000000000000] 0000000000000001 heap@8
+22 0 exit#8
+23 0000000000000000 exit-code#8
+@8
+0 1 thread_0@8
+1 0 thread_1@8
+2 0 flush_0@8
+3 0 flush_1@8
+#9
+1 0000000000000000 accu_0#9
+2 0000000000000000 accu_1#9
+3 0000000000000000 mem_0#9
+4 0000000000000000 mem_1#9
+5 0000000000000000 sb-adr_0#9
+6 0000000000000001 sb-adr_1#9
+7 0000000000000001 sb-val_0#9
+8 0000000000000001 sb-val_1#9
+9 0 sb-full_0#9
+10 0 sb-full_1#9
+11 0 stmt_0_0#9
+12 0 stmt_0_1#9
+13 0 stmt_0_2#9
+14 0 stmt_0_3#9
+15 0 stmt_1_0#9
+16 0 stmt_1_1#9
+17 0 stmt_1_2#9
+18 1 stmt_1_3#9
+19 1 halt_0#9
+20 0 halt_1#9
+21 [0000000000000001] 0000000000000001 heap@9
+21 [0000000000000000] 0000000000000001 heap@9
+22 0 exit#9
+23 0000000000000000 exit-code#9
+@9
+0 0 thread_0@9
+1 1 thread_1@9
+2 0 flush_0@9
+3 0 flush_1@9
+#10
+1 0000000000000000 accu_0#10
+2 0000000000000000 accu_1#10
+3 0000000000000000 mem_0#10
+4 0000000000000000 mem_1#10
+5 0000000000000000 sb-adr_0#10
+6 0000000000000001 sb-adr_1#10
+7 0000000000000001 sb-val_0#10
+8 0000000000000001 sb-val_1#10
+9 0 sb-full_0#10
+10 0 sb-full_1#10
+11 0 stmt_0_0#10
+12 0 stmt_0_1#10
+13 0 stmt_0_2#10
+14 0 stmt_0_3#10
+15 0 stmt_1_0#10
+16 0 stmt_1_1#10
+17 0 stmt_1_2#10
+18 0 stmt_1_3#10
+19 1 halt_0#10
+20 1 halt_1#10
+21 [0000000000000001] 0000000000000001 heap@10
+21 [0000000000000000] 0000000000000001 heap@10
+22 1 exit#10
+23 0000000000000000 exit-code#10
+@10
+0 0 thread_0@10
+1 0 thread_1@10
+2 0 flush_0@10
+3 0 flush_1@10
+.
+[btor>mc] found 1 reachable and 0 unreachable bad state properties at bound k = 10
+[btor>mc] deleting model checker: 4 inputs, 24 states, 1 bad, 6 constraints
+[concubine>main] solving took 0.020231 seconds

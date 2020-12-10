@@ -1,0 +1,37 @@
+[litmus/run.sh] running 71: litmus/amd/1/run.sh btormc btor2
+[concubine>main] encoding took 5.2e-05 seconds
+[concubine>main] generated 166 commands
+[btormc] parsing input file...
+[btormc] finished parsing
+[btor>mc] calling BMC on 1 properties from bound 9 up-to maximum bound k = 9
+[btor>mc] trace generation enabled
+[btor>mc] new forward manager
+[btor>mc] initialized forward frame at bound k = 0
+[btor>mc] initialized forward frame at bound k = 1
+[btor>mc] initialized forward frame at bound k = 2
+[btor>mc] initialized forward frame at bound k = 3
+[btor>mc] initialized forward frame at bound k = 4
+[btor>mc] initialized forward frame at bound k = 5
+[btor>mc] initialized forward frame at bound k = 6
+[btor>mc] initialized forward frame at bound k = 7
+[btor>mc] initialized forward frame at bound k = 8
+[btor>mc] initialized forward frame at bound k = 9
+[btor>mc] checking forward frame at bound k = 9
+[btor>mc] checking forward frame bad state property 0 at bound k = 9
+[btor>core] calling SAT
+[btor>core] found UFs, disable slice elimination
+[btor>varsubst] 12 variables substituted in 0.0 seconds
+[btor>embed] replaced 46 embedded constraints in 0 seconds
+[btor>extract] set: 0 (0), set_inc: 0 (0), set_itoi: 0 (0), set_itoip1: 0 (0), cpy: 0 (0)
+[btor>extract] extracted 0 lambdas in 0.000 seconds
+[btor>preprocess] 1 rewriting rounds in 0.0 seconds
+[btor>preprocess] simplification returned 0
+[btor>slvfun] enabled core engine
+[btor>sat] CaDiCaL allows both incremental and non-incremental mode
+[btor>sat] initialized CaDiCaL
+[btor>slvfun] 28 AIG vars, 301 AIG ands, 329 CNF vars, 903 CNF clauses
+[btor>core] SAT call 2 returned 20 in 0.000 seconds
+[btor>mc] bad state property 0 at bound k = 9 UNSATISFIABLE
+[btor>mc] found 0 reachable and 0 unreachable bad state properties at bound k = 9
+[btor>mc] deleting model checker: 4 inputs, 23 states, 1 bad, 6 constraints
+[concubine>main] solving took 0.006123 seconds
