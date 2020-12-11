@@ -5725,4 +5725,3 @@
 [runlim] time:			0.04 seconds
 [runlim] space:			5 MB
 [runlim] samples:		569996
-[count_stat/run.sh] error: expected test to be unsat

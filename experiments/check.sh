@@ -1,5 +1,7 @@
 #!/bin/bash
 
+pattern="error"
+
 function die () {
   echo "[check.sh] error: $*" 1>&2
   exit 1
@@ -8,7 +10,6 @@ function die () {
 [ -d count_stat ] || die "$(basename $0) not called from experiments directory"
 
 dir=$(ls -d */)
-pattern='error'
 failed="$(
   ( \
     find $dir -name *.log -o -name *.err | xargs grep -l "$pattern"; \
@@ -28,15 +29,19 @@ function check_empty () {
 function check_pattern () {
   while read -r match
   do
-    [ ! -z "$match" ] && echo "  "$match
+    [ ! -z "$match" ] \
+      && [[ $limits != yes || ! "$match" =~ "expected test to be sat" ]] \
+        && echo "  "$match
   done <<< $(grep -h "$pattern" $*)
 }
 
 function check_runlim () {
+  limits=no
   local status=$(grep "^\[runlim\] status:" $1)
   [ -z "$status" ] \
     && echo "  [runlim] status: missing" \
     || [[ "$status" =~ ok$ ]] || echo "  "$status
+  [[ "$status" =~ "out of" ]] && limits=yes
 }
 
 for i in $failed

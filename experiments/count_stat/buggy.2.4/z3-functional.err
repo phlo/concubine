@@ -8670,3 +8670,4 @@
 [runlim] time:			86399.86 seconds
 [runlim] space:			1129 MB
 [runlim] samples:		864000
+[count_stat/run.sh] error: expected test to be sat
