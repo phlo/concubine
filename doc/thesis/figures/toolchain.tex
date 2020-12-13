@@ -1,6 +1,7 @@
 % styles
 \tikzstyle{module} = [draw, fill=blue!10, text centered, rounded corners, minimum height=1cm, minimum width=2.5cm]
 \tikzstyle{file} = [module, fill=red!10]
+\tikzstyle{external} = [module, fill=yellow!10]
 
 \begin{tikzpicture}[auto]
 
@@ -11,6 +12,10 @@
 
   \node [module] (solve) [below right=0cm and 1cm of program] {\texttt{solve}};
   \path [draw, ->] (program.east) -- ++(0.5, 0) |- (solve);
+
+  \node [external] (solver) [below= of solve] {SMT solver};
+  \path [draw, ->, transform canvas={xshift=-0.5cm}] (solve) -- (solver);
+  \path [draw, <-, transform canvas={xshift=0.5cm}] (solve) -- (solver);
 
   \node [file] (trace) [below right=0cm and 1cm of simulate] {trace};
   \path [draw, ->] (simulate.east) -- ++(0.5, 0) |- (trace);

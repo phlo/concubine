@@ -39,7 +39,7 @@
   keepspaces=true,
   columns=fullflexible,
 }
-\lstdefinelanguage[concubine]{Assembler}{
+\lstdefinestyle{asm}{
   morekeywords={[1]
     LOAD,STORE,FENCE,FLUSH,
     ADD,ADDI,SUB,SUBI,MUL,MULI,
@@ -90,7 +90,7 @@
   % identifierstyle=\color{blue},
   stringstyle=\color{red!60!black},
 }
-\lstdefinelanguage{smtlib}{
+\lstdefinestyle{smtlib}{
   breaklines=true,
   morekeywords={[1]
     declare-fun,
@@ -146,6 +146,11 @@
 % commands
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% language names
+\newcommand{\CPP}{C\texttt{++}17}
+\newcommand{\SMTLIB}{SMT-LIB}
+\newcommand{\BTOR}{\textsc{Btor2}}
+
 % state variables
 \newcommand{\HEAP}{\texttt{heap}}
 \newcommand{\EXIT}{\texttt{exit}}
@@ -153,9 +158,9 @@
 
 \newcommand{\ACCU}{\texttt{accu}}
 \newcommand{\MEM}{\texttt{mem}}
-\newcommand{\SBADR}{\texttt{sb-adr}}
-\newcommand{\SBVAL}{\texttt{sb-val}}
-\newcommand{\SBFULL}{\texttt{sb-full}}
+\newcommand{\SBADR}{\texttt{adr}}
+\newcommand{\SBVAL}{\texttt{val}}
+\newcommand{\SBFULL}{\texttt{full}}
 \newcommand{\STMT}{\texttt{stmt}}
 \newcommand{\BLOCK}{\texttt{block}}
 \newcommand{\HALT}{\texttt{halt}}
@@ -166,9 +171,14 @@
 \newcommand{\FLUSH}{\texttt{flush}}
 \newcommand{\CHECK}{\texttt{check}}
 
-% sorts
+% SMT-LIB sorts
 \newcommand{\ASORT}[1][16]{\mathcal{A}^{#1}}
 \newcommand{\BVSORT}[1][16]{\mathcal{B}^{#1}}
+
+% inline code
+\newcommand{\lstASM}[1]{\lstinline[style=asm]{#1}}
+\newcommand{\lstCPP}[1]{\lstinline[style=c++]{#1}}
+\newcommand{\lstSMTLIB}[1]{\lstinline[style=smtlib]{#1}}
 
 % todos
 % \newcommand{\todo}[1]{
@@ -181,6 +191,9 @@
 % \newcommand{\todonote}[1]{
   % $^{\color{red}#1}$
 % }
+
+% changes
+\newcommand{\CHANGE}[1]{{\color{red}#1}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % document
@@ -224,6 +237,10 @@
 
 \bibliographystyle{plain}
 \bibliography{references}
+
+\newpage
+
+\input{appendix}
 
 \newpage
 

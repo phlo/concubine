@@ -12,14 +12,14 @@
   % program    one ore more source files, each being executed as a separate thread
 % \end{verbatim}
 
-Execution can be simulated using the \texttt{simulate} submodule, implementing a virtual machine for the previously defined model.
+Execution can be simulated using the \texttt{simulate} \CHANGE{mode}, implementing a virtual machine for the previously defined model.
 It takes an arbitrary number of program files, each being run on a separate thread and produces an execution trace using a pseudo random number generator to determine the schedule.
 
 \begin{minipage}{.45\textwidth}
-  \lstinputlisting[language={[concubine]Assembler}, caption=\texttt{thread.0.asm}, label={lst:program:thread.0.asm}, xleftmargin=0.39\textwidth]{../../examples/demo/processor.0.asm}
+  \lstinputlisting[style=asm, caption=\texttt{thread.0.asm}, label={lst:program:thread.0.asm}, xleftmargin=0.39\textwidth]{../../experiments/demo/thread.0.asm}
 \end{minipage}
 \begin{minipage}{.45\textwidth}
-  \lstinputlisting[language={[concubine]Assembler}, caption=\texttt{thread.1.asm}, label={lst:program:thread.1.asm}, xleftmargin=0.39\textwidth]{../../examples/demo/processor.1.asm}
+  \lstinputlisting[style=asm, caption=\texttt{thread.1.asm}, label={lst:program:thread.1.asm}, xleftmargin=0.39\textwidth]{../../experiments/demo/thread.1.asm}
 \end{minipage}
 
 An implementation of the store buffer litmus test for our machine is given in Listings \ref{lst:program:thread.0.asm} and \ref{lst:program:thread.1.asm}.
@@ -37,7 +37,7 @@ After the simulation has been finished, the execution trace will be saved to the
 The execution traces are simple text files, capturing the basic environment and machine state transitions.
 A trace of the previous simulation could look as follows.
 
-\begin{lstlisting}[language={[concubine]Assembler}, caption={Simple Output Trace}, label={lst:trace:simple}, xleftmargin=\parindent]
+\begin{lstlisting}[style=asm, caption={Simple Output Trace}, label={lst:trace:simple}, xleftmargin=\parindent]
 thread.0.asm
 thread.1.asm
 .
@@ -61,10 +61,10 @@ The rest of the file contains the actual execution steps, one per line, starting
 
 \begin{itemize}
   \item program counter of the instruction about to be executed
-  \item instruction symbol, or \lstinline[language={[concubine]Assembler}]{FLUSH} if a thread is flushing its store buffer
+  \item instruction symbol, or \lstASM{FLUSH} if a thread is flushing its store buffer
   \item instruction argument, or \texttt{-} for unary instructions
   \item accumulator register
-  \item \lstinline[language={[concubine]Assembler}]{CAS} memory register
+  \item \lstASM{CAS} memory register
   \item store buffer address register
   \item store buffer value register
   \item store buffer full flag
@@ -74,7 +74,7 @@ The rest of the file contains the actual execution steps, one per line, starting
 The result of the instruction's execution will be visible, the next time the specific thread is scheduled.
 A better visualization of a particular thread's state transitions can be achieved by only considering e.g. thread 0 in the trace given in Listing \ref{lst:trace:simple}:
 
-\begin{lstlisting}[language={[concubine]Assembler}, xleftmargin=\parindent]
+\begin{lstlisting}[style=asm, xleftmargin=\parindent]
 # tid pc  cmd   arg accu  mem adr val full  heap
 0     0   ADDI  1   0     0   0   0   0     {}      # 0
 0     1   STORE 0   1     0   0   0   0     {}      # 2
@@ -137,9 +137,9 @@ A more formal definition of the trace file syntax is given below.
 
 \subsection{Memory Maps}
 
-Access to uninitialized memory cells is captured in so called memory maps, again a simple text file format, containing one address value pair per line, delimited by a whitespace.
+Access to uninitialized memory cells is captured in so called memory maps\footnote{\CHANGE{naming inspired by, but not to be confused with memory mapped I/O}} again a simple text file format, containing one address value pair per line, delimited by a whitespace.
 
-\begin{lstlisting}[language={[concubine]Assembler}, caption={Output Trace Accessing Uninitialized Memory}, label={lst:trace:uninitialized}, xleftmargin=\parindent]
+\begin{lstlisting}[style=asm, caption={Output Trace Accessing Uninitialized Memory}, label={lst:trace:uninitialized}, xleftmargin=\parindent]
 thread.0.asm
 thread.1.asm
 . sim.mmap
@@ -162,7 +162,7 @@ Consider another random simulation, given in Listing \ref{lst:trace:uninitialize
 In this simulation, both threads are reading uninitialized memory locations at addresses 0 and 1 respectively.
 To ensure reproducibility, a memory map file \texttt{sim.mmap} is stored together with the trace file \texttt{sim.trace} per default and is referenced just after the delimiter at the end of the program list in the trace file's header.
 
-\begin{lstlisting}[language={[concubine]Assembler}, caption={Output Memory Map of the Trace in Listing \ref{lst:trace:uninitialized}}, label={lst:mmap:uninitialized}, xleftmargin=0.39\textwidth]
+\begin{lstlisting}[style=asm, caption={Output Memory Map of the Trace in Listing \ref{lst:trace:uninitialized}}, label={lst:mmap:uninitialized}, xleftmargin=0.39\textwidth]
 0 34446
 1 57647
 \end{lstlisting}
@@ -195,11 +195,11 @@ For completeness, the syntax of such trace files is given below.
 It also possible to search for specific machine states via simulation.
 The command line switch \texttt{-c} simulates the given programs exhaustively until a trace yielding an exit code greater than zero is encountered.
 
-\lstinputlisting[language={[concubine]Assembler}, caption=\texttt{checker.asm}, label={lst:program:checker.asm}, xleftmargin=0.39\textwidth]{../../examples/demo/checker.asm}
+\lstinputlisting[style=asm, caption=\texttt{checker.asm}, label={lst:program:checker.asm}, xleftmargin=0.39\textwidth]{../../experiments/demo/checker.asm}
 
-To find traces exhibiting a problematic reordering of writes in our store buffer litmus test example, we make use of a so called \emph{checker thread}, given in Listing \ref{lst:program:checker.asm}, that examines the machine state at a specific point in time by using the \lstinline[language={[concubine]Assembler}]{CHECK} instruction and stops execution with an \lstinline[language={[concubine]Assembler}]{EXIT 1} if none of the store buffers has been flushed, leading to both memory locations still being zero.
+To find traces exhibiting a problematic reordering of writes in our store buffer litmus test example, we make use of a so called \emph{checker thread}, given in Listing \ref{lst:program:checker.asm}, that examines the machine state at a specific point in time by using the \lstASM{CHECK} instruction and stops execution with an \lstASM{EXIT 1} if none of the store buffers has been flushed, leading to both memory locations still being zero.
 
-\lstinputlisting[language={[concubine]Assembler}, caption=\texttt{init.mmap}, label={lst:mmap:init.mmap}, xleftmargin=0.39\textwidth]{../../examples/demo/init.mmap}
+\lstinputlisting[style=asm, caption=\texttt{init.mmap}, label={lst:mmap:init.mmap}, xleftmargin=0.39\textwidth]{../../experiments/demo/init.mmap}
 
 This requires that the relevant memory cells are set to zero in order to prevent uninitialized reads from influencing the checking procedure and is achieved by using the memory map given in Listing \ref{lst:mmap:init.mmap}.
 The search can now be started by issuing the following command line:
@@ -211,9 +211,9 @@ $ concubine simulate -c -m init.mmap \
                      thread.1.asm
 \end{verbatim}
 
-After a couple of simulations, a trace like the one shown in Listing \ref{lst:trace:error}, where none of the store buffers has been flushed prior to the \emph{checker threads} \lstinline[language={[concubine]Assembler}]{ADD} instructions, will be found.
+After a couple of simulations, a trace like the one shown in Listing \ref{lst:trace:error}, where none of the store buffers has been flushed prior to the \emph{checker threads} \lstASM{ADD} instructions, will be found.
 
-\begin{lstlisting}[language={[concubine]Assembler}, caption={Sequentially Inconsistent Trace}, label={lst:trace:error}, xleftmargin=\parindent]
+\begin{lstlisting}[style=asm, caption={Sequentially Inconsistent Trace}, label={lst:trace:error}, xleftmargin=\parindent]
 checker.asm
 thread.0.asm
 thread.1.asm

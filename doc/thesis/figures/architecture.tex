@@ -7,7 +7,7 @@
 \tikzstyle{box} = [draw, text centered, rounded corners]
 \tikzstyle{register} = [box, fill=white, minimum height=2em, minimum width=4em]
 \tikzstyle{processor} = [draw, fill=blue!10, rounded corners]
-\tikzstyle{buffer} = [processor, fill=red!10, dashed]
+\tikzstyle{buffer} = [processor, fill=red!10]%, dashed]
 
 % distances
 \def\blockdist{3}
@@ -16,17 +16,17 @@
 \begin{tikzpicture}
 
   % processor 0 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \path (0, 0) node (title-0) [] {\textbf{Processor 0}};
+  \path (0, 0) node (title-0) [] {\textbf{Thread 0}};
 
   % store buffer
-  \path (title-0)+(0, -1) node (sb-0) [] {store buffer};
-  \path (sb-0)+(0, -1) node (full-0) [register] {full};
-  \path (full-0)+(0, -1) node (adr-0) [register] {address};
-  \path (adr-0)+(0, -1) node (val-0) [register] {value};
+  \path (title-0)+(0, -1) node (sb-0) [] {\textbf{Store Buffer}};
+  \path (sb-0)+(0, -1) node (full-0) [register] {\texttt{full}};
+  \path (full-0)+(0, -1) node (adr-0) [register] {\texttt{adr}};
+  \path (adr-0)+(0, -1) node (val-0) [register] {\texttt{val}};
 
   % registers
-  \path (val-0)+(-1.1, -1.5) node (accu-0) [register] {accu};
-  \path (val-0)+(1.1, -1.5) node (mem-0) [register, dashed] {mem};
+  \path (val-0)+(-1.1, -1.4) node (accu-0) [register] {\texttt{accu}};
+  \path (val-0)+(1.1, -1.4) node (mem-0) [register, dashed] {\texttt{mem}};
 
   % paths
   \path [draw, <->] (val-0.west) -- (val-0.west -| accu-0.north) -- (accu-0.north);
@@ -51,17 +51,17 @@
   \path (title-0)+(\blockdist, 0) node (dots) [] {\large $\ldots$};
 
   % processor n %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \path (dots)+(\blockdist, 0) node (title-n) [] {\textbf{Processor n}};
+  \path (dots)+(\blockdist, 0) node (title-n) [] {\textbf{Thread n}};
 
   % store buffer
-  \path (title-n)+(0, -1) node (sb-n) [] {store buffer};
-  \path (sb-n)+(0, -1) node (full-n) [register] {full};
-  \path (full-n)+(0, -1) node (adr-n) [register] {address};
-  \path (adr-n)+(0, -1) node (val-n) [register] {value};
+  \path (title-n)+(0, -1) node (sb-n) [] {\textbf{Store Buffer}};
+  \path (sb-n)+(0, -1) node (full-n) [register] {\texttt{full}};
+  \path (full-n)+(0, -1) node (adr-n) [register] {\texttt{adr}};
+  \path (adr-n)+(0, -1) node (val-n) [register] {\texttt{val}};
 
   % registers
-  \path (val-n)+(-1.1, -1.5) node (accu-n) [register] {accu};
-  \path (val-n)+(1.1, -1.5) node (mem-n) [register, dashed] {mem};
+  \path (val-n)+(-1.1, -1.4) node (accu-n) [register] {\texttt{accu}};
+  \path (val-n)+(1.1, -1.4) node (mem-n) [register, dashed] {\texttt{mem}};
 
   % paths
   \path [draw, <->] (val-n.west) -- (val-n.west -| accu-n.north) -- (accu-n.north);
@@ -83,7 +83,7 @@
   \end{pgfonlayer}
 
   % heap %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \path [box] (tlh) rectangle node (heap) [minimum height=2cm] {shared memory} (brh);
+  \path [box] (tlh) rectangle node (heap) [minimum height=2cm] {\textbf{Shared Memory}} (brh);
 
   % paths
   \path [draw, ->] (val-0) -- (heap.north -| val-0);

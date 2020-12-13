@@ -1,15 +1,12 @@
-\newcommand{\SMTLIB}{SMT-LIB}
-\newcommand{\BTOR}{\textsc{Btor2}}
-
 \section{Verification}
 
-The main part of this work is implemented in the \texttt{solve} submodule,
+The main part of this work is implemented in the \texttt{solve} \CHANGE{mode},
 % allowing the verification of concurrent assembly programs by bounded model checking based on register states in our abstract machine model.
 % allowing bounded model checking of concurrent assembly programs based on register states in our abstract machine model.
 % performing bounded model checking of concurrent software running on our abstract machine model.
 allowing verification of concurrent software running on our abstract machine model by the means of bounded model checking \cite{ref:BMC}.
 It takes an arbitrary number of programs plus the upper bound as input and encodes them into a finite state machine, expressed as a SMT formula where each transition translates to the execution of a single thread.
-\SMTLIB{} \cite{ref:SMT-Lib} and the novel \BTOR{} \cite{ref:BTOR2} word level model checking format can be generated, using the theories of arrays, uninterpreted functions and bitvectors.
+{\SMTLIB} \cite{ref:SMT-Lib} and the novel {\BTOR} \cite{ref:BTOR2} word level model checking format can be generated, using the theories of arrays, uninterpreted functions and bit-vectors.
 To simplify the definition of bad states directly in the program code, the possibility of encountering an exit code greater than zero is checked for per default, but custom properties may be defined in a separate file and added with the \texttt{-c} command line parameter.
 The resulting formula is then evaluated by a state-of-the-art solver.
 If it is satisfiable, the corresponding execution trace is extracted from the resulting model and stored for later inspection.
@@ -19,7 +16,7 @@ If it is satisfiable, the corresponding execution trace is extracted from the re
     % \item submodule \texttt{solve}
     % \item verification of assembly programs by bounded model checking based on register states
     % \item property: there exists a trace in which $\mathbf{EG^?F^?}(\EXITCODE \neq 0)$ holds (exists globally)
-    % \item using satisfiability modulo theories (arrays and bitvectors)
+    % \item using satisfiability modulo theories (arrays and bit-vectors)
     % \item problem defined by state and transition variables
     % \item one step corresponds to a specific thread's execution of a single instruction
   % \end{itemize}
@@ -29,7 +26,7 @@ If it is satisfiable, the corresponding execution trace is extracted from the re
 
 \subsection{Basic Encoding Scheme}
 
-Let $\BVSORT[n]$ be the fixed size bitvector sort of width $n$ and $\ASORT[n]$ the array sort with index and element sorts $\BVSORT[n]$.
+Let $\BVSORT[n]$ be the fixed size bit-vector sort of width $n$ and $\ASORT[n]$ the array sort with index and element sorts $\BVSORT[n]$.
 The following variables are used to encode the machine state at a particular step $k \in [0, bound] \subset \mathbb{N}$, where $k = 0$ is the initial state.
 
 % \renewcommand{\arraystretch}{1.5}
@@ -45,7 +42,7 @@ The following variables are used to encode the machine state at a particular ste
   % \textbf{Threads} &&\\
   % \hline
   $\ACCU^k_t$ & $\in \BVSORT$ & accumulator register of thread $t$ \\
-  $\MEM^k_t$ & $\in \BVSORT$ & \lstinline[language={[concubine]Assembler}]{CAS} memory register of thread $t$ \\
+  $\MEM^k_t$ & $\in \BVSORT$ & \lstASM{CAS} memory register of thread $t$ \\
   $\SBADR^k_t$ & $\in \BVSORT$ & store buffer address register of thread $t$ \\
   $\SBVAL^k_t$ & $\in \BVSORT$ & store buffer value register of thread $t$ \\
   $\SBFULL^k_t$ & $\in \BVSORT[1]$ & store buffer full flag of thread $t$ \\
@@ -64,16 +61,16 @@ The following variables are used to encode the machine state at a particular ste
 % Shared memory in step $k$ is modelled using the array variable $\HEAP^k$ in combination with the functions $\READ^k \colon \BVSORT \mapsto \BVSORT$ for retrieving an element and $\WRITE^k \colon \BVSORT \times \BVSORT \mapsto \ASORT$, returning an updated version of the shared memory state array with the given element set to a specific value.
 Shared memory states are modelled using the array variables $\HEAP^k$ in combination with the functions $\READ^k \colon \BVSORT \mapsto \BVSORT$ for retrieving an element and $\WRITE^k \colon \BVSORT \times \BVSORT \mapsto \ASORT$ returning an updated version of the shared memory state array with the given element set to a specific value.
 % Its initial state $\HEAP^0$ may contain input data according to a given memory map, but is assumed to be uninitialized in general.
-Register states of a thread $t$ are determined by the bitvector variables $\ACCU^k_t$, $\MEM^k_t$, $\SBADR^k_t$, $\SBVAL^k_t$ and the flag $\SBFULL^k_t$, signalling that the store buffer is full.
+Register states of a thread $t$ are determined by the bit-vector variables $\ACCU^k_t$, $\MEM^k_t$, $\SBADR^k_t$, $\SBVAL^k_t$ and the flag $\SBFULL^k_t$, signalling that the store buffer is full.
 %, which are all initially set to zero.
 To aid solvers by reducing the formulas complexity, program flow is modelled without an explicit problem counter.
 Instead, an activation flag $\STMT^k_{t, pc}$ is added for every statement in the program of thread $t$, expressing that it is about to execute the statement at $pc$.
 %To model the program flow without an explicit program counter, an activation flag $\STMT^k_{t, pc}$ is added for every statement in the program of thread $t$, expressing that it is about to execute the statement at $pc$.
 Blocking a thread $t$ while it is waiting for all other threads to reach a checkpoint $id$ is achieved by a flag $\BLOCK^k_t$.
 % Blocking a thread $t$ while waiting for all other threads to synchronize on a checkpoint $id$ is achieved by the $\BLOCK^k_{id, t}$ state flag.
-Similarly, the flag $\HALT^k_t$ indicates that thread $t$ executed a \lstinline[language={[concubine]Assembler}]{HALT} instruction and is therefore also prevented from being scheduled.
+Similarly, the flag $\HALT^k_t$ indicates that thread $t$ executed a \lstASM{HALT} instruction and is therefore also prevented from being scheduled.
 % Termination due to an call to \texttt{EXIT}, or because all threads finished executing their programs, or \texttt{EXIT}  is captured by
-Termination is captured by the flag $\EXIT^k$ and bitvector variable $\EXITCODE^k$.
+Termination is captured by the flag $\EXIT^k$ and bit-vector variable $\EXITCODE^k$.
 
 % The shared memory state array $\HEAP^0$ may be initialized with input data according to a given memory map, but is assumed to be uninitialized in general.
 % All other states are initially set to zero, with the exception of the initial statement activation flag $\STMT^0_{t, 0}$ of every thread $t$.
@@ -124,7 +121,7 @@ Furthermore, we use $\CHECK^k_{id}$ to signal that all threads containing a call
 \]
 
 % \bigskip
-\subsubsection{Scheduling}
+\subsubsection*{Scheduling}
 
 \newcommand{\CardLt}{\leq^1_n(x_1, \ldots, x_n)}
 \newcommand{\CardLtSeq}{\text{LT}^{n, 1}_{\text{SEQ}}}
@@ -239,7 +236,7 @@ Finally, if a thread $t$ has halted, it must also be stopped from being schedule
   \HALT^k_t \implies \lnot \THREAD^k_t
 \]
 
-\subsubsection{Memory Access}
+\subsubsection*{Memory Access}
 
 % \newcommand{\READ}{\texttt{read}}
 \newcommand{\LOAD}{\texttt{load}}
@@ -329,7 +326,7 @@ might be contained (\ref{def:load:7}), or nothing can be forwarded after all (\r
 % \paragraph{Store Forwarding:} $\sbfull \; \land \; \sbadr = adr \land \accu = \sbval \lor \lnot (\sbfull \land \sbadr = adr)$
 
 % \bigskip
-\subsubsection{Frame Axioms}
+\subsubsection*{Frame Axioms}
 
 \newcommand{\TRUE}{\textit{true}}
 \newcommand{\FALSE}{\textit{false}}
@@ -348,7 +345,7 @@ All state variables, not explicitly altered are assumed to be unchanged in the n
 \]
 To further simplify the definition of axioms, two additional functions are introduced:
 % Let $\EFFECTIVE^k: \BVSORT \to \BVSORT$ be a function for transparently selecting the effective address during $\texttt{STORE}$ or $\texttt{CAS}$ instructions.
-$\MSB: \BVSORT \to \BVSORT[1]$ for retrieving the most significant bit of a given bitvector and $\EFFECTIVE^k: \BVSORT \to \BVSORT$ for transparently selecting the effective address during \lstinline[language={[concubine]Assembler}]{STORE} or \lstinline[language={[concubine]Assembler}]{CAS} instructions.
+$\MSB: \BVSORT \to \BVSORT[1]$ for retrieving the most significant bit of a given bit-vector and $\EFFECTIVE^k: \BVSORT \to \BVSORT$ for transparently selecting the effective address during \lstASM{STORE} or \lstASM{CAS} instructions.
 \[
   \EFFECTIVE^k(adr) =
   \begin{cases}
@@ -356,7 +353,7 @@ $\MSB: \BVSORT \to \BVSORT[1]$ for retrieving the most significant bit of a give
     adr \text{ otherwise}
   \end{cases}
 \]
-% and $\MSB: \BVSORT \to \BVSORT[1]$ a function for retrieving the most significant bit of a given bitvector.
+% and $\MSB: \BVSORT \to \BVSORT[1]$ a function for retrieving the most significant bit of a given bit-vector.
 
 % $\SLICE: \BVSORT \times \mathcal{N} \times \mathcal{N} \to \BVSORT[m]$
 
@@ -543,13 +540,13 @@ $\MSB: \BVSORT \to \BVSORT[1]$ for retrieving the most significant bit of a give
 % \setlength{\doublerulesep}{4pt}
 \begin{longtabu}{llX[m]}
   \firsthline
-  \multirow{2}{*}{\lstinline[language={[concubine]Assembler}]{FLUSH}}
+  \multirow{2}{*}{\lstASM{FLUSH}}
     & $\HEAP^{k + 1}$   & $= \WRITE^k(\SBADR^k_t, \SBVAL^k_t)$ \\
     & $\SBFULL^{k + 1}$ & $= \FALSE$ \\
   \hline
   % \hhline{===}
   % \tabucline[2pt off 2pt]{-}
-  \multirow{3.05}{*}{\lstinline[language={[concubine]Assembler}]{LOAD arg}}
+  \multirow{3.05}{*}{\lstASM{LOAD arg}}
     & $\ACCU^{k + 1}_t$           & $= \LOAD^k_t(\texttt{arg})$ \\
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
@@ -560,108 +557,108 @@ $\MSB: \BVSORT \to \BVSORT[1]$ for retrieving the most significant bit of a give
     % & $\SBVAL^{k + 1}_t$    & $= \ACCU^k_t$ \\
     % & $\STMT^k_{t, pc}$     & $= false$ \\
     % & $\STMT^k_{t, pc + 1}$ & $= true$ \\
-  \multirow{4}{*}{\lstinline[language={[concubine]Assembler}]{STORE arg}}
+  \multirow{4}{*}{\lstASM{STORE arg}}
     & $\SBADR^{k + 1}_t$          & $= \EFFECTIVE^k(\texttt{arg})$ \\
     & $\SBVAL^{k + 1}_t$          & $= \ACCU^k_t$ \\
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
   % \hhline{===}
-  \multirow{2}{*}{\lstinline[language={[concubine]Assembler}]{FENCE}}
+  \multirow{2}{*}{\lstASM{FENCE}}
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
-  \multirow{3.05}{*}{\lstinline[language={[concubine]Assembler}]{ADD arg}}
+  \multirow{3.05}{*}{\lstASM{ADD arg}}
     & $\ACCU^{k + 1}_t$           & $= \ACCU^k_t + \LOAD^k_t(\texttt{arg})$ \\
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
-  \multirow{3.05}{*}{\lstinline[language={[concubine]Assembler}]{ADDI arg}}
+  \multirow{3.05}{*}{\lstASM{ADDI arg}}
     & $\ACCU^{k + 1}_t$           & $= \ACCU^k_t + \texttt{arg}$ \\
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
-  \multirow{3.05}{*}{\lstinline[language={[concubine]Assembler}]{SUB arg}}
+  \multirow{3.05}{*}{\lstASM{SUB arg}}
     & $\ACCU^{k + 1}_t$           & $= \ACCU^k_t - \LOAD^k_t(\texttt{arg})$ \\
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
-  \multirow{3.05}{*}{\lstinline[language={[concubine]Assembler}]{SUBI arg}}
+  \multirow{3.05}{*}{\lstASM{SUBI arg}}
     & $\ACCU^{k + 1}_t$           & $= \ACCU^k_t - \texttt{arg}$ \\
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
-  \multirow{3.05}{*}{\lstinline[language={[concubine]Assembler}]{MUL arg}}
+  \multirow{3.05}{*}{\lstASM{MUL arg}}
     & $\ACCU^{k + 1}_t$           & $= \ACCU^k_t * \LOAD^k_t(\texttt{arg})$ \\
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
   \newpage
   \hline
-  \multirow{3.05}{*}{\lstinline[language={[concubine]Assembler}]{MULI arg}}
+  \multirow{3.05}{*}{\lstASM{MULI arg}}
     & $\ACCU^{k + 1}_t$           & $= \ACCU^k_t * \texttt{arg}$ \\
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
-  \multirow{3}{*}{\lstinline[language={[concubine]Assembler}]{CMP arg}}
+  \multirow{3}{*}{\lstASM{CMP arg}}
     & $\ACCU^{k + 1}_t$           & $= \ACCU^k_t - \LOAD^k_t(\texttt{arg})$ \\
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
-  \multirow{2}{*}{\lstinline[language={[concubine]Assembler}]{JMP arg}}
+  \multirow{2}{*}{\lstASM{JMP arg}}
     & $\STMT^{k + 1}_{t, pc}$           & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \TRUE$ \\
   \hline
-  \multirow{3}{*}{\lstinline[language={[concubine]Assembler}]{JZ arg}}
+  \multirow{3}{*}{\lstASM{JZ arg}}
     & $\STMT^{k + 1}_{t, pc}$           & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$       & $= \ACCU^k_t$ \\
     & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \lnot \ACCU^k_t$ \\
   \hline
-  \multirow{3}{*}{\lstinline[language={[concubine]Assembler}]{JNZ arg}}
+  \multirow{3}{*}{\lstASM{JNZ arg}}
     & $\STMT^{k + 1}_{t, pc}$           & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$       & $= \lnot \ACCU^k_t$ \\
     & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \ACCU^k_t$ \\
   \hline
-  \multirow{3}{*}{\lstinline[language={[concubine]Assembler}]{JS arg}}
+  \multirow{3}{*}{\lstASM{JS arg}}
     & $\STMT^{k + 1}_{t, pc}$           & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$       & $= \lnot \MSB(\ACCU^k_t)$ \\
     & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \MSB(\ACCU^k_t)$ \\
   \hline
-  \multirow{3}{*}{\lstinline[language={[concubine]Assembler}]{JNS arg}}
+  \multirow{3}{*}{\lstASM{JNS arg}}
     & $\STMT^{k + 1}_{t, pc}$           & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$       & $= \MSB(\ACCU^k_t)$ \\
     & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \lnot \MSB(\ACCU^k_t)$ \\
   \hline
-  \multirow{3}{*}{\lstinline[language={[concubine]Assembler}]{JNZNS arg}}
+  \multirow{3}{*}{\lstASM{JNZNS arg}}
     & $\STMT^{k + 1}_{t, pc}$           & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$       & $= \lnot \ACCU^{k + 1}_t \lor \MSB(\ACCU^k_t)$ \\
     & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \ACCU^{k + 1}_t \land \lnot \MSB(\ACCU^k_t)$ \\
   \hline
-  \multirow{4}{*}{\lstinline[language={[concubine]Assembler}]{MEM arg}}
+  \multirow{4}{*}{\lstASM{MEM arg}}
     & $\ACCU^{k + 1}_t$           & $= \LOAD^k_t(\texttt{arg})$ \\
     & $\MEM^{k + 1}_t$            & $= \LOAD^k_t(\texttt{arg})$ \\
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + k}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
   % \multirow{2.35}{*}{\texttt{CAS arg}}
-  \multirow{2.97}{*}{\lstinline[language={[concubine]Assembler}]{CAS arg}}
+  \multirow{2.97}{*}{\lstASM{CAS arg}}
     & $\HEAP^{k + 1}$             & $=$ \usebox{\CASHEAPAXIOM} \\
     & $\ACCU^{k + 1}_t$           & $=$ \usebox{\CASACCUAXIOM} \\
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
-  \multirow{2}{*}{\lstinline[language={[concubine]Assembler}]{HALT}}
+  \multirow{2}{*}{\lstASM{HALT}}
     % & $\EXIT^{k + 1}_t$ & $= \HALT^{k + 1}_0 \land \ldots \land \HALT^{k + 1}_{n - 1}$ \\
     & $\EXIT^{k + 1}_t$       & $= \displaystyle \bigwedge^{n - 1}_{i = 0} \HALT^{k + 1}_i$ \\
     & $\HALT^{k + 1}_t$       & $= \TRUE$ \\
     & $\STMT^{k + 1}_{t, pc}$ & $= \FALSE$ \\
   \hline
-  \multirow{3}{*}{\lstinline[language={[concubine]Assembler}]{EXIT arg}}
+  \multirow{3}{*}{\lstASM{EXIT arg}}
     & $\EXIT^{k + 1}_t$       & $= \TRUE$ \\
     & $\EXITCODE^k$           & \vspace{.15cm} $= \texttt{arg}$ \\
     & $\STMT^{k + 1}_{t, pc}$ & $= \FALSE$ \\
   \hline
-  \multirow{3}{*}{\lstinline[language={[concubine]Assembler}]{CHECK arg}}
+  \multirow{3}{*}{\lstASM{CHECK arg}}
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
     & $\BLOCK^{k + 1}_{arg, t}$   & $= \TRUE$ \\
@@ -723,22 +720,20 @@ $\MSB: \BVSORT \to \BVSORT[1]$ for retrieving the most significant bit of a give
 % \setlength{\tabulinesep}{2\lineskip}
 
 \newpage
-\subsection{\SMTLIB{}}
-
-\newcommand{\Cpp}{C\texttt{++}17 }
+\subsection{{\SMTLIB}}
 
 % We will now outline the actual encoding process for \SMTLIB.
 % We will now outline the process of generating \SMTLIB formulas for our model checking problems, following the previously defined encoding scheme.
-We will now outline a simplistic \Cpp implementation for generating \SMTLIB{} formulas of our model checking problems, following the previously defined encoding scheme
+We will now outline a simplistic {\CPP} implementation for generating {\SMTLIB} formulas of our model checking problems, following the previously defined encoding scheme
 and use the store buffer litmus test as an exemplary input for demonstration.
-% We will now outline a simplistic \Cpp implementation for generating our model checking problems in the \SMTLIB format, following the previously defined encoding scheme.
+% We will now outline a simplistic {\CPP} implementation for generating our model checking problems in the \SMTLIB format, following the previously defined encoding scheme.
 % Our store buffer litmus test is used as an example to demonstrate the output
 
-\subsubsection{Types}
+\subsubsection*{Types}
 % \todo[inline]{types} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-To differentiate among particular machine states, we start by introducing:% an \lstinline[style=c++]{enum} \texttt{State}.
-% A \lstinline[style=c++]{enum} \texttt{State} is used to differentiate among machine states
+To differentiate among particular machine states, we start by introducing:% an \lstCPP{enum} \lstCPP{State}.
+% A \lstCPP{enum} \lstCPP{State} is used to differentiate among machine states
 
 % \begin{lstlisting}[style=c++]
 % typedef uint16_t word_t;
@@ -750,9 +745,9 @@ enum State
   heap,
   accu,
   mem,
-  sb_adr,
-  sb_val,
-  sb_full,
+  adr,
+  val,
+  full,
   stmt,
   block,
   halt,
@@ -760,12 +755,12 @@ enum State
   exit_code
 };
 \end{lstlisting}
-% All possible values contained in our machine's 16 bit registers are captured by the corresponding unsigned integer type \texttt{word_t}.
+% All possible values contained in our machine's 16 bit registers are captured by the corresponding unsigned integer type \lstCPP{word_t}.
 % \begin{lstlisting}[style=c++]
 % using uint = unsigned;
 % \end{lstlisting}
-% Each available instruction is represented by it's own type, derived from an abstract class \texttt{Instruction}, capturing arguments and abolishing the need for lengthy case splits to determine the actual instruction at runtime by utilizing dynamic dispatch of member functions.
-Each available instruction is represented by it's own type, derived from an abstract class \texttt{Instruction}, capturing arguments and abolishing the need for lengthy case splits by utilizing dynamic dispatch of virtual member functions for taking the appropriate action at runtime.%determine the type of instruction at runtime.
+% Each available instruction is represented by it's own type, derived from an abstract class \lstCPP{Instruction}, capturing arguments and abolishing the need for lengthy case splits to determine the actual instruction at runtime by utilizing dynamic dispatch of member functions.
+Each available instruction is represented by it's own type, derived from an abstract class \lstCPP{Instruction}, capturing arguments and abolishing the need for lengthy case splits by utilizing dynamic dispatch of virtual member functions for taking the appropriate action at runtime.%determine the type of instruction at runtime.
 \begin{lstlisting}[style=c++]
 struct Instruction
 {
@@ -779,7 +774,7 @@ struct Instruction
 \end{lstlisting}
 % virtual std::string encode (uint k, uint t, uint pc) = 0;
 
-\subsubsection{Globals}
+\subsubsection*{Globals}
 % \todo[inline]{gobal variables} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Inputs and utility variables are given as globals to keep things simple and function signatures as small as possible.
@@ -798,19 +793,19 @@ Commonly used variables are given as globals to keep things simple and function 
   \hline
   \hline
   \begin{tabu}{ll}
-    \lstinline[language={[concubine]Assembler}]{ADDI 1}   & $\STMT^k_{0, 0}$ \\
-    \lstinline[language={[concubine]Assembler}]{STORE 0}  & $\STMT^k_{0, 1}$ \\
-    \lstinline[language={[concubine]Assembler}]{LOAD 1}   & $\STMT^k_{0, 2}$ \\
-    \lstinline[language={[concubine]Assembler}]{CHECK 0}  & $\STMT^k_{0, 3}$ \\
-    \lstinline[language={[concubine]Assembler}]{HALT}     & $\STMT^k_{0, 4}$ \\
+    \lstASM{ADDI 1}   & $\STMT^k_{0, 0}$ \\
+    \lstASM{STORE 0}  & $\STMT^k_{0, 1}$ \\
+    \lstASM{LOAD 1}   & $\STMT^k_{0, 2}$ \\
+    \lstASM{CHECK 0}  & $\STMT^k_{0, 3}$ \\
+    \lstASM{HALT}     & $\STMT^k_{0, 4}$ \\
   \end{tabu}
   &
   \begin{tabu}{ll}
-    \lstinline[language={[concubine]Assembler}]{ADDI 1}   & $\STMT^k_{1, 0}$ \\
-    \lstinline[language={[concubine]Assembler}]{STORE 1}  & $\STMT^k_{1, 1}$ \\
-    \lstinline[language={[concubine]Assembler}]{LOAD 0}   & $\STMT^k_{1, 2}$ \\
-    \lstinline[language={[concubine]Assembler}]{CHECK 0}  & $\STMT^k_{1, 3}$ \\
-    \lstinline[language={[concubine]Assembler}]{HALT}     & $\STMT^k_{1, 4}$ \\
+    \lstASM{ADDI 1}   & $\STMT^k_{1, 0}$ \\
+    \lstASM{STORE 1}  & $\STMT^k_{1, 1}$ \\
+    \lstASM{LOAD 0}   & $\STMT^k_{1, 2}$ \\
+    \lstASM{CHECK 0}  & $\STMT^k_{1, 3}$ \\
+    \lstASM{HALT}     & $\STMT^k_{1, 4}$ \\
   \end{tabu}
   &
   \begin{tabu}{ll}
@@ -818,12 +813,12 @@ Commonly used variables are given as globals to keep things simple and function 
     & \\
     & \\
     & \\
-    \lstinline[language={[concubine]Assembler}]{CHECK 0}        & $\STMT^k_{2, 0}$ \\
-    \lstinline[language={[concubine]Assembler}]{ADD 0}          & $\STMT^k_{2, 1}$ \\
-    \lstinline[language={[concubine]Assembler}]{ADD 1}          & $\STMT^k_{2, 2}$ \\
-    \lstinline[language={[concubine]Assembler}]{JZ error}       & $\STMT^k_{2, 3}$ \\
-    \lstinline[language={[concubine]Assembler}]{EXIT 0}         & $\STMT^k_{2, 4}$ \\
-    \lstinline[language={[concubine]Assembler}]{error: EXIT 1}  & $\STMT^k_{2, 5}$ \\
+    \lstASM{CHECK 0}        & $\STMT^k_{2, 0}$ \\
+    \lstASM{ADD 0}          & $\STMT^k_{2, 1}$ \\
+    \lstASM{ADD 1}          & $\STMT^k_{2, 2}$ \\
+    \lstASM{JZ error}       & $\STMT^k_{2, 3}$ \\
+    \lstASM{EXIT 0}         & $\STMT^k_{2, 4}$ \\
+    \lstASM{error: EXIT 1}  & $\STMT^k_{2, 5}$ \\
   \end{tabu} \\
   \lasthline
 \end{tabu}
@@ -840,12 +835,12 @@ Input programs are expressed as a list of instructions and initialized according
 % \vspace{-\baselineskip}
 % \begin{tabu} {XXX}
   % \texttt{\{\{} & & \\
-  % \lstinline[style=c++]{new Addi(1)}  & \lstinline[style=c++]{new Addi(1)}  & \lstinline[style=c++]{new Check(0)} \\
-  % \lstinline[style=c++]{new Store(0)} & \lstinline[style=c++]{new Store(1)} & \lstinline[style=c++]{new Add(0)} \\
-  % \lstinline[style=c++]{new Load(1)}  & \lstinline[style=c++]{new Load(0)}  & \lstinline[style=c++]{new Add(1)} \\
-  % \lstinline[style=c++]{new Check(0)} & \lstinline[style=c++]{new Check(0)} & \lstinline[style=c++]{new Jz(5)} \\
-  % \texttt{\},} && \lstinline[style=c++]{new Exit(0)} \\
-  % && \lstinline[style=c++]{new Exit(1)} \\
+  % \lstCPP{new Addi(1)}  & \lstCPP{new Addi(1)}  & \lstCPP{new Check(0)} \\
+  % \lstCPP{new Store(0)} & \lstCPP{new Store(1)} & \lstCPP{new Add(0)} \\
+  % \lstCPP{new Load(1)}  & \lstCPP{new Load(0)}  & \lstCPP{new Add(1)} \\
+  % \lstCPP{new Check(0)} & \lstCPP{new Check(0)} & \lstCPP{new Jz(5)} \\
+  % \texttt{\},} && \lstCPP{new Exit(0)} \\
+  % && \lstCPP{new Exit(1)} \\
 % \end{tabu}
 % \vspace{.5\baselineskip}
   % {               {               {
@@ -909,12 +904,12 @@ To simplify the encoding process, following utility variables are generated duri
 \item Program counters of instructions modifying a particular state.
 \begin{lstlisting}[style=c++]
 std::map<State, std::map<uint, std::vector<uint>>> updates = {
-  {State::accu,    {{0, {0, 2}}, {1, {0, 2}}, {2, {1, 2}}}},
-  {State::sb_adr,  {{0, {1}},    {1, {1}},    {2, {}}}},
-  {State::sb_val,  {{0, {1}},    {1, {1}},    {2, {}}}},
-  {State::sb_full, {{0, {1}},    {1, {1}},    {2, {}}}},
-  {State::halt,    {{0, {4}},    {1, {4}},    {2, {}}}},
-  {State::exit,    {{2, {4, 5}}}}
+  {State::accu, {{0, {0, 2}}, {1, {0, 2}}, {2, {1, 2}}}},
+  {State::adr,  {{0, {1}},    {1, {1}},    {2, {}}}},
+  {State::val,  {{0, {1}},    {1, {1}},    {2, {}}}},
+  {State::full, {{0, {1}},    {1, {1}},    {2, {}}}},
+  {State::halt, {{0, {4}},    {1, {4}},    {2, {}}}},
+  {State::exit, {{2, {4, 5}}}}
 };
 \end{lstlisting}
 
@@ -938,8 +933,8 @@ std::map<uint, std::vector<uint>> barriers = {
 };
 \end{lstlisting}
 
-% Program counters of \lstinline[language={[concubine]Assembler}]{CHECK} instructions per checkpoint and thread.
-\item Program counters of \lstinline[language={[concubine]Assembler}]{CHECK} instructions per checkpoint and thread.
+% Program counters of \lstASM{CHECK} instructions per checkpoint and thread.
+\item Program counters of \lstASM{CHECK} instructions per checkpoint and thread.
 \begin{lstlisting}[style=c++]
 std::map<uint, std::map<uint, std::vector<uint>>> checkpoints = {
   {0, {{0, {3}},
@@ -966,7 +961,7 @@ std::map<uint, std::map<uint, std::vector<uint>>> checkpoints = {
 % \end{lstlisting}
 
 % \newpage
-\subsubsection{\SMTLIB{} Generator Functions}
+\subsubsection*{{\SMTLIB} Generator Functions}
 % \todo[inline]{smtlib generator functions} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %Valid \SMTLIB expressions are generated by a set of wrapper functions for each command used in our encoding.
@@ -984,7 +979,7 @@ std::map<uint, std::map<uint, std::vector<uint>>> checkpoints = {
 % Frequently used \SMTLIB expressions are generated by a set of functions, including overloads for commands accepting a variable number of arguments.
 %providing overloads to match a specific arity.
 
-Frequently used \SMTLIB{} expressions are generated by a set of functions, based on the following variadic function template as the basic expression generator.
+Frequently used {\SMTLIB} expressions are generated by a set of functions, based on the following variadic function template as the basic expression generator.
 
 \begin{lstlisting}[style=c++]
 template <class ... T>
@@ -997,19 +992,19 @@ std::string expr (const std::string & op, const T & ... args)
 \end{lstlisting}
 
 \noindent
-% \SMTLIB commands supporting a variable number of arguments by being defined as either \lstinline[language=smtlib]{:left-assoc} or \lstinline[language=smtlib]{:right-assoc} (like \lstinline[language=smtlib]{and}, \lstinline[language=smtlib]{or}, etc.), also include two additional overloads.
-Generator functions for \SMTLIB{} commands supporting a variable number of arguments by being defined as either \lstinline[language=smtlib]{:left-assoc}, \lstinline[language=smtlib]{:right-assoc} or \lstinline[language=smtlib]{:chainable} %(like conjunction, disjunction, etc.),
+% \SMTLIB commands supporting a variable number of arguments by being defined as either \lstSMTLIB{:left-assoc} or \lstSMTLIB{:right-assoc} (like \lstSMTLIB{and}, \lstSMTLIB{or}, etc.), also include two additional overloads.
+Generator functions for {\SMTLIB} commands supporting a variable number of arguments by being defined as either \lstSMTLIB{:left-assoc}, \lstSMTLIB{:right-assoc} or \lstSMTLIB{:chainable} %(like conjunction, disjunction, etc.),
 also include two additional overloads:
-% A variadic version to support an arbitrary but fixed number of arguments, defined as a template identically to the previous expression generatore \lstinline[style=c++]{expr}.
-a variadic version for an arbitrary but fixed number of arguments, using the same template definition as the basic expression generator \lstinline[style=c++]{expr}
+% A variadic version to support an arbitrary but fixed number of arguments, defined as a template identically to the previous expression generatore \lstCPP{expr}.
+a variadic version for an arbitrary but fixed number of arguments, using the same template definition as the basic expression generator \lstCPP{expr}
 % and another version, accepting arguments contained in an arbitrary STL container for handling a variable number of arguments at runtime, based on the following template.
 % and another for handling a varying number of arguments at runtime by accepting an arbitrary STL container, based on the following template.
 and another for handling a varying number of arguments at runtime, based on the following template accepting an arbitrary STL container.
 % Both overloads handle calls containing only a single argument by directly returning it in order to emit syntactically correct \SMTLIB expressions.
-In order to emit syntactically correct \SMTLIB{} expressions, both overloads handle calls containing only a single argument by directly returning it.
+In order to emit syntactically correct {\SMTLIB} expressions, both overloads handle calls containing only a single argument by directly returning it.
 
-% A variadic version as a wrapper to the identically defined \lstinline[style=c++]{expr} generator function for
-% They also expose a variadic version, defined identically to the basic expression generator \lstinline[style=c++]{expr} for an arbitrary but fixed number of arguments.
+% A variadic version as a wrapper to the identically defined \lstCPP{expr} generator function for
+% They also expose a variadic version, defined identically to the basic expression generator \lstCPP{expr} for an arbitrary but fixed number of arguments.
 % One for generating commands with an arbitrary but fixed number of arguments,
 % In order to generate commands with an arbitrary but fixed number of arguments, the according generator functions
 
@@ -1029,57 +1024,57 @@ std::string expr (const std::string & op, const C<std::string> & args)
 \end{lstlisting}
 
 \noindent
-Table \ref{tbl:encoding:generators} shows all generator function names and the corresponding \SMTLIB{} command they are creating.
+Table \ref{tbl:encoding:generators} shows all generator function names and the corresponding {\SMTLIB} command they are creating.
 % arity
 
 \begin{table}[!h]
 % \noindent
 \begin{tabu} to \textwidth {|X|l|X|}
   \firsthline
-  \lstinline[style=c++]{declare_bool}   & declare boolean   & \lstinline[language=smtlib]{(declare-fun ...)} \\
-  \lstinline[style=c++]{declare_bv}     & declare bitvector & \\%\lstinline[language=smtlib]{(declare-fun ... () (_ BitVec 16))} \\
-  \lstinline[style=c++]{declare_array}  & declare array     & \\%\lstinline[language=smtlib]{(declare-fun ... () (Array (_ BitVec 16) (_ BitVec 16)))} \\
+  \lstCPP{declare_bool}   & declare boolean   & \lstSMTLIB{(declare-fun ...)} \\
+  \lstCPP{declare_bv}     & declare bit-vector & \\%\lstSMTLIB{(declare-fun ... () (_ BitVec 16))} \\
+  \lstCPP{declare_array}  & declare array     & \\%\lstSMTLIB{(declare-fun ... () (Array (_ BitVec 16) (_ BitVec 16)))} \\
   \hline
   \hline
-  \lstinline[style=c++]{assertion} & assertion & \lstinline[language=smtlib]{(assert ...)} \\
+  \lstCPP{assertion} & assertion & \lstSMTLIB{(assert ...)} \\
   \hline
   \hline
-  \lstinline[style=c++]{lnot}   & negation                  & \lstinline[language=smtlib]{(not ...)} \\
-  \lstinline[style=c++]{land}   & conjunction               & \lstinline[language=smtlib]{(and ...)} \\
-  \lstinline[style=c++]{lor}    & disjunction               & \lstinline[language=smtlib]{(or ...)} \\
-  \lstinline[style=c++]{lxor}   & exclusive disjunction     & \lstinline[language=smtlib]{(xor ...)} \\
-  \lstinline[style=c++]{imply}  & implication               & \lstinline[language=smtlib]{(=> ...)} \\
-  \lstinline[style=c++]{equal}  & equivalence               & \lstinline[language=smtlib]{(= ...)} \\
-  \lstinline[style=c++]{ite}    & functional if-then-else   & \lstinline[language=smtlib]{(ite ...)} \\
+  \lstCPP{lnot}   & negation                  & \lstSMTLIB{(not ...)} \\
+  \lstCPP{land}   & conjunction               & \lstSMTLIB{(and ...)} \\
+  \lstCPP{lor}    & disjunction               & \lstSMTLIB{(or ...)} \\
+  \lstCPP{lxor}   & exclusive disjunction     & \lstSMTLIB{(xor ...)} \\
+  \lstCPP{imply}  & implication               & \lstSMTLIB{(=> ...)} \\
+  \lstCPP{equal}  & equivalence               & \lstSMTLIB{(= ...)} \\
+  \lstCPP{ite}    & functional if-then-else   & \lstSMTLIB{(ite ...)} \\
   \hline
   \hline
-  \lstinline[style=c++]{bvadd}  & bitvector addition        & \lstinline[language=smtlib]{(bvadd ...)} \\
-  \lstinline[style=c++]{bvsub}  & bitvector subtraction     & \lstinline[language=smtlib]{(bvsub ...)} \\
-  \lstinline[style=c++]{bvmul}  & bitvector multiplication  & \lstinline[language=smtlib]{(bvmul ...)} \\
+  \lstCPP{bvadd}  & bit-vector addition        & \lstSMTLIB{(bvadd ...)} \\
+  \lstCPP{bvsub}  & bit-vector subtraction     & \lstSMTLIB{(bvsub ...)} \\
+  \lstCPP{bvmul}  & bit-vector multiplication  & \lstSMTLIB{(bvmul ...)} \\
   \hline
   \hline
-  \lstinline[style=c++]{select}   & array read            & \lstinline[language=smtlib]{(select ...)} \\
-  \lstinline[style=c++]{store}    & array store           & \lstinline[language=smtlib]{(store ...)} \\
-  \lstinline[style=c++]{extract}  & bitvector extraction  & \lstinline[language=smtlib]{(extract ...)} \\
+  \lstCPP{select}   & array read            & \lstSMTLIB{(select ...)} \\
+  \lstCPP{store}    & array store           & \lstSMTLIB{(store ...)} \\
+  \lstCPP{extract}  & bit-vector extraction  & \lstSMTLIB{(extract ...)} \\
   \lasthline
 \end{tabu}
-\caption{\SMTLIB{} \cite{ref:SMT-Lib} expression generator functions.}
+\caption{{\SMTLIB} \cite{ref:SMT-Lib} expression generator functions.}
 \label{tbl:encoding:generators}
 \end{table}
 
 % \begin{longtabu}{|l|X|}
   % \firsthline
-  % \lstinline[style=c++]{assertion (std::string)} & \lstinline[language=smtlib]{(assert x)} \\
+  % \lstCPP{assertion (std::string)} & \lstSMTLIB{(assert x)} \\
   % % lnot (std::string x) & foo \\
   % % land (std::string) & bar \\
-  % \lstinline[style=c++]{land (std::string)} & \lstinline[language=smtlib]{x} \\
+  % \lstCPP{land (std::string)} & \lstSMTLIB{x} \\
   % % land (std::string, std::string ...args) & bar \\
-  % \lstinline[style=c++]{land (std::string, ...)} & \lstinline[language=smtlib]{(and x ...)} \\
+  % \lstCPP{land (std::string, ...)} & \lstSMTLIB{(and x ...)} \\
   % % land (C<std::string>) & bar \\
-  % \lstinline[style=c++]{land (C<std::string>)} & \lstinline[language=smtlib]{(and x ...)} \\
+  % \lstCPP{land (C<std::string>)} & \lstSMTLIB{(and x ...)} \\
   % \lasthline
 % \end{longtabu}
-% Functions for fixed number of arguments like \lstinline[language=smtlib]{or} use the following variadic function template, based on
+% Functions for fixed number of arguments like \lstSMTLIB{or} use the following variadic function template, based on
 % make use of \emph{parameter packs} to create a variadic function template
 % \todo[inline]{arbitrary but fixed number of arguments}
 
@@ -1236,10 +1231,10 @@ Table \ref{tbl:encoding:generators} shows all generator function names and the c
 % \end{lstlisting}
 
 \noindent
-Finally, we introduce a function \lstinline[style=c++]{std::string consth (uint val)} for generating hexadecimal bitvector constants and a helper function to simplify variable assignments.
+Finally, we introduce a function \lstCPP{std::string consth (uint val)} for generating hexadecimal bit-vector constants and a helper function to simplify variable assignments.
 
 % \noindent
-% Hexadecimal bitvector constants are generated by the following function.
+% Hexadecimal bit-vector constants are generated by the following function.
 %
 % \begin{lstlisting}[style=c++]
 % std::string consth (uint val)
@@ -1262,11 +1257,11 @@ std::string assign (std::string var, std::string val)
 
 % \newpage
 
-\subsubsection{Common Encoding Functions}
+\subsubsection*{Common Encoding Functions}
 % \todo[inline]{main encoding function (smtlib)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 We will now give a top-down overview of the actual encoding process and start with the main encoding function defined below.
-% \lstinline[style=c++]{encode}.
+% \lstCPP{encode}.
 
 \begin{lstlisting}[style=c++]
 void encode ()
@@ -1288,10 +1283,9 @@ void encode ()
 \end{lstlisting}
 
 \noindent
-After setting the appropriate logic (\lstinline[language=smtlib]{QF_AUFBV}), each individual step $k$ is encoded iteratively, starting with the declaration of state variables.
+After setting the appropriate logic (\lstSMTLIB{QF_AUFBV}), each individual step $k$ is encoded iteratively, starting with the declaration of state variables.
 % At every step $k$, we start by declaring  variables
 
-% \subsubsection{declare states}
 % \todo[inline]{declare states} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{lstlisting}[style=c++]
@@ -1300,9 +1294,9 @@ void declare_states (uint k)
   // thread states
   declare_accu(k);
   declare_mem(k);
-  declare_sb_adr(k);
-  declare_sb_val(k);
-  declare_sb_full(k);
+  declare_adr(k);
+  declare_val(k);
+  declare_full(k);
   declare_stmt(k);
   declare_block(k);
   declare_halt(k);
@@ -1315,7 +1309,6 @@ void declare_states (uint k)
 }
 \end{lstlisting}
 
-% \subsubsection{declare accu}
 % \todo[inline]{declare accu} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \begin{lstlisting}[style=c++]
@@ -1330,7 +1323,7 @@ void declare_states (uint k)
 % \end{lstlisting}
 
 \noindent
-Similarly to the generation of \SMTLIB{} commands, the following variadic function template serves as the basis for generating symbols, matching our established variable naming scheme.
+Similarly to the generation of {\SMTLIB} commands, the following variadic function template serves as the basis for generating symbols, matching our established variable naming scheme.
 
 \begin{lstlisting}[style=c++]
 template <class ... T>
@@ -1342,7 +1335,7 @@ std::string var (const std::string & name, const T & ... attributes)
 
 \noindent
 % The generator function for our accumulator register symbols $\ACCU^k_t$, for example, is given below and
-This allows us to define a generator function for each variable as a simple wrapper, % to \lstinline[style=c++]{var}.
+This allows us to define a generator function for each variable as a simple wrapper, % to \lstCPP{var}.
 like the one of our accumulator register variables $\ACCU^k_t$ given below.
 % and for our accumulator register variable $\ACCU^k_t$, for example, created
 
@@ -1373,14 +1366,14 @@ void declare_accu (uint k)
 
 \noindent
 % Declaring accumulator register states for the initial step, required in our demo a, leads to the following output being produced.
-% Executing \lstinline[style=c++]{declare_accu} in the initial step $k = 0$ of our demo example would lead to the following declarations being appended to the formula.
-% Calling \lstinline[style=c++]{declare_accu} for the initial step $k = 0$ in our demo example would lead to the following register state variables being declared.
-% Example output: \lstinline[style=c++]{declare_accu(0)}.
-\emph{Example:} \lstinline[style=c++]{declare_accu(0)}
+% Executing \lstCPP{declare_accu} in the initial step $k = 0$ of our demo example would lead to the following declarations being appended to the formula.
+% Calling \lstCPP{declare_accu} for the initial step $k = 0$ in our demo example would lead to the following register state variables being declared.
+% Example output: \lstCPP{declare_accu(0)}.
+\emph{Example:} \lstCPP{declare_accu(0)}
 
-% \lstinputlisting[language=smtlib, linerange={9-12}]{../../examples/demo/formula.functional.smt2}
-% \begin{lstlisting}[language=smtlib, caption={Example output \texttt{declare_accu(0)}}]
-\begin{lstlisting}[language=smtlib]
+% \lstinputlisting[style=smtlib, linerange={9-12}]{../../examples/demo/formula.functional.smt2}
+% \begin{lstlisting}[style=smtlib, caption={Example output \lstCPP{declare_accu(0)}}]
+\begin{lstlisting}[style=smtlib]
 (declare-fun accu_0_0 () (_ BitVec 16))
 (declare-fun accu_0_1 () (_ BitVec 16))
 (declare-fun accu_0_2 () (_ BitVec 16))
@@ -1391,13 +1384,13 @@ void declare_accu (uint k)
 While the declarator functions of the remaining register states
 % The declarator functions of the remaining register states
 $\MEM^k_t$, $\SBADR^k_t$, $\SBVAL^k_t$ and $\SBFULL^k_t$
-% \lstinline[style=c++]{declare_mem},
-% \lstinline[style=c++]{declare_sb_adr},
-% \lstinline[style=c++]{declare_sb_val}
-% and \lstinline[style=c++]{declare_sb_full}
+% \lstCPP{declare_mem},
+% \lstCPP{declare_adr},
+% \lstCPP{declare_val}
+% and \lstCPP{declare_full}
 are defined almost identically, except for the latter
-% being declared as \lstinline[language=smtlib]{Bool},
-changing the sort to \lstinline[language=smtlib]{Bool},
+% being declared as \lstSMTLIB{Bool},
+changing the sort to \lstSMTLIB{Bool},
 % we need to additionally iterate the program of each thread to declare the required number of statement activation variables.
 % an additional nested loop is needed to declare the required number of statement activation variables for each thread.
 % we need a nested loop to declare the required number of statement activation variables for each thread.
@@ -1406,7 +1399,6 @@ changing the sort to \lstinline[language=smtlib]{Bool},
 an additional nested loop is needed to declare an activation variable for each statement in a thread's program.
 % a nested loop is required to declare an activation variable for each statement of the
 
-% \subsubsection{declare mem}
 % \todo[inline]{declare mem} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \begin{lstlisting}[style=c++]
@@ -1425,92 +1417,88 @@ an additional nested loop is needed to declare an activation variable for each s
 % }
 % \end{lstlisting}
 
-% \begin{lstlisting}[language=smtlib]
+% \begin{lstlisting}[style=smtlib]
 % ; mem variables - mem_<step>_<thread>
 % (declare-fun mem_0_0 () (_ BitVec 16))
 % (declare-fun mem_0_1 () (_ BitVec 16))
 % (declare-fun mem_0_2 () (_ BitVec 16))
 % \end{lstlisting}
 
-% \subsubsection{declare sb-adr}
-% \todo[inline]{declare sb-adr} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \todo[inline]{declare adr} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \begin{lstlisting}[style=c++]
-% std::string sb_adr_var (uint k, uint t)
+% std::string adr_var (uint k, uint t)
 % {
-  % return var("sb-adr", k, t);
+  % return var("adr", k, t);
 % }
 % \end{lstlisting}
 
 % \begin{lstlisting}[style=c++]
-% void declare_sb_adr (uint k)
+% void declare_adr (uint k)
 % {
   % for (uint t = 0; t < programs.size(); t++)
-    % formula << declare_bv_var(sb_adr_var(k, t)) << eol;
+    % formula << declare_bv_var(adr_var(k, t)) << eol;
   % formula << eol;
 % }
 % \end{lstlisting}
 
-% \begin{lstlisting}[language=smtlib]
-% ; store buffer address variables - sb-adr_<step>_<thread>
-% (declare-fun sb-adr_0_0 () (_ BitVec 16))
-% (declare-fun sb-adr_0_1 () (_ BitVec 16))
-% (declare-fun sb-adr_0_2 () (_ BitVec 16))
+% \begin{lstlisting}[style=smtlib]
+% ; store buffer address variables - adr_<step>_<thread>
+% (declare-fun adr_0_0 () (_ BitVec 16))
+% (declare-fun adr_0_1 () (_ BitVec 16))
+% (declare-fun adr_0_2 () (_ BitVec 16))
 % \end{lstlisting}
 
-% \subsubsection{declare sb-val}
-% \todo[inline]{declare sb_val} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \todo[inline]{declare val} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \begin{lstlisting}[style=c++]
-% std::string sb_val_var (uint k, uint t)
+% std::string val_var (uint k, uint t)
 % {
-  % return var("sb-val", k, t);
+  % return var("val", k, t);
 % }
 % \end{lstlisting}
 
 % \begin{lstlisting}[style=c++]
-% void declare_sb_val (uint k)
+% void declare_val (uint k)
 % {
   % for (uint t = 0; t < programs.size(); t++)
-    % formula << declare_bv_var(sb_val_var(k, t)) << eol;
+    % formula << declare_bv_var(val_var(k, t)) << eol;
   % formula << eol;
 % }
 % \end{lstlisting}
 
-% \begin{lstlisting}[language=smtlib]
-% ; store buffer value variables - sb-val_<step>_<thread>
-% (declare-fun sb-val_0_0 () (_ BitVec 16))
-% (declare-fun sb-val_0_1 () (_ BitVec 16))
-% (declare-fun sb-val_0_2 () (_ BitVec 16))
+% \begin{lstlisting}[style=smtlib]
+% ; store buffer value variables - val_<step>_<thread>
+% (declare-fun val_0_0 () (_ BitVec 16))
+% (declare-fun val_0_1 () (_ BitVec 16))
+% (declare-fun val_0_2 () (_ BitVec 16))
 % \end{lstlisting}
 
-% \subsubsection{declare sb-full}
-% \todo[inline]{declare sb_full} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \todo[inline]{declare full} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \begin{lstlisting}[style=c++]
-% std::string sb_full_var (uint k, uint t)
+% std::string full_var (uint k, uint t)
 % {
-  % return var("sb-full", k, t);
+  % return var("full", k, t);
 % }
 % \end{lstlisting}
 
 % \begin{lstlisting}[style=c++]
-% void declare_sb_full (uint k)
+% void declare_full (uint k)
 % {
   % for (uint t = 0; t < programs.size(); t++)
-    % formula << declare_bool_var(sb_full_var(k, t)) << eol;
+    % formula << declare_bool_var(full_var(k, t)) << eol;
   % formula << eol;
 % }
 % \end{lstlisting}
 
-% \begin{lstlisting}[language=smtlib]
-% ; store buffer full variables - sb-full_<step>_<thread>
-% (declare-fun sb-full_0_0 () Bool)
-% (declare-fun sb-full_0_1 () Bool)
-% (declare-fun sb-full_0_2 () Bool)
+% \begin{lstlisting}[style=smtlib]
+% ; store buffer full variables - full_<step>_<thread>
+% (declare-fun full_0_0 () Bool)
+% (declare-fun full_0_1 () Bool)
+% (declare-fun full_0_2 () Bool)
 % \end{lstlisting}
 
-% \subsubsection{declare stmt}
 % \todo[inline]{declare stmt} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \begin{lstlisting}[style=c++]
@@ -1535,11 +1523,11 @@ void declare_stmt (uint k)
 \newpage
 
 \noindent
-% According to our demo example programs, given in Table \ref{tbl:encoding:programs}, calling \lstinline[style=c++]{declare_stmt} for the initial step $k = 0$ would lead to the following statement activation variables being declared.
-% Example output: \lstinline[style=c++]{declare_stmt(0)}.
-\emph{Example:} \lstinline[style=c++]{declare_stmt(0)}
+% According to our demo example programs, given in Table \ref{tbl:encoding:programs}, calling \lstCPP{declare_stmt} for the initial step $k = 0$ would lead to the following statement activation variables being declared.
+% Example output: \lstCPP{declare_stmt(0)}.
+\emph{Example:} \lstCPP{declare_stmt(0)}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (declare-fun stmt_0_0_0 () Bool)
 (declare-fun stmt_0_0_1 () Bool)
 (declare-fun stmt_0_0_2 () Bool)
@@ -1560,7 +1548,6 @@ void declare_stmt (uint k)
 (declare-fun stmt_0_2_5 () Bool)
 \end{lstlisting}
 
-% \subsubsection{declare block}
 % \todo[inline]{declare block} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \begin{lstlisting}[style=c++]
@@ -1571,18 +1558,18 @@ void declare_stmt (uint k)
 % \end{lstlisting}
 
 \noindent
-% Declaration of block flags uses the \lstinline[style=c++]{checkpoints} map to
-% Block flags are declared on the basis of the \lstinline[style=c++]{checkpoints} map, created during
+% Declaration of block flags uses the \lstCPP{checkpoints} map to
+% Block flags are declared on the basis of the \lstCPP{checkpoints} map, created during
 In order to prevent repeated iteration of input programs,
 the precomputed utility variables are used to indicate the presence of certain instructions and other control flow related information.
 % processing of variables  on certain instructions
 % the precomputed utility variables are used for processing variables related to a certain type of instruction.
-% Declaration of block flags therefore uses the \lstinline[style=c++]{checkpoints} map to
+% Declaration of block flags therefore uses the \lstCPP{checkpoints} map to
 % Declaration of block flags therefore boils down to simply iterating the
-% Declaration of block flags can therefore be achieved by simply iterating the \lstinline[style=c++]{checkpoints} map.
-% Declaration of block flags, for example, can therefore be simplified by relying on the \lstinline[style=c++]{checkpoints} map,
-Declaration of block flags $\BLOCK^k_{id, t}$ can therefore be simplified by relying on the \texttt{checkpoints} map,
-% containing the program counters of \lstinline[language={[concubine]Assembler}]{CHECK} instructions.
+% Declaration of block flags can therefore be achieved by simply iterating the \lstCPP{checkpoints} map.
+% Declaration of block flags, for example, can therefore be simplified by relying on the \lstCPP{checkpoints} map,
+Declaration of block flags $\BLOCK^k_{id, t}$ can therefore be simplified by relying on the \lstCPP{checkpoints} map,
+% containing the program counters of \lstASM{CHECK} instructions.
 containing the list of threads eventually waiting for a specific checkpoint.
 
 \begin{lstlisting}[style=c++]
@@ -1595,16 +1582,15 @@ void declare_block (uint k)
 \end{lstlisting}
 
 \noindent
-% Example output: \lstinline[style=c++]{declare_block(0)}.
-\emph{Example:} \lstinline[style=c++]{declare_block(0)}
+% Example output: \lstCPP{declare_block(0)}.
+\emph{Example:} \lstCPP{declare_block(0)}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (declare-fun block_0_0_0 () Bool)
 (declare-fun block_0_0_1 () Bool)
 (declare-fun block_0_0_2 () Bool)
 \end{lstlisting}
 
-% \subsubsection{declare halt}
 % \todo[inline]{declare halt} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \begin{lstlisting}[style=c++]
@@ -1615,7 +1601,7 @@ void declare_block (uint k)
 % \end{lstlisting}
 
 \noindent
-Halt flags $\HALT^k_t$ are declared in a similar manner, based on the threads contained in the \texttt{updates} map's \texttt{State::halt} entry.
+Halt flags $\HALT^k_t$ are declared in a similar manner, based on the threads contained in the \lstCPP{updates} map's \lstCPP{State::halt} entry.
 
 \newpage
 \begin{lstlisting}[style=c++]
@@ -1627,15 +1613,14 @@ void declare_halt (uint k)
 \end{lstlisting}
 
 \noindent
-% \textbf{Output:} \lstinline[style=c++]{declare_halt(0)}
-\emph{Example:} \lstinline[style=c++]{declare_halt(0)}
+% \textbf{Output:} \lstCPP{declare_halt(0)}
+\emph{Example:} \lstCPP{declare_halt(0)}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (declare-fun halt_0_0 () Bool)
 (declare-fun halt_0_1 () Bool)
 \end{lstlisting}
 
-% \subsubsection{declare heap}
 % \todo[inline]{declare heap} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \begin{lstlisting}[style=c++]
@@ -1656,13 +1641,12 @@ void declare_halt (uint k)
 % \end{lstlisting}
 
 % \noindent
-% Example output: \lstinline[style=c++]{declare_heap(0)}.
+% Example output: \lstCPP{declare_heap(0)}.
 
-% \begin{lstlisting}[language=smtlib]
+% \begin{lstlisting}[style=smtlib]
 % (declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))
 % \end{lstlisting}
 
-% \subsubsection{declare exit-flag}
 % \todo[inline]{declare exit-flag} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \begin{lstlisting}[style=c++]
@@ -1695,13 +1679,12 @@ void declare_halt (uint k)
 % \end{lstlisting}
 
 % \noindent
-% Example output: \lstinline[style=c++]{declare_exit(0)}.
+% Example output: \lstCPP{declare_exit(0)}.
 
-% \begin{lstlisting}[language=smtlib]
+% \begin{lstlisting}[style=smtlib]
 % (declare-fun exit_0 () Bool)
 % \end{lstlisting}
 
-% \subsubsection{declare exit-code}
 % \todo[inline]{declare exit-code} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \noindent
@@ -1710,34 +1693,34 @@ void declare_halt (uint k)
 % We omit the definition of the corresponding declarator functions as they are trivial and just add a single variable for each step using the appropriate sort.
 % With all thread state variables being declared, machine states $\HEAP^k$, $\EXIT^k$ and $\EXITCODE^k$ are next.
 Machine states $\HEAP^k$, $\EXIT^k$ and $\EXITCODE^k$ are declared next.
-In contrast to our basic encoding scheme, only a single bitvector variable representing the machine's final exit code is used and declared during the initial step.
+In contrast to our basic encoding scheme, only a single bit-vector variable representing the machine's final exit code is used and declared during the initial step.
 We omit the definition of the corresponding declarator functions as they just add a single variable with the appropriate sort.
 
 ~\\
 \noindent
-\emph{Example:} \lstinline[style=c++]{declare_heap(0)}
+\emph{Example:} \lstCPP{declare_heap(0)}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))
 \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{declare_exit(0)}.
-% \textbf{Output:} \lstinline[style=c++]{declare_exit(0)}
+\emph{Example:} \lstCPP{declare_exit(0)}.
+% \textbf{Output:} \lstCPP{declare_exit(0)}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (declare-fun exit_0 () Bool)
 \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{declare_exit_code()}
+\emph{Example:} \lstCPP{declare_exit_code()}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (declare-fun exit-code () (_ BitVec 16))
 \end{lstlisting}
 
 % \noindent
-% In contrast to our basic encoding scheme, we include only a single bitvector variable representing the machine's final exit code, declared during the initial step.% $k = 0$.
+% In contrast to our basic encoding scheme, we include only a single bit-vector variable representing the machine's final exit code, declared during the initial step.% $k = 0$.
 
 % \begin{lstlisting}[style=c++]
 % std::string exit_code_var = "exit-code";
@@ -1749,23 +1732,22 @@ We omit the definition of the corresponding declarator functions as they just ad
 % \end{lstlisting}
 %
 % \noindent
-% \emph{Example:} \lstinline[style=c++]{declare_exit_code()}
+% \emph{Example:} \lstCPP{declare_exit_code()}
 %
-% \begin{lstlisting}[language=smtlib]
+% \begin{lstlisting}[style=smtlib]
 % (declare-fun exit-code () (_ BitVec 16))
 % \end{lstlisting}
 
 % ~\\
 % \noindent
-% \emph{Example:} \lstinline[style=c++]{declare_heap(0), declare_exit(0), declare_exit_code()}
+% \emph{Example:} \lstCPP{declare_heap(0), declare_exit(0), declare_exit_code()}
 %
-% \begin{lstlisting}[language=smtlib]
+% \begin{lstlisting}[style=smtlib]
 % (declare-fun heap_0 () (Array (_ BitVec 16) (_ BitVec 16)))
 % (declare-fun exit_0 () Bool)
 % (declare-fun exit-code () (_ BitVec 16))
 % \end{lstlisting}
 
-% \subsubsection{declare transitions}
 % \todo[inline]{declare transitions} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \noindent
@@ -1787,7 +1769,6 @@ void declare_transitions (uint k)
 }
 \end{lstlisting}
 
-% \subsubsection{declare thread}
 % \todo[inline]{declare thread} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \begin{lstlisting}[style=c++]
@@ -1801,7 +1782,7 @@ void declare_transitions (uint k)
 % Again, we skip further details about the declarator functions for $\THREAD^k$, $\EXEC^k_{t, pc}$ and $\FLUSH^k_t$, as they are based on the same principles used for declaring thread states.
 % We skip further details about the declarator functions for $\THREAD^k$, $\EXEC^k_{t, pc}$ and $\FLUSH^k_t$, as they are again defined almost identically to those of register states and statement activation variables.
 % We skip further details about the declarator functions for $\THREAD^k$, $\EXEC^k_{t, pc}$ and $\FLUSH^k_t$, as they are based on the same principles used for the declaration of register states and statement activation variables.
-We skip further details about their declarator functions, as they are based on the same principles used for register states and statement activation variables, except $\CHECK^k_{id}$ which also refers to the identifiers stored in the \texttt{checkpoints} map.
+We skip further details about their declarator functions, as they are based on the same principles used for register states and statement activation variables, except $\CHECK^k_{id}$ which also refers to the identifiers stored in the \lstCPP{checkpoints} map.
 
 % \begin{lstlisting}[style=c++]
 % void declare_thread (uint k)
@@ -1812,14 +1793,13 @@ We skip further details about their declarator functions, as they are based on t
 % }
 % \end{lstlisting}
 %
-% \begin{lstlisting}[language=smtlib]
+% \begin{lstlisting}[style=smtlib]
 % ; thread activation variables - thread_<step>_<thread>
 % (declare-fun thread_0_0 () Bool)
 % (declare-fun thread_0_1 () Bool)
 % (declare-fun thread_0_2 () Bool)
 % \end{lstlisting}
 
-% \subsubsection{declare exec}
 % \todo[inline]{declare exec} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \begin{lstlisting}[style=c++]
@@ -1839,7 +1819,7 @@ We skip further details about their declarator functions, as they are based on t
 % }
 % \end{lstlisting}
 %
-% \begin{lstlisting}[language=smtlib]
+% \begin{lstlisting}[style=smtlib]
 % ; statement execution variables - exec_<step>_<thread>_<pc>
 % (declare-fun exec_0_0_0 () Bool)
 % (declare-fun exec_0_0_1 () Bool)
@@ -1861,7 +1841,6 @@ We skip further details about their declarator functions, as they are based on t
 % (declare-fun exec_0_2_5 () Bool)
 % \end{lstlisting}
 
-% \subsubsection{declare flush}
 % \todo[inline]{declare flush} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % \begin{lstlisting}[style=c++]
@@ -1880,14 +1859,13 @@ We skip further details about their declarator functions, as they are based on t
 % }
 % \end{lstlisting}
 %
-% \begin{lstlisting}[language=smtlib]
+% \begin{lstlisting}[style=smtlib]
 % ; store buffer flush variables - flush_<step>_<thread>
 % (declare-fun flush_0_0 () Bool)
 % (declare-fun flush_0_1 () Bool)
 % (declare-fun flush_0_2 () Bool)
 % \end{lstlisting}
 
-% \subsubsection{declare check}
 % \todo[inline]{declare check} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \begin{lstlisting}[style=c++]
@@ -1906,13 +1884,12 @@ void declare_check (uint k)
 \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{declare_check(0)}
+\emph{Example:} \lstCPP{declare_check(0)}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (declare-fun check_0_0 () Bool)
 \end{lstlisting}
 
-% \subsubsection{define transitions}
 % \todo[inline]{define transitions} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % \noindent
@@ -1928,7 +1905,6 @@ void declare_check (uint k)
 % }
 % \end{lstlisting}
 
-% \subsubsection{define constraints}
 % \todo[inline]{define constraints} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \noindent
@@ -1949,7 +1925,6 @@ void define_transitions (uint k)
 }
 \end{lstlisting}
 
-% \subsubsection{define exec}
 % \todo[inline]{define exec} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \noindent
@@ -1967,9 +1942,9 @@ void define_exec (uint k)
 \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{define_exec(0)}
+\emph{Example:} \lstCPP{define_exec(0)}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (assert (= exec_0_0_0 (and stmt_0_0_0 thread_0_0)))
 (assert (= exec_0_0_1 (and stmt_0_0_1 thread_0_0)))
 (assert (= exec_0_0_2 (and stmt_0_0_2 thread_0_0)))
@@ -1990,12 +1965,11 @@ void define_exec (uint k)
 (assert (= exec_0_2_5 (and stmt_0_2_5 thread_0_2)))
 \end{lstlisting}
 
-% \subsubsection{define check}
 % \todo[inline]{define check} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \noindent
-% Definition of $\CHECK^k_{id}$, signalling that all participating threads synchronized upon a given checkpoint, uses the lists of threads contained in the \texttt{checkpoint} map to create the required conjunction of block variables for every checkpoint.
-Definition of checkpoint variables $\CHECK^k_{id}$ is again based on the threads stored in \texttt{checkpoints} to generate the list of corresponding block variables $\BLOCK^k_{id, t}$ for creating the required conjunction.
+% Definition of $\CHECK^k_{id}$, signalling that all participating threads synchronized upon a given checkpoint, uses the lists of threads contained in the \lstCPP{checkpoint} map to create the required conjunction of block variables for every checkpoint.
+Definition of checkpoint variables $\CHECK^k_{id}$ is again based on the threads stored in \lstCPP{checkpoints} to generate the list of corresponding block variables $\BLOCK^k_{id, t}$ for creating the required conjunction.
 
 \begin{lstlisting}[style=c++]
 void define_check (uint k)
@@ -2010,19 +1984,18 @@ void define_check (uint k)
 }
 \end{lstlisting}
 
-% \begin{lstlisting}[language=smtlib]
+% \begin{lstlisting}[style=smtlib]
 % ; checkpoint variables - check_<step>_<id>
 % (assert (not check_0_0))
 % \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{define_check(0)}
+\emph{Example:} \lstCPP{define_check(0)}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (assert (= check_0_0 (and block_0_0_0 block_0_0_1 block_0_0_2)))
 \end{lstlisting}
 
-% \subsubsection{define scheduling constraints}
 % \todo[inline]{define scheduling constraints} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \begin{lstlisting}[style=c++]
@@ -2135,9 +2108,9 @@ void define_cardinality_constraints (uint k)
 \newpage
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{define_cardinality_constraints(0)}
+\emph{Example:} \lstCPP{define_cardinality_constraints(0)}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (assert (or thread_0_0 flush_0_0
             thread_0_1 flush_0_1
             thread_0_2 flush_0_2
@@ -2169,35 +2142,34 @@ void define_cardinality_constraints (uint k)
 (assert (or (not exit_0) (not flush_0_2_aux)))
 \end{lstlisting}
 
-% \subsubsection{define store buffer constraints}
 % \todo[inline]{define store buffer constraints} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \noindent
 % Since the store buffer related constraints of a specific thread depend on the presence of barrier instructions,
 % if a thread does not contain any barrier instruction and only
 % Flushing an empty store buffer or execution of a barrier instruction while it is full is prevented on the basis
-% we resort to their programm counters, given in the \texttt{barriers} map,
+% we resort to their programm counters, given in the \lstCPP{barriers} map,
 % for creating the list of corresponding statement activation variables to generate the implication preventing execution of a barrier instruction if its store buffer is full.
 % Since the store buffer related constraints of each thread depend on the presence of memory barriers,
 % Since the store buffer related constraints differ depending on the presence of memory barriers
-% If the \texttt{barrier} map does not contain an entry for the given thread .
+% If the \lstCPP{barrier} map does not contain an entry for the given thread .
 % Otherwise we use the list of program counters for creating the list of corresponding statement activation variables to generate the implication preventing execution of a barrier instruction if its store buffer is full.
 % if the thread does not contain any memory barrier, flushing an empty store buffer is prevented by the according implication.
-% Otherwise, we use the list of program counters store in the \texttt{barriers} map to create the list of corresponding statement activation variables for generating the implication preventing execution of a barrier instruction if its store buffer is full
-% Due to the different store buffer constraints depending on the presence of memory barriers, we use the program counters stored in \texttt{barriers} to generate the required list of corresponding statement activation variables for delaying their execution while the store buffer is full.
+% Otherwise, we use the list of program counters store in the \lstCPP{barriers} map to create the list of corresponding statement activation variables for generating the implication preventing execution of a barrier instruction if its store buffer is full
+% Due to the different store buffer constraints depending on the presence of memory barriers, we use the program counters stored in \lstCPP{barriers} to generate the required list of corresponding statement activation variables for delaying their execution while the store buffer is full.
 % Depending on the presence of memory barriers, different store buffer constraints are defined
 % Since the store buffer related constraints of each thread depend on the presence of memory barriers,
-% \texttt{barriers} containing the program counters of memory barrier instructions to generate the list of corresponding statement activation variables required by the conjunction for preventing their execution while the store buffer is full.
+% \lstCPP{barriers} containing the program counters of memory barrier instructions to generate the list of corresponding statement activation variables required by the conjunction for preventing their execution while the store buffer is full.
 % Since a thread's store buffer related constraints depend on the presence of memory barriers,
 % an empty store buffer is not allowed to be flushed,
 %
 Depending on the presence of memory barriers, different store buffer related constraints are added for each thread.
 % Otherwise, if the thread's programm contains a \emph{barrier} instruction,
 Beside the common restriction of flushing an empty store buffer, %, common for each thread,
-% we use the program counters of barrier instructions stored in \texttt{barriers} for generating the list of corresponding statement activation variables required to additionally delay their execution while the store buffer is full.
-we resort to \texttt{barriers} containing the program counters of barrier instructions for generating the list of corresponding statement activation variables required to additionally delay their execution while the store buffer is full.
-% we use \texttt{barriers} containing the program counters of barrier instructions for generating the list of corresponding statement activation variables required to additionally delay their execution while the store buffer is full.
-% we resort to the relevant program counters stored in \texttt{barriers} for generating the list of corresponding statement activation variables required to additionally delay their execution while the store buffer is full.
+% we use the program counters of barrier instructions stored in \lstCPP{barriers} for generating the list of corresponding statement activation variables required to additionally delay their execution while the store buffer is full.
+we resort to \lstCPP{barriers} containing the program counters of barrier instructions for generating the list of corresponding statement activation variables required to additionally delay their execution while the store buffer is full.
+% we use \lstCPP{barriers} containing the program counters of barrier instructions for generating the list of corresponding statement activation variables required to additionally delay their execution while the store buffer is full.
+% we resort to the relevant program counters stored in \lstCPP{barriers} for generating the list of corresponding statement activation variables required to additionally delay their execution while the store buffer is full.
 
 \newpage
 
@@ -2210,41 +2182,40 @@ void define_store_buffer_constraints (uint k)
         std::vector<std::string> stmts;
         for (uint pc : barriers[t])
           stmts.push_back(stmt(k, t, pc));
-        formula << assertion(ite(sb_full(k, t),
+        formula << assertion(ite(full(k, t),
                                  imply(lor(stmts),
                                        lnot(thread(k, t))),
                                  lnot(flush(k, t)))) << '\n';
       }
     else
-      formula << assertion(imply(lnot(sb_full(k, t)),
+      formula << assertion(imply(lnot(full(k, t)),
                                  lnot(flush(k, t)))) << '\n';
 }
 \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{define_store_buffer_constraints(0)}
+\emph{Example:} \lstCPP{define_store_buffer_constraints(0)}
 
-% \begin{lstlisting}[language=smtlib]
-% (assert (ite sb-full_1_0
+% \begin{lstlisting}[style=smtlib]
+% (assert (ite full_1_0
              % (=> (or stmt_1_0_1 stmt_1_0_4) (not thread_1_0))
              % (not flush_1_0)))
-% (assert (ite sb-full_1_1
+% (assert (ite full_1_1
              % (=> (or stmt_1_1_1 stmt_1_1_4) (not thread_1_1))
              % (not flush_1_1)))
-% (assert (=> (not sb-full_1_2) (not flush_1_2)))
+% (assert (=> (not full_1_2) (not flush_1_2)))
 % \end{lstlisting}
 
-\begin{lstlisting}[language=smtlib]
-(assert (ite sb-full_0_0
+\begin{lstlisting}[style=smtlib]
+(assert (ite full_0_0
              (=> (or stmt_0_0_1 stmt_0_0_4) (not thread_0_0))
              (not flush_0_0)))
-(assert (ite sb-full_0_1
+(assert (ite full_0_1
              (=> (or stmt_0_1_1 stmt_0_1_4) (not thread_0_1))
              (not flush_0_1)))
-(assert (=> (not sb-full_0_2) (not flush_0_2)))
+(assert (=> (not full_0_2) (not flush_0_2)))
 \end{lstlisting}
 
-% \subsubsection{define checkpoint constraints}
 % \todo[inline]{define checkpoint constraints} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \begin{lstlisting}[style=c++]
@@ -2267,7 +2238,7 @@ void define_store_buffer_constraints (uint k)
 
 \noindent
 % Checkpoint constraints are again based on the \tettt{checkpoints} map for generating the relevant $\BLOCK^k^{id, t}$ and $\CHECK^k_{id}$ variables to explicitly disable a thread's activation while it is waiting until all participants reached the checkpoint.
-Checkpoint constraints are defined by using \texttt{checkpoints} to generate the relevant $\BLOCK^k_{id, t}$ and $\CHECK^k_{id}$ variables for explicitly disabling a thread's activation while it is waiting for all other participants to synchronize upon checkpoint $id$.
+Checkpoint constraints are defined by using \lstCPP{checkpoints} to generate the relevant $\BLOCK^k_{id, t}$ and $\CHECK^k_{id}$ variables for explicitly disabling a thread's activation while it is waiting for all other participants to synchronize upon checkpoint $id$.
 
 \begin{lstlisting}[style=c++]
 void define_checkpoint_constraints (uint k)
@@ -2280,7 +2251,7 @@ void define_checkpoint_constraints (uint k)
 }
 \end{lstlisting}
 
-% \begin{lstlisting}[language=smtlib]
+% \begin{lstlisting}[style=smtlib]
 % (assert (=> (and block_1_0_0 (not check_1_0)) (not thread_1_0)))
 % (assert (=> (and block_1_0_1 (not check_1_0)) (not thread_1_1)))
 % (assert (=> (and block_1_0_2 (not check_1_0)) (not thread_1_2)))
@@ -2288,15 +2259,14 @@ void define_checkpoint_constraints (uint k)
 
 \newpage
 \noindent
-\emph{Example:} \lstinline[style=c++]{define_checkpoint_constraints(0)}
+\emph{Example:} \lstCPP{define_checkpoint_constraints(0)}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (assert (=> (and block_0_0_0 (not check_0_0)) (not thread_0_0)))
 (assert (=> (and block_0_0_1 (not check_0_0)) (not thread_0_1)))
 (assert (=> (and block_0_0_2 (not check_0_0)) (not thread_0_2)))
 \end{lstlisting}
 
-% \subsubsection{define halt constraints}
 % \todo[inline]{define halt constraints} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \begin{lstlisting}[style=c++]
@@ -2316,7 +2286,7 @@ void define_checkpoint_constraints (uint k)
 
 \noindent
 % The definition of scheduling constraints is concluded by preventing halted threads from being scheduled.
-The definition of scheduling constraints is concluded by stopping halted threads, based on the entries contained in the \texttt{updates} map.
+The definition of scheduling constraints is concluded by stopping halted threads, based on the entries contained in the \lstCPP{updates} map.
 
 \begin{lstlisting}[style=c++]
 void define_halt_constraints (uint k)
@@ -2327,20 +2297,19 @@ void define_halt_constraints (uint k)
 }
 \end{lstlisting}
 
-% \begin{lstlisting}[language=smtlib]
+% \begin{lstlisting}[style=smtlib]
 % (assert (=> halt_1_0 (not thread_1_0)))
 % (assert (=> halt_1_1 (not thread_1_1)))
 % \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{define_halt_constraints(0)}
+\emph{Example:} \lstCPP{define_halt_constraints(0)}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (assert (=> halt_0_0 (not thread_0_0)))
 (assert (=> halt_0_1 (not thread_0_1)))
 \end{lstlisting}
 
-% \subsubsection{init states}
 % \todo[inline]{init states} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \noindent
@@ -2353,9 +2322,9 @@ void init_states ()
 {
   init_accu();
   init_mem();
-  init_sb_adr();
-  init_sb_val();
-  init_sb_full();
+  init_adr();
+  init_val();
+  init_full();
   init_stmt();
   init_block();
   init_halt();
@@ -2365,10 +2334,9 @@ void init_states ()
 }
 \end{lstlisting}
 
-% \begin{lstlisting}[language=smtlib]
+% \begin{lstlisting}[style=smtlib]
 % \end{lstlisting}
 
-% \subsubsection{init accu}
 % \todo[inline]{init accu} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \noindent
@@ -2384,15 +2352,14 @@ void init_accu ()
 \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{init_accu()}
+\emph{Example:} \lstCPP{init_accu()}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (assert (= accu_0_0 #x0000))
 (assert (= accu_0_1 #x0000))
 (assert (= accu_0_2 #x0000))
 \end{lstlisting}
 
-% \subsubsection{init mem}
 % \todo[inline]{init mem} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \begin{lstlisting}[style=c++]
@@ -2403,71 +2370,67 @@ void init_accu ()
 % }
 % \end{lstlisting}
 
-% \begin{lstlisting}[language=smtlib]
+% \begin{lstlisting}[style=smtlib]
 % ; mem variables - mem_<step>_<thread>
 % (assert (= mem_0_0 #x0000))
 % (assert (= mem_0_1 #x0000))
 % (assert (= mem_0_2 #x0000))
 % \end{lstlisting}
 
-% \subsubsection{init sb-adr}
-% \todo[inline]{init sb-adr} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \todo[inline]{init adr} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \begin{lstlisting}[style=c++]
-% void init_sb_adr ()
+% void init_adr ()
 % {
   % for (uint t = 0; t < programs.size(); t++)
-    % formula << assign(sb_adr_var(k, t), to_hex(0)) << eol;
+    % formula << assign(adr_var(k, t), to_hex(0)) << eol;
   % formula << eol;
 % }
 % \end{lstlisting}
 %
-% \begin{lstlisting}[language=smtlib]
-% ; store buffer address variables - sb-adr_<step>_<thread>
-% (assert (= sb-adr_0_0 #x0000))
-% (assert (= sb-adr_0_1 #x0000))
-% (assert (= sb-adr_0_2 #x0000))
+% \begin{lstlisting}[style=smtlib]
+% ; store buffer address variables - adr_<step>_<thread>
+% (assert (= adr_0_0 #x0000))
+% (assert (= adr_0_1 #x0000))
+% (assert (= adr_0_2 #x0000))
 % \end{lstlisting}
 
-% \subsubsection{init sb-val}
-% \todo[inline]{init sb-val} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \todo[inline]{init val} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \begin{lstlisting}[style=c++]
-% void init_sb_val ()
+% void init_val ()
 % {
   % for (uint t = 0; t < programs.size(); t++)
-    % formula << assign(sb_val_var(k, t), to_hex(0)) << eol;
+    % formula << assign(val_var(k, t), to_hex(0)) << eol;
   % formula << eol;
 % }
 % \end{lstlisting}
 
-% \begin{lstlisting}[language=smtlib]
-% ; store buffer value variables - sb-val_<step>_<thread>
-% (assert (= sb-val_0_0 #x0000))
-% (assert (= sb-val_0_1 #x0000))
-% (assert (= sb-val_0_2 #x0000))
+% \begin{lstlisting}[style=smtlib]
+% ; store buffer value variables - val_<step>_<thread>
+% (assert (= val_0_0 #x0000))
+% (assert (= val_0_1 #x0000))
+% (assert (= val_0_2 #x0000))
 % \end{lstlisting}
 
-% \subsubsection{init sb-full}
-% \todo[inline]{init sb-full} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \todo[inline]{init full} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \begin{lstlisting}[style=c++]
-% void init_sb_full ()
+% void init_full ()
 % {
   % for (uint t = 0; t < programs.size(); t++)
-    % formula << assertion(lnot(sb_full_var(k, t))) << eol;
+    % formula << assertion(lnot(full_var(k, t))) << eol;
   % formula << eol;
 % }
 % \end{lstlisting}
 
-% \begin{lstlisting}[language=smtlib]
-% ; store buffer full variables - sb-full_<step>_<thread>
-% (assert (not sb-full_0_0))
-% (assert (not sb-full_0_1))
-% (assert (not sb-full_0_2))
+% \begin{lstlisting}[style=smtlib]
+% ; store buffer full variables - full_<step>_<thread>
+% (assert (not full_0_0))
+% (assert (not full_0_1))
+% (assert (not full_0_2))
 % \end{lstlisting}
 
-% \subsubsection{init stmt}
 % \todo[inline]{init stmt} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % \hline
 % ~\\
@@ -2492,9 +2455,9 @@ void init_stmt ()
 \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{init_stmt()}
+\emph{Example:} \lstCPP{init_stmt()}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (assert stmt_0_0_0)
 (assert (not stmt_0_0_1))
 (assert (not stmt_0_0_2))
@@ -2516,18 +2479,17 @@ void init_stmt ()
 \end{lstlisting}
 % \hline
 
-% \subsubsection{init block}
 % \todo[inline]{init block} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % ~\\
 \noindent
 % Initialization of block flags $\BLOCK^k_{0, t}$ is uses the
-% Block flags $\BLOCK^0_{id, t}$ are initially disabled on the basis of the \texttt{checkpoints} map.
+% Block flags $\BLOCK^0_{id, t}$ are initially disabled on the basis of the \lstCPP{checkpoints} map.
 % Block flags $\BLOCK^0_{id, t}$ of every checkpoint $id$ and thread $t$ are initially disabled by simply asserting their negation.
-% Block flags $\BLOCK^0_{id, t}$ for every checkpoint $id$ and thread $t$ are initially disabled by iterating the corresponding \texttt{checkpoints} map.
+% Block flags $\BLOCK^0_{id, t}$ for every checkpoint $id$ and thread $t$ are initially disabled by iterating the corresponding \lstCPP{checkpoints} map.
 % Block flags $\BLOCK^0_{id, t}$ are initially disabled by
 % Scheduling related thread states $\BLOCK^0_{id, t}$, $\HALT^0_t$ and $\EXIT_0$ are initially disabled.
-% Block flags $\BLOCK^0_{id, t}$ are initially disabled based on the entries given in the \texttt{checkpoints} map.
-Block flags $\BLOCK^0_{id, t}$ are initially disabled by relying on the entries given in the \texttt{checkpoints} map.
+% Block flags $\BLOCK^0_{id, t}$ are initially disabled based on the entries given in the \lstCPP{checkpoints} map.
+Block flags $\BLOCK^0_{id, t}$ are initially disabled by relying on the entries given in the \lstCPP{checkpoints} map.
 % Scheduling related thread states $\BLOCK^0_{id, t}$ and $\HALT^0_t$ are initialized by iterating the corresponding utility variables.
 
 \newpage
@@ -2542,20 +2504,19 @@ void init_block ()
 \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{init_block()}
+\emph{Example:} \lstCPP{init_block()}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (assert (not block_0_0_0))
 (assert (not block_0_0_1))
 (assert (not block_0_0_2))
 \end{lstlisting}
 
-% \subsubsection{init halt}
 % \todo[inline]{init halt} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \noindent
-% Halt flags $\HALT^0_t$ are initially disabled on the basis of the corresponding entry in the \texttt{updates} map.
-Halt flags $\HALT^0_t$ are initialized in a similar manner, using the relevant entry in the \texttt{updates} map.
+% Halt flags $\HALT^0_t$ are initially disabled on the basis of the corresponding entry in the \lstCPP{updates} map.
+Halt flags $\HALT^0_t$ are initialized in a similar manner, using the relevant entry in the \lstCPP{updates} map.
 
 \begin{lstlisting}[style=c++]
 void init_halt ()
@@ -2566,14 +2527,13 @@ void init_halt ()
 \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{init_halt()}
+\emph{Example:} \lstCPP{init_halt()}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (assert (not halt_0_0))
 (assert (not halt_0_1))
 \end{lstlisting}
 
-% \subsubsection{init heap}
 % \todo[inline]{init heap} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \noindent
@@ -2590,14 +2550,13 @@ void init_heap ()
 \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{init_heap()}
+\emph{Example:} \lstCPP{init_heap()}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (assert (= (select heap_0 #x0000) #x0000))
 (assert (= (select heap_0 #x0001) #x0000))
 \end{lstlisting}
 
-% \subsubsection{init exit-flag}
 % \todo[inline]{init exit-flag} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \noindent
@@ -2612,16 +2571,14 @@ void init_exit()
 \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{init_exit()}
+\emph{Example:} \lstCPP{init_exit()}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (assert (not exit_0))
 \end{lstlisting}
 
-% \subsubsection{encoding instructions}
 % \todo[inline]{encoding instructions} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% \subsubsection{encode LOAD}
 % \todo[inline]{encode LOAD} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \noindent
@@ -2632,37 +2589,37 @@ Memory access, according to the previously defined $\LOAD^k_t$, is implemented b
 std::string load (uint k, uint t, uint adr, bool indirect = false)
 {
   std::string address = consth(adr);
-  std::string sb_adr_var = sb_adr(k, t);
-  std::string sb_val_var = sb_val(k, t);
-  std::string sb_full_var = sb_full(k, t);
+  std::string adr_var = adr(k, t);
+  std::string val_var = val(k, t);
+  std::string full_var = full(k, t);
   std::string heap_var = heap(k);
 
   if (indirect)
     return
-      ite(sb_full_var,
-          ite(equal(sb_adr_var, address),
-              ite(equal(sb_val_var, address),
-                  sb_val_var,
-                  select(heap_var, sb_val_var)),
-              ite(equal(sb_adr_var, select(heap_var, address)),
-                  sb_val_var,
+      ite(full_var,
+          ite(equal(adr_var, address),
+              ite(equal(val_var, address),
+                  val_var,
+                  select(heap_var, val_var)),
+              ite(equal(adr_var, select(heap_var, address)),
+                  val_var,
                   select(heap_var, select(heap_var, address)))),
           select(heap_var, select(heap_var, address)));
   else
     return
-      ite(land(sb_full_var, equal(sb_adr_var, address)),
-          sb_val_var,
+      ite(land(full_var, equal(adr_var, address)),
+          val_var,
           select(heap_var, address));
 }
 \end{lstlisting}
 
 \noindent
-% Definition of common encoding functions is concluded by introducing the implementation of virtual member function \texttt{Instruction::encode(uint, uint, State)} for all instructions, based on the frame axioms.
+% Definition of common encoding functions is concluded by introducing the implementation of virtual member function \lstCPP{Instruction::encode(uint, uint, State)} for all instructions, based on the frame axioms.
 % Common encoding functions are concluded by introducing the virtual member functions implementing \lstinline[style=c++, basicstyle=\normalsize\ttfamily]{Instruction::encode(uint, uint, State)}, returning the successor of a given state after executing the specific instruction, expect for the statement activation variables $\STMT^k_{t, pc}$, which are handeled seperately.
 % Common encoding functions are concluded by implementing the virtual member function \lstinline[style=c++, basicstyle=\normalsize\ttfamily]{Instruction::encode(uint, uint, State)} of all descendants, returning the successor of a given state after executing the specific instruction, expect for the statement activation variables $\STMT^k_{t, pc}$, which are handeled seperately.
-Common encoding functions are concluded by introducing implementations for \lstinline[style=c++, basicstyle=\normalsize\ttfamily]{Instruction::encode(uint, uint, State)}, returning the successor of a given state after executing the specific instruction expect for the statement activation variables $\STMT^k_{t, pc}$, which are handeled seperately and only jump conditions being generated this way.
+Common encoding functions are concluded by introducing implementations for \lstCPP{Instruction::encode(uint, uint, State)}, returning the successor of a given state after executing the specific instruction expect for the statement activation variables $\STMT^k_{t, pc}$, which are handeled seperately and only jump conditions being generated this way.
 % Statement activation variables $\STMT^k_{t, pc}$ are handeled seperately and only the positive
-Implementations for \lstinline[language={[concubine]Assembler}]{FENCE}, \lstinline[language={[concubine]Assembler}]{JMP} and \lstinline[language={[concubine]Assembler}]{HALT} instructions are omitted, as they just return an empty \lstinline[style=c++]{std::string}.
+Implementations for \lstASM{FENCE}, \lstASM{JMP} and \lstASM{HALT} instructions are omitted, as they just return an empty \lstCPP{std::string}.
 
 \newpage
 
@@ -2700,7 +2657,7 @@ Implementations for \lstinline[language={[concubine]Assembler}]{FENCE}, \lstinli
 
 % \lstset{belowskip=\baselineskip}
 
-\defencode{\lstinline[language={[concubine]Assembler}]{LOAD arg}}
+\defencode{\lstASM{LOAD arg}}
 % \begin{lstlisting}[style=c++,aboveskip=-\encodeskip,belowskip=\encodeskip]
 \begin{lstlisting}[style=c++, style=encode]
 std::string Load::encode (uint k, uint t, State state)
@@ -2709,25 +2666,23 @@ std::string Load::encode (uint k, uint t, State state)
 }
 \end{lstlisting}
 
-% \subsubsection{encode STORE}
 % \todo[inline]{encode STORE} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{STORE arg}}
+\defencode{\lstASM{STORE arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Store::encode (uint k, uint t, State state)
 {
   switch (state)
     {
-    case State::sb_adr: return indirect ? load(k, arg) : consth(arg);
-    case State::sb_val: return accu(k, t);
+    case State::adr: return indirect ? load(k, arg) : consth(arg);
+    case State::val: return accu(k, t);
     }
 }
 \end{lstlisting}
 
-% \subsubsection{encode ADD}
 % \todo[inline]{encode ADD} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{ADD arg}}
+\defencode{\lstASM{ADD arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Add::encode (uint k, uint t, State state)
 {
@@ -2735,10 +2690,9 @@ std::string Add::encode (uint k, uint t, State state)
 }
 \end{lstlisting}
 
-% \subsubsection{encode ADDI}
 % \todo[inline]{encode ADDI} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{ADDI arg}}
+\defencode{\lstASM{ADDI arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Addi::encode (uint k, uint t, State state)
 {
@@ -2746,10 +2700,9 @@ std::string Addi::encode (uint k, uint t, State state)
 }
 \end{lstlisting}
 
-% \subsubsection{encode SUB}
 % \todo[inline]{encode SUB} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{SUB arg}}
+\defencode{\lstASM{SUB arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Sub::encode (uint k, uint t, State state)
 {
@@ -2757,10 +2710,9 @@ std::string Sub::encode (uint k, uint t, State state)
 }
 \end{lstlisting}
 
-% \subsubsection{encode SUBI}
 % \todo[inline]{encode SUBI} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{SUBI arg}}
+\defencode{\lstASM{SUBI arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Subi::encode (uint k, uint t, State state)
 {
@@ -2768,12 +2720,11 @@ std::string Subi::encode (uint k, uint t, State state)
 }
 \end{lstlisting}
 
-% \subsubsection{encode MUL}
 % \todo[inline]{encode MUL} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newpage
 
-\defencode{\lstinline[language={[concubine]Assembler}]{MUL arg}}
+\defencode{\lstASM{MUL arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Mul::encode (uint k, uint t, State state)
 {
@@ -2781,10 +2732,9 @@ std::string Mul::encode (uint k, uint t, State state)
 }
 \end{lstlisting}
 
-% \subsubsection{encode MULI}
 % \todo[inline]{encode MULI} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{MULI arg}}
+\defencode{\lstASM{MULI arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Muli::encode (uint k, uint t, State state)
 {
@@ -2792,10 +2742,9 @@ std::string Muli::encode (uint k, uint t, State state)
 }
 \end{lstlisting}
 
-% \subsubsection{encode CMP}
 % \todo[inline]{encode CMP} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{CMP arg}}
+\defencode{\lstASM{CMP arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Cmp::encode (uint k, uint t, State state)
 {
@@ -2803,18 +2752,16 @@ std::string Cmp::encode (uint k, uint t, State state)
 }
 \end{lstlisting}
 
-% \subsubsection{encode JMP}
 % \todo[inline]{encode JMP} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% \defencode{\lstinline[language={[concubine]Assembler}]{JMP arg}}
+% \defencode{\lstASM{JMP arg}}
 % \begin{lstlisting}[style=c++, style=encode]
 % std::string Jmp::encode (uint k, uint t, State state) { return ""; }
 % \end{lstlisting}
 
-% \subsubsection{encode JZ}
 % \todo[inline]{encode JZ} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{JZ arg}}
+\defencode{\lstASM{JZ arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Jz::encode (uint k, uint t, State state)
 {
@@ -2822,10 +2769,9 @@ std::string Jz::encode (uint k, uint t, State state)
 }
 \end{lstlisting}
 
-% \subsubsection{encode JNZ}
 % \todo[inline]{encode JNZ} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{JNZ arg}}
+\defencode{\lstASM{JNZ arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Jnz::encode (uint k, uint t, State state)
 {
@@ -2833,11 +2779,10 @@ std::string Jnz::encode (uint k, uint t, State state)
 }
 \end{lstlisting}
 
-% \subsubsection{encode JS}
 % \todo[inline]{encode JS} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \todo[noline]{instroduce global std::string msb = "15"?}
-\defencode{\lstinline[language={[concubine]Assembler}]{JS arg}}
+\defencode{\lstASM{JS arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Js::encode (uint k, uint t, State state)
 {
@@ -2845,12 +2790,11 @@ std::string Js::encode (uint k, uint t, State state)
 }
 \end{lstlisting}
 
-% \subsubsection{encode JNS}
 % \todo[inline]{encode JNS} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newpage
 
-\defencode{\lstinline[language={[concubine]Assembler}]{JNS arg}}
+\defencode{\lstASM{JNS arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Jns::encode (uint k, uint t, State state)
 {
@@ -2858,10 +2802,9 @@ std::string Jns::encode (uint k, uint t, State state)
 }
 \end{lstlisting}
 
-% \subsubsection{encode JNZNS}
 % \todo[inline]{encode JNZNS} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{JNZNS arg}}
+\defencode{\lstASM{JNZNS arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Jnzns::encode (uint k, uint t, State state)
 {
@@ -2870,10 +2813,9 @@ std::string Jnzns::encode (uint k, uint t, State state)
 }
 \end{lstlisting}
 
-% \subsubsection{encode MEM}
 % \todo[inline]{encode MEM} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{MEM arg}}
+\defencode{\lstASM{MEM arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Mem::encode (uint k, uint t, State state)
 {
@@ -2881,10 +2823,9 @@ std::string Mem::encode (uint k, uint t, State state)
 }
 \end{lstlisting}
 
-% \subsubsection{encode CAS}
 % \todo[inline]{encode CAS} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{CAS arg}}
+\defencode{\lstASM{CAS arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Cas::encode (uint k, uint t, State state)
 {
@@ -2904,18 +2845,16 @@ std::string Cas::encode (uint k, uint t, State state)
 }
 \end{lstlisting}
 
-% \subsubsection{encode HALT}
 % \todo[inline]{encode HALT} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% \defencode{\lstinline[language={[concubine]Assembler}]{HALT}}
+% \defencode{\lstASM{HALT}}
 % \begin{lstlisting}[style=c++, style=encode]
 % std::string Halt::encode (uint k, uint t, State state) { return ""; }
 % \end{lstlisting}
 
-% \subsubsection{encode EXIT}
 % \todo[inline]{encode EXIT} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{EXIT arg}}
+\defencode{\lstASM{EXIT arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Exit::encode (uint k, uint t, State state)
 {
@@ -2924,9 +2863,8 @@ std::string Exit::encode (uint k, uint t, State state)
 \end{lstlisting}
 
 % \newpage
-\subsubsection{Functional Next State Logic}
+\subsubsection*{Functional Next State Logic}
 
-% \subsubsection{define states (functional)}
 % \todo[inline]{define states (functional)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \todo[noline]{Next State Functions?}\noindent
@@ -2935,8 +2873,8 @@ std::string Exit::encode (uint k, uint t, State state)
 % functional encoding scheme, based on static single assignments for determining the successor of each state individually.
 % We will now introduce the main state update scheme according to our model's frame axioms, generated using the \texttt{-e smtlib} command line parameter.
 We will now introduce our primary state update scheme, generated by using the \texttt{-e smtlib} command line parameter,
-% This functional encoding relies on \texttt{ite} cascades to perform \emph{static single assignments} for determining the successor of each state individually and aids the solver by simplifying the deduction process.
-relying on \texttt{ite} cascades to perform \emph{static single assignments} for determining the successor of each state explicitly in a functional manner.% and aids the solver by simplifying the deduction process.
+% This functional encoding relies on \lstCPP{ite} cascades to perform \emph{static single assignments} for determining the successor of each state individually and aids the solver by simplifying the deduction process.
+relying on \lstCPP{ite} cascades to perform \emph{static single assignments} for determining the successor of each state explicitly in a functional manner.% and aids the solver by simplifying the deduction process.
 % in order to aid the solver by simplifying the deduction process and minimizing the size of the generated formula.
 
 \todo[noline]{symbolic simulation}
@@ -2946,9 +2884,9 @@ void define_states (uint k)
 {
   define_accu(k);
   define_mem(k);
-  define_sb_adr(k);
-  define_sb_val(k);
-  define_sb_full(k);
+  define_adr(k);
+  define_val(k);
+  define_full(k);
   define_stmt(k);
   define_block(k);
   define_halt(k);
@@ -2960,7 +2898,6 @@ void define_states (uint k)
 }
 \end{lstlisting}
 
-% \subsubsection{define accu}
 % \todo[inline]{define accu} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \noindent
@@ -2972,19 +2909,19 @@ void define_states (uint k)
 % starting with the preservation of it's previous state $\ACCU^{k - 1}_t$, the
 % starting with the base case of preserving it's previous state $\ACCU^{k - 1}_t$, the
 % State update expressions for every thread's accumulator register $\ACCU^k_t$ are initialized with the predecessor $\ACCU^{k - 1}_t$
-% Starting with the accumulator registers $\ACCU^k_t$, each update expression is generated by adding an \texttt{ite} for every program statement altering the accumulator
+% Starting with the accumulator registers $\ACCU^k_t$, each update expression is generated by adding an \lstCPP{ite} for every program statement altering the accumulator
 % Starting with the accumulator registers $\ACCU^k_t$, each thread's update expression is initialized with it's predecessor $\ACCU^{k - 1}_t$, forming the base case of preserving the previous state.
-% Each program statement altering the accumulator then adds an \texttt{ite}, returning the successor generated by the \lstinline[style=c++, basicstyle=\normalsize\ttfamily]{Instruction::encode(uint, uint, State)} function
-% Starting with the accumulator registers $\ACCU^k_t$, each thread's update expression is built by introducing an \texttt{ite} for every program statement altering the accumulator, returning the corresponding successor according to the previously defined implementations of \lstinline[style=c++, basicstyle=\normalsize\ttfamily]{Instruction::encode(uint, uint, State)}.
+% Each program statement altering the accumulator then adds an \lstCPP{ite}, returning the successor generated by the \lstinline[style=c++, basicstyle=\normalsize\ttfamily]{Instruction::encode(uint, uint, State)} function
+% Starting with the accumulator registers $\ACCU^k_t$, each thread's update expression is built by introducing an \lstCPP{ite} for every program statement altering the accumulator, returning the corresponding successor according to the previously defined implementations of \lstinline[style=c++, basicstyle=\normalsize\ttfamily]{Instruction::encode(uint, uint, State)}.
 % Starting with the base case of preserving the previous value, each accumulator register's state update expression is initialized with it's predecessor $\ACCU^{k - 1}_t$.
-% Every program statement altering the accumulator then adds an \texttt{ite}, returning the according successor state depending on it's execution given by the corresponding execution variable $\EXEC^{k - 1}_{t, pc}$ and...
+% Every program statement altering the accumulator then adds an \lstCPP{ite}, returning the according successor state depending on it's execution given by the corresponding execution variable $\EXEC^{k - 1}_{t, pc}$ and...
 % >>>
 % Starting with the accumulator registers $\ACCU^k_t$, each update expression is initialized with it's predecessor $\ACCU^{k - 1}_t$, forming the base case of preserving the previous state.
 % >>>
-% Every program statement altering the accumulator then adds an \texttt{ite} for choosing the successor given by the instruction's \lstinline[style=c++, basicstyle=\normalsize\ttfamily]{Instruction::encode(uint, uint, State)} depending on the corresponding execution variable $\EXEC^{k - 1}_{t, pc}$,   , embedding the current update expression in the \emph{else} branch.
+% Every program statement altering the accumulator then adds an \lstCPP{ite} for choosing the successor given by the instruction's \lstinline[style=c++, basicstyle=\normalsize\ttfamily]{Instruction::encode(uint, uint, State)} depending on the corresponding execution variable $\EXEC^{k - 1}_{t, pc}$,   , embedding the current update expression in the \emph{else} branch.
 % >>>
-% We then add an \texttt{ite} for every program statement altering the accumulator to choose the successor state depending on the corresponding execution variable $\EXEC^{k - 1}_{t, pc}$ %, given by the instruction's \lstinline[style=c++, basicstyle=\normalsize\ttfamily]{Instruction::encode(uint, uint, State)}
-% , utilizing the \texttt{Instruction} class's dynamic dispatch mechanism
+% We then add an \lstCPP{ite} for every program statement altering the accumulator to choose the successor state depending on the corresponding execution variable $\EXEC^{k - 1}_{t, pc}$ %, given by the instruction's \lstinline[style=c++, basicstyle=\normalsize\ttfamily]{Instruction::encode(uint, uint, State)}
+% , utilizing the \lstCPP{Instruction} class's dynamic dispatch mechanism
 % and embedding the current update expression in the \emph{else} branch as a fall back in case the statement has not been executed.
 % >>>
 % ~\\
@@ -2996,8 +2933,8 @@ Starting with the accumulator registers $\ACCU^k_t$, each update expression is i
 % Starting with the accumulator registers $\ACCU^k_t$, each update expression is initialized with it's predecessor to preserve the previous state.
 % Any program statement altering the accumulator then embeds the expression's current value in the \emph{else} branch of an $\ITE$ setting the successor state by encoding the corresponding instruction, depending on the execution variable $\EXEC^{k - 1}_{t, pc}$.
 % Any program statement altering the accumulator then extends the update expression by embedding it's current value in the \emph{else} branch of an $\ITE$, setting the successor state according to the encoded instruction, depending on the corresponding execution variable $\EXEC^{k - 1}_{t, pc}$.
-% Any program statement altering the accumulator then extends the expression by embedding it's current value in the \emph{else} branch of an $\ITE$, using the \texttt{encode} implementation of the corresponding instruction to set the successor state depending on the execution variable $\EXEC^{k - 1}_{t, pc}$.
-Any program statement altering the accumulator then extends the expression by embedding it's current value in the \emph{else} branch of an $\ITE$, using the corresponding instruction's \texttt{encode} implementation to set the successor state
+% Any program statement altering the accumulator then extends the expression by embedding it's current value in the \emph{else} branch of an $\ITE$, using the \lstCPP{encode} implementation of the corresponding instruction to set the successor state depending on the execution variable $\EXEC^{k - 1}_{t, pc}$.
+Any program statement altering the accumulator then extends the expression by embedding it's current value in the \emph{else} branch of an $\ITE$, using the corresponding instruction's \lstCPP{encode} implementation to set the successor state
 depending on the
 % according to it's
 execution variable $\EXEC^{k - 1}_{t, pc}$.
@@ -3024,36 +2961,36 @@ execution variable $\EXEC^{k - 1}_{t, pc}$.
 % \end{lstlisting}
 %
 % \noindent
-% \emph{Example:} \lstinline[style=c++]{define_accu(1)}
+% \emph{Example:} \lstCPP{define_accu(1)}
 %
-% \begin{lstlisting}[language=smtlib]
+% \begin{lstlisting}[style=smtlib]
 % (assert (= accu_1_0
            % (ite exec_0_0_0
                 % (bvadd accu_0_0 #x0001)
                 % (ite exec_0_0_2
-                     % (ite (and sb-full_0_0 (= sb-adr_0_0 #x0001))
-                          % sb-val_0_0
+                     % (ite (and full_0_0 (= adr_0_0 #x0001))
+                          % val_0_0
                           % (select heap_0 #x0001))
                      % accu_0_0))))
 % (assert (= accu_1_1
            % (ite exec_0_1_0
                 % (bvadd accu_0_1 #x0001)
                 % (ite exec_0_1_2
-                     % (ite (and sb-full_0_1 (= sb-adr_0_1 #x0000))
-                          % sb-val_0_1
+                     % (ite (and full_0_1 (= adr_0_1 #x0000))
+                          % val_0_1
                           % (select heap_0 #x0000))
                      % accu_0_1))))
 % (assert (= accu_1_2
            % (ite exec_0_2_1
                 % (bvadd accu_0_2
-                       % (ite (and sb-full_0_2 (= sb-adr_0_2 #x0000))
-                            % sb-val_0_2
+                       % (ite (and full_0_2 (= adr_0_2 #x0000))
+                            % val_0_2
                             % (select heap_0 #x0000)))
                 % (ite exec_0_2_2
                      % (bvadd accu_0_2
-                            % (ite (and sb-full_0_2
-                                      % (= sb-adr_0_2 #x0001))
-                                 % sb-val_0_2
+                            % (ite (and full_0_2
+                                      % (= adr_0_2 #x0001))
+                                 % val_0_2
                                  % (select heap_0 #x0001)))
                      % accu_0_2))))
 % \end{lstlisting}
@@ -3074,46 +3011,45 @@ void define_accu (uint k)
 \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{define_accu(1)}
+\emph{Example:} \lstCPP{define_accu(1)}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (assert (= accu_1_0
            (ite exec_0_0_0
                 (bvadd accu_0_0 #x0001)
                 (ite exec_0_0_2
-                     (ite (and sb-full_0_0 (= sb-adr_0_0 #x0001))
-                          sb-val_0_0
+                     (ite (and full_0_0 (= adr_0_0 #x0001))
+                          val_0_0
                           (select heap_0 #x0001))
                      accu_0_0))))
 (assert (= accu_1_1
            (ite exec_0_1_0
                 (bvadd accu_0_1 #x0001)
                 (ite exec_0_1_2
-                     (ite (and sb-full_0_1 (= sb-adr_0_1 #x0000))
-                          sb-val_0_1
+                     (ite (and full_0_1 (= adr_0_1 #x0000))
+                          val_0_1
                           (select heap_0 #x0000))
                      accu_0_1))))
 (assert (= accu_1_2
            (ite exec_0_2_1
                 (bvadd accu_0_2
-                       (ite (and sb-full_0_2 (= sb-adr_0_2 #x0000))
-                            sb-val_0_2
+                       (ite (and full_0_2 (= adr_0_2 #x0000))
+                            val_0_2
                             (select heap_0 #x0000)))
                 (ite exec_0_2_2
                      (bvadd accu_0_2
-                            (ite (and sb-full_0_2
-                                      (= sb-adr_0_2 #x0001))
-                                 sb-val_0_2
+                            (ite (and full_0_2
+                                      (= adr_0_2 #x0001))
+                                 val_0_2
                                  (select heap_0 #x0001)))
                      accu_0_2))))
 \end{lstlisting}
 
-% \subsubsection{define mem}
 % \todo[inline]{define mem} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \noindent
-% State update functions of the remaining register states $\MEM^k_t$, $\SBADR^k_t$ and $\SBVAL^k_t$ are again defined almost identically and only differ by using the appropriate \texttt{State} entries and variable generators.
-We omit the implementation of state update functions for the remaining register states $\MEM^k_t$, $\SBADR^k_t$ and $\SBVAL^k_t$, as they only differ by using the appropriate \texttt{State} entries and variable generators, but include their output in order to visualize the state updates generated for our demo example.
+% State update functions of the remaining register states $\MEM^k_t$, $\SBADR^k_t$ and $\SBVAL^k_t$ are again defined almost identically and only differ by using the appropriate \lstCPP{State} entries and variable generators.
+We omit the implementation of state update functions for the remaining register states $\MEM^k_t$, $\SBADR^k_t$ and $\SBVAL^k_t$, as they only differ by using the appropriate \lstCPP{State} entries and variable generators, but include their output in order to visualize the state updates generated for our demo example.
 
 % \begin{lstlisting}[style=c++]
 % void define_mem (uint k)
@@ -3133,28 +3069,27 @@ We omit the implementation of state update functions for the remaining register 
 
 ~\\
 \noindent
-\emph{Example:} \lstinline[style=c++]{define_mem(1)}
+\emph{Example:} \lstCPP{define_mem(1)}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (assert (= mem_1_0 mem_0_0))
 (assert (= mem_1_1 mem_0_1))
 (assert (= mem_1_2 mem_0_2))
 \end{lstlisting}
 
-% \subsubsection{define sb-adr}
-% \todo[inline]{define sb-adr} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \todo[inline]{define adr} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \begin{lstlisting}[style=c++]
-% void define_sb_adr (uint k)
+% void define_adr (uint k)
 % {
-  % for (const auto & [t, stmts] : alters[State::sb_adr])
+  % for (const auto & [t, stmts] : alters[State::adr])
     % {
-      % std::string val = sb_adr_var(k - 1, t);
+      % std::string val = adr_var(k - 1, t);
       % for (auto pc = stmts.rbegin(); pc != stmts.rend(); ++pc)
         % val = ite(exec_var(k - 1, t, *pc),
-                  % program[t][*pc].encode(k, t, State::sb_adr),
+                  % program[t][*pc].encode(k, t, State::adr),
                   % val);
-      % formula << assign(sb_adr_var(k, t), val) << eol;
+      % formula << assign(adr_var(k, t), val) << eol;
     % }
   % formula << eol;
 % }
@@ -3163,64 +3098,62 @@ We omit the implementation of state update functions for the remaining register 
 \newpage
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{define_sb_adr(1)}
+\emph{Example:} \lstCPP{define_adr(1)}
 
-\begin{lstlisting}[language=smtlib]
-(assert (= sb-adr_1_0 (ite exec_0_0_1 #x0000 sb-adr_0_0)))
-(assert (= sb-adr_1_1 (ite exec_0_1_1 #x0001 sb-adr_0_1)))
-(assert (= sb-adr_1_2 sb-adr_0_2))
+\begin{lstlisting}[style=smtlib]
+(assert (= adr_1_0 (ite exec_0_0_1 #x0000 adr_0_0)))
+(assert (= adr_1_1 (ite exec_0_1_1 #x0001 adr_0_1)))
+(assert (= adr_1_2 adr_0_2))
 \end{lstlisting}
 
-% \subsubsection{define sb-val}
-% \todo[inline]{define sb-val} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \todo[inline]{define val} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \begin{lstlisting}[style=c++]
-% void define_sb_val (uint k)
+% void define_val (uint k)
 % {
-  % for (const auto & [t, stmts] : alters[State::sb_val])
+  % for (const auto & [t, stmts] : alters[State::val])
     % {
-      % std::string val = sb_val_var(k - 1, t);
+      % std::string val = val_var(k - 1, t);
       % for (auto pc = stmts.rbegin(); pc != stmts.rend(); ++pc)
         % val = ite(exec_var(k - 1, t, *pc),
-                  % program[t][*pc].encode(k, t, State::sb_val),
+                  % program[t][*pc].encode(k, t, State::val),
                   % val);
-      % formula << assign(sb_val_var(k, t), val) << eol;
+      % formula << assign(val_var(k, t), val) << eol;
     % }
   % formula << eol;
 % }
 % \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{define_sb_val(1)}
+\emph{Example:} \lstCPP{define_val(1)}
 
-\begin{lstlisting}[language=smtlib]
-(assert (= sb-val_1_0 (ite exec_0_0_1 accu_0_0 sb-val_0_0)))
-(assert (= sb-val_1_1 (ite exec_0_1_1 accu_0_1 sb-val_0_1)))
-(assert (= sb-val_1_2 sb-val_0_2))
+\begin{lstlisting}[style=smtlib]
+(assert (= val_1_0 (ite exec_0_0_1 accu_0_0 val_0_0)))
+(assert (= val_1_1 (ite exec_0_1_1 accu_0_1 val_0_1)))
+(assert (= val_1_2 val_0_2))
 \end{lstlisting}
 
-% \subsubsection{define sb-full}
-% \todo[inline]{define sb-full} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \todo[inline]{define full} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \noindent
-% collection the execution variables $\EXEC^{k - 1}_{t, pc}$ of \lstinline[language={[concubine]Assembler}]{STORE} instructions and the predecessor $\SBFULL^{k - 1}_t$ to preserve it's state.
+% collection the execution variables $\EXEC^{k - 1}_{t, pc}$ of \lstASM{STORE} instructions and the predecessor $\SBFULL^{k - 1}_t$ to preserve it's state.
 % Successors of store buffer full flags are defined by a single
 Store buffer full flags $\SBFULL^k_t$ are defined by a single
 % Store buffer full states $\SBFULL^k_t$ are defined by a single
 % $\ITE$, either resetting the state in case the store buffer has been flushed,
 $\ITE$, either falsifying the state in case the store buffer has been flushed,
 % or setting it by building a conjunction over the previously collected variables.
-or assigning a conjunction over all execution variables $\EXEC^{k - 1}_{t, pc}$ of \lstinline[language={[concubine]Assembler}]{STORE} instructions to set it if an entry was added, as well as the predecessor $\SBFULL^{k - 1}_t$ for preserving it's state otherwise.
+or assigning a conjunction over all execution variables $\EXEC^{k - 1}_{t, pc}$ of \lstASM{STORE} instructions to set it if an entry was added, as well as the predecessor $\SBFULL^{k - 1}_t$ for preserving it's state otherwise.
 
 \begin{lstlisting}[style=c++]
-void define_sb_full (uint k)
+void define_full (uint k)
 {
-  for (const auto & [t, stmts] : updates[State::sb_full])
+  for (const auto & [t, stmts] : updates[State::full])
     {
-      std::vector<std::string> args {sb_full(k - 1, t)};
+      std::vector<std::string> args {full(k - 1, t)};
       for (uint pc : stmts)
         args.push_back(exec(k - 1, t, pc));
-      formula << assign(sb_full(k, t),
+      formula << assign(full(k, t),
                         ite(flush(k - 1, t),
                             "false",
                             lor(args))) << '\n';
@@ -3229,27 +3162,26 @@ void define_sb_full (uint k)
 \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{define_sb_full(1)}
+\emph{Example:} \lstCPP{define_full(1)}
 
-\begin{lstlisting}[language=smtlib]
-(assert (= sb-full_1_0 (ite flush_0_0
+\begin{lstlisting}[style=smtlib]
+(assert (= full_1_0 (ite flush_0_0
                             false
-                            (or sb-full_0_0 exec_0_0_1))))
-(assert (= sb-full_1_1 (ite flush_0_1
+                            (or full_0_0 exec_0_0_1))))
+(assert (= full_1_1 (ite flush_0_1
                             false
-                            (or sb-full_0_1 exec_0_1_1))))
-(assert (= sb-full_1_2 (ite flush_0_2 false sb-full_0_2)))
+                            (or full_0_1 exec_0_1_1))))
+(assert (= full_1_2 (ite flush_0_2 false full_0_2)))
 \end{lstlisting}
 
 \newpage
 \noindent
-% \subsubsection{define stmt}
 % \todo[inline]{define stmt} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % \newpage
 % \noindent
 % Definition of statement activation flags $\STMT^k_{t, pc}$ relies on the predecessors identified during preprocessing
-% Definition of statement activation flags $\STMT^k_{t, pc}$ is based on the execution of preceding instructions, given in the \texttt{predecessors} map identified during preprocessing,
-% Definition of statement activation flags $\STMT^k_{t, pc}$ relies on the following activation rules, based on the execution of preceding instructions, given in the \texttt{predecessors} map identified during preprocessing.
+% Definition of statement activation flags $\STMT^k_{t, pc}$ is based on the execution of preceding instructions, given in the \lstCPP{predecessors} map identified during preprocessing,
+% Definition of statement activation flags $\STMT^k_{t, pc}$ relies on the following activation rules, based on the execution of preceding instructions, given in the \lstCPP{predecessors} map identified during preprocessing.
 % \begin{itemize}
   % \item if the statement has no predecessor, or none of them is activated (\emph{reactivation}), assign it’s previous value if it’s hasn’t been executed
     % \[
@@ -3263,7 +3195,7 @@ void define_sb_full (uint k)
     % \[
     % \]
 % \end{itemize}
-% Definition of statement activation flags $\STMT^k_{t, pc}$ is based on the execution of preceding instructions, given in the \texttt{predecessors} map identified during preprocessing.
+% Definition of statement activation flags $\STMT^k_{t, pc}$ is based on the execution of preceding instructions, given in the \lstCPP{predecessors} map identified during preprocessing.
 % In order to either explicitly deactivate it if or otherwise preserve it's previous state (\emph{reactivation}), the corresponding update expression
 % In order to either preserve the activation flag's previous state (\emph{reactivation}), or explicit deactivation in case of its execution, the corresponding update expression is initialized with a conjunction containing or deavtivate it in case of it's execution, the corresponding update expression is initialized with a conjunction
 % If the corresponding statement is the initial program instruction, or none of it's predecessors was activated, assign
@@ -3291,14 +3223,14 @@ We do so by initializing the update expression of each statement activation vari
 % Similar to defining the successor of register states, each preceding program statement then embeds the expression's current value in the \emph{else} branch of an $\ITE$, either enabling or disabling the statement activation variable according to the predecessor's execution.
 % Similar to defining the successor of register states, each preceding program statement then embeds the expression's current value in the \emph{else} branch of an $\ITE$, either enabling the statement activation variable depending to the predecessor's execution or keeping it disabled.
 Similar to defining the successor of register states, each preceding program statement then embeds the expression's current value in the \emph{else} branch of an $\ITE$, activating the statement depending on the predecessor's execution.
-% In case of the predecessor being a conditional jump, identified by \lstinline[style=c++]{bool is_jump (Instruction *)},
+% In case of the predecessor being a conditional jump, identified by \lstCPP{bool is_jump (Instruction *)},
 % In case of the statement being the target of a jump,
-% Conditional jumps, detected by \texttt{is_jump}
-% In case of the predecessor being a conditional jump, identified by \texttt{is_jump},
-% Special care must be taken in case of the predecessor being a conditional jump, identified by \texttt{is_jump}, to either activate the target of a successfull jump using a conjunction of it's execution variable and condition, generated by the relevant \texttt{encode} implementation, or the negation thereof if it failed.
-Special care must be taken in case of the predecessor being a conditional jump, identified by \texttt{is_jump}, to either activate the target using a conjunction of it's execution variable and condition, generated by the relevant \texttt{encode} implementation, or the next statement by negating the condition in case of a failed jump.
+% Conditional jumps, detected by \lstCPP{is_jump}
+% In case of the predecessor being a conditional jump, identified by \lstCPP{is_jump},
+% Special care must be taken in case of the predecessor being a conditional jump, identified by \lstCPP{is_jump}, to either activate the target of a successfull jump using a conjunction of it's execution variable and condition, generated by the relevant \lstCPP{encode} implementation, or the negation thereof if it failed.
+Special care must be taken in case of the predecessor being a conditional jump, identified by \lstCPP{is_jump}, to either activate the target using a conjunction of it's execution variable and condition, generated by the relevant \lstCPP{encode} implementation, or the next statement by negating the condition in case of a failed jump.
 
-% using a conjunction of the jump's execution variable together with it's condition, generated by the relevant \texttt{encode} implementation, or it's negation.
+% using a conjunction of the jump's execution variable together with it's condition, generated by the relevant \lstCPP{encode} implementation, or it's negation.
 % >>>
 % >>>
 
@@ -3369,11 +3301,11 @@ void define_stmt (uint k)
 \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{define_stmt(1)}
+\emph{Example:} \lstCPP{define_stmt(1)}
 
 \newpage
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (assert (= stmt_1_0_0 (and stmt_0_0_0 (not exec_0_0_0))))
 (assert (= stmt_1_0_1 (ite stmt_0_0_0
                            exec_0_0_0
@@ -3419,7 +3351,7 @@ void define_stmt (uint k)
                            (and stmt_0_2_5 (not exec_0_2_5)))))
 \end{lstlisting}
 
-% \begin{lstlisting}[language=smtlib]
+% \begin{lstlisting}[style=smtlib]
 % (assert (= stmt_1_0_0 (and stmt_0_0_0 (not exec_0_0_0))))
 % (assert (= stmt_1_0_1 (ite stmt_0_0_0
                            % exec_0_0_0
@@ -3453,13 +3385,12 @@ void define_stmt (uint k)
                            % (and stmt_0_2_5 (not exec_0_2_5)))))
 % \end{lstlisting}
 
-% \subsubsection{define block}
 % \todo[inline]{define block} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \noindent
-% Block flags $\BLOCK^k_{id, t}$ are defined by a single $\ITE$, either unblocking the thread by resetting the state if all threads synchronized upon the corresponding checkpoint $id$ in the previous step, or assigning a conjunction including all execution variables $\EXEC^{k - 1}_{t, pc}$ of related \lstinline[language={[concubine]Assembler}]{CHECK id} instructions to enable it, as well as the predecessor $\BLOCK^{k - 1}_{id, t}$ for preserving it's state.
+% Block flags $\BLOCK^k_{id, t}$ are defined by a single $\ITE$, either unblocking the thread by resetting the state if all threads synchronized upon the corresponding checkpoint $id$ in the previous step, or assigning a conjunction including all execution variables $\EXEC^{k - 1}_{t, pc}$ of related \lstASM{CHECK id} instructions to enable it, as well as the predecessor $\BLOCK^{k - 1}_{id, t}$ for preserving it's state.
 Block flags $\BLOCK^k_{id, t}$ are defined by a single $\ITE$, unblocking the thread by resetting the state if all threads synchronized upon the corresponding checkpoint $id$ in the previous step. %$k - 1$.
-Otherwise, it assigns a disjunction including all execution variables $\EXEC^{k - 1}_{t, pc}$ of related \lstinline[language={[concubine]Assembler}]{CHECK id} instructions enabling the state, as well as the predecessor $\BLOCK^{k - 1}_{id, t}$ to presere it's value.
+Otherwise, it assigns a disjunction including all execution variables $\EXEC^{k - 1}_{t, pc}$ of related \lstASM{CHECK id} instructions enabling the state, as well as the predecessor $\BLOCK^{k - 1}_{id, t}$ to presere it's value.
 %signalled by $\CHECK^{k - 1}_{id}$
 
 \begin{lstlisting}[style=c++]
@@ -3480,9 +3411,9 @@ void define_block (uint k)
 \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{define_block(1)}
+\emph{Example:} \lstCPP{define_block(1)}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (assert (= block_1_0_0 (ite check_0_0
                             false
                             (or block_0_0_0 exec_0_0_3))))
@@ -3494,7 +3425,6 @@ void define_block (uint k)
                             (or block_0_0_2 exec_0_2_0))))
 \end{lstlisting}
 
-% \subsubsection{define halt}
 % \todo[inline]{define halt} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \begin{lstlisting}[style=c++]
@@ -3520,8 +3450,8 @@ void define_block (uint k)
 \newpage
 
 \noindent
-% Since there is no way of restarting a halted thread, halt flags $\Halt^k_t$ are enabled by a disjunction including the execution variables $\EXEC^{k - 1}_{t, pc}$ of \lstinline[language={[concubine]Assembler}]{HALT} instructions.
-Since halt flags $\HALT^k_t$ cannot be reset once a thread has been stopped, they are defined by a simple disjunction including the execution variables $\EXEC^{k - 1}_{t, pc}$ of \lstinline[language={[concubine]Assembler}]{HALT} instructions and the previous state $\HALT^{k - 1}_t$ to preserve their value.
+% Since there is no way of restarting a halted thread, halt flags $\Halt^k_t$ are enabled by a disjunction including the execution variables $\EXEC^{k - 1}_{t, pc}$ of \lstASM{HALT} instructions.
+Since halt flags $\HALT^k_t$ cannot be reset once a thread has been stopped, they are defined by a simple disjunction including the execution variables $\EXEC^{k - 1}_{t, pc}$ of \lstASM{HALT} instructions and the previous state $\HALT^{k - 1}_t$ to preserve their value.
 
 \begin{lstlisting}[style=c++]
 void define_halt (uint k)
@@ -3537,14 +3467,13 @@ void define_halt (uint k)
 \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{define_halt(1)}
+\emph{Example:} \lstCPP{define_halt(1)}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (assert (= halt_1_0 (or halt_0_0 exec_0_0_4)))
 (assert (= halt_1_1 (or halt_0_1 exec_0_1_4)))
 \end{lstlisting}
 
-% \subsubsection{define heap}
 % \todo[inline]{define heap} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \noindent
@@ -3553,13 +3482,13 @@ Definition of our shared memory array $\HEAP^k$ again starts by initializing the
 % Each thread then embeds the expression in the \emph{else} branch an $\ITE$, storing the store buffer's entry in case it was flushed.
 % Each thread then extends the expression by embedding it's current value in the \emph{else} branch an $\ITE$, storing the store buffer's entry in case it was flushed.
 % Each thread then extends the expression by embedding it in an $\ITE$, storing the store buffer's entry in case it was flushed.
-% Each thread then extends the expression by embedding it in an $\ITE$ for every atomic write, modifying the array according to the instruction's \texttt{encode} implementation in case of its execution, as well as storing the store buffer entry if it was flushed.
-% Each thread then extends the expression by embedding it in an $\ITE$ for every atomic write, modifying the array according to the instruction's \texttt{encode} implementation in case of its execution and storing the store buffer entry if it was flushed.
-Each thread then extends the expression by embedding it in an $\ITE$ for every atomic write, modifying the array according to the instruction's \texttt{encode} implementation, followed by a final one to store the store buffer entry in case it was flushed.
-% Each thread then extends the expression by embedding it in an $\ITE$ for every atomic write, modifying the array according to the instruction's \texttt{encode} implementation in case of its execution and another one to store the store buffer entry if it was flushed.
+% Each thread then extends the expression by embedding it in an $\ITE$ for every atomic write, modifying the array according to the instruction's \lstCPP{encode} implementation in case of its execution, as well as storing the store buffer entry if it was flushed.
+% Each thread then extends the expression by embedding it in an $\ITE$ for every atomic write, modifying the array according to the instruction's \lstCPP{encode} implementation in case of its execution and storing the store buffer entry if it was flushed.
+Each thread then extends the expression by embedding it in an $\ITE$ for every atomic write, modifying the array according to the instruction's \lstCPP{encode} implementation, followed by a final one to store the store buffer entry in case it was flushed.
+% Each thread then extends the expression by embedding it in an $\ITE$ for every atomic write, modifying the array according to the instruction's \lstCPP{encode} implementation in case of its execution and another one to store the store buffer entry if it was flushed.
 %
-% Furthermore, if the contains a statement atomically writing to memory, another $\ITE$, modifying array according to the instruction's \texttt{encode} implementation is added.
-% Furthermore, if the contains a statement atomically writing to memory, another $\ITE$, modifying array according to the instruction's \texttt{encode} implementation is added.
+% Furthermore, if the contains a statement atomically writing to memory, another $\ITE$, modifying array according to the instruction's \lstCPP{encode} implementation is added.
+% Furthermore, if the contains a statement atomically writing to memory, another $\ITE$, modifying array according to the instruction's \lstCPP{encode} implementation is added.
 % The actual update expression is then built by iteratively embeding it's previous value in the \emph{else} branch of an $\ITE$, storing the
 
 \begin{lstlisting}[style=c++]
@@ -3575,8 +3504,8 @@ void define_heap (uint k)
                    next);
       next = ite(flush(k - 1, t),
                  store(heap(k - 1),
-                       sb_adr(k - 1, t),
-                       sb_expr(k - 1, t)),
+                       adr(k - 1, t),
+                       val(k - 1, t)),
                  next);
     }
   formula << assign(heap(k, t), next) << '\n';
@@ -3584,20 +3513,19 @@ void define_heap (uint k)
 \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{define_heap(1)}
+\emph{Example:} \lstCPP{define_heap(1)}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (assert (= heap_1
            (ite flush_0_0
-                (store heap_0 sb-adr_0_0 sb-val_0_0)
+                (store heap_0 adr_0_0 val_0_0)
                 (ite flush_0_1
-                     (store heap_0 sb-adr_0_1 sb-val_0_1)
+                     (store heap_0 adr_0_1 val_0_1)
                      (ite flush_0_2
-                          (store heap_0 sb-adr_0_2 sb-val_0_2)
+                          (store heap_0 adr_0_2 val_0_2)
                           heap_0)))))
 \end{lstlisting}
 
-% \subsubsection{define exit-flag}
 % \todo[inline]{define exit-flag} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \begin{lstlisting}[style=c++]
@@ -3626,8 +3554,8 @@ void define_heap (uint k)
 % \end{lstlisting}
 
 \noindent
-% In order to enable the exit flag $\EXIT^k$ according to our termination criteria, we define it as a disjunction containing the execution variables $\EXEC^{k - 1}_{t, pc}$ of every \lstinline[language={[concubine]Assembler}]{EXIT} statement, a conjunction over all halt variables $\HALT^k_t$ to stop the machine if no more thread is running and the previous state $\EXIT^{k - 1}$, preserving it's value.
-In order to enable the exit flag $\EXIT^k$ according to our termination criteria, we define it as a disjunction containing the execution variables $\EXEC^{k - 1}_{t, pc}$ of every \lstinline[language={[concubine]Assembler}]{EXIT} statement, a conjunction over all halt variables $\HALT^k_t$ stopping the machine if no more thread is running and the previous state $\EXIT^{k - 1}$ to preserve it's value.
+% In order to enable the exit flag $\EXIT^k$ according to our termination criteria, we define it as a disjunction containing the execution variables $\EXEC^{k - 1}_{t, pc}$ of every \lstASM{EXIT} statement, a conjunction over all halt variables $\HALT^k_t$ to stop the machine if no more thread is running and the previous state $\EXIT^{k - 1}$, preserving it's value.
+In order to enable the exit flag $\EXIT^k$ according to our termination criteria, we define it as a disjunction containing the execution variables $\EXEC^{k - 1}_{t, pc}$ of every \lstASM{EXIT} statement, a conjunction over all halt variables $\HALT^k_t$ stopping the machine if no more thread is running and the previous state $\EXIT^{k - 1}$ to preserve it's value.
 
 \begin{lstlisting}[style=c++]
 void define_exit(uint k)
@@ -3644,9 +3572,9 @@ void define_exit(uint k)
 \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{define_exit(1)}
+\emph{Example:} \lstCPP{define_exit(1)}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (assert (= exit_1
            (or exit_0
                (and halt_1_0 halt_1_1)
@@ -3654,7 +3582,6 @@ void define_exit(uint k)
                exec_0_2_5)))
 \end{lstlisting}
 
-% \subsubsection{define exit-code}
 % \todo[inline]{define exit-code} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \begin{lstlisting}[style=c++]
@@ -3687,9 +3614,9 @@ Since it is unique in every execution, explicit unrolling allows us to reduce th
 % Since it is unique in every execution, unrolling our model checking problem for each step $k \in [0, bound]$ allows us to reduce the total number of variables by introducing only a single state for all $k \in [0, bound]$,
 % assigned during the final step $k = bound$.
 % The defining expression is initialized with zero and extended by embedding it in an $\ITE$
-% embedding it in an $\ITE$, covering the execution of any \lstinline[language={[concubine]Assembler}]{EXIT} statement by assigning the according value, depending on
+% embedding it in an $\ITE$, covering the execution of any \lstASM{EXIT} statement by assigning the according value, depending on
 defined by an expression initialized with zero and embedded in an $\ITE$
-for each step $k \in [0, bound]$ and \lstinline[language={[concubine]Assembler}]{EXIT} statement, assigning the corresponding exit code in case of its execution.
+for each step $k \in [0, bound]$ and \lstASM{EXIT} statement, assigning the corresponding exit code in case of its execution.
 % >>>
 % In order to reduce the total number of variables, only a single state is used in
 % update expression initialized with the default exit code.
@@ -3708,7 +3635,7 @@ void define_exit_code ()
 }
 \end{lstlisting}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (assert (= exit-code
            (ite exec_17_2_5
                 #x0001
@@ -3724,7 +3651,7 @@ void define_exit_code ()
 
 \newpage
 
-\subsubsection{Relational Next State Logic}
+\subsubsection*{Relational Next State Logic}
 
 % > show difference in terms of runtime
 % State of the art SAT and SMT solvers are able to exploit certain structures in the problem formulation, increasing performance in terms of runtime.
@@ -3752,7 +3679,6 @@ based on implying the successors for each possible transition.
 % > simplified by term rewriting during the solver's preprocessing stage
 Although this flat encoding scheme tends to work well with large combinatorial problems and small domains, it requires an order of magnitude more time to solve compared to our functional approach, which can be radically simplified by clever term rewriting due to its strictly hierarchical nature. %structure.
 
-% \subsubsection{define states (relational)}
 % \todo[inline]{define states (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{lstlisting}[style=c++]
@@ -3831,22 +3757,22 @@ results in most of them being unchanged by any specific statement.
 % >>>
 % We introduce the following next state map to reduce the effort involved in implementing the encoding function of each instruction by aggregating all relevant states and initializing them with the corresponding state-preserving expression, thus requiring only the entries of states which are actually altered to be replaced.
 % >>>
-% Furthermore, it offers an implicit \lstinline[style=c++]{std::string} conversion operator, returning a conjunction to define the successors of all contained states at once.
-% Furthermore, it offers an implicit \lstinline[style=c++]{std::string} conversion operator, returning a conjunction to define the successors of all contained states at once.
+% Furthermore, it offers an implicit \lstCPP{std::string} conversion operator, returning a conjunction to define the successors of all contained states at once.
+% Furthermore, it offers an implicit \lstCPP{std::string} conversion operator, returning a conjunction to define the successors of all contained states at once.
 % >>>
-% In order to reduce the effort involved in implementing the encoding function of each instruction we introduce the following map, aggregating all relevant states and provide an implicit \lstinline[style=c++]{std::string} conversion operator returning a conjunction to define the successors of all contained states at once.
+% In order to reduce the effort involved in implementing the encoding function of each instruction we introduce the following map, aggregating all relevant states and provide an implicit \lstCPP{std::string} conversion operator returning a conjunction to define the successors of all contained states at once.
 In order to reduce the effort involved in implementing the encoding function of each instruction, we introduce the following map,
 using the previously defined template functions to initialize it with the corresponding state-preserving expressions,
-% and provide an implicit \lstinline[style=c++]{std::string} conversion operator returning a conjunction to define the successors of all contained states at once.
+% and provide an implicit \lstCPP{std::string} conversion operator returning a conjunction to define the successors of all contained states at once.
 thus requiring only the entries of states which are actually altered to be replaced
-and provide an implicit \lstinline[style=c++]{std::string} conversion operator returning a conjunction to define all successors at once.
+and provide an implicit \lstCPP{std::string} conversion operator returning a conjunction to define all successors at once.
 % By using the previously defined template functions, we are able to add a constructor to initialize them with the corresponding state-preserving expressions for a given step and thread, thus requiring only the entries of states which are actually altered to be replaced.
 % Furthermore, they are initialized with corresponding state-preserving expressions, thus requiring only the entries of states which are actually altered to be replaced.
 
 % \todo[inline]{map containing next state expressions to simplify definition of successor states that depend on the execution of a certain thread}
 % \todo[inline]{replace entries with the required next state expressions}
-% \todo[inline]{implicit \lstinline[style=c++]{std::string} conversion operator: returning a conjunction defining the successors for all states contained}
-% \todo[inline]{used by \lstinline[style=c++]{imply_thread_*executed}}
+% \todo[inline]{implicit \lstCPP{std::string} conversion operator: returning a conjunction defining the successors for all states contained}
+% \todo[inline]{used by \lstCPP{imply_thread_*executed}}
 
 % // restore block
 % if (!checkpoints.empty())
@@ -3866,9 +3792,9 @@ struct Next : std::map<State, std::string>
     {
       (*this)[State::accu] = restore(&accu, k, t);
       (*this)[State::mem] = restore(&mem, k, t);
-      (*this)[State::sb_adr] = restore(&sb_adr, k, t);
-      (*this)[State::sb_val] = restore(&sb_val, k, t);
-      (*this)[State::sb_full] = restore(&sb_full, k, t);
+      (*this)[State::adr] = restore(&adr, k, t);
+      (*this)[State::val] = restore(&val, k, t);
+      (*this)[State::full] = restore(&full, k, t);
       (*this)[State::halt] = restore(&halt, k, t);
       (*this)[State::heap] = restore(&heap, k);
       (*this)[State::exit] = lnot(exit(k, t));
@@ -3938,12 +3864,10 @@ std::string activate (uint k, uint t, uint pc, Instruction * jmp)
 }
 \end{lstlisting}
 
-% \subsubsection{relational dynamic dispatch}
-
-% \todo[inline]{add another virtual member to \texttt{Instruction} class to dynamically dispatch encoding functions}
+% \todo[inline]{add another virtual member to \lstCPP{Instruction} class to dynamically dispatch encoding functions}
 
 \noindent
-% The next state functions, responsible for defining the successors when executing a certain instruction, are implemented by including yet another virtual member function to the \texttt{Instruction} class.
+% The next state functions, responsible for defining the successors when executing a certain instruction, are implemented by including yet another virtual member function to the \lstCPP{Instruction} class.
 % Analogously to the encoding functions responsible for defining a specific next state
 % by dynamically dispatching the according encoding function.
 % Generating the next state for each possible instruction
@@ -3953,20 +3877,19 @@ Generating a common set of successor states for every possible instruction %acco
 % according to our relational logic
 % again relies on
 is again based on
-dynamically dispatched virtual member functions of concrete \texttt{Instruction} class instantiations.
-% dispatched member functions achieved by adding the following virtual member function to the \texttt{Instruction} class
+dynamically dispatched virtual member functions of concrete \lstCPP{Instruction} class instantiations.
+% dispatched member functions achieved by adding the following virtual member function to the \lstCPP{Instruction} class
 % We therefore introduce
 Therefore, we introduce the following overload including the current program counter for activating the next statement. % and their actual implementations given below.
 
-% \todo[inline]{adding the following virtual member function to the \texttt{Instruction} class and their concrete implementations given below}
+% \todo[inline]{adding the following virtual member function to the \lstCPP{Instruction} class and their concrete implementations given below}
 % \todo[inline]{including its program counter to activate successor statements}
 
-% \lstinline[style=c++]{virtual std::string Instruction::encode (uint t, uint k, uint pc) = 0;}
+% \lstCPP{virtual std::string Instruction::encode (uint t, uint k, uint pc) = 0;}
 \begin{lstlisting}[style=c++]
 virtual std::string Instruction::encode (uint t, uint k, uint pc) = 0;
 \end{lstlisting}
 
-% \subsubsection{encode LOAD (relational)}
 % \todo[inline]{encode LOAD (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \noindent
@@ -3976,7 +3899,7 @@ By using the previously defined helper constructs, the actual implementations ca
 
 \newpage
 
-\defencode{\lstinline[language={[concubine]Assembler}]{LOAD arg}}
+\defencode{\lstASM{LOAD arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Load::encode (uint t, uint k, uint pc)
 {
@@ -3988,28 +3911,24 @@ std::string Load::encode (uint t, uint k, uint pc)
 }
 \end{lstlisting}
 
-% \subsubsection{encode STORE (relational)}
 % \todo[inline]{encode STORE (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{STORE arg}}
+\defencode{\lstASM{STORE arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Store::encode (uint t, uint k, uint pc)
 {
   Next next(k, t);
-  next[State::sb_adr] = equal(sb_adr(k, t),
-                              encode(k - 1, t, State::sb_adr));
-  next[State::sb_val] = equal(sb_val(k, t),
-                              encode(k - 1, t, State::sb_val));
-  next[State::sb_full] = sb_full(k, t);
+  next[State::adr] = equal(adr(k, t), encode(k - 1, t, State::adr));
+  next[State::val] = equal(val(k, t), encode(k - 1, t, State::val));
+  next[State::full] = full(k, t);
   next[State::stmt] = activate(k, t, pc + 1);
   return next;
 }
 \end{lstlisting}
 
-% \subsubsection{encode FENCE (relational)}
 % \todo[inline]{encode FENCE (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{FENCE}}
+\defencode{\lstASM{FENCE}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Fence::encode (uint t, uint k, uint pc)
 {
@@ -4019,10 +3938,9 @@ std::string Fence::encode (uint t, uint k, uint pc)
 }
 \end{lstlisting}
 
-% \subsubsection{encode ADD (relational)}
 % \todo[inline]{encode ADD (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{ADD arg}}
+\defencode{\lstASM{ADD arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Add::encode (uint t, uint k, uint pc)
 {
@@ -4034,12 +3952,11 @@ std::string Add::encode (uint t, uint k, uint pc)
 }
 \end{lstlisting}
 
-% \subsubsection{encode ADDI (relational)}
 % \todo[inline]{encode ADDI (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newpage
 
-\defencode{\lstinline[language={[concubine]Assembler}]{ADDI arg}}
+\defencode{\lstASM{ADDI arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Addi::encode (uint t, uint k, uint pc)
 {
@@ -4051,10 +3968,9 @@ std::string Addi::encode (uint t, uint k, uint pc)
 }
 \end{lstlisting}
 
-% \subsubsection{encode SUB (relational)}
 % \todo[inline]{encode SUB (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{SUB arg}}
+\defencode{\lstASM{SUB arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Sub::encode (uint t, uint k, uint pc)
 {
@@ -4066,10 +3982,9 @@ std::string Sub::encode (uint t, uint k, uint pc)
 }
 \end{lstlisting}
 
-% \subsubsection{encode SUBI (relational)}
 % \todo[inline]{encode SUBI (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{SUBI arg}}
+\defencode{\lstASM{SUBI arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Subi::encode (uint t, uint k, uint pc)
 {
@@ -4081,10 +3996,9 @@ std::string Subi::encode (uint t, uint k, uint pc)
 }
 \end{lstlisting}
 
-% \subsubsection{encode MUL (relational)}
 % \todo[inline]{encode MUL (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{MUL arg}}
+\defencode{\lstASM{MUL arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Mul::encode (uint t, uint k, uint pc)
 {
@@ -4096,12 +4010,11 @@ std::string Mul::encode (uint t, uint k, uint pc)
 }
 \end{lstlisting}
 
-% \subsubsection{encode MULI (relational)}
 % \todo[inline]{encode MULI (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newpage
 
-\defencode{\lstinline[language={[concubine]Assembler}]{MULI arg}}
+\defencode{\lstASM{MULI arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Muli::encode (uint t, uint k, uint pc)
 {
@@ -4113,10 +4026,9 @@ std::string Muli::encode (uint t, uint k, uint pc)
 }
 \end{lstlisting}
 
-% \subsubsection{encode CMP (relational)}
 % \todo[inline]{encode CMP (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{CMP arg}}
+\defencode{\lstASM{CMP arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Cmp::encode (uint t, uint k, uint pc)
 {
@@ -4128,10 +4040,9 @@ std::string Cmp::encode (uint t, uint k, uint pc)
 }
 \end{lstlisting}
 
-% \subsubsection{encode JMP (relational)}
 % \todo[inline]{encode JMP (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{JMP arg}}
+\defencode{\lstASM{JMP arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Jmp::encode (uint t, uint k, uint pc)
 {
@@ -4141,10 +4052,9 @@ std::string Jmp::encode (uint t, uint k, uint pc)
 }
 \end{lstlisting}
 
-% \subsubsection{encode JZ (relational)}
 % \todo[inline]{encode JZ (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{JZ arg}}
+\defencode{\lstASM{JZ arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Jz::encode (uint t, uint k, uint pc)
 {
@@ -4154,12 +4064,11 @@ std::string Jz::encode (uint t, uint k, uint pc)
 }
 \end{lstlisting}
 
-% \subsubsection{encode JNZ (relational)}
 % \todo[inline]{encode JNZ (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newpage
 
-\defencode{\lstinline[language={[concubine]Assembler}]{JNZ arg}}
+\defencode{\lstASM{JNZ arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Jnz::encode (uint t, uint k, uint pc)
 {
@@ -4169,10 +4078,9 @@ std::string Jnz::encode (uint t, uint k, uint pc)
 }
 \end{lstlisting}
 
-% \subsubsection{encode JS (relational)}
 % \todo[inline]{encode JS (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{JS arg}}
+\defencode{\lstASM{JS arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Js::encode (uint t, uint k, uint pc)
 {
@@ -4182,10 +4090,9 @@ std::string Js::encode (uint t, uint k, uint pc)
 }
 \end{lstlisting}
 
-% \subsubsection{encode JNS (relational)}
 % \todo[inline]{encode JNS (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{JNS arg}}
+\defencode{\lstASM{JNS arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Jns::encode (uint t, uint k, uint pc)
 {
@@ -4195,10 +4102,9 @@ std::string Jns::encode (uint t, uint k, uint pc)
 }
 \end{lstlisting}
 
-% \subsubsection{encode JNZNS (relational)}
 % \todo[inline]{encode JNZNS (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{JNZNS arg}}
+\defencode{\lstASM{JNZNS arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Jnzns::encode (uint t, uint k, uint pc)
 {
@@ -4208,12 +4114,11 @@ std::string Jnzns::encode (uint t, uint k, uint pc)
 }
 \end{lstlisting}
 
-% \subsubsection{encode MEM (relational)}
 % \todo[inline]{encode MEM (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newpage
 
-\defencode{\lstinline[language={[concubine]Assembler}]{MEM arg}}
+\defencode{\lstASM{MEM arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Mem::encode (uint t, uint k, uint pc)
 {
@@ -4226,10 +4131,9 @@ std::string Mem::encode (uint t, uint k, uint pc)
 }
 \end{lstlisting}
 
-% \subsubsection{encode CAS (relational)}
 % \todo[inline]{encode CAS (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{CAS arg}}
+\defencode{\lstASM{CAS arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Cas::encode (uint t, uint k, uint pc)
 {
@@ -4243,10 +4147,9 @@ std::string Cas::encode (uint t, uint k, uint pc)
 }
 \end{lstlisting}
 
-% \subsubsection{encode CHECK (relational)}
 % \todo[inline]{encode CHECK (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{CHECK arg}}
+\defencode{\lstASM{CHECK arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Check::encode (uint t, uint k, uint pc)
 {
@@ -4267,12 +4170,11 @@ std::string Check::encode (uint t, uint k, uint pc)
 Since the might be multiple checkpoints per thread, the encode function
 has to enable the corresponding blocking flag $\BLOCK^k_{id, t}$, while preserving or resetting any other.
 
-% \subsubsection{encode HALT (relational)}
 % \todo[inline]{encode HALT (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newpage
 
-\defencode{\lstinline[language={[concubine]Assembler}]{HALT}}
+\defencode{\lstASM{HALT}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Halt::encode (uint t, uint k, uint pc)
 {
@@ -4305,12 +4207,11 @@ std::string Halt::encode (uint t, uint k, uint pc)
 Stopping the machine if all threads halted is achieved by an $\ITE$, enabling the exit flag $\EXIT^k$ and assigning the default exit code if all halt flags $\HALT^k_t$ are set.
 Otherwise, the exit flag is disabled to continue execution.
 % In case only a single thread is running, the exit variables can be
-Since the exit flag is now already contained in the \texttt{State::halt} entry, we have to erase \texttt{State::exit} to prevent conflicts due to its falsification. %, leading to a conflict.
+Since the exit flag is now already contained in the \lstCPP{State::halt} entry, we have to erase \lstCPP{State::exit} to prevent conflicts due to its falsification. %, leading to a conflict.
 
-% \subsubsection{encode EXIT (relational)}
 % \todo[inline]{encode EXIT (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\defencode{\lstinline[language={[concubine]Assembler}]{EXIT arg}}
+\defencode{\lstASM{EXIT arg}}
 \begin{lstlisting}[style=c++, style=encode]
 std::string Exit::encode (uint t, uint k, uint pc)
 {
@@ -4325,7 +4226,6 @@ std::string Exit::encode (uint t, uint k, uint pc)
 
 \newpage
 
-% \subsubsection{imply thread executed}
 % \todo[inline]{imply thread executed} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \noindent
@@ -4364,15 +4264,15 @@ void imply_thread_executed (uint k, uint t)
 \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{imply_thread_executed(1, 0)}
+\emph{Example:} \lstCPP{imply_thread_executed(1, 0)}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (assert (=> exec_0_0_0 ; ADDI 1
             (and (= accu_1_0 (bvadd accu_0_0 #x0001))
                  (= mem_1_0 mem_0_0)
-                 (= sb-adr_1_0 sb-adr_0_0)
-                 (= sb-val_1_0 sb-val_0_0)
-                 (= sb-full_1_0 sb-full_0_0)
+                 (= adr_1_0 adr_0_0)
+                 (= val_1_0 val_0_0)
+                 (= full_1_0 full_0_0)
                  (and (not stmt_1_0_0)
                            stmt_1_0_1
                       (not stmt_1_0_2)
@@ -4385,9 +4285,9 @@ void imply_thread_executed (uint k, uint t)
 (assert (=> exec_0_0_1 ; STORE 0
             (and (= accu_1_0 accu_0_0)
                  (= mem_1_0 mem_0_0)
-                 (= sb-adr_1_0 #x0000)
-                 (= sb-val_1_0 accu_0_0)
-                 sb-full_1_0
+                 (= adr_1_0 #x0000)
+                 (= val_1_0 accu_0_0)
+                 full_1_0
                  (and (not stmt_1_0_0)
                       (not stmt_1_0_1)
                       stmt_1_0_2
@@ -4399,29 +4299,28 @@ void imply_thread_executed (uint k, uint t)
                  (not exit_1)))) ...
 \end{lstlisting}
 
-% \subsubsection{imply thread not executed}
 % \todo[inline]{imply thread not executed} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \noindent
 % In case a thread was not executed, all local states must be preserved, except the store
-% In case a thread is not executed, it still might flush it's store buffer, % or have a block flag reset by another thread executing the corresponding checkpoint's final \lstinline[language={[concubine]Assembler}]{CHECK} instruction.
-% or is released from a checkpoint if another thread just executed the corresponding \lstinline[language={[concubine]Assembler}]{CHECK} instruction.
+% In case a thread is not executed, it still might flush it's store buffer, % or have a block flag reset by another thread executing the corresponding checkpoint's final \lstASM{CHECK} instruction.
+% or is released from a checkpoint if another thread just executed the corresponding \lstASM{CHECK} instruction.
 % All local thread states are therefore preserved, while the store buffer full flag $\SBFULL^k_t$ and any block flag $\BLOCK^k_{id, t}$ might be reset.
 % while preserving all local states.
 % >>>
-% In case a thread was not executed in the previous step, all local states must be preserved, while the store buffer full flag $\SBFULL^k_t$ and block flags $\BLOCK^k_{id, t}$ might be reset by a store buffer flush or due to being released from a checkpoint if another thread executed the corresponds \lstinline[language={[concubine]Assembler}]{CHECK} instruction.
-In case a thread was not executed in the previous step, all local states must be preserved except the store buffer full flag $\SBFULL^k_t$ and block flags $\BLOCK^k_{id, t}$, as they might be reset by a store buffer flush, or due to being released from a checkpoint if another thread executed the corresponds \lstinline[language={[concubine]Assembler}]{CHECK} instruction.
+% In case a thread was not executed in the previous step, all local states must be preserved, while the store buffer full flag $\SBFULL^k_t$ and block flags $\BLOCK^k_{id, t}$ might be reset by a store buffer flush or due to being released from a checkpoint if another thread executed the corresponds \lstASM{CHECK} instruction.
+In case a thread was not executed in the previous step, all local states must be preserved except the store buffer full flag $\SBFULL^k_t$ and block flags $\BLOCK^k_{id, t}$, as they might be reset by a store buffer flush, or due to being released from a checkpoint if another thread executed the corresponds \lstASM{CHECK} instruction.
 
 % // imply_thread_not_executed
 % //
 % // thread t didn't execute an instruction (not thread_k_t):
 % // * preserve thread state
-% // * reset sb-full iff the thread's store buffer has been flushed
+% // * reset full iff the thread's store buffer has been flushed
 \begin{lstlisting}[style=c++]
 void imply_thread_not_executed (uint k, uint t)
 {
   Next next(k, t);
-  next[State::sb_full] = reset(&sb_full, &flush, k, t);
+  next[State::full] = reset(&full, &flush, k, t);
   std::vector<std::string> stmts;
   for (uint pc = 0; pc < programs.size(); pc++)
     stmts.push_back(restore(&stmt, k, t, pc));
@@ -4434,15 +4333,15 @@ void imply_thread_not_executed (uint k, uint t)
 \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{imply_thread_not_executed(1, 0)}
+\emph{Example:} \lstCPP{imply_thread_not_executed(1, 0)}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (assert (=> (not thread_0_0)
             (and (= accu_1_0 accu_0_0)
                  (= mem_1_0 mem_0_0)
-                 (= sb-adr_1_0 sb-adr_0_0)
-                 (= sb-val_1_0 sb-val_0_0)
-                 (= sb-full_1_0 (ite flush_0_0 false sb-full_0_0))
+                 (= adr_1_0 adr_0_0)
+                 (= val_1_0 val_0_0)
+                 (= full_1_0 (ite flush_0_0 false full_0_0))
                  (and (= stmt_1_0_0 stmt_0_0_0)
                       (= stmt_1_0_1 stmt_0_0_1)
                       (= stmt_1_0_2 stmt_0_0_2)
@@ -4452,7 +4351,6 @@ void imply_thread_not_executed (uint k, uint t)
                  (= halt_1_0 halt_0_0))))
 \end{lstlisting}
 
-% \subsubsection{imply thread flushed}
 % \todo[inline]{imply thread flushed} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newpage
@@ -4480,22 +4378,21 @@ void imply_thread_flushed (uint k, uint t)
   formula << assertion(imply(flush(k - 1, t),
                              land(equal(heap(k),
                                         store(heap(k - 1),
-                                              sb_adr(k - 1, t),
-                                              sb_val(k - 1, t)))
+                                              adr(k - 1, t),
+                                              val(k - 1, t)))
                                   lnot(exit(k))))) << '\n';
 }
 \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{imply_thread_flushed(1, 0)}
+\emph{Example:} \lstCPP{imply_thread_flushed(1, 0)}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (assert (=> flush_0_0
-            (and (= heap_1 (store heap_0 sb-adr_0_0 sb-val_0_0))
+            (and (= heap_1 (store heap_0 adr_0_0 val_0_0))
                  (not exit_1))))
 \end{lstlisting}
 
-% \subsubsection{imply machine exited}
 % \todo[inline]{imply machine exited} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \noindent
@@ -4525,16 +4422,16 @@ void imply_machine_exited (uint k)
 \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{imply_machine_exited(1, 0)}
+\emph{Example:} \lstCPP{imply_machine_exited(1, 0)}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (assert (=> exit_0 (and (= heap_1 heap_0) exit_1)))
 \end{lstlisting}
 
 \noindent
-\emph{Example:} \lstinline[style=c++]{imply_machine_exited(17, 0)}
+\emph{Example:} \lstCPP{imply_machine_exited(17, 0)}
 
-\begin{lstlisting}[language=smtlib]
+\begin{lstlisting}[style=smtlib]
 (assert (=> exit_16 (and (= heap_17 heap_16) exit_17)))
 (assert (=> (not exit_17) (= exit-code #x0000)))
 \end{lstlisting}
@@ -4542,24 +4439,24 @@ void imply_machine_exited (uint k)
 \subsection{BTOR2}
 
 % We also included the possibility to generate the novel word level model checking format \BTOR \cite{ref:BTOR2}, providing a sequential extensions for specifying word-level model checking problems with registers and memories.
-We also included the possibility to generate the word level model checking format \BTOR{} \cite{ref:BTOR2}, using the \texttt{-e btor2} command line parameter.
+We also included the possibility to generate the word level model checking format {\BTOR} \cite{ref:BTOR2}, using the \texttt{-e btor2} command line parameter.
 % providing a \emph{sequential extension} for specifying % register and array states in combination with a transition function,
 % By providing a \emph{sequential extension} for specifying % register and array states in combination with a transition function,
 It provides a \emph{sequential extension} for specifying % register and array states in combination with a transition function,
 states in combination with their transition functions,
 which are automatically unrolled via symbolic substitution by the accompanying bounded model checker BtorMC.
-% the generated formulas size remains constant with respect to the upper bound, compared to the linear growth of our \SMTLIB{} encodings.
+% the generated formulas size remains constant with respect to the upper bound, compared to the linear growth of our {\SMTLIB} encodings.
 % it produces constant sized formulas with respect to the upper bound
 % In contrast to \SMTLIB, which requires manual unrolling, \BTOR produces constant sized formulas with respect to the upper bound.
 % Automatic unrolling via symbolic substitution by the accompanying bounded model checker BtorMC
 % >>>
-In contrast to the linear growth of our \SMTLIB{} encodings, the generated formulas size therefore remains constant for any given bound. % with respect to the upper bound.
-% The generated formulas size therefore remains constant with respect to the upper bound, compared to the linear growth of our \SMTLIB{} encodings.
-% In contrast to \SMTLIB{}, which requires manual unrolling, it produces constant sized formulas with respect to the upper bound by providing a \emph{sequential extension} for specifying states in combination with their transition functions.
+In contrast to the linear growth of our {\SMTLIB} encodings, the generated formulas size therefore remains constant for any given bound. % with respect to the upper bound.
+% The generated formulas size therefore remains constant with respect to the upper bound, compared to the linear growth of our {\SMTLIB} encodings.
+% In contrast to {\SMTLIB}, which requires manual unrolling, it produces constant sized formulas with respect to the upper bound by providing a \emph{sequential extension} for specifying states in combination with their transition functions.
 % states in combination with their transition functions.
 % symbolicly substituting current state expressions into next state functions and incremental SMT solving.
 % Its line based syntax on the other hand requires more housekeeping, leading to a slightly more complex encoding process.
-% We omit an outline of the encoding process, as it is semantically equivalent to the \SMTLIB{} formulas using our functional next state logic and a bit more tedious due to the line based syntax.
+% We omit an outline of the encoding process, as it is semantically equivalent to the {\SMTLIB} formulas using our functional next state logic and a bit more tedious due to the line based syntax.
 % We omit an outline of the encoding process, as it is semantically equivalent to the previous one using our functional next state logic and a bit more tedious due to the line based syntax.
 We omit further details about the encoding process, as it is more or less identical to the previous using our functional next state logic, but a bit more tedious due to the line based syntax.
 
@@ -4588,7 +4485,6 @@ We omit further details about the encoding process, as it is more or less identi
 % }
 % \end{lstlisting}
 %
-% \subsubsection{main encoding function}
 % \todo[inline]{main encoding function (smtlib)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % \begin{lstlisting}[style=c++]
@@ -4605,7 +4501,6 @@ We omit further details about the encoding process, as it is more or less identi
 % }
 % \end{lstlisting}
 %
-% \subsubsection{declare sorts}
 % \todo[inline]{declare sorts} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % \begin{lstlisting}[style=c++]
@@ -4621,7 +4516,7 @@ We omit further details about the encoding process, as it is more or less identi
 
 \subsection{Replay}
 
-In order to validate the correctness of our encodings, we included a \texttt{replay} submodule for reevaluating the execution sequence of a given trace by the virtual machine used for simulation.
+In order to validate the correctness of our encodings, we included a \texttt{replay} \CHANGE{mode} for reevaluating the execution sequence of a given trace by the virtual machine used for simulation.
 If a mismatch is found, it returns the first step in which the results start to differ and prints the corresponding states of both execution traces for comparison.
 % prints the states of the first step in which the results start to differ and returns
 % printing the first step in which the traces start to differ
