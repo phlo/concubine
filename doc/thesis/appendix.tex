@@ -1,0 +1,772 @@
+\appendix
+
+\section*{Appendices}
+% \section*{Appendix}
+
+\addcontentsline{toc}{section}{Appendices}
+\renewcommand{\thesubsection}{\Alph{subsection}}
+% \renewcommand{\thesubsection}{Intel}
+
+\renewcommand{\tablename}{Example}
+% \setcounter{table}{0}
+
+\subsection{Intel Litmus Tests}
+
+Intel's memory-ordering litmus tests as seen in \cite[Section 8.2.3]{ref:Intel} ported to our virtual machine model.
+
+% The x86-TSO memory-ordering model (used by AMD and Intel) is defined by a set of litmus tests.
+% To show equivalence of ConcuBinE-TSO and x86-TSO, the tests have been ported to ConcuBinE.
+
+% \subsubsection{Intel}
+
+% {\small \textit{see Intel® 64 and IA-32 Architectures Software Developer’s Manual Volume 3A}}
+
+% \textbf{\cite[8.2.3.2]{ref:Intel}}
+
+\subsubsection*{Neither Loads Nor Stores Are Reordered with Like Operations}
+
+The Intel-64 memory-ordering model allows neither loads nor stores to be reordered with the same kind of operation.
+That is, it ensures that loads are seen in program order and that stores are seen in program order.
+This is illustrated by the following example:
+
+\begin{table}[!hbt]
+\noindent\makebox[\textwidth]{
+\centering
+\begin{tabu}{c}
+  \begin{tabu}{|l|l|}
+    \firsthline
+    \textbf{Thread 0} & \textbf{Thread 1} \\
+    \hline \hline
+    \lstASM{ADDI 1}   & \\
+    \lstASM{STORE 0}  & \lstASM{MEM 1} \\
+    \lstASM{STORE 1}  & \lstASM{LOAD 0} \\
+    \lasthline
+  \end{tabu} \\
+  \begin{tabu}{|X[c]|X[c]|}
+    \firsthline
+    \textbf{Initial} & \textbf{Not Allowed} \hspace{1pt} \xmark \\
+    \hline \hline
+    $\HEAP[0] = \HEAP[1] = 0$ & $\MEM_1 = 1 \land \ACCU_1 = 0$ \\
+    \lasthline
+  \end{tabu} \\
+\end{tabu}}
+\caption{Stores Are Not Reordered with Other Stores \cite[Example 8-1]{ref:Intel}}
+\label{tbl:litmus:intel:1}
+\end{table}
+
+\noindent
+The disallowed return values could be exhibited only if thread 0’s two stores are reordered (with the two loads occurring between them) or if thread 1’s two loads are reordered (with the two stores occurring between them).
+\bigbreak
+\noindent
+If $\MEM_1 = 1$, the store to $\HEAP[1]$ occurs before the load from $\HEAP[1]$.
+Because the Intel-64 memory-ordering model does not allow stores to be reordered, the earlier store to $\HEAP[0]$ occurs before the load from $\HEAP[1]$.
+Because the Intel-64 memory-ordering model does not allow loads to be reordered, the store to $\HEAP[0]$ also occurs before the later load from $\HEAP[0]$.
+Thus $\ACCU_1 = 1$.
+
+\newpage
+
+\subsubsection*{Stores Are Not Reordered with Earlier Loads}
+
+The Intel-64 memory-ordering model ensures that a store by a thread may not occur before a previous load by the same thread.
+This is illustrated by the following example:
+
+\begin{table}[!hbt]
+\noindent\makebox[\textwidth]{
+\centering
+\begin{tabu}{c}
+  \begin{tabu}{|l|l|}
+    \firsthline
+    \textbf{Thread 0} & \textbf{Thread 1} \\
+    \hline \hline
+    \lstASM{MEM 0}    & \lstASM{MEM 1} \\
+    \lstASM{ADDI 1}   & \lstASM{ADDI 1} \\
+    \lstASM{STORE 1}  & \lstASM{STORE 0} \\
+    \lasthline
+  \end{tabu} \\
+  \begin{tabu}{|X[c]|X[c]|}
+    \firsthline
+    \textbf{Initial} & \textbf{Not Allowed} \hspace{1pt} \xmark \\
+    \hline \hline
+    $\HEAP[0] = \HEAP[1] = 0$ & $\MEM_0 = \MEM_1 = 1$ \\
+    \lasthline
+  \end{tabu} \\
+\end{tabu}}
+\caption{Stores Are Not Reordered with Older Loads \cite[Example 8-2]{ref:Intel}}
+\label{tbl:litmus:intel:2}
+\end{table}
+
+\noindent
+Assume $\MEM_0 = 1$.
+\begin{itemize}
+  \item Because $\MEM_0 = 1$, thread 1’s store to $\HEAP[0]$ occurs before thread 0’s load from $\HEAP[0]$.
+  \item Because the Intel-64 memory-ordering model prevents each store from being reordered with the earlier load by the same thread, thread 1’s load from $\HEAP[1]$ occurs before its store to $\HEAP[0]$.
+  \item Similarly, thread 0’s load from $\HEAP[0]$ occurs before its store to $\HEAP[1]$.
+  \item Thus, thread 1’s load from $\HEAP[1]$ occurs before thread 0’s store to $\HEAP[1]$, implying $\MEM_1 = 0$.
+\end{itemize}
+
+\newpage
+
+\subsubsection*{Loads May Be Reordered with Earlier Stores to Different Locations}
+
+The Intel-64 memory-ordering model allows a load to be reordered with an earlier store to a different location.
+However, loads are not reordered with stores to the same location.
+\bigbreak
+\noindent
+The fact that a load may be reordered with an earlier store to a different location is illustrated by the following example:
+
+\begin{table}[!hbt]
+\noindent\makebox[\textwidth]{
+\centering
+\begin{tabu}{c}
+  \begin{tabu}{|l|l|}
+    \firsthline
+    \textbf{Thread 0} & \textbf{Thread 1} \\
+    \hline \hline
+    \lstASM{ADDI 1}   & \lstASM{ADDI 1} \\
+    \lstASM{STORE 0}  & \lstASM{STORE 1} \\
+    \lstASM{LOAD 1}   & \lstASM{LOAD 0} \\
+    \lasthline
+  \end{tabu} \\
+  \begin{tabu}{|X[c]|X[c]|}
+    \firsthline
+    \textbf{Initial} & \textbf{Allowed} \hspace{1pt} \cmark \\
+    \hline \hline
+    $\HEAP[0] = \HEAP[1] = 0$ & $\ACCU_0 = \ACCU_1 = 0$ \\
+    \lasthline
+  \end{tabu} \\
+\end{tabu}}
+\caption{Loads May be Reordered with Older Stores \cite[Example 8-3]{ref:Intel}}
+\label{tbl:litmus:intel:3}
+\end{table}
+
+\noindent
+At each thread, the load and the store are to different locations and hence may be reordered.
+Any interleaving of the operations is thus allowed.
+One such interleaving has the two loads occurring before the two stores.
+This would result in each load returning value 0.
+
+\newpage
+
+\subsubsection*{Loads Are Not Reordered with Older Stores to the Same Location}
+
+The Intel-64 memory-ordering model allows a load to be reordered with an earlier store to a different location.
+However, loads are not reordered with stores to the same location.
+\bigbreak
+\noindent
+The fact that a load may not be reordered with an earlier store to the same location is illustrated by the following
+example:
+
+\begin{table}[!hbt]
+\noindent\makebox[\textwidth]{
+\centering
+\begin{tabu}{c}
+  \begin{tabu}{|l|}
+    \firsthline
+    \textbf{Thread 0} \\
+    \hline \hline
+    \lstASM{ADDI 1} \\
+    \lstASM{STORE 0} \\
+    \lstASM{LOAD 0} \\
+    \lasthline
+  \end{tabu} \\
+  \begin{tabu}{|X[c]|X[c]|}
+    \firsthline
+    \textbf{Initial} & \textbf{Not Allowed} \hspace{1pt} \xmark \\
+    \hline \hline
+    $\HEAP[0] = 0$ & $\ACCU_0 = 0$ \\
+    \lasthline
+  \end{tabu} \\
+\end{tabu}}
+\caption{Loads Are not Reordered with Older Stores to the Same Location \cite[Example 8-4]{ref:Intel}}
+\label{tbl:litmus:intel:4}
+\end{table}
+
+\noindent
+The Intel-64 memory-ordering model does not allow the load to be reordered with the earlier store because the accesses are to the same location.
+Therefore, $\ACCU_0 = 1$ must hold.
+
+\newpage
+
+\subsubsection*{Intra-Processor Forwarding Is Allowed}
+
+The memory-ordering model allows concurrent stores by two threads to be seen in different orders by those two threads; specifically, each thread may perceive its own store occurring before that of the other.
+This is illustrated by the following example:
+
+\begin{table}[!hbt]
+\noindent\makebox[\textwidth]{
+\centering
+\begin{tabu}{c}
+  \begin{tabu}{|l|l|}
+    \firsthline
+    \textbf{Thread 0} & \textbf{Thread 1} \\
+    \hline \hline
+    \lstASM{ADDI 1}   & \lstASM{ADDI 1} \\
+    \lstASM{STORE 0}  & \lstASM{STORE 1} \\
+    \lstASM{LOAD 0}   & \lstASM{LOAD 1} \\
+    \lstASM{LOAD 1}   & \lstASM{LOAD 0} \\
+    \lasthline
+  \end{tabu} \\
+  \begin{tabu}{|X[c]|X[c]|}
+    \firsthline
+    \textbf{Initial} & \textbf{Allowed} \hspace{1pt} \cmark \\
+    \hline \hline
+    $\HEAP[0] = \HEAP[1] = 0$ & $\ACCU_0 = \ACCU_1 = 0$ \\
+    \lasthline
+  \end{tabu} \\
+\end{tabu}}
+\caption{Intra-Processor Forwarding is Allowed \cite[Example 8-5]{ref:Intel}}
+\label{tbl:litmus:intel:5}
+\end{table}
+
+\noindent
+The memory-ordering model imposes no constraints on the order in which the two stores appear to execute by the two threads.
+This fact allows thread 0 to see its store before seeing thread 1's, while thread 1 sees its store before seeing thread 0's.
+(Each thread is self consistent.)
+This allows $\ACCU_0 = \ACCU_1 = 0$.
+\bigbreak
+\noindent
+In practice, the reordering in this example can arise as a result of store-buffer forwarding.
+While a store is temporarily held in a thread's store buffer, it can satisfy the thread's own loads but is not visible to (and cannot satisfy) loads by other threads.
+
+\newpage
+
+\subsubsection*{Stores Are Transitively Visible}
+
+The memory-ordering model ensures transitive visibility of stores; stores that are causally related appear to all threads to occur in an order consistent with the causality relation.
+This is illustrated by the following example:
+
+\begin{table}[!hbt]
+\noindent\makebox[\textwidth]{
+\centering
+\begin{tabu}{c}
+  \begin{tabu}{|l|l|l|}
+    \firsthline
+    \textbf{Thread 0} & \textbf{Thread 1} & \textbf{Thread 2} \\
+    \hline \hline
+    \lstASM{ADDI 1}   & \lstASM{MEM 0}    & \\
+    \lstASM{STORE 0}  & \lstASM{JNZ 3}    & \\
+                      & \lstASM{ADDI 1}   & \\
+                      & \lstASM{STORE 1}  & \lstASM{MEM 1} \\
+                      &                   & \lstASM{LOAD 0} \\
+    \lasthline
+  \end{tabu} \\
+  \begin{tabu}{|X[c]|X[c]|}
+    \firsthline
+    \textbf{Initial} & \textbf{Not Allowed} \hspace{1pt} \xmark \\
+    \hline \hline
+    $\HEAP[0] = \HEAP[1] = 0$ & $\MEM_1 = \MEM_2 = 1 \land \ACCU_2 = 0$ \\
+    \lasthline
+  \end{tabu} \\
+\end{tabu}}
+\caption{Stores Are Transitively Visible \cite[Example 8-6]{ref:Intel}}
+\label{tbl:litmus:intel:6}
+\end{table}
+
+\noindent
+Assume that $\MEM_1 = 1$ and $\MEM_2 = 1$.
+\begin{itemize}
+  \item Because $\MEM_1 = 1$, thread 0’s store occurs before thread 1’s load.
+  \item Because the memory-ordering model prevents a store from being reordered with an earlier load (see \cite[Section 8.2.3.3]{ref:Intel}), thread 1’s load occurs before its store. Thus, thread 0’s store causally precedes thread 1’s store.
+  \item Because thread 0’s store causally precedes thread 1’s store, the memory-ordering model ensures that thread 0’s store appears to occur before thread 1’s store from the point of view of all threads.
+  \item Because $\MEM_2 = 1$, thread 1’s store occurs before thread 2’s load.
+  \item Because the Intel-64 memory-ordering model prevents loads from being reordered (see \cite[Section 8.2.3.2]{ref:Intel}), thread 2’s load occur in order.
+  \item The above items imply that thread 0’s store to $\HEAP[0]$ occurs before thread 2’s load from $\HEAP[0]$. This implies that $\ACCU_2 = 1$.
+\end{itemize}
+
+\newpage
+
+\subsubsection*{Stores Are Seen in a Consistent Order by Other Threads}
+
+As noted in \cite[Section 8.2.3.5]{ref:Intel}, the memory-ordering model allows stores by two threads to be seen in different orders by those two threads.
+However, any two stores must appear to execute in the same order to all threads other than those performing the stores.
+This is illustrated by the following example:
+
+\begin{table}[!hbt]
+\noindent\makebox[\textwidth]{
+\centering
+\begin{tabu}{c}
+  \begin{tabu}{|l|l|l|l|}
+    \firsthline
+    \textbf{Thread 0} & \textbf{Thread 1} & \textbf{Thread 2} & \textbf{Thread 3} \\
+    \hline \hline
+    \lstASM{ADDI 1}   & \lstASM{ADDI 1}   & \lstASM{MEM 0}    & \lstASM{MEM 1} \\
+    \lstASM{STORE 0}  & \lstASM{STORE 1}  & \lstASM{LOAD 1}   & \lstASM{LOAD 0} \\
+    \lasthline
+  \end{tabu} \\
+  \begin{tabu}{|X[c]|X[2.14,c]|}
+    \firsthline
+    \textbf{Initial} & \textbf{Not Allowed} \hspace{1pt} \xmark \\
+    \hline \hline
+    $\HEAP[0] = \HEAP[1] = 0$ & $\MEM_2 = \MEM_3 = 1 \land \ACCU_2 = \ACCU_3 = 0$ \\
+    \lasthline
+  \end{tabu} \\
+\end{tabu}}
+\caption{Stores Are Seen in a Consistent Order by Other Threads \cite[Example 8-7]{ref:Intel}}
+\label{tbl:litmus:intel:7}
+\end{table}
+
+\noindent
+By the principles discussed in \cite[Section 8.2.3.2]{ref:Intel},
+\begin{itemize}
+  \item thread 2’s first and second load cannot be reordered,
+  \item thread 3’s first and second load cannot be reordered.
+  \item If $\MEM_2 = 1$ and $\ACCU_2 = 0$, thread 0’s store appears to precede thread 1’s store with respect to thread 2.
+  \item Similarly, $\MEM_3 = 1$ and $\ACCU_3 = 0$ imply that thread 1’s store appears to precede thread 0’s store with respect to thread 1.
+\end{itemize}
+Because the memory-ordering model ensures that any two stores appear to execute in the same order to all threads (other than those performing the stores), this set of return values is not allowed.
+
+\newpage
+
+\subsubsection*{Locked Instructions Have a Total Order}
+
+The memory-ordering model ensures that all threads agree on a single execution order of all locked instructions.
+This is illustrated by the following example:
+
+\begin{table}[!hbt]
+\noindent\makebox[\textwidth]{
+\centering
+\begin{tabu}{c}
+  \begin{tabu}{|l|l|l|l|}
+    \firsthline
+    \textbf{Thread 0} & \textbf{Thread 1} & \textbf{Thread 2} & \textbf{Thread 3} \\
+    \hline \hline
+    \lstASM{ADDI 1}   & \lstASM{ADDI 1}   &                   & \\
+    \lstASM{CAS 0}    & \lstASM{CAS 1}    &                   & \\
+                      &                   & \lstASM{MEM 0}    & \lstASM{MEM 1} \\
+                      &                   & \lstASM{LOAD 1}   & \lstASM{LOAD 0} \\
+    \lasthline
+  \end{tabu} \\
+  \begin{tabu}{|X[c]|X[2.14,c]|}
+    \firsthline
+    \textbf{Initial} & \textbf{Not Allowed} \hspace{1pt} \xmark \\
+    \hline \hline
+    $\HEAP[0] = \HEAP[1] = 0$ & $\MEM_2 = \MEM_3 = 1 \land \ACCU_2 = \ACCU_3 = 0$ \\
+    \lasthline
+  \end{tabu} \\
+\end{tabu}}
+\caption{Locked Instructions Have a Total Order \cite[Example 8-8]{ref:Intel}}
+\label{tbl:litmus:intel:8}
+\end{table}
+
+\noindent
+Thread 2 and thread 3 must agree on the order of the two executions of \lstASM{CAS}.
+Without loss of generality, suppose that thread 0’s \lstASM{CAS} occurs first.
+\begin{itemize}
+  \item If $\MEM_3 = 1$, thread 1’s \lstASM{CAS} into $\HEAP[1]$ occurs before thread 3’s load from $\HEAP[1]$.
+  \item Because the Intel-64 memory-ordering model prevents loads from being reordered (see \cite[Section 8.2.3.2]{ref:Intel}), thread 3’s loads occur in order and, therefore, thread 1’s \lstASM{CAS} occurs before thread 3’s load from $\HEAP[0]$.
+  \item Since thread 0’s \lstASM{CAS} into $\HEAP[0]$ occurs before thread 1’s \lstASM{CAS} (by assumption), it occurs before thread 3’s load from $\HEAP[0]$.
+  Thus, $\ACCU_3 = 1$.
+\end{itemize}
+A similar argument (referring instead to thread 2’s loads) applies if thread 1’s \lstASM{CAS} occurs before thread 0’s \lstASM{CAS}.
+
+\newpage
+
+\subsubsection*{Loads Are Not Reordered with Locked Instructions}
+
+The memory-ordering model prevents loads and stores from being reordered with locked instructions that execute earlier or later.
+The examples in this section illustrate only cases in which a locked instruction is executed before a load or a store.
+The reader should note that reordering is prevented also if the locked instruction is executed after a load or a store.
+\bigbreak
+\noindent
+The first example illustrates that loads may not be reordered with earlier locked instructions:
+
+\begin{table}[!hbt]
+\noindent\makebox[\textwidth]{
+\centering
+\begin{tabu}{c}
+  \begin{tabu}{|l|l|l|l|}
+    \firsthline
+    \textbf{Thread 0} & \textbf{Thread 1} \\
+    \hline \hline
+    \lstASM{ADDI 1}   & \lstASM{ADDI 1} \\
+    \lstASM{CAS 0}    & \lstASM{CAS 1} \\
+    \lstASM{LOAD 1}   & \lstASM{LOAD 0} \\
+    \lasthline
+  \end{tabu} \\
+  \begin{tabu}{|X[c]|X[c]|}
+    \firsthline
+    \textbf{Initial} & \textbf{Not Allowed} \hspace{1pt} \xmark \\
+    \hline \hline
+    $\HEAP[0] = \HEAP[1] = 0$ & $\ACCU_0 = \ACCU_1 = 0$ \\
+    \lasthline
+  \end{tabu} \\
+\end{tabu}}
+\caption{Loads Are not Reordered with Locks \cite[Example 8-9]{ref:Intel}}
+\label{tbl:litmus:intel:9}
+\end{table}
+
+\noindent
+As explained in \cite[Section 8.2.3.8]{ref:Intel}, there is a total order of the executions of locked instructions.
+Without loss of generality, suppose that thread 0’s \lstASM{CAS} occurs first.
+\bigbreak
+\noindent
+Because the Intel-64 memory-ordering model prevents thread 1’s load from being reordered with its earlier \lstASM{CAS}, thread 0’s \lstASM{CAS} occurs before thread 1’s load.
+This implies $\ACCU_1 = 1$.
+\bigbreak
+\noindent
+A similar argument (referring instead to thread 2’s accesses) applies if thread 1’s \lstASM{CAS} occurs before thread 0’s \lstASM{CAS}.
+
+\newpage
+
+\subsubsection*{Stores Are Not Reordered with Locked Instructions}
+
+The memory-ordering model prevents loads and stores from being reordered with locked instructions that execute earlier or later.
+The examples in this section illustrate only cases in which a locked instruction is executed before a load or a store.
+The reader should note that reordering is prevented also if the locked instruction is executed after a load or a store.
+\bigbreak
+\noindent
+The second example illustrates that a store may not be reordered with an earlier locked instruction:
+
+\begin{table}[!hbt]
+\noindent\makebox[\textwidth]{
+\centering
+\begin{tabu}{c}
+  \begin{tabu}{|l|l|l|l|}
+    \firsthline
+    \textbf{Thread 0} & \textbf{Thread 1} \\
+    \hline \hline
+    \lstASM{ADDI 1}   & \\
+    \lstASM{CAS 0}    & \lstASM{MEM 1} \\
+    \lstASM{STORE 1}  & \lstASM{LOAD 0} \\
+    \lasthline
+  \end{tabu} \\
+  \begin{tabu}{|X[c]|X[c]|}
+    \firsthline
+    \textbf{Initial} & \textbf{Not Allowed} \hspace{1pt} \xmark \\
+    \hline \hline
+    $\HEAP[0] = \HEAP[1] = 0$ & $\ACCU_1 = 0 \land \MEM_1 = 1$ \\
+    \lasthline
+  \end{tabu} \\
+\end{tabu}}
+\caption{Stores Are not Reordered with Locks \cite[Example 8-10]{ref:Intel}}
+\label{tbl:litmus:intel:10}
+\end{table}
+
+\noindent
+Assume $\MEM_1 = 1$.
+\begin{itemize}
+  \item Because $\MEM_1 = 1$, thread 0’s store to $\HEAP[1]$ occurs before thread 1’s load from $\HEAP[1]$.
+  \item Because the memory-ordering model prevents a store from being reordered with an earlier locked instruction, thread 0’s \lstASM{CAS} into $\HEAP[0]$ occurs before its store to $\HEAP[1]$.
+  \item Thus, thread 0’s \lstASM{CAS} into $\HEAP[0]$ occurs before thread 1’s load from $\HEAP[1]$.
+  \item Because the memory-ordering model prevents loads from being reordered (see \cite[Section 8.2.3.2]{ref:Intel}), thread 1’s loads occur in order and, therefore, thread 1’s \lstASM{CAS} into $\HEAP[0]$ occurs before thread 1’s load from $\HEAP[0]$. Thus, $\ACCU_1 = 1$.
+\end{itemize}
+
+\newpage
+
+\subsection{AMD Litmus Tests}
+
+AMD's memory-ordering litmus tests as seen in \cite[Section 7.2]{ref:AMD} ported to our virtual machine model.
+
+% \subsubsection*{Loads Do Not Pass Previous Loads, Stores Do Not Pass Previous Stores}
+\subsubsection*{Neither Loads Nor Stores Are Reordered with Like Operations}
+
+Successive stores from a single thread are committed to system memory and visible to other threads in program order.
+A store by a thread cannot be committed to memory before a read appearing earlier in the program has captured its targeted data from memory.
+In other words, stores from a thread cannot be reordered to occur prior to a load preceding it in program order.
+
+\begin{table}[!hbt]
+\noindent\makebox[\textwidth]{
+\centering
+\begin{tabu}{c}
+  \begin{tabu}{|l|l|}
+    \firsthline
+    \textbf{Thread 0} & \textbf{Thread 1} \\
+    \hline \hline
+    \lstASM{ADDI 1}   & \\
+    \lstASM{STORE 0}  & \lstASM{MEM 1} \\
+    \lstASM{STORE 1}  & \lstASM{LOAD 0} \\
+    \lasthline
+  \end{tabu} \\
+  \begin{tabu}{|X[c]|X[c]|}
+    \firsthline
+    \textbf{Initial} & \textbf{Not Allowed} \hspace{1pt} \xmark \\
+    \hline \hline
+    $\HEAP[0] = \HEAP[1] = 0$ & $\MEM_1 = 1 \land \ACCU_1 = 0$ \\
+    \lasthline
+  \end{tabu} \\
+\end{tabu}}
+\caption{Stores Are Not Reordered with Other Stores \cite[Example 1]{ref:AMD}}
+\label{tbl:litmus:AMD:1}
+\end{table}
+
+\noindent
+\lstASM{LOAD 0} cannot read $0$ when \lstASM{LOAD 1} reads $1$.
+
+\newpage
+
+\subsubsection*{Stores Are Not Reordered with Earlier Loads}
+
+Successive stores from a single thread are committed to system memory and visible to other threads in program order.
+A store by a thread cannot be committed to memory before a read appearing earlier in the program has captured its targeted data from memory.
+In other words, stores from a thread cannot be reordered to occur prior to a load preceding it in program order.
+
+\begin{table}[!hbt]
+\noindent\makebox[\textwidth]{
+\centering
+\begin{tabu}{c}
+  \begin{tabu}{|l|l|}
+    \firsthline
+    \textbf{Thread 0} & \textbf{Thread 1} \\
+    \hline \hline
+    \lstASM{MEM 0}    & \lstASM{MEM 1} \\
+    \lstASM{ADDI 1}   & \lstASM{ADDI 1} \\
+    \lstASM{STORE 1}  & \lstASM{STORE 0} \\
+    \lasthline
+  \end{tabu} \\
+  \begin{tabu}{|X[c]|X[c]|}
+    \firsthline
+    \textbf{Initial} & \textbf{Not Allowed} \hspace{1pt} \xmark \\
+    \hline \hline
+    $\HEAP[0] = \HEAP[1] = 0$ & $\MEM_0 = \MEM_1 = 1$ \\
+    \lasthline
+  \end{tabu} \\
+\end{tabu}}
+\caption{Stores Are Not Reordered with Older Loads \cite[Example 2]{ref:AMD}}
+\label{tbl:litmus:amd:2}
+\end{table}
+
+\noindent
+\lstASM{LOAD 0} and \lstASM{LOAD 1} cannot both read $1$.
+
+\subsubsection*{Stores Can Be Arbitrarily Delayed}
+
+Stores from a thread appear to be committed to the memory system in program order; however, stores can be delayed arbitrarily by store buffering while the thread continues operation.
+Therefore, stores from a thread may not appear to be sequentially consistent.
+
+\begin{table}[!hbt]
+\noindent\makebox[\textwidth]{
+\centering
+\begin{tabu}{c}
+  \begin{tabu}{|l|l|}
+    \firsthline
+    \textbf{Thread 0} & \textbf{Thread 1} \\
+    \hline \hline
+    \lstASM{ADDI 1}   & \lstASM{ADDI 1} \\
+    \lstASM{STORE 0}  & \lstASM{STORE 1} \\
+    \lstASM{ADDI 1}   & \lstASM{ADDI 1} \\
+    \lstASM{STORE 0}  & \lstASM{STORE 1} \\
+    \lstASM{LOAD 0}   & \lstASM{LOAD 1} \\
+    \lasthline
+  \end{tabu} \\
+  \begin{tabu}{|X[c]|}
+    \firsthline
+    \textbf{Allowed} \hspace{1pt} \cmark \\
+    \hline \hline
+    $\ACCU_0 = \ACCU_1 = 1$ \\
+    \lasthline
+  \end{tabu} \\
+\end{tabu}}
+\caption{Stores Can Be Arbitrarily Delayed \cite[Example 3]{ref:AMD}}
+\label{tbl:litmus:amd:3}
+\end{table}
+
+\noindent
+Both \lstASM{LOAD 0} and \lstASM{LOAD 1} may read $1$.
+
+\subsubsection*{Loads May Be Reordered with Earlier Stores to Different Locations}
+
+Non-overlapping Loads may pass stores.
+
+\begin{table}[!hbt]
+\noindent\makebox[\textwidth]{
+\centering
+\begin{tabu}{c}
+  \begin{tabu}{|l|l|}
+    \firsthline
+    \textbf{Thread 0} & \textbf{Thread 1} \\
+    \hline \hline
+    \lstASM{ADDI 1}   & \lstASM{ADDI 1} \\
+    \lstASM{STORE 0}  & \lstASM{STORE 1} \\
+    \lstASM{LOAD 1}   & \lstASM{LOAD 0} \\
+    \lasthline
+  \end{tabu} \\
+  \begin{tabu}{|X[c]|X[c]|}
+    \firsthline
+    \textbf{Initial} & \textbf{Allowed} \hspace{1pt} \cmark \\
+    \hline \hline
+    $\HEAP[0] = \HEAP[1] = 0$ & $\ACCU_0 = \ACCU_1 = 0$ \\
+    \lasthline
+  \end{tabu} \\
+\end{tabu}}
+\caption{Loads May be Reordered with Older Stores \cite[Example 4]{ref:AMD}}
+\label{tbl:litmus:AMD:4}
+\end{table}
+
+\noindent
+All combinations of values ($00$, $01$, $10$, and $11$) may be observed by threads 0 and 1.
+
+\subsubsection*{Sequential Consistency}
+
+Where sequential consistency is needed (for example in Dekker’s algorithm for mutual exclusion), a \lstASM{FENCE} instruction should be used between the store and the subsequent load, or an atomic instruction, such as \lstASM{CAS}, should be used for the store.
+
+\begin{table}[!hbt]
+\noindent\makebox[\textwidth]{
+\centering
+\begin{tabu}{c}
+  \begin{tabu}{|l|l|}
+    \firsthline
+    \textbf{Thread 0} & \textbf{Thread 1} \\
+    \hline \hline
+    \lstASM{ADDI 1}   & \lstASM{ADDI 1} \\
+    \lstASM{STORE 0}  & \lstASM{STORE 1} \\
+    \lstASM{FENCE}    & \lstASM{FENCE} \\
+    \lstASM{LOAD 1}   & \lstASM{LOAD 0} \\
+    \lasthline
+  \end{tabu} \\
+  \begin{tabu}{|X[c]|X[c]|}
+    \firsthline
+    \textbf{Initial} & \textbf{Not Allowed} \hspace{1pt} \xmark \\
+    \hline \hline
+    $\HEAP[0] = \HEAP[1] = 0$ & $\ACCU_0 = \ACCU_1 = 0$ \\
+    \lasthline
+  \end{tabu} \\
+\end{tabu}}
+\caption{Sequential Consistency \cite[Example 5]{ref:AMD}}
+\label{tbl:litmus:AMD:5}
+\end{table}
+
+\noindent
+\lstASM{LOAD 0} and \lstASM{LOAD 1} cannot both read $0$.
+
+\newpage
+
+\subsubsection*{Stores Are Seen in a Consistent Order by Other Threads}
+
+Stores to different locations in memory observed from two (or more) other threads will appear in the same order to all observers.
+Behavior such as that is shown in this code example:
+
+\begin{table}[!hbt]
+\noindent\makebox[\textwidth]{
+\centering
+\begin{tabu}{c}
+  \begin{tabu}{|l|l|l|l|}
+    \firsthline
+    \textbf{Thread 0} & \textbf{Thread 1} & \textbf{Thread 2} & \textbf{Thread 3} \\
+    \hline \hline
+    \lstASM{ADDI 1}   & \lstASM{ADDI 1}   & \lstASM{MEM 0}    & \lstASM{MEM 1} \\
+    \lstASM{STORE 0}  & \lstASM{STORE 1}  & \lstASM{LOAD 1}   & \lstASM{LOAD 0} \\
+    \lasthline
+  \end{tabu} \\
+  \begin{tabu}{|X[c]|X[2.14,c]|}
+    \firsthline
+    \textbf{Initial} & \textbf{Not Allowed} \hspace{1pt} \xmark \\
+    \hline \hline
+    $\HEAP[0] = \HEAP[1] = 0$ & $\MEM_2 = \MEM_3 = 1 \land \ACCU_2 = \ACCU_3 = 0$ \\
+    \lasthline
+  \end{tabu} \\
+\end{tabu}}
+\caption{Stores Are Seen in a Consistent Order by Other Threads \cite[Example 6]{ref:AMD}}
+\label{tbl:litmus:amd:6}
+\end{table}
+
+\noindent
+Thread 2 seeing \lstASM{STORE 0} from thread 0 before \lstASM{STORE 1} from thread 1, while thread 3 sees \lstASM{STORE 1} from thread 1 before \lstASM{STORE 0} from thread 0, is not allowed.
+
+\subsubsection*{Stores Are Transitively Visible}
+
+Dependent stores between different threads appear to occur in program order, as shown in the code example below.
+
+\begin{table}[!hbt]
+\noindent\makebox[\textwidth]{
+\centering
+\begin{tabu}{c}
+  \begin{tabu}{|l|l|l|}
+    \firsthline
+    \textbf{Thread 0} & \textbf{Thread 1} & \textbf{Thread 2} \\
+    \hline \hline
+    \lstASM{ADDI 1}   & \lstASM{MEM 0}    & \\
+    \lstASM{STORE 0}  & \lstASM{JNZ 3}    & \\
+                      & \lstASM{ADDI 1}   & \\
+                      & \lstASM{STORE 1}  & \lstASM{MEM 1} \\
+                      &                   & \lstASM{LOAD 0} \\
+    \lasthline
+  \end{tabu} \\
+  \begin{tabu}{|X[c]|X[c]|}
+    \firsthline
+    \textbf{Initial} & \textbf{Not Allowed} \hspace{1pt} \xmark \\
+    \hline \hline
+    $\HEAP[0] = \HEAP[1] = 0$ & $\MEM_1 = \MEM_2 = 1 \land \ACCU_2 = 0$ \\
+    \lasthline
+  \end{tabu} \\
+\end{tabu}}
+\caption{Stores Are Transitively Visible \cite[Example 7]{ref:AMD}}
+\label{tbl:litmus:amd:7}
+\end{table}
+
+\noindent
+If thread 1 reads a value from $\HEAP[0]$ (written by thread 0) before carrying out a store to $\HEAP[1]$, and if thread 2 reads the updated value from $\HEAP[1]$, a subsequent read of $\HEAP[0]$ must also be the updated value.
+
+\subsubsection*{Intra-Processor Forwarding Is Allowed}
+
+The local visibility (within a thread) for a memory operation may differ from the global visibility (from another thread).
+Using a data bypass, a local load can read the result of a local store in a store buffer, before the store becomes globally visible.
+Program order is still maintained when using such bypasses.
+
+\begin{table}[!hbt]
+\noindent\makebox[\textwidth]{
+\centering
+\begin{tabu}{c}
+  \begin{tabu}{|l|l|}
+    \firsthline
+    \textbf{Thread 0} & \textbf{Thread 1} \\
+    \hline \hline
+    \lstASM{ADDI 1}   & \lstASM{ADDI 1} \\
+    \lstASM{STORE 0}  & \lstASM{STORE 1} \\
+    \lstASM{MEM 0}    & \lstASM{MEM 1} \\
+    \lstASM{LOAD 1}   & \lstASM{LOAD 0} \\
+    \lasthline
+  \end{tabu} \\
+  \begin{tabu}{|X[c]|X[2.14,c]|}
+    \firsthline
+    \textbf{Initial} & \textbf{Allowed} \hspace{1pt} \cmark \\
+    \hline \hline
+    $\HEAP[0] = \HEAP[1] = 0$ & $\MEM_0 = \MEM_1 = 1 \land \ACCU_0 = \ACCU_1 = 0$ \\
+    \lasthline
+  \end{tabu} \\
+\end{tabu}}
+\caption{Intra-Processor Forwarding is Allowed \cite[Example 8]{ref:AMD}}
+\label{tbl:litmus:amd:8}
+\end{table}
+
+\noindent
+\lstASM{LOAD 0} in thread 0 can read $1$ using the data bypass, while \lstASM{LOAD 0} in thread 1 can read $0$.
+Similarly, \lstASM{LOAD 1} in thread 1 can read $1$ while \lstASM{LOAD 1} in thread 0 can read $0$.
+Therefore, the result $\MEM_0 = 1$, $\ACCU_0 = 0$, $\MEM_1 = 1$ and $\ACCU_1 = 0$ may occur.
+There are no constraints on the relative order of when the \lstASM{STORE 0} of thread 0 is visible to thread 1 relative to when the \lstASM{STORE 1} of thread 1 is visible to thread 0.
+
+\newpage
+
+\subsubsection*{Global Visibility}
+
+If a very strong memory ordering model is required that does not allow local store-load bypasses, a \lstASM{FENCE} instruction or an atomic instruction such as \lstASM{CAS} should be used between the store and the subsequent load.
+This enforces a memory ordering stronger than total store ordering.
+
+\begin{table}[!hbt]
+\noindent\makebox[\textwidth]{
+\centering
+\begin{tabu}{c}
+  \begin{tabu}{|l|l|}
+    \firsthline
+    \textbf{Thread 0} & \textbf{Thread 1} \\
+    \hline \hline
+    \lstASM{ADDI 1}   & \lstASM{ADDI 1} \\
+    \lstASM{STORE 0}  & \lstASM{STORE 1} \\
+    \lstASM{FENCE}    & \lstASM{FENCE} \\
+    \lstASM{MEM 0}    & \lstASM{MEM 1} \\
+    \lstASM{LOAD 1}   & \lstASM{LOAD 0} \\
+    \lasthline
+  \end{tabu} \\
+  \begin{tabu}{|X[c]|X[2.14,c]|}
+    \firsthline
+    \textbf{Initial} & \textbf{Not Allowed} \hspace{1pt} \xmark \\
+    \hline \hline
+    $\HEAP[0] = \HEAP[1] = 0$ & $\MEM_0 = \MEM_1 = 1 \land \ACCU_0 = \ACCU_1 = 0$ \\
+    \lasthline
+  \end{tabu} \\
+\end{tabu}}
+\caption{Global Visibility \cite[Example 9]{ref:AMD}}
+\label{tbl:litmus:amd:9}
+\end{table}
+
+\noindent
+In this example, the \lstASM{FENCE} instruction ensures that any buffered stores are globally visible before the loads are allowed to execute, so the result $\MEM_0 = 1$, $\ACCU_0 = 0$, $\MEM_1 = 1$ and $\ACCU_1 = 0$ will not occur.

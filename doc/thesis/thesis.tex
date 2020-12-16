@@ -13,6 +13,11 @@
 % colors
 \usepackage{xcolor}
 
+% check marks
+\usepackage{pifont}
+\newcommand{\cmark}{{\color{green} \ding{51}}}
+\newcommand{\xmark}{{\color{red} \ding{55}}}
+
 % math
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -26,6 +31,9 @@
 \usepackage{caption}
 % \captionsetup[longtable]{skip=0.5\baselineskip}
 \usepackage{multirow}
+
+% counters
+\usepackage{chngcntr}
 
 % code
 \usepackage{listings}
@@ -200,6 +208,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{document}
+\counterwithin{figure}{subsection}
+\counterwithin{table}{subsection}
+\counterwithin{lstlisting}{subsection}
 
 % \input{cover/coversheet}
 
@@ -208,6 +219,10 @@
 \newpage
 
 \listoffigures
+
+\newpage
+
+\listoftables
 
 \newpage
 
