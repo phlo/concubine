@@ -1,0 +1,11 @@
+experiment|btormc-btor2-solver-time|boolector-functional-solver-time|boolector-relational-solver-time|z3-functional-solver-time|z3-relational-solver-time|cvc4-functional-solver-time|cvc4-relational-solver-time
+litmus:intel:1|0.006|0.010|0.058|0.018|0.152|0.051|0.222
+litmus:intel:2|0.010|0.016|0.048|0.027|0.289|0.118|0.274
+litmus:intel:3|0.020|0.053|1.790|0.041|0.203|0.803|1.290
+litmus:intel:4|0.000|0.009|0.013|0.017|0.026|0.022|0.028
+litmus:intel:5|0.050|0.080|2.536|0.107|0.376|4.875|2.224
+litmus:intel:6|0.031|0.048|0.678|0.071|1.127|0.628|2.906
+litmus:intel:7|0.107|0.161|3.863|0.454|8.096|12225.1|35213.5
+litmus:intel:8|0.049|0.069|10.796|0.180|4.489|17415.5|26895.4
+litmus:intel:9|0.012|0.031|0.636|0.025|0.247|0.356|12.42
+litmus:intel:10|0.009|0.014|0.154|0.032|0.126|0.150|0.224

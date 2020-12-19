@@ -1,0 +1,10 @@
+experiment|btormc-btor2-solver-time|boolector-functional-solver-time|boolector-relational-solver-time|z3-functional-solver-time|z3-relational-solver-time|cvc4-functional-solver-time|cvc4-relational-solver-time
+litmus:amd:1|0.006|0.007|0.028|0.011|0.141|0.049|0.222
+litmus:amd:2|0.010|0.028|0.058|0.030|0.257|0.114|0.271
+litmus:amd:3|0.080|0.101|5.711|0.089|1.080|1.818|4.672
+litmus:amd:4|0.012|0.020|2.642|0.041|0.216|0.205|0.321
+litmus:amd:5|0.045|0.060|1.580|0.152|0.900|1.905|127.059
+litmus:amd:6|0.103|0.165|3.860|0.455|8.119|12213.7|35524.3
+litmus:amd:7|0.052|0.067|0.710|0.089|1.051|0.579|2.843
+litmus:amd:8|0.040|0.104|3.033|0.073|0.345|2.458|4.058
+litmus:amd:9|0.102|0.103|2.109|0.458|1.158|4.277|3064.73

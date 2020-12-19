@@ -1,0 +1,11 @@
+experiment|btor2-time|btor2-size|functional-time|functional-size|relational-time|relational-size
+litmus:intel:1|0.000|166|6.389|2051|10.181|2404
+litmus:intel:2|0.691|176|7.042|2508|9.515|2950
+litmus:intel:3|0.753|174|6.610|2408|7.789|2850
+litmus:intel:4|0.315|93|1.953|627|2.413|724
+litmus:intel:5|0.979|194|9.627|3228|12.710|3950
+litmus:intel:6|0.765|256|12.618|4889|16.516|5723
+litmus:intel:7|0.942|322|16.149|6770|21.148|7780
+litmus:intel:8|0.933|334|12.835|6000|18.247|6890
+litmus:intel:9|0.000|186|4.714|2058|7.089|2428
+litmus:intel:10|0.277|173|3.401|1938|5.722|2252

@@ -70,7 +70,7 @@ die () {
 
 #------------------------------------------------------------------------------#
 
-[ -f src/main.cc ] || die "$(basename $0) not called from base directory"
+[ -f src/main.cc ] || die "not called from base directory"
 
 while [ $# -gt 0 ]
 do

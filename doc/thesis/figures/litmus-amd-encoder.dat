@@ -1,0 +1,10 @@
+experiment|btor2-time|btor2-size|functional-time|functional-size|relational-time|relational-size
+litmus:amd:1|0.052|166|4.788|2051|6.997|2404
+litmus:amd:2|0.060|176|6.766|2508|8.730|2950
+litmus:amd:3|0.000|206|12.541|4536|18.646|5818
+litmus:amd:4|0.000|174|7.963|2408|8.749|2850
+litmus:amd:5|0.054|188|8.936|3108|11.939|3830
+litmus:amd:6|1.466|322|16.360|6770|21.214|7780
+litmus:amd:7|0.000|256|12.397|4889|14.746|5723
+litmus:amd:8|0.608|196|9.068|3348|12.100|4070
+litmus:amd:9|0.656|210|11.589|4168|16.632|5290

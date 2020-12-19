@@ -12,7 +12,7 @@ die () {
   exit 1
 }
 
-[ -f src/main.cc ] || die "$(basename $0) not called from base directory"
+[ -f src/main.cc ] || die "not called from base directory"
 
 DEPS_DIR="$(pwd)/deps"
 INSTALL_DIR="${DEPS_DIR}/install"

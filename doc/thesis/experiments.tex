@@ -1,4 +1,105 @@
+\newcommand{\EncoderStatsTable}[3]{
+  \begin{table}[!hbt]
+  \noindent\makebox[\textwidth]{
+  \footnotesize
+  \centering
+  \begin{tabu}{|l|X[r]|X[r]|X[r]|X[r]|X[r]|X[r]|}
+    \tabucline{2-}
+    \multicolumn{1}{c|}{}
+      & \multicolumn{2}{c|}{\textbf{btor2}}
+      & \multicolumn{2}{c|}{\textbf{functional}}
+      & \multicolumn{2}{c|}{\textbf{relational}} \\
+    \tabucline{2-}
+    \multicolumn{1}{c|}{}
+      & \multicolumn{1}{c|}{time}
+      & \multicolumn{1}{c|}{size}
+      & \multicolumn{1}{c|}{time}
+      & \multicolumn{1}{c|}{size}
+      & \multicolumn{1}{c|}{time}
+      & \multicolumn{1}{c|}{size} \\
+    \tabucline{2-}
+    \firsthline
+    \csvreader
+      [late after line=\\, separator=pipe]
+      {#1}
+      {1=\A, 2=\B, 3=\C, 4=\D, 5=\E, 6=\F, 7=\G}
+      {\ref{tbl:\A} & \B & \C & \D & \E & \F & \G}
+    \lasthline
+  \end{tabu}}
+  \label{#2}
+  \caption{#3}
+  \end{table}
+}
+
+\newcommand{\SolverStatsTable}[3]{
+  \begin{table}[!hbt]
+  \noindent\makebox[\textwidth]{
+  \footnotesize
+  \centering
+  \begin{tabu}{|l|X[r]|X[r]|X[r]|X[r]|X[r]|X[r]|X[r]|}
+    \tabucline{2-}
+    \multicolumn{1}{c|}{}
+      & \multicolumn{1}{c|}{\textbf{BtorMC}}
+      & \multicolumn{2}{c|}{\textbf{Boolector}}
+      & \multicolumn{2}{c|}{\textbf{Z3}}
+      & \multicolumn{2}{c|}{\textbf{CVC4}} \\
+    \tabucline{2-}
+    \multicolumn{1}{c|}{}
+      & \multicolumn{1}{c|}{\scriptsize btor2}
+      & \multicolumn{1}{c|}{\scriptsize functional}
+      & \multicolumn{1}{c|}{\scriptsize relational}
+      & \multicolumn{1}{c|}{\scriptsize functional}
+      & \multicolumn{1}{c|}{\scriptsize relational}
+      & \multicolumn{1}{c|}{\scriptsize functional}
+      & \multicolumn{1}{c|}{\scriptsize relational} \\
+    \tabucline{2-}
+    \firsthline
+    \csvreader
+      [late after line=\\, separator=pipe]
+      {#1}
+      {1=\A, 2=\B, 3=\C, 4=\D, 5=\E, 6=\F, 7=\G, 8=\H}
+      {\ref{tbl:\A} & \B & \C & \D & \E & \F & \G & \H}
+    \lasthline
+  \end{tabu}}
+  \label{#2}
+  \caption{#3}
+  \end{table}
+}
+
+%------------------------------------------------------------------------------%
+
 \section{Experiments}
 
-\todo[inline]{formula size - lines, expressions?}
-\todo[inline]{solving time - just demo example or all litmus tests?}
+\subsection{LitmusTests}
+
+\todo[inline]{table - encoding stats - intel}
+
+\EncoderStatsTable
+  {figures/litmus-intel-encoder.dat}
+  {tbl:litmus:intel:encoder}
+  {Intel Litmus Test Econding Time [ms] and Size [\#expressions]}
+
+\todo[inline]{table - solving times - intel}
+
+\SolverStatsTable
+  {figures/litmus-intel-solver.dat}
+  {tbl:litmus:intel:solver}
+  {Intel Litmus Test Solving Times in Seconds}
+
+\newpage
+
+\todo[inline]{table - encoding stats - amd}
+
+\EncoderStatsTable
+  {figures/litmus-amd-encoder.dat}
+  {tbl:litmus:amd:encoder}
+  {AMD Litmus Test Econding Time [ms] and Size [\#expressions]}
+
+\todo[inline]{table - solving times - amd}
+
+\SolverStatsTable
+  {figures/litmus-amd-solver.dat}
+  {tbl:litmus:amd:solver}
+  {AMD Litmus Test Solving Times in Seconds}
+
+\subsection{Statistical Counter}
