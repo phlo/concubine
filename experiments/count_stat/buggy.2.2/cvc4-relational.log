@@ -1,1 +1,3 @@
 [count_stat/run.sh] running 138: count_stat/run.sh buggy 2 2 cvc4 relational
+[concubine>main] encoding took 0.024132 seconds
+[concubine>main] generated 33288 commands

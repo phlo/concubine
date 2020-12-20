@@ -1,1 +1,3 @@
 [count_stat/run.sh] running 188: count_stat/run.sh buggy 4 3 z3 functional
+[concubine>main] encoding took 0.059598 seconds
+[concubine>main] generated 91594 commands
