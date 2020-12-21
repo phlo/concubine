@@ -1,0 +1,73 @@
+[runlim] version:		1.21
+[runlim] host:			c3n11
+[runlim] time limit:		86400 seconds
+[runlim] real time limit:	86400 seconds
+[runlim] space limit:		8000 MB
+[runlim] argv[0]:		concubine
+[runlim] argv[1]:		solve
+[runlim] argv[2]:		-v
+[runlim] argv[3]:		-s
+[runlim] argv[4]:		btormc
+[runlim] argv[5]:		-m
+[runlim] argv[6]:		init.mmap
+[runlim] argv[7]:		-o
+[runlim] argv[8]:		btormc-btor2
+[runlim] argv[9]:		121
+[runlim] argv[10]:		count.buggy.0.asm
+[runlim] argv[11]:		count.buggy.1.asm
+[runlim] argv[12]:		count.buggy.2.asm
+[runlim] argv[13]:		count.buggy.3.asm
+[runlim] argv[14]:		count.checker.asm
+[runlim] start:			Thu Dec 10 16:20:28 2020
+[runlim] child:			32041
+[runlim] sample:		0.00 time, 10.01 real, 5 MB
+[runlim] sample:		0.00 time, 20.01 real, 5 MB
+[runlim] sample:		0.00 time, 30.01 real, 5 MB
+[runlim] sample:		0.00 time, 40.01 real, 5 MB
+[runlim] sample:		0.00 time, 50.01 real, 5 MB
+[runlim] sample:		0.00 time, 60.01 real, 5 MB
+[runlim] sample:		0.00 time, 70.01 real, 5 MB
+[runlim] sample:		0.00 time, 80.01 real, 5 MB
+[runlim] sample:		0.00 time, 90.01 real, 5 MB
+[runlim] sample:		0.00 time, 100.01 real, 5 MB
+[runlim] sample:		0.00 time, 110.01 real, 5 MB
+[runlim] sample:		0.01 time, 120.01 real, 5 MB
+[runlim] sample:		0.01 time, 130.01 real, 5 MB
+[runlim] sample:		0.01 time, 140.01 real, 5 MB
+[runlim] sample:		0.01 time, 150.01 real, 5 MB
+[runlim] sample:		0.01 time, 160.01 real, 5 MB
+[runlim] sample:		0.01 time, 170.01 real, 5 MB
+[runlim] sample:		0.01 time, 180.01 real, 5 MB
+[runlim] sample:		0.01 time, 190.01 real, 5 MB
+[runlim] sample:		0.01 time, 200.01 real, 5 MB
+[runlim] sample:		0.01 time, 210.01 real, 5 MB
+[runlim] sample:		0.01 time, 220.01 real, 5 MB
+[runlim] sample:		0.01 time, 230.01 real, 5 MB
+[runlim] sample:		0.01 time, 240.01 real, 5 MB
+[runlim] sample:		0.01 time, 250.01 real, 5 MB
+[runlim] sample:		0.01 time, 260.01 real, 5 MB
+[runlim] sample:		0.01 time, 270.01 real, 5 MB
+[runlim] sample:		0.01 time, 280.01 real, 5 MB
+[runlim] sample:		0.01 time, 290.01 real, 5 MB
+[runlim] sample:		0.01 time, 300.01 real, 5 MB
+[runlim] sample:		0.01 time, 310.01 real, 5 MB
+[runlim] sample:		0.01 time, 320.01 real, 5 MB
+[runlim] sample:		0.01 time, 330.01 real, 5 MB
+[runlim] sample:		0.01 time, 340.01 real, 5 MB
+[runlim] sample:		0.01 time, 350.01 real, 5 MB
+[runlim] sample:		0.01 time, 360.01 real, 5 MB
+[runlim] sample:		0.01 time, 370.01 real, 5 MB
+[runlim] sample:		0.01 time, 380.01 real, 5 MB
+[runlim] sample:		0.01 time, 390.01 real, 5 MB
+[runlim] sample:		0.01 time, 400.01 real, 5 MB
+[runlim] sample:		0.01 time, 410.01 real, 5 MB
+[runlim] sample:		0.01 time, 420.01 real, 5 MB
+[runlim] sample:		0.01 time, 430.01 real, 5 MB
+[runlim] end:			Thu Dec 10 16:27:43 2020
+[runlim] status:		ok
+[runlim] result:		0
+[runlim] children:		1
+[runlim] real:			435.53 seconds
+[runlim] time:			0.03 seconds
+[runlim] space:			6 MB
+[runlim] samples:		4355

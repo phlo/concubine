@@ -1,3 +1,0 @@
-[count_stat/run.sh] running 248: count_stat/run.sh cas 4 3 boolector relational
-[concubine>main] encoding took 0.310944 seconds
-[concubine>main] generated 418815 commands

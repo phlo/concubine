@@ -1,3 +1,0 @@
-[count_stat/run.sh] running 171: count_stat/run.sh buggy 3 4 boolector relational
-[concubine>main] encoding took 0.110752 seconds
-[concubine>main] generated 150426 commands

@@ -10,7 +10,7 @@ function die () {
 }
 
 # make sure we'r in the experiments directory
-[ -d count_stat ] || die "$(basename $0) not called from experiments directory"
+[ -d count ] || die "not called from experiments directory"
 
 . ../scripts/set-search-path.sh -f || die 'unable to set $PATH'
 

@@ -1,0 +1,10 @@
+experiment|btormc-btor2-solver-time|boolector-functional-solver-time|boolector-relational-solver-time|z3-functional-solver-time|z3-relational-solver-time|cvc4-functional-solver-time|cvc4-relational-solver-time
+count:buggy.2.2|0.506|0.823|1838.45|82.939|19.765|-|-
+count:buggy.2.3|15.728|23.728|13990.7|4527.69|277.552|-|-
+count:buggy.2.4|157.165|158.091|-|-|1555.43|-|-
+count:buggy.3.2|8.411|10.692|2173.17|460.484|54.97|-|-
+count:buggy.3.3|80.744|82.186|66764.|13899.7|781.807|-|-
+count:buggy.3.4|434.816|493.333|-|-|7060.05|-|-
+count:buggy.4.2|21.614|29.181|2367.87|1775.55|90.345|-|-
+count:buggy.4.3|171.246|165.112|-|-|3308.92|-|-
+count:buggy.4.4|1023.|1037.32|-|-|35431.1|-|-

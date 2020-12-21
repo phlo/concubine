@@ -7,7 +7,7 @@ function die () {
   exit 1
 }
 
-[ -d count_stat ] || die "$(basename $0) not called from experiments directory"
+[ -d count ] || die "not called from experiments directory"
 
 dir=$(ls -d */)
 failed="$(

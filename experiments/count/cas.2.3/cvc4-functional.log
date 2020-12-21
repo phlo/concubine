@@ -1,0 +1,3 @@
+[count/run.sh] running 207: count/run.sh cas 2 3 cvc4 functional
+[concubine>main] encoding took 0.104021 seconds
+[concubine>main] generated 157645 commands

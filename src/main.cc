@@ -494,7 +494,7 @@ int solve (const char * name, const int argc, const char ** argv)
         encoder->encode();
       });
 
-      if (verbose && !pretend)
+      if (verbose)
         std::cout << "[concubine>main] encoding took "
                   << encoder_time
                   << " seconds"

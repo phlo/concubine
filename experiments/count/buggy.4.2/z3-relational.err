@@ -1,0 +1,39 @@
+[runlim] version:		1.21
+[runlim] host:			c3n12
+[runlim] time limit:		86400 seconds
+[runlim] real time limit:	86400 seconds
+[runlim] space limit:		8000 MB
+[runlim] argv[0]:		concubine
+[runlim] argv[1]:		solve
+[runlim] argv[2]:		-v
+[runlim] argv[3]:		-s
+[runlim] argv[4]:		z3
+[runlim] argv[5]:		-e
+[runlim] argv[6]:		smtlib-relational
+[runlim] argv[7]:		-m
+[runlim] argv[8]:		init.mmap
+[runlim] argv[9]:		-o
+[runlim] argv[10]:		z3-relational
+[runlim] argv[11]:		81
+[runlim] argv[12]:		count.buggy.0.asm
+[runlim] argv[13]:		count.buggy.1.asm
+[runlim] argv[14]:		count.checker.asm
+[runlim] start:			Thu Dec 10 16:20:25 2020
+[runlim] child:			31746
+[runlim] sample:		7.31 time, 10.01 real, 32 MB
+[runlim] sample:		17.31 time, 20.01 real, 32 MB
+[runlim] sample:		27.31 time, 30.01 real, 32 MB
+[runlim] sample:		37.30 time, 40.01 real, 33 MB
+[runlim] sample:		47.30 time, 50.01 real, 33 MB
+[runlim] sample:		57.30 time, 60.01 real, 33 MB
+[runlim] sample:		67.30 time, 70.01 real, 71 MB
+[runlim] sample:		77.31 time, 80.01 real, 77 MB
+[runlim] sample:		87.31 time, 90.01 real, 79 MB
+[runlim] end:			Thu Dec 10 16:21:59 2020
+[runlim] status:		ok
+[runlim] result:		0
+[runlim] children:		1
+[runlim] real:			93.43 seconds
+[runlim] time:			90.70 seconds
+[runlim] space:			82 MB
+[runlim] samples:		934

@@ -1,0 +1,3 @@
+[count/run.sh] running 204: count/run.sh cas 2 3 btormc btor2
+[concubine>main] encoding took 0.000514 seconds
+[concubine>main] generated 589 commands

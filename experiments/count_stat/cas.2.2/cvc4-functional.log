@@ -1,3 +1,0 @@
-[count_stat/run.sh] running 200: count_stat/run.sh cas 2 2 cvc4 functional
-[concubine>main] encoding took 0.031199 seconds
-[concubine>main] generated 46453 commands

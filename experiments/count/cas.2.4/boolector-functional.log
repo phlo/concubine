@@ -1,0 +1,3 @@
+[count/run.sh] running 212: count/run.sh cas 2 4 boolector functional
+[concubine>main] encoding took 0.249786 seconds
+[concubine>main] generated 374775 commands

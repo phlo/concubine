@@ -1,0 +1,58 @@
+[runlim] version:		1.21
+[runlim] host:			c3n17
+[runlim] time limit:		86400 seconds
+[runlim] real time limit:	86400 seconds
+[runlim] space limit:		8000 MB
+[runlim] argv[0]:		concubine
+[runlim] argv[1]:		solve
+[runlim] argv[2]:		-v
+[runlim] argv[3]:		-s
+[runlim] argv[4]:		z3
+[runlim] argv[5]:		-e
+[runlim] argv[6]:		smtlib
+[runlim] argv[7]:		-m
+[runlim] argv[8]:		init.mmap
+[runlim] argv[9]:		-o
+[runlim] argv[10]:		z3-functional
+[runlim] argv[11]:		733
+[runlim] argv[12]:		count.cas.0.asm
+[runlim] argv[13]:		count.cas.1.asm
+[runlim] argv[14]:		count.cas.2.asm
+[runlim] argv[15]:		count.cas.3.asm
+[runlim] argv[16]:		count.checker.asm
+[runlim] start:			Thu Dec 10 16:20:25 2020
+[runlim] child:			29345
+[runlim] sample:		6.80 time, 10.01 real, 306 MB
+[runlim] sample:		16.80 time, 20.01 real, 340 MB
+[runlim] sample:		26.80 time, 30.01 real, 340 MB
+[runlim] sample:		36.80 time, 40.01 real, 709 MB
+[runlim] sample:		46.80 time, 50.01 real, 1196 MB
+[runlim] sample:		56.80 time, 60.01 real, 1727 MB
+[runlim] sample:		66.80 time, 70.01 real, 2151 MB
+[runlim] sample:		76.80 time, 80.01 real, 2432 MB
+[runlim] sample:		86.80 time, 90.01 real, 3912 MB
+[runlim] sample:		96.80 time, 100.01 real, 3474 MB
+[runlim] sample:		106.80 time, 110.01 real, 4370 MB
+[runlim] sample:		116.80 time, 120.01 real, 4288 MB
+[runlim] sample:		126.80 time, 130.01 real, 4552 MB
+[runlim] sample:		136.79 time, 140.01 real, 4812 MB
+[runlim] sample:		146.80 time, 150.01 real, 5067 MB
+[runlim] sample:		156.80 time, 160.01 real, 7711 MB
+[runlim] sample:		166.80 time, 170.01 real, 6559 MB
+[runlim] sample:		176.80 time, 180.01 real, 6802 MB
+[runlim] sample:		186.80 time, 190.01 real, 6995 MB
+[runlim] sample:		196.80 time, 200.01 real, 6551 MB
+[runlim] sample:		206.80 time, 210.01 real, 6735 MB
+[runlim] sample:		216.80 time, 220.01 real, 6447 MB
+[runlim] sample:		226.79 time, 230.01 real, 6716 MB
+[runlim] sample:		236.80 time, 240.01 real, 7138 MB
+[runlim] sample:		246.80 time, 250.01 real, 7354 MB
+[runlim] sample:		256.80 time, 260.01 real, 7764 MB
+[runlim] end:			Thu Dec 10 16:24:48 2020
+[runlim] status:		out of memory
+[runlim] result:		3
+[runlim] children:		1
+[runlim] real:			262.91 seconds
+[runlim] time:			259.40 seconds
+[runlim] space:			8062 MB
+[runlim] samples:		2626

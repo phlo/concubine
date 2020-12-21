@@ -1,0 +1,3 @@
+[count/run.sh] running 259: count/run.sh cas 4 4 z3 relational
+[concubine>main] encoding took 0.769706 seconds
+[concubine>main] generated 1037118 commands

@@ -1,0 +1,45 @@
+[runlim] version:		1.21
+[runlim] host:			c3n10
+[runlim] time limit:		86400 seconds
+[runlim] real time limit:	86400 seconds
+[runlim] space limit:		8000 MB
+[runlim] argv[0]:		concubine
+[runlim] argv[1]:		solve
+[runlim] argv[2]:		-v
+[runlim] argv[3]:		-s
+[runlim] argv[4]:		btormc
+[runlim] argv[5]:		-m
+[runlim] argv[6]:		init.mmap
+[runlim] argv[7]:		-o
+[runlim] argv[8]:		btormc-btor2
+[runlim] argv[9]:		85
+[runlim] argv[10]:		count.buggy.0.asm
+[runlim] argv[11]:		count.buggy.1.asm
+[runlim] argv[12]:		count.buggy.2.asm
+[runlim] argv[13]:		count.buggy.3.asm
+[runlim] argv[14]:		count.checker.asm
+[runlim] start:			Thu Dec 10 16:20:22 2020
+[runlim] child:			28478
+[runlim] sample:		0.00 time, 10.01 real, 5 MB
+[runlim] sample:		0.00 time, 20.01 real, 5 MB
+[runlim] sample:		0.00 time, 30.01 real, 5 MB
+[runlim] sample:		0.00 time, 40.01 real, 5 MB
+[runlim] sample:		0.00 time, 50.01 real, 5 MB
+[runlim] sample:		0.00 time, 60.01 real, 5 MB
+[runlim] sample:		0.00 time, 70.01 real, 5 MB
+[runlim] sample:		0.00 time, 80.01 real, 5 MB
+[runlim] sample:		0.00 time, 90.01 real, 5 MB
+[runlim] sample:		0.00 time, 100.01 real, 5 MB
+[runlim] sample:		0.00 time, 110.01 real, 5 MB
+[runlim] sample:		0.00 time, 120.01 real, 5 MB
+[runlim] sample:		0.00 time, 130.01 real, 5 MB
+[runlim] sample:		0.00 time, 140.01 real, 5 MB
+[runlim] sample:		0.00 time, 150.01 real, 5 MB
+[runlim] end:			Thu Dec 10 16:23:00 2020
+[runlim] status:		ok
+[runlim] result:		0
+[runlim] children:		1
+[runlim] real:			157.70 seconds
+[runlim] time:			0.00 seconds
+[runlim] space:			5 MB
+[runlim] samples:		1576
