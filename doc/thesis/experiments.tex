@@ -110,9 +110,9 @@
 
 \subsection{Statistical Counter}
 
-\renewcommand{\StatsTableRowHeader}[1]{\texttt{#1}}
+% \renewcommand{\StatsTableRowHeader}[1]{\texttt{#1}}
 % \renewcommand{\StatsTableRowHeader}[1]{\texttt{\StrBefore{#1}{:}}}
-% \renewcommand{\StatsTableRowHeader}[1]{\texttt{\StrBehind{#1}{count:}}}
+\renewcommand{\StatsTableRowHeader}[1]{\texttt{\StrBehind{#1}{count:buggy.}}}
 
 \StrBehind{xstring}{tri}\bigbreak\noindent
 \StrBehind{count\_stat:buggy.1.1}{:}\bigbreak\noindent
@@ -127,24 +127,24 @@
 
 \todo[inline]{table - solving times - count buggy}
 
-% \SolverStatsTable
-  % {figures/count-buggy-solver.dat}
-  % {tbl:count:buggy:solver}
-  % {Solving Times in Seconds}
+\SolverStatsTable
+  {figures/count-buggy-solver.dat}
+  {tbl:count:buggy:solver}
+  {Solving Times in Seconds}
 
 \newpage
 
 \todo[inline]{table - encoding stats - count cas}
 
-% \EncoderStatsTable
-  % {figures/count-cas-encoder.dat}
-  % {tbl:count:cas:encoder}
-  % {Econding Time [ms] and Size [\#expressions]}
+\EncoderStatsTable
+  {figures/count-cas-encoder.dat}
+  {tbl:count:cas:encoder}
+  {Econding Time [ms] and Size [\#expressions]}
 
 \todo[inline]{table - solving times - coubt cas}
 
-% \SolverStatsTable
-  % {figures/count-cas-solver.dat}
-  % {tbl:count:cas:solver}
-  % {Solving Times in Seconds}
+\SolverStatsTable
+  {figures/count-cas-solver.dat}
+  {tbl:count:cas:solver}
+  {Solving Times in Seconds}
 

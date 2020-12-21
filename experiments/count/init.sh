@@ -2,7 +2,7 @@
 #
 # Initialize statistical counter experiment.
 #
-# usage: $0 <variant> <n> <m>
+# usage: $0 <variant> <threads> <increments>
 
 function msg () {
   echo "[count/init.sh] $*"
@@ -15,15 +15,15 @@ function die () {
 
 # inputs
 variant=$1 # buggy or cas
-n=$2
-m=$3
+m=$2
+n=$3
 
 [ -z $variant ] && die "missing test variant"
-[ -z $n ] && die "missing local count"
 [ -z $m ] && die "missing number of threads"
+[ -z $n ] && die "missing local count"
 
 # create test directory
-dir="$variant.$n.$m"
+dir="$variant.$m.$n"
 grep -q $dir $INITIALIZED && msg ${MSG/initialized/skipped} && exit
 mkdir -p $dir
 cwd=$(pwd)
@@ -65,9 +65,9 @@ do
 done
 
 # generate and append checker
-sed -e "s/<sum>/$((n * m))/g" \
-    -e "s/\<n\>/$n/g" \
+sed -e "s/<sum>/$((m * n))/g" \
     -e "s/\<m\>/$m/g" \
+    -e "s/\<n\>/$n/g" \
     $checker_template > count.checker.asm
 
 # append to log

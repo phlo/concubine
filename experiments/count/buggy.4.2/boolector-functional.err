@@ -1,5 +1,5 @@
 [runlim] version:		1.21
-[runlim] host:			c3n12
+[runlim] host:			c3n10
 [runlim] time limit:		86400 seconds
 [runlim] real time limit:	86400 seconds
 [runlim] space limit:		8000 MB
@@ -14,20 +14,34 @@
 [runlim] argv[8]:		init.mmap
 [runlim] argv[9]:		-o
 [runlim] argv[10]:		boolector-functional
-[runlim] argv[11]:		81
+[runlim] argv[11]:		85
 [runlim] argv[12]:		count.buggy.0.asm
 [runlim] argv[13]:		count.buggy.1.asm
-[runlim] argv[14]:		count.checker.asm
-[runlim] start:			Thu Dec 10 16:20:25 2020
-[runlim] child:			31728
-[runlim] sample:		0.13 time, 10.01 real, 7 MB
-[runlim] sample:		0.13 time, 20.01 real, 7 MB
-[runlim] sample:		0.13 time, 30.01 real, 7 MB
-[runlim] end:			Thu Dec 10 16:20:58 2020
+[runlim] argv[14]:		count.buggy.2.asm
+[runlim] argv[15]:		count.buggy.3.asm
+[runlim] argv[16]:		count.checker.asm
+[runlim] start:			Thu Dec 10 16:20:22 2020
+[runlim] child:			28410
+[runlim] sample:		0.24 time, 10.01 real, 9 MB
+[runlim] sample:		0.24 time, 20.01 real, 9 MB
+[runlim] sample:		0.24 time, 30.01 real, 9 MB
+[runlim] sample:		0.24 time, 40.01 real, 9 MB
+[runlim] sample:		0.24 time, 50.01 real, 9 MB
+[runlim] sample:		0.24 time, 60.01 real, 9 MB
+[runlim] sample:		0.24 time, 70.01 real, 9 MB
+[runlim] sample:		0.24 time, 80.01 real, 9 MB
+[runlim] sample:		0.24 time, 90.01 real, 9 MB
+[runlim] sample:		0.24 time, 100.01 real, 9 MB
+[runlim] sample:		0.24 time, 110.01 real, 9 MB
+[runlim] sample:		0.24 time, 120.01 real, 9 MB
+[runlim] sample:		0.24 time, 130.01 real, 9 MB
+[runlim] sample:		0.24 time, 140.01 real, 9 MB
+[runlim] sample:		0.24 time, 150.01 real, 9 MB
+[runlim] end:			Thu Dec 10 16:23:01 2020
 [runlim] status:		ok
 [runlim] result:		0
 [runlim] children:		1
-[runlim] real:			32.54 seconds
-[runlim] time:			0.14 seconds
-[runlim] space:			7 MB
-[runlim] samples:		325
+[runlim] real:			158.90 seconds
+[runlim] time:			0.25 seconds
+[runlim] space:			9 MB
+[runlim] samples:		1588

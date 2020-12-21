@@ -2,7 +2,7 @@
 #
 # Run statistical counter experiment.
 #
-# usage: $0 <variant> <n> <m> <encoder> <solver>
+# usage: $0 <variant> <threads> <increments> <encoder> <solver>
 
 function msg () {
   echo "[count/run.sh] $*"
@@ -15,19 +15,19 @@ function die () {
 
 # inputs
 variant=$1 # buggy or cas
-n=$2
-m=$3
+m=$2
+n=$3
 solver=$4
 encoder=$5
 
 [ -z $variant ] && die "missing test variant"
-[ -z $n ] && die "missing local count"
 [ -z $m ] && die "missing number of threads"
+[ -z $n ] && die "missing local count"
 [ -z $solver ] && die "missing solver"
 [ -z $encoder ] && die "missing encoder"
 
 # create test directory
-dir="$variant.$n.$m"
+dir="$variant.$m.$n"
 cwd=$(pwd)
 cd $dir 2> /dev/null || die "missing count/$dir - run './init.sh $( \
   awk '{ print $2 }' <<< "$MSG" | tr -d ':' \

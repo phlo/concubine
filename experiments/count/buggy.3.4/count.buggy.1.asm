@@ -1,9 +1,9 @@
 # Paul McKenney's Statistical Counter (PerfBook 5.2)
 #
-# Counter thread: increment global variable heap[0] 3 times.
+# Counter thread: increment global variable heap[0] 4 times.
 #
 # steps:
-# * formula = loop * (3 - 1) + total
+# * formula = loop * (4 - 1) + total
 # * loop = 9
 # * total = 11
 #
@@ -12,7 +12,7 @@
 #
 # initial:
 # * heap[0] = 0
-# * heap[11] = 3
+# * heap[11] = 4
 #
 # input:
 # * heap[11] = local counter variable

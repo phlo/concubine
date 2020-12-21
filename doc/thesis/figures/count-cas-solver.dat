@@ -1,10 +1,10 @@
 experiment|btormc-btor2-solver-time|boolector-functional-solver-time|boolector-relational-solver-time|z3-functional-solver-time|z3-relational-solver-time|cvc4-functional-solver-time|cvc4-relational-solver-time
 count:cas.2.2|2105.44|893.104|15283.5|-|-|-|-
-count:cas.2.3|-|-|-|-|-|-|-
-count:cas.2.4|-|-|-|-|-|-|-
-count:cas.3.2|10188.3|5706.2|-|-|-|-|-
+count:cas.2.3|10188.3|5706.2|-|-|-|-|-
+count:cas.2.4|56972.7|25617.1|-|-|-|-|-
+count:cas.3.2|-|-|-|-|-|-|-
 count:cas.3.3|-|-|-|-|-|-|-
 count:cas.3.4|-|-|-|-|-|-|-
-count:cas.4.2|56972.7|25617.1|-|-|-|-|-
+count:cas.4.2|-|-|-|-|-|-|-
 count:cas.4.3|-|-|-|-|-|-|-
 count:cas.4.4|-|-|-|-|-|-|-

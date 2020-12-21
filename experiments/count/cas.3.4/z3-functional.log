@@ -1,3 +1,3 @@
 [count/run.sh] running 237: count/run.sh cas 3 4 z3 functional
-[concubine>main] encoding took 0.364307 seconds
-[concubine>main] generated 555315 commands
+[concubine>main] encoding took 0.189361 seconds
+[concubine>main] generated 305371 commands

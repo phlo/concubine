@@ -1,3 +1,3 @@
 [count/run.sh] running 208: count/run.sh cas 2 3 cvc4 relational
-[concubine>main] encoding took 0.152416 seconds
-[concubine>main] generated 216105 commands
+[concubine>main] encoding took 0.066233 seconds
+[concubine>main] generated 91316 commands

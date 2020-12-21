@@ -1,10 +1,10 @@
 # Paul McKenney's Statistical Counter (PerfBook 5.2) using CAS
 #
-# Counter thread: increment global variable heap[0] 4 times.
+# Counter thread: increment global variable heap[0] 2 times.
 #
-# steps: maximum CAS executions = 4 * m * (m + 1) / 2
-#                               = 4 times triangular number for m threads
-# * formula = cas * 4 * m * (m + 1) / 2 + 4 * (loop - cas) + total - loop
+# steps: maximum CAS executions = 2 * m * (m + 1) / 2
+#                               = 2 times triangular number for m threads
+# * formula = cas * 2 * m * (m + 1) / 2 + 2 * (loop - cas) + total - loop
 # * cas = 4
 # * loop = 9
 # * total = 11
@@ -14,7 +14,7 @@
 #
 # initial:
 # * heap[0] = 0
-# * heap[10] = 4
+# * heap[10] = 2
 #
 # input:
 # * heap[10] = local counter variable

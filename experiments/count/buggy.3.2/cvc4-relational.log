@@ -1,3 +1,3 @@
 [count/run.sh] running 159: count/run.sh buggy 3 2 cvc4 relational
-[concubine>main] encoding took 0.035405 seconds
-[concubine>main] generated 46446 commands
+[concubine>main] encoding took 0.048634 seconds
+[concubine>main] generated 67704 commands
