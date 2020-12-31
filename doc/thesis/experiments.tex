@@ -110,13 +110,11 @@
 
 \subsection{Statistical Counter}
 
-% \renewcommand{\StatsTableRowHeader}[1]{\texttt{#1}}
-% \renewcommand{\StatsTableRowHeader}[1]{\texttt{\StrBefore{#1}{:}}}
-\renewcommand{\StatsTableRowHeader}[1]{\texttt{\StrBehind{#1}{count:buggy.}}}
-
-\StrBehind{xstring}{tri}\bigbreak\noindent
-\StrBehind{count\_stat:buggy.1.1}{:}\bigbreak\noindent
-\StrBehind{count:buggy.1.1}{:}\bigbreak
+\renewcommand{\StatsTableRowHeader}[1]{%
+\StrBehind{#1}{:}[\SplitColon]%
+\StrBehind{\SplitColon}{.}[\SplitDot]%
+\StrSubstitute{\SplitDot}{.}{ }%
+}
 
 \todo[inline]{table - encoding stats - count buggy}
 

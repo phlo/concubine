@@ -115,7 +115,7 @@ norm_int () {
 }
 
 norm_float () {
-  local cmd='{ printf "%0.3f", $0 }'
+  local cmd='{ printf "%0.2f", $0 }'
   [ -z $@ ] && awk "$cmd" || awk "$cmd" <<< $@
 }
 
@@ -155,7 +155,7 @@ do
           && s_time="-" \
           || die "neither out of memory nor time, but missing solver time"
       else
-        (( "$(wc -m <<< $s_time)" > 6 )) && s_time=$(sed 's/0\+$//g' <<< $s_time)
+        s_time=$(norm_float $s_time)
       fi
 
       if [ $statistic = encoder ]
