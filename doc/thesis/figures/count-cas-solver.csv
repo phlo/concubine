@@ -1,0 +1,10 @@
+experiment,btormc-btor2-solver-time,boolector-functional-solver-time,boolector-relational-solver-time,z3-functional-solver-time,z3-relational-solver-time,cvc4-functional-solver-time,cvc4-relational-solver-time
+2 2,2105.44,893.10,15283.50,inf,inf,inf,inf
+2 3,10188.30,5706.20,inf,inf,inf,inf,inf
+2 4,56972.70,25617.10,inf,inf,inf,inf,inf
+3 2,inf,inf,inf,inf,inf,inf,inf
+3 3,inf,inf,inf,inf,inf,inf,inf
+3 4,inf,inf,inf,inf,inf,inf,inf
+4 2,inf,inf,inf,inf,inf,inf,inf
+4 3,inf,inf,inf,inf,inf,inf,inf
+4 4,inf,inf,inf,inf,inf,inf,inf

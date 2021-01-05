@@ -62,6 +62,28 @@ esac
 
 #------------------------------------------------------------------------------#
 
+mkrow () {
+  printf ",%s" "$@" | sed 's/^,//g'
+  echo
+}
+
+mean () {
+  vals=("$@")
+  mean=0
+  for i in ${vals[@]}
+  do
+    mean=$(bc <<< "$mean + $i")
+  done
+  bc -l <<< "scale=2; $mean / ${#vals[@]}"
+}
+
+int () {
+  local cmd='{ printf "%d", $0 }'
+  [ -z $@ ] && awk "$cmd" || awk "$cmd" <<< $@
+}
+
+#------------------------------------------------------------------------------#
+
 # globals
 
 variants='
@@ -94,30 +116,8 @@ else
     header="$header $run-solver-time"
   done
 fi
-echo $header
+mkrow $header
 nhead=$(wc -w <<< $header)
-
-#------------------------------------------------------------------------------#
-
-mean () {
-  vals=("$@")
-  mean=0
-  for i in ${vals[@]}
-  do
-    mean=$(bc <<< "$mean + $i")
-  done
-  bc -l <<< "scale=3; $mean / ${#vals[@]}"
-}
-
-norm_int () {
-  local cmd='{ printf "%d", $0 }'
-  [ -z $@ ] && awk "$cmd" || awk "$cmd" <<< $@
-}
-
-norm_float () {
-  local cmd='{ printf "%0.2f", $0 }'
-  [ -z $@ ] && awk "$cmd" || awk "$cmd" <<< $@
-}
 
 #------------------------------------------------------------------------------#
 
@@ -131,7 +131,7 @@ do
   for exp in $(find $root -type d | sort -V)
   do
     [ -f "$exp/btormc-btor2.log" ] || continue
-    row=(${exp//\//:})
+    row=("$(sed -e 's;.*/\(\(buggy\|cas\)\.\)\?;;g' <<< $exp | sed 's;\.; ;g')")
     fun_times=()
     fun_sizes=()
     rel_times=()
@@ -144,24 +144,24 @@ do
 
       data=$(grep -o "generated.*commands$\|\(solving\|encoding\) took.*$" $log)
 
-      e_time=$(grep -o "encoding.*seconds" <<< $data \
-                 | awk "{ printf \"%0.3f\", \$3 * $encoder_factor }")
       e_size=$(grep -o "generated.*commands" <<< $data | awk '{ print $2 }')
+      e_time=$(grep -o "encoding.*seconds" <<< $data \
+                 | awk "{ printf \"%0.2f\", \$3 * $encoder_factor }")
+      [ "$e_time" = "0.00" ] && e_time="0.01"
       s_time=$(grep -o "solving.*seconds" <<< $data \
-                 | awk "{ printf \"%0.3f\", \$3 * $solver_factor }")
+                 | awk "{ printf \"%0.2f\", \$3 * $solver_factor }")
       if [ -z "$s_time" ]
       then
         grep -q "out of \w\+" "${exp}/${run}.err" \
-          && s_time="-" \
+          && s_time="inf" \
           || die "neither out of memory nor time, but missing solver time"
-      else
-        s_time=$(norm_float $s_time)
       fi
+      [ "$s_time" = "0.00" ] && s_time="0.01"
 
       if [ $statistic = encoder ]
       then
         case $run in
-          *btor2) row+=($(norm_float $e_time) $e_size) ;;
+          *btor2) row+=($e_time $e_size) ;;
           *functional)
             fun_times+=($e_time)
             fun_sizes+=($e_size)
@@ -179,18 +179,21 @@ do
 
     if [ $statistic = encoder ]
     then
-      fun_time=$(mean ${fun_times[@]} | norm_float)
-      fun_size=$(mean ${fun_sizes[@]} | norm_int)
-      [ $fun_size != ${fun_sizes[0]} ] && die "formula size missmatch"
+      fun_time=$(mean ${fun_times[@]})
+      fun_size=$(mean ${fun_sizes[@]} | int)
+      [ $fun_size != ${fun_sizes[0]} ] && die "formula size missmatch at $exp"
 
-      rel_time=$(mean ${rel_times[@]} | norm_float)
-      rel_size=$(mean ${rel_sizes[@]} | norm_int)
-      [ $rel_size != ${rel_sizes[0]} ] && die "formula size missmatch"
+      rel_time=$(mean ${rel_times[@]})
+      rel_size=$(mean ${rel_sizes[@]} | int)
+      [ $rel_size != ${rel_sizes[0]} ] && die "formula size missmatch at $exp"
 
       row+=($fun_time $fun_size $rel_time $rel_size)
     fi
 
-    echo ${row[@]}
-    [ $nhead != $(wc -w <<< ${row[@]}) ] && die "missing row items"
+    mkrow "${row[@]}"
+    if [[ $nhead > $(wc -w <<< ${row[@]}) ]]
+    then
+      die "missing row items"
+    fi
   done
 done

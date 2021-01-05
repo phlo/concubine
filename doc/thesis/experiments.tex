@@ -20,16 +20,18 @@
     \tabucline{2-}
     \firsthline
     \csvreader
-      [late after line=\\, separator=pipe]
+      [late after line=\\] %, separator=pipe]
       {#1}
       {1=\A, 2=\B, 3=\C, 4=\D, 5=\E, 6=\F, 7=\G}
       {\StatsTableRowHeader{\A} & \B & \C & \D & \E & \F & \G}
     \lasthline
   \end{tabu}}
-  \label{#2}
   \caption{#3}
+  \label{#2}
   \end{table}
 }
+
+\newcommand{\CleanInf}[1]{\IfStrEq{#1}{inf}{-}{#1}}
 
 \newcommand{\SolverStatsTable}[3]{
   \begin{table}[!hbt]
@@ -55,94 +57,235 @@
     \tabucline{2-}
     \firsthline
     \csvreader
-      [late after line=\\, separator=pipe]
+      [late after line=\\] %, separator=pipe]
       {#1}
       {1=\A, 2=\B, 3=\C, 4=\D, 5=\E, 6=\F, 7=\G, 8=\H}
-      {\StatsTableRowHeader{\A} & \B & \C & \D & \E & \F & \G & \H}
+      {\StatsTableRowHeader{\A} & \CleanInf{\B} & \CleanInf{\C} & \CleanInf{\D} & \CleanInf{\E} & \CleanInf{\F} & \CleanInf{\G} & \CleanInf{\H}}
     \lasthline
   \end{tabu}}
-  \label{#2}
   \caption{#3}
+  \label{#2}
   \end{table}
+}
+
+\pgfplotsset{filter discard warning=false}
+\tikzset{every mark/.append style={solid}}
+
+\newcommand{\SolverStatsGraph}[4]{
+  % https://texwelt.de/fragen/22222/pgfplots-x-achse-mit-strings
+  \begin{figure}[!hbt]
+    \small
+    \centering
+    \begin{tikzpicture}
+      \pgfplotstableread[col sep=comma]{#1}{\Data}
+      \begin{axis}[
+        width=\textwidth,
+        height=\axisdefaultheight,
+        grid=major,
+        grid style={dashed,gray!30},
+        % xlabel=X axis,
+        % ylabel=Y axis,
+        ymode=log,
+        % x tick label style={rotate=90,anchor=east},
+        x tick label style={anchor=north},
+        xticklabels from table={\Data}{experiment},
+        xtick=data,
+        % filter discard warning=false,
+        legend style={
+          % draw=none,
+          % at={(0.0,-0.1)},
+          % anchor=north west,
+          % at={(0.0,1.05)},
+          % anchor=south west,
+          font=\scriptsize,
+          legend cell align=left,
+          % legend pos=outer north east,
+          legend pos=#2,
+        },
+      ]
+      \addplot [black, mark=diamond*] table [x expr=\coordindex, y index=1] {\Data};
+      \addlegendentry{BtorMC}
+      \addplot [thick, dotted, blue, mark=*] table [x expr=\coordindex, y index=2] {\Data};
+      \addlegendentry{Boolector (functional)}
+      \addplot [thick, dotted, blue, mark=square*] table [x expr=\coordindex, y index=3] {\Data};
+      \addlegendentry{Boolector (relational)}
+      \addplot [dashed, red, mark=*] table [x expr=\coordindex, y index=4] {\Data};
+      \addlegendentry{Z3 (functional)}
+      \addplot [dashed, red, mark=square*] table [x expr=\coordindex, y index=5] {\Data};
+      \addlegendentry{Z3 (relational)}
+      \addplot [dashdotted, brown, mark=*] table [x expr=\coordindex, y index=6] {\Data};
+      \addlegendentry{CVC4 (functional)}
+      \addplot [dashdotted, brown, mark=square*] table [x expr=\coordindex, y index=7] {\Data};
+      \addlegendentry{CVC4 (relational)}
+      \end{axis}
+    \end{tikzpicture}
+    \caption{#3}
+    \label{#4}
+  \end{figure}
 }
 
 %------------------------------------------------------------------------------%
 
 \section{Experiments}
 
-\subsection{Litmus Tests}
+To asses performance related aspects of our encodings,
+we conducted a series of experiments, using the following versions of supported SMT solvers.
+%a series of experiments have been conducted and
+%
+% show validity of Appendix \ref{appendix:litmus:intel}
+% asses performance of our encodings by comparing the runtimes of all supported solvers
+%
+% Appendices \ref{appendix:litmus:intel} and \ref{appendix:litmus:amd}
+%
+% \todo[inline]{solver versions}
+%
+% \begin{table}[!hbt]
+  % \centering
+% \bigbreak
+  % \begin{tabu}{lll}
+    % % Solver & Version \\
+    % % \hline
+    % Boolector & 3.2.1 & \url{https://github.com/Boolector/boolector} \\
+    % CVC 4 & 1.8 & \url{https://github.com/CVC4/CVC4} \\
+    % Z3 & 4.8.9 & \url{https://github.com/Z3Prover/z3} \\
+  % \end{tabu}
+% % \bigbreak
+% \end{table}
+%
+\begin{itemize}
+  \item Boolector 3.2.1 (including BtorMC, using CaDiCaL 1.0.3) %\footnote{\url{https://github.com/Boolector/boolector}}
+  \item CVC4 1.8 %\footnote{\url{https://github.com/CVC4/CVC4}}
+  \item Z3 4.8.9 %\footnote{\url{https://github.com/Z3Prover/z3}}
+\end{itemize}
+%
+% Intel(R) Xeon(R) E5-2620 v4 @ 2.10GHz
+% All tests were performed on a cluster of Intel\textsuperscript{\textregistered} Xeon\textsuperscript{\textregistered} E5-2620 v4 nodes, where runtime and memory usage were limited to 86400 seconds (24 hours) and 8 GB respectively.
+
+We recorded the resulting formula sizes in terms of the number of generated expression, as well as the runtimes for encoding and solving each particular instance.
+All tests were performed on a cluster of Intel\textsuperscript{\textregistered} Xeon\textsuperscript{\textregistered} E5-2620 v4 nodes, with CPU runtime and memory usage limited to 86400 seconds (24 hours) and 8 GB respectively.
+
+% The x86-TSO memory-ordering model (used by AMD and Intel) is defined by a set of litmus tests.
+% To show equivalence of ConcuBinE-TSO and x86-TSO, the tests have been ported to ConcuBinE.
+
+\subsection*{Litmus Tests}
+
+Instead of a rigorous formal description, the memory-ordering models of Intel's \cite{ref:Intel} and AMD's \cite{ref:AMD} x86 implementations are defined by a set of litmus tests.
+%, given in the according software developer's manuals \cite{ref:Intel, ref:AMD}.
+In order to show their conformance with the memory-ordering principles of our virtual machine model, all documented litmus tests have been ported to ConcuBinE and are explained in Appendices \ref{appendix:litmus:intel} and \ref{appendix:litmus:amd}.
+
+% \subsubsection*{Intel}
 
 % \newcommand{\StatsTableRowHeader}[1]{\StrBehind[2]{#1}{:}}
 % \newcommand{\StatsTableRowHeader}[1]{\ref{tbl:#1}}
-\newcommand{\StatsTableRowHeader}[1]{\hyperref[tbl:#1]{\StrBehind[2]{#1}{:}}}
+% \newcommand{\StatsTableRowHeader}[1]{\hyperref[tbl:#1]{\StrBehind[2]{#1}{:}}}
+\newcommand{\StatsTableRowHeader}[1]{\hyperref[tbl:litmus:intel:#1]{#1}}
 
-\todo[inline]{table - encoding stats - litmus intel}
+% \todo[inline]{table - encoding stats - litmus intel}
 
 \EncoderStatsTable
-  {figures/litmus-intel-encoder.dat}
+  {figures/litmus-intel-encoder.csv}
   {tbl:litmus:intel:encoder}
-  {Intel Litmus Test Econding Time [ms] and Size [\#expressions]}
+  {Intel litmus test encoding time in milliseconds and formula size as the number of expressions.}
+  % {Intel Litmus Test Econding Time [ms] and Size [\#expressions]}
 
-\todo[inline]{table - solving times - litmus intel}
+\newpage
+\noindent
+Table \ref{tbl:litmus:intel:encoder} shows the runtimes and formula sizes for encoding Intel's litmus test suite.
+
+% \todo[inline]{table - solving times - litmus intel}
 
 \SolverStatsTable
-  {figures/litmus-intel-solver.dat}
+  {figures/litmus-intel-solver.csv}
   {tbl:litmus:intel:solver}
-  {Intel Litmus Test Solving Times in Seconds}
+  {Intel litmus test solving times in seconds.}
+  % {Intel Litmus Test Solving Times in Seconds}
+
+\SolverStatsGraph
+  {figures/litmus-intel-solver.csv}
+  {north west}
+  {Caption.}
+  {fig:litmus:intel:solver}
 
 \newpage
 
-\todo[inline]{table - encoding stats - litmus amd}
+\subsubsection*{AMD}
+
+% \todo[inline]{table - encoding stats - litmus amd}
+\renewcommand{\StatsTableRowHeader}[1]{\hyperref[tbl:litmus:amd:#1]{#1}}
 
 \EncoderStatsTable
-  {figures/litmus-amd-encoder.dat}
+  {figures/litmus-amd-encoder.csv}
   {tbl:litmus:amd:encoder}
   {AMD Litmus Test Econding Time [ms] and Size [\#expressions]}
 
 \todo[inline]{table - solving times - amd}
 
 \SolverStatsTable
-  {figures/litmus-amd-solver.dat}
+  {figures/litmus-amd-solver.csv}
   {tbl:litmus:amd:solver}
   {AMD Litmus Test Solving Times in Seconds}
 
+\SolverStatsGraph
+  {figures/litmus-amd-solver.csv}
+  {north west}
+  {Caption.}
+  {fig:litmus:amd:solver}
+
 \newpage
 
-\subsection{Statistical Counter}
+\subsection*{Statistical Counter}
 
-\renewcommand{\StatsTableRowHeader}[1]{%
-\StrBehind{#1}{:}[\SplitColon]%
-\StrBehind{\SplitColon}{.}[\SplitDot]%
-\StrSubstitute{\SplitDot}{.}{ }%
-}
+\subsubsection*{Buggy}
+
+% \renewcommand{\StatsTableRowHeader}[1]{%
+% \StrBehind{#1}{:}[\SplitColon]%
+% \StrBehind{\SplitColon}{.}[\SplitDot]%
+% \StrSubstitute{\SplitDot}{.}{ }%
+% }
+\renewcommand{\StatsTableRowHeader}[1]{#1}
 
 \todo[inline]{table - encoding stats - count buggy}
 
 \EncoderStatsTable
-  {figures/count-buggy-encoder.dat}
+  {figures/count-buggy-encoder.csv}
   {tbl:count:buggy:encoder}
   {Econding Time [ms] and Size [\#expressions]}
 
 \todo[inline]{table - solving times - count buggy}
 
 \SolverStatsTable
-  {figures/count-buggy-solver.dat}
+  {figures/count-buggy-solver.csv}
   {tbl:count:buggy:solver}
   {Solving Times in Seconds}
 
+\todo[inline]{graphs}
+
+\SolverStatsGraph
+  {figures/count-buggy-solver.csv}
+  {south east}
+  {Caption.}
+  {fig:count:buggy:solver}
+
 \newpage
+
+\subsubsection*{CAS}
 
 \todo[inline]{table - encoding stats - count cas}
 
 \EncoderStatsTable
-  {figures/count-cas-encoder.dat}
+  {figures/count-cas-encoder.csv}
   {tbl:count:cas:encoder}
   {Econding Time [ms] and Size [\#expressions]}
 
 \todo[inline]{table - solving times - coubt cas}
 
 \SolverStatsTable
-  {figures/count-cas-solver.dat}
+  {figures/count-cas-solver.csv}
   {tbl:count:cas:solver}
   {Solving Times in Seconds}
 
+\SolverStatsGraph
+  {figures/count-cas-solver.csv}
+  {south east}
+  {Caption.}
+  {fig:count:cas:solver}

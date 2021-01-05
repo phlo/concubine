@@ -1,14 +1,10 @@
 EXPERIMENTS = ../../../experiments
 
-DELIMITER = |
-
-GENERATOR = | sed 's/ /$(DELIMITER)/g' > $@.dat
-
 ENCODER_ARGS = -t encoder --encoder-time 1000
-ENCODER_STATS = ./experiment-stats.sh $(ENCODER_ARGS) $^ $(GENERATOR)
+ENCODER_STATS = ./experiment-stats.sh $(ENCODER_ARGS) $^ > $@.csv
 
 SOLVER_ARGS = -t solver
-SOLVER_STATS = ./experiment-stats.sh $(SOLVER_ARGS) $^ $(GENERATOR)
+SOLVER_STATS = ./experiment-stats.sh $(SOLVER_ARGS) $^ > $@.csv
 
 #------------------------------------------------------------------------------#
 

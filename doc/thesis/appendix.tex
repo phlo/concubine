@@ -1,16 +1,22 @@
 \appendix
 
+\counterwithin{figure}{subsection}
+\counterwithin{table}{subsection}
+\counterwithin{lstlisting}{subsection}
+
 \section*{Appendices}
+
 % \section*{Appendix}
 
 \addcontentsline{toc}{section}{Appendices}
 \renewcommand{\thesubsection}{\Alph{subsection}}
-% \renewcommand{\thesubsection}{Intel}
 
 \renewcommand{\tablename}{Example}
 % \setcounter{table}{0}
 
 \subsection{Intel Litmus Tests}
+
+\label{appendix:litmus:intel}
 
 Intel's memory-ordering litmus tests as seen in \cite[Section 8.2.3]{ref:Intel} ported to our virtual machine model.
 
@@ -454,6 +460,8 @@ Assume $\MEM_1 = 1$.
 \newpage
 
 \subsection{AMD Litmus Tests}
+
+\label{appendix:litmus:amd}
 
 AMD's memory-ordering litmus tests as seen in \cite[Section 7.2]{ref:AMD} ported to our virtual machine model.
 
