@@ -71,6 +71,52 @@
 \pgfplotsset{filter discard warning=false}
 \tikzset{every mark/.append style={solid}}
 
+\newcommand{\EncoderStatsGraph}[4]{
+  \begin{figure}[!hbt]
+    \footnotesize
+    \centering
+    \begin{tikzpicture}
+      \pgfplotstableread[col sep=comma]{#1}{\Data}
+      \begin{axis}[
+        width=\textwidth,
+        height=\axisdefaultheight + 16,
+        grid=major,
+        grid style={dashed,gray!30},
+        % xlabel=X axis,
+        % ylabel=Y axis,
+        % ymode=log,
+        % x tick label style={rotate=90,anchor=east},
+        scaled ticks=false,
+        x tick label style={anchor=north},
+        y tick label style={/pgf/number format/.cd,fixed,1000 sep={\,}},
+        xticklabels from table={\Data}{experiment},
+        xtick=data,
+        % filter discard warning=false,
+        legend style={
+          % draw=none,
+          % at={(0.0,-0.1)},
+          % anchor=north west,
+          % at={(0.0,1.05)},
+          % anchor=south west,
+          font=\scriptsize,
+          legend cell align=left,
+          % legend pos=outer north east,
+          legend pos=#2,
+        },
+      ]
+      \addplot [black, mark=diamond*] table [x expr=\coordindex, y index=2] {\Data};
+      \addlegendentry{\BTOR}
+      \addplot [blue, mark=*] table [x expr=\coordindex, y index=4] {\Data};
+      \addlegendentry{{\SMTLIB} (functional)}
+      \addplot [red, mark=square*] table [x expr=\coordindex, y index=6] {\Data};
+      \addlegendentry{{\SMTLIB} (relational)}
+      \end{axis}
+    \end{tikzpicture}
+    \caption{#3}
+    \label{#4}
+  \end{figure}
+}
+
 \newcommand{\SolverStatsGraph}[4]{
   % https://texwelt.de/fragen/22222/pgfplots-x-achse-mit-strings
   \begin{figure}[!hbt]
@@ -80,7 +126,7 @@
       \pgfplotstableread[col sep=comma]{#1}{\Data}
       \begin{axis}[
         width=\textwidth,
-        height=\axisdefaultheight,
+        height=\axisdefaultheight + 16,
         grid=major,
         grid style={dashed,gray!30},
         % xlabel=X axis,
@@ -185,14 +231,22 @@ In order to show their conformance with the memory-ordering principles of our vi
 \EncoderStatsTable
   {figures/litmus-intel-encoder.csv}
   {tbl:litmus:intel:encoder}
-  {Intel litmus test encoding time in milliseconds and formula size as the number of expressions.}
+  {Intel litmus test encoding times in milliseconds and formula sizes as the number of expressions.}
   % {Intel Litmus Test Econding Time [ms] and Size [\#expressions]}
+
+\EncoderStatsGraph
+  {figures/litmus-intel-encoder.csv}
+  {north west}
+  {Caption.}
+  {fig:litmus:intel:encoder}
 
 \newpage
 \noindent
 Table \ref{tbl:litmus:intel:encoder} shows the runtimes and formula sizes for encoding Intel's litmus test suite.
 
 % \todo[inline]{table - solving times - litmus intel}
+
+\newpage
 
 \SolverStatsTable
   {figures/litmus-intel-solver.csv}
@@ -216,14 +270,23 @@ Table \ref{tbl:litmus:intel:encoder} shows the runtimes and formula sizes for en
 \EncoderStatsTable
   {figures/litmus-amd-encoder.csv}
   {tbl:litmus:amd:encoder}
-  {AMD Litmus Test Econding Time [ms] and Size [\#expressions]}
+  {AMD litmus test encoding times in milliseconds and formula sizes as the number of expressions.}
+  % {AMD Litmus Test Econding Time [ms] and Size [\#expressions]}
 
+\EncoderStatsGraph
+  {figures/litmus-amd-encoder.csv}
+  {north west}
+  {Caption.}
+  {fig:litmus:amd:encoder}
+
+\newpage
 \todo[inline]{table - solving times - amd}
 
 \SolverStatsTable
   {figures/litmus-amd-solver.csv}
   {tbl:litmus:amd:solver}
-  {AMD Litmus Test Solving Times in Seconds}
+  {AMD litmus test solving times in seconds.}
+  % {AMD Litmus Test Solving Times in Seconds}
 
 \SolverStatsGraph
   {figures/litmus-amd-solver.csv}
@@ -251,6 +314,13 @@ Table \ref{tbl:litmus:intel:encoder} shows the runtimes and formula sizes for en
   {tbl:count:buggy:encoder}
   {Econding Time [ms] and Size [\#expressions]}
 
+\EncoderStatsGraph
+  {figures/count-buggy-encoder.csv}
+  {north west}
+  {Caption.}
+  {fig:count:buggy:encoder}
+
+\newpage
 \todo[inline]{table - solving times - count buggy}
 
 \SolverStatsTable
@@ -277,6 +347,13 @@ Table \ref{tbl:litmus:intel:encoder} shows the runtimes and formula sizes for en
   {tbl:count:cas:encoder}
   {Econding Time [ms] and Size [\#expressions]}
 
+\EncoderStatsGraph
+  {figures/count-cas-encoder.csv}
+  {north west}
+  {Caption.}
+  {fig:count:cas:encoder}
+
+\newpage
 \todo[inline]{table - solving times - coubt cas}
 
 \SolverStatsTable
