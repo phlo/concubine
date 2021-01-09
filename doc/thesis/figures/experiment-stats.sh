@@ -101,6 +101,7 @@ if [ $statistic = encoder ]
 then
   header='
     experiment
+    bound
     btor2-time
     btor2-size
     functional-time
@@ -161,7 +162,13 @@ do
       if [ $statistic = encoder ]
       then
         case $run in
-          *btor2) row+=($e_time $e_size) ;;
+          *btor2)
+            [[ $root == count* ]] \
+              && bound=$(grep -o "argv\[9\].*$" "${exp}/${run}.err" \
+                           | awk '{print $2}') \
+              || bound=$(grep -o "Bound =.*$" "${exp}/README.md" \
+                           | awk '{print $3}')
+            row+=($bound $e_time $e_size) ;;
           *functional)
             fun_times+=($e_time)
             fun_sizes+=($e_size)

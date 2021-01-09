@@ -3,14 +3,16 @@
   \noindent\makebox[\textwidth]{
   \footnotesize
   \centering
-  \begin{tabu}{|c|X[r]|X[r]|X[r]|X[r]|X[r]|X[r]|}
-    \tabucline{2-}
-    \multicolumn{1}{c|}{}
+  \begin{tabu}{|c|r|X[r]|X[r]|X[r]|X[r]|X[r]|X[r]|}
+    \tabucline{3-}
+    \multicolumn{1}{c}{}
+      & \multicolumn{1}{c|}{}
       & \multicolumn{2}{c|}{\textbf{btor2}}
       & \multicolumn{2}{c|}{\textbf{functional}}
       & \multicolumn{2}{c|}{\textbf{relational}} \\
     \tabucline{2-}
     \multicolumn{1}{c|}{}
+      & \multicolumn{1}{c|}{bound}
       & \multicolumn{1}{c|}{time}
       & \multicolumn{1}{c|}{size}
       & \multicolumn{1}{c|}{time}
@@ -22,8 +24,8 @@
     \csvreader
       [late after line=\\] %, separator=pipe]
       {#1}
-      {1=\A, 2=\B, 3=\C, 4=\D, 5=\E, 6=\F, 7=\G}
-      {\StatsTableRowHeader{\A} & \B & \C & \D & \E & \F & \G}
+      {1=\A, 2=\B, 3=\C, 4=\D, 5=\E, 6=\F, 7=\G, 8=\H}
+      {\StatsTableRowHeader{\A} & \B & \C & \D & \E & \F & \G & \H}
     \lasthline
   \end{tabu}}
   \caption{#3}
@@ -80,6 +82,7 @@
       \begin{axis}[
         width=\textwidth,
         height=\axisdefaultheight + 16,
+        % height=\axisdefaultheight, % - 60,
         grid=major,
         grid style={dashed,gray!30},
         % xlabel=X axis,
@@ -215,38 +218,47 @@ All tests were performed on a cluster of Intel\textsuperscript{\textregistered} 
 
 \subsection*{Litmus Tests}
 
-Instead of a rigorous formal description, the memory-ordering models of Intel's \cite{ref:Intel} and AMD's \cite{ref:AMD} x86 implementations are defined by a set of litmus tests.
-%, given in the according software developer's manuals \cite{ref:Intel, ref:AMD}.
-In order to show their conformance with the memory-ordering principles of our virtual machine model, all documented litmus tests have been ported to ConcuBinE and are explained in Appendices \ref{appendix:litmus:intel} and \ref{appendix:litmus:amd}.
+Instead of a rigorous formal description, the memory-ordering principles of Intel's \cite{ref:Intel} and AMD's \cite{ref:AMD} x86 implementations are defined by example through a set of litmus tests.
+% In order to show their conformance with the memory-ordering model of our virtual machine, all documented litmus tests have been ported to ConcuBinE and are explained in Appendices \ref{appendix:litmus:intel} and \ref{appendix:litmus:amd}.
+In order to show their conformance with the memory-ordering model of our virtual machine, the test suites have been ported to ConcuBinE and are detailed in Appendices \ref{appendix:litmus:intel} and \ref{appendix:litmus:amd}.
+
+% Encoder statistics are shown in Table \ref{tbl:litmus:intel:encoder} and formula sizes visualized in Figure \ref{fig:litmus:intel:encoder}.
+
+% amd 1 = intel 1
+% amd 2 = intel 2
+% amd 4 = intel 3 - shows same behaviour as amd 3
+% amd 6 = intel 7
+% amd 8 = intel 5
 
 % \subsubsection*{Intel}
-
 % \newcommand{\StatsTableRowHeader}[1]{\StrBehind[2]{#1}{:}}
 % \newcommand{\StatsTableRowHeader}[1]{\ref{tbl:#1}}
 % \newcommand{\StatsTableRowHeader}[1]{\hyperref[tbl:#1]{\StrBehind[2]{#1}{:}}}
 \newcommand{\StatsTableRowHeader}[1]{\hyperref[tbl:litmus:intel:#1]{#1}}
 
-% \todo[inline]{table - encoding stats - litmus intel}
+% \newpage
 
+% \todo[inline]{table - encoding stats - litmus intel}
 \EncoderStatsTable
   {figures/litmus-intel-encoder.csv}
   {tbl:litmus:intel:encoder}
   {Intel litmus test encoding times in milliseconds and formula sizes as the number of expressions.}
   % {Intel Litmus Test Econding Time [ms] and Size [\#expressions]}
 
+Table \ref{tbl:litmus:intel:encoder} shows encoder statistics for Intel's litmus test suite, with formula sizes plotted in Figure \ref{fig:litmus:intel:encoder} for better visual comparison.
+
 \EncoderStatsGraph
   {figures/litmus-intel-encoder.csv}
   {north west}
-  {Caption.}
+  {Intel litmus test formula sizes as the number of expressions.}
   {fig:litmus:intel:encoder}
 
+% Table \ref{tbl:litmus:intel:encoder} shows the runtimes and formula sizes for encoding Intel's litmus test suite.
+Encoder statistics are shown in Table \ref{tbl:litmus:intel:encoder} and formula sizes visualized in Figure \ref{fig:litmus:intel:encoder}.
+
 \newpage
-\noindent
-Table \ref{tbl:litmus:intel:encoder} shows the runtimes and formula sizes for encoding Intel's litmus test suite.
 
 % \todo[inline]{table - solving times - litmus intel}
-
-\newpage
 
 \SolverStatsTable
   {figures/litmus-intel-solver.csv}
@@ -257,12 +269,12 @@ Table \ref{tbl:litmus:intel:encoder} shows the runtimes and formula sizes for en
 \SolverStatsGraph
   {figures/litmus-intel-solver.csv}
   {north west}
-  {Caption.}
+  {Intel litmus test solving times in seconds.}
   {fig:litmus:intel:solver}
 
 \newpage
 
-\subsubsection*{AMD}
+% \subsubsection*{AMD}
 
 % \todo[inline]{table - encoding stats - litmus amd}
 \renewcommand{\StatsTableRowHeader}[1]{\hyperref[tbl:litmus:amd:#1]{#1}}
@@ -276,11 +288,11 @@ Table \ref{tbl:litmus:intel:encoder} shows the runtimes and formula sizes for en
 \EncoderStatsGraph
   {figures/litmus-amd-encoder.csv}
   {north west}
-  {Caption.}
+  {AMD litmus test formula sizes as the number of expressions.}
   {fig:litmus:amd:encoder}
 
 \newpage
-\todo[inline]{table - solving times - amd}
+% \todo[inline]{table - solving times - amd}
 
 \SolverStatsTable
   {figures/litmus-amd-solver.csv}
@@ -291,7 +303,7 @@ Table \ref{tbl:litmus:intel:encoder} shows the runtimes and formula sizes for en
 \SolverStatsGraph
   {figures/litmus-amd-solver.csv}
   {north west}
-  {Caption.}
+  {AMD litmus test solving times in seconds.}
   {fig:litmus:amd:solver}
 
 \newpage
