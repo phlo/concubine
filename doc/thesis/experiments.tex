@@ -1,4 +1,4 @@
-\newcommand{\EncoderStatsTable}[3]{
+\newcommand{\EncoderStatsTable}[4]{
   \begin{table}[!hbt]
   \noindent\makebox[\textwidth]{
   \footnotesize
@@ -25,17 +25,17 @@
       [late after line=\\] %, separator=pipe]
       {#1}
       {1=\A, 2=\B, 3=\C, 4=\D, 5=\E, 6=\F, 7=\G, 8=\H}
-      {\StatsTableRowHeader{\A} & \B & \C & \D & \E & \F & \G & \H}
+      {#2{\A} & \B & \C & \D & \E & \F & \G & \H}
     \lasthline
   \end{tabu}}
   \caption{#3}
-  \label{#2}
+  \label{#4}
   \end{table}
 }
 
 \newcommand{\CleanInf}[1]{\IfStrEq{#1}{inf}{-}{#1}}
 
-\newcommand{\SolverStatsTable}[3]{
+\newcommand{\SolverStatsTable}[4]{
   \begin{table}[!hbt]
   \noindent\makebox[\textwidth]{
   \footnotesize
@@ -62,11 +62,11 @@
       [late after line=\\] %, separator=pipe]
       {#1}
       {1=\A, 2=\B, 3=\C, 4=\D, 5=\E, 6=\F, 7=\G, 8=\H}
-      {\StatsTableRowHeader{\A} & \CleanInf{\B} & \CleanInf{\C} & \CleanInf{\D} & \CleanInf{\E} & \CleanInf{\F} & \CleanInf{\G} & \CleanInf{\H}}
+      {#2{\A} & \CleanInf{\B} & \CleanInf{\C} & \CleanInf{\D} & \CleanInf{\E} & \CleanInf{\F} & \CleanInf{\G} & \CleanInf{\H}}
     \lasthline
   \end{tabu}}
   \caption{#3}
-  \label{#2}
+  \label{#4}
   \end{table}
 }
 
@@ -107,11 +107,11 @@
           legend pos=#2,
         },
       ]
-      \addplot [black, mark=diamond*] table [x expr=\coordindex, y index=2] {\Data};
+      \addplot [black, mark=diamond*] table [x expr=\coordindex, y index=3] {\Data};
       \addlegendentry{\BTOR}
-      \addplot [blue, mark=*] table [x expr=\coordindex, y index=4] {\Data};
+      \addplot [blue, mark=*] table [x expr=\coordindex, y index=5] {\Data};
       \addlegendentry{{\SMTLIB} (functional)}
-      \addplot [red, mark=square*] table [x expr=\coordindex, y index=6] {\Data};
+      \addplot [red, mark=square*] table [x expr=\coordindex, y index=7] {\Data};
       \addlegendentry{{\SMTLIB} (relational)}
       \end{axis}
     \end{tikzpicture}
@@ -234,18 +234,18 @@ In order to show their conformance with the memory-ordering model of our virtual
 % \newcommand{\StatsTableRowHeader}[1]{\StrBehind[2]{#1}{:}}
 % \newcommand{\StatsTableRowHeader}[1]{\ref{tbl:#1}}
 % \newcommand{\StatsTableRowHeader}[1]{\hyperref[tbl:#1]{\StrBehind[2]{#1}{:}}}
-\newcommand{\StatsTableRowHeader}[1]{\hyperref[tbl:litmus:intel:#1]{#1}}
+\newcommand{\IntelRowHeader}[1]{\hyperref[tbl:litmus:intel:#1]{#1}}
+\newcommand{\AMDRowHeader}[1]{\hyperref[tbl:litmus:amd:#1]{#1}}
 
 % \newpage
 
 % \todo[inline]{table - encoding stats - litmus intel}
 \EncoderStatsTable
   {figures/litmus-intel-encoder.csv}
-  {tbl:litmus:intel:encoder}
+  {\IntelRowHeader}
   {Intel litmus test encoding times in milliseconds and formula sizes as the number of expressions.}
+  {tbl:litmus:intel:encoder}
   % {Intel Litmus Test Econding Time [ms] and Size [\#expressions]}
-
-Table \ref{tbl:litmus:intel:encoder} shows encoder statistics for Intel's litmus test suite, with formula sizes plotted in Figure \ref{fig:litmus:intel:encoder} for better visual comparison.
 
 \EncoderStatsGraph
   {figures/litmus-intel-encoder.csv}
@@ -253,17 +253,34 @@ Table \ref{tbl:litmus:intel:encoder} shows encoder statistics for Intel's litmus
   {Intel litmus test formula sizes as the number of expressions.}
   {fig:litmus:intel:encoder}
 
-% Table \ref{tbl:litmus:intel:encoder} shows the runtimes and formula sizes for encoding Intel's litmus test suite.
-Encoder statistics are shown in Table \ref{tbl:litmus:intel:encoder} and formula sizes visualized in Figure \ref{fig:litmus:intel:encoder}.
+\EncoderStatsTable
+  {figures/litmus-amd-encoder.csv}
+  {\AMDRowHeader}
+  {AMD litmus test encoding times in milliseconds and formula sizes as the number of expressions.}
+  {tbl:litmus:amd:encoder}
+  % {AMD Litmus Test Econding Time [ms] and Size [\#expressions]}
 
+\EncoderStatsGraph
+  {figures/litmus-amd-encoder.csv}
+  {north west}
+  {AMD litmus test formula sizes as the number of expressions.}
+  {fig:litmus:amd:encoder}
+
+% Table \ref{tbl:litmus:intel:encoder} shows the runtimes and formula sizes for encoding Intel's litmus test suite.
+% Encoder statistics are shown in Table \ref{tbl:litmus:intel:encoder} and formula sizes visualized in Figure \ref{fig:litmus:intel:encoder}.
+
+Table \ref{tbl:litmus:intel:encoder} shows bounds and encoder statistics for Intel's litmus test suite, with formula sizes plotted in Figure \ref{fig:litmus:intel:encoder} for better visual comparison.
+It highlights one of the main advantages of using the {\BTOR} format.
 \newpage
+Solving times are listed in Table \ref{tbl:litmus:intel:solver} and visualized in Figure \ref{fig:litmus:intel:solver}.
 
 % \todo[inline]{table - solving times - litmus intel}
 
 \SolverStatsTable
   {figures/litmus-intel-solver.csv}
-  {tbl:litmus:intel:solver}
+  {\IntelRowHeader}
   {Intel litmus test solving times in seconds.}
+  {tbl:litmus:intel:solver}
   % {Intel Litmus Test Solving Times in Seconds}
 
 \SolverStatsGraph
@@ -277,27 +294,16 @@ Encoder statistics are shown in Table \ref{tbl:litmus:intel:encoder} and formula
 % \subsubsection*{AMD}
 
 % \todo[inline]{table - encoding stats - litmus amd}
-\renewcommand{\StatsTableRowHeader}[1]{\hyperref[tbl:litmus:amd:#1]{#1}}
-
-\EncoderStatsTable
-  {figures/litmus-amd-encoder.csv}
-  {tbl:litmus:amd:encoder}
-  {AMD litmus test encoding times in milliseconds and formula sizes as the number of expressions.}
-  % {AMD Litmus Test Econding Time [ms] and Size [\#expressions]}
-
-\EncoderStatsGraph
-  {figures/litmus-amd-encoder.csv}
-  {north west}
-  {AMD litmus test formula sizes as the number of expressions.}
-  {fig:litmus:amd:encoder}
+% \renewcommand{\StatsTableRowHeader}[1]{\hyperref[tbl:litmus:amd:#1]{#1}}
 
 \newpage
 % \todo[inline]{table - solving times - amd}
 
 \SolverStatsTable
   {figures/litmus-amd-solver.csv}
-  {tbl:litmus:amd:solver}
+  {\AMDRowHeader}
   {AMD litmus test solving times in seconds.}
+  {tbl:litmus:amd:solver}
   % {AMD Litmus Test Solving Times in Seconds}
 
 \SolverStatsGraph
@@ -317,14 +323,16 @@ Encoder statistics are shown in Table \ref{tbl:litmus:intel:encoder} and formula
 % \StrBehind{\SplitColon}{.}[\SplitDot]%
 % \StrSubstitute{\SplitDot}{.}{ }%
 % }
-\renewcommand{\StatsTableRowHeader}[1]{#1}
+% \renewcommand{\StatsTableRowHeader}[1]{#1}
+\newcommand{\CountRowHeader}[1]{#1}
 
 \todo[inline]{table - encoding stats - count buggy}
 
 \EncoderStatsTable
   {figures/count-buggy-encoder.csv}
-  {tbl:count:buggy:encoder}
+  {\CountRowHeader}
   {Econding Time [ms] and Size [\#expressions]}
+  {tbl:count:buggy:encoder}
 
 \EncoderStatsGraph
   {figures/count-buggy-encoder.csv}
@@ -337,8 +345,9 @@ Encoder statistics are shown in Table \ref{tbl:litmus:intel:encoder} and formula
 
 \SolverStatsTable
   {figures/count-buggy-solver.csv}
-  {tbl:count:buggy:solver}
+  {\CountRowHeader}
   {Solving Times in Seconds}
+  {tbl:count:buggy:solver}
 
 \todo[inline]{graphs}
 
@@ -356,8 +365,9 @@ Encoder statistics are shown in Table \ref{tbl:litmus:intel:encoder} and formula
 
 \EncoderStatsTable
   {figures/count-cas-encoder.csv}
-  {tbl:count:cas:encoder}
+  {\CountRowHeader}
   {Econding Time [ms] and Size [\#expressions]}
+  {tbl:count:cas:encoder}
 
 \EncoderStatsGraph
   {figures/count-cas-encoder.csv}
@@ -370,8 +380,9 @@ Encoder statistics are shown in Table \ref{tbl:litmus:intel:encoder} and formula
 
 \SolverStatsTable
   {figures/count-cas-solver.csv}
-  {tbl:count:cas:solver}
+  {\CountRowHeader}
   {Solving Times in Seconds}
+  {tbl:count:cas:solver}
 
 \SolverStatsGraph
   {figures/count-cas-solver.csv}
