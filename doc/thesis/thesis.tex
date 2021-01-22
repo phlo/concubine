@@ -48,6 +48,7 @@
   columns=fullflexible,
 }
 \lstdefinestyle{asm}{
+  % belowcaptionskip=0,
   morekeywords={[1]
     LOAD,STORE,FENCE,FLUSH,
     ADD,ADDI,SUB,SUBI,MUL,MULI,
@@ -133,7 +134,7 @@
 
 % tikz
 \usepackage{tikz}
-\usetikzlibrary{positioning}
+\usetikzlibrary{positioning,decorations.pathreplacing,calc}
 \tikzset{>=latex}
 
 % pgfplots

@@ -1,4 +1,4 @@
-\newcommand{\EncoderStatsTable}[4]{
+\newcommand{\EncoderStatsTable}[5]{
   \begin{table}[!hbt]
   \noindent\makebox[\textwidth]{
   \footnotesize
@@ -10,8 +10,8 @@
       & \multicolumn{2}{c|}{\textbf{btor2}}
       & \multicolumn{2}{c|}{\textbf{functional}}
       & \multicolumn{2}{c|}{\textbf{relational}} \\
-    \tabucline{2-}
-    \multicolumn{1}{c|}{}
+    \tabucline{1-}
+      \multicolumn{1}{|c|}{#2}
       & \multicolumn{1}{c|}{bound}
       & \multicolumn{1}{c|}{time}
       & \multicolumn{1}{c|}{size}
@@ -19,23 +19,23 @@
       & \multicolumn{1}{c|}{size}
       & \multicolumn{1}{c|}{time}
       & \multicolumn{1}{c|}{size} \\
-    \tabucline{2-}
+    \tabucline{1-}
     \firsthline
     \csvreader
       [late after line=\\] %, separator=pipe]
       {#1}
       {1=\A, 2=\B, 3=\C, 4=\D, 5=\E, 6=\F, 7=\G, 8=\H}
-      {#2{\A} & \B & \C & \D & \E & \F & \G & \H}
+      {#3{\A} & \B & \C & \D & \E & \F & \G & \H}
     \lasthline
   \end{tabu}}
-  \caption{#3}
-  \label{#4}
+  \caption{#4}
+  \label{#5}
   \end{table}
 }
 
 \newcommand{\CleanInf}[1]{\IfStrEq{#1}{inf}{-}{#1}}
 
-\newcommand{\SolverStatsTable}[4]{
+\newcommand{\SolverStatsTable}[5]{
   \begin{table}[!hbt]
   \noindent\makebox[\textwidth]{
   \footnotesize
@@ -47,8 +47,8 @@
       & \multicolumn{2}{c|}{\textbf{Boolector}}
       & \multicolumn{2}{c|}{\textbf{Z3}}
       & \multicolumn{2}{c|}{\textbf{CVC4}} \\
-    \tabucline{2-}
-    \multicolumn{1}{c|}{}
+    \tabucline{1-}
+    \multicolumn{1}{|c|}{#2}
       & \multicolumn{1}{c|}{\scriptsize btor2}
       & \multicolumn{1}{c|}{\scriptsize functional}
       & \multicolumn{1}{c|}{\scriptsize relational}
@@ -56,17 +56,17 @@
       & \multicolumn{1}{c|}{\scriptsize relational}
       & \multicolumn{1}{c|}{\scriptsize functional}
       & \multicolumn{1}{c|}{\scriptsize relational} \\
-    \tabucline{2-}
+    \tabucline{1-}
     \firsthline
     \csvreader
       [late after line=\\] %, separator=pipe]
       {#1}
       {1=\A, 2=\B, 3=\C, 4=\D, 5=\E, 6=\F, 7=\G, 8=\H}
-      {#2{\A} & \CleanInf{\B} & \CleanInf{\C} & \CleanInf{\D} & \CleanInf{\E} & \CleanInf{\F} & \CleanInf{\G} & \CleanInf{\H}}
+      {#3{\A} & \CleanInf{\B} & \CleanInf{\C} & \CleanInf{\D} & \CleanInf{\E} & \CleanInf{\F} & \CleanInf{\G} & \CleanInf{\H}}
     \lasthline
   \end{tabu}}
-  \caption{#3}
-  \label{#4}
+  \caption{#4}
+  \label{#5}
   \end{table}
 }
 
@@ -202,9 +202,9 @@ we conducted a series of experiments, using the following versions of supported 
 % \end{table}
 %
 \begin{itemize}
-  \item Boolector 3.2.1 (including BtorMC, using CaDiCaL 1.0.3) %\footnote{\url{https://github.com/Boolector/boolector}}
-  \item CVC4 1.8 %\footnote{\url{https://github.com/CVC4/CVC4}}
-  \item Z3 4.8.9 %\footnote{\url{https://github.com/Z3Prover/z3}}
+  \item Boolector 3.2.1\footnote{\url{https://github.com/Boolector/boolector}} (including BtorMC)
+  \item CVC4 1.8\footnote{\url{https://github.com/CVC4/CVC4}}
+  \item Z3 4.8.9\footnote{\url{https://github.com/Z3Prover/z3}}
 \end{itemize}
 %
 % Intel(R) Xeon(R) E5-2620 v4 @ 2.10GHz
@@ -237,15 +237,26 @@ In order to show their conformance with the memory-ordering model of our virtual
 \newcommand{\IntelRowHeader}[1]{\hyperref[tbl:litmus:intel:#1]{#1}}
 \newcommand{\AMDRowHeader}[1]{\hyperref[tbl:litmus:amd:#1]{#1}}
 
-% \newpage
-
 % \todo[inline]{table - encoding stats - litmus intel}
 \EncoderStatsTable
   {figures/litmus-intel-encoder.csv}
+  {\textnumero}
   {\IntelRowHeader}
   {Intel litmus test encoding times in milliseconds and formula sizes as the number of expressions.}
   {tbl:litmus:intel:encoder}
   % {Intel Litmus Test Econding Time [ms] and Size [\#expressions]}
+
+% \vspace{3cm}
+
+Bounds and encoder statistics of both test suites are given in Tables \ref{tbl:litmus:intel:encoder} and \ref{tbl:litmus:amd:encoder}.
+Comparing the sizes of generated formulas, visualized in Figures \ref{fig:litmus:intel:encoder} and \ref{fig:litmus:amd:encoder}, clearly shows the main advantage when using the {\BTOR} format:
+compact problem instances and reduced computational complexity of it's encoding process
+% it's compactness and reduced computational complexity of it's encoding process
+due to being automatically unrolled for any given bound via symbolic substitution by BtorMC at runtime.
+Furthermore, the additional redundancy introduced by the relational next state logic causes a quite substantial gap in between the size of our {\SMTLIB} encoding variants.
+
+% being automatically unrolled by passing the required bound to BtorMC, and reducing computational complexity of it's encoding process.
+% While our {\SMTLIB} encodings are explicitly unrolled for each specific bound, {\BTOR}'s sequential extension being unroll
 
 \EncoderStatsGraph
   {figures/litmus-intel-encoder.csv}
@@ -255,10 +266,13 @@ In order to show their conformance with the memory-ordering model of our virtual
 
 \EncoderStatsTable
   {figures/litmus-amd-encoder.csv}
+  {\textnumero}
   {\AMDRowHeader}
   {AMD litmus test encoding times in milliseconds and formula sizes as the number of expressions.}
   {tbl:litmus:amd:encoder}
   % {AMD Litmus Test Econding Time [ms] and Size [\#expressions]}
+
+% \vspace{3cm}
 
 \EncoderStatsGraph
   {figures/litmus-amd-encoder.csv}
@@ -269,15 +283,38 @@ In order to show their conformance with the memory-ordering model of our virtual
 % Table \ref{tbl:litmus:intel:encoder} shows the runtimes and formula sizes for encoding Intel's litmus test suite.
 % Encoder statistics are shown in Table \ref{tbl:litmus:intel:encoder} and formula sizes visualized in Figure \ref{fig:litmus:intel:encoder}.
 
-Table \ref{tbl:litmus:intel:encoder} shows bounds and encoder statistics for Intel's litmus test suite, with formula sizes plotted in Figure \ref{fig:litmus:intel:encoder} for better visual comparison.
-It highlights one of the main advantages of using the {\BTOR} format.
-\newpage
-Solving times are listed in Table \ref{tbl:litmus:intel:solver} and visualized in Figure \ref{fig:litmus:intel:solver}.
+% Table \ref{tbl:litmus:intel:encoder} shows bounds and encoder statistics for Intel's litmus test suite, with formula sizes plotted in Figure \ref{fig:litmus:intel:encoder} for better visual comparison.
+% It highlights one of the main advantages of using the {\BTOR} format.
+% \newpage
+% Solving times are listed in Table \ref{tbl:litmus:intel:solver} and visualized in Figure \ref{fig:litmus:intel:solver}.
 
 % \todo[inline]{table - solving times - litmus intel}
 
+\newpage
+
+% Our virtual machine model passed all litmus tests, with solving times given in Tables \ref{tbl:litmus:intel:solver} and \ref{tbl:litmus:amd:solver}.
+All litmus tests were passed and the claim, that the encodings of our virtual machine model conform with the memory-ordering principles of both major x86 vendors therefore validated by example.
+% is therefore validated.
+The corresponding solving times, given in Tables \ref{tbl:litmus:intel:solver} and \ref{tbl:litmus:amd:solver}, reveal a dramatic difference
+% in the effectiveness
+between the tested solvers and encoding variants,
+even forcing us to resort to
+a logarithmic scale for plotting the runtimes shown in Figures \ref{fig:litmus:intel:solver} and \ref{fig:litmus:amd:solver} to get a meaningful graphical representation.
+% BtorMC and Boolector turned out to be the fastest, with little difference between the functional {\BTOR} and {\SMTLIB} encodings.
+Our functional encoding ({\BTOR} and {\SMTLIB}) turned out to be the fastest, with BtorMC on top, closely followed by Boolector and Z3.
+As expected, the relational {\SMTLIB} approach is somewhat slower, but still beats CVC4 for any encoding variant when using Boolector or Z3.
+% Talking to two CVC4 developers uses a customized version of MiniSAT\footnote{\url{http://minisat.se}} as SAT backend for \texttt{QF_AUFBV} theory combination
+Talking to two CVC4 developers revealed that the latest release still uses a customized version of MiniSAT\footnote{\url{https://github.com/niklasso/minisat}} %http://minisat.se}}
+as SAT backend for \texttt{QF_AUFBV} formulas, which seems to be the main reason
+for the performance gap
+% for performing poorly
+in comparison to Boolector (incorporating CaDiCaL\footnote{\url{https://github.com/arminbiere/cadical}} 1.0.3) and Z3.
+
+\newpage
+
 \SolverStatsTable
   {figures/litmus-intel-solver.csv}
+  {\textnumero}
   {\IntelRowHeader}
   {Intel litmus test solving times in seconds.}
   {tbl:litmus:intel:solver}
@@ -296,11 +333,12 @@ Solving times are listed in Table \ref{tbl:litmus:intel:solver} and visualized i
 % \todo[inline]{table - encoding stats - litmus amd}
 % \renewcommand{\StatsTableRowHeader}[1]{\hyperref[tbl:litmus:amd:#1]{#1}}
 
-\newpage
+% \newpage
 % \todo[inline]{table - solving times - amd}
 
 \SolverStatsTable
   {figures/litmus-amd-solver.csv}
+  {\textnumero}
   {\AMDRowHeader}
   {AMD litmus test solving times in seconds.}
   {tbl:litmus:amd:solver}
@@ -314,9 +352,130 @@ Solving times are listed in Table \ref{tbl:litmus:intel:solver} and visualized i
 
 \newpage
 
-\subsection*{Statistical Counter}
+\subsection*{Concurrent Counter}
 
-\subsubsection*{Buggy}
+% https://tex.stackexchange.com/questions/141892/how-can-i-put-a-curly-brace-inside-a-listing-to-group-code-lines
+\newcommand{\tikzmark}[1]{\tikz[overlay,remember picture] \node (#1) {};}
+\newcommand*{\AddNote}[3]{%
+    \begin{tikzpicture}[overlay, remember picture]
+        \draw [decoration={brace,amplitude=0.5em},decorate,thick,red!60!black]
+            ($(#1)!([yshift=1.5ex]#1)!($(#1)-(0,1)$)$) --
+            ($(#1)!(#2)!($(#1)-(0,1)$)$)
+            node [align=center, text width=1.0cm, pos=0.5, anchor=west] {\textsf{#3}};
+    \end{tikzpicture}
+}%
+
+% In order to show the effective scalability of our approach,
+% a parametrizable version of Paul McKenney's statistical counter \cite{ref:McKenney17},
+% $n$ threads concurrently incrementing a global counter $m$ times.
+
+To show the scalability of our approach, we use a parametrizable concurrent counter, where $m$ threads increment a shared variable $n$ times.
+Two flavours were tested: a buggy version, using \lstinline[style=asm]{STORE} to compare runtimes of satisfiable instances and a consistent one relying on \lstinline[style=asm]{CAS}, resulting in unsatisfiable runs.
+% Any combination of $2 \leq m \leq 4$ threads and $2 \leq n \leq 4$ local increments were considered.
+% Any combination of $2 \leq m \leq 4$ threads, each incrementing the shared counter $2 \leq n \leq 4$ times were considered.
+% We considered any combination of $2 \leq m \leq 4$ threads and $2 \leq n \leq 4$ local increments.
+% We considered any combination of $2 \leq m \leq 4$ threads, each incrementing the global count $2 \leq n \leq 4$ times.
+Both were executed for any combination of $2 \leq m \leq 4$ threads and $2 \leq n \leq 4$ increments respectively.
+
+% \subsubsection*{Buggy}
+% \noindent
+% \begin{minipage}[b]{0.5\textwidth}
+% \vspace{0pt}
+% \begin{lstlisting}[style=asm, caption={Buggy counter template.}, label={lst:count:buggy}, mathescape, xleftmargin=0.39\textwidth]
+\begin{lstlisting}[style=asm, caption={Buggy counter template.}, label={lst:count:buggy}, escapeinside={(*}{*)}, xleftmargin=0.39\textwidth]
+inc: LOAD 0  (*\tikzmark{inc-start}*)
+ADDI 1
+STORE 0
+LOAD <adr>
+SUBI 1
+STORE <adr>
+JNZ inc      (*\tikzmark{inc-end}*)
+CHECK 0      (*\AddNote{inc-start}{inc-end}{inc}*)
+HALT
+\end{lstlisting}
+% \end{minipage}
+% \hfill
+% \begin{minipage}[b]{0.49\textwidth}
+% \vspace{0pt}
+% \hfill
+% \begin{lstlisting}[style=asm, caption={Checker template.}, label={lst:count:checker}, mathescape, xleftmargin=0.29\textwidth]
+% CHECK 0
+% ADDI <sum>
+% CMP 0
+% JNZ error
+% EXIT 0
+% error: EXIT 1
+% \end{lstlisting}
+% \end{minipage}
+
+Listing \ref{lst:count:buggy} shows the buggy counter template. % , where the local counter's address \texttt{<adr>} is replaced by $t + 1$ for every thread $0 \leq t < m$.
+Each thread $t$ starts by loading, incrementing and storing the shared counter at address 0.
+Next, the local counter (limiting the number of iterations) is loaded, decremented and simply stored at the address specified by the template parameter \texttt{<adr>}, which is replaced by $t + 10$ for each thread $0 \leq t < m$.
+% which is initialized
+% , which is replaced by $t + 1$ for each thread $0 \leq t < m$ and initialized with the specific number of iterations $n$.
+% If this local counter is greater than zero, the process is restarted by jumping back to the initial instruction. % labelled \texttt{inc}.
+If this local counter (being initialized with $n$) remains greater than zero, the counting process is restarted by jumping back to the initial program statement.
+% The process is restarted by jumping back to the initial program statement if this local counter, initialized with $n$, remains greater than zero.
+% Otherwise, the threads synchronize upon checkpoint 0, signaling that counting has finished and the checker thread given in Listing \ref{lst:count:checker} should start evaluating the result.
+Otherwise, the threads synchronize upon checkpoint 0, signaling that counting has finished and the result should be evaluated.
+% by comparing it to the expected value $m * n$, being supplied by yet another template parameter \texttt{<sum>}.
+The checker thread given in Listing \ref{lst:count:checker} then compares the shared counter at address 0 to the expected value $m * n$, being supplied by yet another template parameter \texttt{<sum>} and exits 1 if they differed.
+% \begin{minipage}[t]{0.45\textwidth}
+% \vspace{0pt}
+\begin{lstlisting}[style=asm, caption={Checker template.}, label={lst:count:checker}, mathescape, xleftmargin=0.39\textwidth]
+CHECK 0
+ADDI <sum>
+CMP 0
+JNZ error
+EXIT 0
+error: EXIT 1
+\end{lstlisting}
+% \end{minipage}
+% \pagebreak
+% The checker routine uses another template parameter \texttt{<sum>}
+% We use another template parameter \texttt{<sum>} being substituted with the expected value $m * n$
+% The checker thread then compares the shared counter to the expected value $\texttt{<sum>} = m * n$.
+% and instructions the machine to exit 1 by jumping to the corresponding exit statement if they differ.
+% Validation is done by simply subtracting the shared counter at address 0 from it's expected value $m * n$, being supplied by yet another template parameter \texttt{<sum>}.
+% If they differ and the checker thread's accumulator register is non-zero, then we jump to the corresponding exit
+
+Since an exit code greater than zero will serve as the bad state in the resulting model checking problem, we now must choose the proper bound
+% for every possible combination of $m$ and $n$
+such that the program will be fully executed
+% Finally, we must choose the proper bound, such that the program will be fully executed
+and the checker thread's exit statements can be reached.
+% Else, the formula won't be satisfiable, since we check for an exit code greater than zero as the bad state in our model checking problem.
+% and the formula is not unsatisfiable due to not being able to reach the
+% Therefore, we have to find the length of the longest possible trace,
+% This translates to finding the worst-case execution time in the number of steps
+% We therefore have to find the worst-case execution time in the number of steps, translating to the longest possible trace through the program.
+We therefore have to find the longest possible trace through the program, it's worst-case execution time so to say.
+% For our buggy counter, the process is straight forward and can simply be determined by the number of steps required by each iteration of the counting loop \textsf{inc} (7 instructions + 2 flushes), adding the 2 instructions to reach the counting program's end and multiply the result by the number of participating threads.
+% TODO
+For our buggy counter, the process is straight forward and it can simply be determined by adding $n$ times the number of steps required by each iteration of the counting loop {\color{red!60!black}\textsf{inc}} (7 instructions + 2 flushes) to the 2 instructions left for completing the counter thread's execution.
+% All that's missing to get the bound is adding the 5 steps required by the checker thread and can be summarized using the following equation.
+The minimum required bound can now be computed by multiplying the result with the number of participating threads $m$ and add the 5 steps needed by the checker thread, leading to the following equation.
+% To get the bound, we multiply the result by the number of participating threads $m
+% In order to ensure
+% \[
+  % m * (11 + 9 * (n - 1)) + 5
+% \]
+\[
+  m * (n * 9 + 2) + 5
+\]
+% For example, in case of $m = n = 2$, requires a bound of
+% In case of $m = n = 2$ for example, a minimum bound of
+% $
+  % 2 * (2 * 9 + 2) + 5 = 45
+% $ is required.
+For example, $m = n = 2$ would require a bound of $2 * (2 * 9 + 2) + 5 = 45$.
+% For example, in case of $m = n = 2$, a bound greater or equal than $2 * (2 * 9 + 2) + 5 = 45$ would be required.
+
+% In order to correct behaviour, we must ensure that the checker thread
+% In terms of our buggy counter, the minimum bound required to fully execute the experiment using $m$ threads, we just need to determine the number of steps to complete
+
+% \bigbreak
+% \todo[inline]{bound}
 
 % \renewcommand{\StatsTableRowHeader}[1]{%
 % \StrBehind{#1}{:}[\SplitColon]%
@@ -324,15 +483,26 @@ Solving times are listed in Table \ref{tbl:litmus:intel:solver} and visualized i
 % \StrSubstitute{\SplitDot}{.}{ }%
 % }
 % \renewcommand{\StatsTableRowHeader}[1]{#1}
-\newcommand{\CountRowHeader}[1]{#1}
+% \newcommand{\CountRowHeader}[1]{\StrSubstitute{#1}{ }{$\;$}}
+\newcommand{\CountRowHeader}[1]{\StrSubstitute{#1}{ }{\hfill}}
 
-\todo[inline]{table - encoding stats - count buggy}
+% \todo[inline]{table - encoding stats - count buggy}
 
 \EncoderStatsTable
   {figures/count-buggy-encoder.csv}
+  {m n}
   {\CountRowHeader}
-  {Econding Time [ms] and Size [\#expressions]}
+  {Buggy counter encoding times in milliseconds and formula sizes as the number of expressions for increasing values of $m$ and $n$.}
   {tbl:count:buggy:encoder}
+
+Table \ref{tbl:count:buggy:encoder} shows the bounds and encoder statistics of our buggy counter experiments.
+While encoder runtimes are rather negligible, Figure \ref{fig:count:buggy:encoder} again highlights the dramatic difference in size between {\BTOR} and {\SMTLIB} encoding variants for increasing values of $m$ and $n$. %, with the required bound being the main driving factor. % for the generated formula's size.
+% The formula sizes, visualized in Figure \ref{fig:count:buggy:encoder}
+% While the size of both {\SMTLIB} encodings increases linearly for fixed values of $m$ or $n$. % the {\BTOR} variant  independece from $n$
+% \todo[inline]{mention {\BTOR's} independece from $n$}
+% With the relational additionally suffering from the redundancy introduced by a growing number of threads.
+% The off-by-one differences in the size of the {\BTOR} encodings for an equal number of threads can be explained by the definition of constants required by the local counter addresses and the expected result.
+The off-by-one differences in the size of the {\BTOR} encodings for an equal number of threads can be explained by the reuse of constants required for specifying local counter addresses and the expected result.
 
 \EncoderStatsGraph
   {figures/count-buggy-encoder.csv}
@@ -343,8 +513,11 @@ Solving times are listed in Table \ref{tbl:litmus:intel:solver} and visualized i
 \newpage
 \todo[inline]{table - solving times - count buggy}
 
+In this example, relying on \lstinline[style=asm]{STORE} leads to an obvious data-race, even without the additional inconsistency introduced by the store buffer.
+
 \SolverStatsTable
   {figures/count-buggy-solver.csv}
+  {m n}
   {\CountRowHeader}
   {Solving Times in Seconds}
   {tbl:count:buggy:solver}
@@ -361,10 +534,27 @@ Solving times are listed in Table \ref{tbl:litmus:intel:solver} and visualized i
 
 \subsubsection*{CAS}
 
+% \begin{lstlisting}[style=asm,caption={Consistent counter template, using {\lstinline[style=asm]{CAS}}.},mathescape,xleftmargin=0.39\textwidth]
+\begin{lstlisting}[style=asm,caption={Consistent counter template.},mathescape,xleftmargin=0.39\textwidth]
+inc: MEM 0  $\tikzmark{cas-start}$      $\tikzmark{inc-start}$
+ADDI 1
+CAS 0
+JZ inc      $\tikzmark{cas-end}$
+LOAD <adr>
+SUBI 1
+STORE <adr>
+JNZ inc                                 $\tikzmark{inc-end}$
+CHECK 0
+HALT
+\end{lstlisting}
+\AddNote{cas-start}{cas-end}{cas}
+\AddNote{inc-start}{inc-end}{inc}
+
 \todo[inline]{table - encoding stats - count cas}
 
 \EncoderStatsTable
   {figures/count-cas-encoder.csv}
+  {m n}
   {\CountRowHeader}
   {Econding Time [ms] and Size [\#expressions]}
   {tbl:count:cas:encoder}
@@ -380,6 +570,7 @@ Solving times are listed in Table \ref{tbl:litmus:intel:solver} and visualized i
 
 \SolverStatsTable
   {figures/count-cas-solver.csv}
+  {m n}
   {\CountRowHeader}
   {Solving Times in Seconds}
   {tbl:count:cas:solver}
