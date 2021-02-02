@@ -357,12 +357,12 @@ in comparison to Boolector (incorporating CaDiCaL\footnote{\url{https://github.c
 % https://tex.stackexchange.com/questions/141892/how-can-i-put-a-curly-brace-inside-a-listing-to-group-code-lines
 \newcommand{\tikzmark}[1]{\tikz[overlay,remember picture] \node (#1) {};}
 \newcommand*{\AddNote}[3]{%
-    \begin{tikzpicture}[overlay, remember picture]
-        \draw [decoration={brace,amplitude=0.5em},decorate,thick,red!60!black]
-            ($(#1)!([yshift=1.5ex]#1)!($(#1)-(0,1)$)$) --
-            ($(#1)!(#2)!($(#1)-(0,1)$)$)
-            node [align=center, text width=1.0cm, pos=0.5, anchor=west] {\textsf{#3}};
-    \end{tikzpicture}
+  \begin{tikzpicture}[overlay, remember picture]
+    \draw [decoration={brace,amplitude=0.5em},decorate,thick,red!60!black]
+      ($(#1)!([yshift=1.5ex]#1)!($(#1)-(0,1)$)$) --
+      ($(#1)!(#2)!($(#1)-(0,1)$)$)
+      node [align=center, text width=1.0cm, pos=0.5, anchor=west] {\textsf{#3}};
+  \end{tikzpicture}
 }%
 
 % In order to show the effective scalability of our approach,
@@ -370,7 +370,7 @@ in comparison to Boolector (incorporating CaDiCaL\footnote{\url{https://github.c
 % $n$ threads concurrently incrementing a global counter $m$ times.
 
 To show the scalability of our approach, we use a parametrizable concurrent counter, where $m$ threads increment a shared variable $n$ times.
-Two flavours were tested: a buggy version, using \lstinline[style=asm]{STORE} to compare runtimes of satisfiable instances and a consistent one relying on \lstinline[style=asm]{CAS}, resulting in unsatisfiable runs.
+Two flavours were tested: a buggy version using \lstinline[style=asm]{STORE} to compare runtimes of satisfiable instances and a consistent one relying on \lstinline[style=asm]{CAS}, resulting in unsatisfiable runs.
 % Any combination of $2 \leq m \leq 4$ threads and $2 \leq n \leq 4$ local increments were considered.
 % Any combination of $2 \leq m \leq 4$ threads, each incrementing the shared counter $2 \leq n \leq 4$ times were considered.
 % We considered any combination of $2 \leq m \leq 4$ threads and $2 \leq n \leq 4$ local increments.
@@ -419,7 +419,7 @@ If this local counter (being initialized with $n$) remains greater than zero, th
 % Otherwise, the threads synchronize upon checkpoint 0, signaling that counting has finished and the checker thread given in Listing \ref{lst:count:checker} should start evaluating the result.
 Otherwise, the threads synchronize upon checkpoint 0, signaling that counting has finished and the result should be evaluated.
 % by comparing it to the expected value $m * n$, being supplied by yet another template parameter \texttt{<sum>}.
-The checker thread given in Listing \ref{lst:count:checker} then compares the shared counter at address 0 to the expected value $m * n$, being supplied by yet another template parameter \texttt{<sum>} and exits 1 if they differed.
+The checker thread given in Listing \ref{lst:count:checker} then compares the shared counter at address 0 to the expected value $m * n$ being supplied by yet another template parameter \texttt{<sum>} and exits 1 if they differed.
 % \begin{minipage}[t]{0.45\textwidth}
 % \vspace{0pt}
 \begin{lstlisting}[style=asm, caption={Checker template.}, label={lst:count:checker}, mathescape, xleftmargin=0.39\textwidth]
@@ -439,7 +439,8 @@ error: EXIT 1
 % Validation is done by simply subtracting the shared counter at address 0 from it's expected value $m * n$, being supplied by yet another template parameter \texttt{<sum>}.
 % If they differ and the checker thread's accumulator register is non-zero, then we jump to the corresponding exit
 
-Since an exit code greater than zero will serve as the bad state in the resulting model checking problem, we now must choose the proper bound
+In this example, relying on \lstinline[style=asm]{STORE} to write a shared variable leads to an obvious data-race, even without the additional inconsistency introduced by the store buffer.
+Since an exit code greater than zero will serve as the bad state in the resulting model checking problem, we now must choose a proper bound
 % for every possible combination of $m$ and $n$
 such that the program will be fully executed
 % Finally, we must choose the proper bound, such that the program will be fully executed
@@ -454,21 +455,21 @@ We therefore have to find the longest possible trace through the program, it's w
 % TODO
 For our buggy counter, the process is straight forward and it can simply be determined by adding $n$ times the number of steps required by each iteration of the counting loop {\color{red!60!black}\textsf{inc}} (7 instructions + 2 flushes) to the 2 instructions left for completing the counter thread's execution.
 % All that's missing to get the bound is adding the 5 steps required by the checker thread and can be summarized using the following equation.
-The minimum required bound can now be computed by multiplying the result with the number of participating threads $m$ and add the 5 steps needed by the checker thread, leading to the following equation.
+The minimum required bound can now be computed by multiplying the result with the number of participating threads $m$ and adding the 5 steps needed by the checker thread, leading to the following equation.
 % To get the bound, we multiply the result by the number of participating threads $m
 % In order to ensure
 % \[
   % m * (11 + 9 * (n - 1)) + 5
 % \]
 \[
-  m * (n * 9 + 2) + 5
+  m * (9 * n + 2) + 5
 \]
 % For example, in case of $m = n = 2$, requires a bound of
 % In case of $m = n = 2$ for example, a minimum bound of
 % $
   % 2 * (2 * 9 + 2) + 5 = 45
 % $ is required.
-For example, $m = n = 2$ would require a bound of $2 * (2 * 9 + 2) + 5 = 45$.
+For example, $m = n = 2$ would require a bound of $2 * (9 * 2 + 2) + 5 = 45$.
 % For example, in case of $m = n = 2$, a bound greater or equal than $2 * (2 * 9 + 2) + 5 = 45$ would be required.
 
 % In order to correct behaviour, we must ensure that the checker thread
@@ -488,6 +489,8 @@ For example, $m = n = 2$ would require a bound of $2 * (2 * 9 + 2) + 5 = 45$.
 
 % \todo[inline]{table - encoding stats - count buggy}
 
+\bigbreak
+
 \EncoderStatsTable
   {figures/count-buggy-encoder.csv}
   {m n}
@@ -501,41 +504,75 @@ While encoder runtimes are rather negligible, Figure \ref{fig:count:buggy:encode
 % While the size of both {\SMTLIB} encodings increases linearly for fixed values of $m$ or $n$. % the {\BTOR} variant  independece from $n$
 % \todo[inline]{mention {\BTOR's} independece from $n$}
 % With the relational additionally suffering from the redundancy introduced by a growing number of threads.
+As expected, the number of participating threads $m$ is the main driving factor for
+% increasing the required bound and resulting formula's size (compare $m = 2$, $n = 2$ to $m = 4$, $n = 2$).
+% an increased problem size
+% increasing the resulting problem's size.
+increasing the problem size.
+% (compare $(m, n) \in \{(2, 2), (2, 4), (4, 2), (4, 4)\}$).
+% (compare $m = 2$, $n = 2$ to $m = 4$, $n = 2$ and $m = 2$, $n = 2$ to $m = 2$, $n = 4$).
+% Especially noticeable for {\SMTLIB} variants
+% (compare $(m, n) = (2, 2)$ to $(4, 2)$ and $(2, 2)$ to $(2, 4)$).
+% (compare 2 2 to 4 2 and 2 2 to 2 4).
 % The off-by-one differences in the size of the {\BTOR} encodings for an equal number of threads can be explained by the definition of constants required by the local counter addresses and the expected result.
-The off-by-one differences in the size of the {\BTOR} encodings for an equal number of threads can be explained by the reuse of constants required for specifying local counter addresses and the expected result.
+The off-by-one differences in the size of the {\BTOR} encodings for an equal number of threads $m$ can be explained by the reuse of constants necessary to specify local counter addresses and the expected final value.
+
+\newpage
 
 \EncoderStatsGraph
   {figures/count-buggy-encoder.csv}
   {north west}
-  {Caption.}
+  {Buggy counter formula sizes as the number of expressions for increasing values of $m$ and $n$.}
   {fig:count:buggy:encoder}
 
-\newpage
-\todo[inline]{table - solving times - count buggy}
+% Table \ref{tbl:count:buggy:solver} shows the runtime required to find a model to the specific problem and are visualized in Figure \ref{fig:count:buggy:solver}.
+% Table \ref{tbl:count:buggy:solver} shows the time it took any of the supported solvers to find an erroneous trace, which again required the use of a logarithmic scale for getting a meaningful visual representation in Figure \ref{fig:count:buggy:solver}.
+The time it took the supported solvers to find faulty traces for our buggy counter experiments are listed in Table \ref{tbl:count:buggy:solver} and visualized in Figure \ref{fig:count:buggy:solver}.
+Only BtorMC, Boolector using the functional and Z3 using the relational next state logic were able to find a solution for all experiments.
+% BtorMC and Boolector turned out to be on top with little difference between the two.
+Surprisingly, Z3 in combination with the functional next state logic performed much worse than expected and was just able to solve as many instances as Boolector using the relational variant.
+CVC4 however could not even solve a single instance within the given time and memory limits.
 
-In this example, relying on \lstinline[style=asm]{STORE} leads to an obvious data-race, even without the additional inconsistency introduced by the store buffer.
+\bigbreak
 
 \SolverStatsTable
   {figures/count-buggy-solver.csv}
   {m n}
   {\CountRowHeader}
-  {Solving Times in Seconds}
+  {Buggy counter solving times in seconds for increasing values of $m$ and $n$.}
   {tbl:count:buggy:solver}
 
-\todo[inline]{graphs}
+\newpage
 
 \SolverStatsGraph
   {figures/count-buggy-solver.csv}
   {south east}
-  {Caption.}
+  {Buggy counter solving times in seconds for increasing values of $m$ and $n$.}
   {fig:count:buggy:solver}
 
-\newpage
+% \subsubsection*{CAS}
 
-\subsubsection*{CAS}
+% Finally, we also experimented with a consistent version of the previous concurrent counter example to evaluate the solvers behaviour on unsatisfiable instances. % of our proposed encoding.
+% Listing \ref{lst:count:cas} shows the updated counter thread, now resorting to \emph{compare and swap} for writing the shared counter variable.
+% After loading and memorizing the current counter value with \lstinline[style=asm]{MEM},
+Finally, we also experimented with a consistent version of the previous concurrent counter example, given in Listing \ref{lst:count:cas}, which resorts to \emph{compare and swap} for writing the shared variable in a predictable manner.
+% Finally, we also experimented with a consistent version of the previous concurrent counter example, which is given in Listing \ref{lst:count:cas} and resorts to \emph{compare and swap} for writing the shared variable in a predictable manner.
+% After reading and memorizing the counter's current value for a latter application of \lstinline[style=asm]{CAS} using \lstinline[style=asm]{MEM},
+Instead of simply reading the shared counter's value, we now use \lstinline[style=asm]{MEM} to additionally memorize it for the latter application of \lstinline[style=asm]{CAS}.
+% The initial \lstinline[style=asm]{LOAD 0}, responsible for reading the shared counter, is replaced by \lstinline[style=asm]{MEM 0} to additionally memorize it for the latter application of \lstinline[style=asm]{CAS}.
+% Since \lstinline[style=asm]{CAS} might fail due to an intermediate alteration of the shared counter variable by another thread, it must be embedded in a nested loop {\color{red!60!black}\textsf{cas}}, repeating the increment until it succeeds to prevent an erroneous decrement of the thread's local counter variable and ensure consistency.
+% to prevent a subsequent decrement of the thread's local counter by repeating the increment until it succeeds.
+Since \lstinline[style=asm]{CAS} might fail due to an intermediate alteration of the shared counter variable by another thread, we must prevent an erroneous subsequent decrement of the thread's local counter variable by embedding it in a nested loop {\color{red!60!black}\textsf{cas}}
+and repeat the increment until it succeeds. % to ensure consistency.
+% , repeating the increment until it succeeds. % to ensure consistency.
+% The rest of the counter program remains the same and
+Everything else remains the same, including the checker thread.
+
+\vfill
 
 % \begin{lstlisting}[style=asm,caption={Consistent counter template, using {\lstinline[style=asm]{CAS}}.},mathescape,xleftmargin=0.39\textwidth]
-\begin{lstlisting}[style=asm,caption={Consistent counter template.},mathescape,xleftmargin=0.39\textwidth]
+\begin{minipage}{\textwidth}
+\begin{lstlisting}[style=asm, caption={Consistent counter template.}, label={lst:count:cas}, mathescape, xleftmargin=0.39\textwidth]
 inc: MEM 0  $\tikzmark{cas-start}$      $\tikzmark{inc-start}$
 ADDI 1
 CAS 0
@@ -549,34 +586,131 @@ HALT
 \end{lstlisting}
 \AddNote{cas-start}{cas-end}{cas}
 \AddNote{inc-start}{inc-end}{inc}
+\end{minipage}
 
-\todo[inline]{table - encoding stats - count cas}
+% Determining the required bound is a bit more complex, since we also have to account for the theoretically possible maximum number of failed \lstinline[style=asm]{CAS} instructions.
+Determining the required bound is a bit more complex, since we also have to account for the maximum number of failed \lstinline[style=asm]{CAS} instructions to ensure that all possible traces are included in the search space.
+% There may exist a trace in which the participating counter threads are scheduled one after the other,
+This worst case can occur if the participating counter threads are scheduled one after the other,
+% \[
+  % t_0 \rightarrow^0 t_1 \rightarrow \ldots \rightarrow t_{m - 2} \rightarrow t_{m - 1} \rightarrow t_0 \rightarrow t_1 \rightarrow \ldots \rightarrow t_{m - 2} \rightarrow t_{m - 1}
+% \]
+\[
+  \THREAD^0_0 \rightarrow \ldots \rightarrow \THREAD^{m - 1}_{m - 1} \rightarrow \THREAD^m_0 \rightarrow \ldots \rightarrow \THREAD^{2m - 1}_{m - 1} \rightarrow \ldots
+\]
+causing all but one (the first) to fail in each iteration of the counting loop {\color{red!60!black}\textsf{inc}}.
+Consider the following example trace
+% of \lstinline[style=asm]{CAS} instructions
+for $m = 2$ and $n = 1$,
+% where $i_t$ denotes the local counter of thread $t$.
+where counting to $m * n = 2$ may require up to
+three {\color{red!60!black}\textsf{cas}} loop iterations in total.
+% the execution of up to three \lstinline[style=asm]{CAS} instructions.
+% \begin{table}[!hbt]
+  % \centering
+\begin{center}
+  \begin{tabu}{lll}
+    % \firsthline
+    Thread & \lstinline[style=asm]{CAS} Status & Local Counter \\
+    % \hlIne
+    \hline
+    0 & done & 0 \\
+    1 & failed & 1 \\
+    % $\ldots$ & & \\
+    \hline
+    \hline
+    1 & done & 0 \\
+    \lasthline
+  \end{tabu}
+\end{center}
+% \end{table}
+If we now examine the influence by an increased number of threads ($m = 3$ and $n = 1$),
+% the maximum number of executed \lstinline[style=asm]{CAS} instructions increases to six.
+% already six {\color{red!60!black}\textsf{cas}} iterations are required in this scenario.
+one notices that the maximum number of {\color{red!60!black}\textsf{cas}} iterations follows a \emph{triangular number}: $m * \frac{m + 1}{2} = 6$.
+% \begin{table}[!hbt]
+  % \centering
+\begin{center}
+  \begin{tabu}{lll}
+    Thread & \lstinline[style=asm]{CAS} Status & Local Counter \\
+    \hline
+    0 & done & 0 \\
+    1 & failed & 1 \\
+    2 & failed & 1 \\
+    % $\ldots$ & & \\
+    \hline
+    \hline
+    1 & done & 1 \\
+    2 & failed & 0 \\
+    % $\ldots$ & & \\
+    \hline
+    \hline
+    2 & done & 1 \\
+    \lasthline
+  \end{tabu}
+\end{center}
+% \end{table}
+% Counting to three may require the execution of up to six \lstinline[style=asm]{CAS} instructions.
+Since increasing the local increments $n$ has a directly proportional influence on the number of {\color{red!60!black}\textsf{cas}} iterations, we just need to multiply the previously identified \emph{triangular number} by $n$ to get the maximum: $n * m * \frac{m + 1}{2}$.
+% Now, if we add the number of steps required by each iteration of the {\color{red!60!black}\textsf{cas}} loop to $n$ times
+% Now, if we multiply this number with the length of the
+% If we now consider the number of steps required by each iteration of the {\color{red!60!black}\textsf{cas}} loop (4), the ones left to complete the counting loop {\color{red!60!black}\textsf{inc}} (5) and the remaining 2 instructions to complete the counter thread's execution, as well as the checker thread (5), the final bound can be computed by the following expression.
+If we now consider the number of steps required by each iteration of the {\color{red!60!black}\textsf{cas}} loop (4), the ones left to complete the counting loop {\color{red!60!black}\textsf{inc}} (5) and the 2 instructions remaining in the counter thread's program, % as well as the checker thread (5),
+the final bound can be computed by the following equation.
+\[
+  m * (4 * n * m * \frac{m + 1}{2} + 5 * n + 2) + 5
+\]
+% For example, $m = n = 2$ would in this case already require a bound of $(4 * 2 * 2 * \frac{2 + 1}{2} + 5 * 2 + 2) * 2 + 5 = 77$.
+For example, the consistent counter experiment for $m = n = 2$ already requires a bound of $(4 * 2 * 2 * \frac{2 + 1}{2} + 5 * 2 + 2) * 2 + 5 = 77$.
+
+\newpage
+
+Bounds and encoder statistics for our consistent counter experiments are given in Table \ref{tbl:count:cas:encoder} and formula sizes visualized in Figure \ref{fig:count:cas:encoder}.
+% Again, the sizes of {\BTOR} formulas are just a fraction of
+% The formula sizes of our {\SMTLIB} variants, visualized in Figure \ref{fig:count:cas:encoder},
+% Even though the consistent version just adds a single instruction to the counter thread's program, the larger bound required by the nested loop causes a quite large blowup in the resulting formulas sizes of {\SMTLIB} variants.
+% While the formula sizes of our {\BTOR} encoding are slightly increased due to the
+% While the addition of a single instruction slightly increases the formula sizes of our {\BTOR} encoding, the larger bound required by the introduction of a nested loop causes a significant blowup in terms of our {\SMTLIB} variants.
+While the addition of a single instruction only slightly increases the formula sizes of our {\BTOR} encoding, the {\SMTLIB} variants exhibit a significant blowup due to the larger bound required by the introduction of a nested loop.
+Naturally, encoder runtimes are also affected, but remain acceptable as all experiments could be encoded in less than a second.
+
+\bigbreak
 
 \EncoderStatsTable
   {figures/count-cas-encoder.csv}
   {m n}
   {\CountRowHeader}
-  {Econding Time [ms] and Size [\#expressions]}
+  {Consistent counter encoding times in milliseconds and formula sizes as the number of expressions for increasing values of $m$ and $n$.}
   {tbl:count:cas:encoder}
 
 \EncoderStatsGraph
   {figures/count-cas-encoder.csv}
   {north west}
-  {Caption.}
+  {Consistent counter formula sizes as the number of expressions for increasing values of $m$ and $n$.}
   {fig:count:cas:encoder}
 
 \newpage
-\todo[inline]{table - solving times - coubt cas}
+
+Solving times of this experiment's unsatisfiable runs are shown in Table \ref{tbl:count:cas:solver} and visualized in Figure \ref{fig:count:cas:solver}.
+% 7 out of 63
+Unfortunately, only 3 out of 9 experiments could be solved by BtorMC and Boolector within the given time and memory limits.
+This puts the practicability of our approach in question, since further increasing the program size, number of threads and bound required by even the tiniest real world example
+would generate problem instances which most probably won't be solvable in a reasonable amount of time.
+% won't be solvable in a reasonable amount of time
+% and maybe even surpass the user's life expectancy.
+A verification routine that possibly requires more time to complete than it's user's life expectancy surely won't increase software quality, not even in the long run.
+
+\vfill
 
 \SolverStatsTable
   {figures/count-cas-solver.csv}
   {m n}
   {\CountRowHeader}
-  {Solving Times in Seconds}
+  {Consistent counter solving times in seconds for increasing values of $m$ and $n$.}
   {tbl:count:cas:solver}
 
 \SolverStatsGraph
   {figures/count-cas-solver.csv}
   {south east}
-  {Caption.}
+  {Consistent counter solving times in seconds for increasing values of $m$ and $n$.}
   {fig:count:cas:solver}
