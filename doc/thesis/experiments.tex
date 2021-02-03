@@ -218,9 +218,9 @@ All tests were performed on a cluster of Intel\textsuperscript{\textregistered} 
 
 \subsection*{Litmus Tests}
 
-Instead of a rigorous formal description, the memory-ordering principles of Intel's \cite{ref:Intel} and AMD's \cite{ref:AMD} x86 implementations are defined by example through a set of litmus tests.
+Instead of a rigorous formal description, the memory-ordering principles of Intel's \cite{ref:Intel} and AMD's \cite{ref:AMD} x86 implementations are defined by example through a set of \CHANGE{so called ``litmus tests''}.
 % In order to show their conformance with the memory-ordering model of our virtual machine, all documented litmus tests have been ported to ConcuBinE and are explained in Appendices \ref{appendix:litmus:intel} and \ref{appendix:litmus:amd}.
-In order to show their conformance with the memory-ordering model of our virtual machine, the test suites have been ported to ConcuBinE and are detailed in Appendices \ref{appendix:litmus:intel} and \ref{appendix:litmus:amd}.
+In order to show conformance with the memory-ordering model of our virtual machine, the test suites have been ported to ConcuBinE and \CHANGE{details are available} in Appendices \ref{appendix:litmus:intel} and \ref{appendix:litmus:amd}.
 
 % Encoder statistics are shown in Table \ref{tbl:litmus:intel:encoder} and formula sizes visualized in Figure \ref{fig:litmus:intel:encoder}.
 
@@ -242,18 +242,18 @@ In order to show their conformance with the memory-ordering model of our virtual
   {figures/litmus-intel-encoder.csv}
   {\textnumero}
   {\IntelRowHeader}
-  {Intel litmus test encoding times in milliseconds and formula sizes as the number of expressions.}
+  {Intel litmus test encoding times in milliseconds and formula sizes \CHANGE{in terms of} the number of expressions.}
   {tbl:litmus:intel:encoder}
   % {Intel Litmus Test Econding Time [ms] and Size [\#expressions]}
 
 % \vspace{3cm}
 
 Bounds and encoder statistics of both test suites are given in Tables \ref{tbl:litmus:intel:encoder} and \ref{tbl:litmus:amd:encoder}.
-Comparing the sizes of generated formulas, visualized in Figures \ref{fig:litmus:intel:encoder} and \ref{fig:litmus:amd:encoder}, clearly shows the main advantage when using the {\BTOR} format:
+Comparing the sizes of generated formulas, visualized in Figures \ref{fig:litmus:intel:encoder} and \ref{fig:litmus:amd:encoder}, clearly shows the main advantage \CHANGE{of} using {\BTOR}:
 compact problem instances and reduced computational complexity of it's encoding process
 % it's compactness and reduced computational complexity of it's encoding process
 due to being automatically unrolled for any given bound via symbolic substitution by BtorMC at runtime.
-Furthermore, the additional redundancy introduced by the relational next state logic causes a quite substantial gap in between the size of our {\SMTLIB} encoding variants.
+Furthermore, the additional redundancy introduced by the relational next state logic causes a quite substantial gap between the size of our {\SMTLIB} encoding variants.
 
 % being automatically unrolled by passing the required bound to BtorMC, and reducing computational complexity of it's encoding process.
 % While our {\SMTLIB} encodings are explicitly unrolled for each specific bound, {\BTOR}'s sequential extension being unroll
@@ -261,14 +261,14 @@ Furthermore, the additional redundancy introduced by the relational next state l
 \EncoderStatsGraph
   {figures/litmus-intel-encoder.csv}
   {north west}
-  {Intel litmus test formula sizes as the number of expressions.}
+  {Intel litmus test formula sizes \CHANGE{in terms of} the number of expressions.}
   {fig:litmus:intel:encoder}
 
 \EncoderStatsTable
   {figures/litmus-amd-encoder.csv}
   {\textnumero}
   {\AMDRowHeader}
-  {AMD litmus test encoding times in milliseconds and formula sizes as the number of expressions.}
+  {AMD litmus test encoding times in milliseconds and formula sizes \CHANGE{in terms of} the number of expressions.}
   {tbl:litmus:amd:encoder}
   % {AMD Litmus Test Econding Time [ms] and Size [\#expressions]}
 
@@ -277,7 +277,7 @@ Furthermore, the additional redundancy introduced by the relational next state l
 \EncoderStatsGraph
   {figures/litmus-amd-encoder.csv}
   {north west}
-  {AMD litmus test formula sizes as the number of expressions.}
+  {AMD litmus test formula sizes \CHANGE{in terms of} the number of expressions.}
   {fig:litmus:amd:encoder}
 
 % Table \ref{tbl:litmus:intel:encoder} shows the runtimes and formula sizes for encoding Intel's litmus test suite.
@@ -292,19 +292,23 @@ Furthermore, the additional redundancy introduced by the relational next state l
 
 \newpage
 
+\hyphenation{MiniSAT}
+
 % Our virtual machine model passed all litmus tests, with solving times given in Tables \ref{tbl:litmus:intel:solver} and \ref{tbl:litmus:amd:solver}.
-All litmus tests were passed and the claim, that the encodings of our virtual machine model conform with the memory-ordering principles of both major x86 vendors therefore validated by example.
+All litmus tests passed and the claim, that the encodings of our virtual machine model conform with the memory-ordering principles of both major x86 vendors therefore validated by example.
 % is therefore validated.
 The corresponding solving times, given in Tables \ref{tbl:litmus:intel:solver} and \ref{tbl:litmus:amd:solver}, reveal a dramatic difference
 % in the effectiveness
 between the tested solvers and encoding variants,
 even forcing us to resort to
-a logarithmic scale for plotting the runtimes shown in Figures \ref{fig:litmus:intel:solver} and \ref{fig:litmus:amd:solver} to get a meaningful graphical representation.
+a logarithmic scale for plotting runtimes \CHANGE{as} shown in Figures \ref{fig:litmus:intel:solver} and \ref{fig:litmus:amd:solver} to get a meaningful graphical representation.
 % BtorMC and Boolector turned out to be the fastest, with little difference between the functional {\BTOR} and {\SMTLIB} encodings.
 Our functional encoding ({\BTOR} and {\SMTLIB}) turned out to be the fastest, with BtorMC on top, closely followed by Boolector and Z3.
 As expected, the relational {\SMTLIB} approach is somewhat slower, but still beats CVC4 for any encoding variant when using Boolector or Z3.
 % Talking to two CVC4 developers uses a customized version of MiniSAT\footnote{\url{http://minisat.se}} as SAT backend for \texttt{QF_AUFBV} theory combination
-Talking to two CVC4 developers revealed that the latest release still uses a customized version of MiniSAT\footnote{\url{https://github.com/niklasso/minisat}} %http://minisat.se}}
+% Talking to two CVC4 developers revealed
+\CHANGE{After reporting this observation to members of CVC4's development team it was confirmed}
+that the latest release still uses a customized version of MiniSAT\footnote{\url{https://github.com/niklasso/minisat}} %http://minisat.se}}
 as SAT backend for \texttt{QF_AUFBV} formulas, which seems to be the main reason
 for the performance gap
 % for performing poorly
@@ -369,20 +373,23 @@ in comparison to Boolector (incorporating CaDiCaL\footnote{\url{https://github.c
 % a parametrizable version of Paul McKenney's statistical counter \cite{ref:McKenney17},
 % $n$ threads concurrently incrementing a global counter $m$ times.
 
-To show the scalability of our approach, we use a parametrizable concurrent counter, where $m$ threads increment a shared variable $n$ times.
-Two flavours were tested: a buggy version using \lstinline[style=asm]{STORE} to compare runtimes of satisfiable instances and a consistent one relying on \lstinline[style=asm]{CAS}, resulting in unsatisfiable runs.
+To show the scalability of our approach, we \CHANGE{also} use a \CHANGE{parametrized} concurrent counter \CHANGE{(inspired by Paul McKenney \cite{ref:McKenney17})}, where $m$ threads increment a shared variable $n$ times.
+Two flavours were tested: a \CHANGE{faulty} version using \lstinline[style=asm]{STORE} to compare runtimes of satisfiable instances and a \CHANGE{valid} one relying on \lstinline[style=asm]{CAS}, resulting in unsatisfiable runs.
 % Any combination of $2 \leq m \leq 4$ threads and $2 \leq n \leq 4$ local increments were considered.
 % Any combination of $2 \leq m \leq 4$ threads, each incrementing the shared counter $2 \leq n \leq 4$ times were considered.
 % We considered any combination of $2 \leq m \leq 4$ threads and $2 \leq n \leq 4$ local increments.
 % We considered any combination of $2 \leq m \leq 4$ threads, each incrementing the global count $2 \leq n \leq 4$ times.
-Both were executed for any combination of $2 \leq m \leq 4$ threads and $2 \leq n \leq 4$ increments respectively.
+% We chose a set of parameter configurations large enough to give representative results while still being solvable within the given time and memory limits and both
+Both were executed for any combination of $2 \leq m \leq 4$ threads and $2 \leq n \leq 4$ increments respectively,
+\CHANGE{forming a set of parameter configurations large enough to yield representative results while still being solvable within the given time and memory limits.}
+% \CHANGE{for a set of parameter configurations large enough to show progressive hardness while still being solvable within the given time and memory limits$^?$}.
 
 % \subsubsection*{Buggy}
 % \noindent
 % \begin{minipage}[b]{0.5\textwidth}
 % \vspace{0pt}
 % \begin{lstlisting}[style=asm, caption={Buggy counter template.}, label={lst:count:buggy}, mathescape, xleftmargin=0.39\textwidth]
-\begin{lstlisting}[style=asm, caption={Buggy counter template.}, label={lst:count:buggy}, escapeinside={(*}{*)}, xleftmargin=0.39\textwidth]
+\begin{lstlisting}[style=asm, caption={\CHANGE{Faulty} counter template.}, label={lst:count:buggy}, escapeinside={(*}{*)}, xleftmargin=0.39\textwidth]
 inc: LOAD 0  (*\tikzmark{inc-start}*)
 ADDI 1
 STORE 0
@@ -408,18 +415,20 @@ HALT
 % \end{lstlisting}
 % \end{minipage}
 
-Listing \ref{lst:count:buggy} shows the buggy counter template. % , where the local counter's address \texttt{<adr>} is replaced by $t + 1$ for every thread $0 \leq t < m$.
+\vspace{-.1\baselineskip}
+
+Listing \ref{lst:count:buggy} shows the \CHANGE{faulty} counter template. % , where the local counter's address \texttt{<adr>} is replaced by $t + 1$ for every thread $0 \leq t < m$.
 Each thread $t$ starts by loading, incrementing and storing the shared counter at address 0.
 Next, the local counter (limiting the number of iterations) is loaded, decremented and simply stored at the address specified by the template parameter \texttt{<adr>}, which is replaced by $t + 10$ for each thread $0 \leq t < m$.
 % which is initialized
 % , which is replaced by $t + 1$ for each thread $0 \leq t < m$ and initialized with the specific number of iterations $n$.
 % If this local counter is greater than zero, the process is restarted by jumping back to the initial instruction. % labelled \texttt{inc}.
-If this local counter (being initialized with $n$) remains greater than zero, the counting process is restarted by jumping back to the initial program statement.
+If this local counter (initialized with $n$) remains greater than zero, the counting process is restarted by jumping back to the initial program statement.
 % The process is restarted by jumping back to the initial program statement if this local counter, initialized with $n$, remains greater than zero.
 % Otherwise, the threads synchronize upon checkpoint 0, signaling that counting has finished and the checker thread given in Listing \ref{lst:count:checker} should start evaluating the result.
 Otherwise, the threads synchronize upon checkpoint 0, signaling that counting has finished and the result should be evaluated.
 % by comparing it to the expected value $m * n$, being supplied by yet another template parameter \texttt{<sum>}.
-The checker thread given in Listing \ref{lst:count:checker} then compares the shared counter at address 0 to the expected value $m * n$ being supplied by yet another template parameter \texttt{<sum>} and exits 1 if they differed.
+The checker thread given in Listing \ref{lst:count:checker} then compares the shared counter at address 0 to the expected value $m * n$ supplied by yet another template parameter \texttt{<sum>} and exits 1 if they differed.
 % \begin{minipage}[t]{0.45\textwidth}
 % \vspace{0pt}
 \begin{lstlisting}[style=asm, caption={Checker template.}, label={lst:count:checker}, mathescape, xleftmargin=0.39\textwidth]
@@ -453,7 +462,7 @@ and the checker thread's exit statements can be reached.
 We therefore have to find the longest possible trace through the program, it's worst-case execution time so to say.
 % For our buggy counter, the process is straight forward and can simply be determined by the number of steps required by each iteration of the counting loop \textsf{inc} (7 instructions + 2 flushes), adding the 2 instructions to reach the counting program's end and multiply the result by the number of participating threads.
 % TODO
-For our buggy counter, the process is straight forward and it can simply be determined by adding $n$ times the number of steps required by each iteration of the counting loop {\color{red!60!black}\textsf{inc}} (7 instructions + 2 flushes) to the 2 instructions left for completing the counter thread's execution.
+For our \CHANGE{faulty} counter, the process is \CHANGE{straightforward} and it can simply be determined by adding $n$ times the number of steps required by each iteration of the counting loop {\color{red!60!black}\textsf{inc}} (7 instructions + 2 flushes) to the 2 instructions left for completing the counter thread's execution.
 % All that's missing to get the bound is adding the 5 steps required by the checker thread and can be summarized using the following equation.
 The minimum required bound can now be computed by multiplying the result with the number of participating threads $m$ and adding the 5 steps needed by the checker thread, leading to the following equation.
 % To get the bound, we multiply the result by the number of participating threads $m
@@ -495,10 +504,10 @@ For example, $m = n = 2$ would require a bound of $2 * (9 * 2 + 2) + 5 = 45$.
   {figures/count-buggy-encoder.csv}
   {m n}
   {\CountRowHeader}
-  {Buggy counter encoding times in milliseconds and formula sizes as the number of expressions for increasing values of $m$ and $n$.}
+  {\CHANGE{Faulty} counter encoding times in milliseconds and formula sizes \CHANGE{in terms of} the number of expressions for increasing values of $m$ and $n$.}
   {tbl:count:buggy:encoder}
 
-Table \ref{tbl:count:buggy:encoder} shows the bounds and encoder statistics of our buggy counter experiments.
+Table \ref{tbl:count:buggy:encoder} shows the bounds and encoder statistics of our \CHANGE{faulty} counter experiments.
 While encoder runtimes are rather negligible, Figure \ref{fig:count:buggy:encoder} again highlights the dramatic difference in size between {\BTOR} and {\SMTLIB} encoding variants for increasing values of $m$ and $n$. %, with the required bound being the main driving factor. % for the generated formula's size.
 % The formula sizes, visualized in Figure \ref{fig:count:buggy:encoder}
 % While the size of both {\SMTLIB} encodings increases linearly for fixed values of $m$ or $n$. % the {\BTOR} variant  independece from $n$
@@ -522,16 +531,16 @@ The off-by-one differences in the size of the {\BTOR} encodings for an equal num
 \EncoderStatsGraph
   {figures/count-buggy-encoder.csv}
   {north west}
-  {Buggy counter formula sizes as the number of expressions for increasing values of $m$ and $n$.}
+  {\CHANGE{Faulty} counter formula sizes \CHANGE{in terms of} the number of expressions for increasing values of $m$ and $n$.}
   {fig:count:buggy:encoder}
 
 % Table \ref{tbl:count:buggy:solver} shows the runtime required to find a model to the specific problem and are visualized in Figure \ref{fig:count:buggy:solver}.
 % Table \ref{tbl:count:buggy:solver} shows the time it took any of the supported solvers to find an erroneous trace, which again required the use of a logarithmic scale for getting a meaningful visual representation in Figure \ref{fig:count:buggy:solver}.
-The time it took the supported solvers to find faulty traces for our buggy counter experiments are listed in Table \ref{tbl:count:buggy:solver} and visualized in Figure \ref{fig:count:buggy:solver}.
+The time it took the supported solvers to find faulty traces for our \CHANGE{faulty} counter experiments are listed in Table \ref{tbl:count:buggy:solver} and visualized in Figure \ref{fig:count:buggy:solver}.
 Only BtorMC, Boolector using the functional and Z3 using the relational next state logic were able to find a solution for all experiments.
 % BtorMC and Boolector turned out to be on top with little difference between the two.
 Surprisingly, Z3 in combination with the functional next state logic performed much worse than expected and was just able to solve as many instances as Boolector using the relational variant.
-CVC4 however could not even solve a single instance within the given time and memory limits.
+CVC4 however could not even solve a single instance within the given time and memory limits, \CHANGE{again most likely due to the SAT solver used}.
 
 \bigbreak
 
@@ -539,7 +548,7 @@ CVC4 however could not even solve a single instance within the given time and me
   {figures/count-buggy-solver.csv}
   {m n}
   {\CountRowHeader}
-  {Buggy counter solving times in seconds for increasing values of $m$ and $n$.}
+  {\CHANGE{Faulty} counter solving times in seconds for increasing values of $m$ and $n$.}
   {tbl:count:buggy:solver}
 
 \newpage
@@ -547,7 +556,7 @@ CVC4 however could not even solve a single instance within the given time and me
 \SolverStatsGraph
   {figures/count-buggy-solver.csv}
   {south east}
-  {Buggy counter solving times in seconds for increasing values of $m$ and $n$.}
+  {\CHANGE{Faulty} counter solving times in seconds for increasing values of $m$ and $n$.}
   {fig:count:buggy:solver}
 
 % \subsubsection*{CAS}
@@ -555,14 +564,14 @@ CVC4 however could not even solve a single instance within the given time and me
 % Finally, we also experimented with a consistent version of the previous concurrent counter example to evaluate the solvers behaviour on unsatisfiable instances. % of our proposed encoding.
 % Listing \ref{lst:count:cas} shows the updated counter thread, now resorting to \emph{compare and swap} for writing the shared counter variable.
 % After loading and memorizing the current counter value with \lstinline[style=asm]{MEM},
-Finally, we also experimented with a consistent version of the previous concurrent counter example, given in Listing \ref{lst:count:cas}, which resorts to \emph{compare and swap} for writing the shared variable in a predictable manner.
+Finally, we also experimented with a \CHANGE{valid} version of the previous concurrent counter example, given in Listing \ref{lst:count:cas}, which resorts to \CHANGE{\emph{compare-and-swap}} for writing \CHANGE{a} shared variable in a predictable manner.
 % Finally, we also experimented with a consistent version of the previous concurrent counter example, which is given in Listing \ref{lst:count:cas} and resorts to \emph{compare and swap} for writing the shared variable in a predictable manner.
 % After reading and memorizing the counter's current value for a latter application of \lstinline[style=asm]{CAS} using \lstinline[style=asm]{MEM},
 Instead of simply reading the shared counter's value, we now use \lstinline[style=asm]{MEM} to additionally memorize it for the latter application of \lstinline[style=asm]{CAS}.
 % The initial \lstinline[style=asm]{LOAD 0}, responsible for reading the shared counter, is replaced by \lstinline[style=asm]{MEM 0} to additionally memorize it for the latter application of \lstinline[style=asm]{CAS}.
 % Since \lstinline[style=asm]{CAS} might fail due to an intermediate alteration of the shared counter variable by another thread, it must be embedded in a nested loop {\color{red!60!black}\textsf{cas}}, repeating the increment until it succeeds to prevent an erroneous decrement of the thread's local counter variable and ensure consistency.
 % to prevent a subsequent decrement of the thread's local counter by repeating the increment until it succeeds.
-Since \lstinline[style=asm]{CAS} might fail due to an intermediate alteration of the shared counter variable by another thread, we must prevent an erroneous subsequent decrement of the thread's local counter variable by embedding it in a nested loop {\color{red!60!black}\textsf{cas}}
+Since \lstinline[style=asm]{CAS} might fail due to an intermediate alteration of the shared counter variable by another thread, we must prevent an erroneous subsequent decrement of the thread's local counter variable by embedding it in a nested loop (\CHANGE{labelled} {\color{red!60!black}\textsf{cas}})
 and repeat the increment until it succeeds. % to ensure consistency.
 % , repeating the increment until it succeeds. % to ensure consistency.
 % The rest of the counter program remains the same and
@@ -572,7 +581,7 @@ Everything else remains the same, including the checker thread.
 
 % \begin{lstlisting}[style=asm,caption={Consistent counter template, using {\lstinline[style=asm]{CAS}}.},mathescape,xleftmargin=0.39\textwidth]
 \begin{minipage}{\textwidth}
-\begin{lstlisting}[style=asm, caption={Consistent counter template.}, label={lst:count:cas}, mathescape, xleftmargin=0.39\textwidth]
+\begin{lstlisting}[style=asm, caption={\CHANGE{Valid} counter template.}, label={lst:count:cas}, mathescape, xleftmargin=0.39\textwidth]
 inc: MEM 0  $\tikzmark{cas-start}$      $\tikzmark{inc-start}$
 ADDI 1
 CAS 0
@@ -651,7 +660,7 @@ one notices that the maximum number of {\color{red!60!black}\textsf{cas}} iterat
 \end{center}
 % \end{table}
 % Counting to three may require the execution of up to six \lstinline[style=asm]{CAS} instructions.
-Since increasing the local increments $n$ has a directly proportional influence on the number of {\color{red!60!black}\textsf{cas}} iterations, we just need to multiply the previously identified \emph{triangular number} by $n$ to get the maximum: $n * m * \frac{m + 1}{2}$.
+Since increasing the local increments $n$ \CHANGE{directly influences} the number of {\color{red!60!black}\textsf{cas}} iterations, we just need to multiply the previously identified \emph{triangular number} by $n$ to get the maximum: $n * m * \frac{m + 1}{2}$.
 % Now, if we add the number of steps required by each iteration of the {\color{red!60!black}\textsf{cas}} loop to $n$ times
 % Now, if we multiply this number with the length of the
 % If we now consider the number of steps required by each iteration of the {\color{red!60!black}\textsf{cas}} loop (4), the ones left to complete the counting loop {\color{red!60!black}\textsf{inc}} (5) and the remaining 2 instructions to complete the counter thread's execution, as well as the checker thread (5), the final bound can be computed by the following expression.
@@ -661,11 +670,11 @@ the final bound can be computed by the following equation.
   m * (4 * n * m * \frac{m + 1}{2} + 5 * n + 2) + 5
 \]
 % For example, $m = n = 2$ would in this case already require a bound of $(4 * 2 * 2 * \frac{2 + 1}{2} + 5 * 2 + 2) * 2 + 5 = 77$.
-For example, the consistent counter experiment for $m = n = 2$ already requires a bound of $(4 * 2 * 2 * \frac{2 + 1}{2} + 5 * 2 + 2) * 2 + 5 = 77$.
+For example, the \CHANGE{valid} counter experiment for $m = n = 2$ already requires a bound of $(4 * 2 * 2 * \frac{2 + 1}{2} + 5 * 2 + 2) * 2 + 5 = 77$.
 
 \newpage
 
-Bounds and encoder statistics for our consistent counter experiments are given in Table \ref{tbl:count:cas:encoder} and formula sizes visualized in Figure \ref{fig:count:cas:encoder}.
+Bounds and encoder statistics for our \CHANGE{valid} counter experiments are given in Table \ref{tbl:count:cas:encoder} and formula sizes visualized in Figure \ref{fig:count:cas:encoder}.
 % Again, the sizes of {\BTOR} formulas are just a fraction of
 % The formula sizes of our {\SMTLIB} variants, visualized in Figure \ref{fig:count:cas:encoder},
 % Even though the consistent version just adds a single instruction to the counter thread's program, the larger bound required by the nested loop causes a quite large blowup in the resulting formulas sizes of {\SMTLIB} variants.
@@ -680,13 +689,13 @@ Naturally, encoder runtimes are also affected, but remain acceptable as all expe
   {figures/count-cas-encoder.csv}
   {m n}
   {\CountRowHeader}
-  {Consistent counter encoding times in milliseconds and formula sizes as the number of expressions for increasing values of $m$ and $n$.}
+  {\CHANGE{Valid} counter encoding times in milliseconds and formula sizes \CHANGE{in terms of} the number of expressions for increasing values of $m$ and $n$.}
   {tbl:count:cas:encoder}
 
 \EncoderStatsGraph
   {figures/count-cas-encoder.csv}
   {north west}
-  {Consistent counter formula sizes as the number of expressions for increasing values of $m$ and $n$.}
+  {\CHANGE{Valid} counter formula sizes \CHANGE{in terms of} the number of expressions for increasing values of $m$ and $n$.}
   {fig:count:cas:encoder}
 
 \newpage
@@ -695,10 +704,12 @@ Solving times of this experiment's unsatisfiable runs are shown in Table \ref{tb
 % 7 out of 63
 Unfortunately, only 3 out of 9 experiments could be solved by BtorMC and Boolector within the given time and memory limits.
 This puts the practicability of our approach in question, since further increasing the program size, number of threads and bound required by even the tiniest real world example
-would generate problem instances which most probably won't be solvable in a reasonable amount of time.
+would generate problem instances which most \CHANGE{likely} won't be solvable in a reasonable amount of time,
 % won't be solvable in a reasonable amount of time
 % and maybe even surpass the user's life expectancy.
-A verification routine that possibly requires more time to complete than it's user's life expectancy surely won't increase software quality, not even in the long run.
+% A verification routine that possibly requires more time to complete than it's user's life expectancy surely won't increase software quality, not even in the long run.
+\CHANGE{possibly due to symmetric execution parts.}
+\CHANGE{Thus, these examples probably meet some kind of symmetry reduction or use a form of partial order reduction.}
 
 \vfill
 
@@ -706,11 +717,11 @@ A verification routine that possibly requires more time to complete than it's us
   {figures/count-cas-solver.csv}
   {m n}
   {\CountRowHeader}
-  {Consistent counter solving times in seconds for increasing values of $m$ and $n$.}
+  {\CHANGE{Valid} counter solving times in seconds for increasing values of $m$ and $n$.}
   {tbl:count:cas:solver}
 
 \SolverStatsGraph
   {figures/count-cas-solver.csv}
   {south east}
-  {Consistent counter solving times in seconds for increasing values of $m$ and $n$.}
+  {\CHANGE{Valid} counter solving times in seconds for increasing values of $m$ and $n$.}
   {fig:count:cas:solver}
