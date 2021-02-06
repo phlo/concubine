@@ -166,10 +166,16 @@
 % commands
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% changes
+\newcommand{\CHANGE}[1]{{\color{red}#1}}
+
 % language names
 \newcommand{\CPP}{C\texttt{++}17}
 \newcommand{\SMTLIB}{SMT-LIB}
 \newcommand{\BTOR}{\textsc{Btor2}}
+
+% bound
+\newcommand{\BOUND}{\mathcal{K}}
 
 % state variables
 \newcommand{\HEAP}{\texttt{heap}}
@@ -178,9 +184,9 @@
 
 \newcommand{\ACCU}{\texttt{accu}}
 \newcommand{\MEM}{\texttt{mem}}
-\newcommand{\SBADR}{\texttt{adr}}
-\newcommand{\SBVAL}{\texttt{val}}
-\newcommand{\SBFULL}{\texttt{full}}
+\newcommand{\SBADR}{\CHANGE{\texttt{adr}}}
+\newcommand{\SBVAL}{\CHANGE{\texttt{val}}}
+\newcommand{\SBFULL}{\CHANGE{\texttt{full}}}
 \newcommand{\STMT}{\texttt{stmt}}
 \newcommand{\BLOCK}{\texttt{block}}
 \newcommand{\HALT}{\texttt{halt}}
@@ -211,9 +217,6 @@
 % \newcommand{\todonote}[1]{
   % $^{\color{red}#1}$
 % }
-
-% changes
-\newcommand{\CHANGE}[1]{{\color{red}#1}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % document

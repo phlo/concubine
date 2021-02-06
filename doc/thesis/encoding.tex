@@ -5,11 +5,11 @@ The main part of this work is implemented in the \texttt{solve} \CHANGE{mode},
 % allowing bounded model checking of concurrent assembly programs based on register states in our abstract machine model.
 % performing bounded model checking of concurrent software running on our abstract machine model.
 allowing verification of concurrent software running on our abstract machine model by the means of bounded model checking \cite{ref:BMC}.
-It takes an arbitrary number of programs plus the upper bound as input and encodes them into a finite state machine, expressed as a SMT formula where each transition translates to the execution of a single thread.
+It takes an arbitrary number of programs plus the upper bound \CHANGE{$\BOUND$} as input and encodes them into a finite state machine, expressed as \CHANGE{an} SMT formula where each transition translates to the execution of a single thread.
 {\SMTLIB} \cite{ref:SMT-Lib} and the novel {\BTOR} \cite{ref:BTOR2} word level model checking format can be generated, using the theories of arrays, uninterpreted functions and bit-vectors.
-To simplify the definition of bad states directly in the program code, the possibility of encountering an exit code greater than zero is checked for per default, but custom properties may be defined in a separate file and added with the \texttt{-c} command line parameter.
-The resulting formula is then evaluated by a state-of-the-art solver.
-If it is satisfiable, the corresponding execution trace is extracted from the resulting model and stored for later inspection.
+To simplify the definition of bad states directly in the program code, the possibility of encountering an exit code greater than zero is checked for per default, but custom properties \CHANGE{may} be defined in a separate file and added with the \texttt{-c} command line parameter.
+The resulting formula is then evaluated by a state-of-the-art \CHANGE{SMT} solver.
+If it is satisfiable, the corresponding execution trace is extracted from \CHANGE{a generated} model and stored for later inspection.
 
 % \todo{intro
   % \begin{itemize}
@@ -27,7 +27,7 @@ If it is satisfiable, the corresponding execution trace is extracted from the re
 \subsection{Basic Encoding Scheme}
 
 Let $\BVSORT[n]$ be the fixed size bit-vector sort of width $n$ and $\ASORT[n]$ the array sort with index and element sorts $\BVSORT[n]$.
-The following variables are used to encode the machine state at a particular step $k \in [0, bound] \subset \mathbb{N}$, where $k = 0$ is the initial state.
+The following variables are used to encode the machine state at a particular step \CHANGE{$k \leq \BOUND$}, where $k = 0$ is the initial state.
 
 % \renewcommand{\arraystretch}{1.5}
 \setlength{\tabulinesep}{3pt}
@@ -63,7 +63,8 @@ Shared memory states are modelled using the array variables $\HEAP^k$ in combina
 % Its initial state $\HEAP^0$ may contain input data according to a given memory map, but is assumed to be uninitialized in general.
 Register states of a thread $t$ are determined by the bit-vector variables $\ACCU^k_t$, $\MEM^k_t$, $\SBADR^k_t$, $\SBVAL^k_t$ and the flag $\SBFULL^k_t$, signalling that the store buffer is full.
 %, which are all initially set to zero.
-To aid solvers by reducing the formulas complexity, program flow is modelled without an explicit problem counter.
+% To aid solvers by reducing the formulas complexity, program flow is modelled without an explicit \CHANGE{program counter ``(PC)''}.
+\CHANGE{To reduce the formula's complexity}, program flow is modelled without an explicit \CHANGE{program counter (``$pc$'')}.
 Instead, an activation flag $\STMT^k_{t, pc}$ is added for every statement in the program of thread $t$, expressing that it is about to execute the statement at $pc$.
 %To model the program flow without an explicit program counter, an activation flag $\STMT^k_{t, pc}$ is added for every statement in the program of thread $t$, expressing that it is about to execute the statement at $pc$.
 Blocking a thread $t$ while it is waiting for all other threads to reach a checkpoint $id$ is achieved by a flag $\BLOCK^k_t$.
@@ -79,7 +80,7 @@ All states are initially set to zero, except the initial statement activation fl
 \bigskip
 
 % Constraints for valid machine state transitions of the form $s_k \to^k s_{k + 1}$ are governed by the following variables.
-Machine state transitions of the form $s_k \to^k s_{k + 1}$ are governed by the following free variables.
+Machine state transitions of the form $s_k \to^k s_{k + 1}$ are \CHANGE{encoded} by the following free variables.
 % Machine state transitions of the form $s_k \to^k s_{k + 1}$ are governed by the free variables given in Table \ref{tbl:encoding:transitions}.
 % Transitions $s_k \to^k s_{k + 1}$ of a state $s_k$ are governed by the following free variables and are allowed to be chosen non-deterministically.
 
@@ -93,7 +94,7 @@ Machine state transitions of the form $s_k \to^k s_{k + 1}$ are governed by the 
 \end{longtabu}
 
 % \todo[inline]{helper variables}
-To simplify the definition of successor states, the following helper variables capture frequently used terms.
+To simplify the definition of successor states, the following helper variables capture frequently used \CHANGE{conditions}.
 % The following helper variables are introduced to simplify the latter definition of state transitions by capturing frequently used terms.
 
 \begin{longtabu}{llX}
@@ -113,8 +114,9 @@ is defined as a conjunction of the corresponding statement and thread activation
   \EXEC^k_{t, pc} = \STMT^k_{t, pc} \land \THREAD^k_t
 \]
 
-Furthermore, we use $\CHECK^k_{id}$ to signal that all threads containing a call to checkpoint $id$, given in the set $C_{id}$, have synchronized.% and the corresponding $\BLOCK^k_{id, t}$ flags set.
-\todo[noline]{$C_{id}$ ok?}
+\bigskip
+
+Furthermore, we use $\CHECK^k_{id}$ to signal that all threads containing a call to checkpoint $id$ \CHANGE{(given in the set $C_{id} = \{ \, t \mid t \text{ contains \lstinline[style=asm]{CHECK} } id \, \}$)} have synchronized.% and the corresponding $\BLOCK^k_{id, t}$ flags set.
 % from a set $C_{id}$ of threads containing a call to checkpoint $id$
 \[
   \CHECK^k_{id} = \bigwedge_{t \in C_{id}} \BLOCK^k_{id, t}
@@ -130,7 +132,7 @@ Furthermore, we use $\CHECK^k_{id}$ to signal that all threads containing a call
 \newcommand{\ITEindent}{\;\;\;\;\;\;\;}
 
 % Non-deterministic scheduling of a single thread per step is realized by a boolean cardinality constraint over all $\THREAD^k_t$ and $\FLUSH^k_t$ variables for a number of threads $n$.
-Non-deterministic scheduling of at most one thread per step is realized by a boolean cardinality constraint over all transition variables and the exit flag $\EXIT^k$ to ensure satisfiability if the machine terminates in a step $k < bound$.
+Non-deterministic scheduling of at most one thread per step is realized by a boolean cardinality constraint over all transition variables and the exit flag $\EXIT^k$ to ensure satisfiability if the machine terminates in a step \CHANGE{$k < \BOUND$}.
 Let $\CardLt$ be a predicate expressing that at most one out of $n$ variables is allowed to be true.
 % The na\"{i}ve way of defining $\leq^1_n(x_1, \ldots, x_n)$ is by explicitly excluding all combinations of two variables being simultaneously true.
 The intuitive way of encoding $\CardLt$ is by excluding all combinations of two variables being simultaneously true.
@@ -138,7 +140,7 @@ The intuitive way of encoding $\CardLt$ is by excluding all combinations of two 
 \[
   \bigwedge_{1 \leq i < j \leq n} (\neg x_i \lor \neg x_j)
 \]
-This na\"ive approach, however, consists of $\binom{n}{2}$ Horn clauses.
+This na\"ive approach, however, consists of $\binom{n}{2}$ \CHANGE{binary} clauses.
 % While this na\"ive approach consists of $\binom{n}{2}$ Horn clauses, a more compact formulation, based on a sequential counter circuit, is presented as $\text{LT}^{n, 1}_{\text{SEQ}}$ in \cite{ref:Sinz}.
 A more compact formulation, based on a sequential counter circuit computing partial sums $s_i = \sum^i_{j = 1} x_j$ for increasing values of $i$ up to the final $i = n$, is presented as $\CardLtSeq$ in \cite{ref:Sinz} and defined as follows.
 % It only requires $3n - 4$ clauses in contrast to the na\"ive approach
@@ -166,8 +168,8 @@ Since we have to include two times the number of threads plus one variables in t
     % \end{cases}
 % \]
 % \todo[inline]{exactly one constraint}
-An at most one constraint alone is not sufficient, as we need exactly one transition variable or the exit flag to be true in every step, such that our generated formula is not trivially satisfiable by never scheduling a single thread.
-\todo[noline]{stuttering?}
+An at most one constraint alone is not sufficient, as we need exactly one transition variable or the exit flag to be true in every step.
+\CHANGE{This is because} our generated formula \CHANGE{should} not \CHANGE{be} trivially satisfiable by never scheduling a single thread.
 Thus, we define the exactly one constraint predicate $=^1_n\!(x_1, \ldots, x_n)$ by simply adding a disjunction over all variables.% to $\CardLt$.
 % The required exactly one constraint predicate $=^1_n(x_1, \ldots, x_n)$ as a conjunction of $\leq^1_n(x_1, \ldots, x_n)$ with a disjunction over all variables
 % Let $=^1_n(x_1, \ldots, x_n)$ therefore be an exactly one constraint predicate.
@@ -195,9 +197,9 @@ This cardinality constraint is further influenced by explicitly disabling transi
 % \todo[inline]{store buffer constraints}
 % Blocking a thread $t$ not performing a store operation.
 % Flushing an empty store buffer of a thread $t$, not containing any barrier \todo{atomic?} operation, can be prevented by a simple implication.
-Flushing an empty store buffer of a thread $t$ can be prevented by a simple implication.
+Flushing an empty store buffer of a thread $t$ can be prevented by a simple \CHANGE{relational constraint}.
 \[
-  \lnot \SBFULL^k_t \implies \lnot \FLUSH^k_t
+  \FLUSH^k_t \implies \SBFULL^k_t
 \]
 % If thread $t$ contains a write together with a barrier operation, execution of the latter has to be restricted while the store is full.
 In case thread $t$ containing a write, execution of any barrier operation has to be delayed while the store buffer is full.
@@ -219,12 +221,12 @@ and $\ITE: \BVSORT[1] \times \BVSORT[n] \times \BVSORT[n] \to \BVSORT[n]$ be a f
 % Set of statements requiring an empty store buffer $F_t$.
 Since both store buffer related constraints mainly depend on mutually exclusive values of $\SBFULL^k_t$, we are able to encode them in a single expression.
 \[
-  \ITE(\SBFULL^k_t, \bigvee_{pc \in F_t} \STMT^k_{t, pc} \implies \lnot \THREAD^k_t, \lnot \FLUSH^k_t)
+  \ITE(\SBFULL^k_t, ( \bigvee_{pc \in F_t} \STMT^k_{t, pc} \implies \lnot \THREAD^k_t \,), \lnot \FLUSH^k_t)
 \]
 % \todo[inline]{checkpoint constraints}
 % Blocking a thread $t$, while it is waiting for all other threads reaching a checkpoint $id$ is expressed by a conjunction of the corresponding block flag $\BLOCK^k_{id, t}$ and helper variable $\CHECK^k_{id}$ implying a negated thread activation $\THREAD^k_t$.
 Blocking a thread $t$, while it is waiting for all other threads reaching a checkpoint $id$ is implied by a conjunction of the corresponding block flag $\BLOCK^k_{id, t}$ and synchronization variable $\CHECK^k_{id}$.
-\todo[noline]{unsat if deadlock by CHECK}
+% \todo[noline]{unsat if deadlock by CHECK}
 \[
   \BLOCK^k_{id, t} \land \lnot \CHECK^k_{id} \implies \lnot \THREAD^k_t
 \]
@@ -236,6 +238,51 @@ Finally, if a thread $t$ has halted, it must also be stopped from being schedule
   \HALT^k_t \implies \lnot \THREAD^k_t
 \]
 
+\CHANGE{
+% If any of these conditions are violated, this does not correspond to a valid execution.
+The purpose of this conditions is to restrict transitions which do not correspond to a valid execution.
+% Since these constraints are defined relationally, special care must be taken such that they do not result in an unsatisfiable formula due to a violation of the primary cardinality constraint.
+Since these constraints are defined relationally, special care must be taken in order to prevent a violation of the cardinality constraint, causing the formula to be unsatisfiable if all included variables are falsified simultaneously.
+% Considering the previously defined constraints, the only way this situation might occur is if every thread's store buffer is empty ($\lnot \SBFULL^k_t \implies \lnot \FLUSH^k_t$) and
+% all threads that are still running have their block flags enabled in case all are waiting for different checkpoint,
+% all running threads are waiting for a different checkpoint, causing a \emph{deadlock} i
+% at least a single thread $t$ is still running in step $k$ ($\lnot \HALT^k_t \implies \lnot \EXIT^k$).
+Considering the previously defined constraints, the only way this situation might occur is if a \emph{deadlock} is introduced by an unfortunate interleaving of different \lstinline[style=asm]{CHECK} instructions, resulting in each thread waiting for another.
+% This problem, common for all synchronization primitives, leads to alternating block flags $\BLOCK^k_{t, id}$ being set, violating the conditions of corresponding synchronization variables $\CHECK^k_{id}$ and thread activation variables $\THREAD^k_t$ blocked by the associated constraint.
+% In this case, alternating block flags $\BLOCK^k_{id, t}$ are enabled, falsifying the corresponding synchronization variables $\CHECK^k_{id}$ and every running thread's activation $\THREAD^k_t$ being explicitly disabled by the relevant checkpoint constraint.
+% This leads to alternate block flags $\BLOCK^k_{id, t}$ being enabled, making it impossible to fulfill the condition of corresponding synchronization variables $\CHECK^k_{id, t}$.
+% preventing the condition of corresponding synchronization variables $\CHECK^k_{id}$
+% In this case, $\EXIT^k$ will be \emph{false} and since all running threads are prevented from being scheduled by having their activation variables $\THREAD^k_t$ disabled through each individual block state $\BLOCK^k_{t, id}$ being enabled, while none of the corresponding sync
+% Let $T$ be the set of threads involved and $C$ the set of checkpoint IDs, then the condition (state) causing the formula to be unsatisfiable can be summarized as follows.
+% In this case, let $T$ be the set of threads involved and $C$ the set of checkpoint IDs, then the condition causing
+% the scheduling constraints to be violated
+% the formula to be unsatisfiable
+Let $T$ be the set of threads involved and $C$ the set of checkpoint IDs, then the condition causing unsatisfiability can be summarized as follows.
+% \[
+  % \exists \, k \leq \BOUND, \forall \, t \in T \,[\, \lnot \SBFULL^k_t \land \lnot \HALT^k_t \land \exists \, id \in C \,[\, \BLOCK^k_{id, t} \land \lnot \CHECK^k_{id} \,]]
+% \]
+% \[
+  % \exists \, k \leq \BOUND : \lnot \EXIT^k \land \forall \, t \in T : \lnot \SBFULL^k_t \land \lnot \HALT^k_t \land \exists \, id \in C : \BLOCK^k_{id, t} \land \lnot \CHECK^k_{id}
+% \]
+% \begin{align*}
+  % & \lnot \EXIT^k \\
+  % & \land \exists \, k \leq \BOUND : \forall \, t \in T : \lnot \SBFULL^k_t \land \lnot \HALT^k_t \\
+  % & \land \exists \, id \in C : \BLOCK^k_{id, t} \land \lnot \CHECK^k_{id}
+% \end{align*}
+\begin{equation*}
+  \begin{gathered}
+  \exists \, k \leq \BOUND : \lnot \EXIT^k \\
+  \land \\
+  \forall \, t \in T : \lnot \SBFULL^k_t \land \lnot \HALT^k_t \\
+  \land \\
+  \exists \, id \in C : \BLOCK^k_{id, t} \land \lnot \CHECK^k_{id}
+  \end{gathered}
+\end{equation*}
+% \[
+  % \lnot \SBFULL^k_t \land \lnot \HALT^k_t \land \BLOCK^k_{id, t} \land \lnot \CHECK^k_{id} \implies \lnot \EXIT^k \land \lnot \FLUSH^k_t \land \lnot \THREAD^k_t
+% \]
+}
+
 \subsubsection*{Memory Access}
 
 % \newcommand{\READ}{\texttt{read}}
@@ -243,13 +290,13 @@ Finally, if a thread $t$ has halted, it must also be stopped from being schedule
 
 % Let $\READ^k: \BVSORT \to \BVSORT$ be a function, returning a given element from array $\HEAP^k$.
 % Due to store forwarding in combination with indirect addressing, memory access can not be expressed by simple array lookups, but turns out to be the most complicated part in our encoding scheme.
-Due store forwarding, memory access can not be expressed as simple array lookups, but is encoded by a separate function $\LOAD^k_t: \BVSORT \to \BVSORT$ for loading the shared memory element at address $adr \in \BVSORT$ with store forwarding from thread $t$. % and indirect addressing signalled by $indirect \in \BVSORT[1]$, being defined as follows.
+Due store forwarding, memory access can not be expressed as simple array lookup, but is encoded by a separate function $\LOAD^k_t: \BVSORT \to \BVSORT$ for loading the shared memory element at address $adr \in \BVSORT$ with store forwarding from thread $t$. % and indirect addressing signalled by $indirect \in \BVSORT[1]$, being defined as follows.
 \begin{align*}
   \LOAD^k_t(adr) = \ITE(& \SBFULL^k_t \land \SBADR^k_t = adr, \\
   & \SBVAL^k_t, \\
   & \READ^k(adr))
 \end{align*}
-In case of indirect addressing, $\LOAD^k_t$ is redefined as a single expression instead of a composition with itself to prevent dependency on certain features of the target language or the use of additional auxiliary variables.
+In case of indirect addressing, $\LOAD^k_t$ is redefined to prevent dependency on certain features of the target language or the use of additional auxiliary variables.
 % \todo[noline]{repeated, iterative, recursive?}
 \begin{align}
   \LOAD^k_t(adr) = \ITE(& \SBFULL^k_t, \label{def:load:1} \\
@@ -326,6 +373,7 @@ might be contained (\ref{def:load:7}), or nothing can be forwarded after all (\r
 % \paragraph{Store Forwarding:} $\sbfull \; \land \; \sbadr = adr \land \accu = \sbval \lor \lnot (\sbfull \land \sbadr = adr)$
 
 % \bigskip
+
 \subsubsection*{Frame Axioms}
 
 \newcommand{\TRUE}{\textit{true}}
@@ -334,7 +382,6 @@ might be contained (\ref{def:load:7}), or nothing can be forwarded after all (\r
 \newcommand{\EFFECTIVE}{\texttt{effective}}
 \newcommand{\MSB}{\texttt{msb}}
 
-\todo[noline]{Successor State Axioms?}\noindent
 % The effect of a particular operation, determined by the transition variables $\FLUSH^k_t$ and $\EXEC^k_{t, pc}$
 % The effect of a thread $t$ flushing its store buffer or executing the instruction at $pc$ in step $k$
 Successor states of transitions for all possible types of operations, determined by $\FLUSH^k_t$ and $\EXEC^k_{t, pc}$, are defined by the frame axioms in the table below.
@@ -346,6 +393,7 @@ All state variables, not explicitly altered are assumed to be unchanged in the n
 To further simplify the definition of axioms, two additional functions are introduced:
 % Let $\EFFECTIVE^k: \BVSORT \to \BVSORT$ be a function for transparently selecting the effective address during $\texttt{STORE}$ or $\texttt{CAS}$ instructions.
 $\MSB: \BVSORT \to \BVSORT[1]$ for retrieving the most significant bit of a given bit-vector and $\EFFECTIVE^k: \BVSORT \to \BVSORT$ for transparently selecting the effective address during \lstASM{STORE} or \lstASM{CAS} instructions.
+\vspace{-0.1cm}
 \[
   \EFFECTIVE^k(adr) =
   \begin{cases}
@@ -460,7 +508,6 @@ $\MSB: \BVSORT \to \BVSORT[1]$ for retrieving the most significant bit of a give
     % \hspace{1.5cm}
     % \text{otherwise}
   % \end{cases}$
-
   $\begin{aligned}
     \ITE(& \MEM^k_t = \READ^k(\EFFECTIVE^k(\texttt{arg})), \\
     & \WRITE^k(\EFFECTIVE^k(\texttt{arg}), \ACCU^k_t), \\
@@ -489,14 +536,12 @@ $\MSB: \BVSORT \to \BVSORT[1]$ for retrieving the most significant bit of a give
     % \hspace{1.5cm}
     % \text{otherwise}
   % \end{cases}$
-
-  $\begin{aligned}
-    \ITE(& \MEM^k_t = \READ^k(\EFFECTIVE^k(\texttt{arg})), \\
-    & 1, \\
-    & 0)
-  \end{aligned}$
-
-  % $\ITE(\MEM^k_t = \READ^k(\EFFECTIVE^k(\texttt{arg})), 1, 0)$
+  % $\begin{aligned}
+    % \ITE(& \MEM^k_t = \READ^k(\EFFECTIVE^k(\texttt{arg})), \\
+    % & 1, \\
+    % & 0)
+  % \end{aligned}$
+  $\ITE(\MEM^k_t = \READ^k(\EFFECTIVE^k(\texttt{arg})), 1, 0)$
 }
 
 % \begin{longtabu}{llX[m]}
@@ -578,6 +623,8 @@ $\MSB: \BVSORT \to \BVSORT[1]$ for retrieving the most significant bit of a give
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
+  \newpage
+  \hline
   \multirow{3.05}{*}{\lstASM{SUB arg}}
     & $\ACCU^{k + 1}_t$           & $= \ACCU^k_t - \LOAD^k_t(\texttt{arg})$ \\
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
@@ -593,8 +640,6 @@ $\MSB: \BVSORT \to \BVSORT[1]$ for retrieving the most significant bit of a give
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
-  \newpage
-  \hline
   \multirow{3.05}{*}{\lstASM{MULI arg}}
     & $\ACCU^{k + 1}_t$           & $= \ACCU^k_t * \texttt{arg}$ \\
     & $\STMT^{k + 1}_{t, pc}$     & $= \FALSE$ \\
@@ -606,33 +651,35 @@ $\MSB: \BVSORT \to \BVSORT[1]$ for retrieving the most significant bit of a give
     & $\STMT^{k + 1}_{t, pc + 1}$ & $= \TRUE$ \\
   \hline
   \multirow{2}{*}{\lstASM{JMP arg}}
-    & $\STMT^{k + 1}_{t, pc}$           & $= \FALSE$ \\
-    & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \TRUE$ \\
+    & $\STMT^{k + 1}_{t, pc}$           & $= \CHANGE{\ITE(pc \neq arg, \FALSE, \TRUE)}$ \\
+    & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \CHANGE{\ITE(pc \neq arg, \TRUE, \FALSE)}$ \\
   \hline
   \multirow{3}{*}{\lstASM{JZ arg}}
-    & $\STMT^{k + 1}_{t, pc}$           & $= \FALSE$ \\
+    & $\STMT^{k + 1}_{t, pc}$           & $= \CHANGE{\ITE(pc \neq arg, \FALSE, \lnot \ACCU^k_t)}$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$       & $= \ACCU^k_t$ \\
     & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \lnot \ACCU^k_t$ \\
   \hline
   \multirow{3}{*}{\lstASM{JNZ arg}}
-    & $\STMT^{k + 1}_{t, pc}$           & $= \FALSE$ \\
+    & $\STMT^{k + 1}_{t, pc}$           & $= \CHANGE{\ITE(pc \neq arg, \FALSE, \ACCU^k_t)}$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$       & $= \lnot \ACCU^k_t$ \\
     & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \ACCU^k_t$ \\
   \hline
   \multirow{3}{*}{\lstASM{JS arg}}
-    & $\STMT^{k + 1}_{t, pc}$           & $= \FALSE$ \\
+    & $\STMT^{k + 1}_{t, pc}$           & $= \CHANGE{\ITE(pc \neq arg, \FALSE, \MSB(\ACCU^k_t))}$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$       & $= \lnot \MSB(\ACCU^k_t)$ \\
     & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \MSB(\ACCU^k_t)$ \\
   \hline
+  \newpage
+  \hline
   \multirow{3}{*}{\lstASM{JNS arg}}
-    & $\STMT^{k + 1}_{t, pc}$           & $= \FALSE$ \\
+    & $\STMT^{k + 1}_{t, pc}$           & $= \CHANGE{\ITE(pc \neq arg, \FALSE, \lnot \MSB(\ACCU^k_t))}$ \\
     & $\STMT^{k + 1}_{t, pc + 1}$       & $= \MSB(\ACCU^k_t)$ \\
     & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \lnot \MSB(\ACCU^k_t)$ \\
   \hline
   \multirow{3}{*}{\lstASM{JNZNS arg}}
-    & $\STMT^{k + 1}_{t, pc}$           & $= \FALSE$ \\
-    & $\STMT^{k + 1}_{t, pc + 1}$       & $= \lnot \ACCU^{k + 1}_t \lor \MSB(\ACCU^k_t)$ \\
-    & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \ACCU^{k + 1}_t \land \lnot \MSB(\ACCU^k_t)$ \\
+    & $\STMT^{k + 1}_{t, pc}$           & $= \CHANGE{\ITE(pc \neq arg, \FALSE, \ACCU^k_t \land \lnot \MSB(\ACCU^k_t))}$ \\
+    & $\STMT^{k + 1}_{t, pc + 1}$       & $= \lnot \ACCU^k_t \lor \MSB(\ACCU^k_t)$ \\
+    & $\STMT^{k + 1}_{t, \texttt{arg}}$ & $= \ACCU^k_t \land \lnot \MSB(\ACCU^k_t)$ \\
   \hline
   \multirow{4}{*}{\lstASM{MEM arg}}
     & $\ACCU^{k + 1}_t$           & $= \LOAD^k_t(\texttt{arg})$ \\

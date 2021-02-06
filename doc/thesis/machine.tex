@@ -188,7 +188,8 @@ Since the interpretation of a value's signedness is left to the programmer, we o
 {\lstASM{CAS arg}}
 {modify, read, atomic, barrier}
 {Atomically compares the expected value in $\MEM$ to the actual value found at address \texttt{arg} and only writes the value found in $\ACCU$ back to address \texttt{adr} if they are equal.
-Acts like a memory barrier.}
+Acts like a memory barrier.
+\todo{explain why non-blocking}}
 
 \subsubsection*{Termination}
 
