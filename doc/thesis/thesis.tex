@@ -43,7 +43,7 @@
   captionpos=b,
   abovecaptionskip=\bigskipamount,
   belowcaptionskip=\bigskipamount,
-  escapeinside=@@,
+  escapeinside=``,
   keepspaces=true,
   columns=fullflexible,
 }
@@ -116,7 +116,9 @@
     bvmul,
     store,
     select,
-    extract
+    extract,
+    push,
+    pop
   },
   morekeywords={[2]
     BitVec
@@ -251,6 +253,26 @@
 \newpage
 
 \input{encoding}
+
+\newpage
+
+\input{smtlib}
+
+\newpage
+
+\input{functional}
+
+\newpage
+
+\input{relational}
+
+\newpage
+
+\input{btor2}
+
+\newpage
+
+\input{replay}
 
 \newpage
 

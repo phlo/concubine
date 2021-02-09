@@ -389,15 +389,15 @@ Both were executed for any combination of $2 \leq m \leq 4$ threads and $2 \leq 
 % \begin{minipage}[b]{0.5\textwidth}
 % \vspace{0pt}
 % \begin{lstlisting}[style=asm, caption={Buggy counter template.}, label={lst:count:buggy}, mathescape, xleftmargin=0.39\textwidth]
-\begin{lstlisting}[style=asm, caption={\CHANGE{Faulty} counter template.}, label={lst:count:buggy}, escapeinside={(*}{*)}, xleftmargin=0.39\textwidth]
-inc: LOAD 0  (*\tikzmark{inc-start}*)
+\begin{lstlisting}[style=asm, caption={\CHANGE{Faulty} counter template.}, label={lst:count:buggy}, xleftmargin=0.39\textwidth]
+inc: LOAD 0  `\tikzmark{inc-start}`
 ADDI 1
 STORE 0
 LOAD <adr>
 SUBI 1
 STORE <adr>
-JNZ inc      (*\tikzmark{inc-end}*)
-CHECK 0      (*\AddNote{inc-start}{inc-end}{inc}*)
+JNZ inc      `\tikzmark{inc-end}`
+CHECK 0      `\AddNote{inc-start}{inc-end}{inc}`
 HALT
 \end{lstlisting}
 % \end{minipage}
@@ -581,15 +581,15 @@ Everything else remains the same, including the checker thread.
 
 % \begin{lstlisting}[style=asm,caption={Consistent counter template, using {\lstinline[style=asm]{CAS}}.},mathescape,xleftmargin=0.39\textwidth]
 \begin{minipage}{\textwidth}
-\begin{lstlisting}[style=asm, caption={\CHANGE{Valid} counter template.}, label={lst:count:cas}, mathescape, xleftmargin=0.39\textwidth]
-inc: MEM 0  $\tikzmark{cas-start}$      $\tikzmark{inc-start}$
+\begin{lstlisting}[style=asm, caption={\CHANGE{Valid} counter template.}, label={lst:count:cas}, xleftmargin=0.39\textwidth]
+inc: MEM 0  `\tikzmark{cas-start}`      `\tikzmark{inc-start}`
 ADDI 1
 CAS 0
-JZ inc      $\tikzmark{cas-end}$
+JZ inc      `\tikzmark{cas-end}`
 LOAD <adr>
 SUBI 1
 STORE <adr>
-JNZ inc                                 $\tikzmark{inc-end}$
+JNZ inc                                 `\tikzmark{inc-end}`
 CHECK 0
 HALT
 \end{lstlisting}
