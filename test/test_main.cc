@@ -521,16 +521,18 @@ TEST_F(Main, solve_encoder_btor2)
       "test/data/halt.asm"})
       .stdout.str();
 
-  ASSERT_EQ(expected.substr(0, actual.length()), actual);
+  const auto start = actual.find(";");
+  ASSERT_EQ(expected.substr(0, actual.length() - start), actual.substr(start));
 }
 
 TEST_F(Main, solve_encoder_smtlib_functional)
 {
-  ASSERT_EQ(
-    fs::read("test/data/halt.t2.k10.functional.smt2") +
-      eol + eol +
-      smtlib::check_sat() +
-      eol,
+  const auto expected =
+      fs::read("test/data/halt.t2.k10.functional.smt2")
+      + eol + eol
+      + smtlib::check_sat()
+      + eol;
+  const auto actual =
     shell::run({
       bin,
       solve,
@@ -542,16 +544,20 @@ TEST_F(Main, solve_encoder_smtlib_functional)
       "10",
       "test/data/halt.asm",
       "test/data/halt.asm"})
-      .stdout.str());
+      .stdout.str();
+
+  const auto start = actual.find("(");
+  ASSERT_EQ(expected.substr(0, actual.length() - start), actual.substr(start));
 }
 
 TEST_F(Main, solve_encoder_smtlib_relational)
 {
-  ASSERT_EQ(
-    fs::read("test/data/halt.t2.k10.relational.smt2") +
-      eol + eol +
-      smtlib::check_sat() +
-      eol,
+  const auto expected =
+      fs::read("test/data/halt.t2.k10.relational.smt2")
+      + eol + eol
+      + smtlib::check_sat()
+      + eol;
+  const auto actual =
     shell::run({
       bin,
       solve,
@@ -563,7 +569,10 @@ TEST_F(Main, solve_encoder_smtlib_relational)
       "10",
       "test/data/halt.asm",
       "test/data/halt.asm"})
-      .stdout.str());
+      .stdout.str();
+
+  const auto start = actual.find("(");
+  ASSERT_EQ(expected.substr(0, actual.length() - start), actual.substr(start));
 }
 
 TEST_F(Main, solve_encoder_missing)
