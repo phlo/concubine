@@ -24,7 +24,7 @@ based on implying the successors for each possible transition.
 % > flat encoding sought of being more suitable for combinatorial problems and small domains
 % > order of magnitude more time to solve compared to functional approach, resulting in a hierarchical structure | expression tree
 % > simplified by term rewriting during the solver's preprocessing stage
-Although this flat encoding scheme tends to work well with large combinatorial problems and small domains, it requires an order of magnitude more time to solve compared to our functional approach, which can be radically simplified by clever term rewriting due to its strictly hierarchical nature. %structure.
+Although this flat encoding scheme tends to work well with large combinatorial problems and small domains, \CHANGE{our experiments show that} it requires \CHANGE{considerably} more time to solve compared to our functional approach. %, which can be radically simplified by clever term rewriting due to its strictly hierarchical nature. %structure.
 
 % \todo[inline]{define states (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -80,7 +80,7 @@ R reset (R (*var) (uint k, uint x, T ... args),
 % Implying all states that might be influenced by executing a certain thread, leads to most of them being unchanged by any specific instruction.
 Implying a common set of states that might be influenced by executing a certain thread
 % leads to most of them being unchanged by any specific statement.
-results in most of them being unchanged by any specific statement.
+results in most of them \CHANGE{remaining} unchanged. % by any specific statement.
 % Implying a common set of states for each statement that might be executed by a certain thread
 % Since most states remain unchanged when executing a certain instruction, implying
 % >>>
@@ -240,9 +240,10 @@ virtual std::string Instruction::encode (uint t, uint k, uint pc) = 0;
 % \todo[inline]{encode LOAD (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \noindent
-By using the previously defined helper constructs, the actual implementations can be simplfified quite drastically and are given below. % of every instruction's encoding function
+By using the previously defined helper constructs, the actual implementations can be \CHANGE{simplified} quite drastically and % are given below. % of every instruction's encoding function
 % The actual implementations are given below and can be simplified quite drastically by using the previously defined helper constructs.
 % The actual implementations can be simplified quite drastically by using the previously defined helper constructs and are given below.
+\CHANGE{even though they therefore almost look the same, we include the full definitions for completeness.}
 
 \newpage
 
@@ -514,8 +515,9 @@ std::string Check::encode (uint t, uint k, uint pc)
 \end{lstlisting}
 
 \noindent
-Since the might be multiple checkpoints per thread, the encode function
-has to enable the corresponding blocking flag $\BLOCK^k_{id, t}$, while preserving or resetting any other.
+\CHANGE{Since a thread might wait for different checkpoints},
+% Since the might be multiple checkpoints per thread,
+the encode function has to enable the corresponding blocking flag $\BLOCK^k_{id, t}$ while preserving or resetting any other.
 
 % \todo[inline]{encode HALT (relational)} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

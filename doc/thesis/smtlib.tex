@@ -73,8 +73,6 @@ struct Instruction
 \subsection*{Globals}
 % \todo[inline]{gobal variables} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\newcommand{\ccASM}[1]{\texttt{\color{gray}#1}}
-
 % Inputs and utility variables are given as globals to keep things simple and function signatures as small as possible.
 Commonly used variables are given as globals to keep things simple and function signatures as small as possible.
 
@@ -211,24 +209,24 @@ Although they might seem a bit complex, we omit further details on how they are 
 % \item \CHANGE{A nested mapping, containing program counters of instructions modifying a particular state for every thread.}
 \begin{lstlisting}[style=c++]
 std::map<State, std::vector<std::vector<uint>>> updates = {
-  {State::accu, {{0, 2},    // `\color{gray}$\ACCU_0 \leftarrow$ ADDI 1, LOAD 0`
-                 {0, 2},    // `\color{gray}$\ACCU_1 \leftarrow$ ADDI 1, LOAD 1`
-                 {1, 2}}},  // `\color{gray}$\ACCU_2 \leftarrow$ ADD 0, ADD 1`
-  {State::adr,  {{1},       // `\color{gray}$\SBADR_0 \leftarrow$ STORE 0`
-                 {1},       // `\color{gray}$\SBADR_1 \leftarrow$ STORE 1`
-                 {}}},      // `\color{gray}$\SBADR_2 \leftarrow$ $\varnothing$`
-  {State::val,  {{1},       // `\color{gray}$\SBVAL_0 \leftarrow$ STORE 0`
-                 {1},       // `\color{gray}$\SBVAL_1 \leftarrow$ STORE 1`
-                 {}}},      // `\color{gray}$\SBVAL_2 \leftarrow$ $\varnothing$`
-  {State::full, {{1},       // `\color{gray}$\SBFULL_0 \leftarrow$ STORE 0`
-                 {1},       // `\color{gray}$\SBFULL_1 \leftarrow$ STORE 1`
-                 {}}},      // `\color{gray}$\SBFULL_2 \leftarrow$ $\varnothing$`
-  {State::halt, {{4},       // `\color{gray}$\HALT_0 \leftarrow$ HALT`
-                 {4},       // `\color{gray}$\HALT_1 \leftarrow$ HALT`
-                 {}}},      // `\color{gray}$\HALT_2 \leftarrow$ $\varnothing$`
-  {State::exit, {{},        // `\color{gray}$\EXIT \leftarrow$ $\varnothing$`
-                 {},        // `\color{gray}$\EXIT \leftarrow$ $\varnothing$`
-                 {4, 5}}}}; // `\color{gray}$\EXIT \leftarrow$ EXIT 0, EXIT 1`
+  {State::accu, {{0, 2},    // `\lstCMT{$\ACCU_0 \leftarrow$ ADDI 1, LOAD 0}`
+                 {0, 2},    // `\lstCMT{$\ACCU_1 \leftarrow$ ADDI 1, LOAD 1}`
+                 {1, 2}}},  // `\lstCMT{$\ACCU_2 \leftarrow$ ADD 0, ADD 1}`
+  {State::adr,  {{1},       // `\lstCMT{$\SBADR_0 \leftarrow$ STORE 0}`
+                 {1},       // `\lstCMT{$\SBADR_1 \leftarrow$ STORE 1}`
+                 {}}},      // `\lstCMT{$\SBADR_2 \leftarrow$ $\varnothing$}`
+  {State::val,  {{1},       // `\lstCMT{$\SBVAL_0 \leftarrow$ STORE 0}`
+                 {1},       // `\lstCMT{$\SBVAL_1 \leftarrow$ STORE 1}`
+                 {}}},      // `\lstCMT{$\SBVAL_2 \leftarrow$ $\varnothing$}`
+  {State::full, {{1},       // `\lstCMT{$\SBFULL_0 \leftarrow$ STORE 0}`
+                 {1},       // `\lstCMT{$\SBFULL_1 \leftarrow$ STORE 1}`
+                 {}}},      // `\lstCMT{$\SBFULL_2 \leftarrow$ $\varnothing$}`
+  {State::halt, {{4},       // `\lstCMT{$\HALT_0 \leftarrow$ HALT}`
+                 {4},       // `\lstCMT{$\HALT_1 \leftarrow$ HALT}`
+                 {}}},      // `\lstCMT{$\HALT_2 \leftarrow$ $\varnothing$}`
+  {State::exit, {{},        // `\lstCMT{$\EXIT \leftarrow$ $\varnothing$}`
+                 {},        // `\lstCMT{$\EXIT \leftarrow$ $\varnothing$}`
+                 {4, 5}}}}; // `\lstCMT{$\EXIT \leftarrow$ EXIT 0, EXIT 1}`
 \end{lstlisting}
 % \vspace{-\baselineskip}
 % Similarly, predecessors of each program statement are identified.
@@ -239,33 +237,33 @@ std::map<State, std::vector<std::vector<uint>>> updates = {
 \begin{lstlisting}[style=c++]
 std::vector<std::vector<std::vector<uint>>> predecessors = {
   // thread 0
-  {{},    // `\color{gray}ADDI 1`    `\color{gray}$\leftarrow$ $\varnothing$`
-   {0},   // `\color{gray}STORE 0`   `\color{gray}$\leftarrow$ ADDI 1`
-   {1},   // `\color{gray}LOAD 1`    `\color{gray}$\leftarrow$ STORE 0`
-   {2},   // `\color{gray}CHECK 0`   `\color{gray}$\leftarrow$ LOAD 1`
-   {3}},  // `\color{gray}HALT`      `\color{gray}$\leftarrow$ CHECK 0`
+  {{},    // `\lstCMT{ADDI 1}`    `\lstCMT{$\leftarrow$ $\varnothing$}`
+   {0},   // `\lstCMT{STORE 0}`   `\lstCMT{$\leftarrow$ ADDI 1}`
+   {1},   // `\lstCMT{LOAD 1}`    `\lstCMT{$\leftarrow$ STORE 0}`
+   {2},   // `\lstCMT{CHECK 0}`   `\lstCMT{$\leftarrow$ LOAD 1}`
+   {3}},  // `\lstCMT{HALT}`      `\lstCMT{$\leftarrow$ CHECK 0}`
   // thread 1
-  {{},    // `\color{gray}ADDI 1`    `\color{gray}$\leftarrow$ $\varnothing$`
-   {0},   // `\color{gray}STORE 1`   `\color{gray}$\leftarrow$ ADDI 1`
-   {1},   // `\color{gray}LOAD 0`    `\color{gray}$\leftarrow$ STORE 1`
-   {2},   // `\color{gray}CHECK 0`   `\color{gray}$\leftarrow$ LOAD 0`
-   {3}},  // `\color{gray}HALT`      `\color{gray}$\leftarrow$ CHECK 0`
+  {{},    // `\lstCMT{ADDI 1}`    `\lstCMT{$\leftarrow$ $\varnothing$}`
+   {0},   // `\lstCMT{STORE 1}`   `\lstCMT{$\leftarrow$ ADDI 1}`
+   {1},   // `\lstCMT{LOAD 0}`    `\lstCMT{$\leftarrow$ STORE 1}`
+   {2},   // `\lstCMT{CHECK 0}`   `\lstCMT{$\leftarrow$ LOAD 0}`
+   {3}},  // `\lstCMT{HALT}`      `\lstCMT{$\leftarrow$ CHECK 0}`
   // thread 2
-  {{},    // `\color{gray}CHECK 0`   `\color{gray}$\leftarrow$ $\varnothing$`
-   {0},   // `\color{gray}ADD 0`     `\color{gray}$\leftarrow$ CHECK 0`
-   {1},   // `\color{gray}ADD 1`     `\color{gray}$\leftarrow$ ADD 0`
-   {2},   // `\color{gray}JZ error`  `\color{gray}$\leftarrow$ ADD 1`
-   {3},   // `\color{gray}EXIT 0`    `\color{gray}$\leftarrow$ JZ error`
-   {3}}}; // `\color{gray}error:` `\color{gray}EXIT 1` `\color{gray}$\leftarrow$ JZ error`
+  {{},    // `\lstCMT{CHECK 0}`   `\lstCMT{$\leftarrow$ $\varnothing$}`
+   {0},   // `\lstCMT{ADD 0}`     `\lstCMT{$\leftarrow$ CHECK 0}`
+   {1},   // `\lstCMT{ADD 1}`     `\lstCMT{$\leftarrow$ ADD 0}`
+   {2},   // `\lstCMT{JZ error}`  `\lstCMT{$\leftarrow$ ADD 1}`
+   {3},   // `\lstCMT{EXIT 0}`    `\lstCMT{$\leftarrow$ JZ error}`
+   {3}}}; // `\lstCMT{error:}` `\lstCMT{EXIT 1}` `\lstCMT{$\leftarrow$ JZ error}`
 \end{lstlisting}
 
 % Program counters of barrier instructions, requiring an empty store buffer.
 \item Program counters of memory barriers.
 \begin{lstlisting}[style=c++]
 std::vector<std::vector<uint>> barriers = {
-  {1, 4}, // thread 0: `\color{gray}STORE 0, HALT`
-  {1, 4}, // thread 1: `\color{gray}STORE 1, HALT`
-  {}};    // thread 2: `\color{gray}$\varnothing$`
+  {1, 4}, // thread 0: `\lstCMT{STORE 0, HALT}`
+  {1, 4}, // thread 1: `\lstCMT{STORE 1, HALT}`
+  {}};    // thread 2: `\lstCMT{$\varnothing$}`
 \end{lstlisting}
 
 % Program counters of \lstASM{CHECK} instructions per checkpoint and thread.
@@ -273,9 +271,9 @@ std::vector<std::vector<uint>> barriers = {
 \begin{lstlisting}[style=c++]
 std::map<uint, std::map<uint, std::vector<uint>>> checkpoints = {
   // checkpoint 0
-  {0, {{0, {3}},    // thread 0: `\color{gray}CHECK 0`
-       {1, {3}},    // thread 1: `\color{gray}CHECK 0`
-       {2, {0}}}}}; // thread 2: `\color{gray}CHECK 0`
+  {0, {{0, {3}},    // thread 0: `\lstCMT{CHECK 0}`
+       {1, {3}},    // thread 1: `\lstCMT{CHECK 0}`
+       {2, {0}}}}}; // thread 2: `\lstCMT{CHECK 0}`
 \end{lstlisting}
 \end{itemize}
 
