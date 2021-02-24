@@ -133,6 +133,47 @@
   keywordstyle=[2]\bfseries\color{red!40!black},
   % identifierstyle=\color{blue},
 }
+\lstdefinestyle{btor2}{
+  % belowcaptionskip=0,
+  morekeywords={[1]
+    sort,
+    zero,
+    one,
+    constd,
+    write,
+    input,
+    and,
+    or,
+    nand,
+    implies,
+    ite,
+    add,
+    read,
+    eq,
+    neq,
+  },
+  morekeywords={[2]
+    array,
+    bitvec
+  },
+  morekeywords={[3]
+    state,
+    init,
+    next,
+    constraint,
+    bad,
+  },
+  morecomment=[l]\#,
+  basicstyle=\small\ttfamily,
+  keywordstyle=[1]\bfseries\color{green!40!black},
+  keywordstyle=[2]\bfseries\color{blue!80!black},
+  keywordstyle=[3]\bfseries\color{red!40!black},
+  commentstyle=\color{gray},
+  % keepspaces,
+  % columns=fullflexible,
+  % tabsize=6,
+  % xleftmargin=\parindent,
+}
 
 % tikz
 \usepackage{tikz}
@@ -171,6 +212,9 @@
 % changes
 \newcommand{\CHANGE}[1]{{\color{red}#1}}
 
+% operators
+\let\nand\barwedge
+
 % language names
 \newcommand{\CPP}{C\texttt{++}17}
 \newcommand{\SMTLIB}{SMT-LIB}
@@ -207,6 +251,11 @@
 \newcommand{\lstASM}[1]{\lstinline[style=asm]{#1}}
 \newcommand{\lstCPP}[1]{\lstinline[style=c++]{#1}}
 \newcommand{\lstSMTLIB}[1]{\lstinline[style=smtlib]{#1}}
+\newcommand{\lstBTOR}[1]{\lstinline[style=btor2]{#1}}
+
+% code comments
+% \newcommand{\lstCMT}[1]{\color{black!50}{#1}}
+\newcommand{\lstCMT}[1]{\color{gray}{#1}}
 
 % todos
 % \newcommand{\todo}[1]{
