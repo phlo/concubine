@@ -1,7 +1,41 @@
-\section{Replay}
+\section{Testing and Debugging}
 
-In order to validate the correctness of our encodings, we included a \texttt{replay} \CHANGE{mode} for reevaluating the execution sequence of a given trace by the virtual machine used for simulation.
+The basic functionality of our toolchain is validated by a total of 800 test cases.
+While fixing {\CPP} related errors was relatively trivial due to the broad range of available tools,
+debugging the generated SMT encodings
+% on the other hand
+% requires more sophisticated methods.
+is a bit more tedious
+since cause and effect have to be determined manually by inspecting rather comprehensive models and formulas.
+
+In order to automatically validate the correctness of our encodings, we included a \texttt{replay} \CHANGE{mode} for reevaluating the execution sequence of a given trace by the virtual machine used for simulation.
+% Therefore, we included a \texttt{replay} \CHANGE{mode} for reevaluating the execution sequence of a given trace by the virtual machine used for simulation in order to automatically validate the correctness of our encodings.
 If a mismatch is found, it returns the first step in which the results start to differ and prints the corresponding states of both execution traces for comparison.
 % prints the states of the first step in which the results start to differ and returns
 % printing the first step in which the traces start to differ
 % returning step in which the resulting models start to differ and print
+This mode also simplified the encodings' development significantly,
+% since the step in which the model starts to diverge from our machine model
+% as it automatically finds the step in which the encoding starts to differ from our machine model and
+since the condensed error trace helps to narrow down the potentially flawed SMT expressions.
+% since it helps to narrow down the potentially erroneous SMT expressions by
+
+Of course, only satisfiable formulas may be replayed.
+% reevaluated by \texttt{replay}.
+If the outcome of a valid execution sequence is accidentally unsatisfiable and therefore yields no trace, we still have to manually inspect the formula.
+Unfortunately, no SMT solver supported the extraction of an \emph{unsatisfiable core} at the time we developed our encodings, but this feature starts to get implemented in recent solvers like Bitwuzla \cite{ref:Bitwuzla}.
+However, without any additional constraints, the only reason our formulas can get unsatisfiable is due to a violation of the cardinality constraint and investigations may therefore be concentrated on expressions containing transition variables.
+
+Another frequent cause for unintended results lies in the nature of bounded model checking.
+Before expecting an error in the encoding, it is highly advisable to make sure that the targeted states are indeed reachable by the chosen bound.
+For example, when a model for the \lstASM{CAS} variant of our concurrent counter experiments (described in the next section) was found during our initial trials, we immediately started to panic and questioned our encoding.
+Since such situations already commonly occurred during development, we remembered the following proverb which emerged during that time and
+soon realized that the problem indeed was yet another insufficient bound.
+% later found the problem to be yet another insufficient bound.
+% since we questioned our encoding which was previously believed to be corre
+% only to find the problem being an insufficient bound.
+% resulting in the following proverb:
+\begin{center}
+\itshape
+If you ask yourself -- ``How can this be?'' -- maybe just the bound's too wee!
+\end{center}
