@@ -79,7 +79,9 @@ The following list shall give an overview of our machine's instruction set.
 
 \subsubsection*{Memory}
 
+\CHANGE{
 Two addressing modes are supported: direct and indirect denoted by square brackets (e.g. \lstASM{LOAD [arg]}).
+}
 
 \defop
 {\lstASM{LOAD arg}}
@@ -98,11 +100,13 @@ Two addressing modes are supported: direct and indirect denoted by square bracke
 
 \subsubsection*{Arithmetic}
 
+\CHANGE{
 % \todo[inline]{say something about that all are unsigned and two's-compliment}
 % Interpretation of a value's signedness is left to the programmmer.
 % All values may be interpreted as unsigned or signed according to two's compliment.
 Since the interpretation of a value's signedness is left to the programmer, we only included the most basic arithmetic instructions, which are equivalent for unsigned and two's compliment representations.
 % For example, division is left out on purpose, since it would require different
+}
 
 \defop
 {\lstASM{ADD arg}}

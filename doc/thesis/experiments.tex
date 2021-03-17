@@ -1,4 +1,4 @@
-\newcommand{\EncoderStatsTable}[5]{
+\newcommand{\EncoderStatsTable}[6]{
   \begin{table}[!hbt]
   \noindent\makebox[\textwidth]{
   \footnotesize
@@ -28,14 +28,14 @@
       {#3{\A} & \B & \C & \D & \E & \F & \G & \H}
     \lasthline
   \end{tabu}}
-  \caption{#4}
-  \label{#5}
+  \caption[#4]{#5}
+  \label{#6}
   \end{table}
 }
 
 \newcommand{\CleanInf}[1]{\IfStrEq{#1}{inf}{-}{#1}}
 
-\newcommand{\SolverStatsTable}[5]{
+\newcommand{\SolverStatsTable}[6]{
   \begin{table}[!hbt]
   \noindent\makebox[\textwidth]{
   \footnotesize
@@ -65,15 +65,15 @@
       {#3{\A} & \CleanInf{\B} & \CleanInf{\C} & \CleanInf{\D} & \CleanInf{\E} & \CleanInf{\F} & \CleanInf{\G} & \CleanInf{\H}}
     \lasthline
   \end{tabu}}
-  \caption{#4}
-  \label{#5}
+  \caption[#4]{#5}
+  \label{#6}
   \end{table}
 }
 
 \pgfplotsset{filter discard warning=false}
 \tikzset{every mark/.append style={solid}}
 
-\newcommand{\EncoderStatsGraph}[4]{
+\newcommand{\EncoderStatsGraph}[5]{
   \begin{figure}[!hbt]
     \footnotesize
     \centering
@@ -115,12 +115,12 @@
       \addlegendentry{{\SMTLIB} (relational)}
       \end{axis}
     \end{tikzpicture}
-    \caption{#3}
-    \label{#4}
+    \caption[#3]{#4}
+    \label{#5}
   \end{figure}
 }
 
-\newcommand{\SolverStatsGraph}[4]{
+\newcommand{\SolverStatsGraph}[5]{
   % https://texwelt.de/fragen/22222/pgfplots-x-achse-mit-strings
   \begin{figure}[!hbt]
     \small
@@ -168,8 +168,8 @@
       \addlegendentry{CVC4 (relational)}
       \end{axis}
     \end{tikzpicture}
-    \caption{#3}
-    \label{#4}
+    \caption[#3]{#4}
+    \label{#5}
   \end{figure}
 }
 
@@ -242,6 +242,7 @@ In order to show conformance with the memory-ordering model of our virtual machi
   {figures/litmus-intel-encoder.csv}
   {\textnumero}
   {\IntelRowHeader}
+  {Intel litmus test encoder statistics.}
   {Intel litmus test encoding times in milliseconds and formula sizes \CHANGE{in terms of} the number of expressions.}
   {tbl:litmus:intel:encoder}
   % {Intel Litmus Test Econding Time [ms] and Size [\#expressions]}
@@ -261,6 +262,7 @@ Furthermore, the additional redundancy introduced by the relational next state l
 \EncoderStatsGraph
   {figures/litmus-intel-encoder.csv}
   {north west}
+  {Intel litmus test encoder graph.}
   {Intel litmus test formula sizes \CHANGE{in terms of} the number of expressions.}
   {fig:litmus:intel:encoder}
 
@@ -268,6 +270,7 @@ Furthermore, the additional redundancy introduced by the relational next state l
   {figures/litmus-amd-encoder.csv}
   {\textnumero}
   {\AMDRowHeader}
+  {AMD litmus test encoder statistics.}
   {AMD litmus test encoding times in milliseconds and formula sizes \CHANGE{in terms of} the number of expressions.}
   {tbl:litmus:amd:encoder}
   % {AMD Litmus Test Econding Time [ms] and Size [\#expressions]}
@@ -277,6 +280,7 @@ Furthermore, the additional redundancy introduced by the relational next state l
 \EncoderStatsGraph
   {figures/litmus-amd-encoder.csv}
   {north west}
+  {AMD litmus test encoder graph.}
   {AMD litmus test formula sizes \CHANGE{in terms of} the number of expressions.}
   {fig:litmus:amd:encoder}
 
@@ -320,6 +324,7 @@ in comparison to Boolector (incorporating CaDiCaL\footnote{\url{https://github.c
   {figures/litmus-intel-solver.csv}
   {\textnumero}
   {\IntelRowHeader}
+  {Intel litmus test solver statistics.}
   {Intel litmus test solving times in seconds.}
   {tbl:litmus:intel:solver}
   % {Intel Litmus Test Solving Times in Seconds}
@@ -327,6 +332,7 @@ in comparison to Boolector (incorporating CaDiCaL\footnote{\url{https://github.c
 \SolverStatsGraph
   {figures/litmus-intel-solver.csv}
   {north west}
+  {Intel litmus test solver graph.}
   {Intel litmus test solving times in seconds.}
   {fig:litmus:intel:solver}
 
@@ -344,6 +350,7 @@ in comparison to Boolector (incorporating CaDiCaL\footnote{\url{https://github.c
   {figures/litmus-amd-solver.csv}
   {\textnumero}
   {\AMDRowHeader}
+  {AMD litmus test solver statistics.}
   {AMD litmus test solving times in seconds.}
   {tbl:litmus:amd:solver}
   % {AMD Litmus Test Solving Times in Seconds}
@@ -351,6 +358,7 @@ in comparison to Boolector (incorporating CaDiCaL\footnote{\url{https://github.c
 \SolverStatsGraph
   {figures/litmus-amd-solver.csv}
   {north west}
+  {AMD litmus test solver graph.}
   {AMD litmus test solving times in seconds.}
   {fig:litmus:amd:solver}
 
@@ -504,6 +512,7 @@ For example, $m = n = 2$ would require a bound of $2 * (9 * 2 + 2) + 5 = 45$.
   {figures/count-buggy-encoder.csv}
   {m n}
   {\CountRowHeader}
+  {\CHANGE{Faulty} counter encoder statistics.}
   {\CHANGE{Faulty} counter encoding times in milliseconds and formula sizes \CHANGE{in terms of} the number of expressions for increasing values of $m$ and $n$.}
   {tbl:count:buggy:encoder}
 
@@ -531,6 +540,7 @@ The off-by-one differences in the size of the {\BTOR} encodings for an equal num
 \EncoderStatsGraph
   {figures/count-buggy-encoder.csv}
   {north west}
+  {\CHANGE{Faulty} counter encoder graph.}
   {\CHANGE{Faulty} counter formula sizes \CHANGE{in terms of} the number of expressions for increasing values of $m$ and $n$.}
   {fig:count:buggy:encoder}
 
@@ -548,6 +558,7 @@ CVC4 however could not even solve a single instance within the given time and me
   {figures/count-buggy-solver.csv}
   {m n}
   {\CountRowHeader}
+  {\CHANGE{Faulty} counter solver statistics.}
   {\CHANGE{Faulty} counter solving times in seconds for increasing values of $m$ and $n$.}
   {tbl:count:buggy:solver}
 
@@ -556,6 +567,7 @@ CVC4 however could not even solve a single instance within the given time and me
 \SolverStatsGraph
   {figures/count-buggy-solver.csv}
   {south east}
+  {\CHANGE{Faulty} counter solver graph.}
   {\CHANGE{Faulty} counter solving times in seconds for increasing values of $m$ and $n$.}
   {fig:count:buggy:solver}
 
@@ -689,12 +701,14 @@ Naturally, encoder runtimes are also affected, but remain acceptable as all expe
   {figures/count-cas-encoder.csv}
   {m n}
   {\CountRowHeader}
+  {\CHANGE{Valid} counter encoder statistics.}
   {\CHANGE{Valid} counter encoding times in milliseconds and formula sizes \CHANGE{in terms of} the number of expressions for increasing values of $m$ and $n$.}
   {tbl:count:cas:encoder}
 
 \EncoderStatsGraph
   {figures/count-cas-encoder.csv}
   {north west}
+  {\CHANGE{Valid} counter encoder graph.}
   {\CHANGE{Valid} counter formula sizes \CHANGE{in terms of} the number of expressions for increasing values of $m$ and $n$.}
   {fig:count:cas:encoder}
 
@@ -717,11 +731,13 @@ would generate problem instances which most \CHANGE{likely} won't be solvable in
   {figures/count-cas-solver.csv}
   {m n}
   {\CountRowHeader}
+  {\CHANGE{Valid} counter solver statistics.}
   {\CHANGE{Valid} counter solving times in seconds for increasing values of $m$ and $n$.}
   {tbl:count:cas:solver}
 
 \SolverStatsGraph
   {figures/count-cas-solver.csv}
   {south east}
+  {\CHANGE{Valid} counter solver graph.}
   {\CHANGE{Valid} counter solving times in seconds for increasing values of $m$ and $n$.}
   {fig:count:cas:solver}

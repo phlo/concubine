@@ -56,7 +56,7 @@ This is illustrated by the following example:
     \lasthline
   \end{tabu} \\
 \end{tabu}}
-\caption{Stores Are Not Reordered with Other Stores \cite[Example 8-1]{ref:Intel}}
+\caption[Stores Are Not Reordered with Other Stores]{Stores Are Not Reordered with Other Stores \cite[Example 8-1]{ref:Intel}}
 \label{tbl:litmus:intel:1}
 \end{table}
 
@@ -97,7 +97,7 @@ This is illustrated by the following example:
     \lasthline
   \end{tabu} \\
 \end{tabu}}
-\caption{Stores Are Not Reordered with Older Loads \cite[Example 8-2]{ref:Intel}}
+\caption[Stores Are Not Reordered with Older Loads]{Stores Are Not Reordered with Older Loads \cite[Example 8-2]{ref:Intel}}
 \label{tbl:litmus:intel:2}
 \end{table}
 
@@ -141,7 +141,7 @@ The fact that a load may be reordered with an earlier store to a different locat
     \lasthline
   \end{tabu} \\
 \end{tabu}}
-\caption{Loads May be Reordered with Older Stores \cite[Example 8-3]{ref:Intel}}
+\caption[Loads May be Reordered with Older Stores]{Loads May be Reordered with Older Stores \cite[Example 8-3]{ref:Intel}}
 \label{tbl:litmus:intel:3}
 \end{table}
 
@@ -183,7 +183,7 @@ example:
     \lasthline
   \end{tabu} \\
 \end{tabu}}
-\caption{Loads Are not Reordered with Older Stores to the Same Location \cite[Example 8-4]{ref:Intel}}
+\caption[Loads Are not Reordered with Older Stores to the Same Location]{Loads Are not Reordered with Older Stores to the Same Location \cite[Example 8-4]{ref:Intel}}
 \label{tbl:litmus:intel:4}
 \end{table}
 
@@ -220,7 +220,7 @@ This is illustrated by the following example:
     \lasthline
   \end{tabu} \\
 \end{tabu}}
-\caption{Intra-Processor Forwarding is Allowed \cite[Example 8-5]{ref:Intel}}
+\caption[Intra-Processor Forwarding is Allowed]{Intra-Processor Forwarding is Allowed \cite[Example 8-5]{ref:Intel}}
 \label{tbl:litmus:intel:5}
 \end{table}
 
@@ -264,7 +264,7 @@ This is illustrated by the following example:
     \lasthline
   \end{tabu} \\
 \end{tabu}}
-\caption{Stores Are Transitively Visible \cite[Example 8-6]{ref:Intel}}
+\caption[Stores Are Transitively Visible]{Stores Are Transitively Visible \cite[Example 8-6]{ref:Intel}}
 \label{tbl:litmus:intel:6}
 \end{table}
 
@@ -307,7 +307,7 @@ This is illustrated by the following example:
     \lasthline
   \end{tabu} \\
 \end{tabu}}
-\caption{Stores Are Seen in a Consistent Order by Other Threads \cite[Example 8-7]{ref:Intel}}
+\caption[Stores Are Seen in a Consistent Order by Other Threads]{Stores Are Seen in a Consistent Order by Other Threads \cite[Example 8-7]{ref:Intel}}
 \label{tbl:litmus:intel:7}
 \end{table}
 
@@ -350,7 +350,7 @@ This is illustrated by the following example:
     \lasthline
   \end{tabu} \\
 \end{tabu}}
-\caption{Locked Instructions Have a Total Order \cite[Example 8-8]{ref:Intel}}
+\caption[Locked Instructions Have a Total Order]{Locked Instructions Have a Total Order \cite[Example 8-8]{ref:Intel}}
 \label{tbl:litmus:intel:8}
 \end{table}
 
@@ -397,7 +397,7 @@ The first example illustrates that loads may not be reordered with earlier locke
     \lasthline
   \end{tabu} \\
 \end{tabu}}
-\caption{Loads Are not Reordered with Locks \cite[Example 8-9]{ref:Intel}}
+\caption[Loads Are not Reordered with Locks]{Loads Are not Reordered with Locks \cite[Example 8-9]{ref:Intel}}
 \label{tbl:litmus:intel:9}
 \end{table}
 
@@ -444,7 +444,7 @@ The second example illustrates that a store may not be reordered with an earlier
     \lasthline
   \end{tabu} \\
 \end{tabu}}
-\caption{Stores Are not Reordered with Locks \cite[Example 8-10]{ref:Intel}}
+\caption[Stores Are not Reordered with Locks]{Stores Are not Reordered with Locks \cite[Example 8-10]{ref:Intel}}
 \label{tbl:litmus:intel:10}
 \end{table}
 
@@ -493,7 +493,7 @@ In other words, stores from a thread cannot be reordered to occur prior to a loa
     \lasthline
   \end{tabu} \\
 \end{tabu}}
-\caption{Stores Are Not Reordered with Other Stores \cite[Example 1]{ref:AMD}}
+\caption[Stores Are Not Reordered with Other Stores]{Stores Are Not Reordered with Other Stores \cite[Example 1]{ref:AMD}}
 \label{tbl:litmus:amd:1}
 \end{table}
 
@@ -529,7 +529,7 @@ In other words, stores from a thread cannot be reordered to occur prior to a loa
     \lasthline
   \end{tabu} \\
 \end{tabu}}
-\caption{Stores Are Not Reordered with Older Loads \cite[Example 2]{ref:AMD}}
+\caption[Stores Are Not Reordered with Older Loads]{Stores Are Not Reordered with Older Loads \cite[Example 2]{ref:AMD}}
 \label{tbl:litmus:amd:2}
 \end{table}
 
@@ -564,7 +564,7 @@ Therefore, stores from a thread may not appear to be sequentially consistent.
     \lasthline
   \end{tabu} \\
 \end{tabu}}
-\caption{Stores Can Be Arbitrarily Delayed \cite[Example 3]{ref:AMD}}
+\caption[Stores Can Be Arbitrarily Delayed]{Stores Can Be Arbitrarily Delayed \cite[Example 3]{ref:AMD}}
 \label{tbl:litmus:amd:3}
 \end{table}
 
@@ -596,7 +596,7 @@ Non-overlapping Loads may pass stores.
     \lasthline
   \end{tabu} \\
 \end{tabu}}
-\caption{Loads May be Reordered with Older Stores \cite[Example 4]{ref:AMD}}
+\caption[Loads May be Reordered with Older Stores]{Loads May be Reordered with Older Stores \cite[Example 4]{ref:AMD}}
 \label{tbl:litmus:amd:4}
 \end{table}
 
@@ -629,7 +629,7 @@ Where sequential consistency is needed (for example in Dekker’s algorithm for 
     \lasthline
   \end{tabu} \\
 \end{tabu}}
-\caption{Sequential Consistency \cite[Example 5]{ref:AMD}}
+\caption[Sequential Consistency]{Sequential Consistency \cite[Example 5]{ref:AMD}}
 \label{tbl:litmus:amd:5}
 \end{table}
 
@@ -663,7 +663,7 @@ Behavior such as that is shown in this code example:
     \lasthline
   \end{tabu} \\
 \end{tabu}}
-\caption{Stores Are Seen in a Consistent Order by Other Threads \cite[Example 6]{ref:AMD}}
+\caption[Stores Are Seen in a Consistent Order by Other Threads]{Stores Are Seen in a Consistent Order by Other Threads \cite[Example 6]{ref:AMD}}
 \label{tbl:litmus:amd:6}
 \end{table}
 
@@ -697,7 +697,7 @@ Dependent stores between different threads appear to occur in program order, as 
     \lasthline
   \end{tabu} \\
 \end{tabu}}
-\caption{Stores Are Transitively Visible \cite[Example 7]{ref:AMD}}
+\caption[Stores Are Transitively Visible]{Stores Are Transitively Visible \cite[Example 7]{ref:AMD}}
 \label{tbl:litmus:amd:7}
 \end{table}
 
@@ -732,7 +732,7 @@ Program order is still maintained when using such bypasses.
     \lasthline
   \end{tabu} \\
 \end{tabu}}
-\caption{Intra-Processor Forwarding is Allowed \cite[Example 8]{ref:AMD}}
+\caption[Intra-Processor Forwarding is Allowed]{Intra-Processor Forwarding is Allowed \cite[Example 8]{ref:AMD}}
 \label{tbl:litmus:amd:8}
 \end{table}
 
@@ -772,7 +772,7 @@ This enforces a memory ordering stronger than total store ordering.
     \lasthline
   \end{tabu} \\
 \end{tabu}}
-\caption{Global Visibility \cite[Example 9]{ref:AMD}}
+\caption[Global Visibility]{Global Visibility \cite[Example 9]{ref:AMD}}
 \label{tbl:litmus:amd:9}
 \end{table}
 
