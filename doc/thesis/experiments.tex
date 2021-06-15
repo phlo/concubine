@@ -213,14 +213,14 @@ we conducted a series of experiments, using the following versions of supported 
 We recorded the resulting formula sizes in terms of the number of generated expression, as well as the runtimes for encoding and solving each particular instance.
 All tests were performed on a cluster of Intel\textsuperscript{\textregistered} Xeon\textsuperscript{\textregistered} E5-2620 v4 nodes, with CPU runtime and memory usage limited to 86400 seconds (24 hours) and 8 GB respectively.
 
-% The x86-TSO memory-ordering model (used by AMD and Intel) is defined by a set of litmus tests.
+% The x86-TSO memory ordering model (used by AMD and Intel) is defined by a set of litmus tests.
 % To show equivalence of ConcuBinE-TSO and x86-TSO, the tests have been ported to ConcuBinE.
 
 \subsection*{Litmus Tests}
 
-Instead of a rigorous formal description, the memory-ordering principles of Intel's \cite{ref:Intel} and AMD's \cite{ref:AMD} x86 implementations are defined by example through a set of \CHANGE{so called ``litmus tests''}.
-% In order to show their conformance with the memory-ordering model of our virtual machine, all documented litmus tests have been ported to ConcuBinE and are explained in Appendices \ref{appendix:litmus:intel} and \ref{appendix:litmus:amd}.
-In order to show conformance with the memory-ordering model of our virtual machine, the test suites have been ported to ConcuBinE and \CHANGE{details are available} in Appendices \ref{appendix:litmus:intel} and \ref{appendix:litmus:amd}.
+Instead of a rigorous formal description, the memory ordering principles of Intel's \cite{ref:Intel} and AMD's \cite{ref:AMD} x86 implementations are defined by example through a set of \CHANGE{so called ``litmus tests''}.
+% In order to show their conformance with the memory ordering model of our virtual machine, all documented litmus tests have been ported to ConcuBinE and are explained in Appendices \ref{appendix:litmus:intel} and \ref{appendix:litmus:amd}.
+In order to show conformance with the memory ordering model of our virtual machine, the test suites have been ported to ConcuBinE and \CHANGE{details are available} in Appendices \ref{appendix:litmus:intel} and \ref{appendix:litmus:amd}.
 
 % Encoder statistics are shown in Table \ref{tbl:litmus:intel:encoder} and formula sizes visualized in Figure \ref{fig:litmus:intel:encoder}.
 
@@ -299,7 +299,7 @@ Furthermore, the additional redundancy introduced by the relational next state l
 \hyphenation{MiniSAT}
 
 % Our virtual machine model passed all litmus tests, with solving times given in Tables \ref{tbl:litmus:intel:solver} and \ref{tbl:litmus:amd:solver}.
-All litmus tests passed and the claim, that the encodings of our virtual machine model conform with the memory-ordering principles of both major x86 vendors therefore validated by example.
+All litmus tests passed and the claim, that the encodings of our virtual machine model conform with the memory ordering principles of both major x86 vendors therefore validated by example.
 % is therefore validated.
 The corresponding solving times, given in Tables \ref{tbl:litmus:intel:solver} and \ref{tbl:litmus:amd:solver}, reveal a dramatic difference
 % in the effectiveness

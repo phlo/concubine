@@ -18,9 +18,9 @@
 
 \label{appendix:litmus:intel}
 
-Intel's memory-ordering litmus tests as seen in \cite[Section 8.2.3]{ref:Intel} ported to our virtual machine model.
+Intel's memory ordering litmus tests as seen in \cite[Section 8.2.3]{ref:Intel} ported to our virtual machine model.
 
-% The x86-TSO memory-ordering model (used by AMD and Intel) is defined by a set of litmus tests.
+% The x86-TSO memory ordering model (used by AMD and Intel) is defined by a set of litmus tests.
 % To show equivalence of ConcuBinE-TSO and x86-TSO, the tests have been ported to ConcuBinE.
 
 % \subsubsection{Intel}
@@ -31,7 +31,7 @@ Intel's memory-ordering litmus tests as seen in \cite[Section 8.2.3]{ref:Intel} 
 
 \subsubsection*{Neither Loads Nor Stores Are Reordered with Like Operations}
 
-The Intel-64 memory-ordering model allows neither loads nor stores to be reordered with the same kind of operation.
+The Intel-64 memory ordering model allows neither loads nor stores to be reordered with the same kind of operation.
 That is, it ensures that loads are seen in program order and that stores are seen in program order.
 This is illustrated by the following example:
 
@@ -65,15 +65,15 @@ The disallowed return values could be exhibited only if thread 0’s two stores 
 \bigbreak
 \noindent
 If $\MEM_1 = 1$, the store to $\HEAP[1]$ occurs before the load from $\HEAP[1]$.
-Because the Intel-64 memory-ordering model does not allow stores to be reordered, the earlier store to $\HEAP[0]$ occurs before the load from $\HEAP[1]$.
-Because the Intel-64 memory-ordering model does not allow loads to be reordered, the store to $\HEAP[0]$ also occurs before the later load from $\HEAP[0]$.
+Because the Intel-64 memory ordering model does not allow stores to be reordered, the earlier store to $\HEAP[0]$ occurs before the load from $\HEAP[1]$.
+Because the Intel-64 memory ordering model does not allow loads to be reordered, the store to $\HEAP[0]$ also occurs before the later load from $\HEAP[0]$.
 Thus $\ACCU_1 = 1$.
 
 \newpage
 
 \subsubsection*{Stores Are Not Reordered with Earlier Loads}
 
-The Intel-64 memory-ordering model ensures that a store by a thread may not occur before a previous load by the same thread.
+The Intel-64 memory ordering model ensures that a store by a thread may not occur before a previous load by the same thread.
 This is illustrated by the following example:
 
 \begin{table}[!hbt]
@@ -105,7 +105,7 @@ This is illustrated by the following example:
 Assume $\MEM_0 = 1$.
 \begin{itemize}
   \item Because $\MEM_0 = 1$, thread 1’s store to $\HEAP[0]$ occurs before thread 0’s load from $\HEAP[0]$.
-  \item Because the Intel-64 memory-ordering model prevents each store from being reordered with the earlier load by the same thread, thread 1’s load from $\HEAP[1]$ occurs before its store to $\HEAP[0]$.
+  \item Because the Intel-64 memory ordering model prevents each store from being reordered with the earlier load by the same thread, thread 1’s load from $\HEAP[1]$ occurs before its store to $\HEAP[0]$.
   \item Similarly, thread 0’s load from $\HEAP[0]$ occurs before its store to $\HEAP[1]$.
   \item Thus, thread 1’s load from $\HEAP[1]$ occurs before thread 0’s store to $\HEAP[1]$, implying $\MEM_1 = 0$.
 \end{itemize}
@@ -114,7 +114,7 @@ Assume $\MEM_0 = 1$.
 
 \subsubsection*{Loads May Be Reordered with Earlier Stores to Different Locations}
 
-The Intel-64 memory-ordering model allows a load to be reordered with an earlier store to a different location.
+The Intel-64 memory ordering model allows a load to be reordered with an earlier store to a different location.
 However, loads are not reordered with stores to the same location.
 \bigbreak
 \noindent
@@ -155,7 +155,7 @@ This would result in each load returning value 0.
 
 \subsubsection*{Loads Are Not Reordered with Older Stores to the Same Location}
 
-The Intel-64 memory-ordering model allows a load to be reordered with an earlier store to a different location.
+The Intel-64 memory ordering model allows a load to be reordered with an earlier store to a different location.
 However, loads are not reordered with stores to the same location.
 \bigbreak
 \noindent
@@ -188,14 +188,14 @@ example:
 \end{table}
 
 \noindent
-The Intel-64 memory-ordering model does not allow the load to be reordered with the earlier store because the accesses are to the same location.
+The Intel-64 memory ordering model does not allow the load to be reordered with the earlier store because the accesses are to the same location.
 Therefore, $\ACCU_0 = 1$ must hold.
 
 \newpage
 
 \subsubsection*{Intra-Processor Forwarding Is Allowed}
 
-The memory-ordering model allows concurrent stores by two threads to be seen in different orders by those two threads; specifically, each thread may perceive its own store occurring before that of the other.
+The memory ordering model allows concurrent stores by two threads to be seen in different orders by those two threads; specifically, each thread may perceive its own store occurring before that of the other.
 This is illustrated by the following example:
 
 \begin{table}[!hbt]
@@ -225,7 +225,7 @@ This is illustrated by the following example:
 \end{table}
 
 \noindent
-The memory-ordering model imposes no constraints on the order in which the two stores appear to execute by the two threads.
+The memory ordering model imposes no constraints on the order in which the two stores appear to execute by the two threads.
 This fact allows thread 0 to see its store before seeing thread 1's, while thread 1 sees its store before seeing thread 0's.
 (Each thread is self consistent.)
 This allows $\ACCU_0 = \ACCU_1 = 0$.
@@ -238,7 +238,7 @@ While a store is temporarily held in a thread's store buffer, it can satisfy the
 
 \subsubsection*{Stores Are Transitively Visible}
 
-The memory-ordering model ensures transitive visibility of stores; stores that are causally related appear to all threads to occur in an order consistent with the causality relation.
+The memory ordering model ensures transitive visibility of stores; stores that are causally related appear to all threads to occur in an order consistent with the causality relation.
 This is illustrated by the following example:
 
 \begin{table}[!hbt]
@@ -272,10 +272,10 @@ This is illustrated by the following example:
 Assume that $\MEM_1 = 1$ and $\MEM_2 = 1$.
 \begin{itemize}
   \item Because $\MEM_1 = 1$, thread 0’s store occurs before thread 1’s load.
-  \item Because the memory-ordering model prevents a store from being reordered with an earlier load (see \cite[Section 8.2.3.3]{ref:Intel}), thread 1’s load occurs before its store. Thus, thread 0’s store causally precedes thread 1’s store.
-  \item Because thread 0’s store causally precedes thread 1’s store, the memory-ordering model ensures that thread 0’s store appears to occur before thread 1’s store from the point of view of all threads.
+  \item Because the memory ordering model prevents a store from being reordered with an earlier load (see \cite[Section 8.2.3.3]{ref:Intel}), thread 1’s load occurs before its store. Thus, thread 0’s store causally precedes thread 1’s store.
+  \item Because thread 0’s store causally precedes thread 1’s store, the memory ordering model ensures that thread 0’s store appears to occur before thread 1’s store from the point of view of all threads.
   \item Because $\MEM_2 = 1$, thread 1’s store occurs before thread 2’s load.
-  \item Because the Intel-64 memory-ordering model prevents loads from being reordered (see \cite[Section 8.2.3.2]{ref:Intel}), thread 2’s load occur in order.
+  \item Because the Intel-64 memory ordering model prevents loads from being reordered (see \cite[Section 8.2.3.2]{ref:Intel}), thread 2’s load occur in order.
   \item The above items imply that thread 0’s store to $\HEAP[0]$ occurs before thread 2’s load from $\HEAP[0]$. This implies that $\ACCU_2 = 1$.
 \end{itemize}
 
@@ -283,7 +283,7 @@ Assume that $\MEM_1 = 1$ and $\MEM_2 = 1$.
 
 \subsubsection*{Stores Are Seen in a Consistent Order by Other Threads}
 
-As noted in \cite[Section 8.2.3.5]{ref:Intel}, the memory-ordering model allows stores by two threads to be seen in different orders by those two threads.
+As noted in \cite[Section 8.2.3.5]{ref:Intel}, the memory ordering model allows stores by two threads to be seen in different orders by those two threads.
 However, any two stores must appear to execute in the same order to all threads other than those performing the stores.
 This is illustrated by the following example:
 
@@ -319,13 +319,13 @@ By the principles discussed in \cite[Section 8.2.3.2]{ref:Intel},
   \item If $\MEM_2 = 1$ and $\ACCU_2 = 0$, thread 0’s store appears to precede thread 1’s store with respect to thread 2.
   \item Similarly, $\MEM_3 = 1$ and $\ACCU_3 = 0$ imply that thread 1’s store appears to precede thread 0’s store with respect to thread 1.
 \end{itemize}
-Because the memory-ordering model ensures that any two stores appear to execute in the same order to all threads (other than those performing the stores), this set of return values is not allowed.
+Because the memory ordering model ensures that any two stores appear to execute in the same order to all threads (other than those performing the stores), this set of return values is not allowed.
 
 \newpage
 
 \subsubsection*{Locked Instructions Have a Total Order}
 
-The memory-ordering model ensures that all threads agree on a single execution order of all locked instructions.
+The memory ordering model ensures that all threads agree on a single execution order of all locked instructions.
 This is illustrated by the following example:
 
 \begin{table}[!hbt]
@@ -359,7 +359,7 @@ Thread 2 and thread 3 must agree on the order of the two executions of \lstASM{C
 Without loss of generality, suppose that thread 0’s \lstASM{CAS} occurs first.
 \begin{itemize}
   \item If $\MEM_3 = 1$, thread 1’s \lstASM{CAS} into $\HEAP[1]$ occurs before thread 3’s load from $\HEAP[1]$.
-  \item Because the Intel-64 memory-ordering model prevents loads from being reordered (see \cite[Section 8.2.3.2]{ref:Intel}), thread 3’s loads occur in order and, therefore, thread 1’s \lstASM{CAS} occurs before thread 3’s load from $\HEAP[0]$.
+  \item Because the Intel-64 memory ordering model prevents loads from being reordered (see \cite[Section 8.2.3.2]{ref:Intel}), thread 3’s loads occur in order and, therefore, thread 1’s \lstASM{CAS} occurs before thread 3’s load from $\HEAP[0]$.
   \item Since thread 0’s \lstASM{CAS} into $\HEAP[0]$ occurs before thread 1’s \lstASM{CAS} (by assumption), it occurs before thread 3’s load from $\HEAP[0]$.
   Thus, $\ACCU_3 = 1$.
 \end{itemize}
@@ -369,7 +369,7 @@ A similar argument (referring instead to thread 2’s loads) applies if thread 1
 
 \subsubsection*{Loads Are Not Reordered with Locked Instructions}
 
-The memory-ordering model prevents loads and stores from being reordered with locked instructions that execute earlier or later.
+The memory ordering model prevents loads and stores from being reordered with locked instructions that execute earlier or later.
 The examples in this section illustrate only cases in which a locked instruction is executed before a load or a store.
 The reader should note that reordering is prevented also if the locked instruction is executed after a load or a store.
 \bigbreak
@@ -406,7 +406,7 @@ As explained in \cite[Section 8.2.3.8]{ref:Intel}, there is a total order of the
 Without loss of generality, suppose that thread 0’s \lstASM{CAS} occurs first.
 \bigbreak
 \noindent
-Because the Intel-64 memory-ordering model prevents thread 1’s load from being reordered with its earlier \lstASM{CAS}, thread 0’s \lstASM{CAS} occurs before thread 1’s load.
+Because the Intel-64 memory ordering model prevents thread 1’s load from being reordered with its earlier \lstASM{CAS}, thread 0’s \lstASM{CAS} occurs before thread 1’s load.
 This implies $\ACCU_1 = 1$.
 \bigbreak
 \noindent
@@ -416,7 +416,7 @@ A similar argument (referring instead to thread 2’s accesses) applies if threa
 
 \subsubsection*{Stores Are Not Reordered with Locked Instructions}
 
-The memory-ordering model prevents loads and stores from being reordered with locked instructions that execute earlier or later.
+The memory ordering model prevents loads and stores from being reordered with locked instructions that execute earlier or later.
 The examples in this section illustrate only cases in which a locked instruction is executed before a load or a store.
 The reader should note that reordering is prevented also if the locked instruction is executed after a load or a store.
 \bigbreak
@@ -452,9 +452,9 @@ The second example illustrates that a store may not be reordered with an earlier
 Assume $\MEM_1 = 1$.
 \begin{itemize}
   \item Because $\MEM_1 = 1$, thread 0’s store to $\HEAP[1]$ occurs before thread 1’s load from $\HEAP[1]$.
-  \item Because the memory-ordering model prevents a store from being reordered with an earlier locked instruction, thread 0’s \lstASM{CAS} into $\HEAP[0]$ occurs before its store to $\HEAP[1]$.
+  \item Because the memory ordering model prevents a store from being reordered with an earlier locked instruction, thread 0’s \lstASM{CAS} into $\HEAP[0]$ occurs before its store to $\HEAP[1]$.
   \item Thus, thread 0’s \lstASM{CAS} into $\HEAP[0]$ occurs before thread 1’s load from $\HEAP[1]$.
-  \item Because the memory-ordering model prevents loads from being reordered (see \cite[Section 8.2.3.2]{ref:Intel}), thread 1’s loads occur in order and, therefore, thread 1’s \lstASM{CAS} into $\HEAP[0]$ occurs before thread 1’s load from $\HEAP[0]$. Thus, $\ACCU_1 = 1$.
+  \item Because the memory ordering model prevents loads from being reordered (see \cite[Section 8.2.3.2]{ref:Intel}), thread 1’s loads occur in order and, therefore, thread 1’s \lstASM{CAS} into $\HEAP[0]$ occurs before thread 1’s load from $\HEAP[0]$. Thus, $\ACCU_1 = 1$.
 \end{itemize}
 
 \newpage
@@ -463,7 +463,7 @@ Assume $\MEM_1 = 1$.
 
 \label{appendix:litmus:amd}
 
-AMD's memory-ordering litmus tests as seen in \cite[Section 7.2]{ref:AMD} ported to our virtual machine model.
+AMD's memory ordering litmus tests as seen in \cite[Section 7.2]{ref:AMD} ported to our virtual machine model.
 
 % \subsubsection*{Loads Do Not Pass Previous Loads, Stores Do Not Pass Previous Stores}
 \subsubsection*{Neither Loads Nor Stores Are Reordered with Like Operations}

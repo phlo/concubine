@@ -1,26 +1,124 @@
+\todo[inline]{\url{https://arxiv.org/pdf/cs/0108016.pdf}}
+\todo[inline]{\url{https://www.cl.cam.ac.uk/~pes20/weakmemory/cacm.pdf}}
+\todo[inline]{\url{https://mirrors.edge.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook-e2-rc9.pdf}}
+% CBMC
+\todo[inline]{\url{http://www.kroening.com/papers/tcad-sw-2008.pdf}}
+\todo[inline]{\url{http://www.kroening.com/papers/tacas2004.pdf}}
+\todo[inline]{\url{https://link.springer.com/content/pdf/10.1007/978-3-642-39799-8\_9.pdf}}
+
+\newpage
+
 \section{Introduction}
 
-\subsection{Toolchain}
+%% sequential consistency:
+%% \emph{``the result of any execution is the same as if the operations of all the processors were executed in some sequential order, and the operations of each individual processor appear in this sequence in the order specified by its program''}.
 
-\begin{figure}[h]
+% \todo[inline]{need for software verification}\noindent
+
+Correctness of computer systems is critical in today's information age and although software verification made considerable progress in the last decade, it is still an ongoing research topic.
+Testing alone however is not sufficient to validate parallel programs
+communicating via shared memory on modern multiprocessor hardware,
+% running on current multiprocessor hardware
+% and communicating via shared memory,
+% running on modern shared memory multiprocessor hardware
+as fatal race conditions can have extremely low probabilities of occurrence.
+The situation becomes even worse due to counter-intuitive behaviour introduced by certain hardware optimizations.
+Without further knowledge about the underlying architecture, inexperienced developers of
+concurrent
+low-level
+systems code like lock-free data structures, operating system kernels, synchronisation
+% libraries,
+primitives,
+% compilers and so on might assume that the order of access to memory is \emph{sequentially consistent}
+% compilers and so on might assume a total order of access to memory for any possible interleaving, where each process is executed in program order.
+compilers,
+% etc.\
+and so on
+might assume
+% that
+% \emph{``the result of any execution is the same as if the operations of all the processors were executed in some sequential order for every possible interleaving and the operations of each individual processor appear in this sequence in the order specified by its program''}
+% the result of any execution is the same as if the operations of all processors were executed in some sequential order and the operations of each individual processor appear program order.
+\emph{sequential consistency} \cite{ref:Lamport79}.
+Unfortunately, none of the major hardware architectures follows this rather restrictive memory ordering model and allow
+% memory access operations to be reordered
+reordering of memory access operations
+in various ways.
+This opens the door for hard to find bugs caused by unexpected
+% reorderings
+behaviour
+and
+% needs to be prevented by
+% requires careful use of the target architecture's memory barrier operations to ensure consistency.
+requires a deep understanding of the target architecture's memory ordering model,
+% as well as
+accompanied by careful use of memory barrier operations to ensure consistency.
+% Table \ref{tbl:ordering} shows a rough overview of the memory ordering models used by different architectures.
+% referred to as \emph{sequential consistency} \cite{ref:Lamport79}.
+
+\todo[inline]{lack of concrete, formal specifications what programmers can rely on}
+
+
+% \bigskip
+
+% For example, modern processors are equipped with a store buffer to speed up writes.
+
+% \todo[inline]{counter-intuitive behaviour introduced by hardware optimizations}
+% \todo[inline]{memory models}
+
+% \bigskip
+
+\tabulinesep=6pt
+\noindent
+\begin{table}[!hbt]
   \centering
-  \input{figures/toolchain.tex}
-  \caption{Toolchain}
-\end{figure}
+  \begin{tabu}{|l|c|c|c|c|c|c|c|c|}
+    \tabucline{2-}
+    \multicolumn{1}{c|}{}
+    & \rotatebox{90}{Alpha}
+    & \rotatebox{90}{ARM}
+    & \rotatebox{90}{Itanium}
+    & \rotatebox{90}{MIPS}
+    & \rotatebox{90}{POWER}
+    & \rotatebox{90}{SPARC-TSO}
+    & \rotatebox{90}{x86}
+    & \rotatebox{90}{zSystems} \\
+    \tabucline{2-}
+    \firsthline
+    Loads Reordered after Loads/Stores? & \cmark & \cmark & \cmark  & \cmark & \cmark & & & \\
+    \hline
+    Stores Reordered after Stores? & \cmark & \cmark & \cmark & \cmark & \cmark & & & \\
+    \hline
+    Stores Reordered after Loads? & \cmark & \cmark & \cmark & \cmark & \cmark & \cmark & \cmark & \cmark \\
+    \hline
+    Atomic Reordered with Loads/Stores? & \cmark & \cmark & & \cmark & \cmark & & & \\
+    % \hline
+    % Dependent Loads Reordered? & \cmark & & & & & & & \\
+    % \hline
+    % Dependent Stores Reordered & & & & & & & & \\
+    \lasthline
+  \end{tabu}
+  \caption{Summary of Memory Ordering}
+  \label{tbl:ordering}
+\end{table}
 
-\todo[inline]{components structured according to the mode they are used}
+% \subsection{Problem/Motivation}
 
-\subsection{Problem/Motivation}
+% \todo[inline]{problems arising due to the unawareness of the specific architectures memory model}
+% \todo[inline]{example for counter intuitive behaviour} \noindent
 
-\todo[inline]{problems arising due to the unawareness of the specific architectures memory model}
-\todo[inline]{example for counter intuitive behaviour} \noindent
-The Intel-64 and AMD memory-ordering models allow a load to be reordered with an earlier store to a different location, thus breaking sequential consitency.
+\todo[inline]{reordering introduced by store buffers}
+
+Table \ref{tbl:ordering} shows that even the most restrictive architectures like the widely used x86
+
+\bigskip
+
+The Intel-64 and AMD memory ordering models allow a load to be reordered with an earlier store to a different location, thus breaking sequential consistency.
 However, loads are not reordered with stores to the same location.
 Even though this is the only reordering allowed, it is sufficient for introducing counter intuitive behaviour, illustrated by the example given in Listing \ref{fig:intro:code}.
 
 \newpage
 
-\begin{lstlisting}[style=c++, caption={Store Buffer Litmus Test}, label={fig:intro:code}]
+\begin{lstlisting}[style=c++, numbers=left, numberstyle=\footnotesize, numberblanklines=false, caption={Store Buffer Litmus Test}, label={fig:intro:code}]
 #include <pthread.h>
 #include <assert.h>
 
@@ -60,4 +158,23 @@ int main ()
 }
 \end{lstlisting}
 
+\begin{figure}[!h]
+  \centering
+  \input{figures/c-trace.tex}
+  \caption{Store Buffer Litmus Test Trace}
+\end{figure}
+
 \todo[inline]{x86 permits $\texttt{r0 = 0} \land \texttt{r1 = 0}$}
+
+\todo[inline]{\texttt{experiments/demo/run.sh}: 177169 out of 1000000 failed = $\sim 17.7$ \% ($\sim 12$ min)}
+\todo[inline]{only 82 out of 1000000 returned the perfectly legal outcome of 2}
+
+\subsection{Toolchain}
+
+\begin{figure}[h]
+  \centering
+  \input{figures/toolchain.tex}
+  \caption{Toolchain}
+\end{figure}
+
+\todo[inline]{components structured according to the mode they are used}

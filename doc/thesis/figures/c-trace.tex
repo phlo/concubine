@@ -1,0 +1,84 @@
+% distances
+% \def\blockdist{3}
+% \def\borderdist{0.2}
+%
+% \tabulinesep=0.1cm
+
+\begin{tikzpicture}
+  % \path (0,0) node (init) [] {
+    % $\begin{aligned}
+      % r_0 &= w_0 = 0 \\
+      % r_1 &= w_1 = 0
+    % \end{aligned}$};
+
+  \path (0, 0) node (init) [] {$w_0 = w_1 = 0$};
+  \path (0, -6) node (join) [] {$r_0 + r_1 = 0$};
+
+  \path (-3, -2) node (w0) [red] {$w_0 = 1$};
+  \path [->] (init) edge node [above] {$t_0$} (w0);
+  \path (-3, -4) node (r0) [] {$r_0 = w_1 = 0$};
+  \path [->] (w0) edge node [left] {$t_0$} (r0);
+  \path [->] (r0) edge node [below] {$t_0$} (join);
+
+  \path (3, -2) node (w1) [red] {$w_1 = 1$};
+  \path [->] (init) edge node [above] {$t_1$} (w1);
+  \path (3, -4) node (r1) [] {$r_1 = w_0 = 0$};
+  \path [->] (w1) edge node [right] {$t_1$} (r1);
+  \path [->] (r1) edge node [below] {$t_1$} (join);
+
+  \path (0, -2) node (buffered) [red] {buffered};
+  \path [draw, dotted, red, <-] (w0) -- (buffered);
+  \path [draw, dotted, red, ->] (buffered) -- (w1);
+
+  \path [draw, dotted, ->] (init) -- (r0);
+  \path [draw, dotted, ->] (init) -- (r1);
+
+  % \path [draw, dotted, green, ->] (init) edge node [near end, left] {\cmark} (r0);
+  % \path [draw, dotted, green, ->] (init) edge node [near end, right] {$\;$\cmark} (r1);
+
+  % \path [dotted, red, ->] (w1) edge node [near end, below] {\xmark} (r0);
+  % \path [dotted, red, ->] (w0) edge node [near end, below] {\xmark} (r1);
+
+  % \path (0, -1.2) node (mem) [green] {memory};
+  % \path (0, -3.6) node (sb) [red] {buffered};
+
+  % alternative
+
+  % \path (0, -10) node (Xinit) [draw, rounded corners, text centered, inner sep=0pt] {
+    % \begin{tabu}{c}
+      % \footnotesize memory \\
+      % $w_0 = w_1 = r_0 = r_1 = 0$ \\
+    % \end{tabu}
+  % };
+%
+  % \path (-3, -13) node (Xw0) [draw, rounded corners, text centered, inner sep=0pt] {
+    % \begin{tabu}{c}
+      % \textbf{thread 0} \\
+      % \hline
+      % \footnotesize memory \\
+      % $w_1 = r_0 = r_1 = 0$ \\
+      % % \tabucline[on 1pt off 2pt]{-}
+      % \hline
+      % \footnotesize store buffer \\
+      % % \tabucline[on 1pt off 2pt]{-}
+      % $w_0 = 1$
+    % \end{tabu}
+  % };
+%
+  % \path (-3, -17) node (Xr0) [draw, rounded corners, text centered, inner sep=0pt] {
+    % \begin{tabu}{c}
+      % \textbf{thread 0} \\
+      % \hline
+      % \footnotesize memory \\
+      % $w_1 = r_0 = r_1 = 0$ \\
+      % % \tabucline[on 1pt off 2pt]{-}
+      % \hline
+      % \footnotesize store buffer \\
+      % % \tabucline[on 1pt off 2pt]{-}
+      % $w_0 = 1\;$
+    % \end{tabu}
+  % };
+%
+  % \path [->] (Xinit) edge node [left] {$w_0 = 1$} (Xw0);
+  % \path [->] (Xw0) edge node [left] {$r_0 = w_1$} (Xr0);
+\end{tikzpicture}

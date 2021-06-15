@@ -105,6 +105,7 @@ Two addressing modes are supported: direct and indirect denoted by square bracke
 % Interpretation of a value's signedness is left to the programmmer.
 % All values may be interpreted as unsigned or signed according to two's compliment.
 Since the interpretation of a value's signedness is left to the programmer, we only included the most basic arithmetic instructions, which are equivalent for unsigned and two's compliment representations.
+Division is therefore left out due to it's different implementations for signed and unsigned integers.
 % For example, division is left out on purpose, since it would require different
 }
 
@@ -181,7 +182,13 @@ Since the interpretation of a value's signedness is left to the programmer, we o
 
 \subsubsection*{Atomic}
 
-\todo[inline]{motivate}
+% \todo[inline]{motivate}
+% \noindent
+\CHANGE{
+We included a basic atomic \emph{compare and swap} operation, commonly used to implement synchronization primitives like semaphores and mutexes, as well as lockless data structures.
+Since this particular command requires at least two operands (the target address and expected previous value), it had to be split up into two instructions due to our machine's unary input language.
+% Due to the unary nature of our instruction format,
+}
 
 \defop
 {\lstASM{MEM arg}}
@@ -193,7 +200,8 @@ Since the interpretation of a value's signedness is left to the programmer, we o
 {modify, read, atomic, barrier}
 {Atomically compares the expected value in $\MEM$ to the actual value found at address \texttt{arg} and only writes the value found in $\ACCU$ back to address \texttt{adr} if they are equal.
 Acts like a memory barrier.
-\todo{explain why non-blocking}}
+% \todo{explain why non-blocking}}
+}
 
 \subsubsection*{Termination}
 
@@ -214,9 +222,13 @@ Acts like a memory barrier.
 \defop
 {\lstASM{CHECK arg}}
 {control}
-{Synchronize on checkpoint \texttt{arg}.
+{Synchronize on checkpoint \texttt{arg} \CHANGE{(rendezvous)}.
 Suspends execution until all threads, containing a call to checkpoint \texttt{arg}, reached the corresponding \lstASM{CHECK} statement.
-This high-level meta instruction shall simplify the implementation of so called \emph{checker threads} used to validate machine states at runtime.}
+This high-level meta instruction
+shall simplify the implementation of so called \emph{checker threads} used to
+\CHANGE{programmatically validate machine states}.
+% validate machine states at runtime.
+}
 
 \newpage
 
