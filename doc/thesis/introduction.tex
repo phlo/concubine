@@ -1,3 +1,7 @@
+\todo[inline]{unify lables of figures and tables}
+
+\bigskip
+
 \todo[inline]{\url{https://arxiv.org/pdf/cs/0108016.pdf}}
 \todo[inline]{\url{https://www.cl.cam.ac.uk/~pes20/weakmemory/cacm.pdf}}
 \todo[inline]{\url{https://mirrors.edge.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook-e2-rc9.pdf}}
@@ -52,11 +56,7 @@ and
 requires a deep understanding of the target architecture's memory ordering model,
 % as well as
 accompanied by careful use of memory barrier operations to ensure consistency.
-% Table \ref{tbl:ordering} shows a rough overview of the memory ordering models used by different architectures.
 % referred to as \emph{sequential consistency} \cite{ref:Lamport79}.
-
-\todo[inline]{lack of concrete, formal specifications what programmers can rely on}
-
 
 % \bigskip
 
@@ -97,7 +97,8 @@ accompanied by careful use of memory barrier operations to ensure consistency.
     % Dependent Stores Reordered & & & & & & & & \\
     \lasthline
   \end{tabu}
-  \caption{Summary of Memory Ordering}
+  % \caption{Summary of Memory Ordering}
+  \caption{Memory Ordering on Different Architectures}
   \label{tbl:ordering}
 \end{table}
 
@@ -106,15 +107,37 @@ accompanied by careful use of memory barrier operations to ensure consistency.
 % \todo[inline]{problems arising due to the unawareness of the specific architectures memory model}
 % \todo[inline]{example for counter intuitive behaviour} \noindent
 
-\todo[inline]{reordering introduced by store buffers}
+% Table \ref{tbl:ordering} shows that even the most restrictive architectures like the widely used x86
 
-Table \ref{tbl:ordering} shows that even the most restrictive architectures like the widely used x86
+% The Intel-64 and AMD memory ordering models allow a load to be reordered with an earlier store to a different location, thus breaking sequential consistency.
+% However, loads are not reordered with stores to the same location.
+% Even though this is the only reordering allowed, it is sufficient for introducing counter intuitive behaviour, illustrated by the example given in Listing \ref{fig:intro:code}.
 
-\bigskip
+Table \ref{tbl:ordering} shows a rough overview of the memory ordering models used by different architectures.
+Even the most restrictive -- like the x86 processors in our desktop computers -- allow loads to be reordered with an earlier store to a different location, thus breaking sequential consistency.
+The reason for this particular reordering is a widely used optimization technique commonly referred to as \emph{store buffer}.
 
-The Intel-64 and AMD memory ordering models allow a load to be reordered with an earlier store to a different location, thus breaking sequential consistency.
-However, loads are not reordered with stores to the same location.
-Even though this is the only reordering allowed, it is sufficient for introducing counter intuitive behaviour, illustrated by the example given in Listing \ref{fig:intro:code}.
+While caches improve subsequent repeated loads of a specific variable (after an initial cache miss),
+\todo[noline]{stolen from perfbook}
+it is also necessary to accommodate frequent concurrent stores from multiple processors to a set of shared variables.
+In cache-coherent systems, if the caches hold multiple copies of a given variable, all the copies of that variable must have the same value.
+Each store will therefore invalidate all copies of the old value, resulting in even more cache misses slowing down the computation. % significantly.
+To remedy this situation, modern processors come equipped with store buffers, as shown in Figure \ref{fig:intro:store-buffer}.
+
+% \todo[inline]{reordering introduced by store buffers}
+
+\begin{figure}[!h]
+  \centering
+  \input{figures/store-buffer.tex}
+  \caption{System Architecture with Store Buffers}
+  \label{fig:intro:store-buffer}
+\end{figure}
+
+When a variable is stored, then the new value is placed in the processor's store buffer, which can proceed immediately without having to wait for the store to do something about all the old values of that variable residing in other processors' caches.
+% Each store buffer is allowed to voluntarily flush its contents back to memory, or may be forced to do so by certain instructions (memory barriers).
+% store forwarding
+In order to guarantee that each processor at least sees its own operation in program order, it first examines the store buffer before consulting the cache when loading a variable in a process called \emph{store forwarding}.
+% flushes and memory barrier operations (explicit and implicit - OS issue a memory barrier before switching contexts)
 
 \newpage
 
@@ -168,6 +191,8 @@ int main ()
 
 \todo[inline]{\texttt{experiments/demo/run.sh}: 177169 out of 1000000 failed = $\sim 17.7$ \% ($\sim 12$ min)}
 \todo[inline]{only 82 out of 1000000 returned the perfectly legal outcome of 2}
+
+\todo[inline]{lack of concrete, formal specifications what programmers can rely on}
 
 \subsection{Toolchain}
 
