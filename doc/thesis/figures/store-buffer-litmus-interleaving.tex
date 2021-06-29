@@ -1,15 +1,4 @@
-% distances
-% \def\blockdist{3}
-% \def\borderdist{0.2}
-%
-% \tabulinesep=0.1cm
-
 \begin{tikzpicture}
-  % \path (0,0) node (init) [] {
-    % $\begin{aligned}
-      % r_0 &= w_0 = 0 \\
-      % r_1 &= w_1 = 0
-    % \end{aligned}$};
 
   \path (0, 0) node (init) [] {$w_0 = w_1 = 0$};
   \path (0, -6) node (join) [] {$r_0 + r_1 = 0$};
@@ -33,6 +22,8 @@
   \path [draw, dotted, ->] (init) -- (r0);
   \path [draw, dotted, ->] (init) -- (r1);
 
+  % forwarding arrows
+
   % \path [draw, dotted, green, ->] (init) edge node [near end, left] {\cmark} (r0);
   % \path [draw, dotted, green, ->] (init) edge node [near end, right] {$\;$\cmark} (r1);
 
@@ -42,7 +33,7 @@
   % \path (0, -1.2) node (mem) [green] {memory};
   % \path (0, -3.6) node (sb) [red] {buffered};
 
-  % alternative
+  % alternative figure
 
   % \path (0, -10) node (Xinit) [draw, rounded corners, text centered, inner sep=0pt] {
     % \begin{tabu}{c}

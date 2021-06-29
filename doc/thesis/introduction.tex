@@ -43,7 +43,7 @@ might assume
 % \emph{``the result of any execution is the same as if the operations of all the processors were executed in some sequential order for every possible interleaving and the operations of each individual processor appear in this sequence in the order specified by its program''}
 % the result of any execution is the same as if the operations of all processors were executed in some sequential order and the operations of each individual processor appear program order.
 \emph{sequential consistency} \cite{ref:Lamport79}.
-Unfortunately, none of the major hardware architectures follows this rather restrictive memory ordering model and allow
+Unfortunately, none of the major hardware architectures follows this rather restrictive \emph{memory ordering model} and allow
 % memory access operations to be reordered
 reordering of memory access operations
 in various ways.
@@ -53,9 +53,9 @@ behaviour
 and
 % needs to be prevented by
 % requires careful use of the target architecture's memory barrier operations to ensure consistency.
-requires a deep understanding of the target architecture's memory ordering model,
+requires a deep understanding of the target architecture's memory ordering habits,
 % as well as
-accompanied by careful use of memory barrier operations to ensure consistency.
+accompanied by careful use of \emph{memory barrier} operations to ensure consistency.
 % referred to as \emph{sequential consistency} \cite{ref:Lamport79}.
 
 % \bigskip
@@ -122,28 +122,33 @@ While caches improve subsequent repeated loads of a specific variable (after an 
 it is also necessary to accommodate frequent concurrent stores from multiple processors to a set of shared variables.
 In cache-coherent systems, if the caches hold multiple copies of a given variable, all the copies of that variable must have the same value.
 Each store will therefore invalidate all copies of the old value, resulting in even more cache misses slowing down the computation. % significantly.
-To remedy this situation, modern processors come equipped with store buffers, as shown in Figure \ref{fig:intro:store-buffer}.
 
 % \todo[inline]{reordering introduced by store buffers}
 
 \begin{figure}[!h]
   \centering
-  \input{figures/store-buffer.tex}
+  \input{figures/store-buffer-architecture.tex}
   \caption{System Architecture with Store Buffers}
-  \label{fig:intro:store-buffer}
+  \label{fig:intro:store-buffer-architecture}
 \end{figure}
 
-When a variable is stored, then the new value is placed in the processor's store buffer, which can proceed immediately without having to wait for the store to do something about all the old values of that variable residing in other processors' caches.
-% Each store buffer is allowed to voluntarily flush its contents back to memory, or may be forced to do so by certain instructions (memory barriers).
+To remedy this situation, modern processors come equipped with store buffers, as shown in Figure \ref{fig:intro:store-buffer-architecture}.
+When a variable is stored, the new value is placed in the processor's store buffer, which can proceed immediately without having to wait for the store to do something about all the old values of that variable residing in other processors' caches.
 % store forwarding
-In order to guarantee that each processor at least sees its own operation in program order, it first examines the store buffer before consulting the cache when loading a variable in a process called \emph{store forwarding}.
+In order to guarantee that each processor at least sees its own operations in program order, it first examines its store buffer before consulting the cache when loading a variable in a process called \emph{store forwarding}.
+% store buffer flushes
 % flushes and memory barrier operations (explicit and implicit - OS issue a memory barrier before switching contexts)
+% arbitrarily delaying visibility of the store to other processors.
+% Each store buffer is allowed to voluntarily flush its contents back to memory, or may be forced to do so by certain instructions like memory barriers.
+Since each store buffer is allowed to voluntarily flush its contents back to memory, the visibility of the particular stores to other processors might be arbitrarily delayed, leading to the aforementioned memory misordering
+illustrated by the store buffer litums test shown in Listing \ref{lst:intro:store-buffer-litmus}.
+% If the processor is not forced to flush its contents back to memory, visibility of stores to other processors is arbitrarily delayed, leading to the aforementioned misordering.
+% This leads to the aforementioned misordering, as the particular stores' visibility to other processor might be arbitrarily delayed.
+% This simple optimization is sufficient for introducing the aforementioned misordering, as the particular stores' visibility to other processor might be arbitrarily delayed.
 
-\newpage
-
-\begin{lstlisting}[style=c++, numbers=left, numberstyle=\footnotesize, numberblanklines=false, caption={Store Buffer Litmus Test}, label={fig:intro:code}]
-#include <pthread.h>
+\begin{lstlisting}[style=c++, numbers=left, numberstyle=\footnotesize, numberblanklines=false, caption={Store Buffer Litmus Test}, label={lst:intro:store-buffer-litmus}]
 #include <assert.h>
+#include <pthread.h>
 
 #define ACCESS(x) (*(volatile typeof(x) *) &(x))
 #define READ(x) ({typeof(x) TMP = ACCESS(x); TMP;})
@@ -181,20 +186,41 @@ int main ()
 }
 \end{lstlisting}
 
+% \todo[inline]{x86 permits $\texttt{r0 = 0} \land \texttt{r1 = 0}$}
+One might assume that the assertion on line 35 never triggers, because any possible interleaving should guarantee that at least one \lstinline[style=c++]{WRITE} must have happened before a subsequent \lstinline[style=c++]{READ} by the other thread in this symmetric example.
+This intuition however breaks down with the addition of store buffers.
+Consider the interleaving depicted in Figure \ref{fig:intro:store-buffer-litmus-interleaving}.
 \begin{figure}[!h]
   \centering
-  \input{figures/c-trace.tex}
-  \caption{Store Buffer Litmus Test Trace}
+  \input{figures/store-buffer-litmus-interleaving.tex}
+  \caption{Store Buffer Litmus Test Interleaving}
+  \label{fig:intro:store-buffer-litmus-interleaving}
 \end{figure}
+After initializing the shared variables with zero, %($w_0 = w_1 = 0$)
+% both
+writes to $w_0$ and $w_1$ will be placed into the respective processor's store buffer.
+If neither of the store buffers has been flushed prior to the subsequent reads $r_0 = w_1$ and $r_1 = w_0$, both processors must resort to the variable's initial value in their caches,
+% which still contains the initial value,
+hence triggering the assertion.
+% Since it still contains their initial value,
+% the threads will erroneously load zero,
+% hence triggering the assertion.
+% \todo[inline]{\texttt{experiments/demo/run.sh}: 177169 out of 1000000 failed = $\sim 17.7$ \% ($\sim 12$ min)}
+% \todo[inline]{only 82 out of 1000000 returned the perfectly legal outcome of 2}
+This willingness to reorder can be validated by running the store buffer litmus test given in Listing \ref{lst:intro:store-buffer-litmus}.
+On our Intel i7-3770K this counter-intuitive reordering happened 177169 out of 1000000 test runs, while the perfectly legal outcome of $r_0 + r_1 == 2$ on the other hand only occurred 82 times.
 
-\todo[inline]{x86 permits $\texttt{r0 = 0} \land \texttt{r1 = 0}$}
+% \todo[inline]{lack of concrete, formal specifications what programmers can rely on}
+Programmers must therefore make careful use of memory barriers,
+forcing the store buffer to be flushed back to memory after writing to a shared variable whenever necessary.
+Unfortunately, many hardware vendors don't supply concrete formal specifications programmers can rely on.
+For example, the memory ordering models of Intel's \cite{ref:Intel} as well as AMD's \cite{ref:AMD} x86 implementations are specified in an informal prose together with a set of litmus tests, having the potential for leading to widespread confusion.
 
-\todo[inline]{\texttt{experiments/demo/run.sh}: 177169 out of 1000000 failed = $\sim 17.7$ \% ($\sim 12$ min)}
-\todo[inline]{only 82 out of 1000000 returned the perfectly legal outcome of 2}
+% \subsection{Toolchain}
 
-\todo[inline]{lack of concrete, formal specifications what programmers can rely on}
-
-\subsection{Toolchain}
+\bigskip
+\noindent
+In this thesis we tried to address this issue by exploring encodings of an abstract machine model including memory ordering.
 
 \begin{figure}[h]
   \centering

@@ -1,0 +1,56 @@
+% styles
+\tikzstyle{box} = [draw, text centered, rounded corners]
+\tikzstyle{processor} = [box, fill=blue!10]
+\tikzstyle{buffer} = [box, fill=red!10]
+\tikzstyle{cache} = [box, fill=yellow!10]
+
+\begin{tikzpicture}
+
+  % \draw[step=1cm,gray,very thin] (-5, 0) grid (5, -10);
+
+  % processors
+  \path [processor] (-5, 0) rectangle (-1, -2);
+  \path (-3, -1) node (p-0) [] {\textbf{Processor 0}};
+
+  \path [processor] (1, 0) rectangle (5, -2);
+  \path (3, -1) node (p-n) [] {\textbf{Processor n}};
+
+  % store buffers
+  \path [buffer] (-3, -3) rectangle (-1, -5);
+  \path (-2, -3.7) node (s-0) [] {\textbf{Store}};
+  \path (-2, -4.3) node (b-0) [] {\textbf{Buffer}};
+
+  \path [buffer] (1, -3) rectangle (3, -5);
+  \path (2, -3.7) node (s-n) [] {\textbf{Store}};
+  \path (2, -4.3) node (b-n) [] {\textbf{Buffer}};
+
+  % caches
+  \path [cache] (-5, -6) rectangle (-1, -8);
+  \path (-3, -7) node (c-0) [] {\textbf{Cache}};
+
+  \path [cache] (1, -6) rectangle (5, -8);
+  \path (3, -7) node (c-n) [] {\textbf{Cache}};
+
+  % heap
+  \path [box] (-5, -9) rectangle (5, -11);
+  \path (0, -10) node (heap) [] {\textbf{Shared Memory}};
+
+  % arrows
+  \path [draw, <-] (-4, -2) -- (-4, -6);  % cache -> processor 0
+  \path [draw, <->] (-2, -2) -- (-2, -3); % sb <-> processor 0
+  \path [draw, ->] (-2, -5) -- (-2, -6);  % sb -> cache
+  \path [draw, <->] (-3, -8) -- (-3, -9); % cache <-> memory
+
+  \path [draw, <-] (4, -2) -- (4, -6);    % cache -> processor n
+  \path [draw, <->] (2, -2) -- (2, -3);   % sb -> processor n
+  \path [draw, ->] (2, -5) -- (2, -6);    % sb -> cache
+  \path [draw, <->] (3, -8) -- (3, -9);   % cache <-> memory
+
+  \path [draw, <-] (-1, -7) -- (-0.5, -7);
+  \path (0, -7) node (dots) [] {\large $\ldots$};
+  \path [draw, ->] (0.5, -7) -- (1, -7);
+
+  % dots
+  \path (0, -1) node (dots) [] {\large $\ldots$};
+
+\end{tikzpicture}
