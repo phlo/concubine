@@ -1,4 +1,4 @@
-\todo[inline]{minimal model abstracting caches, preemption and store buffer flushes independent from execution} \noindent
+% \todo[inline]{minimal model abstracting caches, preemption and store buffer flushes independent from execution} \noindent
 
 \section{Machine Model}
 
@@ -18,7 +18,10 @@
 
 % * abstract machine model to investigate the interaction of parallel programs through shared memory.
 
-We will start by defining an abstract machine model of a multiprocessor system as observed by assembly programs.
+We will start by defining a \CHANGE{minimal virtual} machine model of a multiprocessor system as observed by assembly programs.
+% \CHANGE{
+% abstracting caches (assuming cache-coherence) and interleaving the execution of
+% }
 To keep the state space of the resulting model checking problems as small as possible, it is based on a 16 bit architecture, using only a minimal set of registers and a radically reduced instruction set.
 
 \begin{figure}[!h]
@@ -28,8 +31,8 @@ To keep the state space of the resulting model checking problems as small as pos
   \label{fig:machine:overview}
 \end{figure}
 
-A schematic overview is illustrated in Figure \ref{fig:machine:overview}.
-At the top of the figure are an arbitrary number of processors, each running a single thread and containing:
+A schematic overview is illustrated in Figure \ref{fig:machine:overview}, \CHANGE{where dashed lines depict components and data paths solely used by our \emph{compare and swap} mechanism}.
+At the top of the figure are an arbitrary number of \CHANGE{logical} processors, each running a single \CHANGE{abstract} thread containing:
 
 \begin{itemize}
   \item \ACCU: a single 16 bit accumulator register
@@ -43,10 +46,43 @@ At the top of the figure are an arbitrary number of processors, each running a s
     \end{itemize}
 \end{itemize}
 
-All processors are directly connected to the machine's shared memory, referred to as $\HEAP$, which will be uninitialized \CHANGE{unless any} eventual input data.
-In terms of memory ordering, the addition of a \emph{store buffer} allows stores to be reordered after loads, making our model consistent with Intel's or AMD's x86 memory ordering model \cite{ref:Intel, ref:AMD}.
+All \CHANGE{threads} are directly connected to the machine's shared memory, referred to as $\HEAP$, which will be uninitialized \CHANGE{unless any} eventual input data.
+\CHANGE{Caches are abstracted as they don't influence
+% our virtual machine's behaviour
+the memory subsystem's basic behaviour
+if they are coherent.}
+In terms of memory ordering, the addition of a \emph{store buffer} allows stores to be reordered after loads, making our model consistent with Intel's or AMD's x86 memory ordering models \cite{ref:Intel, ref:AMD}.
 
-\subsection{Instructions}
+% \bigskip
+% \todo[inline]{model based on interleaving the execution of instructions and store buffer flushes}
+
+\subsection*{Scheduling}
+
+At each step \CHANGE{in time} a \CHANGE{single thread} either executes an instruction or flushes its store buffer back to memory.
+Scheduling is generally performed non-deterministically under the following constraints.
+
+\begin{enumerate}
+  \item A \CHANGE{thread} can execute a read, modify or control operation at any time.
+  \item A \CHANGE{thread} can voluntarily flush its store buffer to memory only if it is full.
+  \item A \CHANGE{thread} can execute a write or barrier operation only if its store buffer is empty.
+  % \item \CHANGE{A thread can only execute an instruction if it is not suspended} %(by a previous \lstASM{CHECK} statement).}
+  % \item \CHANGE{A thread cannot execute any more instructions if it has been stopped.} % by a \lstASM{HALT}.}
+\end{enumerate}
+
+\CHANGE{
+We argue that this interleaving semantic is sufficient for simulating the effects of real hardware, due to the execution of instructions and store buffer flushes being seen as independent.
+A similar argument applies regarding preemption, assuming the presence of at least as many physical processors as running threads.
+Since preemptive operating system kernels contain memory barriers when switching contexts, our thread centric view remains valid
+% as the architectural state remains the same and the move to another physical processor just manifests as a store buffer flush.
+% and the switch to another processor
+and preemption
+is just hidden behind a store buffer flush.
+}
+
+% \todo[inline]{checkpoints?}
+% \todo[inline]{halted threads?}
+
+\subsection*{Instructions}
 
 Our machine uses a radically reduced instruction set that contains only the most substantial operations.
 Instructions are stored separately for each thread and are therefore not contained in memory.
@@ -105,7 +141,7 @@ Two addressing modes are supported: direct and indirect denoted by square bracke
 % Interpretation of a value's signedness is left to the programmmer.
 % All values may be interpreted as unsigned or signed according to two's compliment.
 Since the interpretation of a value's signedness is left to the programmer, we only included the most basic arithmetic instructions, which are equivalent for unsigned and two's compliment representations.
-Division is therefore left out due to it's different implementations for signed and unsigned integers.
+Division is therefore left out due to its different implementations for signed and unsigned integers.
 % For example, division is left out on purpose, since it would require different
 }
 
@@ -205,7 +241,11 @@ Acts like a memory barrier.
 
 \subsubsection*{Termination}
 
-\todo[inline]{motivate}
+% \todo[inline]{motivate}
+\CHANGE{
+% Explicit termination of a single thread or the whole machine can be issued by the following commands.
+Explicitly stopping a single thread or terminating the whole machine can be achieved by the following commands.
+}
 
 \defop
 {\lstASM{HALT}}
@@ -219,20 +259,23 @@ Acts like a memory barrier.
 
 \subsubsection*{Meta}
 
+\CHANGE{
+The following high-level meta instruction, mimicking a reverse semaphore (and therefore not available on real hardware),
+shall simplify the implementation of so called \emph{checker threads}
+% by mimicking common synchronization primitives
+used to programmatically validate machine states at runtime.
+% validate machine states at runtime.
+}
+
 \defop
 {\lstASM{CHECK arg}}
 {control}
 {Synchronize on checkpoint \texttt{arg} \CHANGE{(rendezvous)}.
-Suspends execution until all threads, containing a call to checkpoint \texttt{arg}, reached the corresponding \lstASM{CHECK} statement.
-This high-level meta instruction
-shall simplify the implementation of so called \emph{checker threads} used to
-\CHANGE{programmatically validate machine states}.
-% validate machine states at runtime.
-}
+Suspends execution until all threads, containing a call to checkpoint \texttt{arg}, reached the corresponding \lstASM{CHECK} statement.}
 
-\newpage
+% \newpage
 
-\subsection{Programs}
+\subsection*{Programs}
 
 Each thread is programmed using an assembly style language, defined by the following syntax.
 
@@ -273,17 +316,3 @@ Each thread is programmed using an assembly style language, defined by the follo
 
 % If the final statement in a given program is no control instruction, a final \texttt{HALT} is inserted implicitly.
 If the final statement in a given program is not an \lstASM{EXIT} instruction or unconditional \lstASM{JMP}, \CHANGE{an additional} \lstASM{HALT} is inserted implicitly.
-
-\subsection{Scheduling}
-
-At each step a processors either executes an instruction or flushes it's store buffer back to memory.
-Scheduling is generally performed non-deterministically under the following constraints.
-
-\begin{enumerate}
-  \item A processor can execute a read, modify or control operation at any time.
-  \item A processor can voluntarily flush its store buffer to memory only if it is full.
-  \item A processor can execute a write or barrier operation only if it's store buffer is empty.
-\end{enumerate}
-
-\todo[inline]{checkpoints?}
-\todo[inline]{halted threads?}

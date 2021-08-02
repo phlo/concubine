@@ -1,16 +1,16 @@
-\todo[inline]{unify lables of figures and tables}
-
-\bigskip
-
-\todo[inline]{\url{https://arxiv.org/pdf/cs/0108016.pdf}}
-\todo[inline]{\url{https://www.cl.cam.ac.uk/~pes20/weakmemory/cacm.pdf}}
-\todo[inline]{\url{https://mirrors.edge.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook-e2-rc9.pdf}}
-% CBMC
-\todo[inline]{\url{http://www.kroening.com/papers/tcad-sw-2008.pdf}}
-\todo[inline]{\url{http://www.kroening.com/papers/tacas2004.pdf}}
-\todo[inline]{\url{https://link.springer.com/content/pdf/10.1007/978-3-642-39799-8\_9.pdf}}
-
-\newpage
+% \todo[inline]{unify lables of figures and tables}
+%
+% \bigskip
+%
+% \todo[inline]{\url{https://arxiv.org/pdf/cs/0108016.pdf}}
+% \todo[inline]{\url{https://www.cl.cam.ac.uk/~pes20/weakmemory/cacm.pdf}}
+% \todo[inline]{\url{https://mirrors.edge.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook-e2-rc9.pdf}}
+% % CBMC
+% \todo[inline]{\url{http://www.kroening.com/papers/tcad-sw-2008.pdf}}
+% \todo[inline]{\url{http://www.kroening.com/papers/tacas2004.pdf}}
+% \todo[inline]{\url{https://link.springer.com/content/pdf/10.1007/978-3-642-39799-8\_9.pdf}}
+%
+% \newpage
 
 \section{Introduction}
 
@@ -30,7 +30,7 @@ The situation becomes even worse due to counter-intuitive behaviour introduced b
 Without further knowledge about the underlying architecture, inexperienced developers of
 concurrent
 low-level
-systems code like lock-free data structures, operating system kernels, synchronisation
+systems code like lock-free data structures, operating system kernels, synchronization
 % libraries,
 primitives,
 % compilers and so on might assume that the order of access to memory is \emph{sequentially consistent}
@@ -121,7 +121,9 @@ While caches improve subsequent repeated loads of a specific variable (after an 
 \todo[noline]{stolen from perfbook}
 it is also necessary to accommodate frequent concurrent stores from multiple processors to a set of shared variables.
 In cache-coherent systems, if the caches hold multiple copies of a given variable, all the copies of that variable must have the same value.
-Each store will therefore invalidate all copies of the old value, resulting in even more cache misses slowing down the computation. % significantly.
+Each store will therefore invalidate all copies of the old value,
+% resulting in even more cache misses
+hence slowing down the computation. % significantly.
 
 % \todo[inline]{reordering introduced by store buffers}
 
@@ -189,7 +191,7 @@ int main ()
 % \todo[inline]{x86 permits $\texttt{r0 = 0} \land \texttt{r1 = 0}$}
 One might assume that the assertion on line 35 never triggers, because any possible interleaving should guarantee that at least one \lstinline[style=c++]{WRITE} must have happened before a subsequent \lstinline[style=c++]{READ} by the other thread in this symmetric example.
 This intuition however breaks down with the addition of store buffers.
-Consider the interleaving depicted in Figure \ref{fig:intro:store-buffer-litmus-interleaving}.
+Consider the interleavings depicted in Figure \ref{fig:intro:store-buffer-litmus-interleaving}.
 \begin{figure}[!h]
   \centering
   \input{figures/store-buffer-litmus-interleaving.tex}
@@ -233,8 +235,8 @@ x86 implementations.
 % on the basis of a simple virtual machine model including store buffers.
 % and explored encodings of an abstract machine model including memory ordering.
 In order to evaluate our approach we developed
-ConcuBinE\footnote{\url{https://github.com/phlo/concubine}} (\textbf{Concu}rrent \textbf{Bin}ary \textbf{E}valuator),
-a toolchain for simulating and
+ConcuBinE\footnote{\url{https://github.com/phlo/concubine}} (short for \textbf{Concu}rrent \textbf{Bin}ary \textbf{E}valuator),
+a tool for simulating and
 % verifying
 automated reasoning about
 random memory access sequences by
@@ -253,7 +255,11 @@ It offers three modes of execution:
     reevaluates a given trace via simulation.
     Used to validate the traces found by the \texttt{solve} mode.
 \end{itemize}
-Figure \ref{fig:intro:toolchain} shows a basic overview of its usage, where red nodes symbolize in and output files, blue nodes the components according to the mode it is used and yellow nodes external software (SMT solvers).
+Figure \ref{fig:intro:toolchain} shows a basic overview of its usage,
+where red nodes symbolize in and output files,
+% blue nodes the components according to the mode it is used
+blue nodes the mode of opration
+and yellow nodes external software (SMT solvers).
 
 % In this thesis we developed a toolchain for simulating and bounded model checking of random memory access sequences by concurrent programs.
 

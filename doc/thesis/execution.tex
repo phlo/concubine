@@ -1,4 +1,4 @@
-\section{Execution}
+\section{Simulation}
 
 % \begin{verbatim}
 % usage: concubine simulate [options] <program> ...
@@ -23,7 +23,7 @@ It takes an arbitrary number of program files, each being run on a separate thre
 \end{minipage}
 
 An implementation of the store buffer litmus test for our machine is given in Listings \ref{lst:program:thread.0.asm} and \ref{lst:program:thread.1.asm}.
-The following command line can now be used to simulate it's execution.
+The following command line can now be used to simulate its execution.
 
 \begin{verbatim}
 $ concubine simulate thread.0.asm thread.1.asm
@@ -32,7 +32,7 @@ $ concubine simulate thread.0.asm thread.1.asm
 After the simulation has been finished, the execution trace will be saved to the current directory as \texttt{sim.trace} per default.
 % To change the path and output file names, the \texttt{-o} command line parameter can be used.
 
-\subsection{Traces}
+\subsection*{Traces}
 
 The execution traces are simple text files, capturing the basic environment and machine state transitions.
 A trace of the previous simulation could look as follows.
@@ -135,9 +135,9 @@ A more formal definition of the trace file syntax is given below.
 \label{fig:syntax:trace}
 \end{figure}
 
-\subsection{Memory Maps}
+\subsection*{Memory Maps}
 
-Access to uninitialized memory cells is captured in so called memory maps\footnote{\CHANGE{naming inspired by, but not to be confused with memory mapped I/O}} again a simple text file format, containing one address value pair per line, delimited by a whitespace.
+Access to uninitialized memory cells is captured in so called \emph{memory maps}\footnote{\CHANGE{naming inspired by, but not to be confused with memory mapped I/O}} again a simple text file format, containing one address value pair per line, delimited by a whitespace.
 
 \begin{lstlisting}[style=asm, caption={Output Trace Accessing Uninitialized Memory}, label={lst:trace:uninitialized}, xleftmargin=\parindent]
 thread.0.asm
@@ -190,7 +190,7 @@ For completeness, the syntax of such trace files is given below.
 
 % \subsection{Finding Problematic Traces}
 % \subsection{Searching Problematic Traces Exhaustively}
-\subsection{Finding Specific Machine States}
+\subsection*{Finding Specific Machine States}
 
 It also possible to search for specific machine states via simulation.
 The command line switch \texttt{-c} simulates the given programs exhaustively until a trace \CHANGE{yields} an exit code \CHANGE{other} than zero is encountered.
@@ -211,7 +211,7 @@ $ concubine simulate -c -m init.mmap \
                      thread.1.asm
 \end{verbatim}
 
-After a couple of simulations, a trace like the one shown in Listing \ref{lst:trace:error}, where none of the store buffers has been flushed prior to the \emph{checker threads} \lstASM{ADD} instructions, will be found.
+After a couple of simulations, a trace like the one shown in Listing \ref{lst:trace:error}, where none of the store buffers has been flushed prior to the checker thread's \lstASM{ADD} instructions, will be found.
 
 \begin{lstlisting}[style=asm, caption={Sequentially Inconsistent Trace}, label={lst:trace:error}, xleftmargin=\parindent]
 checker.asm

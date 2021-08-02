@@ -132,6 +132,8 @@ execution variable $\EXEC^{k - 1}_{t, pc}$.
                      % accu_0_2))))
 % \end{lstlisting}
 
+\newpage
+
 \begin{lstlisting}[style=c++]
 void define_accu (uint k)
 {
@@ -160,14 +162,7 @@ void define_accu (uint k)
                           val_0_0
                           (select heap_0 #x0001))
                      accu_0_0))))
-(assert (= accu_1_1
-           (ite exec_0_1_0
-                (bvadd accu_0_1 #x0001)
-                (ite exec_0_1_2
-                     (ite (and full_0_1 (= adr_0_1 #x0000))
-                          val_0_1
-                          (select heap_0 #x0000))
-                     accu_0_1))))
+(assert (= accu_1_1 ... ; same as before but reading address 0
 (assert (= accu_1_2
            (ite exec_0_2_1
                 (bvadd accu_0_2
@@ -209,6 +204,8 @@ We omit the implementation of state update functions for the remaining register 
 \noindent
 \emph{Example:} \lstCPP{define_mem(1)}
 
+\vspace{-\baselineskip/2}
+
 \begin{lstlisting}[style=smtlib]
 (assert (= mem_1_0 mem_0_0))
 (assert (= mem_1_1 mem_0_1))
@@ -236,6 +233,8 @@ We omit the implementation of state update functions for the remaining register 
 \noindent
 \emph{Example:} \lstCPP{define_adr(1)}
 
+\vspace{-\baselineskip/2}
+
 \begin{lstlisting}[style=smtlib]
 (assert (= adr_1_0 (ite exec_0_0_1 #x0000 adr_0_0)))
 (assert (= adr_1_1 (ite exec_0_1_1 #x0001 adr_0_1)))
@@ -262,6 +261,8 @@ We omit the implementation of state update functions for the remaining register 
 
 \noindent
 \emph{Example:} \lstCPP{define_val(1)}
+
+\vspace{-\baselineskip/2}
 
 \begin{lstlisting}[style=smtlib]
 (assert (= val_1_0 (ite exec_0_0_1 accu_0_0 val_0_0)))
@@ -338,7 +339,7 @@ void define_full (uint k)
 % Instead of another costly cardinality constraint, definition of statement activation variables $\STMT^k_{t, pc}$ is based on the previous execution of the corresponding instruction and preceding program statements to either deactivate or activate them in the current step.
 % To do so, each statement activation variables update expression is initialized with a conjunction containing it's previous state $\STMT^{k - 1}_{t, pc}$ together with the negation of the corresponding execution variable $\EXEC^{k - 1}_{t, pc}$ in order to deactivate it in case of it's execution or preserve it's state otherwise.
 % >>>
-\todo[noline]{refer to interleaving assumption}
+% \todo[noline]{refer to interleaving assumption}
 In order to correctly model symbolic program counters \CHANGE{correctly}, individual state updates must ensure that at most one statement is activated in any step.
 % >>>
 % In order to correctly model our symbolic program counters, individual state updates are based on the previous execution of the corresponding statement as well as preceding program instructions to ensure that at most one statement is activated in every step.
