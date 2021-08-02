@@ -30,7 +30,7 @@
 
   % paths
   \path [draw, <->] (val-0.west) -- (val-0.west -| accu-0.north) -- (accu-0.north);
-  \path [draw, ->] (val-0.east) -- (val-0.east -| mem-0.north) -- (mem-0.north);
+  \path [draw, dashed, ->] (val-0.east) -- (val-0.east -| mem-0.north) -- (mem-0.north);
 
   \begin{pgfonlayer}{background}
     % bounding box
@@ -65,7 +65,7 @@
 
   % paths
   \path [draw, <->] (val-n.west) -- (val-n.west -| accu-n.north) -- (accu-n.north);
-  \path [draw, ->] (val-n.east) -- (val-n.east -| mem-n.north) -- (mem-n.north);
+  \path [draw, dashed, ->] (val-n.east) -- (val-n.east -| mem-n.north) -- (mem-n.north);
 
   \begin{pgfonlayer}{background}
     % bounding box
@@ -87,11 +87,13 @@
 
   % paths
   \path [draw, ->] (val-0) -- (heap.north -| val-0);
-  \path [draw, <->] (accu-0) -- (heap.north -| accu-0);
-  \path [draw, <-] (mem-0) -- (heap.north -| mem-0);
+  \path [draw, <-, transform canvas={xshift=-3mm}] (accu-0) -- (heap.north -| accu-0);
+  \path [draw, dashed, ->, transform canvas={xshift=3mm}] (accu-0) -- (heap.north -| accu-0);
+  \path [draw, dashed, <-] (mem-0) -- (heap.north -| mem-0);
 
   \path [draw, ->] (val-n) -- (heap.north -| val-n);
-  \path [draw, <->] (accu-n) -- (heap.north -| accu-n);
-  \path [draw, <-] (mem-n) -- (heap.north -| mem-n);
+  \path [draw, <-, transform canvas={xshift=-3mm}] (accu-n) -- (heap.north -| accu-n);
+  \path [draw, dashed, ->, transform canvas={xshift=3mm}] (accu-n) -- (heap.north -| accu-n);
+  \path [draw, dashed, <-] (mem-n) -- (heap.north -| mem-n);
 
 \end{tikzpicture}

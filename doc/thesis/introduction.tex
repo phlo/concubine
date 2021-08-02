@@ -208,7 +208,7 @@ hence triggering the assertion.
 % \todo[inline]{\texttt{experiments/demo/run.sh}: 177169 out of 1000000 failed = $\sim 17.7$ \% ($\sim 12$ min)}
 % \todo[inline]{only 82 out of 1000000 returned the perfectly legal outcome of 2}
 This willingness to reorder can be validated by running the store buffer litmus test given in Listing \ref{lst:intro:store-buffer-litmus}.
-On our Intel i7-3770K this counter-intuitive reordering happened 177169 out of 1000000 test runs, while the perfectly legal outcome of $r_0 + r_1 == 2$ on the other hand only occurred 82 times.
+On our Intel i7-3770K this counter-intuitive reordering happened 177169 out of 1000000 test runs, while the perfectly legal outcome of $r_0 + r_1 = 2$ on the other hand only occurred 82 times.
 
 % \todo[inline]{lack of concrete, formal specifications what programmers can rely on}
 Programmers must therefore make careful use of memory barriers,
@@ -218,14 +218,63 @@ For example, the memory ordering models of Intel's \cite{ref:Intel} as well as A
 
 % \subsection{Toolchain}
 
-\bigskip
-\noindent
-In this thesis we tried to address this issue by exploring encodings of an abstract machine model including memory ordering.
+% \bigskip
+\newpage
+% \noindent
+
+In this thesis we tried to address this issue by
+% exploring encodings of an abstract machine model including memory ordering.
+means of \emph{bounded model checking} \cite{ref:BMC}
+based on the architectural view of a simple virtual machine model using store buffers,
+reassambling the memory ordering habits of
+the industry's leading
+% current
+x86 implementations.
+% on the basis of a simple virtual machine model including store buffers.
+% and explored encodings of an abstract machine model including memory ordering.
+In order to evaluate our approach we developed
+ConcuBinE\footnote{\url{https://github.com/phlo/concubine}} (\textbf{Concu}rrent \textbf{Bin}ary \textbf{E}valuator),
+a toolchain for simulating and
+% verifying
+automated reasoning about
+random memory access sequences by
+concurrent programs.
+% on a virtual machine using store buffers,
+% dubbed ConcuBinE\footnote{\url{https://github.com/phlo/concubine}} (\textbf{Concu}rrent \textbf{Bin}ary \textbf{E}valuator).
+It offers three modes of execution:
+\begin{itemize}
+  \item \texttt{simulate}:
+    simulates the execution of given programs and returns the corresponding execution trace in an easy to read format.
+  \item \texttt{solver}:
+    automatically generates an encoding of given programs for a specific upper bound and evaluates the resulting bounded model checking problem with the help of state-of-the-art SMT solvers.
+    If the problem is satisfiable, the corresponding execution trace (model) will be returned.
+  \item \texttt{replay}:
+    % used to validate a given trace via simulation.
+    reevaluates a given trace via simulation.
+    Used to validate the traces found by the \texttt{solve} mode.
+\end{itemize}
+Figure \ref{fig:intro:toolchain} shows a basic overview of its usage, where red nodes symbolize in and output files, blue nodes the components according to the mode it is used and yellow nodes external software (SMT solvers).
+
+% In this thesis we developed a toolchain for simulating and bounded model checking of random memory access sequences by concurrent programs.
+
+% \bigskip
+% In this thesis we tried to address this issue by developing a toolchain for simulating and
+% automated reasoning about
+% % random memory access sequences of
+% concurrent programs by means of \emph{bounded model checking} \cite{ref:BMC}.
+% Instead of real hardware, it is based on the architectural view of a simple virtual machine model abstracting caches but
+
+% \bigskip
+
+% \todo[inline]{address the problem by the means of bounded model checking}
+% \todo[inline]{ConcuBinE
+% /ˈkɒŋ.kjə.baɪn/
+% \textbf{Concu}rrent \textbf{Bin}ary \textbf{E}valuator - a toolchain for simulating and bounded model checking of random memory access sequences by concurrent programs on a simple virtual machine using store buffers.}
+% \todo[inline]{components structured according to the mode they are used}
 
 \begin{figure}[h]
   \centering
   \input{figures/toolchain.tex}
-  \caption{Toolchain}
+  \caption{ConcuBinE's various modes of operation.}
+  \label{fig:intro:toolchain}
 \end{figure}
-
-\todo[inline]{components structured according to the mode they are used}
