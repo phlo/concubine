@@ -118,12 +118,13 @@ Even the most restrictive -- like the x86 processors in our desktop computers --
 The reason for this particular reordering is a widely used optimization technique commonly referred to as \emph{store buffer}.
 
 While caches improve subsequent repeated loads of a specific variable (after an initial cache miss),
-\todo[noline]{stolen from perfbook}
+% \todo[noline]{stolen from perfbook}
 it is also necessary to accommodate frequent concurrent stores from multiple processors to a set of shared variables.
 In cache-coherent systems, if the caches hold multiple copies of a given variable, all the copies of that variable must have the same value.
 Each store will therefore invalidate all copies of the old value,
 % resulting in even more cache misses
-hence slowing down the computation. % significantly.
+hence slowing down the computation % significantly.
+\cite{ref:McKenney17}.
 
 % \todo[inline]{reordering introduced by store buffers}
 
@@ -143,7 +144,7 @@ In order to guarantee that each processor at least sees its own operations in pr
 % arbitrarily delaying visibility of the store to other processors.
 % Each store buffer is allowed to voluntarily flush its contents back to memory, or may be forced to do so by certain instructions like memory barriers.
 Since each store buffer is allowed to voluntarily flush its contents back to memory, the visibility of the particular stores to other processors might be arbitrarily delayed, leading to the aforementioned memory misordering
-illustrated by the store buffer litums test shown in Listing \ref{lst:intro:store-buffer-litmus}.
+illustrated by the store buffer litmus test shown in Listing \ref{lst:intro:store-buffer-litmus}.
 % If the processor is not forced to flush its contents back to memory, visibility of stores to other processors is arbitrarily delayed, leading to the aforementioned misordering.
 % This leads to the aforementioned misordering, as the particular stores' visibility to other processor might be arbitrarily delayed.
 % This simple optimization is sufficient for introducing the aforementioned misordering, as the particular stores' visibility to other processor might be arbitrarily delayed.

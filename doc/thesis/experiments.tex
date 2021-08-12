@@ -211,7 +211,7 @@ we conducted a series of experiments, using the following versions of supported 
 % All tests were performed on a cluster of Intel\textsuperscript{\textregistered} Xeon\textsuperscript{\textregistered} E5-2620 v4 nodes, where runtime and memory usage were limited to 86400 seconds (24 hours) and 8 GB respectively.
 
 We recorded the resulting formula sizes in terms of the number of generated expression, as well as the runtimes for encoding and solving each particular instance.
-All tests were performed on a cluster of Intel\textsuperscript{\textregistered} Xeon\textsuperscript{\textregistered} E5-2620 v4 nodes, with CPU runtime and memory usage limited to 86400 seconds (24 hours) and 8 GB respectively.
+All tests were performed on a cluster of Intel Xeon\textsuperscript{\textregistered} E5-2620 v4 nodes, with CPU runtime and memory usage limited to 86400 seconds (24 hours) and 8 GB respectively.
 
 % The x86-TSO memory ordering model (used by AMD and Intel) is defined by a set of litmus tests.
 % To show equivalence of ConcuBinE-TSO and x86-TSO, the tests have been ported to ConcuBinE.
@@ -467,7 +467,7 @@ and the checker thread's exit statements can be reached.
 % Therefore, we have to find the length of the longest possible trace,
 % This translates to finding the worst-case execution time in the number of steps
 % We therefore have to find the worst-case execution time in the number of steps, translating to the longest possible trace through the program.
-We therefore have to find the longest possible trace through the program, it's worst-case execution time so to say.
+We therefore have to find the longest possible trace through the program, it's worst-case execution time (WCET) so to say.
 % For our buggy counter, the process is straight forward and can simply be determined by the number of steps required by each iteration of the counting loop \textsf{inc} (7 instructions + 2 flushes), adding the 2 instructions to reach the counting program's end and multiply the result by the number of participating threads.
 % TODO
 For our \CHANGE{faulty} counter, the process is \CHANGE{straightforward} and it can simply be determined by adding $n$ times the number of steps required by each iteration of the counting loop {\color{red!60!black}\textsf{inc}} (7 instructions + 2 flushes) to the 2 instructions left for completing the counter thread's execution.

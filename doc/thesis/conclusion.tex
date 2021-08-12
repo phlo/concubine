@@ -1,1 +1,34 @@
 \section{Conclusion}
+
+% haben gezeigt dass unser Ansatz funktioniert ...
+% schön wäre, wenn man einen derartigen Verifikations Schritt in Compiler Toolchains integrieren könnte um damit Binaries automatisiert auf derartige Fehler zu überprüfen ...
+% aber leider nicht praktikabel, da viel zu lange Laufzeit ...
+% Future Work: Encoding optimieren, Laufzeit minimieren, evtl. auf "echte" Prozessoren anwenden ...
+
+In this thesis we tried to explore the potential of bounded model checking for verifying concurrent programs
+including the target architecture's memory ordering habits.
+Due to the complexity of actual processors, we devised a highly simplified virtual machine model
+% to deliver a proof-of-concept
+% We therefore devised a highly simplified virtual machine model
+% imitating the behaviour of current x86 implementations.
+and showed that the addition of store buffers is sufficient to imitate the behaviour of current x86 implementations.
+% An encoding for this specific machine model was developed.
+% Execution of arbitrary programs
+% An encoding for the execution of arbitrary programs was developed
+
+After designing a formal framework for the execution of arbitrary programs on this virtual machine model,
+% encodings in two different SMT formats were developed and
+encodings of the corresponding model checking problems in two different SMT formats were developed.
+% we developed a tool for automating the encoding and evaluation of the resulting model checking problems in two different SMT formats
+% To simplify experimentation
+We then implemented ConcuBinE, a tool for automating the encoding and evaluation of generated SMT formulas using state-of-the-art solvers.
+
+Even though experiments show the basic feasibility of our approach, the rather huge runtimes for even small examples puts its practicability in question.
+% However, we would like to see the inclusion of such a verification step in compiler toolchains
+% However, we still believe it as an opportunity to integrate such a verification step into compiler toolchains to fully proof the
+However, we still see it as an opportunity to integrate a similar checking procedure into compiler toolchains, automatically verifying the binaries of critical software with regards to the target architecture's memory ordering model and other specifics.
+
+Future work could therefore involve optimizing the encoding,
+% designing an intermediate language for specifying assertions,
+devising a method for specifying assertions,
+developing a procedure to additionally compute the WCET for automatically determining the upper bound and applying the presented principles to a real architecture like Intel's or AMD's x86 processors.
