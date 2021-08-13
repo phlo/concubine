@@ -2,4 +2,9 @@
 *.d
 *.bkp
 *.swp
+benchmark
+bib
+build
+deps
+tmp
 wiki

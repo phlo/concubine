@@ -10,6 +10,9 @@
 % font encoding (underscores)
 \usepackage[T1]{fontenc}
 
+% append cover as PDF
+\usepackage{pdfpages}
+
 % colors
 \usepackage{xcolor}
 
@@ -183,7 +186,7 @@
 % pgfplots
 \usepackage{pgfplots}
 \usepackage{pgfplotstable}
-\pgfplotsset{compat=1.16}
+\pgfplotsset{compat=1.17}
 
 % csvsimple
 \usepackage{csvsimple}
@@ -210,7 +213,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % changes
-\newcommand{\CHANGE}[1]{{\color{red}#1}}
+\newcommand{\CHANGE}[1]{#1}
 
 % operators
 \let\nand\barwedge
@@ -257,25 +260,17 @@
 % \newcommand{\lstCMT}[1]{\color{black!50}{#1}}
 \newcommand{\lstCMT}[1]{\color{gray}{#1}}
 
-% todos
-% \newcommand{\todo}[1]{
-  % \begin{flushleft}
-    % \color{red}
-    % $\rightarrow$ #1
-  % \end{flushleft}
-% }
-
-% \newcommand{\todonote}[1]{
-  % $^{\color{red}#1}$
-% }
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % document
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{document}
 
-% \input{cover/coversheet}
+\includepdf[pages=-]{cover/cover.pdf}
+
+\input{statutory}
+
+\newpage
 
 \tableofcontents
 
