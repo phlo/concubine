@@ -5,7 +5,7 @@
 % aber leider nicht praktikabel, da viel zu lange Laufzeit ...
 % Future Work: Encoding optimieren, Laufzeit minimieren, evtl. auf "echte" Prozessoren anwenden ...
 
-In this thesis we tried to explore the potential of bounded model checking for verifying concurrent programs
+In this thesis we explored the potential of bounded model checking for verifying concurrent programs
 including the target architecture's memory ordering habits.
 Due to the complexity of actual processors, we devised a highly simplified virtual machine model
 % to deliver a proof-of-concept
@@ -23,7 +23,7 @@ encodings of the corresponding model checking problems in two different SMT form
 % To simplify experimentation
 We then implemented ConcuBinE, a tool for automating the encoding and evaluation of generated SMT formulas using state-of-the-art solvers.
 
-Even though experiments show the basic feasibility of our approach, the rather huge runtimes for even small examples puts its practicability in question.
+Even though experiments show the basic feasibility of our approach, the relatively larger runtimes for even small examples puts its practicability in question.
 % However, we would like to see the inclusion of such a verification step in compiler toolchains
 % However, we still believe it as an opportunity to integrate such a verification step into compiler toolchains to fully proof the
 However, we still see it as an opportunity to integrate a similar checking procedure into compiler toolchains, automatically verifying the binaries of critical software with regards to the target architecture's memory ordering model and other specifics.
