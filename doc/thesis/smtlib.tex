@@ -55,7 +55,7 @@ enum State
 % using uint = unsigned;
 % \end{lstlisting}
 % Each available instruction is represented by it's own type, derived from an abstract class \lstCPP{Instruction}, capturing arguments and abolishing the need for lengthy case splits to determine the actual instruction at runtime by utilizing dynamic dispatch of member functions.
-Each available instruction is represented by it's own type, derived from an abstract class \lstCPP{Instruction}, capturing arguments and abolishing the need for lengthy case splits by utilizing dynamic dispatch of virtual member functions for taking the appropriate action at runtime.%determine the type of instruction at runtime.
+Each available instruction is represented by its own type, derived from an abstract class \lstCPP{Instruction}, capturing arguments and abolishing the need for lengthy case splits by utilizing dynamic dispatch of virtual member functions for taking the appropriate action at runtime.%determine the type of instruction at runtime.
 
 \begin{lstlisting}[style=c++]
 struct Instruction
@@ -1356,7 +1356,7 @@ void define_check (uint k)
 \noindent
 % We continue with the definition of scheduling constraints, restricting possible transitions from any given state.
 % We continue with the definition of scheduling constraints, restricting possible transitions from any given state.
-We continue with the cardinality constraint, based on the following functions implementing the different at-most-one predicates.
+We continue with the cardinality constraint, based on the following functions implementing the different \emph{at-most-one} predicates.
 % Since the cardinality constraint, responsible for non-deterministic scheduling is based on
 % If not more than two threads are present, the na\"ive combinatorial constraint is used if
 
@@ -1418,7 +1418,7 @@ void cardinality_sequential (const std::vector<std::string> & vars)
 
 \noindent
 % adding the conjunction for expressing at-least-one constraint, followed by the .. depending on the number of variables.
-The required exactly-one constraint can now be defined by collecting the relevant variables and selecting the appropriate at-most-one predicate after adding a disjunction expressing that at-least-one needs to be true.
+The required \emph{exactly-one} constraint can now be defined by collecting the relevant variables and selecting the appropriate \emph{at-most-one} predicate after adding a disjunction expressing that \emph{at-least-one} needs to be true.
 % The exactly-one constraint can now be defined by collecting the relevant variables and adding the conjunction for expressing that at least one variable is required to be true, followed by selecting the appropriate at-most-one predicate depending on the number of variables.
 
 \begin{lstlisting}[style=c++]

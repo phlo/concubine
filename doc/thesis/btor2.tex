@@ -81,7 +81,7 @@ and bit-vector constants.
 % In order to initialize our $\HEAP$ array, a constant array \lstBTOR{state} is introduced and set according to the example's memory map given in Listing \ref{lst:mmap:init.mmap}.
 In order to initialize our $\HEAP$ array with the contents of this example's memory map given in Listing \ref{lst:mmap:init.mmap}, an uninitialized array state is declared and the corresponding elements written accordingly.
 % By omitting it's transition function, it is treated as a constant.
-By omitting it's transition function, it is treated as a primary input only used during initialization and can safely be ignored in later steps.
+By omitting its transition function, it is treated as a primary input only used during initialization and can safely be ignored in later steps.
 \begin{lstlisting}[style=btor2]
 10 state 3        `\lstCMT{mmap}`
 11 write 3 10 6 6 `\lstCMT{$\texttt{mmap}[0] \leftarrow 0$}`

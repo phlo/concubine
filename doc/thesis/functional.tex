@@ -64,14 +64,14 @@ void define_states (uint k)
 % ~\\
 % ~\\
 % $\ACCU^{k - 1}_t$
-Starting with the accumulator registers $\ACCU^k_t$, each update expression is initialized with it's predecessor $\ACCU^{k - 1}_t$, forming the base case of preserving the previous state.
+Starting with the accumulator registers $\ACCU^k_t$, each update expression is initialized with its predecessor $\ACCU^{k - 1}_t$, forming the base case of preserving the previous state.
 % The final expression assigned to $\ACCU^k_t$ is then built by adding an $\ITE$ for every program statement altering the accumulator, choosing the successor state depending on the corresponding execution variable $\EXEC^{k - 1}_{t, pc}$.
 % >>>
 % Starting with the accumulator registers $\ACCU^k_t$, each update expression is initialized with it's predecessor to preserve the previous state.
 % Any program statement altering the accumulator then embeds the expression's current value in the \emph{else} branch of an $\ITE$ setting the successor state by encoding the corresponding instruction, depending on the execution variable $\EXEC^{k - 1}_{t, pc}$.
 % Any program statement altering the accumulator then extends the update expression by embedding it's current value in the \emph{else} branch of an $\ITE$, setting the successor state according to the encoded instruction, depending on the corresponding execution variable $\EXEC^{k - 1}_{t, pc}$.
 % Any program statement altering the accumulator then extends the expression by embedding it's current value in the \emph{else} branch of an $\ITE$, using the \lstCPP{encode} implementation of the corresponding instruction to set the successor state depending on the execution variable $\EXEC^{k - 1}_{t, pc}$.
-Any program statement altering the accumulator then extends the expression by embedding it's current value in the \emph{else} branch of an $\ITE$, using the corresponding instruction's \lstCPP{encode} implementation to set the successor state
+Any program statement altering the accumulator then extends the expression by embedding its current value in the \emph{else} branch of an $\ITE$, using the corresponding instruction's \lstCPP{encode} implementation to set the successor state
 depending on the
 % according to it's
 execution variable $\EXEC^{k - 1}_{t, pc}$.
@@ -280,7 +280,7 @@ Store buffer full flags $\SBFULL^k_t$ are defined by a single
 % $\ITE$, either resetting the state in case the store buffer has been flushed,
 $\ITE$, either falsifying the state in case the store buffer has been flushed,
 % or setting it by building a conjunction over the previously collected variables.
-or assigning a conjunction over all execution variables $\EXEC^{k - 1}_{t, pc}$ of \lstASM{STORE} instructions to set it if an entry was added, as well as the predecessor $\SBFULL^{k - 1}_t$ for preserving it's state otherwise.
+or assigning a conjunction over all execution variables $\EXEC^{k - 1}_{t, pc}$ of \lstASM{STORE} instructions to set it if an entry was added, as well as the predecessor $\SBFULL^{k - 1}_t$ for preserving its state otherwise.
 
 \begin{lstlisting}[style=c++]
 void define_full (uint k)
@@ -352,7 +352,7 @@ In order to correctly model symbolic program counters \CHANGE{correctly}, indivi
 % Instead of another costly cardinality constraint, the update expression of each statement activation variable $\STMT^k_{t, pc}$ is initialized with a conjunction containing it's previous activation and the negation of the corresponding execution variable $\EXEC^{k - 1}_{t, pc}$ for explicitly deactivating the statement in case of it's execution, while preserving it's state otherwise.
 % Instead of another costly cardinality constraint, the update expression of each statement activation variable $\STMT^k_{t, pc}$ is initialized with a conjunction containing it's previous activation and the negation of the corresponding execution variable $\EXEC^{k - 1}_{t, pc}$ for explicitly deactivating the statement if it has been executed or preserving it's state otherwise.
 % >>>
-We do so by initializing the update expression of each statement activation variable $\STMT^k_{t, pc}$ with a conjunction containing it's previous activation and the negation of the corresponding execution variable $\EXEC^{k - 1}_{t, pc}$ for explicitly deactivating the statement if it has been executed while preserving it's state otherwise.
+We do so by initializing the update expression of each statement activation variable $\STMT^k_{t, pc}$ with a conjunction containing its previous activation and the negation of the corresponding execution variable $\EXEC^{k - 1}_{t, pc}$ for explicitly deactivating the statement if it has been executed while preserving its state otherwise.
 % >>>
 % Each preceding instruction in the thread's program then adds an $\ITE$, setting the successor state to the predecessor's execution
 % Similar to defining the successor of register states, each preceding instruction in the thread's program then embeds the expression's current value in the \emph{else} branch of an $\ITE$, activating the statement depending on the particular predecessor's execution.
@@ -365,7 +365,7 @@ We do so by initializing the update expression of each statement activation vari
 % Conditional jumps, detected by \lstCPP{is_jump}
 % In case of the predecessor being a conditional jump, identified by \lstCPP{is_jump},
 % Special care must be taken in case of the predecessor being a conditional jump, identified by \lstCPP{is_jump}, to either activate the target of a successfull jump using a conjunction of it's execution variable and condition, generated by the relevant \lstCPP{encode} implementation, or the negation thereof if it failed.
-Special care must be taken in case of the predecessor being a conditional jump, identified by \lstCPP{is_jump}, to either activate the target using a conjunction of it's execution variable and condition, generated by the relevant \lstCPP{encode} implementation, or the next statement by negating the condition in case of a failed jump.
+Special care must be taken in case of the predecessor being a conditional jump, identified by \lstCPP{is_jump}, to either activate the target using a conjunction of its execution variable and condition, generated by the relevant \lstCPP{encode} implementation, or the next statement by negating the condition in case of a failed jump.
 
 % using a conjunction of the jump's execution variable together with it's condition, generated by the relevant \lstCPP{encode} implementation, or it's negation.
 % >>>
@@ -525,7 +525,7 @@ void define_stmt (uint k)
 \noindent
 % Block flags $\BLOCK^k_{id, t}$ are defined by a single $\ITE$, either unblocking the thread by resetting the state if all threads synchronized upon the corresponding checkpoint $id$ in the previous step, or assigning a conjunction including all execution variables $\EXEC^{k - 1}_{t, pc}$ of related \lstASM{CHECK id} instructions to enable it, as well as the predecessor $\BLOCK^{k - 1}_{id, t}$ for preserving it's state.
 Block flags $\BLOCK^k_{id, t}$ are defined by a single $\ITE$, unblocking the thread by resetting the state if all threads synchronized upon the corresponding checkpoint $id$ in the previous step. %$k - 1$.
-Otherwise, \CHANGE{we assign} a disjunction including all execution variables $\EXEC^{k - 1}_{t, pc}$ of related \lstASM{CHECK id} instructions enabling the state as well as the predecessor $\BLOCK^{k - 1}_{id, t}$ to presere it's value.
+Otherwise, \CHANGE{we assign} a disjunction including all execution variables $\EXEC^{k - 1}_{t, pc}$ of related \lstASM{CHECK id} instructions enabling the state as well as the predecessor $\BLOCK^{k - 1}_{id, t}$ to presere its value.
 %signalled by $\CHECK^{k - 1}_{id}$
 
 \begin{lstlisting}[style=c++]
@@ -614,7 +614,7 @@ void define_halt (uint k)
 
 \noindent
 % Definition of the global heap array $\HEAP^k$ again starts by initializing the update expression with it's predecessor $\HEAP^{k - 1}$, preserving the previous state.
-Definition of our shared memory array $\HEAP^k$ again starts by initializing the update expression with it's previous state $\HEAP^{k - 1}$.
+Definition of our shared memory array $\HEAP^k$ again starts by initializing the update expression with its previous state $\HEAP^{k - 1}$.
 % Each thread then embeds the expression in the \emph{else} branch an $\ITE$, storing the store buffer's entry in case it was flushed.
 % Each thread then extends the expression by embedding it's current value in the \emph{else} branch an $\ITE$, storing the store buffer's entry in case it was flushed.
 % Each thread then extends the expression by embedding it in an $\ITE$, storing the store buffer's entry in case it was flushed.
@@ -693,7 +693,7 @@ void define_heap (uint k)
 
 \noindent
 % In order to enable the exit flag $\EXIT^k$ according to our termination criteria, we define it as a disjunction containing the execution variables $\EXEC^{k - 1}_{t, pc}$ of every \lstASM{EXIT} statement, a conjunction over all halt variables $\HALT^k_t$ to stop the machine if no more thread is running and the previous state $\EXIT^{k - 1}$, preserving it's value.
-In order to enable the exit flag $\EXIT^k$ according to our termination criteria, we define it as a disjunction containing the execution variables $\EXEC^{k - 1}_{t, pc}$ of every \lstASM{EXIT} statement, a conjunction over \CHANGE{the} halt variables $\HALT^k_t$ \CHANGE{of threads containing a call to \lstASM{HALT} for} stopping the machine if no more thread\CHANGE{s are} running and the previous state $\EXIT^{k - 1}$ to preserve it's value.
+In order to enable the exit flag $\EXIT^k$ according to our termination criteria, we define it as a disjunction containing the execution variables $\EXEC^{k - 1}_{t, pc}$ of every \lstASM{EXIT} statement, a conjunction over \CHANGE{the} halt variables $\HALT^k_t$ \CHANGE{of threads containing a call to \lstASM{HALT} for} stopping the machine if no more thread\CHANGE{s are} running and the previous state $\EXIT^{k - 1}$ to preserve its value.
 
 \begin{lstlisting}[style=c++]
 void define_exit(uint k)

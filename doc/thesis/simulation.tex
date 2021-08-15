@@ -62,7 +62,7 @@ The rest of the file contains the actual execution steps, one per line, starting
 \begin{itemize}
   \item program counter of the instruction about to be executed
   \item instruction symbol, or \lstASM{FLUSH} if a thread is flushing its store buffer
-  \item instruction argument, or \texttt{-} for unary instructions
+  \item instruction argument, or \texttt{-} for nullary instructions
   \item accumulator register
   \item \lstASM{CAS} memory register
   \item store buffer address register
@@ -193,7 +193,7 @@ For completeness, the syntax of such trace files is given below.
 \subsection*{Finding Specific Machine States}
 
 It also possible to search for specific machine states via simulation.
-The command line switch \texttt{-c} simulates the given programs exhaustively until a trace \CHANGE{yields} an exit code \CHANGE{other} than zero is encountered.
+The command line switch \texttt{-c} simulates the given programs exhaustively until a trace \CHANGE{yielding} an exit code \CHANGE{other} than zero is encountered.
 
 \lstinputlisting[style=asm, caption=\texttt{checker.asm}, label={lst:program:checker.asm}, xleftmargin=0.39\textwidth]{../../experiments/demo/checker.asm}
 

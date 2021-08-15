@@ -204,17 +204,17 @@ Division is therefore left out due to its different implementations for signed a
 \defop
 {\lstASM{JS arg}}
 {control}
-{Jumps to the statement at \texttt{arg} if $\ACCU$ is negative according to two's compliment (least significant bit is set).}
+{Jumps to the statement at \texttt{arg} if $\ACCU$ is negative according to two's compliment (most significant bit is set).}
 
 \defop
 {\lstASM{JNS arg}}
 {control}
-{Jumps to the statement at \texttt{arg} if $\ACCU$ is zero or positive according to two's compliment (least significant bit is unset).}
+{Jumps to the statement at \texttt{arg} if $\ACCU$ is zero or positive according to two's compliment (most significant bit is unset).}
 
 \defop
 {\lstASM{JNZNS arg}}
 {control}
-{Jumps to the statement at \texttt{arg} if $\ACCU$ is positive according to two's compliment (non-zero and least significant bit is unset).}
+{Jumps to the statement at \texttt{arg} if $\ACCU$ is positive according to two's compliment (non-zero and most significant bit is unset).}
 
 \subsubsection*{Atomic}
 

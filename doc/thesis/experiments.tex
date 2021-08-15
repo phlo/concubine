@@ -251,7 +251,7 @@ In order to show conformance with the memory ordering model of our virtual machi
 
 Bounds and encoder statistics of both test suites are given in Tables \ref{tbl:litmus:intel:encoder} and \ref{tbl:litmus:amd:encoder}.
 Comparing the sizes of generated formulas, visualized in Figures \ref{fig:litmus:intel:encoder} and \ref{fig:litmus:amd:encoder}, clearly shows the main advantage \CHANGE{of} using {\BTOR}:
-compact problem instances and reduced computational complexity of it's encoding process
+compact problem instances and reduced computational complexity of its encoding process
 % it's compactness and reduced computational complexity of it's encoding process
 due to being automatically unrolled for any given bound via symbolic substitution by BtorMC at runtime.
 Furthermore, the additional redundancy introduced by the relational next state logic causes a quite substantial gap between the size of our {\SMTLIB} encoding variants.
@@ -467,7 +467,7 @@ and the checker thread's exit statements can be reached.
 % Therefore, we have to find the length of the longest possible trace,
 % This translates to finding the worst-case execution time in the number of steps
 % We therefore have to find the worst-case execution time in the number of steps, translating to the longest possible trace through the program.
-We therefore have to find the longest possible trace through the program, it's worst-case execution time (WCET) so to say.
+We therefore have to find the longest possible trace through the program, its worst-case execution time (WCET) so to say.
 % For our buggy counter, the process is straight forward and can simply be determined by the number of steps required by each iteration of the counting loop \textsf{inc} (7 instructions + 2 flushes), adding the 2 instructions to reach the counting program's end and multiply the result by the number of participating threads.
 % TODO
 For our \CHANGE{faulty} counter, the process is \CHANGE{straightforward} and it can simply be determined by adding $n$ times the number of steps required by each iteration of the counting loop {\color{red!60!black}\textsf{inc}} (7 instructions + 2 flushes) to the 2 instructions left for completing the counter thread's execution.
