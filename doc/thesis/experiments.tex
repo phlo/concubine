@@ -242,7 +242,7 @@ In order to show conformance with the memory ordering model of our virtual machi
   {figures/litmus-intel-encoder.csv}
   {\textnumero}
   {\IntelRowHeader}
-  {Intel litmus test encoder statistics.}
+  {Intel Litmus Test Encoder Statistics}
   {Intel litmus test encoding times in milliseconds and formula sizes \CHANGE{in terms of} the number of expressions.}
   {tbl:litmus:intel:encoder}
   % {Intel Litmus Test Econding Time [ms] and Size [\#expressions]}
@@ -262,7 +262,7 @@ Furthermore, the additional redundancy introduced by the relational next state l
 \EncoderStatsGraph
   {figures/litmus-intel-encoder.csv}
   {north west}
-  {Intel litmus test encoder graph.}
+  {Intel Litmus Test Encoder Graph}
   {Intel litmus test formula sizes \CHANGE{in terms of} the number of expressions.}
   {fig:litmus:intel:encoder}
 
@@ -270,7 +270,7 @@ Furthermore, the additional redundancy introduced by the relational next state l
   {figures/litmus-amd-encoder.csv}
   {\textnumero}
   {\AMDRowHeader}
-  {AMD litmus test encoder statistics.}
+  {AMD Litmus Test Encoder Statistics}
   {AMD litmus test encoding times in milliseconds and formula sizes \CHANGE{in terms of} the number of expressions.}
   {tbl:litmus:amd:encoder}
   % {AMD Litmus Test Econding Time [ms] and Size [\#expressions]}
@@ -280,7 +280,7 @@ Furthermore, the additional redundancy introduced by the relational next state l
 \EncoderStatsGraph
   {figures/litmus-amd-encoder.csv}
   {north west}
-  {AMD litmus test encoder graph.}
+  {AMD Litmus Test Encoder Graph}
   {AMD litmus test formula sizes \CHANGE{in terms of} the number of expressions.}
   {fig:litmus:amd:encoder}
 
@@ -324,7 +324,7 @@ in comparison to Boolector (incorporating CaDiCaL\footnote{\url{https://github.c
   {figures/litmus-intel-solver.csv}
   {\textnumero}
   {\IntelRowHeader}
-  {Intel litmus test solver statistics.}
+  {Intel Litmus Test Solver Statistics}
   {Intel litmus test solving times in seconds.}
   {tbl:litmus:intel:solver}
   % {Intel Litmus Test Solving Times in Seconds}
@@ -332,7 +332,7 @@ in comparison to Boolector (incorporating CaDiCaL\footnote{\url{https://github.c
 \SolverStatsGraph
   {figures/litmus-intel-solver.csv}
   {north west}
-  {Intel litmus test solver graph.}
+  {Intel Litmus Test Solver Graph}
   {Intel litmus test solving times in seconds.}
   {fig:litmus:intel:solver}
 
@@ -350,7 +350,7 @@ in comparison to Boolector (incorporating CaDiCaL\footnote{\url{https://github.c
   {figures/litmus-amd-solver.csv}
   {\textnumero}
   {\AMDRowHeader}
-  {AMD litmus test solver statistics.}
+  {AMD Litmus Test Solver Statistics}
   {AMD litmus test solving times in seconds.}
   {tbl:litmus:amd:solver}
   % {AMD Litmus Test Solving Times in Seconds}
@@ -358,7 +358,7 @@ in comparison to Boolector (incorporating CaDiCaL\footnote{\url{https://github.c
 \SolverStatsGraph
   {figures/litmus-amd-solver.csv}
   {north west}
-  {AMD litmus test solver graph.}
+  {AMD Litmus Test Solver Graph}
   {AMD litmus test solving times in seconds.}
   {fig:litmus:amd:solver}
 
@@ -396,8 +396,7 @@ Both were executed for any combination of $2 \leq m \leq 4$ threads and $2 \leq 
 % \noindent
 % \begin{minipage}[b]{0.5\textwidth}
 % \vspace{0pt}
-% \begin{lstlisting}[style=asm, caption={Buggy counter template.}, label={lst:count:buggy}, mathescape, xleftmargin=0.39\textwidth]
-\begin{lstlisting}[style=asm, caption={\CHANGE{Faulty} counter template.}, label={lst:count:buggy}, xleftmargin=0.39\textwidth]
+\begin{lstlisting}[style=asm, caption={\CHANGE{Faulty} Counter Template}, label={lst:count:buggy}, xleftmargin=0.39\textwidth]
 inc: LOAD 0  `\tikzmark{inc-start}`
 ADDI 1
 STORE 0
@@ -439,7 +438,7 @@ Otherwise, the threads synchronize upon checkpoint 0, signaling that counting ha
 The checker thread given in Listing \ref{lst:count:checker} then compares the shared counter at address 0 to the expected value $m * n$ supplied by yet another template parameter \texttt{<sum>} and exits 1 if they differed.
 % \begin{minipage}[t]{0.45\textwidth}
 % \vspace{0pt}
-\begin{lstlisting}[style=asm, caption={Checker template.}, label={lst:count:checker}, mathescape, xleftmargin=0.39\textwidth]
+\begin{lstlisting}[style=asm, caption={Checker Template}, label={lst:count:checker}, mathescape, xleftmargin=0.39\textwidth]
 CHECK 0
 ADDI <sum>
 CMP 0
@@ -512,7 +511,7 @@ For example, $m = n = 2$ would require a bound of $2 * (9 * 2 + 2) + 5 = 45$.
   {figures/count-buggy-encoder.csv}
   {m n}
   {\CountRowHeader}
-  {\CHANGE{Faulty} counter encoder statistics.}
+  {\CHANGE{Faulty} Counter Encoder Statistics}
   {\CHANGE{Faulty} counter encoding times in milliseconds and formula sizes \CHANGE{in terms of} the number of expressions for increasing values of $m$ and $n$.}
   {tbl:count:buggy:encoder}
 
@@ -540,7 +539,7 @@ The off-by-one differences in the size of the {\BTOR} encodings for an equal num
 \EncoderStatsGraph
   {figures/count-buggy-encoder.csv}
   {north west}
-  {\CHANGE{Faulty} counter encoder graph.}
+  {\CHANGE{Faulty} Counter Encoder Graph}
   {\CHANGE{Faulty} counter formula sizes \CHANGE{in terms of} the number of expressions for increasing values of $m$ and $n$.}
   {fig:count:buggy:encoder}
 
@@ -558,7 +557,7 @@ CVC4 however could not even solve a single instance within the given time and me
   {figures/count-buggy-solver.csv}
   {m n}
   {\CountRowHeader}
-  {\CHANGE{Faulty} counter solver statistics.}
+  {\CHANGE{Faulty} Counter Solver Statistics}
   {\CHANGE{Faulty} counter solving times in seconds for increasing values of $m$ and $n$.}
   {tbl:count:buggy:solver}
 
@@ -567,7 +566,7 @@ CVC4 however could not even solve a single instance within the given time and me
 \SolverStatsGraph
   {figures/count-buggy-solver.csv}
   {south east}
-  {\CHANGE{Faulty} counter solver graph.}
+  {\CHANGE{Faulty} Counter Solver Graph}
   {\CHANGE{Faulty} counter solving times in seconds for increasing values of $m$ and $n$.}
   {fig:count:buggy:solver}
 
@@ -591,9 +590,8 @@ Everything else remains the same, including the checker thread.
 
 \vfill
 
-% \begin{lstlisting}[style=asm,caption={Consistent counter template, using {\lstinline[style=asm]{CAS}}.},mathescape,xleftmargin=0.39\textwidth]
 \begin{minipage}{\textwidth}
-\begin{lstlisting}[style=asm, caption={\CHANGE{Valid} counter template.}, label={lst:count:cas}, xleftmargin=0.39\textwidth]
+\begin{lstlisting}[style=asm, caption={\CHANGE{Valid} Counter Template}, label={lst:count:cas}, xleftmargin=0.39\textwidth]
 inc: MEM 0  `\tikzmark{cas-start}`      `\tikzmark{inc-start}`
 ADDI 1
 CAS 0
@@ -701,14 +699,14 @@ Naturally, encoder runtimes are also affected, but remain acceptable as all expe
   {figures/count-cas-encoder.csv}
   {m n}
   {\CountRowHeader}
-  {\CHANGE{Valid} counter encoder statistics.}
+  {\CHANGE{Valid} Counter Encoder Statistics}
   {\CHANGE{Valid} counter encoding times in milliseconds and formula sizes \CHANGE{in terms of} the number of expressions for increasing values of $m$ and $n$.}
   {tbl:count:cas:encoder}
 
 \EncoderStatsGraph
   {figures/count-cas-encoder.csv}
   {north west}
-  {\CHANGE{Valid} counter encoder graph.}
+  {\CHANGE{Valid} Counter Encoder Graph}
   {\CHANGE{Valid} counter formula sizes \CHANGE{in terms of} the number of expressions for increasing values of $m$ and $n$.}
   {fig:count:cas:encoder}
 
@@ -731,13 +729,13 @@ would generate problem instances which most \CHANGE{likely} won't be solvable in
   {figures/count-cas-solver.csv}
   {m n}
   {\CountRowHeader}
-  {\CHANGE{Valid} counter solver statistics.}
+  {\CHANGE{Valid} Counter Solver Statistics}
   {\CHANGE{Valid} counter solving times in seconds for increasing values of $m$ and $n$.}
   {tbl:count:cas:solver}
 
 \SolverStatsGraph
   {figures/count-cas-solver.csv}
   {south east}
-  {\CHANGE{Valid} counter solver graph.}
+  {\CHANGE{Valid} Counter Solver Graph}
   {\CHANGE{Valid} counter solving times in seconds for increasing values of $m$ and $n$.}
   {fig:count:cas:solver}

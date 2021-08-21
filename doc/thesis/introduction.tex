@@ -30,7 +30,7 @@ The situation becomes even worse due to counter-intuitive behaviour introduced b
 Without further knowledge about the underlying architecture, inexperienced developers of
 concurrent
 low-level
-systems code like lock-free data structures, operating system kernels, synchronization
+systems code like lockless data structures, operating system kernels, synchronization
 % libraries,
 primitives,
 % compilers and so on might assume that the order of access to memory is \emph{sequentially consistent}
@@ -196,7 +196,7 @@ Consider the interleavings depicted in Figure \ref{fig:intro:store-buffer-litmus
 \begin{figure}[!h]
   \centering
   \input{figures/store-buffer-litmus-interleaving.tex}
-  \caption{Store Buffer Litmus Test Interleaving}
+  \caption{Store Buffer Litmus Test Interleavings}
   \label{fig:intro:store-buffer-litmus-interleaving}
 \end{figure}
 After initializing the shared variables with zero, %($w_0 = w_1 = 0$)
@@ -282,6 +282,6 @@ and yellow nodes external software (SMT solvers).
 \begin{figure}[h]
   \centering
   \input{figures/toolchain.tex}
-  \caption{ConcuBinE's various modes of operation.}
+  \caption{ConcuBinE's Various Modes of Operation}
   \label{fig:intro:toolchain}
 \end{figure}
