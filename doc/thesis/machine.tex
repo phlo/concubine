@@ -228,12 +228,12 @@ Since this particular command requires at least two operands (the target address
 
 \defop
 {\lstASM{MEM arg}}
-{modify, mem, read}
+{modify, read}
 {Loads the value \CHANGE{from} address \texttt{arg} into $\ACCU$ and $\MEM$ as the expectation during a latter \emph{compare and swap} operation.}
 
 \defop
 {\lstASM{CAS arg}}
-{modify, read, atomic, barrier}
+{modify, read, barrier, atomic}
 {Atomically compares the expected value in $\MEM$ to the actual value found at address \texttt{arg} and only writes the value found in $\ACCU$ back to address \texttt{adr} if they are equal.
 Acts like a memory barrier.
 % \todo{explain why non-blocking}}
