@@ -1,0 +1,512 @@
+\documentclass{beamer}
+\beamertemplatenavigationsymbolsempty
+\usepackage{pdfpages}
+\usepackage{listings}
+\usepackage{verbatim}
+\usepackage{amssymb}
+
+% todo notes
+\usepackage{todonotes}
+\presetkeys{todonotes}{inline}{}
+
+% tables
+\usepackage{tabu}
+
+% tikz
+\usepackage{tikz}
+\usetikzlibrary{automata}
+\usetikzlibrary{backgrounds}
+
+\tikzstyle{tbox} = [
+  draw=fg,
+  very thick,
+  rectangle,
+  rounded corners,
+  inner sep=10pt,
+  inner ysep=10pt
+]
+\tikzstyle{tboxtitle} = [rounded corners, fill=fg, text=bg]
+
+% local definitions
+\usepackage{environ}
+
+% textbox environment - displays enclosed content inside a box
+% @param - box title
+\NewEnviron{textbox}[1] {%
+  \begin{center}
+    \hspace*{-0.5cm}
+    \begin{tikzpicture}
+      \usebeamercolor[fg]{frametitle}
+      \node[tbox] (box) {%
+        \begin{minipage}{\textwidth}
+          \vspace{0.2cm}
+          \BODY
+        \end{minipage}};%
+      \ifx\relax#1\relax
+      \else
+        \node[tboxtitle,right=10pt] at (box.north west) {#1};
+      \fi
+    \end{tikzpicture}
+  \end{center}
+}
+
+% header text - large, bold, title color
+\newcommand{\header}[1]{{\usebeamercolor[fg]{frametitle}{\Large #1}}}
+
+% lst language
+\lstdefinestyle{asm}{
+  % belowcaptionskip=0,
+  morekeywords={[1]
+    LOAD,STORE,FENCE,FLUSH,
+    ADD,ADDI,SUB,SUBI,MUL,MULI,
+    CMP,JMP,JZ,JNZ,JS,JNS,JNZNS,
+    MEM,CAS,
+    CHECK,HALT,EXIT
+  },
+  morecomment=[l]\#,
+  basicstyle=\footnotesize\ttfamily,
+  keywordstyle=\color{blue},
+  commentstyle=\color{gray},
+}
+\lstdefinestyle{c++}{
+  belowcaptionskip=1\baselineskip,
+  breaklines=true,
+  language=C++,
+  showstringspaces=false,
+  alsoletter={:},
+  basicstyle=\scriptsize\ttfamily,
+  keywordstyle=\sffamily\bfseries\color{blue},
+  commentstyle=\itshape\color{gray},
+  stringstyle=\color{red!60!black},
+}
+\lstdefinestyle{smtlib}{
+  breaklines=true,
+  morekeywords={[1]
+    declare-fun,
+    assert,
+    not,
+    and,
+    or,
+    xor,
+    =,
+    =>,
+    ite,
+    bvadd,
+    bvsub,
+    bvmul,
+    store,
+    select,
+    extract,
+    push,
+    pop
+  },
+  morekeywords={[2]
+    BitVec
+  },
+  alsoletter={-, =, >},
+  morecomment=[l]\;,
+  sensitive=false,
+  basicstyle=\small\ttfamily,
+  commentstyle=\color{gray},
+  keywordstyle=[1]\bfseries\color{green!40!black},
+  keywordstyle=[2]\bfseries\color{red!40!black},
+}
+\lstdefinestyle{btor2}{
+  morekeywords={[1]
+    sort,
+    zero,
+    one,
+    constd,
+    write,
+    input,
+    and,
+    or,
+    nand,
+    implies,
+    ite,
+    add,
+    read,
+    eq,
+    neq,
+  },
+  morekeywords={[2]
+    array,
+    bitvec
+  },
+  morekeywords={[3]
+    state,
+    init,
+    next,
+    constraint,
+    bad,
+  },
+  morecomment=[l]\#,
+  basicstyle=\small\ttfamily,
+  keywordstyle=[1]\bfseries\color{green!40!black},
+  keywordstyle=[2]\bfseries\color{blue!80!black},
+  keywordstyle=[3]\bfseries\color{red!40!black},
+  commentstyle=\color{gray},
+}
+
+% check marks
+\newcommand{\cmark}[1][green]{{\color{#1} \checkmark}}
+
+% inline code
+\newcommand{\lstASM}[1]{\lstinline[style=asm]{#1}}
+\newcommand{\lstCPP}[1]{\lstinline[style=c++]{#1}}
+\newcommand{\lstSMTLIB}[1]{\lstinline[style=smtlib]{#1}}
+\newcommand{\lstBTOR}[1]{\lstinline[style=btor2]{#1}}
+
+% content %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{$\textbf{Concu}_{\text{rrent}}\textbf{Bin}_{\text{ary}}\textbf{E}_{\text{valuator}}$\\~\\}
+\subtitle{Bounded Model Checking of Lockless Programs}
+\author{Florian Schr\"ogendorfer\\~\\\tiny florian.schroegendorfer@phlo.at}
+\date{}
+
+\begin{document}
+
+\small
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\frame{\titlepage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+  \frametitle{Introduction}
+  \vfill
+  \textbf{Problem}
+  \begin{itemize}
+    \item heisenbugs due to architecture specific memory ordering habits
+    \item not easily testable and impossible to debug
+    \item especially troublesome for lockless data structures
+    \item requires knowledge about the underlying hardware's characteristics
+  \end{itemize}
+
+  \begin{textbox}{Goal}
+    Proofing correctness of concurrent programs operating on shared memory.
+  \end{textbox}
+
+  \vfill
+
+  \textbf{Approach}
+  \begin{itemize}
+    \item define a simple machine model as an idealized environment
+    \item encode execution of arbitrary programs into SMT formul\ae
+    \item proof properties by the means of bounded model checking
+  \end{itemize}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+  \frametitle{Memory Ordering}
+
+  \vspace{-0.5cm}
+  \begin{textbox}{Memory Ordering}
+    Order of accesses to memory by a CPU at runtime.
+  \end{textbox}
+
+  \textbf{Why reorder memory operations? Performance!}
+  \begin{itemize}
+    \item CPUs became so fast that caches simply can't keep up
+    \item unnoticeable by sequential (single threaded) programs
+    \item potentially problematic for parallel programs
+  \end{itemize}
+
+  \vfill
+  \centering
+  \scalebox{0.8}{
+    \tabulinesep=4pt
+    \begin{tabu}{|l|c|c|c|c|c|c|c|}
+      \tabucline{2-}
+      \multicolumn{1}{c|}{}
+      & \rotatebox{90}{Alpha}
+      & \rotatebox{90}{ARM}
+      & \rotatebox{90}{Itanium}
+      & \rotatebox{90}{MIPS}
+      & \rotatebox{90}{POWER}
+      & \rotatebox{90}{x86}
+      & \rotatebox{90}{zSystems} \\
+      \tabucline{2-}
+      \firsthline
+      Loads Reordered after Loads/Stores? & \cmark & \cmark & \cmark  & \cmark & \cmark & & \\
+      \hline
+      Stores Reordered after Stores? & \cmark & \cmark & \cmark & \cmark & \cmark & & \\
+      \hline
+      Stores Reordered after Loads? & \cmark & \cmark & \cmark & \cmark & \cmark & \cmark & \cmark \\
+      \hline
+      Atomic Reordered with Loads/Stores? & \cmark & \cmark & & \cmark & \cmark & & \\
+      \lasthline
+    \end{tabu}
+  }
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+  \frametitle{Memory Ordering Models}
+
+  \begin{textbox}{Memory Ordering Model}
+    Behaviour of multiprocessor systems regarding memory operations.
+  \end{textbox}
+
+  \begin{itemize}
+    \item contract between programmer and system
+    \item none of the current major architectures is \emph{sequentially consistent}
+    \item imposes the requirement for explicit memory barrier instructions
+    \item often specified in an informal prose together with litmus tests
+  \end{itemize}
+
+  \begin{textbox}{Sequential Consistency}
+    \scriptsize
+    A multiprocessor is sequentially consistent if the result of any execution is the same as if the operations of all the processors were executed in some sequential order, and the operations of each individual processor appear in this sequence in the order specified by its program. \tiny [Lamport '79]
+  \end{textbox}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+  \frametitle{Memory Reordering -- Store Buffers}
+  \centering
+  \hspace{-.4cm}
+  \scalebox{.7}{\input{../thesis/figures/store-buffer-architecture.tex}}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]
+  \frametitle{Memory Reordering -- Store Buffer Litmus Test}
+  \begin{lstlisting}[style=c++, numbers=left, numberstyle=\tiny\color{gray}, numberblanklines=false]
+static int w0 = 0, w1 = 0;
+static int r0 = 0, r1 = 0;
+
+static void * T0 (void * t) {
+  w0 = 1;
+  r0 = w1;
+  return t;
+}
+
+static void * T1 (void * t) {
+  w1 = 1;
+  r1 = w0;
+  return t;
+}
+
+int main () {
+  pthread_t t[2];
+  pthread_create(t + 0, 0, T0, 0);
+  pthread_create(t + 1, 0, T1, 0);
+  pthread_join(t[0], 0);
+  pthread_join(t[1], 0);
+  assert(r0 + r1);
+  return 0;
+}
+  \end{lstlisting}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+  \frametitle{Memory Reordering -- Store Buffer Litmus Test Trace}
+  \centering
+  \input{../thesis/figures/store-buffer-litmus-interleaving.tex}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+  \frametitle{Virtual Machine Model -- Architecture}
+  \centering
+  \hspace{-.8cm}
+  \scalebox{.8}{\input{../thesis/figures/architecture.tex}}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]
+  \frametitle{Virtual Machine Model -- Instruction Set}
+  \vspace*{-.2cm}
+  \begin{columns}
+    \begin{column}{0.2\textwidth}
+      \begin{textbox}{Memory}\color{black}
+        \begin{tabular}{ll}
+          \lstASM{LOAD} & \lstASM{adr} \\
+          \lstASM{STORE} & \lstASM{adr} \\
+          \lstASM{FENCE} \\
+        \end{tabular}
+      \end{textbox}
+      \begin{textbox}{Arithmetic}\color{black}
+        \begin{tabular}{ll}
+          \lstASM{ADD} & \lstASM{adr} \\
+          \lstASM{ADDI} & \lstASM{val} \\
+          \lstASM{SUB} & \lstASM{adr} \\
+          \lstASM{SUBI} & \lstASM{val} \\
+          \lstASM{MUL} & \lstASM{adr} \\
+          \lstASM{MULI} & \lstASM{val} \\
+        \end{tabular}
+      \end{textbox}
+    \end{column}
+
+    \begin{column}{0.2\textwidth}
+      \begin{textbox}{Atomic}\color{black}
+        \begin{tabular}{ll}
+          \lstASM{MEM} & \lstASM{adr} \\
+          \lstASM{CAS} & \lstASM{adr} \\
+        \end{tabular}
+      \end{textbox}
+      \vspace{0.1cm}
+      \begin{textbox}{Flow Control}\color{black}
+        \begin{tabular}{ll}
+          \lstASM{CMP} & \lstASM{adr} \\
+          \lstASM{JZ} & \lstASM{pc} \\
+          \lstASM{JNZ} & \lstASM{pc} \\
+          \lstASM{JS} & \lstASM{pc} \\
+          \lstASM{JNS} & \lstASM{pc} \\
+          \lstASM{JNZNS} & \lstASM{pc} \\
+        \end{tabular}
+      \end{textbox}
+    \end{column}
+
+    \begin{column}{0.2\textwidth}
+      \vspace{-2.1cm}
+      \begin{textbox}{Termination}\color{black}
+        \begin{tabular}{ll}
+          \lstASM{HALT} \\
+          \lstASM{EXIT} & \lstASM{val} \\
+        \end{tabular}
+      \end{textbox}
+      \vspace{0.1cm}
+      \begin{textbox}{Meta}\color{black}
+        \begin{tabular}{ll}
+          \lstASM{CHECK} & \lstASM{id} \\
+        \end{tabular}
+      \end{textbox}
+    \end{column}
+  \end{columns}
+  \vfill
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+  \frametitle{ConcuBinE}
+  \vspace{-.5cm}
+  \begin{center}
+    \scalebox{.8}{\input{../thesis/figures/toolchain.tex}}
+  \end{center}
+  \begin{itemize}
+    \item \texttt{simulate} -- simulate execution
+    \item \texttt{solve} -- encode and solve bounded model checking problem
+      \begin{itemize}
+        \item generates SMT-LIB or Btor2 encodings
+        \item checks for an exit code greater than zero by default
+        \item uses Boolector (BtorMC), Z3 and CVC4 as backend solvers
+        \item returs erroneous trace if problem was indeed satisfiable
+      \end{itemize}
+    \item \texttt{replay} -- reevaluate trace via simulation
+  \end{itemize}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]
+  \frametitle{ConcuBinE -- Store Buffer Litmus Test}
+  \begin{tikzpicture}
+    \usebeamercolor[fg]{frametitle}
+
+    % mmap
+    % \node at (0, -3.2) {\color{red}+};
+    \path (0, -3.2) node (mmap) [tbox, text width=.83cm, align=center] {
+        \color{black}
+        \vspace{-.05cm}\\
+        % \begin{tabular}{ll}
+          % \texttt{0} & \texttt{0} \\
+          % \texttt{1} & \texttt{0}
+        % \end{tabular}
+        \texttt{0 0} \\
+        \texttt{1 0}
+    };
+    \node [tboxtitle,right=5pt] at (mmap.north west) {MMap};
+
+    % checker
+    % \node at (0, 0) {\color{red}+};
+    \path (0, 0) node (chk) [tbox] {
+        \color{black}
+        \begin{tabular}{ll}
+          \lstASM{CHECK} & \lstASM{0} \\
+          \lstASM{ADD} & \lstASM{0} \\
+          \lstASM{ADD} & \lstASM{1} \\
+          \lstASM{JZ} & \lstASM{error} \\
+          \lstASM{EXIT} & \lstASM{0} \\
+          \lstASM{error: EXIT} & \lstASM{1} \\
+        \end{tabular}
+    };
+    \node[tboxtitle,right=10pt] at (chk.north west) {Checker};
+
+    % thread 1
+    % \node at (4, 0) {\color{red}+};
+    \path (4, 0) node (t1) [tbox] {
+        \color{black}
+        \begin{tabular}{ll}
+          \lstASM{ADDI} & \lstASM{1} \\
+          \lstASM{STORE} & \lstASM{0} \\
+          \lstASM{LOAD} & \lstASM{1} \\
+          \lstASM{CHECK} & \lstASM{0} \\
+        \end{tabular}
+    };
+    \node[tboxtitle,right=10pt] at (t1.north west) {Thread 1};
+
+    % thread 2
+    % \node at (7.2, 0) {\color{red}+};
+    \path (7.2, 0) node (t2) [tbox] {
+        \color{black}
+        \begin{tabular}{ll}
+          \lstASM{ADDI} & \lstASM{1} \\
+          \lstASM{STORE} & \lstASM{1} \\
+          \lstASM{LOAD} & \lstASM{0} \\
+          \lstASM{CHECK} & \lstASM{0} \\
+        \end{tabular}
+    };
+    \node[tboxtitle,right=10pt] at (t2.north west) {Thread 2};
+
+    % command
+    % \node at (3, -5) {\color{red}+};
+    \path (3, -5) node (cmd) [] {
+      \footnotesize
+      \color{black}
+      \texttt{\$ concubine solve -m init.mmap 15 checker.asm t1.asm t2.asm}
+    };
+
+    % mmap arrow
+    % \node at (2.3, -4.8) {\color{green}+};
+    \path [draw, -stealth] (mmap) -- (2.1, -4.7);
+    % checker arrow
+    % \node at (4.6, -4.8) {\color{green}+};
+    \path [draw, -stealth] (chk) -- (4.5, -4.7);
+    % thread 1 arrow
+    % \node at (6.2, -4.8) {\color{green}+};
+    \path [draw, -stealth] (t1) -- (6.1, -4.7);
+    % thread 2 arrow
+    % \node at (7.4, -4.8) {\color{green}+};
+    \path [draw, -stealth] (t2) -- (7.3, -4.7);
+  \end{tikzpicture}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]
+  \frametitle{ConcuBinE -- Store Buffer Litmus Test Trace}
+  \centering
+  \begin{lstlisting}[style=asm,xleftmargin=-.3cm]
+checker.asm
+t1.asm
+t2.asm
+. smt.mmap
+# tid pc    cmd   arg   accu  mem adr val full  heap
+1     0     ADDI  1     0     0   0   0   0     {}  # 0
+2     0     ADDI  1     0     0   0   0   0     {}  # 1
+1     1     STORE 0     1     0   0   0   0     {}  # 2
+2     1     STORE 1     1     0   0   0   0     {}  # 3
+1     2     LOAD  1     1     0   0   1   1     {}  # 4
+2     2     LOAD  0     1     0   1   1   1     {}  # 5
+1     3     CHECK 0     0     0   0   1   1     {}  # 6
+2     3     CHECK 0     0     0   1   1   1     {}  # 7
+0     0     CHECK 0     0     0   0   0   0     {}  # 8
+0     1     ADD   0     0     0   0   0   0     {}  # 9
+0     2     ADD   1     0     0   0   0   0     {}  # 10
+0     3     JZ    error 0     0   0   0   0     {}  # 11
+0     error EXIT  1     0     0   0   0   0     {}  # 12
+\end{lstlisting}
+\end{frame}
+
+\end{document}
